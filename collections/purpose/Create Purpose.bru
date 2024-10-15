@@ -1,17 +1,13 @@
 meta {
-  name: Create Risk Analysis
+  name: Create Purpose
   type: http
-  seq: 6
+  seq: 1
 }
 
 post {
-  url: {{host-catalog}}/eservices/:eserviceId/riskAnalysis
+  url: {{host-purpose}}/purposes
   body: json
   auth: none
-}
-
-params:path {
-  eserviceId: {{eserviceId}}
 }
 
 headers {
@@ -21,7 +17,13 @@ headers {
 
 body:json {
   {
-      "name": "{{randomName}}",
+      "eserviceId": "{{eserviceId}}",
+      "consumerId": "{{tenantId}}",
+      "title": "{{randomName}}",
+      "description": "a purpose long description",
+      "isFreeOfCharge": true,
+      "dailyCalls": 100,
+      "freeOfChargeReason": "Free!",
       "riskAnalysisForm": {
           "version": "3.0",
           "answers": {
@@ -49,6 +51,11 @@ body:json {
           }
       }
   }
+}
+
+vars:post-response {
+  purposeId: res.body.id
+  purposeVersionId: res.body.versions.at(-1).id
 }
 
 script:pre-request {

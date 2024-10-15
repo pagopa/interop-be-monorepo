@@ -1,0 +1,24 @@
+meta {
+  name: Get Organization
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-api-gw}}/organizations/:organizationId
+  body: none
+  auth: none
+}
+
+params:path {
+  organizationId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
+
+vars:post-response {
+  tenantOrigin: res.body.externalId.origin
+  tenantExternalId: res.body.externalId.id
+}
