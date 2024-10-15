@@ -1,6 +1,6 @@
 /* eslint-disable functional/no-let */
-import { expect, describe, it } from "vitest";
 import { getMockDelegationProducer } from "pagopa-interop-commons-test/index.js";
+import { describe, expect, it } from "vitest";
 import { addOneDelegation, delegationService } from "./utils.js";
 
 describe("get delegations", () => {
@@ -10,6 +10,7 @@ describe("get delegations", () => {
     await addOneDelegation(delegation1);
     await addOneDelegation(delegation2);
 
+    // non funziona
     const res1 = await delegationService.getDelegations(
       [],
       [],

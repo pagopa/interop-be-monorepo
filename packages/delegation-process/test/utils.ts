@@ -18,6 +18,7 @@ import {
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import { delegationProducerServiceBuilder } from "../src/services/delegationProducerService.js";
+import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { delegationNotActivableStates } from "../src/services/validators.js";
 
@@ -41,10 +42,12 @@ export const tenants = readModelRepository.tenants;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-export const delegationService = delegationProducerServiceBuilder(
+export const delegationProducerService = delegationProducerServiceBuilder(
   postgresDB,
   readModelService
 );
+
+export const delegationService = delegationServiceBuilder(readModelService);
 
 export const readLastAgreementEvent = async (
   delegationId: DelegationId
