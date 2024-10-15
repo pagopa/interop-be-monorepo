@@ -13,22 +13,22 @@ import { EventEnvelope } from "../events/events.js";
 export const DelegationEventV2 = z.discriminatedUnion("type", [
   z.object({
     event_version: z.literal(2),
-    type: z.literal("DelegationSubmittedV2"),
+    type: z.literal("DelegationSubmitted"),
     data: protobufDecoder(DelegationSubmittedV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("DelegationApprovedV2"),
+    type: z.literal("DelegationApproved"),
     data: protobufDecoder(DelegationApprovedV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("DelegationRejectedV2"),
+    type: z.literal("DelegationRejected"),
     data: protobufDecoder(DelegationRejectedV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("DelegationRevokedV2"),
+    type: z.literal("DelegationRevoked"),
     data: protobufDecoder(DelegationRevokedV2),
   }),
 ]);
@@ -39,16 +39,16 @@ export function delegationEventToBinaryDataV2(
   event: DelegationEventV2
 ): Uint8Array {
   return match(event)
-    .with({ type: "DelegationSubmittedV2" }, ({ data }) =>
+    .with({ type: "DelegationSubmitted" }, ({ data }) =>
       DelegationSubmittedV2.toBinary(data)
     )
-    .with({ type: "DelegationApprovedV2" }, ({ data }) =>
+    .with({ type: "DelegationApproved" }, ({ data }) =>
       DelegationApprovedV2.toBinary(data)
     )
-    .with({ type: "DelegationRejectedV2" }, ({ data }) =>
+    .with({ type: "DelegationRejected" }, ({ data }) =>
       DelegationRejectedV2.toBinary(data)
     )
-    .with({ type: "DelegationRevokedV2" }, ({ data }) =>
+    .with({ type: "DelegationRevoked" }, ({ data }) =>
       DelegationRevokedV2.toBinary(data)
     )
     .exhaustive();

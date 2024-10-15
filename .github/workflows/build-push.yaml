@@ -83,7 +83,8 @@ jobs:
             dockerfile_path: packages/one-trust-notices
           - image_name: delegation-process
             dockerfile_path: packages/delegation-process
-
+          - image_name: delegation-readmodel-writer
+            dockerfile_path: packages/delegation-readmodel-writer
     steps:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
