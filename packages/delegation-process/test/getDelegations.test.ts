@@ -10,7 +10,6 @@ describe("get delegations", () => {
     await addOneDelegation(delegation1);
     await addOneDelegation(delegation2);
 
-    // non funziona
     const res1 = await delegationService.getDelegations(
       [],
       [],

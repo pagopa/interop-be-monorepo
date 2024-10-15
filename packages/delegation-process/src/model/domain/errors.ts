@@ -6,13 +6,13 @@ import {
 } from "pagopa-interop-models";
 
 export const errorCodes = {
-    delegationNotFound: "0001",
-    eserviceNotFound: "0002",
-    delegationAlreadyExists: "0003",
-    tenantNotFound: "0004",
-    invalidDelegatorAndDelegateIds: "0005",
-    invalidExternalOriginId: "0006",
-    tenantNotAllowedToDelegation: "0007",
+  delegationNotFound: "0001",
+  eserviceNotFound: "0002",
+  delegationAlreadyExists: "0003",
+  tenantNotFound: "0004",
+  invalidDelegatorAndDelegateIds: "0005",
+  invalidExternalOriginId: "0006",
+  tenantNotAllowedToDelegation: "0007",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
