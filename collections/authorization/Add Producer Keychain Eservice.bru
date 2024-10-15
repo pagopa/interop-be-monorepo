@@ -1,0 +1,27 @@
+meta {
+  name: Add Producer Keychain Eservice
+  type: http
+  seq: 29
+}
+
+post {
+  url: {{host-authorization}}/producerKeychains/:producerKeychainId/eservices
+  body: json
+  auth: none
+}
+
+params:path {
+  producerKeychainId: {{producerKeychainId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "eserviceId": "{{eserviceId}}"
+  }
+  
+}

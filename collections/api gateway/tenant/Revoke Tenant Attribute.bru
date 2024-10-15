@@ -1,0 +1,21 @@
+meta {
+  name: Revoke Tenant Attribute
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{host-api-gw}}/organizations/origin/:origin/externalId/:externalId/attributes/:code
+  body: none
+  auth: none
+}
+
+params:path {
+  origin: {{tenantOrigin}}
+  externalId: {{tenantExternalId}}
+  code: {{attributeCode}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
