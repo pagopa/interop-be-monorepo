@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockDelegationProducer,
+} from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -10,6 +13,8 @@ import {
   operationForbidden,
   generateId,
   Document,
+  Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -27,6 +32,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("update Document", () => {
@@ -56,6 +62,83 @@ describe("update Document", () => {
         { prettyName: "updated prettyName" },
         {
           authData: getMockAuthData(eservice.producerId),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      const expectedEservice = toEServiceV2({
+        ...eservice,
+        descriptors: [
+          {
+            ...descriptor,
+            docs: [
+              {
+                ...mockDocument,
+                prettyName: "updated prettyName",
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(writtenEvent.stream_id).toBe(eservice.id);
+      expect(writtenEvent.version).toBe("1");
+      expect(writtenEvent.type).toBe("EServiceDescriptorDocumentUpdated");
+      expect(writtenEvent.event_version).toBe(2);
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorDocumentUpdatedV2,
+        payload: writtenEvent.data,
+      });
+
+      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+      expect(writtenPayload.documentId).toEqual(mockDocument.id);
+      expect(writtenPayload.eservice).toEqual(expectedEservice);
+      expect(writtenPayload.eservice).toEqual(
+        toEServiceV2({
+          ...eservice,
+          descriptors: [
+            {
+              ...descriptor,
+              docs: [returnedDocument],
+            },
+          ],
+        })
+      );
+    }
+  );
+  it.each(
+    Object.values(descriptorState).filter(
+      (state) => state !== descriptorState.archived
+    )
+  )(
+    "should write on event-store for the update of a document in a descriptor in %s state (delegate)",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(state),
+        docs: [mockDocument],
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      const delegation: Delegation = {
+        ...getMockDelegationProducer(),
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      };
+
+      await addOneEService(eservice);
+      await addOneDelegation(delegation);
+
+      const returnedDocument = await catalogService.updateDocument(
+        eservice.id,
+        descriptor.id,
+        mockDocument.id,
+        { prettyName: "updated prettyName" },
+        {
+          authData: getMockAuthData(delegation.delegateId),
           correlationId: "",
           serviceName: "",
           logger: genericLogger,
@@ -137,6 +220,39 @@ describe("update Document", () => {
         { prettyName: "updated prettyName" },
         {
           authData: getMockAuthData(),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      docs: [mockDocument],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    };
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+    expect(
+      catalogService.updateDocument(
+        eservice.id,
+        descriptor.id,
+        mockDocument.id,
+        { prettyName: "updated prettyName" },
+        {
+          authData: getMockAuthData(eservice.producerId),
           correlationId: "",
           serviceName: "",
           logger: genericLogger,

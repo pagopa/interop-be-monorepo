@@ -2,6 +2,7 @@
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockDelegationProducer,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -14,6 +15,8 @@ import {
   DescriptorId,
   generateId,
   EServiceDeletedV2,
+  Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import { config } from "../src/config/config.js";
@@ -32,6 +35,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   postgresDB,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("delete draft descriptor", () => {
@@ -293,6 +297,81 @@ describe("delete draft descriptor", () => {
     });
   });
 
+  it("should write on event-store for the deletion of a draft descriptor and the entire eservice (delegate)", async () => {
+    const draftDescriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.draft),
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [draftDescriptor],
+    };
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    };
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    await catalogService.deleteDraftDescriptor(
+      eservice.id,
+      draftDescriptor.id,
+      {
+        authData: getMockAuthData(delegation.delegateId),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
+      eservice.id,
+      1,
+      "catalog",
+      postgresDB
+    );
+
+    const eserviceDeletionEvent = await readLastEserviceEvent(eservice.id);
+
+    expect(descriptorDeletionEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDraftDescriptorDeleted",
+      event_version: 2,
+    });
+    expect(eserviceDeletionEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "2",
+      type: "EServiceDeleted",
+      event_version: 2,
+    });
+
+    const descriptorDeletionPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorDeletedV2,
+      payload: descriptorDeletionEvent.data,
+    });
+    const eserviceDeletionPayload = decodeProtobufPayload({
+      messageType: EServiceDeletedV2,
+      payload: eserviceDeletionEvent.data,
+    });
+
+    const expectedEserviceBeforeDeletion: EService = {
+      ...eservice,
+      descriptors: [],
+    };
+
+    expect(descriptorDeletionPayload).toEqual({
+      eservice: toEServiceV2(expectedEserviceBeforeDeletion),
+      descriptorId: draftDescriptor.id,
+    });
+    expect(eserviceDeletionPayload).toEqual({
+      eserviceId: eservice.id,
+      eservice: toEServiceV2(expectedEserviceBeforeDeletion),
+    });
+  });
+
   it("should fail if one of the file deletions fails", async () => {
     config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
 
@@ -376,6 +455,37 @@ describe("delete draft descriptor", () => {
     expect(
       catalogService.deleteDraftDescriptor(eservice.id, descriptorToDelete.id, {
         authData: getMockAuthData(),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const publishedDescriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      version: "1",
+    };
+    const descriptorToDelete: Descriptor = {
+      ...getMockDescriptor(descriptorState.draft),
+      version: "2",
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [publishedDescriptor, descriptorToDelete],
+    };
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    };
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+    expect(
+      catalogService.deleteDraftDescriptor(eservice.id, descriptorToDelete.id, {
+        authData: getMockAuthData(eservice.producerId),
         correlationId: "",
         serviceName: "",
         logger: genericLogger,

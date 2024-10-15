@@ -7,6 +7,7 @@ import {
   generateId,
   EServiceId,
   Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import { getMockDelegationProducer } from "pagopa-interop-commons-test/index.js";
@@ -248,6 +249,7 @@ describe("get eservice by id", () => {
     };
     const delegation: Delegation = {
       ...getMockDelegationProducer(),
+      state: delegationState.active,
       eserviceId: eservice.id,
       delegateId: authData.organizationId,
     };

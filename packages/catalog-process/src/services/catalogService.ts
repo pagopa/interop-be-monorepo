@@ -524,7 +524,7 @@ export function catalogServiceBuilder(
         const eserviceWithSameName =
           await readModelService.getEServiceByNameAndProducerId({
             name: eserviceSeed.name,
-            producerId: authData.organizationId,
+            producerId: eservice.data.producerId,
           });
         if (eserviceWithSameName !== undefined) {
           throw eServiceDuplicate(eserviceSeed.name);
@@ -561,7 +561,6 @@ export function catalogServiceBuilder(
         description: eserviceSeed.description,
         name: eserviceSeed.name,
         technology: updatedTechnology,
-        producerId: authData.organizationId,
         mode: updatedMode,
         riskAnalysis: checkedRiskAnalysis,
         descriptors: interfaceHasToBeDeleted
@@ -1371,7 +1370,7 @@ export function catalogServiceBuilder(
       if (
         await readModelService.getEServiceByNameAndProducerId({
           name: clonedEServiceName,
-          producerId: authData.organizationId,
+          producerId: eservice.data.producerId,
         })
       ) {
         throw eServiceDuplicate(clonedEServiceName);
@@ -1575,7 +1574,7 @@ export function catalogServiceBuilder(
       assertIsReceiveEservice(eservice.data);
 
       const tenant = await retrieveTenant(
-        authData.organizationId,
+        eservice.data.producerId,
         readModelService
       );
       assertTenantKindExists(tenant);
@@ -1640,7 +1639,7 @@ export function catalogServiceBuilder(
       assertIsReceiveEservice(eservice.data);
 
       const tenant = await retrieveTenant(
-        authData.organizationId,
+        eservice.data.producerId,
         readModelService
       );
       assertTenantKindExists(tenant);

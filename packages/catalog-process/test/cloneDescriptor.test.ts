@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger, FileManagerError } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockDelegationProducer,
+} from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -12,6 +15,8 @@ import {
   toEServiceV2,
   generateId,
   operationForbidden,
+  delegationState,
+  Delegation,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
@@ -30,6 +35,7 @@ import {
   getMockEService,
   getMockDescriptor,
   getMockDocument,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("clone descriptor", () => {
@@ -301,6 +307,33 @@ describe("clone descriptor", () => {
     expect(
       catalogService.cloneDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw operationForbidden if the requester is a producer delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    };
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.cloneDescriptor(eservice.id, descriptor.id, {
+        authData: getMockAuthData(delegation.delegateId),
         correlationId: "",
         serviceName: "",
         logger: genericLogger,
