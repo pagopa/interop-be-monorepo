@@ -47,11 +47,9 @@ const AuthorizationServerConfig = CommonHTTPServiceConfig.and(
       }))
   )
   .and(
-    z
-      .object({ TOKEN_GENERATION_STATES_TABLE: z.string() })
-      .transform((c) => ({
-        tokenGenerationStatesTable: c.TOKEN_GENERATION_STATES_TABLE,
-      }))
+    z.object({ TOKEN_GENERATION_STATES_TABLE: z.string() }).transform((c) => ({
+      tokenGenerationStatesTable: c.TOKEN_GENERATION_STATES_TABLE,
+    }))
   );
 
 export type AuthorizationServerConfig = z.infer<

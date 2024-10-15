@@ -66,15 +66,23 @@ import {
 } from "../model/domain/errors.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function tokenServiceBuilder(
-  dynamoDBClient: DynamoDBClient,
-  kmsClient: KMSClient,
-  redisRateLimiter: RateLimiter,
-  producer: Awaited<ReturnType<typeof initProducer>>,
-  correlationId: string,
-  fileManager: FileManager,
-  logger: Logger
-) {
+export function tokenServiceBuilder({
+  dynamoDBClient,
+  kmsClient,
+  redisRateLimiter,
+  producer,
+  correlationId,
+  fileManager,
+  logger,
+}: {
+  dynamoDBClient: DynamoDBClient;
+  kmsClient: KMSClient;
+  redisRateLimiter: RateLimiter;
+  producer: Awaited<ReturnType<typeof initProducer>>;
+  correlationId: string;
+  fileManager: FileManager;
+  logger: Logger;
+}) {
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest
@@ -144,15 +152,15 @@ export function tokenServiceBuilder(
       const token = await generateInteropToken(kmsClient, jwt, [], 0, {});
 
       if (key.clientKind === clientKindTokenStates.consumer) {
-        await publishAudit(
+        await publishAudit({
           producer,
-          token,
+          generatedToken: token,
           key,
-          jwt,
+          clientAssertion: jwt,
           correlationId,
           fileManager,
-          logger
-        );
+          logger,
+        });
 
         return token;
       }
@@ -352,15 +360,23 @@ export const generateInteropToken = async (
   };
 };
 
-export const publishAudit = async (
-  producer: Awaited<ReturnType<typeof initProducer>>,
-  generatedToken: InteropToken,
-  key: ConsumerKey,
-  clientAssertion: ClientAssertion,
-  correlationId: string,
-  fileManager: FileManager,
-  logger: Logger
-): Promise<void> => {
+export const publishAudit = async ({
+  producer,
+  generatedToken,
+  key,
+  clientAssertion,
+  correlationId,
+  fileManager,
+  logger,
+}: {
+  producer: Awaited<ReturnType<typeof initProducer>>;
+  generatedToken: InteropToken;
+  key: ConsumerKey;
+  clientAssertion: ClientAssertion;
+  correlationId: string;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<void> => {
   const messageBody: GeneratedTokenAuditDetails = {
     jwtId: generatedToken.payload.jti,
     correlationId,

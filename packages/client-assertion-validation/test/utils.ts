@@ -3,9 +3,11 @@ import * as jwt from "jsonwebtoken";
 import {
   ClientId,
   clientKindTokenStates,
+  DescriptorId,
   generateId,
   itemState,
   PurposeId,
+  PurposeVersionId,
   TenantId,
 } from "pagopa-interop-models";
 import {
@@ -78,11 +80,19 @@ export const getMockConsumerKey = (): ConsumerKey => ({
     .toString("base64url"),
   algorithm: "RS256",
   clientKind: clientKindTokenStates.consumer,
-  purposeState: itemState.active,
+  purposeState: {
+    state: itemState.active,
+    versionId: generateId<PurposeVersionId>(),
+  },
   agreementId: generateId(),
-  agreementState: itemState.active,
+  agreementState: { state: itemState.active },
   eServiceId: generateId(),
-  descriptorState: itemState.active,
+  eServiceState: {
+    state: itemState.active,
+    descriptorId: generateId<DescriptorId>(),
+    audience: ["test.interop.pagopa.it"],
+    voucherLifespan: 60,
+  },
 });
 
 export const getMockApiKey = (): ApiKey => ({
