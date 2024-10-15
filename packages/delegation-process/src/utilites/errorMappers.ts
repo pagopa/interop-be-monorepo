@@ -29,6 +29,7 @@ export const createProducerDelegationErrorMapper = (
       "tenantNotFound",
       "invalidDelegatorAndDelegateIds",
       "invalidExternalOriginId",
+      "tenantNotAllowedToDelegation",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

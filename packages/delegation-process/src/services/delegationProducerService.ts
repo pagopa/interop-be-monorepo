@@ -25,6 +25,7 @@ import {
   assertDelegatorIsIPA,
   assertDelegatorIsNotDelegate,
   assertEserviceExists,
+  assertTenantAllowedToDelgation,
 } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -68,6 +69,7 @@ export function delegationProducerServiceBuilder(
       const delegator = await getTenantById(delegatorId);
       const delegate = await getTenantById(delegateId);
 
+      assertTenantAllowedToDelgation(delegate);
       await assertDelegatorIsIPA(delegator);
       await assertEserviceExists(eserviceId, readModelService);
       await assertDelegationNotExists(

@@ -6,12 +6,13 @@ import {
 } from "pagopa-interop-models";
 
 export const errorCodes = {
-  delegationNotFound: "0001",
-  eserviceNotFound: "0002",
-  delegationAlreadyExists: "0003",
-  tenantNotFound: "0004",
-  invalidDelegatorAndDelegateIds: "0005",
-  invalidExternalOriginId: "0006",
+    delegationNotFound: "0001",
+    eserviceNotFound: "0002",
+    delegationAlreadyExists: "0003",
+    tenantNotFound: "0004",
+    invalidDelegatorAndDelegateIds: "0005",
+    invalidExternalOriginId: "0006",
+    tenantNotAllowedToDelegation: "0007",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -71,5 +72,15 @@ export function invalidExternalOriginError(
     detail: `Delegator is not an IPA`,
     code: "invalidExternalOriginId",
     title: `Invalid External origin ${externalOrigin}`,
+  });
+}
+
+export function tenantNotAllowedToDelegation(
+  tenantId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not allowed to delegation`,
+    code: "tenantNotAllowedToDelegation",
+    title: "Tenant not allowed to delegation",
   });
 }

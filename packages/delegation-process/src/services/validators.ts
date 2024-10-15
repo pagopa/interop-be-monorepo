@@ -11,6 +11,7 @@ import {
   delegatorAndDelegateSameIdError,
   eserviceNotFound,
   invalidExternalOriginError,
+  tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
@@ -48,6 +49,16 @@ export const assertDelegatorIsIPA = async (
 ): Promise<void> => {
   if (delegator?.externalId?.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
     throw invalidExternalOriginError(delegator?.externalId?.origin);
+  }
+};
+
+export const assertTenantAllowedToDelgation = (tenant: Tenant): void => {
+  const delegationFeature = tenant.features.find(
+    (f) => f.type === "DelegatedProducer"
+  );
+
+  if (!delegationFeature) {
+    throw tenantNotAllowedToDelegation(tenant.id);
   }
 };
 
