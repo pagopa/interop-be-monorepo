@@ -72,6 +72,7 @@ export * from "./read-models/delegationReadModel.js";
 
 // Utilities
 export * from "./brandedIds.js";
+export * from "./constants.js";
 export * from "./errors.js";
 export * from "./utils.js";
 

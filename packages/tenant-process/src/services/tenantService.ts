@@ -68,7 +68,6 @@ import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
   verifiedAttributeSelfRevocationNotAllowed,
-  tenantAlreadyHasDelegatedProducerFeature,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,

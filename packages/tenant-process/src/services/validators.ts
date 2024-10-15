@@ -3,8 +3,11 @@ import {
   AgreementState,
   Attribute,
   AttributeId,
+  CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS,
   EService,
   ExternalId,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  PUBLIC_SERVICES_MANAGERS,
   Tenant,
   TenantAttribute,
   TenantFeatureCertifier,
@@ -119,10 +122,6 @@ export function assertExpirationDateExist(
     throw expirationDateNotFoundInVerifier(verifierId, attributeId, tenantId);
   }
 }
-
-const PUBLIC_ADMINISTRATIONS_IDENTIFIER = "IPA";
-const CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS = "SAG";
-const PUBLIC_SERVICES_MANAGERS = "L37";
 
 export function getTenantKind(
   attributes: ExternalId[],
