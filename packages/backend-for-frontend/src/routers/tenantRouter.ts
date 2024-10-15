@@ -388,7 +388,24 @@ const tenantRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/tenants/delegatedProducer", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const tenantId = ctx.authData.organizationId;
+
+      try {
+        await tenantService.assignTenantDelegatedProducerFeature(tenantId, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error while assigning delegated producer feature to ${tenantId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return tenantRouter;
 };
