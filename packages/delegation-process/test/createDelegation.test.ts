@@ -26,6 +26,7 @@ import {
   delegatorAndDelegateSameIdError,
   eserviceNotFound,
   invalidExternalOriginError,
+  tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 
@@ -92,7 +93,15 @@ describe("create delegation", () => {
       },
     };
 
-    const delegate = getMockTenant();
+    const delegate = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "DelegatedProducer" as const,
+          availabilityTimestamp: currentExecutionTime,
+        },
+      ],
+    };
     const eservice = getMockEService();
 
     await addOneTenant(delegator);
@@ -148,16 +157,24 @@ describe("create delegation", () => {
       },
     };
 
-    const delegate = getMockTenant();
+    const delegate = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "DelegatedProducer" as const,
+          availabilityTimestamp: currentExecutionTime,
+        },
+      ],
+    };
     const eservice = getMockEService();
 
     const existentDelegation = {
-      ...getMockDelegationProducer(
-        generateId<DelegationId>(),
+      ...getMockDelegationProducer({
+        id: generateId<DelegationId>(),
         delegatorId,
-        delegate.id,
-        eservice.id
-      ),
+        delegateId: delegate.id,
+        eserviceId: eservice.id,
+      }),
       state: randomArrayItem(delegationNotActivableStates),
     };
 
@@ -211,15 +228,23 @@ describe("create delegation", () => {
       },
     };
 
-    const delegate = getMockTenant();
+    const delegate = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "DelegatedProducer" as const,
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
     const eservice = getMockEService();
     const delegation = {
-      ...getMockDelegationProducer(
-        generateId<DelegationId>(),
+      ...getMockDelegationProducer({
+        id: generateId<DelegationId>(),
         delegatorId,
-        delegate.id,
-        eservice.id
-      ),
+        delegateId: delegate.id,
+        eserviceId: eservice.id,
+      }),
       state: getRandomValidDelegationStatus(),
     };
     // eslint-disable-next-line no-console
@@ -284,7 +309,15 @@ describe("create delegation", () => {
     const authData = getRandomAuthData(delegatorId);
 
     const delegateId = generateId<TenantId>();
-    const delegate = getMockTenant(delegateId);
+    const delegate = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "DelegatedProducer" as const,
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
 
     await addOneTenant(delegate);
 
@@ -335,7 +368,15 @@ describe("create delegation", () => {
       },
     };
 
-    const delegate = getMockTenant();
+    const delegate = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "DelegatedProducer" as const,
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
@@ -369,13 +410,21 @@ describe("create delegation", () => {
       },
     };
 
-    const delegate = getMockTenant();
+    const delegate = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "DelegatedProducer" as const,
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
     const eserviceId = generateId<EServiceId>();
-    const delegation = getMockDelegationProducer(
-      generateId<DelegationId>(),
+    const delegation = getMockDelegationProducer({
+      id: generateId<DelegationId>(),
       delegatorId,
-      delegate.id
-    );
+      delegateId: delegate.id,
+    });
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
@@ -395,5 +444,37 @@ describe("create delegation", () => {
         }
       )
     ).rejects.toThrowError(eserviceNotFound(eserviceId));
+  });
+
+  it("should throw an invalidExternalOriginError error if delegator has externalId origin different from IPA", async () => {
+    const delegatorId = generateId<TenantId>();
+    const authData = getRandomAuthData(delegatorId);
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "IPA",
+        value: "anythings",
+      },
+    };
+
+    const delegate = getMockTenant();
+
+    await addOneTenant(delegate);
+    await addOneTenant(delegator);
+
+    await expect(
+      delegationService.createProducerDelegation(
+        {
+          delegateId: delegate.id,
+          eserviceId: generateId<EServiceId>(),
+        },
+        {
+          authData,
+          logger: genericLogger,
+          correlationId: randomUUID(),
+          serviceName: "DelegationServiceTest",
+        }
+      )
+    ).rejects.toThrowError(tenantNotAllowedToDelegation(delegate.id));
   });
 });
