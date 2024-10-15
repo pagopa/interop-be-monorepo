@@ -6,10 +6,13 @@ import {
   EService,
   generateId,
   EServiceId,
+  Delegation,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+import { getMockDelegationProducer } from "pagopa-interop-commons-test/index.js";
 import { eServiceNotFound } from "../src/model/domain/errors.js";
 import {
+  addOneDelegation,
   addOneEService,
   catalogService,
   getMockAuthData,
@@ -223,5 +226,39 @@ describe("get eservice by id", () => {
       serviceName: "",
     });
     expect(result.descriptors).toEqual([descriptorB]);
+  });
+  it("should not filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is delegate)", async () => {
+    const descriptorA: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const descriptorB: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptorA, descriptorB],
+    };
+    const authData: AuthData = {
+      ...getMockAuthData(),
+      userRoles: [userRoles.ADMIN_ROLE],
+    };
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      eserviceId: eservice.id,
+      delegateId: authData.organizationId,
+    };
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+    const result = await catalogService.getEServiceById(eservice.id, {
+      authData,
+      logger: genericLogger,
+      correlationId: "",
+      serviceName: "",
+    });
+    expect(result.descriptors).toEqual([descriptorA, descriptorB]);
   });
 });

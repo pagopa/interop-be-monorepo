@@ -10,8 +10,10 @@ import {
   eserviceMode,
   Tenant,
   agreementState,
+  Delegation,
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
+import { getMockDelegationProducer } from "pagopa-interop-commons-test";
 import {
   addOneEService,
   addOneTenant,
@@ -23,6 +25,7 @@ import {
   getMockDocument,
   getMockAgreement,
   getMockEServiceAttributes,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("get eservices", () => {
@@ -958,6 +961,62 @@ describe("get eservices", () => {
       eservice5,
       eservice6,
       { ...eservice9, descriptors: [descriptor9a] },
+    ]);
+  });
+  it("should not filter out draft descriptors if the eservice has both draft and non-draft ones (requester is delegate, admin)", async () => {
+    const descriptor9a: Descriptor = {
+      ...mockDescriptor,
+      id: generateId(),
+      interface: mockDocument,
+      publishedAt: new Date(),
+      state: descriptorState.published,
+    };
+    const descriptor9b: Descriptor = {
+      ...mockDescriptor,
+      id: generateId(),
+      version: "2",
+      state: descriptorState.draft,
+    };
+    const eservice9: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "eservice 008",
+      producerId: organizationId1,
+      descriptors: [descriptor9a, descriptor9b],
+    };
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      delegateId: organizationId2,
+      eserviceId: eservice9.id,
+    };
+    const authData: AuthData = {
+      ...getMockAuthData(organizationId2),
+      userRoles: [userRoles.ADMIN_ROLE],
+    };
+    await addOneEService(eservice9);
+    await addOneDelegation(delegation);
+    const result = await catalogService.getEServices(
+      authData,
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+      },
+      0,
+      50,
+      genericLogger
+    );
+    expect(result.totalCount).toBe(7);
+    expect(result.results).toEqual([
+      eservice1,
+      eservice2,
+      eservice3,
+      eservice4,
+      eservice5,
+      eservice6,
+      eservice9,
     ]);
   });
 });
