@@ -3,9 +3,14 @@ import { ZodiosRouter } from "@zodios/express";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
+  ReadModelRepository,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+import { config } from "../config/config.js";
+
+readModelServiceBuilder(ReadModelRepository.init(config));
 
 const delegationProducerRouter = (
   ctx: ZodiosContext
@@ -15,10 +20,6 @@ const delegationProducerRouter = (
   });
 
   delegationRouter
-    .get("/producer/delegations/:delegationId", async (_req, res) =>
-      res.status(501).send()
-    )
-    .get("/producer/delegations", async (_req, res) => res.status(501).send())
     .post("/producer/delegations", async (_req, res) => res.status(501).send())
     .post("/producer/delegations/:delegationId/approve", async (_req, res) =>
       res.status(501).send()

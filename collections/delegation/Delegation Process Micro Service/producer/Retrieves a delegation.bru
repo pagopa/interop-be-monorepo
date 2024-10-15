@@ -5,9 +5,13 @@ meta {
 }
 
 get {
-  url: {{host-delegation}}/producer/delegations/:delegationId
+  url: {{host-delegation}}/delegations/:delegationId
   body: none
   auth: none
+}
+
+params:path {
+  delegationId: 123e4567-e89b-12d3-a456-426614174000
 }
 
 headers {
