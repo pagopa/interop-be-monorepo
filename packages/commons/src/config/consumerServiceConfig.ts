@@ -20,6 +20,19 @@ export const KafkaConsumerConfig = KafkaConfig.and(
 );
 export type KafkaConsumerConfig = z.infer<typeof KafkaConsumerConfig>;
 
+export const KafkaBatchConsumerConfig = KafkaConsumerConfig.and(
+  z
+    .object({
+      MIN_BYTES_KAFKA_BATCH: z.number(),
+      MAX_WAIT_KAFKA_BATCH: z.number(),
+    })
+    .transform((c) => ({
+      minBytesKafkaBatch: c.MIN_BYTES_KAFKA_BATCH,
+      maxWaitKafkaBatch: c.MAX_WAIT_KAFKA_BATCH,
+    }))
+);
+export type KafkaBatchConsumerConfig = z.infer<typeof KafkaBatchConsumerConfig>;
+
 export const ReadModelWriterConfig = KafkaConsumerConfig.and(ReadModelDbConfig);
 export type ReadModelWriterConfig = z.infer<typeof ReadModelWriterConfig>;
 

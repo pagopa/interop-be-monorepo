@@ -1,6 +1,7 @@
 import { generateAuthToken } from "aws-msk-iam-sasl-signer-js";
 import {
   Consumer,
+  EachBatchPayload,
   EachMessagePayload,
   Kafka,
   KafkaConfig,
@@ -16,6 +17,7 @@ import {
   Logger,
   genericLogger,
   KafkaProducerConfig,
+  KafkaBatchConsumerConfig,
 } from "pagopa-interop-commons";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -108,6 +110,20 @@ const kafkaCommitMessageOffsets = async (
 
   genericLogger.debug(
     `Topic message offset ${Number(message.offset) + 1} committed`
+  );
+};
+
+const kafkaCommitBatchOffsets = async (
+  consumer: Consumer,
+  payload: EachBatchPayload
+): Promise<void> => {
+  const { topic, partition, lastOffset } = payload.batch;
+  await consumer.commitOffsets([
+    { topic, partition, offset: (Number(lastOffset) + 1).toString() },
+  ]);
+
+  genericLogger.debug(
+    `Topic message offset ${Number(lastOffset) + 1} committed`
   );
 };
 
@@ -296,6 +312,74 @@ const initConsumer = async (
   return consumer;
 };
 
+const initConsumerBatch = async (
+  config: KafkaBatchConsumerConfig,
+  topics: string[],
+  consumerHandler: (payload: EachBatchPayload) => Promise<void>
+): Promise<Consumer> => {
+  genericLogger.debug(
+    `Consumer connecting to topics ${JSON.stringify(topics)}`
+  );
+
+  const kafka = initKafka(config);
+
+  const consumer = kafka.consumer({
+    groupId: config.kafkaGroupId,
+    retry: {
+      initialRetryTime: 100,
+      maxRetryTime: 3000,
+      retries: 3,
+      restartOnFailure: (error) => {
+        genericLogger.error(`Error during restart service: ${error.message}`);
+        return Promise.resolve(false);
+      },
+    },
+    minBytes: config.minBytesKafkaBatch,
+    maxWaitTimeInMs: config.maxWaitKafkaBatch,
+  });
+
+  if (config.resetConsumerOffsets) {
+    await resetPartitionsOffsets(topics, kafka, consumer);
+  }
+
+  consumerKafkaEventsListener(consumer);
+  errorEventsListener(consumer);
+
+  await consumer.connect();
+  genericLogger.debug("Consumer connected");
+
+  const topicExists = await validateTopicMetadata(kafka, topics);
+  if (!topicExists) {
+    processExit();
+  }
+
+  await consumer.subscribe({
+    topics,
+    fromBeginning: config.topicStartingOffset === "earliest",
+  });
+
+  genericLogger.info(`Consumer subscribed topic ${topics}`);
+
+  await consumer.run({
+    autoCommit: false,
+    eachBatch: async (payload: EachBatchPayload) => {
+      try {
+        await consumerHandler(payload);
+        await kafkaCommitBatchOffsets(consumer, payload);
+      } catch (e) {
+        throw kafkaMessageProcessError(
+          payload.batch.topic,
+          payload.batch.partition,
+          payload.batch.lastOffset.toString(),
+          e
+        );
+      }
+    },
+  });
+
+  return consumer;
+};
+
 export const initProducer = async (
   config: KafkaProducerConfig,
   topic: string
@@ -365,6 +449,21 @@ export const runConsumer = async (
 ): Promise<void> => {
   try {
     await initConsumer(config, topics, consumerHandler);
+  } catch (e) {
+    genericLogger.error(
+      `Generic error occurs during consumer initialization: ${e}`
+    );
+    processExit();
+  }
+};
+
+export const runConsumerBatch = async (
+  config: KafkaBatchConsumerConfig,
+  topics: string[],
+  consumerHandler: (messagePayload: EachBatchPayload) => Promise<void>
+): Promise<void> => {
+  try {
+    await initConsumerBatch(config, topics, consumerHandler);
   } catch (e) {
     genericLogger.error(
       `Generic error occurs during consumer initialization: ${e}`
