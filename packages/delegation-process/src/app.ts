@@ -7,6 +7,7 @@ import {
 
 import healthRouter from "./routers/HealthRouter.js";
 import delegationProducerRouter from "./routers/DelegationProducerRouter.js";
+import delegationRouter from "./routers/DelegationRouter.js";
 
 const serviceName = "delgation-process";
 
@@ -19,6 +20,7 @@ app.use(contextMiddleware(serviceName));
 app.use(healthRouter);
 app.use(authenticationMiddleware);
 app.use(loggerMiddleware(serviceName));
+app.use(delegationRouter(zodiosCtx));
 app.use(delegationProducerRouter(zodiosCtx));
 
 export default app;

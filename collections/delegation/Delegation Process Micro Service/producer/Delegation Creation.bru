@@ -7,7 +7,7 @@ meta {
 post {
   url: {{host-delegation}}/producer/delegations
   body: json
-  auth: bearer
+  auth: none
 }
 
 headers {
@@ -19,10 +19,6 @@ headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
   Content-Type: application/json
-}
-
-auth:bearer {
-  token: {{JWT}}
 }
 
 body:json {
