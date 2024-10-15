@@ -14,6 +14,7 @@ import {
   clientKindTokenStates,
   DescriptorId,
   EServiceId,
+  GeneratedTokenAuditDetails,
   generateId,
   genericInternalError,
   makeTokenGenerationStatesClientKidPK,
@@ -45,7 +46,6 @@ import {
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import {
-  GeneratedTokenAuditDetails,
   InteropJwtHeader,
   InteropJwtPayload,
   InteropToken,
