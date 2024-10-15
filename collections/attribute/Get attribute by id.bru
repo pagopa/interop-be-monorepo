@@ -18,3 +18,8 @@ headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
 }
+
+vars:post-response {
+  attributeOrigin: res.body.origin
+  attributeCode: res.body.code
+}
