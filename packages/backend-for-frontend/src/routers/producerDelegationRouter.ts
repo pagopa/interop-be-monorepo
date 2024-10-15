@@ -9,17 +9,20 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 // import { delegationServiceBuilder } from "../services/delegationService.js";
 
-const delegationRouter = (
+const producerDelegationRouter = (
   ctx: ZodiosContext,
   _processClients: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const delegationRouter = ctx.router(bffApi.producerDelegationsApi.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
-  });
+  const producerDelegationRouter = ctx.router(
+    bffApi.producerDelegationsApi.api,
+    {
+      validationErrorHandler: zodiosValidationErrorToApiProblem,
+    }
+  );
 
   // const delegationService = delegationServiceBuilder(processClients);
 
-  delegationRouter
+  producerDelegationRouter
     .post("/producer/delegations", async (_req, res) => res.status(501).send())
     .post("/producer/delegations/:delegationId/approve", async (_req, res) =>
       res.status(501).send()
@@ -31,7 +34,7 @@ const delegationRouter = (
       res.status(501).send()
     );
 
-  return delegationRouter;
+  return producerDelegationRouter;
 };
 
-export default delegationRouter;
+export default producerDelegationRouter;
