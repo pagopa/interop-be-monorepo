@@ -25,7 +25,6 @@ import {
   inactiveEService,
   inactivePurpose,
   invalidAudience,
-  invalidAudienceFormat,
   invalidClientAssertionFormat,
   invalidClientIdFormat,
   invalidHashAlgorithm,
@@ -47,6 +46,7 @@ import {
   invalidAssertionType,
   invalidSignature,
   clientAssertionInvalidClaims,
+  invalidAudienceFormat,
 } from "../src/errors.js";
 import { ClientAssertionValidationRequest, ConsumerKey } from "../src/types.js";
 import {
@@ -127,7 +127,7 @@ describe("validation test", () => {
       const payload = {
         iss: generateId<ClientId>(),
         sub: generateId<ClientId>(),
-        aud: ["test.interop.pagopa.it"],
+        aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
         jti: generateId(),
         iat: 5,
         exp: 10,
@@ -231,7 +231,7 @@ describe("validation test", () => {
       expect(errors4![0]).toEqual(invalidClientAssertionFormat());
     });
 
-    it("invalidAudienceFormat", () => {
+    it("invalidAudience - wrong entry as string", () => {
       const a = getMockClientAssertion({
         customHeader: {},
         standardClaimsOverride: { aud: "random" },
@@ -240,13 +240,51 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudienceFormat());
+      expect(errors![0]).toEqual(invalidAudience());
     });
 
-    it("invalidAudience", () => {
+    it("invalidAudience - wrong entry as 1-item array", () => {
       const a = getMockClientAssertion({
         customHeader: {},
         standardClaimsOverride: { aud: ["random"] },
+        customClaims: {},
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidAudience());
+    });
+
+    it("invalidAudienceFormat - comma-separated strings", () => {
+      const a = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: { aud: "test.interop.pagopa.it, other-aud" },
+        customClaims: {},
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidAudienceFormat());
+    });
+
+    it("invalidAudience - wrong entries", () => {
+      const a = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: { aud: ["wrong-audience1, wrong-audience2"] },
+        customClaims: {},
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidAudience());
+    });
+
+    it("invalidAudience - missing entry", () => {
+      const a = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {
+          aud: ["test.interop.pagopa.it"],
+        },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(a, undefined);
@@ -310,7 +348,7 @@ describe("validation test", () => {
       const payload = {
         iss: generateId<ClientId>(),
         sub: generateId<ClientId>(),
-        aud: ["test.interop.pagopa.it"],
+        aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
         jti: generateId(),
         iat: 5,
         digest: {
@@ -562,6 +600,43 @@ describe("validation test", () => {
       };
       const { errors } = verifyClientAssertionSignature(jws, mockConsumerKey);
       expect(errors).toBeUndefined();
+    });
+
+    it("algorithmNotAllowed", () => {
+      const threeHourLater = new Date();
+      threeHourLater.setHours(threeHourLater.getHours() + 3);
+
+      const notAllowedAlg = "RS384";
+      const keySet = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      });
+
+      const jws = getMockClientAssertion({
+        customHeader: {
+          alg: notAllowedAlg,
+        },
+        standardClaimsOverride: {
+          iat: new Date().getTime() / 1000,
+          exp: threeHourLater.getTime() / 1000,
+        },
+        customClaims: {},
+        keySet,
+      });
+      const publicKey = keySet.publicKey
+        .export({
+          type: "pkcs1",
+          format: "pem",
+        })
+        .toString();
+      const mockConsumerKey: ConsumerKey = {
+        ...getMockConsumerKey(),
+        publicKey,
+        algorithm: notAllowedAlg,
+      };
+      const { errors } = verifyClientAssertionSignature(jws, mockConsumerKey);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(algorithmNotAllowed(notAllowedAlg));
     });
 
     it.skip("invalidClientAssertionSignatureType", () => {

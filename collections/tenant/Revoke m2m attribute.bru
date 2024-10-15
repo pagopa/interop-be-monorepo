@@ -1,0 +1,22 @@
+meta {
+  name: Revoke m2m attribute
+  type: http
+  seq: 14
+}
+
+delete {
+  url: {{host-tenant}}/m2m/origin/:origin/externalId/:externalId/attributes/:code
+  body: json
+  auth: none
+}
+
+params:path {
+  origin: {{origin}}
+  externalId: {{externalId}}
+  code: {{code}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

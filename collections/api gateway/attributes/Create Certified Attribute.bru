@@ -1,0 +1,34 @@
+meta {
+  name: Create Certified Attribute
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-api-gw}}/attributes
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
+
+body:json {
+  {
+      "code": "{{randomCode}}",
+      "name": "{{randomName}}",
+      "description": "Some attribute aaaa"
+  }
+}
+
+vars:post-response {
+  attributeId: res.body.id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 10000)
+  
+  bru.setVar("randomName",`test name ${random}`)
+  bru.setVar("randomCode",random)
+}

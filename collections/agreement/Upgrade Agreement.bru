@@ -1,0 +1,31 @@
+meta {
+  name: Upgrade Agreement
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/upgrade
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "eserviceId":"17f8a7a9-9da2-462e-b327-471ed63d5aa0",
+      "descriptorId":"d4193900-ddaf-4c91-a336-d7cd2cb9b3a7"
+  }
+}
+
+vars:post-response {
+  agreementId: res.body.id
+}

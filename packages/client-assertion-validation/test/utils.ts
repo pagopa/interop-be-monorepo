@@ -36,7 +36,7 @@ export const getMockClientAssertion = ({
   const defaultPayload: jwt.JwtPayload = {
     iss: clientId,
     sub: clientId,
-    aud: ["test.interop.pagopa.it"],
+    aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
     exp: 60,
     jti: generateId(),
     iat: 5,
@@ -89,7 +89,6 @@ export const getMockApiKey = (): ApiKey => ({
   clientId: generateId<ClientId>(),
   consumerId: generateId<TenantId>(),
   kid: "kid",
-  purposeId: generateId<PurposeId>(),
   publicKey: crypto
     .generateKeyPairSync("rsa", {
       modulusLength: 2048,

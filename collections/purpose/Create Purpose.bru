@@ -1,0 +1,65 @@
+meta {
+  name: Create Purpose
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-purpose}}/purposes
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "eserviceId": "{{eserviceId}}",
+      "consumerId": "{{tenantId}}",
+      "title": "{{randomName}}",
+      "description": "a purpose long description",
+      "isFreeOfCharge": true,
+      "dailyCalls": 100,
+      "freeOfChargeReason": "Free!",
+      "riskAnalysisForm": {
+          "version": "3.0",
+          "answers": {
+              "purpose": ["INSTITUTIONAL"],
+              "institutionalPurpose": ["MyPurpose"],
+              "personalDataTypes": ["OTHER"],
+              "otherPersonalDataTypes": ["MyDataTypes"],
+              "legalBasis": ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
+              "legalObligationReference": ["somethingLegal"],
+              "legalBasisPublicInterest": ["RULE_OF_LAW"],
+              "ruleOfLawText": ["TheLaw"],
+              "knowsDataQuantity": ["NO"],
+              "dataQuantity": [],
+              "deliveryMethod": ["ANONYMOUS"],
+              "policyProvided": ["NO"],
+              "confirmPricipleIntegrityAndDiscretion": ["true"],
+              "reasonPolicyNotProvided": ["Because"],
+              "doneDpia": ["NO"],
+              "dataDownload": ["YES"],
+              "confirmDataRetentionPeriod": ["true"],
+              "purposePursuit": ["MERE_CORRECTNESS"],
+              "checkedExistenceMereCorrectnessInteropCatalogue": ["true"],
+              "usesThirdPartyData": ["NO"],
+              "declarationConfirmGDPR": ["true"]
+          }
+      }
+  }
+}
+
+vars:post-response {
+  purposeId: res.body.id
+  purposeVersionId: res.body.versions.at(-1).id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}

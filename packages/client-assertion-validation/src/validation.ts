@@ -1,11 +1,4 @@
-import {
-  decode,
-  JsonWebTokenError,
-  JwtPayload,
-  NotBeforeError,
-  TokenExpiredError,
-  verify,
-} from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 import { match } from "ts-pattern";
 import { clientKindTokenStates } from "pagopa-interop-models";
 import {
@@ -24,6 +17,7 @@ import {
   validatePurposeId,
   validateSub,
   validatePlatformState,
+  ALLOWED_ALGORITHM,
 } from "./utils.js";
 import {
   ApiKey,
@@ -48,6 +42,7 @@ import {
   unexpectedClientAssertionPayload,
   invalidSignature,
   clientAssertionInvalidClaims,
+  algorithmNotAllowed,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -75,7 +70,10 @@ export const verifyClientAssertion = (
   clientId: string | undefined
 ): ValidationResult<ClientAssertion> => {
   try {
-    const decoded = decode(clientAssertionJws, { complete: true, json: true });
+    const decoded = jwt.decode(clientAssertionJws, {
+      complete: true,
+      json: true,
+    });
     if (!decoded) {
       return failedValidation([invalidClientAssertionFormat()]);
     }
@@ -185,9 +183,13 @@ export const verifyClientAssertion = (
 export const verifyClientAssertionSignature = (
   clientAssertionJws: string,
   key: Key
-): ValidationResult<JwtPayload> => {
+): ValidationResult<jwt.JwtPayload> => {
   try {
-    const result = verify(clientAssertionJws, key.publicKey, {
+    if (key.algorithm !== ALLOWED_ALGORITHM) {
+      return failedValidation([algorithmNotAllowed(key.algorithm)]);
+    }
+
+    const result = jwt.verify(clientAssertionJws, key.publicKey, {
       algorithms: [key.algorithm],
     });
 
@@ -199,11 +201,11 @@ export const verifyClientAssertionSignature = (
     }
     return successfulValidation(result);
   } catch (error: unknown) {
-    if (error instanceof TokenExpiredError) {
+    if (error instanceof jwt.TokenExpiredError) {
       return failedValidation([tokenExpiredError()]);
-    } else if (error instanceof NotBeforeError) {
+    } else if (error instanceof jwt.NotBeforeError) {
       return failedValidation([notBeforeError()]);
-    } else if (error instanceof JsonWebTokenError) {
+    } else if (error instanceof jwt.JsonWebTokenError) {
       if (error.message === "invalid signature") {
         return failedValidation([invalidSignature()]);
       }
