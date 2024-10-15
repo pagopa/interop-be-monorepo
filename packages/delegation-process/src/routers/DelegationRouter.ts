@@ -50,7 +50,7 @@ const delegationRouter = (
           delegateIds.map(unsafeBrandId<TenantId>),
           delegatorIds.map(unsafeBrandId<TenantId>),
           delegationStates.map(apiDelegationStateToDelegationState),
-          apiDelegationKindToDelegationKind(kind),
+          kind && apiDelegationKindToDelegationKind(kind),
           offset,
           limit
         );

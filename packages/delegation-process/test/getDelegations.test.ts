@@ -39,5 +39,15 @@ describe("get delegations", () => {
       50
     );
     expect(res3).toEqual([]);
+
+    const res4 = await delegationService.getDelegations(
+      [],
+      [],
+      ["Active"],
+      undefined,
+      0,
+      50
+    );
+    expect(res4).toEqual([delegation1]);
   });
 });

@@ -25,7 +25,7 @@ export function delegationServiceBuilder(readModelService: ReadModelService) {
       delegateIds: TenantId[],
       delegatorIds: TenantId[],
       delegationStates: DelegationState[],
-      kind: DelegationKind,
+      kind: DelegationKind | undefined,
       offset: number,
       limit: number
     ): Promise<Delegation[]> {

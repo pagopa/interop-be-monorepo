@@ -71,7 +71,7 @@ paths:
           explode: false
         - in: query
           name: kind
-          required: true
+          required: false
           schema:
             $ref: "#/components/schemas/DelegationKind"
         - in: query

@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-delegation}}/delegations?offset=0&limit=50&kind=DELEGATED_PRODUCER
+  url: {{host-delegation}}/delegations?offset=0&limit=50
   body: none
   auth: none
 }
@@ -13,7 +13,7 @@ get {
 params:query {
   offset: 0
   limit: 50
-  kind: DELEGATED_PRODUCER
+  ~kind: DELEGATED_PRODUCER
   ~delegationStates: WAITING_FOR_APPROVAL
   ~delegatorIds: 
   ~delegateIds: 

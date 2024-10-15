@@ -57,7 +57,7 @@ export function readModelServiceBuilder(
       delegateIds: TenantId[];
       delegatorIds: TenantId[];
       delegationStates: DelegationState[];
-      kind: DelegationKind;
+      kind: DelegationKind | undefined;
       offset: number;
       limit: number;
     }): Promise<Delegation[]> {
@@ -73,7 +73,9 @@ export function readModelServiceBuilder(
             ...ReadModelRepository.arrayToFilter(delegationStates, {
               "data.state": { $in: delegationStates },
             }),
-            "data.kind": kind,
+            ...(kind && {
+              "data.kind": kind,
+            }),
           } satisfies ReadModelFilter<Delegation>,
         },
         {
