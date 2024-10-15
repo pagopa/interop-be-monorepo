@@ -17,7 +17,12 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { tenantNotFound } from "../model/domain/errors.js";
+import {
+  delegationNotFound,
+  tenantNotFound,
+  incorrectState,
+  operationRestrictedToDelegator,
+} from "../model/domain/errors.js";
 import { toCreateEventProducerDelegation } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -42,6 +47,7 @@ export function delegationProducerServiceBuilder(
   };
 
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
+
   return {
     async createProducerDelegation(
       delegationSeed: delegationApi.DelegationSeed,
@@ -94,6 +100,35 @@ export function delegationProducerServiceBuilder(
       );
 
       return delegation;
+    },
+    async approveProducerDelegation(
+      delegatorId: TenantId,
+      delegationId: DelegationId
+    ): Promise<void> {
+      // eslint-disable-next-line no-console
+      console.log("Approving delegation", delegationId);
+
+      const delegation = await readModelService.getDelegationById(delegationId);
+
+      if (!delegation) {
+        throw delegationNotFound(delegationId);
+      }
+
+      // TODO convert in assertion inside validators.ts
+      if (delegation.delegatorId !== delegatorId) {
+        throw operationRestrictedToDelegator(delegatorId, delegationId);
+      }
+
+      // TODO convert in assertion inside validators.ts
+      if (delegation.state !== delegationState.waitingForApproval) {
+        throw incorrectState(
+          delegationId,
+          delegation.state,
+          delegationState.waitingForApproval
+        );
+      }
+
+      // Additional logic for approving the delegation can be added here
     },
   };
 }

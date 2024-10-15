@@ -11,12 +11,14 @@ import {
   authorizationMiddleware,
   initDB,
 } from "pagopa-interop-commons";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
 import { delegationProducerServiceBuilder } from "../services/delegationProducerService.js";
 import { delegationToApiDelegation } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { createProducerDelegationErrorMapper } from "../utilites/errorMappers.js";
+import { approveDelegationErrorMapper } from "../utilites/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -75,9 +77,27 @@ const delegationProducerRouter = (
         }
       }
     )
-    .post("/producer/delegations/:delegationId/approve", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/producer/delegations/:delegationId/approve", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      const { delegationId } = req.query;
+
+      try {
+        await delegationProducerService.approveProducerDelegation(
+          ctx.authData.organizationId,
+          unsafeBrandId(delegationId)
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          approveDelegationErrorMapper,
+          ctx.logger
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/producer/delegations/:delegationId/reject", async (_req, res) =>
       res.status(501).send()
     )
