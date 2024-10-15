@@ -70,6 +70,7 @@ export * from "./read-models/tenantReadModel.js";
 export * from "./read-models/purposeReadModel.js";
 export * from "./read-models/readModels.js";
 export * from "./read-models/authorizationReadModel.js";
+export * from "./read-models/delegationReadModel.js";
 
 // Utilities
 export * from "./brandedIds.js";
