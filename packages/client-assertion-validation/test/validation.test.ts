@@ -7,7 +7,6 @@ import {
   generateId,
   itemState,
   PurposeId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   validateClientKindAndPlatformState,
@@ -58,6 +57,7 @@ import {
   getMockApiKey,
   getMockClientAssertion,
   getMockConsumerKey,
+  getMockKey,
   signClientAssertion,
   value64chars,
 } from "./utils.js";
@@ -568,14 +568,47 @@ describe("validation test", async () => {
         })
         .toString();
       const mockConsumerKey = {
-        ...getMockConsumerKey(),
-        publicKey,
+        ...getMockKey(),
+        publicKey: Buffer.from(publicKey).toString("base64"),
       };
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockConsumerKey
       );
       expect(errors).toBeUndefined();
+    });
+
+    it("unexpectedClientAssertionSignatureVerificationError - base64 key expected", async () => {
+      const keySet = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      });
+
+      const jws = await getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+        keySet,
+      });
+      const publicKey = keySet.publicKey
+        .export({
+          type: "spki",
+          format: "pem",
+        })
+        .toString();
+      const mockConsumerKey = {
+        ...getMockKey(),
+        publicKey,
+      };
+      const { errors } = await verifyClientAssertionSignature(
+        jws,
+        mockConsumerKey
+      );
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(
+        unexpectedClientAssertionSignatureVerificationError(
+          "public key shall be a base64 encoded PEM"
+        )
+      );
     });
 
     it("algorithmNotAllowed", async () => {
@@ -604,15 +637,12 @@ describe("validation test", async () => {
           format: "pem",
         })
         .toString();
-      const mockConsumerKey: ConsumerKey = {
-        ...getMockConsumerKey(),
-        publicKey,
+      const mockKey: Key = {
+        ...getMockKey(),
+        publicKey: Buffer.from(publicKey).toString("base64"),
         algorithm: notAllowedAlg,
       };
-      const { errors } = await verifyClientAssertionSignature(
-        jws,
-        mockConsumerKey
-      );
+      const { errors } = await verifyClientAssertionSignature(jws, mockKey);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(algorithmNotAllowed(notAllowedAlg));
@@ -645,8 +675,8 @@ describe("validation test", async () => {
         })
         .toString();
       const mockConsumerKey = {
-        ...getMockConsumerKey(),
-        publicKey,
+        ...getMockKey(),
+        publicKey: Buffer.from(publicKey).toString("base64"),
       };
       const { errors } = await verifyClientAssertionSignature(
         jws,
@@ -667,8 +697,8 @@ describe("validation test", async () => {
         })
         .toString();
       const mockConsumerKey = {
-        ...getMockConsumerKey(),
-        publicKey,
+        ...getMockKey(),
+        publicKey: Buffer.from(publicKey).toString("base64"),
       };
       const { errors } = await verifyClientAssertionSignature(
         "not-a-valid-jws",
@@ -690,8 +720,8 @@ describe("validation test", async () => {
         })
         .toString();
       const mockConsumerKey = {
-        ...getMockConsumerKey(),
-        publicKey,
+        ...getMockKey(),
+        publicKey: Buffer.from(publicKey).toString("base64"),
       };
       const clientAssertion = await getMockClientAssertion({
         customHeader: {},
@@ -721,8 +751,8 @@ describe("validation test", async () => {
         })
         .toString();
       const mockConsumerKey = {
-        ...getMockConsumerKey(),
-        publicKey,
+        ...getMockKey(),
+        publicKey: Buffer.from(publicKey).toString("base64"),
       };
       const { errors } = await verifyClientAssertionSignature(
         "too.many.substrings.in.client.assertion",
@@ -752,8 +782,8 @@ describe("validation test", async () => {
         })
         .toString();
       const mockConsumerKey = {
-        ...getMockConsumerKey(),
-        publicKey,
+        ...getMockKey(),
+        publicKey: Buffer.from(publicKey).toString("base64"),
       };
 
       const clientAssertion2 = await getMockClientAssertion({
@@ -802,8 +832,8 @@ describe("validation test", async () => {
         format: "pem",
       }) as string;
       const mockConsumerKey = {
-        ...getMockConsumerKey(),
-        publicKey,
+        ...getMockKey(),
+        publicKey: Buffer.from(publicKey).toString("base64"),
       };
 
       const { errors } = await verifyClientAssertionSignature(

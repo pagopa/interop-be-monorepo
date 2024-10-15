@@ -29,6 +29,7 @@ import {
 } from "./utils.js";
 import {
   ApiKey,
+  Base64Encoded,
   ClientAssertion,
   ClientAssertionHeader,
   ClientAssertionPayload,
@@ -196,21 +197,25 @@ export const verifyClientAssertionSignature = async (
       return failedValidation([algorithmNotAllowed(key.algorithm)]);
     }
 
-    const decoded = Buffer.from(key.publicKey, "base64").toString("utf8");
-    // TODO maybe check if it is a base64 encoded string somehow
-    console.log(key.publicKey, decoded);
+    if (!Base64Encoded.safeParse(key.publicKey).success) {
+      // Unexpected, because we always store public keys
+      // in base64 encoded PEM format
+      return failedValidation([
+        unexpectedClientAssertionSignatureVerificationError(
+          "public key shall be a base64 encoded PEM"
+        ),
+      ]);
+    }
 
+    const decoded = Buffer.from(key.publicKey, "base64").toString("utf8");
     const publicKey = await importSPKI(decoded, key.algorithm);
+
     const result = await jwtVerify(clientAssertionJws, publicKey, {
       algorithms: [key.algorithm],
-
-      // TODO REMOVE - setting last week to avoid expiration errors
-      currentDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
     });
 
     return successfulValidation(result.payload);
   } catch (error: unknown) {
-    console.log(error);
     if (error instanceof JWTExpired) {
       return failedValidation([tokenExpiredError()]);
     } else if (error instanceof JWSSignatureVerificationFailed) {
@@ -227,8 +232,9 @@ export const verifyClientAssertionSignature = async (
         clientAssertionSignatureVerificationError(error.message),
       ]);
     } else {
+      const message = error instanceof Error ? error.message : "generic error";
       return failedValidation([
-        unexpectedClientAssertionSignatureVerificationError(),
+        unexpectedClientAssertionSignatureVerificationError(message),
       ]);
     }
   }

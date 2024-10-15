@@ -60,9 +60,11 @@ export function clientAssertionSignatureVerificationError(
   });
 }
 
-export function unexpectedClientAssertionSignatureVerificationError(): ApiError<ErrorCodes> {
+export function unexpectedClientAssertionSignatureVerificationError(
+  message: string
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Unexpected client assertion signature verification error`,
+    detail: `Unexpected client assertion signature verification error: ${message}`,
     code: "unexpectedClientAssertionSignatureVerificationError",
     title: "Unexpected client assertion signature verification error",
   });

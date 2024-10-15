@@ -13,6 +13,7 @@ import {
   ClientAssertionHeader,
   ClientAssertionValidationRequest,
   ConsumerKey,
+  Key,
 } from ".././src/types.js";
 import {
   EXPECTED_CLIENT_ASSERTION_TYPE,
@@ -97,18 +98,24 @@ export const signClientAssertion = async ({
     .sign(privateKey);
 };
 
-export const getMockConsumerKey = (): ConsumerKey => ({
+export const getMockKey = (): Key => ({
   clientId: generateId<ClientId>(),
   consumerId: generateId<TenantId>(),
   kid: "kid",
-  purposeId: generateId<PurposeId>(),
-  publicKey: crypto
-    .generateKeyPairSync("rsa", {
-      modulusLength: 2048,
-    })
-    .publicKey.export({ type: "pkcs1", format: "pem" })
-    .toString("base64url"),
+  publicKey: Buffer.from(
+    crypto
+      .generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      })
+      .publicKey.export({ type: "spki", format: "pem" })
+      .toString()
+  ).toString("base64"),
   algorithm: "RS256",
+});
+
+export const getMockConsumerKey = (): ConsumerKey => ({
+  ...getMockKey(),
+  purposeId: generateId<PurposeId>(),
   clientKind: clientKindTokenStates.consumer,
   purposeState: itemState.active,
   agreementId: generateId(),
@@ -118,16 +125,7 @@ export const getMockConsumerKey = (): ConsumerKey => ({
 });
 
 export const getMockApiKey = (): ApiKey => ({
-  clientId: generateId<ClientId>(),
-  consumerId: generateId<TenantId>(),
-  kid: "kid",
-  publicKey: crypto
-    .generateKeyPairSync("rsa", {
-      modulusLength: 2048,
-    })
-    .publicKey.export({ type: "pkcs1", format: "pem" })
-    .toString("base64url"),
-  algorithm: "RS256",
+  ...getMockKey(),
   clientKind: clientKindTokenStates.api,
 });
 
