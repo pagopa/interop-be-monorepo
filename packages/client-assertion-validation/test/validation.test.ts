@@ -4,9 +4,11 @@ import { fail } from "assert";
 import { describe, expect, it } from "vitest";
 import {
   ClientId,
+  DescriptorId,
   generateId,
   itemState,
   PurposeId,
+  PurposeVersionId,
 } from "pagopa-interop-models";
 import * as jwt from "jsonwebtoken";
 import {
@@ -768,9 +770,17 @@ describe("validation test", () => {
     it("success", () => {
       const mockKey: ConsumerKey = {
         ...getMockConsumerKey(),
-        agreementState: itemState.active,
-        descriptorState: itemState.active,
-        purposeState: itemState.active,
+        agreementState: { state: itemState.active },
+        eServiceState: {
+          state: itemState.active,
+          descriptorId: generateId<DescriptorId>(),
+          audience: ["test.interop.pagopa.it"],
+          voucherLifespan: 60,
+        },
+        purposeState: {
+          state: itemState.active,
+          versionId: generateId<PurposeVersionId>(),
+        },
       };
       validatePlatformState(mockKey);
       const { errors } = validatePlatformState(mockKey);
@@ -780,7 +790,7 @@ describe("validation test", () => {
     it("inactiveAgreement", () => {
       const mockKey: ConsumerKey = {
         ...getMockConsumerKey(),
-        agreementState: itemState.inactive,
+        agreementState: { state: itemState.inactive },
       };
       validatePlatformState(mockKey);
       const { errors } = validatePlatformState(mockKey);
@@ -792,7 +802,12 @@ describe("validation test", () => {
     it("inactiveEservice", () => {
       const mockKey: ConsumerKey = {
         ...getMockConsumerKey(),
-        descriptorState: itemState.inactive,
+        eServiceState: {
+          state: itemState.inactive,
+          descriptorId: generateId<DescriptorId>(),
+          audience: ["test.interop.pagopa.it"],
+          voucherLifespan: 60,
+        },
       };
       validatePlatformState(mockKey);
       const { errors } = validatePlatformState(mockKey);
@@ -804,7 +819,10 @@ describe("validation test", () => {
     it("inactivePurpose", () => {
       const mockKey: ConsumerKey = {
         ...getMockConsumerKey(),
-        purposeState: itemState.inactive,
+        purposeState: {
+          state: itemState.inactive,
+          versionId: generateId<PurposeVersionId>(),
+        },
       };
       validatePlatformState(mockKey);
       const { errors } = validatePlatformState(mockKey);
@@ -816,9 +834,17 @@ describe("validation test", () => {
     it("inactiveAgreement and inactiveEservice and inactivePurpose", () => {
       const mockKey: ConsumerKey = {
         ...getMockConsumerKey(),
-        agreementState: itemState.inactive,
-        descriptorState: itemState.inactive,
-        purposeState: itemState.inactive,
+        agreementState: { state: itemState.inactive },
+        eServiceState: {
+          state: itemState.inactive,
+          descriptorId: generateId<DescriptorId>(),
+          audience: ["test.interop.pagopa.it"],
+          voucherLifespan: 60,
+        },
+        purposeState: {
+          state: itemState.inactive,
+          versionId: generateId<PurposeVersionId>(),
+        },
       };
       validatePlatformState(mockKey);
       const { errors } = validatePlatformState(mockKey);
@@ -857,7 +883,12 @@ describe("validation test", () => {
     it("inactiveEService (consumerKey with consumer client kind; invalid platform states)", () => {
       const mockConsumerKey: ConsumerKey = {
         ...getMockConsumerKey(),
-        descriptorState: itemState.inactive,
+        eServiceState: {
+          state: itemState.inactive,
+          descriptorId: generateId<DescriptorId>(),
+          audience: ["test.interop.pagopa.it"],
+          voucherLifespan: 60,
+        },
       };
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
@@ -924,7 +955,7 @@ describe("validation test", () => {
     it("purposeIdNotProvided and platformStateError", () => {
       const mockConsumerKey: ConsumerKey = {
         ...getMockConsumerKey(),
-        agreementState: itemState.inactive,
+        agreementState: { state: itemState.inactive },
       };
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
