@@ -496,7 +496,12 @@ const purposeRouter = (
     )
     .get(
       "/purposes/riskAnalysis/latest",
-      authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SUPPORT_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+      ]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
@@ -521,7 +526,12 @@ const purposeRouter = (
     )
     .get(
       "/purposes/riskAnalysis/version/:riskAnalysisVersion",
-      authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SUPPORT_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+      ]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
