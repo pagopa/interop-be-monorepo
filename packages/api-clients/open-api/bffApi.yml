@@ -12489,7 +12489,7 @@ paths:
     delete:
       description: Revokes a producer delegation
       tags:
-        - producerDelegation
+        - producerDelegations
       summary: Revokes a producer delegation
       operationId: revokeProducerDelegation
       responses:
