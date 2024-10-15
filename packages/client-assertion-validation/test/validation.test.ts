@@ -7,7 +7,6 @@ import {
   generateId,
   itemState,
   PurposeId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   validateClientKindAndPlatformState,
@@ -40,20 +39,14 @@ import {
   notBeforeError,
   subjectNotFound,
   tokenExpiredError,
-  unexpectedClientAssertionPayload,
   purposeIdNotProvided,
   invalidGrantType,
   invalidAssertionType,
   invalidSignature,
   clientAssertionInvalidClaims,
   invalidAudienceFormat,
-  unexpectedClientAssertionSignatureVerificationError,
 } from "../src/errors.js";
-import {
-  ClientAssertionValidationRequest,
-  ConsumerKey,
-  Key,
-} from "../src/types.js";
+import { ClientAssertionValidationRequest, ConsumerKey } from "../src/types.js";
 import {
   getMockAccessTokenRequest,
   getMockApiKey,
@@ -292,25 +285,6 @@ describe("validation test", async () => {
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidAudience());
     });
-
-    // Probably not needed anymore
-    // it("unexpectedClientAssertionPayload", async () => {
-    //   const headers = {
-    //     kid: generateId(),
-    //     alg: "RS256",
-    //   };
-    //   const jws = await signClientAssertion({
-    //     payload: "actualPayload",
-    //     headers,
-    //   });
-
-    //   const { errors } = verifyClientAssertion(jws, undefined);
-    //   expect(errors).toBeDefined();
-    //   expect(errors).toHaveLength(1);
-    //   expect(errors![0].code).toEqual(
-    //     unexpectedClientAssertionPayload("").code
-    //   );
-    // });
 
     it("jtiNotFound", async () => {
       const a = await getMockClientAssertion({
