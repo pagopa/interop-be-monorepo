@@ -11,8 +11,6 @@ import {
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Tenant,
-  TenantFeatureCertifier,
-  TenantFeatureDelegatedProducer,
   TenantMail,
   TenantRevoker,
   TenantVerifier,
@@ -59,27 +57,7 @@ export const TenantMailReadModel = TenantMail.extend({
   createdAt: z.string().datetime(),
 });
 
-export const TenantFeatureCertifierReadModel = TenantFeatureCertifier;
-export type TenantFeatureCertifierReadModel = z.infer<
-  typeof TenantFeatureCertifierReadModel
->;
-
-export const TenantFeatureDelegatedProducerReadModel =
-  TenantFeatureDelegatedProducer.extend({
-    availabilityTimestamp: z.string().datetime(),
-  });
-export type TenantFeatureDelegatedProducerReadModel = z.infer<
-  typeof TenantFeatureDelegatedProducerReadModel
->;
-
-export const TenantFeatureReadModel = z.discriminatedUnion("type", [
-  TenantFeatureCertifierReadModel,
-  TenantFeatureDelegatedProducerReadModel,
-]);
-export type TenantFeatureReadModel = z.infer<typeof TenantFeatureReadModel>;
-
 export const TenantReadModel = Tenant.extend({
-  features: z.array(TenantFeatureReadModel),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime().optional(),
   onboardedAt: z.string().datetime().optional(),
