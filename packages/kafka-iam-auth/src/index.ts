@@ -122,6 +122,15 @@ const kafkaCommitBatchOffsets = async (
     { topic, partition, offset: (Number(lastOffset) + 1).toString() },
   ]);
 
+  // alternatively
+  // await consumer.commitOffsets(
+  //   payload.batch.messages.map((message) => ({
+  //     topic,
+  //     partition,
+  //     offset: (Number(message.offset) + 1).toString(),
+  //   }))
+  // );
+
   genericLogger.debug(
     `Topic message offset ${Number(lastOffset) + 1} committed`
   );

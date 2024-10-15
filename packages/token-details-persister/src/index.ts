@@ -1,15 +1,12 @@
-import { EachMessagePayload } from "kafkajs";
+import { EachBatchPayload } from "kafkajs";
 import { initFileManager, genericLogger } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
+import { runConsumerBatch } from "kafka-iam-auth";
 import { config } from "./config/config.js";
-import { handleMessage } from "./consumerService.js";
+import { handleBatch } from "./consumerService.js";
 
 const fileManager = initFileManager(config);
 
-async function processMessage({
-  message,
-  partition,
-}: EachMessagePayload): Promise<void> {
+async function processMessage({ batch }: EachBatchPayload): Promise<void> {
   // const decodedMessage = decodeKafkaMessage(message, EServiceEvent);
 
   const loggerInstance = genericLogger;
@@ -21,11 +18,15 @@ async function processMessage({
   //   correlationId: decodedMessage.correlation_id,
   // });
 
-  await handleMessage(message, fileManager);
+  await handleBatch(batch, fileManager, loggerInstance);
 
   loggerInstance.info(
-    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+    `Auditing message was handled. Partition number: ${batch.partition}. Offset: ${batch.firstOffset} -  ${batch.lastOffset}`
   );
 }
 
-await runConsumer(config, ["TODO config.topicName"], processMessage);
+await runConsumerBatch(
+  config,
+  [config.interopGeneratedJwtAuditingBucket],
+  processMessage
+);
