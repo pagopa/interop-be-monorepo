@@ -51,6 +51,16 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
+  - name: delegations
+    description: Tenant Module
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: producerDelegations
+    description: Tenant Module
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
   - name: tools
     description: Utility Module
     externalDocs:
@@ -11932,7 +11942,7 @@ paths:
     - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
-        - delegation
+        - delegations
       summary: List producer delegations
       description: List producer delegations
       operationId: getProducerDelegations
@@ -12078,6 +12088,9 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available  
+  /producer/delegations:
+    parameters:
+    - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       summary: Producer delegation creation
       operationId: createProducerDelegation
@@ -12140,7 +12153,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
       tags:
-        - delegation
+        - producerDelegations
       requestBody:
         content:
           application/json:
@@ -12154,7 +12167,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
-        - delegation
+        - producerDelegations
       summary: Approves a producer delegation
       description: Approves a producer delegation
       operationId: approveDelegation
@@ -12263,7 +12276,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
-        - delegation
+        - producerDelegations
       summary: Rejects a producer delegation
       description: Rejects a producer delegation
       requestBody:
@@ -12385,7 +12398,7 @@ paths:
       description: Retrieves a producer delegation
       summary: Retrieves a producer delegation
       tags:
-        - delegation
+        - delegations
       operationId: getProducerDelegation
       responses:
         "200":
@@ -12464,10 +12477,19 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /producer/delegations/{delegationId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
     delete:
       description: Revokes a producer delegation
       tags:
-        - delegation
+        - producerDelegation
       summary: Revokes a producer delegation
       operationId: revokeProducerDelegation
       responses:
