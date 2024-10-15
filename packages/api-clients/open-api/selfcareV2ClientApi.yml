@@ -11,7 +11,7 @@ paths:
       tags:
         - institutions
       summary: getInstitutions
-      description: The service retrieves all the onboarded institutions related to the provided user and the product retrieved from Subscription Key
+      description: "The service retrieves all the onboarded institutions related to the provided user and the product retrieved from Subscription Key. It is deprecated in favor of endpoint /users?institutionId={institutionId}"
       operationId: getInstitutionsUsingGET
       parameters:
         - name: userIdForAuth
@@ -35,10 +35,13 @@ paths:
                   assistanceContacts:
                     supportEmail: string
                     supportPhone: string
+                  city: string
                   companyInformations:
                     businessRegisterPlace: string
                     rea: string
                     shareCapital: string
+                  country: string
+                  county: string
                   description: string
                   digitalAddress: string
                   dpoData:
@@ -47,12 +50,9 @@ paths:
                     pec: email@example.com
                   externalId: string
                   id: string
-                  institutionType: GSP
+                  institutionType: AS
                   origin: string
                   originId: string
-                  rootParent:
-                    description: string
-                    id: string
                   pspData:
                     abiCode: string
                     businessRegisterNumber: string
@@ -60,6 +60,9 @@ paths:
                     legalRegisterNumber: string
                     vatNumberGroup: false
                   recipientCode: string
+                  rootParent:
+                    description: string
+                    id: string
                   status: string
                   subunitCode: string
                   subunitType: string
@@ -67,7 +70,6 @@ paths:
                   userProductRoles:
                     - string
                   zipCode: string
-                  logo: string
         "400":
           description: Bad Request
           content:
@@ -145,7 +147,6 @@ paths:
         - name: userIdForAuth
           in: query
           description: User's unique identifier
-          required: true
           schema:
             type: string
         - name: userId
@@ -439,9 +440,9 @@ paths:
   /user-groups:
     get:
       tags:
-        - user-group
+        - UserGroup
       summary: getUserGroups
-      description: Service that allows to get a list of UserGroup entities filtered by the product related to Subscription Key
+      description: Service that allows to get a list of UserGroup entities
       operationId: getUserGroupsUsingGET
       parameters:
         - name: institutionId
@@ -480,6 +481,7 @@ paths:
           schema:
             enum:
               - ACTIVE
+              - DELETED
               - SUSPENDED
             type: string
       responses:
@@ -566,7 +568,7 @@ paths:
       tags:
         - product
       summary: getProduct
-      description: The service retrieves Product information related to Subscription Key
+      description: The service retrieves Product information related to Subscription Key. It is deprecated because  is no longer used
       operationId: getProductUsingGET
       parameters:
         - name: institutionType
@@ -581,6 +583,8 @@ paths:
               - SCP
               - SA
               - AS
+              - REC
+              - CON
             type: string
       responses:
         "200":
@@ -671,7 +675,7 @@ paths:
       tags:
         - institutions
       summary: getInstitutionsByGeoTaxonomies
-      description: The service retrieves all the institutions based on given a list of geotax ids and a searchMode
+      description: The service retrieves all the institutions based on given a list of geotax ids and a searchMode. It is deprecated because  is no longer used
       operationId: getInstitutionsByGeoTaxonomiesUsingGET
       parameters:
         - name: geoTaxonomies
@@ -708,6 +712,9 @@ paths:
                 - address: string
                   aooParentCode: string
                   businessRegisterPlace: string
+                  city: string
+                  country: string
+                  county: string
                   description: string
                   digitalAddress: string
                   externalId: string
@@ -716,7 +723,7 @@ paths:
                       desc: string
                   id: string
                   imported: false
-                  institutionType: GSP
+                  institutionType: AS
                   origin: string
                   originId: string
                   parentDescription: string
@@ -793,7 +800,7 @@ paths:
       tags:
         - institutions
       summary: getInstitutionGeographicTaxonomies
-      description: The service retrieve the institution's geographic taxonomy
+      description: "The service retrieve the institution's geographic taxonomy. It is deprecated in favor of endpoint /institutions/{institutionId}"
       operationId: getInstitutionGeographicTaxonomiesUsingGET
       parameters:
         - name: institutionId
@@ -820,6 +827,91 @@ paths:
               example:
                 - code: string
                   desc: string
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              example:
+                detail: string
+                instance: string
+                invalidParams:
+                  - name: string
+                    reason: string
+                status: 500
+                title: string
+                type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              example:
+                detail: string
+                instance: string
+                invalidParams:
+                  - name: string
+                    reason: string
+                status: 500
+                title: string
+                type: string
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              example:
+                detail: string
+                instance: string
+                invalidParams:
+                  - name: string
+                    reason: string
+                status: 500
+                title: string
+                type: string
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              example:
+                detail: string
+                instance: string
+                invalidParams:
+                  - name: string
+                    reason: string
+                status: 500
+                title: string
+                type: string
+  "/institutions/{institutionId}/contract":
+    get:
+      tags:
+        - institutions
+      summary: getContract
+      description: Service to retrieve a contract given institutionId and productId
+      operationId: getContractUsingGET
+      parameters:
+        - name: institutionId
+          in: path
+          description: Institution's unique internal Id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: byte
+              examples:
+                default:
+                  value:
         "400":
           description: Bad Request
           content:
@@ -910,6 +1002,28 @@ paths:
             enum:
               - FULL
               - NORMAL
+            type: string
+        - name: page
+          in: query
+          description: Format - int32. page
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          description: Format - int32. size
+          schema:
+            type: integer
+            format: int32
+        - name: search
+          in: query
+          description: Description institution
+          schema:
+            type: string
+        - name: taxCode
+          in: query
+          description: Institution's tax code
+          schema:
             type: string
       responses:
         "200":
@@ -1055,6 +1169,8 @@ paths:
               $ref: "#/components/schemas/SearchUserDto"
             example:
               fiscalCode: string
+              statuses:
+                - ACTIVE
       responses:
         "200":
           description: OK
@@ -1072,8 +1188,12 @@ paths:
                     productInfo:
                       createdAt: string
                       id: string
+                      productRole: string
                       role: string
+                      status: string
+                    state: string
                     taxCode: string
+                    userEmail: string
                     zipCode: string
                 user:
                   email: string
@@ -1128,6 +1248,87 @@ paths:
                 status: 500
                 title: string
                 type: string
+    get:
+      tags:
+        - users
+      summary: getUserInstitution
+      description: "This endpoint retrieves detailed information about a user's association with various products within an institution. The response provides a comprehensive view of the user's roles, product statuses and the relevant timestamps."
+      operationId: getUserInstitutionUsingGET
+      parameters:
+        - name: institutionId
+          in: query
+          description: Institution's unique identifier.
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Format - int32.
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: productRoles
+          in: query
+          description: Specific role of the user related to the product.
+          schema:
+            type: array
+            items:
+              type: string
+        - name: roles
+          in: query
+          description: General role of the user related to the the product.
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/PartyRole"
+        - name: size
+          in: query
+          description: Format - int32.
+          schema:
+            type: integer
+            format: int32
+            default: 100
+        - name: states
+          in: query
+          description: "The current status of the user on the product. <br>Available values: ACTIVE, PENDING, TOBEVALIDATED, SUSPENDED, DELETED, REJECTED"
+          schema:
+            type: array
+            items:
+              type: string
+        - name: userId
+          in: query
+          description: User's unique identifier.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserInstitutionResponse"
+              example:
+                - id: string
+                  userId: string
+                  institutionId: string
+                  institutionDescription: string
+                  institutionRootName: string
+                  userMailUuid: string
+                  products:
+                    - productId: string
+                      tokenId: string
+                      status: ACTIVE
+                      productRole: string
+                      role: MANAGER
+                      env: ROOT
+                      createdAt: "2022-03-10T12:15:50.0000000+00:00"
+                      updatedAt: "2022-03-10T12:15:50.0000000+00:00"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
   /institutions/:
     get:
       tags:
@@ -1361,6 +1562,142 @@ paths:
                 status: 500
                 title: string
                 type: string
+  /support:
+    post:
+      tags:
+        - support
+      summary: sendSupportRequest
+      description: Service to retrieve Support contact's form. It is deprecated because  is no longer used
+      operationId: sendSupportRequestUsingPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupportRequestDto"
+            example:
+              email: email@example.com
+              institutionId: string
+              productId: string
+              userId: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/html:
+              schema:
+                type: string
+              example: <SupportPost200TextHtmlResponse>string</SupportPost200TextHtmlResponse>
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              example:
+                detail: string
+                instance: string
+                invalidParams:
+                  - name: string
+                    reason: string
+                status: 500
+                title: string
+                type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              example:
+                detail: string
+                instance: string
+                invalidParams:
+                  - name: string
+                    reason: string
+                status: 500
+                title: string
+                type: string
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              example:
+                detail: string
+                instance: string
+                invalidParams:
+                  - name: string
+                    reason: string
+                status: 500
+                title: string
+                type: string
+  "/tokens/products/{productId}":
+    get:
+      tags:
+        - Token
+      summary: Retrieve tokens given the product identifier
+      description: Retrieve tokens given the product identifier
+      operationId: getTokensFromProductUsingGET
+      parameters:
+        - name: productId
+          in: path
+          description: Product's unique identifier
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Format - int32. The number of the current page
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          description: Format - int32. The size of the page
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/TokenListResponse"
+              examples:
+                default:
+                  value:
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              example:
+                detail: string
+                instance: string
+                invalidParams:
+                  - name: string
+                    reason: string
+                status: 500
+                title: string
+                type: string
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              example:
+                detail: string
+                instance: string
+                invalidParams:
+                  - name: string
+                    reason: string
+                status: 500
+                title: string
+                type: string
 components:
   schemas:
     AckPayloadRequest:
@@ -1368,7 +1705,6 @@ components:
       required:
         - message
       type: object
-      additionalProperties: false
       properties:
         message:
           type: string
@@ -1376,7 +1712,6 @@ components:
     GeographicTaxonomyResource:
       title: GeographicTaxonomyResource
       type: object
-      additionalProperties: false
       properties:
         code:
           type: string
@@ -1387,7 +1722,6 @@ components:
     InstitutionDetailResource:
       title: InstitutionDetailResource
       type: object
-      additionalProperties: false
       properties:
         address:
           type: string
@@ -1398,6 +1732,15 @@ components:
         businessRegisterPlace:
           type: string
           description: Institution's business register place
+        city:
+          type: string
+          description: Institution's physical address city
+        country:
+          type: string
+          description: Institution's physical address country
+        county:
+          type: string
+          description: Institution's physical address county
         description:
           type: string
           description: Institution's legal name
@@ -1411,7 +1754,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GeographicTaxonomyResource"
-          description: Institution's geographic taxonomy list
+          description: Institution's geographic taxonomy
         id:
           type: string
           description: Institution's unique internal Id
@@ -1422,14 +1765,16 @@ components:
           example: false
         institutionType:
           enum:
+            - AS
             - GSP
             - PA
             - PG
             - PSP
             - PT
-            - SCP
             - SA
-            - AS
+            - SCP
+            - REC
+            - CON
           type: string
           description: Institution's type
         origin:
@@ -1465,10 +1810,26 @@ components:
         zipCode:
           type: string
           description: Institution's zipCode
+    InstitutionLocationDataDto:
+      title: InstitutionLocationDataDto
+      required:
+        - city
+        - country
+        - county
+      type: object
+      properties:
+        city:
+          type: string
+          description: Institution's physical address city
+        country:
+          type: string
+          description: Institution's physical address country
+        county:
+          type: string
+          description: Institution's physical address county
     InstitutionResource:
       title: InstitutionResource
       type: object
-      additionalProperties: false
       properties:
         address:
           type: string
@@ -1478,8 +1839,17 @@ components:
           description: AOO unit parent institution Code
         assistanceContacts:
           $ref: "#/components/schemas/AssistanceContactsResource"
+        city:
+          type: string
+          description: Institution's physical address city
         companyInformations:
           $ref: "#/components/schemas/CompanyInformationsResource"
+        country:
+          type: string
+          description: Institution's physical address country
+        county:
+          type: string
+          description: Institution's physical address county
         description:
           type: string
           description: Institution's legal name
@@ -1497,14 +1867,16 @@ components:
           format: uuid
         institutionType:
           enum:
+            - AS
             - GSP
             - PA
             - PG
             - PSP
             - PT
-            - SCP
             - SA
-            - AS
+            - SCP
+            - REC
+            - CON
           type: string
           description: Institution's type
         origin:
@@ -1513,13 +1885,13 @@ components:
         originId:
           type: string
           description: Institution's details origin Id
-        rootParent:
-          $ref: "#/components/schemas/RootParentResource"
         pspData:
           $ref: "#/components/schemas/PspDataResource"
         recipientCode:
           type: string
-          description: Billing recipient code
+          description: "Billing recipient code, not required only for institutionType SA"
+        rootParent:
+          $ref: "#/components/schemas/RootParentResource"
         status:
           type: string
           description: Institution onboarding status
@@ -1540,16 +1912,12 @@ components:
         zipCode:
           type: string
           description: Institution's zipCode
-        logo:
-          type: string
-          description: Institution's logo
     InvalidParam:
       title: InvalidParam
       required:
         - name
         - reason
       type: object
-      additionalProperties: false
       properties:
         name:
           type: string
@@ -1563,7 +1931,6 @@ components:
         - status
         - title
       type: object
-      additionalProperties: false
       properties:
         detail:
           type: string
@@ -1591,7 +1958,6 @@ components:
     ProductResource:
       title: ProductResource
       type: object
-      additionalProperties: false
       properties:
         contractTemplatePath:
           type: string
@@ -1649,7 +2015,6 @@ components:
     PspDataResource:
       title: PspDataResource
       type: object
-      additionalProperties: false
       properties:
         abiCode:
           type: string
@@ -1670,7 +2035,6 @@ components:
     DpoDataResource:
       title: DpoDataResource
       type: object
-      additionalProperties: false
       properties:
         address:
           type: string
@@ -1688,7 +2052,6 @@ components:
     RootParentResource:
       title: RootParentResource
       type: object
-      additionalProperties: false
       properties:
         description:
           type: string
@@ -1699,7 +2062,6 @@ components:
     CompanyInformationsResource:
       title: CompanyInformationsResource
       type: object
-      additionalProperties: false
       properties:
         businessRegisterPlace:
           type: string
@@ -1713,7 +2075,6 @@ components:
     AssistanceContactsResource:
       title: AssistanceContactsResource
       type: object
-      additionalProperties: false
       properties:
         supportEmail:
           type: string
@@ -1727,7 +2088,6 @@ components:
         - multiroleAllowed
         - roles
       type: object
-      additionalProperties: false
       properties:
         multiroleAllowed:
           type: boolean
@@ -1745,7 +2105,6 @@ components:
         - description
         - label
       type: object
-      additionalProperties: false
       properties:
         code:
           type: string
@@ -1759,7 +2118,6 @@ components:
     PageOfUserGroupResource:
       title: PageOfUserGroupResource
       type: object
-      additionalProperties: false
       properties:
         content:
           type: array
@@ -1785,7 +2143,6 @@ components:
     UserGroupResource:
       title: UserGroupResource
       type: object
-      additionalProperties: false
       properties:
         description:
           type: string
@@ -1805,13 +2162,13 @@ components:
         status:
           enum:
             - ACTIVE
+            - DELETED
             - SUSPENDED
           type: string
           description: Users group's status
     UserResponse:
       title: UserResponse
       type: object
-      additionalProperties: false
       properties:
         email:
           type: string
@@ -1826,7 +2183,6 @@ components:
     UserResource:
       title: UserResource
       type: object
-      additionalProperties: false
       properties:
         email:
           type: string
@@ -1846,9 +2202,11 @@ components:
         surname:
           type: string
           description: User's surname
+        fiscalCode:
+          type: string
+          description: User's fiscal code
     Institution:
       type: object
-      additionalProperties: false
       properties:
         id:
           type: string
@@ -1892,6 +2250,8 @@ components:
             - SCP
             - SA
             - AS
+            - REC
+            - CON
           type: string
         attributes:
           $ref: "#/components/schemas/Attributes"
@@ -1935,9 +2295,9 @@ components:
           type: string
         rootParent:
           $ref: "#/components/schemas/RootParentResource"
+      additionalProperties: false
     Attribute:
       type: object
-      additionalProperties: false
       properties:
         origin:
           type: string
@@ -1951,7 +2311,6 @@ components:
         $ref: "#/components/schemas/Attribute"
     PaymentServiceProvider:
       type: object
-      additionalProperties: false
       properties:
         abiCode:
           type: string
@@ -1968,9 +2327,9 @@ components:
         vatNumberGroup:
           type: boolean
           description: true when vat number identify a group
+      additionalProperties: false
     DataProtectionOfficer:
       type: object
-      additionalProperties: false
       properties:
         address:
           type: string
@@ -1981,12 +2340,12 @@ components:
         pec:
           type: string
           description: Data protection officer digital address
+      additionalProperties: false
     GeographicTaxonomy:
       required:
         - code
         - desc
       type: object
-      additionalProperties: false
       properties:
         code:
           type: string
@@ -1994,10 +2353,10 @@ components:
         desc:
           type: string
           description: Description of the geographic taxonomy code
+      additionalProperties: false
     DelegationResponse:
       title: DelegationResponse
       type: object
-      additionalProperties: false
       properties:
         brokerId:
           type: string
@@ -2025,6 +2384,8 @@ components:
             - SCP
             - SA
             - AS
+            - REC
+            - CON
           type: string
         productId:
           type: string
@@ -2040,15 +2401,25 @@ components:
       required:
         - fiscalCode
       type: object
-      additionalProperties: false
       properties:
         fiscalCode:
           type: string
           description: User's fiscal code
+        statuses:
+          type: array
+          items:
+            enum:
+              - ACTIVE
+              - DELETED
+              - PENDING
+              - REJECTED
+              - SUSPENDED
+              - TOBEVALIDATED
+            type: string
+          description: User's statuses
     UserInfoResource:
       title: UserInfoResource
       type: object
-      additionalProperties: false
       properties:
         onboardedInstitutions:
           type: array
@@ -2060,7 +2431,6 @@ components:
     OnboardedInstitutionResource:
       title: OnboardedInstitutionResource
       type: object
-      additionalProperties: false
       properties:
         address:
           type: string
@@ -2084,32 +2454,42 @@ components:
             - SCP
             - SA
             - AS
+            - REC
+            - CON
           type: string
           description: Institution's type
         productInfo:
           $ref: "#/components/schemas/ProductInfo"
+        state:
+          type: string
+          description: Onboarding's state
         taxCode:
           type: string
           description: Institution's tax code
+        userEmail:
+          type: string
+          description: User's email linked to the institution
         zipCode:
           type: string
           description: Institution's zip code
     ProductInfo:
       title: ProductInfo
       type: object
-      additionalProperties: false
       properties:
         createdAt:
           type: string
           format: date-time
         id:
           type: string
+        productRole:
+          type: string
         role:
+          type: string
+        status:
           type: string
     InstitutionsResponse:
       title: InstitutionsResponse
       type: object
-      additionalProperties: false
       properties:
         institutions:
           type: array
@@ -2118,7 +2498,6 @@ components:
     InstitutionResponse:
       title: InstitutionResponse
       type: object
-      additionalProperties: false
       properties:
         address:
           type: string
@@ -2156,6 +2535,8 @@ components:
             - SCP
             - SA
             - AS
+            - REC
+            - CON
           type: string
         origin:
           type: string
@@ -2184,7 +2565,6 @@ components:
     AttributesResponse:
       title: AttributesResponse
       type: object
-      additionalProperties: false
       properties:
         code:
           type: string
@@ -2195,7 +2575,6 @@ components:
     DataProtectionOfficerResponse:
       title: DataProtectionOfficerResponse
       type: object
-      additionalProperties: false
       properties:
         address:
           type: string
@@ -2206,7 +2585,6 @@ components:
     GeoTaxonomies:
       title: GeoTaxonomies
       type: object
-      additionalProperties: false
       properties:
         code:
           type: string
@@ -2215,7 +2593,6 @@ components:
     GeographicTaxonomies:
       title: GeographicTaxonomies
       type: object
-      additionalProperties: false
       properties:
         code:
           type: string
@@ -2238,7 +2615,6 @@ components:
     PaymentServiceProviderResponse:
       title: PaymentServiceProviderResponse
       type: object
-      additionalProperties: false
       properties:
         abiCode:
           type: string
@@ -2253,7 +2629,6 @@ components:
     OnboardingsResponse:
       title: OnboardingsResponse
       type: object
-      additionalProperties: false
       properties:
         onboardings:
           type: array
@@ -2262,7 +2637,6 @@ components:
     OnboardingResponse:
       title: OnboardingResponse
       type: object
-      additionalProperties: false
       properties:
         billing:
           $ref: "#/components/schemas/BillingResponse"
@@ -2295,7 +2669,6 @@ components:
     BillingResponse:
       title: BillingResponse
       type: object
-      additionalProperties: false
       properties:
         publicServices:
           type: boolean
@@ -2303,6 +2676,253 @@ components:
           type: string
         vatNumber:
           type: string
+    SupportRequestDto:
+      title: SupportRequestDto
+      required:
+        - email
+      type: object
+      properties:
+        email:
+          type: string
+          description: User's email
+          format: email
+          example: email@example.com
+        institutionId:
+          type: string
+          description: Institution's identifier
+        productId:
+          type: string
+          description: Product's identifier
+        userId:
+          type: string
+          description: User's identifier
+    TokenListResponse:
+      title: TokenListResponse
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TokenResponse"
+    TokenResponse:
+      title: TokenResponse
+      type: object
+      properties:
+        checksum:
+          type: string
+        closedAt:
+          type: string
+          format: date-time
+        contentType:
+          type: string
+        contractSigned:
+          type: string
+        contractTemplate:
+          type: string
+        contractVersion:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        expiringDate:
+          type: string
+          format: date-time
+        id:
+          type: string
+        institutionId:
+          type: string
+        institutionUpdate:
+          $ref: "#/components/schemas/InstitutionUpdate"
+        legals:
+          type: array
+          items:
+            $ref: "#/components/schemas/LegalsResponse"
+        productId:
+          type: string
+        status:
+          enum:
+            - ACTIVE
+            - DELETED
+            - PENDING
+            - REJECTED
+            - SUSPENDED
+            - TOBEVALIDATED
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/TokenUser"
+    TokenUser:
+      title: TokenUser
+      type: object
+      properties:
+        role:
+          enum:
+            - DELEGATE
+            - MANAGER
+            - OPERATOR
+            - SUB_DELEGATE
+          type: string
+        userId:
+          type: string
+    InstitutionUpdate:
+      title: InstitutionUpdate
+      type: object
+      properties:
+        address:
+          type: string
+        businessRegisterPlace:
+          type: string
+        dataProtectionOfficer:
+          $ref: "#/components/schemas/DataProtectionOfficer"
+        description:
+          type: string
+        digitalAddress:
+          type: string
+        geographicTaxonomies:
+          type: array
+          items:
+            $ref: "#/components/schemas/InstitutionGeographicTaxonomies"
+        imported:
+          type: boolean
+        institutionType:
+          enum:
+            - GSP
+            - PA
+            - PG
+            - PSP
+            - PT
+            - SA
+            - SCP
+            - AS
+            - REC
+            - CON
+          type: string
+        paymentServiceProvider:
+          $ref: "#/components/schemas/PaymentServiceProvider"
+        rea:
+          type: string
+        shareCapital:
+          type: string
+        supportEmail:
+          type: string
+        supportPhone:
+          type: string
+        taxCode:
+          type: string
+        zipCode:
+          type: string
+    LegalsResponse:
+      title: LegalsResponse
+      type: object
+      properties:
+        env:
+          enum:
+            - COLL
+            - DEV
+            - PROD
+            - ROOT
+          type: string
+        partyId:
+          type: string
+        relationshipId:
+          type: string
+        role:
+          enum:
+            - DELEGATE
+            - MANAGER
+            - OPERATOR
+            - SUB_DELEGATE
+          type: string
+    InstitutionGeographicTaxonomies:
+      title: InstitutionGeographicTaxonomies
+      type: object
+      properties:
+        code:
+          type: string
+        desc:
+          type: string
+    PartyRole:
+      enum:
+        - MANAGER
+        - DELEGATE
+        - SUB_DELEGATE
+        - OPERATOR
+      type: string
+      description: The general role of the user related to the product.
+    UserInstitutionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: A unique identifier for the user-institution association record.
+        userId:
+          type: string
+          description: A unique identifier for the user.
+        institutionId:
+          type: string
+          description: A unique identifier for the institution to which the user is associated.
+        institutionDescription:
+          type: string
+          description: A textual description of the institution.
+        institutionRootName:
+          type: string
+          description: The root name of the institution.
+        userMailUuid:
+          type: string
+          description: A unique identifier for the user's email.
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/OnboardedProductResponse"
+          description: A list of products associated with the user.
+    OnboardedProductResponse:
+      type: object
+      properties:
+        productId:
+          type: string
+          description: A unique identifier for the product.
+        tokenId:
+          type: string
+          description: A unique identifier for the token associated with the product.
+        status:
+          $ref: "#/components/schemas/OnboardedProductState"
+        productRole:
+          type: string
+          description: The specific role of the user related to the product.
+        role:
+          $ref: "#/components/schemas/PartyRole"
+        env:
+          $ref: "#/components/schemas/Env"
+        createdAt:
+          $ref: "#/components/schemas/LocalDateTime"
+        updatedAt:
+          $ref: "#/components/schemas/LocalDateTime"
+    OnboardedProductState:
+      enum:
+        - ACTIVE
+        - PENDING
+        - TOBEVALIDATED
+        - SUSPENDED
+        - DELETED
+        - REJECTED
+      type: string
+      description: The current status of the user on the product.
+    Env:
+      enum:
+        - ROOT
+        - DEV
+        - COLL
+        - PROD
+      type: string
+      description: The environment in which the product is used.
+    LocalDateTime:
+      type: string
+      format: date-time
+      example: "2022-03-10T12:15:50.0000000+00:00"
   securitySchemes:
     apiKeyHeader:
       type: apiKey
