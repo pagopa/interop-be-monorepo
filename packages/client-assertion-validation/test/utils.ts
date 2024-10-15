@@ -26,18 +26,16 @@ export const getMockClientAssertion = async ({
   customHeader,
   standardClaimsOverride,
   customClaims,
-  keySet: maybeKeySet,
 }: {
   customHeader: Partial<ClientAssertionHeader>;
   standardClaimsOverride: Partial<JWTPayload>;
   customClaims: { [k: string]: unknown };
-  keySet?: crypto.KeyPairKeyObjectResult;
-}): Promise<string> => {
-  const keySet: crypto.KeyPairKeyObjectResult =
-    maybeKeySet ??
-    crypto.generateKeyPairSync("rsa", {
-      modulusLength: 2048,
-    });
+}): Promise<{
+  jws: string;
+  publicKeyEncodedPem: string;
+}> => {
+  const { keySet, publicKeyEncodedPem } = generateKeySet();
+
   const clientId = generateId<ClientId>();
   const defaultPayload: JWTPayload = {
     iss: clientId,
@@ -60,11 +58,41 @@ export const getMockClientAssertion = async ({
     ...customHeader,
   };
 
-  return await signClientAssertion({
+  const jws = await signClientAssertion({
     payload: actualPayload,
     headers,
     keySet,
   });
+
+  return {
+    jws,
+    publicKeyEncodedPem,
+  };
+};
+
+export const generateKeySet = (): {
+  keySet: crypto.KeyPairKeyObjectResult;
+  publicKeyEncodedPem: string;
+} => {
+  const keySet: crypto.KeyPairKeyObjectResult = crypto.generateKeyPairSync(
+    "rsa",
+    {
+      modulusLength: 2048,
+    }
+  );
+
+  const pemPublicKey = keySet.publicKey
+    .export({
+      type: "spki",
+      format: "pem",
+    })
+    .toString();
+
+  const publicKeyEncodedPem = Buffer.from(pemPublicKey).toString("base64");
+  return {
+    keySet,
+    publicKeyEncodedPem,
+  };
 };
 
 export const signClientAssertion = async ({
@@ -130,20 +158,15 @@ export const getMockApiKey = (): ApiKey => ({
 });
 
 export const getMockAccessTokenRequest =
-  async (): Promise<ClientAssertionValidationRequest> => {
-    const keySet = crypto.generateKeyPairSync("rsa", {
-      modulusLength: 2048,
-    });
-
-    return {
-      client_id: generateId<ClientId>(),
-      client_assertion_type: EXPECTED_CLIENT_ASSERTION_TYPE,
-      client_assertion: await getMockClientAssertion({
+  async (): Promise<ClientAssertionValidationRequest> => ({
+    client_id: generateId<ClientId>(),
+    client_assertion_type: EXPECTED_CLIENT_ASSERTION_TYPE,
+    client_assertion: (
+      await getMockClientAssertion({
         customHeader: {},
         standardClaimsOverride: {},
         customClaims: {},
-        keySet,
-      }),
-      grant_type: EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE,
-    };
-  };
+      })
+    ).jws,
+    grant_type: EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE,
+  });
