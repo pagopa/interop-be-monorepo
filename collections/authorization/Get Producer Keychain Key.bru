@@ -1,0 +1,21 @@
+meta {
+  name: Get Producer Keychain Key
+  type: http
+  seq: 27
+}
+
+get {
+  url: {{host-authorization}}/producerKeychains/:producerKeychainId/keys/:keyId
+  body: none
+  auth: none
+}
+
+params:path {
+  keyId: {{keyId}}
+  producerKeychainId: {{producerKeychainId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
