@@ -1787,7 +1787,7 @@ async function isUserAllowedToSeeDraft(
     return true;
   }
 
-  const delegation = await readModelService.getDelegationByEServiceId(
+  const delegation = await readModelService.getLatestDelegationByEServiceId(
     eservice.id
   );
 

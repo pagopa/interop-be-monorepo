@@ -93,12 +93,13 @@ async function getTenant(
   return result.data;
 }
 
-async function getDelegation(
+async function getLatestDelegation(
   delegations: DelegationCollection,
   filter: Filter<WithId<WithMetadata<Delegation>>>
 ): Promise<Delegation | undefined> {
   const data = await delegations.findOne(filter, {
     projection: { data: true, metadata: true },
+    sort: { "data.createdAt": -1 },
   });
 
   if (!data) {
@@ -526,10 +527,10 @@ export function readModelServiceBuilder(
       return getTenant(tenants, { "data.id": id });
     },
 
-    getDelegationByEServiceId(
+    getLatestDelegationByEServiceId(
       eserviceId: EServiceId
     ): Promise<Delegation | undefined> {
-      return getDelegation(delegations, {
+      return getLatestDelegation(delegations, {
         "data.eserviceId": eserviceId,
       });
     },
