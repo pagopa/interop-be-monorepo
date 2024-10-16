@@ -17,7 +17,6 @@ import {
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import {
   AgreementId,
-  DescriptorId,
   genericInternalError,
   GSIPKConsumerIdEServiceId,
   itemState,
@@ -254,7 +253,7 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
           dynamoDBClient,
           makePlatformStatesEServiceDescriptorPK({
             eserviceId: purpose.eserviceId,
-            descriptorId: unsafeBrandId<DescriptorId>(
+            descriptorId: unsafeBrandId(
               platformAgreementEntry.agreementDescriptorId
             ),
           })
@@ -306,7 +305,7 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
             ":GSIPK_eserviceId_descriptorId": {
               S: makeGSIPKEServiceIdDescriptorId({
                 eserviceId: purpose.eserviceId,
-                descriptorId: unsafeBrandId<DescriptorId>(
+                descriptorId: unsafeBrandId(
                   platformAgreementEntry.agreementDescriptorId
                 ),
               }),
