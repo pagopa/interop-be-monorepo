@@ -7,34 +7,35 @@ export const errorCodes = {
   invalidGrantType: "0004",
   invalidAudienceFormat: "0005",
   invalidAudience: "0006",
-  invalidClientAssertionFormat: "0007",
-  unexpectedClientAssertionPayload: "0008",
-  jtiNotFound: "0009",
-  issuedAtNotFound: "0010",
-  expNotFound: "0011",
-  issuerNotFound: "0012",
-  subjectNotFound: "0013",
-  invalidSubject: "0014",
-  invalidPurposeIdClaimFormat: "0015",
-  kidNotFound: "0016",
-  invalidClientAssertionSignatureType: "0017",
-  tokenExpiredError: "0018",
-  jsonWebTokenError: "0019",
-  notBeforeError: "0020",
-  inactivePurpose: "0021",
-  inactiveAgreement: "0022",
-  inactiveEService: "0023",
-  invalidClientIdFormat: "0024",
-  invalidSubjectFormat: "0025",
-  digestClaimNotFound: "0026",
-  invalidHashLength: "0027",
-  invalidHashAlgorithm: "0028",
-  algorithmNotFound: "0029",
-  algorithmNotAllowed: "0030",
-  purposeIdNotProvided: "0031",
-  invalidKidFormat: "0032",
-  clientAssertionInvalidClaims: "0033",
-  invalidSignature: "0034",
+  audienceNotFound: "0007",
+  invalidClientAssertionFormat: "0008",
+  unexpectedClientAssertionPayload: "0009",
+  jtiNotFound: "00010",
+  issuedAtNotFound: "0011",
+  expNotFound: "0012",
+  issuerNotFound: "0013",
+  subjectNotFound: "0014",
+  invalidSubject: "0015",
+  invalidPurposeIdClaimFormat: "0016",
+  kidNotFound: "0017",
+  clientAssertionSignatureVerificationError: "0018",
+  tokenExpiredError: "0019",
+  jsonWebTokenError: "0020",
+  notBeforeError: "0021",
+  inactivePurpose: "0022",
+  inactiveAgreement: "0023",
+  inactiveEService: "0024",
+  invalidClientIdFormat: "0025",
+  invalidSubjectFormat: "0026",
+  digestClaimNotFound: "0027",
+  invalidHashLength: "0028",
+  invalidHashAlgorithm: "0029",
+  algorithmNotFound: "0030",
+  algorithmNotAllowed: "0031",
+  purposeIdNotProvided: "0032",
+  invalidKidFormat: "0033",
+  clientAssertionInvalidClaims: "0034",
+  invalidSignature: "0035",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -49,11 +50,23 @@ export function clientAssertionValidationFailure(
   });
 }
 
-export function unexpectedClientAssertionSignatureVerificationError(): ApiError<ErrorCodes> {
+export function unexpectedClientAssertionSignatureVerificationError(
+  message: string
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Unexpected client assertion signature verification error`,
+    detail: `Unexpected client assertion signature verification error: ${message}`,
     code: "unexpectedClientAssertionSignatureVerificationError",
     title: "Unexpected client assertion signature verification error",
+  });
+}
+
+export function clientAssertionSignatureVerificationError(
+  errorMessage: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Error verifying client assertion signature: Reason: ${errorMessage}`,
+    code: "clientAssertionSignatureVerificationError",
+    title: "Client assertion signature verification error",
   });
 }
 
@@ -77,7 +90,7 @@ export function invalidGrantType(grantType: string): ApiError<ErrorCodes> {
 
 export function invalidAudienceFormat(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Audience must be an array`,
+    detail: "Audience must be an array or a string in case of single value",
     code: "invalidAudienceFormat",
     title: "Invalid audience format",
   });
@@ -91,9 +104,19 @@ export function invalidAudience(): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidClientAssertionFormat(): ApiError<ErrorCodes> {
+export function audienceNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid format for Client assertion`,
+    detail: "Audience not found in client assertion",
+    code: "audienceNotFound",
+    title: "Audience not found",
+  });
+}
+
+export function invalidClientAssertionFormat(
+  message: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid format for Client assertion: ${message}`,
     code: "invalidClientAssertionFormat",
     title: "Invalid format for Client assertion",
   });
@@ -172,16 +195,6 @@ export function kidNotFound(): ApiError<ErrorCodes> {
     detail: `KID not found in client assertion`,
     code: "kidNotFound",
     title: "KID not found",
-  });
-}
-
-export function invalidClientAssertionSignatureType(
-  clientAssertionSignatureType: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Client assertion signature's type not valid: ${clientAssertionSignatureType}`,
-    code: "invalidClientAssertionSignatureType",
-    title: "Token expired in client assertion signature validation",
   });
 }
 
