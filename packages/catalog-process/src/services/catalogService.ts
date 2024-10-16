@@ -1770,6 +1770,35 @@ export function catalogServiceBuilder(
       );
       return updatedEservice;
     },
+    async approveDelegatedEServiceVersion(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Approving EService ${eserviceId} version ${descriptorId}`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.waitingForApproval) {
+        throw eserviceWithoutValidDescriptors(eserviceId);
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        description,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptionUpdated(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+      return updatedEservice;
+    },
   };
 }
 
