@@ -19,6 +19,7 @@ import {
   genericInternalError,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
+  TenantId,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
@@ -39,9 +40,11 @@ import {
   b64UrlEncode,
   FileManager,
   formatDateyyyyMMdd,
+  formatTimehhmmss,
   genericLogger,
   Logger,
   RateLimiter,
+  RateLimiterStatus,
 } from "pagopa-interop-commons";
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
@@ -56,14 +59,34 @@ import {
   clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
   fallbackAuditFailed,
-  invalidPlatformStates,
+  invalidTokenClientKidPurposeEntry,
   kafkaAuditingFailed,
-  keyNotFound,
-  keyRetrievalError,
+  tokenGenerationStatesEntryNotFound,
+  keyRetrievalFailed,
   keyTypeMismatch,
+  tokenGenerationFailed,
   tokenSigningFailed,
   unexpectedTokenGenerationStatesEntry,
 } from "../model/domain/errors.js";
+
+// TODO: copied
+export type GenerateTokenReturnType =
+  | {
+      limitReached: true;
+      token: undefined;
+      rateLimitedTenantId: TenantId;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+    }
+  | {
+      limitReached: false;
+      token: InteropToken;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+    };
+
+const PURPOSE_ID_CLAIM = "purposeId";
+const ORGANIZATION_ID_CLAIM = "organizationId";
+const GENERATED_INTEROP_TOKEN_M2M_ROLE = "m2m";
+const ROLE_CLAIM = "role";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tokenServiceBuilder({
@@ -86,9 +109,7 @@ export function tokenServiceBuilder({
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest
-      // TODO: fix return type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ): Promise<any> {
+    ): Promise<GenerateTokenReturnType> {
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: request.client_assertion,
         client_assertion_type: request.client_assertion_type,
@@ -97,14 +118,17 @@ export function tokenServiceBuilder({
       });
 
       if (parametersErrors) {
-        throw clientAssertionRequestValidationFailed();
+        throw clientAssertionRequestValidationFailed(request);
       }
 
       const { data: jwt, errors: clientAssertionErrors } =
         verifyClientAssertion(request.client_assertion, request.client_id);
 
       if (clientAssertionErrors) {
-        throw clientAssertionValidationFailed();
+        throw clientAssertionValidationFailed(
+          request.client_assertion,
+          request.client_id
+        );
       }
 
       const clientId = jwt.payload.sub;
@@ -124,16 +148,21 @@ export function tokenServiceBuilder({
       const { errors: clientAssertionSignatureErrors } =
         verifyClientAssertionSignature(request.client_assertion, key);
       if (clientAssertionSignatureErrors) {
-        throw clientAssertionSignatureValidationFailed();
+        throw clientAssertionSignatureValidationFailed(
+          request.client_assertion,
+          key
+        );
       }
 
       const { errors: platformStateErrors } =
         validateClientKindAndPlatformState(key, jwt);
       if (platformStateErrors) {
-        throw clientAssertionSignatureValidationFailed();
+        throw clientAssertionSignatureValidationFailed(
+          request.client_assertion,
+          key
+        );
       }
 
-      // TODO throw error if limit reached? Maybe not, because info have to be passed
       const { limitReached, ...rateLimiterStatus } =
         await redisRateLimiter.rateLimitByOrganization(
           key.consumerId,
@@ -149,9 +178,17 @@ export function tokenServiceBuilder({
         };
       }
 
-      const token = await generateInteropToken(kmsClient, jwt, [], 0, {});
-
+      // TODO: match otherwise doesn't work somehow
       if (key.clientKind === clientKindTokenStates.consumer) {
+        const customClaims = { [PURPOSE_ID_CLAIM]: key.purposeId };
+        const token = await generateInteropToken(
+          kmsClient,
+          jwt,
+          key.eServiceState.audience,
+          key.eServiceState.voucherLifespan,
+          customClaims
+        );
+
         await publishAudit({
           producer,
           generatedToken: token,
@@ -162,10 +199,33 @@ export function tokenServiceBuilder({
           logger,
         });
 
-        return token;
-      }
+        return {
+          limitReached: false,
+          token,
+          rateLimiterStatus,
+        };
+      } else if (key.clientKind === clientKindTokenStates.api) {
+        const customClaims = {
+          [ORGANIZATION_ID_CLAIM]: key.consumerId,
+          [ROLE_CLAIM]: GENERATED_INTEROP_TOKEN_M2M_ROLE,
+        };
 
-      return token;
+        const token = await generateInteropToken(
+          kmsClient,
+          jwt,
+          [config.generatedInteropTokenM2MAudience],
+          config.generatedInteropTokenM2MDurationSeconds,
+          customClaims
+        );
+
+        return {
+          limitReached: false,
+          token,
+          rateLimiterStatus,
+        };
+      } else {
+        throw tokenGenerationFailed();
+      }
     },
   };
 }
@@ -175,6 +235,7 @@ export type TokenService = ReturnType<typeof tokenServiceBuilder>;
 export const retrieveKey = async (
   dynamoDBClient: DynamoDBClient,
   pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
+  // clientAssertion: ClientAssertion
 ): Promise<ConsumerKey | ApiKey> => {
   const input: GetItemInput = {
     Key: {
@@ -189,7 +250,7 @@ export const retrieveKey = async (
     const data: GetItemCommandOutput = await dynamoDBClient.send(command);
 
     if (!data.Item) {
-      throw keyNotFound();
+      throw tokenGenerationStatesEntryNotFound(pk);
     } else {
       const unmarshalled = unmarshall(data.Item);
       const tokenGenerationEntry =
@@ -209,6 +270,7 @@ export const retrieveKey = async (
             entry.clientKind === clientKindTokenStates.consumer &&
             entry.PK.startsWith(clientKidPurposePrefix),
           () => {
+            // TODO: remove as
             const clientKidPurposeEntry =
               tokenGenerationEntry.data as TokenGenerationStatesClientPurposeEntry;
             if (
@@ -222,7 +284,7 @@ export const retrieveKey = async (
               !clientKidPurposeEntry.descriptorAudience ||
               !clientKidPurposeEntry.descriptorVoucherLifespan
             ) {
-              throw invalidPlatformStates();
+              throw invalidTokenClientKidPurposeEntry();
             }
 
             const key: ConsumerKey = {
@@ -231,6 +293,7 @@ export const retrieveKey = async (
               clientId: clientKidPurposeEntry.GSIPK_clientId,
               consumerId: clientKidPurposeEntry.consumerId,
               publicKey: clientKidPurposeEntry.publicKey,
+              // algorithm: clientAssertion.header.alg,
               algorithm: "RS256" /* TODO pass this as a parameter? */,
               clientKind: clientKindTokenStates.consumer, // TODO this doesn't work with clientKidPurpose Entry.clientKind, but it should be already validated in the "when"
               purposeState: {
@@ -241,6 +304,7 @@ export const retrieveKey = async (
               agreementState: {
                 state: clientKidPurposeEntry.agreementState,
               },
+              // TODO: make function for this split
               eServiceId: unsafeBrandId<EServiceId>(
                 clientKidPurposeEntry.GSIPK_eserviceId_descriptorId.split(
                   "#"
@@ -303,7 +367,7 @@ export const retrieveKey = async (
   } catch (error) {
     // error handling.
     // TODO Handle both dynamodb errors and throw error for empty public key
-    throw keyRetrievalError();
+    throw keyRetrievalFailed();
   }
 };
 
@@ -348,7 +412,7 @@ export const generateInteropToken = async (
   const response = await kmsClient.send(command);
 
   if (!response.Signature) {
-    throw tokenSigningFailed();
+    throw tokenSigningFailed(serializedToken);
   }
 
   const jwtSignature = b64ByteUrlEncode(response.Signature);
@@ -412,6 +476,7 @@ export const publishAudit = async ({
     const res = await producer.send({
       messages: [
         {
+          // TODO: is this key correct?
           key: generatedToken.payload.jti,
           value: JSON.stringify(messageBody),
         },
@@ -432,9 +497,11 @@ export const fallbackAudit = async (
   fileManager: FileManager,
   logger: Logger
 ): Promise<void> => {
-  const ymdDate = formatDateyyyyMMdd(new Date());
+  const date = new Date();
+  const ymdDate = formatDateyyyyMMdd(date);
+  const hmsTime = formatTimehhmmss(date);
 
-  const fileName = `${ymdDate}_${messageBody.jwtId}.ndjson`;
+  const fileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
   const filePath = `token-details/${ymdDate}/${fileName}`;
 
   try {
@@ -447,8 +514,8 @@ export const fallbackAudit = async (
       },
       logger
     );
-    logger.info("auditing succeded through fallback");
+    logger.info("auditing succeeded through fallback");
   } catch {
-    throw fallbackAuditFailed();
+    throw fallbackAuditFailed(messageBody);
   }
 };
