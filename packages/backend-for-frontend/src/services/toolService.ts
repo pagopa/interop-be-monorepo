@@ -305,7 +305,7 @@ async function retrieveKeyAndEservice(
     headers: ctx.headers,
   });
 
-  const descriptor = await retrieveDescriptor(eservice, agreement.eserviceId);
+  const descriptor = await retrieveDescriptor(eservice, agreement.descriptorId);
 
   return {
     errors: undefined,
