@@ -1,0 +1,21 @@
+meta {
+  name: Delete Producer Keychain Eservice
+  type: http
+  seq: 30
+}
+
+delete {
+  url: {{host-authorization}}/producerKeychains/:producerKeychainId/eservices/:eserviceId
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  producerKeychainId: {{producerKeychainId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
