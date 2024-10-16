@@ -11,6 +11,7 @@ COPY ./packages/authorization-server/package.json /app/packages/authorization-se
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/client-assertion-validation/package.json /app/packages/client-assertion-validation/package.json
+COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
@@ -21,6 +22,7 @@ COPY ./packages/authorization-server /app/packages/authorization-server
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/client-assertion-validation /app/packages/client-assertion-validation
+COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 COPY ./packages/api-clients /app/packages/api-clients
 
 RUN pnpm build && \
@@ -33,6 +35,7 @@ RUN pnpm build && \
   packages/commons/ \
   packages/models/ \
   packages/client-assertion-validation/ \
+  packages/kafka-iam-auth/ \
   packages/api-clients \
   packages/authorization-server/dist && \
   find /out -exec touch -h --date=@0 {} \;
