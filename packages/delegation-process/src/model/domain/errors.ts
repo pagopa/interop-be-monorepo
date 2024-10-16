@@ -104,6 +104,6 @@ export function delegatorNotAllowToRevoke(
   return new ApiError({
     detail: `Requester ${delegation.id} is not delegator for the current delegation with id ${delegation.id}`,
     code: "operationNotAllowOnDelegation",
-    title: "Requester is different from delegator",
+    title: "Requester and delegator are differents",
   });
 }
