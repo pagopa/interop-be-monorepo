@@ -78,6 +78,7 @@ import {
   assertRequesterAllowed,
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
+  getTenantKind,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -361,6 +362,7 @@ export function tenantServiceBuilder(
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
           createdAt: new Date(),
+          kind: getTenantKind([], tenantSeed.externalId),
         };
         return await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)
