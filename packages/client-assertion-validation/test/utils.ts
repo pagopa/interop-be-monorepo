@@ -7,7 +7,7 @@ import {
   PurposeId,
   TenantId,
 } from "pagopa-interop-models";
-import { importPKCS8, JWTHeaderParameters, JWTPayload, SignJWT } from "jose";
+import * as jose from "jose";
 import {
   ApiKey,
   ClientAssertionHeader,
@@ -28,7 +28,7 @@ export const getMockClientAssertion = async ({
   customClaims,
 }: {
   customHeader: Partial<ClientAssertionHeader>;
-  standardClaimsOverride: Partial<JWTPayload>;
+  standardClaimsOverride: Partial<jose.JWTPayload>;
   customClaims: { [k: string]: unknown };
 }): Promise<{
   jws: string;
@@ -37,7 +37,7 @@ export const getMockClientAssertion = async ({
   const { keySet, publicKeyEncodedPem } = generateKeySet();
 
   const clientId = generateId<ClientId>();
-  const defaultPayload: JWTPayload = {
+  const defaultPayload: jose.JWTPayload = {
     iss: clientId,
     sub: clientId,
     aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
@@ -100,8 +100,8 @@ export const signClientAssertion = async ({
   headers,
   keySet: maybeKeySet,
 }: {
-  payload: JWTPayload;
-  headers: JWTHeaderParameters;
+  payload: jose.JWTPayload;
+  headers: jose.JWTHeaderParameters;
   keySet?: crypto.KeyPairKeyObjectResult;
 }): Promise<string> => {
   const keySet: crypto.KeyPairKeyObjectResult =
@@ -114,14 +114,14 @@ export const signClientAssertion = async ({
     format: "pem",
   });
 
-  const privateKey = await importPKCS8(
+  const privateKey = await jose.importPKCS8(
     Buffer.isBuffer(pemPrivateKey)
       ? pemPrivateKey.toString("utf8")
       : pemPrivateKey,
     "RS256"
   );
 
-  return await new SignJWT(payload)
+  return await new jose.SignJWT(payload)
     .setProtectedHeader(headers)
     .sign(privateKey);
 };

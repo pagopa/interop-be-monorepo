@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import { clientKindTokenStates } from "pagopa-interop-models";
-import { decodeJwt, importSPKI, JWTPayload, jwtVerify } from "jose";
+import * as jose from "jose";
 import {
   JOSEError,
   JWSInvalid,
@@ -79,11 +79,8 @@ export const verifyClientAssertion = (
   clientId: string | undefined
 ): ValidationResult<ClientAssertion> => {
   try {
-    const decodedPayload = decodeJwt(clientAssertionJws);
-    const encodedHeader = clientAssertionJws.split(".").at(0);
-    const decodedHeader =
-      encodedHeader &&
-      JSON.parse(Buffer.from(encodedHeader, "base64url").toString("utf8"));
+    const decodedPayload = jose.decodeJwt(clientAssertionJws);
+    const decodedHeader = jose.decodeProtectedHeader(clientAssertionJws);
 
     if (!decodedPayload || !decodedHeader) {
       return failedValidation([invalidClientAssertionFormat()]);
@@ -191,7 +188,7 @@ export const verifyClientAssertion = (
 export const verifyClientAssertionSignature = async (
   clientAssertionJws: string,
   key: Key
-): Promise<ValidationResult<JWTPayload>> => {
+): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
     if (key.algorithm !== ALLOWED_ALGORITHM) {
       return failedValidation([algorithmNotAllowed(key.algorithm)]);
@@ -208,9 +205,9 @@ export const verifyClientAssertionSignature = async (
     }
 
     const decoded = Buffer.from(key.publicKey, "base64").toString("utf8");
-    const publicKey = await importSPKI(decoded, key.algorithm);
+    const publicKey = await jose.importSPKI(decoded, key.algorithm);
 
-    const result = await jwtVerify(clientAssertionJws, publicKey, {
+    const result = await jose.jwtVerify(clientAssertionJws, publicKey, {
       algorithms: [key.algorithm],
     });
 
