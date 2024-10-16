@@ -17,7 +17,7 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { delegationNotFound, tenantNotFound } from "../model/domain/errors.js";
+import { tenantNotFound } from "../model/domain/errors.js";
 import { toCreateEventProducerDelegation } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -43,15 +43,6 @@ export function delegationProducerServiceBuilder(
 
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
   return {
-    async getDelegationById(delegationId: DelegationId): Promise<Delegation> {
-      const delegation = await readModelService.getDelegationById(delegationId);
-
-      if (!delegation) {
-        throw delegationNotFound(delegationId);
-      }
-
-      return delegation;
-    },
     async createProducerDelegation(
       delegationSeed: delegationApi.DelegationSeed,
       { authData, logger, correlationId }: WithLogger<AppContext>
