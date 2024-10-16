@@ -31,7 +31,7 @@ export async function handleMessageV2(
   await match(message)
     .with({ type: "PurposeActivated" }, async (msg) => {
       const { purpose, primaryKey, purposeState, existingPurposeEntry } =
-        await parsePurpose({
+        await getPurposeData({
           dynamoDBClient,
           purposeV2: msg.data.purpose,
           msgType: msg.type,
@@ -86,7 +86,7 @@ export async function handleMessageV2(
           purposeState,
           existingPurposeEntry,
           purposeVersionId,
-        } = await parsePurpose({
+        } = await getPurposeData({
           dynamoDBClient,
           purposeV2: msg.data.purpose,
           msgType: msg.type,
@@ -126,7 +126,7 @@ export async function handleMessageV2(
       { type: "PurposeVersionUnsuspendedByProducer" },
       async (msg) => {
         const { purpose, primaryKey, purposeState, existingPurposeEntry } =
-          await parsePurpose({
+          await getPurposeData({
             dynamoDBClient,
             purposeV2: msg.data.purpose,
             msgType: msg.type,
@@ -157,7 +157,7 @@ export async function handleMessageV2(
       }
     )
     .with({ type: "PurposeArchived" }, async (msg) => {
-      const { purpose, primaryKey } = await parsePurpose({
+      const { purpose, primaryKey } = await getPurposeData({
         dynamoDBClient,
         purposeV2: msg.data.purpose,
         msgType: msg.type,
@@ -189,7 +189,7 @@ export async function handleMessageV2(
     .exhaustive();
 }
 
-const parsePurpose = async ({
+const getPurposeData = async ({
   dynamoDBClient,
   purposeV2,
   msgType,
