@@ -209,17 +209,21 @@ describe("validation test", async () => {
       );
       expect(errors1).toBeDefined();
       expect(errors1).toHaveLength(1);
-      expect(errors1![0]).toEqual(invalidClientAssertionFormat());
+      expect(errors1![0]).toEqual(invalidClientAssertionFormat("Invalid JWT"));
 
       const { errors: errors2 } = verifyClientAssertion("not a jwt", undefined);
       expect(errors2).toBeDefined();
       expect(errors2).toHaveLength(1);
-      expect(errors2![0]).toEqual(invalidClientAssertionFormat());
+      expect(errors2![0]).toEqual(invalidClientAssertionFormat("Invalid JWT"));
 
       const { errors: errors3 } = verifyClientAssertion("not.a.jwt", undefined);
       expect(errors3).toBeDefined();
       expect(errors3).toHaveLength(1);
-      expect(errors3![0]).toEqual(invalidClientAssertionFormat());
+      expect(errors3![0]).toEqual(
+        invalidClientAssertionFormat(
+          "Failed to parse the decoded payload as JSON"
+        )
+      );
 
       const { errors: errors4 } = verifyClientAssertion(
         "signature.missing",
@@ -227,7 +231,7 @@ describe("validation test", async () => {
       );
       expect(errors4).toBeDefined();
       expect(errors4).toHaveLength(1);
-      expect(errors4![0]).toEqual(invalidClientAssertionFormat());
+      expect(errors4![0]).toEqual(invalidClientAssertionFormat("Invalid JWT"));
     });
 
     it("invalidAudience - wrong entry as string", async () => {

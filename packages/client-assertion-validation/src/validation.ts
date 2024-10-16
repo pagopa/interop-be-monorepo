@@ -174,7 +174,7 @@ export const verifyClientAssertion = (
     ]);
   } catch (error) {
     if (error instanceof JWTInvalid) {
-      return failedValidation([invalidClientAssertionFormat()]);
+      return failedValidation([invalidClientAssertionFormat(error.message)]);
     }
     const message = error instanceof Error ? error.message : "generic error";
     return failedValidation([unexpectedClientAssertionPayload(message)]);

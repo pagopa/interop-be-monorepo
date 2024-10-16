@@ -112,9 +112,11 @@ export function audienceNotFound(): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidClientAssertionFormat(): ApiError<ErrorCodes> {
+export function invalidClientAssertionFormat(
+  message: string
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid format for Client assertion`,
+    detail: `Invalid format for Client assertion: ${message}`,
     code: "invalidClientAssertionFormat",
     title: "Invalid format for Client assertion",
   });
