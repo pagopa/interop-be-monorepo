@@ -46,7 +46,6 @@ import {
   clientAssertionInvalidClaims,
   invalidAudienceFormat,
   unexpectedClientAssertionSignatureVerificationError,
-  unexpectedClientAssertionPayload,
 } from "../src/errors.js";
 import {
   ClientAssertionValidationRequest,
@@ -60,7 +59,6 @@ import {
   getMockClientAssertion,
   getMockConsumerKey,
   getMockKey,
-  signClientAssertion,
   value64chars,
 } from "./utils.js";
 
