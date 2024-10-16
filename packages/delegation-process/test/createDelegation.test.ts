@@ -249,8 +249,6 @@ describe("create delegation", () => {
       }),
       state: getRandomValidDelegationStatus(),
     };
-    // eslint-disable-next-line no-console
-    console.log(`Delegation created with state ${delegation.state}`);
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
