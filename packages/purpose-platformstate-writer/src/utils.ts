@@ -245,11 +245,10 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
       consumerId: purpose.consumerId,
       eserviceId: purpose.eserviceId,
     });
-    const platformAgreementEntry =
-      await readPlatformAgreementEntryByGSIPKConsumerIdEServiceId(
-        dynamoDBClient,
-        gsiPKConsumerIdEServiceId
-      );
+    const platformAgreementEntry = await readPlatformAgreementEntry(
+      dynamoDBClient,
+      gsiPKConsumerIdEServiceId
+    );
     const catalogEntry = platformAgreementEntry
       ? await readCatalogEntry(
           dynamoDBClient,
@@ -453,7 +452,7 @@ export const updatePurposeDataInTokenGenerationStatesTable = async ({
   );
 };
 
-export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
+export const readPlatformAgreementEntry = async (
   dynamoDBClient: DynamoDBClient,
   gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId
 ): Promise<PlatformStatesAgreementEntry | undefined> => {

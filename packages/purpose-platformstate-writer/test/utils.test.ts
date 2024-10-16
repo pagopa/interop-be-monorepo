@@ -49,7 +49,7 @@ import {
 import {
   deletePlatformPurposeEntry,
   getPurposeStateFromPurposeVersions,
-  readPlatformAgreementEntryByGSIPKConsumerIdEServiceId,
+  readPlatformAgreementEntry,
   readPlatformPurposeEntry,
   readTokenEntriesByGSIPKPurposeId,
   updatePurposeDataInPlatformStatesEntry,
@@ -391,11 +391,10 @@ describe("utils tests", async () => {
         consumerId: generateId(),
         eserviceId: generateId(),
       });
-      const platformAgreementEntry =
-        await readPlatformAgreementEntryByGSIPKConsumerIdEServiceId(
-          dynamoDBClient,
-          gsiPKConsumerIdEServiceId
-        );
+      const platformAgreementEntry = await readPlatformAgreementEntry(
+        dynamoDBClient,
+        gsiPKConsumerIdEServiceId
+      );
       expect(platformAgreementEntry).toBeUndefined();
     });
 
@@ -434,11 +433,10 @@ describe("utils tests", async () => {
         dynamoDBClient
       );
 
-      const retrievedPlatformAgreementEntry =
-        await readPlatformAgreementEntryByGSIPKConsumerIdEServiceId(
-          dynamoDBClient,
-          gsiPKConsumerIdEServiceId
-        );
+      const retrievedPlatformAgreementEntry = await readPlatformAgreementEntry(
+        dynamoDBClient,
+        gsiPKConsumerIdEServiceId
+      );
 
       expect(retrievedPlatformAgreementEntry).toEqual(
         previousPlatformAgreementEntry2
