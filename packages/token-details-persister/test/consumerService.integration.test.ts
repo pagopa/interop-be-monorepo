@@ -14,6 +14,10 @@ describe("consumerService", () => {
     ).toMatchObject([]);
 
     await handleMessages([auditDetails], fileManager, genericLogger);
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toHaveLength(1);
   });
 
   it("should write two entries on the bucket", () => {
