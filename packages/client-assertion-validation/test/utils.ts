@@ -10,7 +10,6 @@ import {
 import * as jose from "jose";
 import {
   ApiKey,
-  ClientAssertionHeader,
   ClientAssertionValidationRequest,
   ConsumerKey,
   Key,
@@ -22,14 +21,10 @@ import {
 
 export const value64chars = crypto.randomBytes(32).toString("hex");
 
-export const getMockClientAssertion = async ({
-  customHeader,
-  standardClaimsOverride,
-  customClaims,
-}: {
-  customHeader: Partial<ClientAssertionHeader>;
-  standardClaimsOverride: Partial<jose.JWTPayload>;
-  customClaims: { [k: string]: unknown };
+export const getMockClientAssertion = async (props?: {
+  standardClaimsOverride?: Partial<jose.JWTPayload>;
+  customClaims?: { [k: string]: unknown };
+  customHeader?: { [k: string]: unknown };
 }): Promise<{
   jws: string;
   publicKeyEncodedPem: string;
@@ -46,16 +41,16 @@ export const getMockClientAssertion = async ({
     iat: 5,
   };
 
-  const actualPayload = {
+  const actualPayload: jose.JWTPayload = {
     ...defaultPayload,
-    ...standardClaimsOverride,
-    ...customClaims,
+    ...props?.standardClaimsOverride,
+    ...props?.customClaims,
   };
 
-  const headers = {
+  const headers: jose.JWTHeaderParameters = {
     alg: "RS256",
     kid: "kid",
-    ...customHeader,
+    ...props?.customHeader,
   };
 
   const jws = await signClientAssertion({
@@ -95,20 +90,15 @@ export const generateKeySet = (): {
   };
 };
 
-export const signClientAssertion = async ({
+const signClientAssertion = async ({
   payload,
   headers,
-  keySet: maybeKeySet,
+  keySet,
 }: {
   payload: jose.JWTPayload;
   headers: jose.JWTHeaderParameters;
-  keySet?: crypto.KeyPairKeyObjectResult;
+  keySet: crypto.KeyPairKeyObjectResult;
 }): Promise<string> => {
-  const keySet: crypto.KeyPairKeyObjectResult =
-    maybeKeySet ??
-    crypto.generateKeyPairSync("rsa", {
-      modulusLength: 2048,
-    });
   const pemPrivateKey = keySet.privateKey.export({
     type: "pkcs8",
     format: "pem",
