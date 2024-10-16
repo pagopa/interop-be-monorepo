@@ -321,7 +321,7 @@ const initConsumer = async (
   return consumer;
 };
 
-const initConsumerBatch = async (
+const initBatchConsumer = async (
   config: KafkaBatchConsumerConfig,
   topics: string[],
   consumerHandler: (payload: EachBatchPayload) => Promise<void>
@@ -466,13 +466,13 @@ export const runConsumer = async (
   }
 };
 
-export const runConsumerBatch = async (
+export const runBatchConsumer = async (
   config: KafkaBatchConsumerConfig,
   topics: string[],
   consumerHandler: (messagePayload: EachBatchPayload) => Promise<void>
 ): Promise<void> => {
   try {
-    await initConsumerBatch(config, topics, consumerHandler);
+    await initBatchConsumer(config, topics, consumerHandler);
   } catch (e) {
     genericLogger.error(
       `Generic error occurs during consumer initialization: ${e}`

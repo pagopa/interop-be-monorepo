@@ -1,22 +1,20 @@
-import { Batch } from "kafkajs";
 import {
   FileManager,
   formatDateyyyyMMdd,
   formatTimehhmmss,
   Logger,
 } from "pagopa-interop-commons";
-import { generateId } from "pagopa-interop-models";
+import { GeneratedTokenAuditDetails, generateId } from "pagopa-interop-models";
 import { config } from "./config/config.js";
 
-export async function handleBatch(
-  batch: Batch,
+export async function handleMessages(
+  messages: GeneratedTokenAuditDetails[],
   fileManager: FileManager,
   logger: Logger
 ): Promise<void> {
   const fileContent =
-    batch.messages
-      .map((auditingEntry) => JSON.stringify(auditingEntry))
-      .join("\n") + "\n";
+    messages.map((auditingEntry) => JSON.stringify(auditingEntry)).join("\n") +
+    "\n";
 
   const date = new Date();
   const ymdDate = formatDateyyyyMMdd(date);
@@ -39,5 +37,4 @@ export async function handleBatch(
   } catch (error) {
     throw Error("auditing failed");
   }
-  return Promise.resolve();
 }

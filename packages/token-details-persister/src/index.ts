@@ -1,8 +1,13 @@
 import { EachBatchPayload } from "kafkajs";
 import { initFileManager, genericLogger } from "pagopa-interop-commons";
-import { runConsumerBatch } from "kafka-iam-auth";
+import { runBatchConsumer } from "kafka-iam-auth";
+import {
+  GeneratedTokenAuditDetails,
+  genericInternalError,
+} from "pagopa-interop-models";
+import { z } from "zod";
 import { config } from "./config/config.js";
-import { handleBatch } from "./consumerService.js";
+import { handleMessages } from "./consumerService.js";
 
 const fileManager = initFileManager(config);
 
@@ -18,14 +23,20 @@ async function processMessage({ batch }: EachBatchPayload): Promise<void> {
   //   correlationId: decodedMessage.correlation_id,
   // });
 
-  await handleBatch(batch, fileManager, loggerInstance);
+  const messages = z
+    .array(GeneratedTokenAuditDetails)
+    .safeParse(batch.messages);
+  if (!messages.success) {
+    throw genericInternalError(`Unable to parse auditing entries: ${messages}`);
+  }
+  await handleMessages(messages.data, fileManager, loggerInstance);
 
   loggerInstance.info(
     `Auditing message was handled. Partition number: ${batch.partition}. Offset: ${batch.firstOffset} -  ${batch.lastOffset}`
   );
 }
 
-await runConsumerBatch(
+await runBatchConsumer(
   config,
   [config.interopGeneratedJwtAuditingBucket],
   processMessage
