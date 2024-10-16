@@ -177,37 +177,6 @@ export const readTokenEntriesByGSIPKPurposeId = async (
   }
 };
 
-export const readAllTokenEntriesByGSIPKPurposeId = async (
-  dynamoDBClient: DynamoDBClient,
-  purposeId: PurposeId
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
-  const runPaginatedQuery = async (
-    dynamoDBClient: DynamoDBClient,
-    purposeId: PurposeId,
-    exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
-    const result = await readTokenEntriesByGSIPKPurposeId(
-      dynamoDBClient,
-      purposeId,
-      exclusiveStartKey
-    );
-    if (!result.lastEvaluatedKey) {
-      return result.tokenStateEntries;
-    } else {
-      return [
-        ...result.tokenStateEntries,
-        ...(await runPaginatedQuery(
-          dynamoDBClient,
-          purposeId,
-          result.lastEvaluatedKey
-        )),
-      ];
-    }
-  };
-
-  return await runPaginatedQuery(dynamoDBClient, purposeId);
-};
-
 export const updatePurposeDataInPlatformStatesEntry = async ({
   dynamoDBClient,
   primaryKey,

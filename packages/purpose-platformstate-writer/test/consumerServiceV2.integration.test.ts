@@ -51,10 +51,14 @@ import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   getPurposeStateFromPurposeVersions,
   readPlatformPurposeEntry,
-  readAllTokenEntriesByGSIPKPurposeId,
   writePlatformPurposeEntry,
 } from "../src/utils.js";
-import { config, writeAgreementEntry, writeCatalogEntry } from "./utils.js";
+import {
+  config,
+  writeAgreementEntry,
+  writeCatalogEntry,
+  readAllTokenEntriesByGSIPKPurposeId,
+} from "./utils.js";
 
 describe("integration tests for events V2", () => {
   if (!config) {

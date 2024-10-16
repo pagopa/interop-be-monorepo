@@ -1,5 +1,6 @@
 import { fail } from "assert";
 import {
+  AttributeValue,
   DynamoDBClient,
   GetItemCommand,
   GetItemCommandOutput,
@@ -11,9 +12,12 @@ import {
   genericInternalError,
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
+  PurposeId,
+  TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import { inject } from "vitest";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { readTokenEntriesByGSIPKPurposeId } from "../src/utils.js";
 
 export const config = inject("tokenGenerationReadModelConfig");
 
@@ -125,4 +129,35 @@ export const writeCatalogEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
+};
+
+export const readAllTokenEntriesByGSIPKPurposeId = async (
+  dynamoDBClient: DynamoDBClient,
+  purposeId: PurposeId
+): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  const runPaginatedQuery = async (
+    dynamoDBClient: DynamoDBClient,
+    purposeId: PurposeId,
+    exclusiveStartKey?: Record<string, AttributeValue>
+  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+    const result = await readTokenEntriesByGSIPKPurposeId(
+      dynamoDBClient,
+      purposeId,
+      exclusiveStartKey
+    );
+    if (!result.lastEvaluatedKey) {
+      return result.tokenStateEntries;
+    } else {
+      return [
+        ...result.tokenStateEntries,
+        ...(await runPaginatedQuery(
+          dynamoDBClient,
+          purposeId,
+          result.lastEvaluatedKey
+        )),
+      ];
+    }
+  };
+
+  return await runPaginatedQuery(dynamoDBClient, purposeId);
 };

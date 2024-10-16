@@ -49,7 +49,6 @@ import {
 import {
   deletePlatformPurposeEntry,
   getPurposeStateFromPurposeVersions,
-  readAllTokenEntriesByGSIPKPurposeId,
   readPlatformAgreementEntryByGSIPKConsumerIdEServiceId,
   readPlatformPurposeEntry,
   readTokenEntriesByGSIPKPurposeId,
@@ -58,7 +57,12 @@ import {
   updatePurposeEntriesInTokenGenerationStatesTable,
   writePlatformPurposeEntry,
 } from "../src/utils.js";
-import { config, writeAgreementEntry, writeCatalogEntry } from "./utils.js";
+import {
+  config,
+  writeAgreementEntry,
+  writeCatalogEntry,
+  readAllTokenEntriesByGSIPKPurposeId,
+} from "./utils.js";
 
 describe("utils tests", async () => {
   if (!config) {
