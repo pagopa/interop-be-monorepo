@@ -1,6 +1,14 @@
-import * as jwt from "jsonwebtoken";
 import { match } from "ts-pattern";
 import { clientKindTokenStates } from "pagopa-interop-models";
+import * as jose from "jose";
+import {
+  JOSEError,
+  JWSInvalid,
+  JWSSignatureVerificationFailed,
+  JWTClaimValidationFailed,
+  JWTExpired,
+  JWTInvalid,
+} from "jose/errors";
 import {
   failedValidation,
   successfulValidation,
@@ -21,6 +29,7 @@ import {
 } from "./utils.js";
 import {
   ApiKey,
+  Base64Encoded,
   ClientAssertion,
   ClientAssertionHeader,
   ClientAssertionPayload,
@@ -33,7 +42,6 @@ import {
   unexpectedClientAssertionSignatureVerificationError,
   invalidAssertionType,
   invalidClientAssertionFormat,
-  invalidClientAssertionSignatureType,
   invalidGrantType,
   jsonWebTokenError,
   notBeforeError,
@@ -43,6 +51,7 @@ import {
   invalidSignature,
   clientAssertionInvalidClaims,
   algorithmNotAllowed,
+  clientAssertionSignatureVerificationError,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -70,49 +79,38 @@ export const verifyClientAssertion = (
   clientId: string | undefined
 ): ValidationResult<ClientAssertion> => {
   try {
-    const decoded = jwt.decode(clientAssertionJws, {
-      complete: true,
-      json: true,
-    });
-    if (!decoded) {
-      return failedValidation([invalidClientAssertionFormat()]);
-    }
-
-    if (typeof decoded.payload === "string") {
-      return failedValidation([
-        unexpectedClientAssertionPayload("payload is a string"),
-      ]);
-    }
+    const decodedPayload = jose.decodeJwt(clientAssertionJws);
+    const decodedHeader = jose.decodeProtectedHeader(clientAssertionJws);
 
     const { errors: jtiErrors, data: validatedJti } = validateJti(
-      decoded.payload.jti
+      decodedPayload.jti
     );
     const { errors: iatErrors, data: validatedIat } = validateIat(
-      decoded.payload.iat
+      decodedPayload.iat
     );
     const { errors: expErrors, data: validatedExp } = validateExp(
-      decoded.payload.exp
+      decodedPayload.exp
     );
     const { errors: issErrors, data: validatedIss } = validateIss(
-      decoded.payload.iss
+      decodedPayload.iss
     );
     const { errors: subErrors, data: validatedSub } = validateSub(
-      decoded.payload.sub,
+      decodedPayload.sub,
       clientId
     );
     const { errors: purposeIdErrors, data: validatedPurposeId } =
-      validatePurposeId(decoded.payload.purposeId);
+      validatePurposeId(decodedPayload.purposeId);
     const { errors: kidErrors, data: validatedKid } = validateKid(
-      decoded.header.kid
+      decodedHeader.kid
     );
     const { errors: audErrors, data: validatedAud } = validateAudience(
-      decoded.payload.aud
+      decodedPayload.aud
     );
     const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
-      decoded.header.alg
+      decodedHeader.alg
     );
     const { errors: digestErrors, data: validatedDigest } = validateDigest(
-      decoded.payload.digest
+      decodedPayload.digest
     );
 
     if (
@@ -127,16 +125,16 @@ export const verifyClientAssertion = (
       !algErrors &&
       !digestErrors
     ) {
-      const payloadParseResult = ClientAssertionPayload.safeParse(
-        decoded.payload
-      );
+      const payloadParseResult =
+        ClientAssertionPayload.safeParse(decodedPayload);
       if (!payloadParseResult.success) {
         return failedValidation([
           clientAssertionInvalidClaims(payloadParseResult.error.message),
         ]);
       }
 
-      const headerParseResult = ClientAssertionHeader.safeParse(decoded.header);
+      const headerParseResult = ClientAssertionHeader.safeParse(decodedHeader);
+
       if (!headerParseResult.success) {
         return failedValidation([
           clientAssertionInvalidClaims(headerParseResult.error.message),
@@ -147,7 +145,7 @@ export const verifyClientAssertion = (
         header: {
           kid: validatedKid,
           alg: validatedAlg,
-          typ: decoded.header.typ,
+          typ: decodedHeader.typ,
         },
         payload: {
           sub: validatedSub,
@@ -175,44 +173,61 @@ export const verifyClientAssertion = (
       digestErrors,
     ]);
   } catch (error) {
+    if (error instanceof JWTInvalid) {
+      return failedValidation([invalidClientAssertionFormat(error.message)]);
+    }
     const message = error instanceof Error ? error.message : "generic error";
     return failedValidation([unexpectedClientAssertionPayload(message)]);
   }
 };
 
-export const verifyClientAssertionSignature = (
+export const verifyClientAssertionSignature = async (
   clientAssertionJws: string,
   key: Key
-): ValidationResult<jwt.JwtPayload> => {
+): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
     if (key.algorithm !== ALLOWED_ALGORITHM) {
       return failedValidation([algorithmNotAllowed(key.algorithm)]);
     }
 
-    const result = jwt.verify(clientAssertionJws, key.publicKey, {
+    if (!Base64Encoded.safeParse(key.publicKey).success) {
+      // Unexpected, because we always store public keys
+      // in base64 encoded PEM format
+      return failedValidation([
+        unexpectedClientAssertionSignatureVerificationError(
+          "public key shall be a base64 encoded PEM"
+        ),
+      ]);
+    }
+
+    const decoded = Buffer.from(key.publicKey, "base64").toString("utf8");
+    const publicKey = await jose.importSPKI(decoded, key.algorithm);
+
+    const result = await jose.jwtVerify(clientAssertionJws, publicKey, {
       algorithms: [key.algorithm],
     });
 
-    // it's not clear when the result is a string
-    if (typeof result === "string") {
-      return failedValidation([
-        invalidClientAssertionSignatureType(typeof result),
-      ]);
-    }
-    return successfulValidation(result);
+    return successfulValidation(result.payload);
   } catch (error: unknown) {
-    if (error instanceof jwt.TokenExpiredError) {
+    if (error instanceof JWTExpired) {
       return failedValidation([tokenExpiredError()]);
-    } else if (error instanceof jwt.NotBeforeError) {
-      return failedValidation([notBeforeError()]);
-    } else if (error instanceof jwt.JsonWebTokenError) {
-      if (error.message === "invalid signature") {
-        return failedValidation([invalidSignature()]);
+    } else if (error instanceof JWSSignatureVerificationFailed) {
+      return failedValidation([invalidSignature()]);
+    } else if (error instanceof JWTClaimValidationFailed) {
+      if (error.claim === "nbf") {
+        return failedValidation([notBeforeError()]);
       }
       return failedValidation([jsonWebTokenError(error.message)]);
-    } else {
+    } else if (error instanceof JWSInvalid) {
+      return failedValidation([jsonWebTokenError(error.message)]);
+    } else if (error instanceof JOSEError) {
       return failedValidation([
-        unexpectedClientAssertionSignatureVerificationError(),
+        clientAssertionSignatureVerificationError(error.message),
+      ]);
+    } else {
+      const message = error instanceof Error ? error.message : "generic error";
+      return failedValidation([
+        unexpectedClientAssertionSignatureVerificationError(message),
       ]);
     }
   }

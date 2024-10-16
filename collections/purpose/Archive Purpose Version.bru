@@ -1,0 +1,21 @@
+meta {
+  name: Archive Purpose Version
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{host-purpose}}/purposes/:id/versions/:versionId/archive
+  body: json
+  auth: none
+}
+
+params:path {
+  versionId: {{purposeVersionId}}
+  id: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
