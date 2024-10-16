@@ -1,5 +1,6 @@
 import {
   ApiError,
+  Delegation,
   EServiceId,
   makeApiProblemBuilder,
   TenantId,
@@ -13,6 +14,8 @@ export const errorCodes = {
   invalidDelegatorAndDelegateIds: "0005",
   invalidExternalOriginId: "0006",
   tenantNotAllowedToDelegation: "0007",
+  delegationNotRevokable: "0008",
+  operationNotAllowOnDelegation: "0009",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -82,5 +85,25 @@ export function tenantNotAllowedToDelegation(
     detail: `Tenant ${tenantId} not allowed to delegation`,
     code: "tenantNotAllowedToDelegation",
     title: "Tenant not allowed to delegation",
+  });
+}
+
+export function delegationNotRevokable(
+  delegation: Delegation
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegation.id} is not revokable. State: ${delegation.state}`,
+    code: "delegationNotRevokable",
+    title: "Delegation not revokable",
+  });
+}
+
+export function delegatorNotAllowToRevoke(
+  delegation: Delegation
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester ${delegation.id} is not delegator for the current delegation with id ${delegation.id}`,
+    code: "operationNotAllowOnDelegation",
+    title: "Delegation not revokable",
   });
 }
