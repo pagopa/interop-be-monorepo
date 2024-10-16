@@ -1,0 +1,20 @@
+meta {
+  name: Get Purposes
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-api-gw}}/purposes?eserviceId={{eserviceId}}&consumerId={{tenantId}}
+  body: none
+  auth: none
+}
+
+params:query {
+  eserviceId: {{eserviceId}}
+  consumerId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
