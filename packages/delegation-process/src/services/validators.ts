@@ -4,7 +4,6 @@ import {
   DelegationState,
   delegationState,
   EServiceId,
-  genericError,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
@@ -111,12 +110,8 @@ export const assertDelegationExists = (
   delegationId: string,
   delegationWithMeta: WithMetadata<Delegation> | undefined
 ): WithMetadata<Delegation> => {
-  if (!delegationWithMeta?.data) {
+  if (!delegationWithMeta) {
     throw delegationNotFound(delegationId);
-  }
-
-  if (!delegationWithMeta?.metadata) {
-    throw genericError("Metadata not found for delegation");
   }
 
   return delegationWithMeta;
