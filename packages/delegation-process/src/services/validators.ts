@@ -1,17 +1,23 @@
 import {
+  Delegation,
   DelegationKind,
   DelegationState,
   delegationState,
   EServiceId,
+  genericError,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   delegationAlreadyExists,
+  delegationNotFound,
   delegatorAndDelegateSameIdError,
   eserviceNotFound,
+  incorrectState,
   invalidExternalOriginError,
+  operationRestrictedToDelegator,
   tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../model/domain/errors.js";
@@ -95,8 +101,45 @@ export const assertDelegationNotExists = async (
       delegatorId,
       delegateId,
       eserviceId,
-      delegation.kind,
-      delegation.id
+      delegation.data.kind,
+      delegation.data.id
+    );
+  }
+};
+
+export const assertDelegationExists = (
+  delegationId: string,
+  delegationWithMeta: WithMetadata<Delegation> | undefined
+): WithMetadata<Delegation> => {
+  if (!delegationWithMeta?.data) {
+    throw delegationNotFound(delegationId);
+  }
+
+  if (!delegationWithMeta?.metadata) {
+    throw genericError("Metadata not found for delegation");
+  }
+
+  return delegationWithMeta;
+};
+
+export const assertIsDelegator = (
+  delegation: Delegation,
+  delegatorId: TenantId
+): void => {
+  if (delegation.delegatorId !== delegatorId) {
+    throw operationRestrictedToDelegator(delegatorId, delegation.id);
+  }
+};
+
+export const assertIsState = (
+  state: DelegationState,
+  delegation: Delegation
+): void => {
+  if (delegation.state !== state) {
+    throw incorrectState(
+      delegation.id,
+      delegation.state,
+      delegationState.waitingForApproval
     );
   }
 };

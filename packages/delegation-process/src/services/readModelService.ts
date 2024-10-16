@@ -105,7 +105,7 @@ export function readModelServiceBuilder(
     async getDelegation(
       delegations: DelegationCollection,
       filter: Filter<WithId<WithMetadata<DelegationReadModel>>>
-    ): Promise<Delegation | undefined> {
+    ): Promise<WithMetadata<Delegation> | undefined> {
       const data = await delegations.findOne(filter, {
         projection: { data: true, metadata: true },
       });
@@ -120,14 +120,16 @@ export function readModelServiceBuilder(
           )} - data ${JSON.stringify(data)} `
         );
       }
-      return result.data;
+      return data;
     },
-    async getDelegationById(id: DelegationId): Promise<Delegation | undefined> {
+    async getDelegationById(
+      id: DelegationId
+    ): Promise<WithMetadata<Delegation> | undefined> {
       return this.getDelegation(delegations, { "data.id": id });
     },
     async findDelegation(
       filters: GetDelegationsFilters
-    ): Promise<Delegation | undefined> {
+    ): Promise<WithMetadata<Delegation> | undefined> {
       return this.getDelegation(delegations, toReadModelFilter(filters));
     },
     async getEServiceById(
