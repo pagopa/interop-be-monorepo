@@ -17,6 +17,10 @@ export function formatDateyyyyMMdd(date: Date): string {
   return format(date, "yyyyMMdd");
 }
 
+export function formatTimehhmmss(date: Date): string {
+  return format(date, "hhmmss");
+}
+
 export function dateAtRomeZone(date: Date): string {
   return formatInTimeZone(date, "Europe/Rome", "dd/MM/yyyy");
 }

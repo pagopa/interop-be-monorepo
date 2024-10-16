@@ -1,8 +1,16 @@
+import { authorizationServerApi } from "pagopa-interop-api-clients";
+import {
+  ApiKey,
+  ConsumerKey,
+} from "pagopa-interop-client-assertion-validation";
 import {
   ApiError,
   ClientKindTokenStates,
   makeApiProblemBuilder,
+  TokenGenerationStatesClientKidPK,
+  TokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
+import { GeneratedTokenAuditDetails } from "./models.js";
 
 export const errorCodes = {
   clientAssertionRequestValidationFailed: "0001",
@@ -11,86 +19,102 @@ export const errorCodes = {
   kafkaAuditingFailed: "0004",
   fallbackAuditFailed: "0005",
   tokenSigningFailed: "0006",
-  keyNotFound: "0007",
-  keyRetrievalError: "0008",
-  invalidPlatformStates: "0009",
+  tokenGenerationStatesEntryNotFound: "0007",
+  keyRetrievalFailed: "0008",
+  invalidTokenClientKidPurposeEntry: "0009",
   keyTypeMismatch: "0010",
   unexpectedTokenGenerationStatesEntry: "0011",
+  tokenGenerationFailed: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
-export function clientAssertionRequestValidationFailed(): ApiError<ErrorCodes> {
+export function clientAssertionRequestValidationFailed(
+  request: authorizationServerApi.AccessTokenRequest
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "sample",
+    detail: `Client assertion request validation failed for request: ${request}`,
     code: "clientAssertionRequestValidationFailed",
-    title: "sample",
+    title: "Client assertion request validation failed",
   });
 }
 
-export function clientAssertionValidationFailed(): ApiError<ErrorCodes> {
+export function clientAssertionValidationFailed(
+  clientAssertion: string,
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "sample",
+    detail: `Client assertion validation failed for clientAssertion: ${clientAssertion}, clientId: ${clientId}`,
     code: "clientAssertionValidationFailed",
-    title: "sample",
+    title: "Client assertion validation failed",
   });
 }
 
-export function clientAssertionSignatureValidationFailed(): ApiError<ErrorCodes> {
+export function clientAssertionSignatureValidationFailed(
+  clientAssertion: string,
+  key: ConsumerKey | ApiKey
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "sample",
+    detail: `Client assertion signature validation failed for clientAssertion: ${clientAssertion}, key: ${key}`,
     code: "clientAssertionSignatureValidationFailed",
-    title: "sample",
+    title: "Client assertion signature validation failed",
   });
 }
 
 export function kafkaAuditingFailed(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "sample",
+    detail: "Kafka auditing failed ",
     code: "kafkaAuditingFailed",
-    title: "sample",
+    title: "Kafka auditing failed",
   });
 }
 
-export function fallbackAuditFailed(): ApiError<ErrorCodes> {
+export function fallbackAuditFailed(
+  messageBody: GeneratedTokenAuditDetails
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "sample",
+    detail: `Fallback audit failed. Message body: ${messageBody}`,
     code: "fallbackAuditFailed",
-    title: "sample",
+    title: "Fallback audit failed",
   });
 }
 
-export function tokenSigningFailed(): ApiError<ErrorCodes> {
+export function tokenSigningFailed(
+  serializedToken: string
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "sample",
+    detail: `Token signing failed for token: ${serializedToken}`,
     code: "tokenSigningFailed",
-    title: "sample",
+    title: "Token signing failed",
   });
 }
 
-export function keyNotFound(): ApiError<ErrorCodes> {
+export function tokenGenerationStatesEntryNotFound(
+  pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "sample",
-    code: "keyNotFound",
-    title: "sample",
+    detail: `Entry with PK ${pk} not found in token-generation-states table`,
+    code: "tokenGenerationStatesEntryNotFound",
+    title: "token-generation-states entry not found",
   });
 }
 
-export function keyRetrievalError(): ApiError<ErrorCodes> {
+export function keyRetrievalFailed(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "sample",
-    code: "keyRetrievalError",
-    title: "sample",
+    detail: "Key retrieval failed",
+    code: "keyRetrievalFailed",
+    title: "Key retrieval failed",
   });
 }
 
-export function invalidPlatformStates(): ApiError<ErrorCodes> {
+export function invalidTokenClientKidPurposeEntry(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "sample",
-    code: "invalidPlatformStates",
-    title: "sample",
+    detail:
+      "Missing data in client-kid-purpose entry from token-generation-states table",
+    code: "invalidTokenClientKidPurposeEntry",
+    title: "Invalid token client-kid-purpose entry",
   });
 }
 
@@ -101,14 +125,22 @@ export function keyTypeMismatch(
   return new ApiError({
     detail: `Token-generation entry with prefix ${prefix} can't have client kind: ${clientKind}`,
     code: "keyTypeMismatch",
-    title: "sample",
+    title: "Key type mismatch",
   });
 }
 
 export function unexpectedTokenGenerationStatesEntry(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "sample",
+    detail: "Unexpected token-generation-states entry",
     code: "unexpectedTokenGenerationStatesEntry",
-    title: "sample",
+    title: "Unexpected token-generation-states entry",
+  });
+}
+
+export function tokenGenerationFailed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Token generation failed",
+    code: "tokenGenerationFailed",
+    title: "Token generation failed",
   });
 }

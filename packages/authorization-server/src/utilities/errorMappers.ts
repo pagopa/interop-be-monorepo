@@ -5,9 +5,16 @@ import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
 
-const { HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_NOT_FOUND } = constants;
+const {
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_TOO_MANY_REQUESTS,
+} = constants;
 
-export const sampleErrorMapper = (error: ApiError<ErrorCodes>): number =>
+export const authorizationServerErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
   match(error.code)
-    .with("keyNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tokenGenerationStatesEntryNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
