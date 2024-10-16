@@ -94,14 +94,12 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
           ? toTokenValidationEService(keyEservice, keyDescriptor)
           : undefined;
 
-      const { errors: clientSignatureErrors } = verifyClientAssertionSignature(
-        clientAssertion,
-        key
-      );
-      if (clientSignatureErrors) {
+      const { errors: clientAssertionSignatureErrors } =
+        await verifyClientAssertionSignature(clientAssertion, key);
+      if (clientAssertionSignatureErrors) {
         return handleValidationResults(
           {
-            clientSignatureErrors,
+            clientAssertionSignatureErrors,
           },
           key.clientKind,
           eservice
@@ -131,7 +129,7 @@ function handleValidationResults(
   errs: {
     clientAssertionErrors?: Array<ApiError<string>>;
     keyRetrieveErrors?: Array<ApiError<string>>;
-    clientSignatureErrors?: Array<ApiError<string>>;
+    clientAssertionSignatureErrors?: Array<ApiError<string>>;
     platformStateErrors?: Array<ApiError<string>>;
   },
   clientKind?: authorizationApi.ClientKind,
@@ -139,7 +137,8 @@ function handleValidationResults(
 ): bffApi.TokenGenerationValidationResult {
   const clientAssertionErrors = errs.clientAssertionErrors ?? [];
   const keyRetrieveErrors = errs.keyRetrieveErrors ?? [];
-  const clientSignatureErrors = errs.clientSignatureErrors ?? [];
+  const clientAssertionSignatureErrors =
+    errs.clientAssertionSignatureErrors ?? [];
   const platformStateErrors = errs.platformStateErrors ?? [];
 
   return {
@@ -157,16 +156,16 @@ function handleValidationResults(
       clientAssertionSignatureVerification: {
         result: getStepResult(
           [...clientAssertionErrors, ...keyRetrieveErrors],
-          clientSignatureErrors
+          clientAssertionSignatureErrors
         ),
-        failures: apiErrorsToValidationFailures(clientSignatureErrors),
+        failures: apiErrorsToValidationFailures(clientAssertionSignatureErrors),
       },
       platformStatesVerification: {
         result: getStepResult(
           [
             ...clientAssertionErrors,
             ...keyRetrieveErrors,
-            ...clientSignatureErrors,
+            ...clientAssertionSignatureErrors,
           ],
           platformStateErrors
         ),
