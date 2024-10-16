@@ -1,5 +1,4 @@
 /* eslint-disable functional/no-let */
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
 import { fail } from "assert";
 import {
@@ -53,8 +52,8 @@ import {
   readPlatformPurposeEntry,
   readTokenEntriesByGSIPKPurposeId,
   updatePurposeDataInPlatformStatesEntry,
-  updatePurposeDataInTokenGenerationStatesTable,
-  updatePurposeEntriesInTokenGenerationStatesTable,
+  updatePurposeDataInTokenEntries,
+  updateTokenEntriesWithPurposeAndPlatformStatesData,
   writePlatformPurposeEntry,
 } from "../src/utils.js";
 import {
@@ -158,7 +157,7 @@ describe("utils tests", async () => {
         updatedAt: new Date().toISOString(),
       };
       await writePlatformPurposeEntry(dynamoDBClient, platformPurposeEntry);
-      expect(
+      await expect(
         writePlatformPurposeEntry(dynamoDBClient, platformPurposeEntry)
       ).rejects.toThrowError(ConditionalCheckFailedException);
     });
@@ -190,7 +189,7 @@ describe("utils tests", async () => {
   describe("deletePlatformPurposeEntry", async () => {
     it("should do no operation if previous entry doesn't exist", async () => {
       const primaryKey = makePlatformStatesPurposePK(generateId());
-      expect(
+      await expect(
         deletePlatformPurposeEntry(dynamoDBClient, primaryKey)
       ).resolves.not.toThrowError();
     });
@@ -448,7 +447,7 @@ describe("utils tests", async () => {
     it("should throw error if previous entry doesn't exist", async () => {
       const purposeId = generateId<PurposeId>();
       const primaryKey = makePlatformStatesPurposePK(purposeId);
-      expect(
+      await expect(
         updatePurposeDataInPlatformStatesEntry({
           dynamoDBClient,
           primaryKey,
@@ -565,8 +564,8 @@ describe("utils tests", async () => {
         versions: [getMockPurposeVersion()],
       };
 
-      expect(
-        updatePurposeDataInTokenGenerationStatesTable({
+      await expect(
+        updatePurposeDataInTokenEntries({
           dynamoDBClient,
           purposeId: purpose.id,
           purposeState: itemState.inactive,
@@ -613,7 +612,7 @@ describe("utils tests", async () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
       const newPurposeVersionId = generateId<PurposeVersionId>();
-      await updatePurposeDataInTokenGenerationStatesTable({
+      await updatePurposeDataInTokenEntries({
         dynamoDBClient,
         purposeId: purpose.id,
         purposeState: itemState.active,
@@ -655,8 +654,8 @@ describe("utils tests", async () => {
         versions: [getMockPurposeVersion()],
       };
 
-      expect(
-        updatePurposeEntriesInTokenGenerationStatesTable(
+      await expect(
+        updateTokenEntriesWithPurposeAndPlatformStatesData(
           dynamoDBClient,
           purpose,
           itemState.inactive,
@@ -719,7 +718,7 @@ describe("utils tests", async () => {
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const newPurposeVersionId = generateId<PurposeVersionId>();
-      await updatePurposeEntriesInTokenGenerationStatesTable(
+      await updateTokenEntriesWithPurposeAndPlatformStatesData(
         dynamoDBClient,
         purpose,
         itemState.active,
@@ -817,7 +816,7 @@ describe("utils tests", async () => {
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const newPurposeVersionId = generateId<PurposeVersionId>();
-      await updatePurposeEntriesInTokenGenerationStatesTable(
+      await updateTokenEntriesWithPurposeAndPlatformStatesData(
         dynamoDBClient,
         purpose,
         itemState.active,
@@ -935,7 +934,7 @@ describe("utils tests", async () => {
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const newPurposeVersionId = generateId<PurposeVersionId>();
-      await updatePurposeEntriesInTokenGenerationStatesTable(
+      await updateTokenEntriesWithPurposeAndPlatformStatesData(
         dynamoDBClient,
         purpose,
         itemState.active,
@@ -1070,7 +1069,7 @@ describe("utils tests", async () => {
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const newPurposeVersionId = generateId<PurposeVersionId>();
-      await updatePurposeEntriesInTokenGenerationStatesTable(
+      await updateTokenEntriesWithPurposeAndPlatformStatesData(
         dynamoDBClient,
         purpose,
         itemState.active,

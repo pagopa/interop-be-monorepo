@@ -222,7 +222,7 @@ export const updatePurposeDataInPlatformStatesEntry = async ({
   await dynamoDBClient.send(command);
 };
 
-export const updatePurposeEntriesInTokenGenerationStatesTable = async (
+export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
   dynamoDBClient: DynamoDBClient,
   purpose: Purpose,
   purposeState: ItemState,
@@ -380,7 +380,7 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
   );
 };
 
-export const updatePurposeDataInTokenGenerationStatesTable = async ({
+export const updatePurposeDataInTokenEntries = async ({
   dynamoDBClient,
   purposeId,
   purposeState,
