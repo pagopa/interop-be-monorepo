@@ -6,11 +6,11 @@ import {
 import {
   ApiError,
   ClientKindTokenStates,
+  GeneratedTokenAuditDetails,
   makeApiProblemBuilder,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
-import { GeneratedTokenAuditDetails } from "./models.js";
 
 export const errorCodes = {
   clientAssertionRequestValidationFailed: "0001",

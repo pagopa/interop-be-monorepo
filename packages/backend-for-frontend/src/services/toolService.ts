@@ -19,9 +19,11 @@ import {
   AgreementId,
   ApiError,
   ClientId,
+  DescriptorId,
   EServiceId,
   ItemState,
   PurposeId,
+  PurposeVersionId,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -387,7 +389,7 @@ function purposeToComponentState(
       purposeVersion.state === purposeApi.PurposeVersionState.Enum.ACTIVE
         ? ItemState.Enum.ACTIVE
         : ItemState.Enum.INACTIVE,
-    versionId: purposeVersion.id,
+    versionId: unsafeBrandId<PurposeVersionId>(purposeVersion.id),
   };
 }
 
@@ -420,7 +422,7 @@ const descriptorToComponentState = (
     descriptor.state === catalogApi.EServiceDescriptorState.Enum.DEPRECATED
       ? ItemState.Enum.ACTIVE
       : ItemState.Enum.INACTIVE,
-  descriptorId: descriptor.id,
+  descriptorId: unsafeBrandId<DescriptorId>(descriptor.id),
   audience: descriptor.audience,
   voucherLifespan: descriptor.voucherLifespan,
 });

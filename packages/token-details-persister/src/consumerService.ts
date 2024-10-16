@@ -26,7 +26,7 @@ export async function handleMessages(
   try {
     await fileManager.storeBytes(
       {
-        bucket: config.interopGeneratedJwtAuditingBucket,
+        bucket: config.s3Bucket,
         path: filePath,
         name: fileName,
         content: Buffer.from(fileContent),
