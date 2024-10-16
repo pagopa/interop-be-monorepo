@@ -51,6 +51,10 @@ import {
   GSIPKConsumerIdEServiceId,
   PlatformStatesAgreementEntry,
   PlatformStatesAgreementPK,
+  makeGSIPKKid,
+  TokenGenerationStatesClientKidPK,
+  TokenGenerationStatesClientEntry,
+  makeTokenGenerationStatesClientKidPK,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -334,17 +338,19 @@ export const getMockTokenStatesClientPurposeEntry = (
   const descriptorId = generateId<DescriptorId>();
   const agreementId = generateId<AgreementId>();
   const purposeVersionId = generateId<PurposeVersionId>();
+  const kid = `kid ${Math.random()}`;
 
   return {
     PK:
       tokenStateEntryPK ||
       makeTokenGenerationStatesClientKidPurposePK({
         clientId,
-        kid: `kid ${Math.random()}`,
+        kid,
         purposeId,
       }),
     descriptorState: itemState.inactive,
     descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+    descriptorVoucherLifespan: 60,
     updatedAt: new Date().toISOString(),
     consumerId,
     agreementId,
@@ -356,8 +362,8 @@ export const getMockTokenStatesClientPurposeEntry = (
     clientKind: clientKindTokenStates.consumer,
     publicKey: "PEM",
     GSIPK_clientId: clientId,
-    GSIPK_kid: "KID",
-    agreementState: "ACTIVE",
+    GSIPK_kid: makeGSIPKKid(kid),
+    agreementState: itemState.active,
     GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
       eserviceId,
       descriptorId,
@@ -388,3 +394,26 @@ export const getMockAgreementEntry = (
   GSISK_agreementTimestamp: new Date().toISOString(),
   agreementDescriptorId: generateId<DescriptorId>(),
 });
+
+export const getMockTokenStatesClientEntry = (
+  tokenStateEntryPK?: TokenGenerationStatesClientKidPK
+): TokenGenerationStatesClientEntry => {
+  const clientId = generateId<ClientId>();
+  const consumerId = generateId<TenantId>();
+  const kid = `kid ${Math.random()}`;
+
+  return {
+    PK:
+      tokenStateEntryPK ||
+      makeTokenGenerationStatesClientKidPK({
+        clientId,
+        kid,
+      }),
+    updatedAt: new Date().toISOString(),
+    consumerId,
+    clientKind: clientKindTokenStates.consumer,
+    publicKey: "PEM",
+    GSIPK_clientId: clientId,
+    GSIPK_kid: makeGSIPKKid(kid),
+  };
+};
