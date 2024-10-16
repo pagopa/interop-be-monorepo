@@ -82,10 +82,6 @@ export const verifyClientAssertion = (
     const decodedPayload = jose.decodeJwt(clientAssertionJws);
     const decodedHeader = jose.decodeProtectedHeader(clientAssertionJws);
 
-    if (!decodedPayload || !decodedHeader) {
-      return failedValidation([invalidClientAssertionFormat()]);
-    }
-
     const { errors: jtiErrors, data: validatedJti } = validateJti(
       decodedPayload.jti
     );
