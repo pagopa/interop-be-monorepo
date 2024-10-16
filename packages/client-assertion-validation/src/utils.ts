@@ -99,14 +99,20 @@ export const validateSub = (
 };
 
 export const validatePurposeId = (
-  purposeId?: string
+  purposeId?: unknown
 ): ValidationResult<PurposeId | undefined> => {
-  if (purposeId && !PurposeId.safeParse(purposeId).success) {
-    return failedValidation([invalidPurposeIdClaimFormat(purposeId)]);
+  const purposeIdParseResult = PurposeId.safeParse(purposeId);
+  if (purposeId && !purposeIdParseResult.success) {
+    return failedValidation([
+      invalidPurposeIdClaimFormat(
+        typeof purposeId === "string" ? purposeId : ""
+      ),
+    ]);
   }
-  const validatedPurposeId = purposeId
-    ? unsafeBrandId<PurposeId>(purposeId)
-    : undefined;
+  const validatedPurposeId =
+    purposeId && purposeIdParseResult.data
+      ? unsafeBrandId<PurposeId>(purposeIdParseResult.data)
+      : undefined;
   return successfulValidation(validatedPurposeId);
 };
 
@@ -159,10 +165,10 @@ export const validateAlgorithm = (alg?: string): ValidationResult<string> => {
 };
 
 export const validateDigest = (
-  digest?: object
+  digest?: unknown
 ): ValidationResult<ClientAssertionDigest | undefined> => {
   if (!digest) {
-    return successfulValidation(digest);
+    return successfulValidation(undefined);
   }
   const result = ClientAssertionDigest.safeParse(digest);
   if (!result.success) {
