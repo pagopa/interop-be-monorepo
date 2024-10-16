@@ -469,10 +469,11 @@ describe("utils tests", async () => {
     it("should update state if previous entries exist", async () => {
       const purposeId = generateId<PurposeId>();
       const primaryKey = makePlatformStatesPurposePK(purposeId);
+      const purposeVersionId = generateId<PurposeVersionId>();
       const previousPlatformPurposeEntry: PlatformStatesPurposeEntry = {
         PK: primaryKey,
         state: itemState.inactive,
-        purposeVersionId: generateId(),
+        purposeVersionId,
         purposeEserviceId: generateId(),
         purposeConsumerId: generateId(),
         version: 1,
@@ -490,6 +491,7 @@ describe("utils tests", async () => {
         dynamoDBClient,
         primaryKey,
         purposeState: itemState.active,
+        purposeVersionId,
         version: 2,
       });
 
@@ -577,67 +579,6 @@ describe("utils tests", async () => {
         dynamoDBClient
       );
       expect(tokenStateEntriesAfterUpdate).toEqual([]);
-    });
-
-    it("should update state if previous entries exist", async () => {
-      const purpose: Purpose = {
-        ...getMockPurpose(),
-        versions: [getMockPurposeVersion()],
-      };
-
-      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: purpose.id,
-      });
-      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
-          GSIPK_purposeId: purpose.id,
-          purposeState: itemState.inactive,
-        };
-      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
-
-      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: purpose.id,
-      });
-      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
-          GSIPK_purposeId: purpose.id,
-          purposeState: itemState.inactive,
-        };
-      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
-      await updatePurposeDataInTokenGenerationStatesTable({
-        dynamoDBClient,
-        purposeId: purpose.id,
-        purposeState: itemState.active,
-        // purposeVersionId: purpose.versions[0].id,
-      });
-      const retrievedTokenStateEntries =
-        await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purpose.id);
-      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...previousTokenStateEntry1,
-          purposeState: itemState.active,
-          updatedAt: new Date().toISOString(),
-        };
-      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...previousTokenStateEntry2,
-          purposeState: itemState.active,
-          updatedAt: new Date().toISOString(),
-        };
-
-      expect(retrievedTokenStateEntries).toHaveLength(2);
-      expect(retrievedTokenStateEntries).toEqual(
-        expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
-        ])
-      );
     });
 
     it("should update state and purpose version id if previous entries exist", async () => {

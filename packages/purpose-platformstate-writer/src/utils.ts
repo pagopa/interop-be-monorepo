@@ -181,20 +181,15 @@ export const updatePurposeDataInPlatformStatesEntry = async ({
   dynamoDBClient,
   primaryKey,
   purposeState,
-  version,
   purposeVersionId,
+  version,
 }: {
   dynamoDBClient: DynamoDBClient;
   primaryKey: PlatformStatesPurposePK;
   purposeState: ItemState;
+  purposeVersionId: PurposeVersionId;
   version: number;
-  purposeVersionId?: PurposeVersionId;
 }): Promise<void> => {
-  const {
-    purposeVersionIdExpressionAttributeValues,
-    purposeVersionIdUpdateExpression,
-  } = getPurposeVersionIdUpdateQueryData(purposeVersionId);
-
   const input: UpdateItemInput = {
     ConditionExpression: "attribute_exists(PK)",
     Key: {
@@ -203,9 +198,11 @@ export const updatePurposeDataInPlatformStatesEntry = async ({
       },
     },
     ExpressionAttributeValues: {
-      ...purposeVersionIdExpressionAttributeValues,
       ":newState": {
         S: purposeState,
+      },
+      ":newPurposeVersionId": {
+        S: purposeVersionId,
       },
       ":newVersion": {
         N: version.toString(),
@@ -218,8 +215,7 @@ export const updatePurposeDataInPlatformStatesEntry = async ({
       "#state": "state",
     },
     UpdateExpression:
-      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt" +
-      purposeVersionIdUpdateExpression,
+      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt, purposeVersionId = :newPurposeVersionId",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
   };
@@ -395,20 +391,15 @@ export const updatePurposeDataInTokenGenerationStatesTable = async ({
   dynamoDBClient: DynamoDBClient;
   purposeId: PurposeId;
   purposeState: ItemState;
-  purposeVersionId?: PurposeVersionId;
+  purposeVersionId: PurposeVersionId;
 }): Promise<void> => {
   const runPaginatedUpdateQuery = async (
     dynamoDBClient: DynamoDBClient,
     purposeId: PurposeId,
     purposeState: ItemState,
-    purposeVersionId?: PurposeVersionId,
+    purposeVersionId: PurposeVersionId,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<void> => {
-    const {
-      purposeVersionIdExpressionAttributeValues,
-      purposeVersionIdUpdateExpression,
-    } = getPurposeVersionIdUpdateQueryData(purposeVersionId);
-
     const result = await readTokenEntriesByGSIPKPurposeId(
       dynamoDBClient,
       purposeId,
@@ -424,17 +415,18 @@ export const updatePurposeDataInTokenGenerationStatesTable = async ({
           },
         },
         ExpressionAttributeValues: {
-          ...purposeVersionIdExpressionAttributeValues,
           ":newState": {
             S: purposeState,
+          },
+          ":newPurposeVersionId": {
+            S: purposeVersionId,
           },
           ":newUpdateAt": {
             S: new Date().toISOString(),
           },
         },
         UpdateExpression:
-          "SET purposeState = :newState, updatedAt = :newUpdateAt" +
-          purposeVersionIdUpdateExpression,
+          "SET purposeState = :newState, updatedAt = :newUpdateAt, purposeVersionId = :newPurposeVersionId",
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
         ReturnValues: "NONE",
       };
@@ -537,32 +529,6 @@ export const getLastSuspendedOrActivatedPurposeVersion = (
         v.state === purposeVersionState.suspended
     )
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
-
-const getPurposeVersionIdUpdateQueryData = (
-  purposeVersionId: PurposeVersionId | undefined
-): {
-  purposeVersionIdExpressionAttributeValues: Record<string, AttributeValue>;
-  purposeVersionIdUpdateExpression: string;
-} => {
-  const purposeVersionIdExpressionAttributeValues: Record<
-    string,
-    AttributeValue
-  > = purposeVersionId
-    ? {
-        ":newPurposeVersionId": {
-          S: purposeVersionId,
-        },
-      }
-    : {};
-  const purposeVersionIdUpdateExpression = purposeVersionId
-    ? ", purposeVersionId = :newPurposeVersionId"
-    : "";
-
-  return {
-    purposeVersionIdExpressionAttributeValues,
-    purposeVersionIdUpdateExpression,
-  };
-};
 
 const extractAgreementIdFromAgreementPK = (
   pk: PlatformStatesAgreementPK
