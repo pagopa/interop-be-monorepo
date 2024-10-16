@@ -8,7 +8,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import { Attribute, ExternalId, Tenant } from "pagopa-interop-models";
+import { Attribute, Tenant } from "pagopa-interop-models";
 import { config } from "./config/config.js";
 import {
   ReadModelService,
@@ -132,7 +132,6 @@ async function createNewAttributes(
 
   // wait untill every event reach the read model store
   do {
-    // wait 10 seconds
     await new Promise((r) => setTimeout(r, config.attributeCreationWaitTime));
   } while (!(await checkAttributesPresence(readModelService, newAttributes)));
 }
@@ -164,27 +163,76 @@ function getNewAttributes(
 
 async function assignNewAttribute(
   platformTenant: Tenant[],
+  platformAttributes: Attribute[],
   tenantSeed: TenantSeed[],
   headers: Header
 ): Promise<void> {
-  const tenantIndex = new Map(
-    platformTenant.map((t) => [t.externalId, t.name])
+  const tenantIndex = new Map(platformTenant.map((t) => [t.externalId, t]));
+
+  const certifiedAttribute = new Map(
+    platformAttributes
+      .filter((a) => a.kind === "Certified" && a.origin && a.code)
+      .map((a) => [a.id, a])
   );
 
   const attributesToAssign: tenantApi.InternalTenantSeed[] = tenantSeed
     .map((i) => {
       const externalId = { origin: i.origin, value: i.originId };
 
-      const name = tenantIndex.get(externalId);
+      const tenant = tenantIndex.get(externalId);
 
-      return name
+      if (!tenant) {
+        return undefined;
+      }
+
+      const tenantCurrentAttribute = new Map(
+        tenant.attributes
+          .map((a) => {
+            const withRevocation = match(a)
+              .with({ type: "PersistentCertifiedAttribute" }, (certified) => ({
+                ...a,
+                revocationTimestamp: certified.revocationTimestamp,
+              }))
+              .otherwise((_) => undefined);
+
+            if (withRevocation) {
+              const attribute = certifiedAttribute.get(withRevocation.id);
+
+              if (attribute) {
+                return {
+                  ...attribute,
+                  revocationTimestamp: withRevocation.revocationTimestamp,
+                };
+              }
+            }
+
+            return undefined;
+          })
+          .filter((a) => a !== undefined)
+          .map((a) => [{ origin: a?.origin, code: a?.code }, a])
+      );
+
+      return tenant
         ? {
             externalId,
-            name,
-            certifiedAttributes: i.attributes.map((a) => ({
-              origin: a.origin,
-              code: a.code,
-            })),
+            name: tenant.name,
+            certifiedAttributes: i.attributes
+              .filter((a) => {
+                const attribute = tenantCurrentAttribute.get({
+                  origin: a.origin,
+                  code: a.code,
+                });
+
+                if (!attribute) {
+                  return true;
+                }
+
+                return attribute.revocationTimestamp !== undefined;
+              })
+              .map((a) => ({
+                origin: a.origin,
+                code: a.code,
+              })),
           }
         : undefined;
     })
@@ -203,6 +251,7 @@ async function assignNewAttribute(
 
 async function revokeAttributes(
   registryData: RegistryData,
+  tenantSeed: TenantSeed[],
   platformTenants: Tenant[],
   platformAttributes: Attribute[],
   headers: Header
@@ -211,35 +260,44 @@ async function revokeAttributes(
     registryData.attributes.map((a) => ({ origin: a.origin, value: a.code }))
   );
 
+  const tenantSeedIndex = new Map(
+    tenantSeed.map((t) => [
+      { origin: t.origin, value: t.originId },
+      new Set(t.attributes.map((a) => ({ origin: a.origin, value: a.code }))),
+    ])
+  );
+
   const certifiedAttribute = new Map(
     platformAttributes
       .filter((a) => a.kind === "Certified" && a.origin && a.code)
       .map((a) => [a.id, a])
   );
 
-  const canBeRevoked = (
-    tenantExternalId: ExternalId,
-    attribute: { origin: string; code: string }
-  ): boolean => {
+  const canBeRevoked = (attribute: {
+    origin: string;
+    code: string;
+  }): boolean => {
     const externalId = { origin: attribute.origin, value: attribute.code };
 
-    if (
-      tenantExternalId.origin === externalId.origin &&
-      tenantExternalId.value === externalId.value
-    ) {
+    if (attribute.origin !== "IPA") {
       return false;
     }
 
-    // eslint-disable-next-line sonarjs/prefer-single-boolean-return
-    if (indexFromOpenData.has(externalId)) {
+    const registryAttributes = tenantSeedIndex.get(externalId);
+    if (!registryAttributes) {
       return false;
     }
 
-    return true;
+    if (registryAttributes.has(externalId)) {
+      return false;
+    }
+
+    return !indexFromOpenData.has(externalId);
   };
 
   const toRevoke = platformTenants.flatMap((t) =>
     t.attributes
+      // eslint-disable-next-line sonarjs/no-identical-functions
       .map((a) => {
         const withRevocation = match(a)
           .with({ type: "PersistentCertifiedAttribute" }, (certified) => ({
@@ -267,7 +325,7 @@ async function revokeAttributes(
           a.revocationTimestamp === undefined &&
           a.origin &&
           a.code &&
-          canBeRevoked(t.externalId, { origin: a.origin, code: a.code })
+          canBeRevoked({ origin: a.origin, code: a.code })
       )
       .map((a) => ({
         tOrigin: t.externalId.origin,
@@ -340,12 +398,14 @@ try {
 
   await assignNewAttribute(
     ipaTenants,
+    attributes,
     tenantUpsertData,
     await getHeader(refreshableToken, correlatsionId)
   );
 
   await revokeAttributes(
     registryData,
+    tenantUpsertData,
     ipaTenants,
     attributes,
     await getHeader(refreshableToken, correlatsionId)
