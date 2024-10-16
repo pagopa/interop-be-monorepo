@@ -1,0 +1,21 @@
+meta {
+  name: Remove Producer Keychain User
+  type: http
+  seq: 23
+}
+
+delete {
+  url: {{host-authorization}}/producerKeychains/:producerKeychainId/users/:userId
+  body: none
+  auth: none
+}
+
+params:path {
+  userId: {{userId1}}
+  producerKeychainId: {{producerKeychainId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

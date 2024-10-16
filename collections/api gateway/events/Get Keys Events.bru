@@ -1,0 +1,20 @@
+meta {
+  name: Get Keys Events
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-api-gw}}/events/keys?lastEventId=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  lastEventId: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
