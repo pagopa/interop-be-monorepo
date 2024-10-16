@@ -50,16 +50,6 @@ export function clientAssertionValidationFailure(
   });
 }
 
-export function clientAssertionSignatureVerificationError(
-  errorMessage: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Error verifying client assertion signature: Reason: ${errorMessage}`,
-    code: "clientAssertionSignatureVerificationError",
-    title: "Client assertion signature verification error",
-  });
-}
-
 export function unexpectedClientAssertionSignatureVerificationError(
   message: string
 ): ApiError<ErrorCodes> {
@@ -67,6 +57,16 @@ export function unexpectedClientAssertionSignatureVerificationError(
     detail: `Unexpected client assertion signature verification error: ${message}`,
     code: "unexpectedClientAssertionSignatureVerificationError",
     title: "Unexpected client assertion signature verification error",
+  });
+}
+
+export function clientAssertionSignatureVerificationError(
+  errorMessage: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Error verifying client assertion signature: Reason: ${errorMessage}`,
+    code: "clientAssertionSignatureVerificationError",
+    title: "Client assertion signature verification error",
   });
 }
 
