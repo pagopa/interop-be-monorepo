@@ -120,14 +120,7 @@ export const getMockKey = (): Key => ({
   clientId: generateId<ClientId>(),
   consumerId: generateId<TenantId>(),
   kid: "kid",
-  publicKey: Buffer.from(
-    crypto
-      .generateKeyPairSync("rsa", {
-        modulusLength: 2048,
-      })
-      .publicKey.export({ type: "spki", format: "pem" })
-      .toString()
-  ).toString("base64"),
+  publicKey: generateKeySet().publicKeyEncodedPem,
   algorithm: "RS256",
 });
 

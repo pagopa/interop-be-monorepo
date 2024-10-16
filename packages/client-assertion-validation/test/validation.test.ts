@@ -466,28 +466,22 @@ describe("validation test", async () => {
           exp: threeHourLater.getTime() / 1000,
         },
       });
-      const mockConsumerKey = {
+      const mockKey = {
         ...getMockKey(),
         publicKey: publicKeyEncodedPem,
       };
-      const { errors } = await verifyClientAssertionSignature(
-        jws,
-        mockConsumerKey
-      );
+      const { errors } = await verifyClientAssertionSignature(jws, mockKey);
       expect(errors).toBeUndefined();
     });
 
     it("unexpectedClientAssertionSignatureVerificationError - base64 key expected", async () => {
       const { jws, publicKeyEncodedPem } = await getMockClientAssertion();
 
-      const mockConsumerKey = {
+      const mockKey = {
         ...getMockKey(),
         publicKey: Buffer.from(publicKeyEncodedPem, "base64").toString("utf8"),
       };
-      const { errors } = await verifyClientAssertionSignature(
-        jws,
-        mockConsumerKey
-      );
+      const { errors } = await verifyClientAssertionSignature(jws, mockKey);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(
         unexpectedClientAssertionSignatureVerificationError(
@@ -536,27 +530,24 @@ describe("validation test", async () => {
         },
       });
 
-      const mockConsumerKey = {
+      const mockKey = {
         ...getMockKey(),
         publicKey: publicKeyEncodedPem,
       };
-      const { errors } = await verifyClientAssertionSignature(
-        jws,
-        mockConsumerKey
-      );
+      const { errors } = await verifyClientAssertionSignature(jws, mockKey);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(tokenExpiredError());
     });
     it("jsonWebTokenError", async () => {
       const { publicKeyEncodedPem } = generateKeySet();
-      const mockConsumerKey = {
+      const mockKey = {
         ...getMockKey(),
         publicKey: publicKeyEncodedPem,
       };
       const { errors } = await verifyClientAssertionSignature(
         "not-a-valid-jws",
-        mockConsumerKey
+        mockKey
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -565,7 +556,7 @@ describe("validation test", async () => {
 
     it("invalidSignature", async () => {
       const { publicKeyEncodedPem } = generateKeySet();
-      const mockConsumerKey = {
+      const mockKey = {
         ...getMockKey(),
         publicKey: publicKeyEncodedPem,
       };
@@ -575,7 +566,7 @@ describe("validation test", async () => {
       const clientAssertionWithWrongSignature = `${subStrings[0]}.${subStrings[1]}.wrong-signature`;
       const { errors } = await verifyClientAssertionSignature(
         clientAssertionWithWrongSignature,
-        mockConsumerKey
+        mockKey
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -583,13 +574,13 @@ describe("validation test", async () => {
     });
     it("jsonWebTokenError - malformed jwt", async () => {
       const { publicKeyEncodedPem } = generateKeySet();
-      const mockConsumerKey = {
+      const mockKey = {
         ...getMockKey(),
         publicKey: publicKeyEncodedPem,
       };
       const { errors } = await verifyClientAssertionSignature(
         "too.many.substrings.in.client.assertion",
-        mockConsumerKey
+        mockKey
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -600,7 +591,7 @@ describe("validation test", async () => {
       const { jws: clientAssertion1, publicKeyEncodedPem } =
         await getMockClientAssertion();
 
-      const mockConsumerKey = {
+      const mockKey = {
         ...getMockKey(),
         publicKey: publicKeyEncodedPem,
       };
@@ -612,7 +603,7 @@ describe("validation test", async () => {
       const clientAssertionWithWrongSignature = `${subStrings1[0]}.${subStrings1[1]}.${subStrings2[2]}`;
       const { errors } = await verifyClientAssertionSignature(
         clientAssertionWithWrongSignature,
-        mockConsumerKey
+        mockKey
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -636,15 +627,12 @@ describe("validation test", async () => {
           nbf: threeHoursLater.getTime() / 1000,
         },
       });
-      const mockConsumerKey = {
+      const mockKey = {
         ...getMockKey(),
         publicKey: publicKeyEncodedPem,
       };
 
-      const { errors } = await verifyClientAssertionSignature(
-        jws,
-        mockConsumerKey
-      );
+      const { errors } = await verifyClientAssertionSignature(jws, mockKey);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(notBeforeError());
