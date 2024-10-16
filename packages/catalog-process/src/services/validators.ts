@@ -39,7 +39,7 @@ export async function assertRequesterIsDelegateOrProducer(
     return;
   }
 
-  const delegation = await readModelService.getDelegationByEServiceId(
+  const delegation = await readModelService.getLatestDelegationByEServiceId(
     eserviceId
   );
 
@@ -65,7 +65,7 @@ export async function assertNoValidDelegationAssociated(
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<void> {
-  const delegation = await readModelService.getDelegationByEServiceId(
+  const delegation = await readModelService.getLatestDelegationByEServiceId(
     eserviceId
   );
 
