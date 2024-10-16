@@ -121,6 +121,7 @@ export function assertExpirationDateExist(
 const PUBLIC_ADMINISTRATIONS_IDENTIFIER = "IPA";
 const CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS = "SAG";
 const PUBLIC_SERVICES_MANAGERS = "L37";
+const SCP = "PDND_INFOCAMERE-SCP";
 
 export function getTenantKind(
   attributes: ExternalId[],
@@ -140,6 +141,7 @@ export function getTenantKind(
       () => tenantKind.GSP
     )
     .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => tenantKind.PA)
+    .with(SCP, () => tenantKind.SCP)
     .otherwise(() => tenantKind.PRIVATE);
 }
 
