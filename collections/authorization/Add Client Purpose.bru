@@ -1,0 +1,27 @@
+meta {
+  name: Add Client Purpose
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{host-authorization}}/clients/:clientId/purposes
+  body: json
+  auth: none
+}
+
+params:path {
+  clientId: {{clientId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "purposeId": "{{purposeId}}"
+  }
+  
+}
