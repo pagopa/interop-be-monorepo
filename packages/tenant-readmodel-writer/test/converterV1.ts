@@ -22,6 +22,7 @@ import {
   tenantUnitType,
   TenantUnitType,
   dateToBigInt,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -115,7 +116,9 @@ export function toTenantKindV1(input: TenantKind): TenantKindV1 {
     .with(tenantKind.GSP, () => TenantKindV1.GSP)
     .with(tenantKind.PA, () => TenantKindV1.PA)
     .with(tenantKind.PRIVATE, () => TenantKindV1.PRIVATE)
-    .exhaustive();
+    .otherwise(() => {
+      throw genericInternalError("Unsupported tenant kind");
+    });
 }
 
 export function toTenantUnitTypeV1(input: TenantUnitType): TenantUnitTypeV1 {
