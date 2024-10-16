@@ -13,20 +13,10 @@ get {
 params:path {
   tenantId: 69e2865e-65ab-4e48-a638-2037a9ee2ee7
 }
-
 headers {
-  Cache-Control: no-cache
-  Postman-Token: <calculated when request is sent>
-  Host: <calculated when request is sent>
-  User-Agent: PostmanRuntime/7.39.1
-  Accept: */*
-  Accept-Encoding: gzip, deflate, br
-  Connection: keep-alive
-  X-Correlation-Id: asddsa
-  Accept: application/json
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
 }
-
-
 
 docs {
   Gets verified attributes for institution using internal institution id

@@ -11,12 +11,10 @@ post {
 }
 
 headers {
-  X-Correlation-Id: <string>
+  X-Correlation-Id: {{correlation-id}}
   Content-Type: application/x-www-form-urlencoded
   Accept: application/json
 }
-
-
 
 body:form-urlencoded {
   client_assertion: <string>
