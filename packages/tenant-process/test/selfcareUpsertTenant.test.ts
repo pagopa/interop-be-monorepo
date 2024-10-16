@@ -16,6 +16,7 @@ import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
+import { match } from "ts-pattern";
 import { selfcareIdConflict } from "../src/model/domain/errors.js";
 import { addOneTenant, readLastTenantEvent, tenantService } from "./utils.js";
 
@@ -73,52 +74,60 @@ describe("selfcareUpsertTenant", async () => {
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
-  it("Should create a tenant if it does not exist", async () => {
-    const tenantSeed = {
-      externalId: {
-        origin: "Nothing",
-        value: "0",
-      },
-      name: "A tenant",
-      selfcareId: generateId(),
-      onboardedAt: mockTenant.onboardedAt!.toISOString(),
-      subUnitType: mockTenant.subUnitType,
-    };
-    const id = await tenantService.selfcareUpsertTenant(tenantSeed, {
-      authData: getMockAuthData(),
-      correlationId,
-      serviceName: "",
-      logger: genericLogger,
-    });
-    expect(id).toBeDefined();
-    const writtenEvent = await readLastTenantEvent(unsafeBrandId(id));
-    if (!writtenEvent) {
-      fail("Creation failed: tenant not found in event-store");
+  it.each(["IPA", "PDND_INFOCAMERE-SCP", "PDND_INFOCAMERE-PVT"])(
+    "Should create a tenant with origin %s if it does not exist",
+    async (origin) => {
+      const tenantSeed = {
+        externalId: {
+          origin,
+          value: "0",
+        },
+        name: "A tenant",
+        selfcareId: generateId(),
+        onboardedAt: mockTenant.onboardedAt!.toISOString(),
+        subUnitType: mockTenant.subUnitType,
+      };
+      const id = await tenantService.selfcareUpsertTenant(tenantSeed, {
+        authData: getMockAuthData(),
+        correlationId,
+        serviceName: "",
+        logger: genericLogger,
+      });
+      expect(id).toBeDefined();
+      const writtenEvent = await readLastTenantEvent(unsafeBrandId(id));
+      if (!writtenEvent) {
+        fail("Creation failed: tenant not found in event-store");
+      }
+      expect(writtenEvent).toMatchObject({
+        stream_id: id,
+        version: "0",
+        type: "TenantOnboarded",
+      });
+      const writtenPayload: TenantOnboardedV2 | undefined = protobufDecoder(
+        TenantOnboardedV2
+      ).parse(writtenEvent.data);
+
+      const kind = match(origin)
+        .with("IPA", () => tenantKind.PA)
+        .with("PDND_INFOCAMERE-SCP", () => tenantKind.SCP)
+        .otherwise(() => tenantKind.PRIVATE);
+
+      const expectedTenant: Tenant = {
+        externalId: tenantSeed.externalId,
+        id: unsafeBrandId(id),
+        kind,
+        selfcareId: tenantSeed.selfcareId,
+        onboardedAt: mockTenant.onboardedAt!,
+        createdAt: new Date(),
+        name: tenantSeed.name,
+        attributes: [],
+        features: [],
+        mails: [],
+      };
+
+      expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
     }
-    expect(writtenEvent).toMatchObject({
-      stream_id: id,
-      version: "0",
-      type: "TenantOnboarded",
-    });
-    const writtenPayload: TenantOnboardedV2 | undefined = protobufDecoder(
-      TenantOnboardedV2
-    ).parse(writtenEvent.data);
-
-    const expectedTenant: Tenant = {
-      externalId: tenantSeed.externalId,
-      id: unsafeBrandId(id),
-      kind: undefined,
-      selfcareId: tenantSeed.selfcareId,
-      onboardedAt: mockTenant.onboardedAt!,
-      createdAt: new Date(),
-      name: tenantSeed.name,
-      attributes: [],
-      features: [],
-      mails: [],
-    };
-
-    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
-  });
+  );
   it("should throw operation forbidden if role isn't internal and the requester is another tenant", async () => {
     await addOneTenant(mockTenant);
     const tenantSeed: tenantApi.SelfcareTenantSeed = {
