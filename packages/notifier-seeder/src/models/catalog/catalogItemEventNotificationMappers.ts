@@ -42,6 +42,8 @@ export const toCatalogDescriptorStateV1 = (input: DescriptorState): string => {
       return "Suspended";
     case descriptorState.archived:
       return "Archived";
+    case descriptorState.waitingForApproval:
+      return "WaitingForApproval";
   }
 };
 

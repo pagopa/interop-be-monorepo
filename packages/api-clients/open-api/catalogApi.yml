@@ -1734,6 +1734,7 @@ components:
         - DEPRECATED
         - SUSPENDED
         - ARCHIVED
+        - WAITING_FOR_APPROVAL
     EServiceDocumentKind:
       type: string
       description: EService Document Kind

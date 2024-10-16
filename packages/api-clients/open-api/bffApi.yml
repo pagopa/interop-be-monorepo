@@ -13762,6 +13762,7 @@ components:
         - DEPRECATED
         - SUSPENDED
         - ARCHIVED
+        - WAITING_FOR_APPROVAL
     EServiceTechnology:
       type: string
       description: EService Descriptor State
