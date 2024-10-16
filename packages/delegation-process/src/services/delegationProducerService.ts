@@ -8,22 +8,20 @@ import {
 import {
   Delegation,
   delegationEventToBinaryDataV2,
-  DelegationId,
   delegationKind,
-  delegationState,
   EServiceId,
   generateId,
   Tenant,
-  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { DelegationId, TenantId, delegationState } from "pagopa-interop-models";
+import { tenantNotFound } from "../model/domain/errors.js";
+import { toCreateEventProducerDelegation } from "../model/domain/toEvent.js";
 import {
   delegationNotFound,
-  tenantNotFound,
   incorrectState,
   operationRestrictedToDelegator,
 } from "../model/domain/errors.js";
-import { toCreateEventProducerDelegation } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertDelegationNotExists,
@@ -47,7 +45,6 @@ export function delegationProducerServiceBuilder(
   };
 
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
-
   return {
     async createProducerDelegation(
       delegationSeed: delegationApi.DelegationSeed,
@@ -110,6 +107,7 @@ export function delegationProducerServiceBuilder(
 
       const delegation = await readModelService.getDelegationById(delegationId);
 
+      // TODO convert in assertion inside validators.ts
       if (!delegation) {
         throw delegationNotFound(delegationId);
       }
@@ -127,8 +125,6 @@ export function delegationProducerServiceBuilder(
           delegationState.waitingForApproval
         );
       }
-
-      // Additional logic for approving the delegation can be added here
     },
   };
 }
