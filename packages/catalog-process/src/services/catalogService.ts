@@ -1362,6 +1362,10 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
+      await assertNoValidDelegationAssociated(
+        eservice.data.id,
+        readModelService
+      );
 
       const clonedEServiceName = `${
         eservice.data.name
