@@ -1,6 +1,7 @@
 import {
   randomArrayItem,
   ReadEvent,
+  readEventByStreamIdAndVersion,
   readLastEventByStreamId,
   setupTestContainersVitest,
   StoredEvent,
@@ -76,6 +77,17 @@ export const readLastAgreementEvent = async (
   delegationId: DelegationId
 ): Promise<ReadEvent<DelegationEvent>> =>
   await readLastEventByStreamId(delegationId, "delegation", postgresDB);
+
+export const readDelegationEventByVersion = async (
+  delegationId: DelegationId,
+  version: number
+): Promise<ReadEvent<DelegationEvent>> =>
+  await readEventByStreamIdAndVersion(
+    delegationId,
+    version,
+    "delegation",
+    postgresDB
+  );
 
 export const addOneDelegation = async (
   delegation: Delegation

@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { fail } from "assert";
 import {
   decodeProtobufPayload,
   getMockDelegationProducer,
@@ -8,11 +9,11 @@ import {
 import {
   Delegation,
   DelegationId,
-  DelegationStamps,
+  DelegationRevokedV2,
   delegationState,
-  DelegationSubmittedV2,
   generateId,
   TenantId,
+  fromDelegationV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -24,9 +25,42 @@ import {
 import {
   addOneDelegation,
   delegationProducerService,
-  readLastAgreementEvent,
-  writeDelegationInEventstore,
+  readDelegationEventByVersion,
 } from "./utils.js";
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const getNotRevocableStateSeeds = () => {
+  const rejectionOrRevokeDate = new Date();
+  rejectionOrRevokeDate.setMonth(new Date().getMonth() - 1);
+
+  return randomArrayItem([
+    {
+      delegationData: {
+        state: delegationState.rejected,
+        rejectedAt: rejectionOrRevokeDate,
+        rejectionReason: "Test is a test stop",
+      },
+      stamps: {
+        rejection: {
+          who: generateId<TenantId>(),
+          when: rejectionOrRevokeDate,
+        },
+      },
+    },
+    {
+      delegationData: {
+        state: delegationState.revoked,
+        revokedAt: rejectionOrRevokeDate,
+      },
+      stamps: {
+        revocation: {
+          who: generateId<TenantId>(),
+          when: rejectionOrRevokeDate,
+        },
+      },
+    },
+  ]);
+};
 
 describe("revoke delegation", () => {
   it("should revoke a delegation if it exists", async () => {
@@ -40,36 +74,27 @@ describe("revoke delegation", () => {
     const delegationCreationDate = new Date();
     delegationCreationDate.setMonth(currentExecutionTime.getMonth() - 2);
 
-    const delegationApprovalDate = new Date();
-    delegationApprovalDate.setMonth(currentExecutionTime.getMonth() - 1);
+    const delegationActivationDate = new Date();
+    delegationActivationDate.setMonth(currentExecutionTime.getMonth() - 1);
 
     const existentDelegation = {
       ...getMockDelegationProducer({
         delegatorId,
         delegateId,
       }),
-      approvedAt: delegationApprovalDate,
+      approvedAt: delegationActivationDate,
       submittedAt: delegationCreationDate,
       stamps: {
         submission: {
           who: delegatorId,
           when: delegationCreationDate,
         },
-        approval: {
+        activation: {
           who: delegateId,
-          when: delegationApprovalDate,
+          when: delegationActivationDate,
         },
       },
     };
-
-    await writeDelegationInEventstore(existentDelegation);
-    const lastdelegation = await readLastAgreementEvent(existentDelegation.id);
-    const lastdelegationData = decodeProtobufPayload({
-      messageType: DelegationSubmittedV2,
-      payload: lastdelegation.data,
-    });
-
-    expect(lastdelegationData.delegation).toEqual({});
 
     await addOneDelegation(existentDelegation);
 
@@ -88,7 +113,14 @@ describe("revoke delegation", () => {
       state: delegationState.revoked,
       revokedAt: currentExecutionTime,
       stamps: {
-        ...existentDelegation.stamps,
+        submission: {
+          who: delegatorId,
+          when: delegationCreationDate,
+        },
+        activation: {
+          who: delegateId,
+          when: delegationActivationDate,
+        },
         revocation: {
           who: delegatorId,
           when: currentExecutionTime,
@@ -97,11 +129,25 @@ describe("revoke delegation", () => {
     };
 
     expect(actualDelegation).toMatchObject(expectedDelegation);
-    const lastDelegationEvent = await readLastAgreementEvent(
-      actualDelegation.id
+
+    const lastDelegationEvent = await readDelegationEventByVersion(
+      actualDelegation.id,
+      1
     );
 
-    expect(lastDelegationEvent.version).toBe(2);
+    const delegationEventPayload = decodeProtobufPayload({
+      messageType: DelegationRevokedV2,
+      payload: lastDelegationEvent.data,
+    }).delegation;
+    if (!delegationEventPayload) {
+      return fail("DelegationRevokedV2 payload not found");
+    }
+
+    const delegationFromLastEvent = fromDelegationV2(delegationEventPayload);
+
+    expect(lastDelegationEvent.version).toBe("1");
+    expect(delegationFromLastEvent).toMatchObject(expectedDelegation);
+
     vi.useRealTimers();
   });
 
@@ -137,7 +183,7 @@ describe("revoke delegation", () => {
 
     const existentDelegation = {
       ...getMockDelegationProducer({
-        delegatorId,
+        id: delegationId,
         delegateId,
       }),
       approvedAt: delegationApprovalDate,
@@ -167,7 +213,7 @@ describe("revoke delegation", () => {
     vi.useRealTimers();
   });
 
-  it("should throw an delegatorNotAllowToRevoke if Requester Id and DelegatorId are differents", async () => {
+  it("should throw an delegatorNotAllowToRevoke if delegation doesn't have revocable one of revocable states [Rejected,Revoked]", async () => {
     const currentExecutionTime = new Date();
     vi.useFakeTimers();
     vi.setSystemTime(currentExecutionTime);
@@ -175,68 +221,46 @@ describe("revoke delegation", () => {
     const delegatorId = generateId<TenantId>();
     const delegateId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
-    const delegationId = generateId<DelegationId>();
 
     const delegationCreationDate = new Date();
     delegationCreationDate.setMonth(currentExecutionTime.getMonth() - 2);
 
-    const delegationApprovalDate = new Date();
-    delegationApprovalDate.setMonth(currentExecutionTime.getMonth() - 1);
+    const delegationActivationDate = new Date();
+    delegationActivationDate.setMonth(currentExecutionTime.getMonth() - 1);
 
-    const rejectOrRevokeDate = new Date();
-    delegationApprovalDate.setMonth(currentExecutionTime.getMonth() - 1);
+    const notRevocableDelegationState = getNotRevocableStateSeeds();
 
-    const randomInvalidRevocableState = randomArrayItem([
-      {
-        state: delegationState.rejected,
-        rejectedAt: rejectOrRevokeDate,
-        rejectionReason: "test rejection",
-        stamps: {
-          revocation: { who: delegateId, when: rejectOrRevokeDate },
-        },
-      },
-      {
-        state: delegationState.revoked,
-        revokedAt: rejectOrRevokeDate,
-        stamps: {
-          rejection: { who: delegateId, when: rejectOrRevokeDate },
-        },
-      },
-    ]);
-
-    const stamps: DelegationStamps = {
-      submission: {
-        who: delegatorId,
-        when: delegationCreationDate,
-      },
-      activation: {
-        who: delegateId,
-        when: delegationApprovalDate,
-      },
-      ...randomInvalidRevocableState.stamps,
-    };
-
-    const existentNotRevocableDelegation = {
+    const existentDelegation: Delegation = {
       ...getMockDelegationProducer({
         delegatorId,
         delegateId,
       }),
-      approvedAt: delegationApprovalDate,
+      approvedAt: delegationActivationDate,
       submittedAt: delegationCreationDate,
-      ...randomInvalidRevocableState,
-      stamps,
+      stamps: {
+        submission: {
+          who: delegatorId,
+          when: delegationCreationDate,
+        },
+        activation: {
+          who: delegateId,
+          when: delegationActivationDate,
+        },
+        ...notRevocableDelegationState.stamps,
+      },
+      ...notRevocableDelegationState.delegationData,
     };
 
-    await addOneDelegation(existentNotRevocableDelegation);
+    await addOneDelegation(existentDelegation);
 
     await expect(
-      delegationProducerService.revokeDelegation(delegationId, {
+      delegationProducerService.revokeDelegation(existentDelegation.id, {
         authData,
         logger: genericLogger,
         correlationId: randomUUID(),
         serviceName: "DelegationServiceTest",
       })
-    ).rejects.toThrow(delegationNotRevokable(existentNotRevocableDelegation));
+    ).rejects.toThrow(delegationNotRevokable(existentDelegation));
     vi.useRealTimers();
   });
 });
