@@ -13,12 +13,12 @@ export const TokenDetailsPersisterConfig = FileManagerConfig.and(S3Config)
     z
       .object({
         TOKEN_AUDITING_TOPIC: z.string(),
-        INTEROP_GENERATED_JWT_AUDITING_BUCKET: z.string(),
+        // INTEROP_GENERATED_JWT_AUDITING_BUCKET: z.string(),
       })
       .transform((c) => ({
         tokenAuditingTopic: c.TOKEN_AUDITING_TOPIC,
-        interopGeneratedJwtAuditingBucket:
-          c.INTEROP_GENERATED_JWT_AUDITING_BUCKET,
+        // interopGeneratedJwtAuditingBucket:
+        //   c.INTEROP_GENERATED_JWT_AUDITING_BUCKET,
       }))
   );
 

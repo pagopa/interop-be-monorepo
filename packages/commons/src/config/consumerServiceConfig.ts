@@ -23,8 +23,8 @@ export type KafkaConsumerConfig = z.infer<typeof KafkaConsumerConfig>;
 export const KafkaBatchConsumerConfig = KafkaConsumerConfig.and(
   z
     .object({
-      MIN_BYTES_KAFKA_BATCH: z.number(),
-      MAX_WAIT_KAFKA_BATCH: z.number(),
+      MIN_BYTES_KAFKA_BATCH: z.coerce.number(),
+      MAX_WAIT_KAFKA_BATCH: z.coerce.number(),
     })
     .transform((c) => ({
       minBytesKafkaBatch: c.MIN_BYTES_KAFKA_BATCH,
