@@ -34,7 +34,7 @@ export const ClientAssertionPayload = z
     jti: z.string(),
     iat: z.number(),
     iss: z.string(),
-    aud: z.array(z.string()),
+    aud: z.array(z.string()).or(z.string()),
     exp: z.number(),
     digest: ClientAssertionDigest.optional(),
     purposeId: PurposeId.optional(),
@@ -50,12 +50,13 @@ export const ClientAssertion = z
   .strict();
 export type ClientAssertion = z.infer<typeof ClientAssertion>;
 
+export const Base64Encoded = z.string().base64().min(1);
 export const Key = z
   .object({
     clientId: ClientId,
     consumerId: TenantId,
     kid: z.string(),
-    publicKey: z.string().min(1),
+    publicKey: Base64Encoded,
     algorithm: z.string(),
   })
   .strict();

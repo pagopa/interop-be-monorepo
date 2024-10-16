@@ -17,7 +17,6 @@ import {
   expNotFound,
   issuedAtNotFound,
   invalidAudience,
-  invalidAudienceFormat,
   issuerNotFound,
   jtiNotFound,
   subjectNotFound,
@@ -35,6 +34,8 @@ import {
   invalidHashAlgorithm,
   invalidKidFormat,
   digestClaimNotFound,
+  audienceNotFound,
+  invalidAudienceFormat,
 } from "./errors.js";
 import { config } from "./config.js";
 
@@ -98,14 +99,20 @@ export const validateSub = (
 };
 
 export const validatePurposeId = (
-  purposeId?: string
+  purposeId?: unknown
 ): ValidationResult<PurposeId | undefined> => {
-  if (purposeId && !PurposeId.safeParse(purposeId).success) {
-    return failedValidation([invalidPurposeIdClaimFormat(purposeId)]);
+  const purposeIdParseResult = PurposeId.safeParse(purposeId);
+  if (purposeId && !purposeIdParseResult.success) {
+    return failedValidation([
+      invalidPurposeIdClaimFormat(
+        typeof purposeId === "string" ? purposeId : ""
+      ),
+    ]);
   }
-  const validatedPurposeId = purposeId
-    ? unsafeBrandId<PurposeId>(purposeId)
-    : undefined;
+  const validatedPurposeId =
+    purposeId && purposeIdParseResult.data
+      ? unsafeBrandId<PurposeId>(purposeIdParseResult.data)
+      : undefined;
   return successfulValidation(validatedPurposeId);
 };
 
@@ -123,18 +130,27 @@ export const validateKid = (kid?: string): ValidationResult<string> => {
 
 export const validateAudience = (
   aud: string | string[] | undefined
-): ValidationResult<string[]> => {
-  if (aud === config.clientAssertionAudience) {
-    return successfulValidation([aud]);
+): ValidationResult<string[] | string> => {
+  if (!aud) {
+    return failedValidation([audienceNotFound()]);
   }
 
-  if (!Array.isArray(aud)) {
-    return failedValidation([invalidAudienceFormat()]);
-  }
-  if (!aud.includes(config.clientAssertionAudience)) {
+  if (Array.isArray(aud)) {
+    if (config.clientAssertionAudience.every((entry) => aud.includes(entry))) {
+      return successfulValidation(aud);
+    }
+    return failedValidation([invalidAudience()]);
+  } else {
+    const split = aud.split(",").map((s) => s.trim());
+    if (split.length > 1) {
+      return failedValidation([invalidAudienceFormat()]);
+    }
+    const audEntry = split[0];
+    if (config.clientAssertionAudience.every((entry) => audEntry === entry)) {
+      return successfulValidation(aud);
+    }
     return failedValidation([invalidAudience()]);
   }
-  return successfulValidation(aud);
 };
 
 export const validateAlgorithm = (alg?: string): ValidationResult<string> => {
@@ -149,10 +165,10 @@ export const validateAlgorithm = (alg?: string): ValidationResult<string> => {
 };
 
 export const validateDigest = (
-  digest?: object
+  digest?: unknown
 ): ValidationResult<ClientAssertionDigest | undefined> => {
   if (!digest) {
-    return successfulValidation(digest);
+    return successfulValidation(undefined);
   }
   const result = ClientAssertionDigest.safeParse(digest);
   if (!result.success) {

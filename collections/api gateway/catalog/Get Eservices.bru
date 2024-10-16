@@ -1,0 +1,20 @@
+meta {
+  name: Get Eservices
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-api-gw}}/eservices?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
