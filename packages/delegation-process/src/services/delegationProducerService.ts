@@ -16,19 +16,21 @@ import {
 } from "pagopa-interop-models";
 import { DelegationId, TenantId, delegationState } from "pagopa-interop-models";
 import { tenantNotFound } from "../model/domain/errors.js";
-import { toCreateEventProducerDelegation } from "../model/domain/toEvent.js";
 import {
-  delegationNotFound,
-  incorrectState,
-  operationRestrictedToDelegator,
-} from "../model/domain/errors.js";
+  toCreateEventApproveDelegation,
+  toCreateEventProducerDelegation,
+} from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
+  assertDelegationExists,
   assertDelegationNotExists,
   assertDelegatorIsIPA,
   assertDelegatorIsNotDelegate,
   assertEserviceExists,
   assertTenantAllowedToReceiveProducerDelegation,
+  assertIsDelegator,
+  assertIsState,
+  assertTenantAllowedToDelegation,
 } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -100,31 +102,27 @@ export function delegationProducerServiceBuilder(
     },
     async approveProducerDelegation(
       delegatorId: TenantId,
-      delegationId: DelegationId
+      delegationId: DelegationId,
+      correlationId: string
     ): Promise<void> {
-      // eslint-disable-next-line no-console
-      console.log("Approving delegation", delegationId);
+      const delegationWithMeta = await readModelService.getDelegationById(
+        delegationId
+      );
 
-      const delegation = await readModelService.getDelegationById(delegationId);
+      const { data: delegation, metadata } = assertDelegationExists(
+        delegationId,
+        delegationWithMeta
+      );
 
-      // TODO convert in assertion inside validators.ts
-      if (!delegation) {
-        throw delegationNotFound(delegationId);
-      }
+      assertIsDelegator(delegation, delegatorId);
+      assertIsState(delegationState.waitingForApproval, delegation);
 
-      // TODO convert in assertion inside validators.ts
-      if (delegation.delegatorId !== delegatorId) {
-        throw operationRestrictedToDelegator(delegatorId, delegationId);
-      }
-
-      // TODO convert in assertion inside validators.ts
-      if (delegation.state !== delegationState.waitingForApproval) {
-        throw incorrectState(
-          delegationId,
-          delegation.state,
-          delegationState.waitingForApproval
-        );
-      }
+      await repository.createEvent(
+        toCreateEventApproveDelegation(
+          { data: { ...delegation, state: delegationState.active }, metadata },
+          correlationId
+        )
+      );
     },
   };
 }
