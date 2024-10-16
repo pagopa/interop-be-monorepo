@@ -43,6 +43,7 @@ import {
   missingActivePurposeVersion,
   organizationNotAllowed,
   purposeIdNotFoundInClientAssertion,
+  purposeNotFound,
 } from "../model/errors.js";
 import {
   PagoPAInteropBeClients,
@@ -97,14 +98,12 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
           ? toTokenValidationEService(keyEservice, keyDescriptor)
           : undefined;
 
-      const { errors: clientSignatureErrors } = verifyClientAssertionSignature(
-        clientAssertion,
-        key
-      );
-      if (clientSignatureErrors) {
+      const { errors: clientAssertionSignatureErrors } =
+        await verifyClientAssertionSignature(clientAssertion, key);
+      if (clientAssertionSignatureErrors) {
         return handleValidationResults(
           {
-            clientSignatureErrors,
+            clientAssertionSignatureErrors,
           },
           key.clientKind,
           eservice
@@ -134,7 +133,7 @@ function handleValidationResults(
   errs: {
     clientAssertionErrors?: Array<ApiError<string>>;
     keyRetrieveErrors?: Array<ApiError<string>>;
-    clientSignatureErrors?: Array<ApiError<string>>;
+    clientAssertionSignatureErrors?: Array<ApiError<string>>;
     platformStateErrors?: Array<ApiError<string>>;
   },
   clientKind?: authorizationApi.ClientKind,
@@ -142,7 +141,8 @@ function handleValidationResults(
 ): bffApi.TokenGenerationValidationResult {
   const clientAssertionErrors = errs.clientAssertionErrors ?? [];
   const keyRetrieveErrors = errs.keyRetrieveErrors ?? [];
-  const clientSignatureErrors = errs.clientSignatureErrors ?? [];
+  const clientAssertionSignatureErrors =
+    errs.clientAssertionSignatureErrors ?? [];
   const platformStateErrors = errs.platformStateErrors ?? [];
 
   return {
@@ -160,16 +160,16 @@ function handleValidationResults(
       clientAssertionSignatureVerification: {
         result: getStepResult(
           [...clientAssertionErrors, ...keyRetrieveErrors],
-          clientSignatureErrors
+          clientAssertionSignatureErrors
         ),
-        failures: apiErrorsToValidationFailures(clientSignatureErrors),
+        failures: apiErrorsToValidationFailures(clientAssertionSignatureErrors),
       },
       platformStatesVerification: {
         result: getStepResult(
           [
             ...clientAssertionErrors,
             ...keyRetrieveErrors,
-            ...clientSignatureErrors,
+            ...clientAssertionSignatureErrors,
           ],
           platformStateErrors
         ),
@@ -277,10 +277,24 @@ async function retrieveKeyAndEservice(
   }
   const purposeId = unsafeBrandId<PurposeId>(jwt.payload.purposeId);
 
-  const purpose = await purposeProcessClient.getPurpose({
-    params: { id: purposeId },
-    headers: ctx.headers,
-  });
+  const purpose = await purposeProcessClient
+    .getPurpose({
+      params: { id: purposeId },
+      headers: ctx.headers,
+    })
+    .catch((e) => {
+      if (isAxiosError(e) && e.response?.status === 404) {
+        return undefined;
+      }
+      throw e;
+    });
+
+  if (!purpose) {
+    return {
+      data: undefined,
+      errors: [purposeNotFound(purposeId)],
+    };
+  }
 
   const agreement = await retrieveAgreement(
     agreementProcessClient,
@@ -294,7 +308,7 @@ async function retrieveKeyAndEservice(
     headers: ctx.headers,
   });
 
-  const descriptor = await retrieveDescriptor(eservice, agreement.eserviceId);
+  const descriptor = await retrieveDescriptor(eservice, agreement.descriptorId);
 
   return {
     errors: undefined,
