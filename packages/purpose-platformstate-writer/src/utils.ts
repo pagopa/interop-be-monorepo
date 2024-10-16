@@ -562,7 +562,6 @@ export const getLastSuspendedOrActivatedPurposeVersion = (
   purposeVersions: PurposeVersion[]
 ): PurposeVersion =>
   purposeVersions
-    .slice()
     .filter(
       (v) =>
         v.state === purposeVersionState.active ||
