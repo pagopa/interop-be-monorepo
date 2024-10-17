@@ -1782,7 +1782,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.waitingForApproval) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
+        throw notValidDescriptor(descriptor.id, descriptor.state.toString());
       }
 
       const updatedEservice: EService = {
