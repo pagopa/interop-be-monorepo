@@ -103,7 +103,6 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorDelegatorRejected" },
       (msg) => ({
         event_version: msg.event_version,
-        // @ts-expect-error TODO: update outbound events
         type: msg.type,
         version: msg.version,
         data: {

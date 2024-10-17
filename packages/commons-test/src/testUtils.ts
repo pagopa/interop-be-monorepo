@@ -1,3 +1,4 @@
+import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
@@ -41,9 +42,12 @@ import {
   DelegationContractDocument,
   DelegationContractId,
   DelegationState,
+  TenantFeatureCertifier,
+  TenantFeature,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
+import { match } from "ts-pattern";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -62,6 +66,31 @@ export function randomBoolean(): boolean {
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export const getTenantCertifierFeatures = (
+  tenant: Tenant
+): TenantFeatureCertifier[] =>
+  tenant.features.reduce(
+    (acc: TenantFeatureCertifier[], feature: TenantFeature) =>
+      match(feature.type)
+        .with("PersistentCertifier", () => [
+          ...acc,
+          feature as TenantFeatureCertifier,
+        ])
+        .with("DelegatedProducer", () => acc)
+        .exhaustive(),
+    []
+  );
+
+export const getTenantOneCertifierFeature = (
+  tenant: Tenant
+): TenantFeatureCertifier => {
+  const certifiedFeatures = getTenantCertifierFeatures(tenant);
+  if (certifiedFeatures.length === 0) {
+    fail("Expected certifier feature not found in Tenant");
+  }
+  return certifiedFeatures[0];
+};
 
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()

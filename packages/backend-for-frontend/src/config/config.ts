@@ -99,6 +99,17 @@ export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
 >;
 
+export const DelegationProcessServerConfig = z
+  .object({
+    DELEGATION_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    delegationProcessUrl: c.DELEGATION_PROCESS_URL,
+  }));
+export type DelegationProcessServerConfig = z.infer<
+  typeof DelegationProcessServerConfig
+>;
+
 export const S3PrivacyNoticeConfig = z
   .object({
     PRIVACY_NOTICES_CONTAINER: z.string(),
@@ -183,6 +194,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(PurposeProcessServerConfig)
   .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
+  .and(DelegationProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
