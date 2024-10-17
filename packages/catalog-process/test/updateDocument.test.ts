@@ -41,7 +41,9 @@ describe("update Document", () => {
   const mockDocument = getMockDocument();
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state !== descriptorState.archived
+      (state) =>
+        state !== descriptorState.archived &&
+        state !== descriptorState.waitingForApproval
     )
   )(
     "should write on event-store for the update of a document in a descriptor in %s state",
@@ -110,7 +112,9 @@ describe("update Document", () => {
   );
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state !== descriptorState.archived
+      (state) =>
+        state !== descriptorState.archived &&
+        state !== descriptorState.waitingForApproval
     )
   )(
     "should write on event-store for the update of a document in a descriptor in %s state (delegate)",
@@ -285,7 +289,9 @@ describe("update Document", () => {
   });
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state === descriptorState.archived
+      (state) =>
+        state === descriptorState.archived ||
+        state === descriptorState.waitingForApproval
     )
   )(
     "should throw notValidDescriptor if the descriptor is in s% state",
@@ -312,9 +318,7 @@ describe("update Document", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(
-        notValidDescriptor(descriptor.id, descriptorState.archived)
-      );
+      ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
     }
   );
   it("should throw eServiceDocumentNotFound if the document doesn't exist", async () => {

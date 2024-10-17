@@ -690,335 +690,356 @@ describe("get eservices", () => {
       eservice6,
     ]);
   });
-  it("should include eservices whose only descriptor is draft (requester is the producer, admin)", async () => {
-    const descriptor8: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      state: descriptorState.draft,
-    };
-    const eservice8: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor8],
-    };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
-    await addOneEService(eservice8);
-    const result = await catalogService.getEServices(
-      authData,
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
-      },
-      0,
-      50,
-      genericLogger
-    );
-    expect(result.totalCount).toBe(7);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
-      eservice8,
-    ]);
-  });
-  it("should not include eservices whose only descriptor is draft (requester is the producer, not admin nor api, nor support)", async () => {
-    const descriptor8: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      state: descriptorState.draft,
-    };
-    const eservice8: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor8],
-    };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.SECURITY_ROLE],
-    };
-    await addOneEService(eservice8);
-    const result = await catalogService.getEServices(
-      authData,
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
-      },
-      0,
-      50,
-      genericLogger
-    );
-    expect(result.totalCount).toBe(6);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
-    ]);
-  });
-  it("should not include eservices whose only descriptor is draft (requester is not the producer)", async () => {
-    const descriptor8: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      state: descriptorState.draft,
-    };
-    const eservice8: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor8],
-    };
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
-    await addOneEService(eservice8);
-    const result = await catalogService.getEServices(
-      authData,
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
-      },
-      0,
-      50,
-      genericLogger
-    );
-    expect(result.totalCount).toBe(6);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
-    ]);
-  });
-  it("should not filter out draft descriptors if the eservice has both draft and non-draft ones (requester is the producer, admin)", async () => {
-    const descriptor9a: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      interface: mockDocument,
-      publishedAt: new Date(),
-      state: descriptorState.published,
-    };
-    const descriptor9b: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      version: "2",
-      state: descriptorState.draft,
-    };
-    const eservice9: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor9a, descriptor9b],
-    };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
-    await addOneEService(eservice9);
-    const result = await catalogService.getEServices(
-      authData,
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
-      },
-      0,
-      50,
-      genericLogger
-    );
-    expect(result.totalCount).toBe(7);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
-      eservice9,
-    ]);
-  });
-  it("should filter out draft descriptors if the eservice has both draft and non-draft ones (requester is the producer, but not admin nor api, nor support)", async () => {
-    const descriptor9a: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      interface: mockDocument,
-      publishedAt: new Date(),
-      state: descriptorState.published,
-    };
-    const descriptor9b: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      version: "2",
-      state: descriptorState.draft,
-    };
-    const eservice9: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor9a, descriptor9b],
-    };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.SECURITY_ROLE],
-    };
-    await addOneEService(eservice9);
-    const result = await catalogService.getEServices(
-      authData,
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
-      },
-      0,
-      50,
-      genericLogger
-    );
-    expect(result.totalCount).toBe(7);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
-      { ...eservice9, descriptors: [descriptor9a] },
-    ]);
-  });
-  it("should filter out draft descriptors if the eservice has both draft and non-draft ones (requester is not the producer)", async () => {
-    const descriptor9a: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      interface: mockDocument,
-      publishedAt: new Date(),
-      state: descriptorState.published,
-    };
-    const descriptor9b: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      version: "2",
-      state: descriptorState.draft,
-    };
-    const eservice9: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor9a, descriptor9b],
-    };
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
-    await addOneEService(eservice9);
-    const result = await catalogService.getEServices(
-      authData,
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
-      },
-      0,
-      50,
-      genericLogger
-    );
-    expect(result.totalCount).toBe(7);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
-      { ...eservice9, descriptors: [descriptor9a] },
-    ]);
-  });
-  it.only("should not filter out draft descriptors if the eservice has both draft and non-draft ones (requester is delegate, admin)", async () => {
-    const descriptor9a: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      interface: mockDocument,
-      publishedAt: new Date(),
-      state: descriptorState.published,
-    };
-    const descriptor9b: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      version: "2",
-      state: descriptorState.draft,
-    };
-    const eservice9: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor9a, descriptor9b],
-    };
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
-      delegateId: organizationId2,
-      eserviceId: eservice9.id,
-      state: delegationState.active,
-    };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId2),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
-    await addOneEService(eservice9);
-    await addOneDelegation(delegation);
-    const result = await catalogService.getEServices(
-      authData,
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
-      },
-      0,
-      50,
-      genericLogger
-    );
-    expect(result.totalCount).toBe(7);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
-      eservice9,
-    ]);
-  });
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should include eservices whose only descriptor is %s (requester is the producer, admin)",
+    async (state) => {
+      const descriptor8: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        state,
+      };
+      const eservice8: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor8],
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(organizationId1),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      await addOneEService(eservice8);
+      const result = await catalogService.getEServices(
+        authData,
+        {
+          eservicesIds: [],
+          producersIds: [],
+          states: [],
+          agreementStates: [],
+          attributesIds: [],
+        },
+        0,
+        50,
+        genericLogger
+      );
+      expect(result.totalCount).toBe(7);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        eservice8,
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should not include eservices whose only descriptor is %s (requester is the producer, not admin nor api, nor support)",
+    async (state) => {
+      const descriptor8: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        state,
+      };
+      const eservice8: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor8],
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(organizationId1),
+        userRoles: [userRoles.SECURITY_ROLE],
+      };
+      await addOneEService(eservice8);
+      const result = await catalogService.getEServices(
+        authData,
+        {
+          eservicesIds: [],
+          producersIds: [],
+          states: [],
+          agreementStates: [],
+          attributesIds: [],
+        },
+        0,
+        50,
+        genericLogger
+      );
+      expect(result.totalCount).toBe(6);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should not include eservices whose only descriptor is %s (requester is not the producer)",
+    async (state) => {
+      const descriptor8: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        state,
+      };
+      const eservice8: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor8],
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      await addOneEService(eservice8);
+      const result = await catalogService.getEServices(
+        authData,
+        {
+          eservicesIds: [],
+          producersIds: [],
+          states: [],
+          agreementStates: [],
+          attributesIds: [],
+        },
+        0,
+        50,
+        genericLogger
+      );
+      expect(result.totalCount).toBe(6);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should not filter out %s descriptors if the eservice has both of that state and not (requester is the producer, admin)",
+    async (state) => {
+      const descriptor9a: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        interface: mockDocument,
+        publishedAt: new Date(),
+        state: descriptorState.published,
+      };
+      const descriptor9b: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        version: "2",
+        state,
+      };
+      const eservice9: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor9a, descriptor9b],
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(organizationId1),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      await addOneEService(eservice9);
+      const result = await catalogService.getEServices(
+        authData,
+        {
+          eservicesIds: [],
+          producersIds: [],
+          states: [],
+          agreementStates: [],
+          attributesIds: [],
+        },
+        0,
+        50,
+        genericLogger
+      );
+      expect(result.totalCount).toBe(7);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        eservice9,
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should filter out %s descriptors if the eservice has both of that state and not (requester is the producer, but not admin nor api, nor support)",
+    async (state) => {
+      const descriptor9a: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        interface: mockDocument,
+        publishedAt: new Date(),
+        state: descriptorState.published,
+      };
+      const descriptor9b: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        version: "2",
+        state,
+      };
+      const eservice9: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor9a, descriptor9b],
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(organizationId1),
+        userRoles: [userRoles.SECURITY_ROLE],
+      };
+      await addOneEService(eservice9);
+      const result = await catalogService.getEServices(
+        authData,
+        {
+          eservicesIds: [],
+          producersIds: [],
+          states: [],
+          agreementStates: [],
+          attributesIds: [],
+        },
+        0,
+        50,
+        genericLogger
+      );
+      expect(result.totalCount).toBe(7);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        { ...eservice9, descriptors: [descriptor9a] },
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should filter out %s descriptors if the eservice has both of that state and not (requester is not the producer)",
+    async (state) => {
+      const descriptor9a: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        interface: mockDocument,
+        publishedAt: new Date(),
+        state: descriptorState.published,
+      };
+      const descriptor9b: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        version: "2",
+        state,
+      };
+      const eservice9: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor9a, descriptor9b],
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      await addOneEService(eservice9);
+      const result = await catalogService.getEServices(
+        authData,
+        {
+          eservicesIds: [],
+          producersIds: [],
+          states: [],
+          agreementStates: [],
+          attributesIds: [],
+        },
+        0,
+        50,
+        genericLogger
+      );
+      expect(result.totalCount).toBe(7);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        { ...eservice9, descriptors: [descriptor9a] },
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should not filter out %s descriptors if the eservice has both of that state and not (requester is delegate, admin)",
+    async (state) => {
+      const descriptor9a: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        interface: mockDocument,
+        publishedAt: new Date(),
+        state: descriptorState.published,
+      };
+      const descriptor9b: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        version: "2",
+        state,
+      };
+      const eservice9: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor9a, descriptor9b],
+      };
+      const delegation: Delegation = {
+        ...getMockDelegationProducer(),
+        delegateId: organizationId2,
+        eserviceId: eservice9.id,
+        state: delegationState.active,
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(organizationId2),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      await addOneEService(eservice9);
+      await addOneDelegation(delegation);
+      const result = await catalogService.getEServices(
+        authData,
+        {
+          eservicesIds: [],
+          producersIds: [],
+          states: [],
+          agreementStates: [],
+          attributesIds: [],
+        },
+        0,
+        50,
+        genericLogger
+      );
+      expect(result.totalCount).toBe(7);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        eservice9,
+      ]);
+    }
+  );
 });
