@@ -14,7 +14,7 @@ export const errorCodes = {
   invalidDelegatorAndDelegateIds: "0005",
   invalidExternalOriginId: "0006",
   tenantNotAllowedToDelegation: "0007",
-  operationRestrictedToDelegator: "0008",
+  operationRestrictedToDelegate: "0008",
   incorrectState: "0009",
 };
 
@@ -88,14 +88,14 @@ export function tenantNotAllowedToDelegation(
   });
 }
 
-export function operationRestrictedToDelegator(
+export function operationRestrictedToDelegate(
   tenantId: string,
   delegationId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId} is not a delegator for delegation ${delegationId}`,
-    code: "operationRestrictedToDelegator",
-    title: "Operation restricted to delegator",
+    detail: `Tenant ${tenantId} is not a delegate for delegation ${delegationId}`,
+    code: "operationRestrictedToDelegate",
+    title: "Operation restricted to delegate",
   });
 }
 

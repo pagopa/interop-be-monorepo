@@ -16,7 +16,7 @@ import {
   eserviceNotFound,
   incorrectState,
   invalidExternalOriginError,
-  operationRestrictedToDelegator,
+  operationRestrictedToDelegate,
   tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../model/domain/errors.js";
@@ -117,12 +117,12 @@ export const assertDelegationExists = (
   return delegationWithMeta;
 };
 
-export const assertIsDelegator = (
+export const assertIsDelegate = (
   delegation: Delegation,
-  delegatorId: TenantId
+  delegateId: TenantId
 ): void => {
-  if (delegation.delegatorId !== delegatorId) {
-    throw operationRestrictedToDelegator(delegatorId, delegation.id);
+  if (delegation.delegateId !== delegateId) {
+    throw operationRestrictedToDelegate(delegateId, delegation.id);
   }
 };
 

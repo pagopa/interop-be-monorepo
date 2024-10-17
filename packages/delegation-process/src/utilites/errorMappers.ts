@@ -10,6 +10,7 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_FORBIDDEN,
 } = constants;
 
 export const getDelegationByIdErrorMapper = (
@@ -44,4 +45,5 @@ export const approveDelegationErrorMapper = (
 ): number =>
   match(error.code)
     .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationRestrictedToDelegate", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
