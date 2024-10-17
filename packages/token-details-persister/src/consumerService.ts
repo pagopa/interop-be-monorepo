@@ -21,8 +21,7 @@ export async function handleMessages(
   const hmsTime = formatTimehhmmss(date);
 
   const fileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
-  const filePath = `token-details/${ymdDate}/${fileName}`;
-
+  const filePath = `token-details/${ymdDate}`;
   try {
     await fileManager.storeBytes(
       {
