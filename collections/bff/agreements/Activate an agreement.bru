@@ -1,0 +1,26 @@
+meta {
+  name: Activate an agreement
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/agreements/:agreementId/activate
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: 700f322c-5019-4cc7-87a2-086d39d53248
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  returns the updated agreement
+}
