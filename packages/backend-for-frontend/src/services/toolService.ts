@@ -40,6 +40,7 @@ import {
   missingActivePurposeVersion,
   organizationNotAllowed,
   purposeIdNotFoundInClientAssertion,
+  purposeNotFound,
 } from "../model/errors.js";
 import {
   PagoPAInteropBeClients,
@@ -273,10 +274,24 @@ async function retrieveKeyAndEservice(
   }
   const purposeId = unsafeBrandId<PurposeId>(jwt.payload.purposeId);
 
-  const purpose = await purposeProcessClient.getPurpose({
-    params: { id: purposeId },
-    headers: ctx.headers,
-  });
+  const purpose = await purposeProcessClient
+    .getPurpose({
+      params: { id: purposeId },
+      headers: ctx.headers,
+    })
+    .catch((e) => {
+      if (isAxiosError(e) && e.response?.status === 404) {
+        return undefined;
+      }
+      throw e;
+    });
+
+  if (!purpose) {
+    return {
+      data: undefined,
+      errors: [purposeNotFound(purposeId)],
+    };
+  }
 
   const agreement = await retrieveAgreement(
     agreementProcessClient,
@@ -290,7 +305,7 @@ async function retrieveKeyAndEservice(
     headers: ctx.headers,
   });
 
-  const descriptor = await retrieveDescriptor(eservice, agreement.eserviceId);
+  const descriptor = await retrieveDescriptor(eservice, agreement.descriptorId);
 
   return {
     errors: undefined,
