@@ -478,3 +478,41 @@ export const toCreateEventEServiceDescriptionUpdated = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceDescriptorDelegateSubmitted = (
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorDelegateSubmitted",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorDelegatorApproved = (
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorDelegatorApproved",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
