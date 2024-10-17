@@ -32,8 +32,7 @@ export async function handleMessages(
       },
       logger
     );
-    logger.info("auditing succeded");
   } catch (error) {
-    throw Error("auditing failed");
+    throw Error("Write operation failed");
   }
 }
