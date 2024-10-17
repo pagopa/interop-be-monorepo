@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockDelegationProducer,
+} from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -9,6 +12,8 @@ import {
   toEServiceV2,
   EServiceDescriptorInterfaceDeletedV2,
   operationForbidden,
+  Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import {
@@ -27,6 +32,7 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockDocument,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("delete Document", () => {
@@ -196,6 +202,92 @@ describe("delete Document", () => {
     ).not.toContain(interfaceDocument.path);
   });
 
+  it("should write on event-store for the deletion of a document that is the descriptor interface, and delete the file from the bucket (delegate)", async () => {
+    vi.spyOn(fileManager, "delete");
+
+    const interfaceDocument = {
+      ...mockDocument,
+      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
+    };
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: interfaceDocument,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    };
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: interfaceDocument.id,
+        name: interfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(interfaceDocument.path);
+
+    await catalogService.deleteDocument(
+      eservice.id,
+      descriptor.id,
+      interfaceDocument.id,
+      {
+        authData: getMockAuthData(delegation.delegateId),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent.stream_id).toBe(eservice.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceDeleted");
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorInterfaceDeletedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedEservice = toEServiceV2({
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          interface: undefined,
+          serverUrls: [],
+        },
+      ],
+    });
+
+    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+    expect(writtenPayload.documentId).toEqual(interfaceDocument.id);
+    expect(writtenPayload.eservice).toEqual(expectedEservice);
+
+    expect(fileManager.delete).toHaveBeenCalledWith(
+      config.s3Bucket,
+      interfaceDocument.path,
+      genericLogger
+    );
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(interfaceDocument.path);
+  });
+
   it("should fail if the file deletion fails", async () => {
     config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
 
@@ -263,6 +355,38 @@ describe("delete Document", () => {
         mockDocument.id,
         {
           authData: getMockAuthData(),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      docs: [mockDocument],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    };
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+    expect(
+      catalogService.deleteDocument(
+        eservice.id,
+        descriptor.id,
+        mockDocument.id,
+        {
+          authData: getMockAuthData(eservice.producerId),
           correlationId: "",
           serviceName: "",
           logger: genericLogger,

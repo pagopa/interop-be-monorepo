@@ -27,6 +27,8 @@ import {
   EServiceReadModel,
   TenantReadModel,
   genericInternalError,
+  Delegation,
+  DelegationState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -99,6 +101,7 @@ export function readModelServiceBuilder(
   const agreements = readModelRepository.agreements;
   const attributes = readModelRepository.attributes;
   const tenants = readModelRepository.tenants;
+  const delegations = readModelRepository.delegations;
 
   return {
     async getEServices(
@@ -497,6 +500,43 @@ export function readModelServiceBuilder(
 
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return getTenant(tenants, { "data.id": id });
+    },
+
+    async getLatestDelegation({
+      eserviceId,
+      states,
+      delegateId,
+    }: {
+      eserviceId: EServiceId;
+      states: DelegationState[];
+      delegateId?: TenantId;
+    }): Promise<Delegation | undefined> {
+      const data = await delegations.findOne(
+        {
+          "data.eserviceId": eserviceId,
+          ...(states.length > 0 ? { "data.state": { $in: states } } : {}),
+          ...(delegateId ? { "data.delegateId": delegateId } : {}),
+        },
+        {
+          projection: { data: true },
+          sort: { "data.createdAt": -1 },
+        }
+      );
+
+      if (!data) {
+        return undefined;
+      }
+      const result = Delegation.safeParse(data.data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse delegation item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
     },
   };
 }
