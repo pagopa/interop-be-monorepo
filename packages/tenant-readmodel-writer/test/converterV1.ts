@@ -35,7 +35,9 @@ export function toFeatureV1(feature: TenantFeature): TenantFeatureV1 {
         },
       },
     }))
-    .exhaustive();
+    .otherwise(() => {
+      throw new Error("Unsupported tenant feature");
+    });
 }
 
 export function toTenantVerifierV1(verifier: TenantVerifier): TenantVerifierV1 {
