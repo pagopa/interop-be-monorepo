@@ -39,6 +39,8 @@ export const fromTenantKindV2 = (input: TenantKindV2): TenantKind => {
       return tenantKind.PA;
     case TenantKindV2.PRIVATE:
       return tenantKind.PRIVATE;
+    case TenantKindV2.SCP:
+      return tenantKind.SCP;
   }
 };
 
