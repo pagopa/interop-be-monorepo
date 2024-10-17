@@ -43,7 +43,7 @@ await fastifyServer.register(fastifyFormbody);
 const correlationId = generateId();
 
 // TODO: temporary export for tests
-export const tokenService = tokenServiceBuilder({
+const tokenService = tokenServiceBuilder({
   dynamoDBClient,
   kmsClient,
   redisRateLimiter,
