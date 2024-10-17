@@ -11,6 +11,7 @@ import {
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
   toTenantV2,
+  TenantKind,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -74,9 +75,16 @@ describe("selfcareUpsertTenant", async () => {
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
-  it.each(["IPA", "PDND_INFOCAMERE-SCP", "PDND_INFOCAMERE-PVT"])(
-    "Should create a tenant with origin %s if it does not exist",
-    async (origin) => {
+  it.only.each(Object.values(tenantKind))(
+    "Should create a tenant with kind %s if it does not exist",
+    async (kind) => {
+      const [origin, expectedKind] = match<TenantKind, [string, TenantKind]>(
+        kind
+      )
+        .with(tenantKind.PA, () => ["IPA", tenantKind.PA])
+        .with(tenantKind.SCP, () => ["PDND_INFOCAMERE-SCP", tenantKind.SCP])
+        .otherwise(() => ["Nothing", tenantKind.PRIVATE]);
+
       const tenantSeed = {
         externalId: {
           origin,
@@ -107,15 +115,10 @@ describe("selfcareUpsertTenant", async () => {
         TenantOnboardedV2
       ).parse(writtenEvent.data);
 
-      const kind = match(origin)
-        .with("IPA", () => tenantKind.PA)
-        .with("PDND_INFOCAMERE-SCP", () => tenantKind.SCP)
-        .otherwise(() => tenantKind.PRIVATE);
-
       const expectedTenant: Tenant = {
         externalId: tenantSeed.externalId,
         id: unsafeBrandId(id),
-        kind,
+        kind: expectedKind,
         selfcareId: tenantSeed.selfcareId,
         onboardedAt: mockTenant.onboardedAt!,
         createdAt: new Date(),
