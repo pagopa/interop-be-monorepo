@@ -1,18 +1,18 @@
 import { match } from "ts-pattern";
 import {
-  DelegationContractDocumentV2,
-  DelegationKindV2,
-  DelegationStampsV2,
-  DelegationStampV2,
-  DelegationStateV2,
   DelegationV2,
+  DelegationStampV2,
+  DelegationStampsV2,
+  DelegationStateV2,
+  DelegationKindV2,
+  DelegationContractDocumentV2,
 } from "../gen/v2/delegation/delegation.js";
 import { dateToBigInt } from "../utils.js";
 import {
   Delegation,
-  DelegationContractDocument,
-  delegationKind,
   DelegationKind,
+  delegationKind,
+  DelegationContractDocument,
   DelegationStamp,
   DelegationStamps,
   DelegationState,
@@ -69,15 +69,15 @@ export const toDelegationStampsV2 = (
 
 export const toDelegationV2 = (delegation: Delegation): DelegationV2 => ({
   ...delegation,
+  state: toDelegationStateV2(delegation.state),
+  kind: toDelegationKindV2(delegation.kind),
   createdAt: dateToBigInt(delegation.createdAt),
   submittedAt: dateToBigInt(delegation.submittedAt),
   approvedAt: dateToBigInt(delegation.approvedAt),
   rejectedAt: dateToBigInt(delegation.rejectedAt),
-  rejectionReason: delegation.rejectionReason,
   revokedAt: dateToBigInt(delegation.revokedAt),
-  state: toDelegationStateV2(delegation.state),
-  kind: toDelegationKindV2(delegation.kind),
+  stamps: toDelegationStampsV2(delegation.stamps),
+  rejectionReason: delegation.rejectionReason,
   contract:
     delegation.contract && toDelegationContractDocumentV2(delegation.contract),
-  stamps: toDelegationStampsV2(delegation.stamps),
 });
