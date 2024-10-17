@@ -16,11 +16,16 @@ import {
   Tenant,
   TenantId,
   unsafeBrandId,
+  WithMetadata,
 } from "pagopa-interop-models";
-import { tenantNotFound } from "../model/domain/errors.js";
-import { toCreateEventProducerDelegation } from "../model/domain/toEvent.js";
+import { delegationNotFound, tenantNotFound } from "../model/domain/errors.js";
+import {
+  toCreateEventProducerDelegation,
+  toRevokeEventProducerDelegation,
+} from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
+  assertDelegationIsRevokable,
   assertDelegationNotExists,
   assertDelegatorIsIPA,
   assertDelegatorIsNotDelegate,
@@ -39,6 +44,16 @@ export function delegationProducerServiceBuilder(
       throw tenantNotFound(tenantId);
     }
     return tenant;
+  };
+
+  const getDelegationById = async (
+    delegationId: DelegationId
+  ): Promise<WithMetadata<Delegation>> => {
+    const delegation = await readModelService.getDelegationById(delegationId);
+    if (!delegation?.data) {
+      throw delegationNotFound(delegationId);
+    }
+    return delegation;
   };
 
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
@@ -94,6 +109,42 @@ export function delegationProducerServiceBuilder(
       );
 
       return delegation;
+    },
+    async revokeDelegation(
+      delegationId: DelegationId,
+      { authData, logger, correlationId }: WithLogger<AppContext>
+    ): Promise<Delegation> {
+      const delegatorId = unsafeBrandId<TenantId>(authData.organizationId);
+      logger.info(
+        `Revoking delegation:${delegationId} by producer:${delegatorId}`
+      );
+
+      const currentDelegation = await getDelegationById(delegationId);
+      assertDelegationIsRevokable(currentDelegation.data, delegatorId);
+
+      const now = new Date();
+      const revokedDelegation = {
+        ...currentDelegation.data,
+        state: delegationState.revoked,
+        revokedAt: now,
+        stamps: {
+          ...currentDelegation.data.stamps,
+          revocation: {
+            who: delegatorId,
+            when: now,
+          },
+        },
+      };
+
+      await repository.createEvent(
+        toRevokeEventProducerDelegation(
+          revokedDelegation,
+          currentDelegation.metadata.version,
+          correlationId
+        )
+      );
+
+      return revokedDelegation;
     },
   };
 }

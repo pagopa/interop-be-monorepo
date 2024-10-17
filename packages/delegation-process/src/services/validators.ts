@@ -1,4 +1,5 @@
 import {
+  Delegation,
   DelegationKind,
   DelegationState,
   delegationState,
@@ -9,7 +10,9 @@ import {
 } from "pagopa-interop-models";
 import {
   delegationAlreadyExists,
+  delegationNotRevokable,
   delegatorAndDelegateSameIdError,
+  delegatorNotAllowToRevoke,
   eserviceNotFound,
   invalidExternalOriginError,
   tenantNotAllowedToDelegation,
@@ -21,6 +24,11 @@ import { ReadModelService } from "./readModelService.js";
 export const delegationNotActivableStates: DelegationState[] = [
   delegationState.rejected,
   delegationState.revoked,
+];
+
+export const delegationRevokableStates: DelegationState[] = [
+  delegationState.active,
+  delegationState.waitingForApproval,
 ];
 
 export const assertEserviceExists = async (
@@ -72,6 +80,19 @@ export const assertTenantExists = async (
   }
 };
 
+export const assertDelegationIsRevokable = (
+  delegation: Delegation,
+  expectedDelegatorId: TenantId
+): void => {
+  if (delegation.delegatorId !== expectedDelegatorId) {
+    throw delegatorNotAllowToRevoke(delegation);
+  }
+
+  if (!delegationRevokableStates.includes(delegation.state)) {
+    throw delegationNotRevokable(delegation);
+  }
+};
+
 export const assertDelegationNotExists = async (
   delegator: Tenant,
   delegate: Tenant,
@@ -90,13 +111,13 @@ export const assertDelegationNotExists = async (
     states: [delegationState.active, delegationState.waitingForApproval],
   });
 
-  if (delegation) {
+  if (delegation?.data) {
     throw delegationAlreadyExists(
       delegatorId,
       delegateId,
       eserviceId,
-      delegation.kind,
-      delegation.id
+      delegation.data.kind,
+      delegation.data.id
     );
   }
 };
