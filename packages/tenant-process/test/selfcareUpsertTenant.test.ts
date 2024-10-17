@@ -11,13 +11,11 @@ import {
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
   toTenantV2,
-  TenantKind,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
-import { match } from "ts-pattern";
 import { selfcareIdConflict } from "../src/model/domain/errors.js";
 import {
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
