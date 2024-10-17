@@ -3,9 +3,11 @@ import {
   ApiError,
   ClientId,
   clientKindTokenStates,
+  DescriptorId,
   EServiceId,
   ItemState,
   PurposeId,
+  PurposeVersionId,
   TenantId,
 } from "pagopa-interop-models";
 import { z } from "zod";
@@ -60,7 +62,7 @@ const AgreementComponentState = ComponentState;
 export type AgreementComponentState = z.infer<typeof AgreementComponentState>;
 
 const EServiceComponentState = ComponentState.extend({
-  descriptorId: z.string(),
+  descriptorId: DescriptorId,
   audience: z.array(z.string()),
   voucherLifespan: z.number(),
 });
@@ -68,7 +70,7 @@ const EServiceComponentState = ComponentState.extend({
 export type EServiceComponentState = z.infer<typeof EServiceComponentState>;
 
 const PurposeComponentState = ComponentState.extend({
-  versionId: z.string(),
+  versionId: PurposeVersionId,
 });
 
 export type PurposeComponentState = z.infer<typeof PurposeComponentState>;
