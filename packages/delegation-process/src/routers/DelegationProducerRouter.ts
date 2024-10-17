@@ -81,7 +81,7 @@ const delegationProducerRouter = (
     )
     .post("/producer/delegations/:delegationId/approve", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
-      const { delegationId } = req.query;
+      const { delegationId } = req.params;
 
       try {
         await delegationProducerService.approveProducerDelegation(
@@ -103,7 +103,7 @@ const delegationProducerRouter = (
     })
     .post("/producer/delegations/:delegationId/reject", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
-      const { delegationId } = req.query;
+      const { delegationId } = req.params;
       const { rejectionReason } = req.body;
 
       try {
