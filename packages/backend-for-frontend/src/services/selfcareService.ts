@@ -5,6 +5,7 @@ import {
   bffApi,
   selfcareV2ClientApi,
   SelfcareV2InstitutionClient,
+  SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { missingSelfcareId, userNotFound } from "../model/errors.js";
@@ -18,6 +19,7 @@ import {
 
 export function selfcareServiceBuilder(
   selfcareV2Client: SelfcareV2InstitutionClient,
+  selfcareV2UserClient: SelfcareV2UsersClient,
   tenantProcessClient: TenantProcessClient
 ) {
   const filterByUserNameOfSurname = (
@@ -89,13 +91,13 @@ export function selfcareServiceBuilder(
       headers,
     }: WithLogger<BffAppContext>): Promise<bffApi.SelfcareInstitution[]> {
       logger.info(`Retrieving Institutions for User ${userId}`);
-
-      const institutions = await selfcareV2Client.getInstitutionsUsingGET({
-        queries: { userIdForAuth: userId },
-        headers: {
-          "X-Correlation-Id": headers["X-Correlation-Id"],
-        },
-      });
+      const institutions =
+        await selfcareV2UserClient.getUserInstitutionUsingGET({
+          queries: { userId },
+          headers: {
+            "X-Correlation-Id": headers["X-Correlation-Id"],
+          },
+        });
 
       return institutions.map(toApiSelfcareInstitution);
     },
