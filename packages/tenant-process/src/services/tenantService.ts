@@ -363,9 +363,10 @@ export function tenantServiceBuilder(
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
           createdAt: new Date(),
-          kind: getTenantKind([], tenantSeed.externalId)
-            ? tenantKind.SCP
-            : undefined,
+          kind:
+            getTenantKind([], tenantSeed.externalId) === tenantKind.SCP
+              ? tenantKind.SCP
+              : undefined,
         };
         return await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)

@@ -79,20 +79,9 @@ describe("selfcareUpsertTenant", async () => {
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
-  it.each(Object.values(tenantKind))(
-    "Should create a tenant with kind %s if it does not exist",
-    async (kind) => {
-      const [origin, expectedKind] = match<
-        TenantKind,
-        [string, TenantKind | undefined]
-      >(kind)
-        .with(tenantKind.PA, tenantKind.GSP, () => [
-          PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-          undefined,
-        ])
-        .with(tenantKind.SCP, () => [SCP, tenantKind.SCP])
-        .otherwise(() => ["Nothing", undefined]);
-
+  it.each([PUBLIC_ADMINISTRATIONS_IDENTIFIER, SCP, "Private"])(
+    "Should create a tenant with origin %s if it does not exist",
+    async (origin) => {
       const tenantSeed = {
         externalId: {
           origin,
@@ -126,7 +115,7 @@ describe("selfcareUpsertTenant", async () => {
       const expectedTenant: Tenant = {
         externalId: tenantSeed.externalId,
         id: unsafeBrandId(id),
-        kind: expectedKind,
+        kind: origin === SCP ? tenantKind.SCP : undefined,
         selfcareId: tenantSeed.selfcareId,
         onboardedAt: mockTenant.onboardedAt!,
         createdAt: new Date(),
