@@ -40,6 +40,7 @@ function toOutboundEServiceV2(
     ...eservice,
     riskAnalysis: undefined,
     descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
+    isSignalHubEnabled: undefined, // TODO remove this line after updating the outbound model
   };
 }
 
