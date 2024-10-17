@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   DelegationApprovedV2,
   DelegationId,
+  DelegationStateV2,
   toDelegationV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -23,8 +24,8 @@ import {
   readLastDelegationEvent,
 } from "./utils.js";
 
-describe("approve delegation", () => {
-  it("should approve delegation in the happy path", async () => {
+describe("reject delegation", () => {
+  it("should reject delegation in the happy path", async () => {
     const currentExecutionTime = new Date();
     vi.useFakeTimers();
     vi.setSystemTime(currentExecutionTime);
@@ -36,10 +37,13 @@ describe("approve delegation", () => {
     });
     await addOneDelegation(delegation);
 
-    await delegationProducerService.approveProducerDelegation(
+    const rejectionReason = "I don't like computers, please send me a pigeon";
+
+    await delegationProducerService.rejectProducerDelegation(
       delegate.id,
       delegation.id,
-      "9999"
+      "9999",
+      rejectionReason
     );
 
     const event = await readLastDelegationEvent(delegation.id);
@@ -50,14 +54,12 @@ describe("approve delegation", () => {
     });
     const expectedDelegation = toDelegationV2({
       ...delegation,
-      state: delegationState.active,
-      approvedAt: currentExecutionTime,
+      state: delegationState.rejected,
+      rejectedAt: currentExecutionTime,
+      rejectionReason,
       stamps: {
         ...delegation.stamps,
-        activation: {
-          who: delegate.id,
-          when: currentExecutionTime,
-        },
+        rejection: { who: delegate.id, when: currentExecutionTime },
       },
     });
     expect(actualDelegation).toEqual(expectedDelegation);
@@ -69,15 +71,16 @@ describe("approve delegation", () => {
       unsafeBrandId<DelegationId>("non-existent-id");
 
     await expect(
-      delegationProducerService.approveProducerDelegation(
+      delegationProducerService.rejectProducerDelegation(
         delegateId,
         nonExistentDelegationId,
-        "9999"
+        "9999",
+        ""
       )
     ).rejects.toThrow(delegationNotFound(nonExistentDelegationId));
   });
 
-  it("should throw operationRestrictedToDelegate when approver is not the delegate", async () => {
+  it("should throw operationRestrictedToDelegate when rejecter is not the delegate", async () => {
     const delegate = getMockTenant();
     const wrongDelegate = getMockTenant();
     const delegation = getMockDelegationProducer({
@@ -87,10 +90,11 @@ describe("approve delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationProducerService.approveProducerDelegation(
+      delegationProducerService.rejectProducerDelegation(
         wrongDelegate.id,
         delegation.id,
-        "9999"
+        "9999",
+        ""
       )
     ).rejects.toThrow(
       operationRestrictedToDelegate(wrongDelegate.id, delegation.id)
@@ -106,10 +110,11 @@ describe("approve delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationProducerService.approveProducerDelegation(
+      delegationProducerService.rejectProducerDelegation(
         delegate.id,
         delegation.id,
-        "9999"
+        "9999",
+        ""
       )
     ).rejects.toThrow(
       incorrectState(

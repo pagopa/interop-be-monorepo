@@ -99,9 +99,30 @@ const delegationProducerRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/producer/delegations/:delegationId/reject", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/producer/delegations/:delegationId/reject", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      const { delegationId } = req.query;
+      const { rejectionReason } = req.body;
+
+      try {
+        await delegationProducerService.rejectProducerDelegation(
+          ctx.authData.organizationId,
+          unsafeBrandId(delegationId),
+          ctx.correlationId,
+          rejectionReason
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          approveDelegationErrorMapper, // TODO check mapper
+          ctx.logger
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete("/producer/delegations/:delegationId", async (_req, res) =>
       res.status(501).send()
     );
