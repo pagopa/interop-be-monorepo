@@ -178,11 +178,15 @@ const updateDescriptorState = (
   const descriptorStateChange = [descriptor.state, newState];
 
   return match(descriptorStateChange)
-    .with([descriptorState.draft, descriptorState.published], () => ({
-      ...descriptor,
-      state: newState,
-      publishedAt: new Date(),
-    }))
+    .with(
+      [descriptorState.draft, descriptorState.published],
+      [descriptorState.waitingForApproval, descriptorState.published],
+      () => ({
+        ...descriptor,
+        state: newState,
+        publishedAt: new Date(),
+      })
+    )
     .with([descriptorState.published, descriptorState.suspended], () => ({
       ...descriptor,
       state: newState,
@@ -1727,6 +1731,7 @@ export function catalogServiceBuilder(
       const hasValidDescriptor = eservice.data.descriptors.some(
         (descriptor) =>
           descriptor.state !== descriptorState.draft &&
+          descriptor.state !== descriptorState.waitingForApproval &&
           descriptor.state !== descriptorState.archived
       );
       if (!hasValidDescriptor) {
@@ -1821,7 +1826,8 @@ async function applyVisibilityToEService(
   if (
     eservice.descriptors.length === 0 ||
     (eservice.descriptors.length === 1 &&
-      eservice.descriptors[0].state === descriptorState.draft)
+      (eservice.descriptors[0].state === descriptorState.draft ||
+        eservice.descriptors[0].state === descriptorState.waitingForApproval))
   ) {
     throw eServiceNotFound(eservice.id);
   }
@@ -1829,7 +1835,9 @@ async function applyVisibilityToEService(
   return {
     ...eservice,
     descriptors: eservice.descriptors.filter(
-      (d) => d.state !== descriptorState.draft
+      (d) =>
+        d.state !== descriptorState.draft &&
+        d.state !== descriptorState.waitingForApproval
     ),
   };
 }
