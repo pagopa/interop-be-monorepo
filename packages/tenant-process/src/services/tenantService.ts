@@ -79,7 +79,7 @@ import {
   assertRequesterAllowed,
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
-  SCP,
+  getTenantKind,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -363,8 +363,9 @@ export function tenantServiceBuilder(
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
           createdAt: new Date(),
-          kind:
-            tenantSeed.externalId.origin === SCP ? tenantKind.SCP : undefined,
+          kind: getTenantKind([], tenantSeed.externalId)
+            ? tenantKind.SCP
+            : undefined,
         };
         return await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)
