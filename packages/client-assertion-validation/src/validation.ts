@@ -9,6 +9,7 @@ import {
   JWTExpired,
   JWTInvalid,
 } from "jose/errors";
+import { createPublicKey } from "pagopa-interop-commons";
 import {
   failedValidation,
   successfulValidation,
@@ -200,8 +201,14 @@ export const verifyClientAssertionSignature = async (
       ]);
     }
 
-    const decoded = Buffer.from(key.publicKey, "base64").toString("utf8");
-    const publicKey = await jose.importSPKI(decoded, key.algorithm);
+    // Note: we use our common function based on crypto to import the public key,
+    // instead of using the dedicated function from jose.
+    // Why:
+    // - it's the same function we use to create the public key when adding it to the client
+    // - jose throws and error in case of keys with missing trailing newline, while crypto does not
+    // See keyImport.test.ts
+    // See also Jose docs, it accepts crypto KeyObject as well: https://github.com/panva/jose/blob/main/docs/types/types.KeyLike.md
+    const publicKey = createPublicKey(key.publicKey);
 
     const result = await jose.jwtVerify(clientAssertionJws, publicKey, {
       algorithms: [key.algorithm],
