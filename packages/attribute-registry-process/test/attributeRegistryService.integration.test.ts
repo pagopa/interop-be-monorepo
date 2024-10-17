@@ -5,6 +5,7 @@ import {
   decodeProtobufPayload,
   getMockAttribute,
   getMockAuthData,
+  getTenantOneCertifierFeature,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
@@ -255,7 +256,7 @@ describe("database test", () => {
           code: "code",
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
-          origin: tenant.features[0].certifierId,
+          origin: getTenantOneCertifierFeature(tenant).certifierId,
         };
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
@@ -353,7 +354,7 @@ describe("database test", () => {
             {
               name: mockAttribute.name,
               code: "code",
-              origin: tenant.features[0].certifierId,
+              origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: mockAttribute.description,
             },
             {
@@ -383,7 +384,7 @@ describe("database test", () => {
           code: "code",
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
-          origin: tenant.features[0].certifierId,
+          origin: getTenantOneCertifierFeature(tenant).certifierId,
         };
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
@@ -413,7 +414,7 @@ describe("database test", () => {
             {
               name: attribute.name,
               code: attribute.code,
-              origin: tenant.features[0].certifierId,
+              origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: attribute.description,
             },
             {

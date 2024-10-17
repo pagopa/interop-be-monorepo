@@ -1,7 +1,7 @@
 /* eslint-disable functional/no-let */
-import { expect, describe, it } from "vitest";
-import { DelegationId, generateId } from "pagopa-interop-models";
 import { getMockDelegationProducer } from "pagopa-interop-commons-test/index.js";
+import { DelegationId, generateId } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
 import { delegationNotFound } from "../src/model/domain/errors.js";
 import { addOneDelegation, delegationService } from "./utils.js";
 
