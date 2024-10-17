@@ -19,6 +19,10 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
 import { match } from "ts-pattern";
 import { selfcareIdConflict } from "../src/model/domain/errors.js";
+import {
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  SCP,
+} from "../src/services/validators.js";
 import { addOneTenant, readLastTenantEvent, tenantService } from "./utils.js";
 
 describe("selfcareUpsertTenant", async () => {
@@ -78,12 +82,16 @@ describe("selfcareUpsertTenant", async () => {
   it.each(Object.values(tenantKind))(
     "Should create a tenant with kind %s if it does not exist",
     async (kind) => {
-      const [origin, expectedKind] = match<TenantKind, [string, TenantKind]>(
-        kind
-      )
-        .with(tenantKind.PA, tenantKind.GSP, () => ["IPA", tenantKind.PA])
-        .with(tenantKind.SCP, () => ["PDND_INFOCAMERE-SCP", tenantKind.SCP])
-        .otherwise(() => ["Nothing", tenantKind.PRIVATE]);
+      const [origin, expectedKind] = match<
+        TenantKind,
+        [string, TenantKind | undefined]
+      >(kind)
+        .with(tenantKind.PA, tenantKind.GSP, () => [
+          PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+          undefined,
+        ])
+        .with(tenantKind.SCP, () => [SCP, tenantKind.SCP])
+        .otherwise(() => ["Nothing", undefined]);
 
       const tenantSeed = {
         externalId: {
