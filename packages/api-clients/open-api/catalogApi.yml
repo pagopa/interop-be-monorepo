@@ -1078,7 +1078,7 @@ paths:
       tags:
         - process
       summary: approve a delegated new e-service version
-      operationId: approveDelegatedEServiceVersion
+      operationId: approveDelegatedEServiceDescriptor
       parameters:
         - name: eServiceId
           in: path

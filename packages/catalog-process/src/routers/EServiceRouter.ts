@@ -54,7 +54,7 @@ import {
   updateEServiceDescriptionErrorMapper,
   updateEServiceErrorMapper,
   updateRiskAnalysisErrorMapper,
-  approveDelegatedEServiceVersionErrorMapper,
+  approveDelegatedEServiceDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -696,7 +696,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.approveDelegatedEServiceVersion(
+          await catalogService.approveDelegatedEServiceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
@@ -705,7 +705,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            approveDelegatedEServiceVersionErrorMapper,
+            approveDelegatedEServiceDescriptorErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).send(errorRes);

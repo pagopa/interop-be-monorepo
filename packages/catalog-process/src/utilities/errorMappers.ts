@@ -296,7 +296,7 @@ export const updateEServiceDescriptionErrorMapper = (
     .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const approveDelegatedEServiceVersionErrorMapper = (
+export const approveDelegatedEServiceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

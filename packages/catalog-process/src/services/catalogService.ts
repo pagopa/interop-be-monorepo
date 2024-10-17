@@ -1147,18 +1147,17 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const eserviceActiveDelegation =
-        await readModelService.getLatestDelegation({
-          eserviceId: eservice.data.id,
-          delegateId: authData.organizationId,
-          states: [delegationState.active],
-        });
+      const delegation = await readModelService.getLatestDelegation({
+        eserviceId,
+        states: [delegationState.active],
+      });
 
-      const isRequesterEServiceProducer =
-        authData.organizationId === eservice.data.producerId;
-
-      if (!isRequesterEServiceProducer && !eserviceActiveDelegation) {
-        throw operationForbidden;
+      if (delegation) {
+        if (authData.organizationId !== delegation.delegateId) {
+          throw operationForbidden;
+        }
+      } else {
+        assertRequesterIsProducer(eservice.data.producerId, authData);
       }
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -1183,7 +1182,7 @@ export function catalogServiceBuilder(
         throw audienceCannotBeEmpty(descriptor.id);
       }
 
-      if (eserviceActiveDelegation) {
+      if (delegation) {
         const eserviceWithWaitingForApprovalDescriptor = replaceDescriptor(
           eservice.data,
           updateDescriptorState(descriptor, descriptorState.waitingForApproval)
@@ -1196,24 +1195,24 @@ export function catalogServiceBuilder(
             correlationId
           )
         );
+      } else {
+        const updatedEService = await processPublishDescriptorUpdate(
+          eservice.data,
+          descriptor,
+          readModelService,
+          logger
+        );
+
+        await repository.createEvent(
+          toCreateEventEServiceDescriptorPublished(
+            eserviceId,
+            eservice.metadata.version,
+            descriptorId,
+            updatedEService,
+            correlationId
+          )
+        );
       }
-
-      const updatedEService = await processNewlyPublishedDescriptor(
-        eservice.data,
-        descriptor,
-        readModelService,
-        logger
-      );
-
-      await repository.createEvent(
-        toCreateEventEServiceDescriptorPublished(
-          eserviceId,
-          eservice.metadata.version,
-          descriptorId,
-          updatedEService,
-          correlationId
-        )
-      );
     },
 
     async suspendDescriptor(
@@ -1752,7 +1751,7 @@ export function catalogServiceBuilder(
       );
       return updatedEservice;
     },
-    async approveDelegatedEServiceVersion(
+    async approveDelegatedEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { authData, correlationId, logger }: WithLogger<AppContext>
@@ -1768,7 +1767,7 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptor.id, descriptor.state.toString());
       }
 
-      const updatedEService = await processNewlyPublishedDescriptor(
+      const updatedEService = await processPublishDescriptorUpdate(
         eservice.data,
         descriptor,
         readModelService,
@@ -1859,7 +1858,7 @@ const deleteDescriptorInterfaceAndDocs = async (
   await Promise.all(deleteDescriptorDocs);
 };
 
-const processNewlyPublishedDescriptor = async (
+const processPublishDescriptorUpdate = async (
   eservice: EService,
   descriptor: Descriptor,
   readModelService: ReadModelService,
