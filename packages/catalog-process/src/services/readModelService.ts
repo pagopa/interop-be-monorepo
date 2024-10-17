@@ -204,7 +204,12 @@ export function readModelServiceBuilder(
                   { "data.producerId": { $ne: authData.organizationId } },
                   { "data.descriptors": { $size: 1 } },
                   {
-                    "data.descriptors.state": { $eq: descriptorState.draft },
+                    "data.descriptors.state": {
+                      $in: [
+                        descriptorState.draft,
+                        descriptorState.waitingForApproval,
+                      ],
+                    },
                   },
                 ],
               },
@@ -217,7 +222,12 @@ export function readModelServiceBuilder(
                 $and: [
                   { "data.descriptors": { $size: 1 } },
                   {
-                    "data.descriptors.state": { $eq: descriptorState.draft },
+                    "data.descriptors.state": {
+                      $in: [
+                        descriptorState.draft,
+                        descriptorState.waitingForApproval,
+                      ],
+                    },
                   },
                 ],
               },
