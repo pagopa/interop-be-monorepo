@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { fail } from "assert";
 import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
@@ -12,6 +13,7 @@ import {
   Attribute,
   AttributeAddedV1,
   Tenant,
+  TenantFeatureCertifier,
   attributeKind,
   toAttributeV1,
 } from "pagopa-interop-models";
@@ -31,6 +33,17 @@ import {
 
 const mockAttribute = getMockAttribute();
 const mockTenant = getMockTenant();
+
+const getTenantCertifierFeature = (tenant: Tenant): TenantFeatureCertifier => {
+  const certifierFeature = tenant.features.find(
+    (feature) => feature.type === "PersistentCertifier"
+  ) as TenantFeatureCertifier;
+
+  if (!certifierFeature) {
+    fail("expected certifier feature not found in tenant");
+  }
+  return certifierFeature;
+};
 
 describe("database test", () => {
   describe("attributeRegistryService", () => {
@@ -255,7 +268,7 @@ describe("database test", () => {
           code: "code",
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
-          origin: tenant.features[0].certifierId,
+          origin: getTenantCertifierFeature(tenant).certifierId,
         };
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
@@ -353,7 +366,7 @@ describe("database test", () => {
             {
               name: mockAttribute.name,
               code: "code",
-              origin: tenant.features[0].certifierId,
+              origin: getTenantCertifierFeature(tenant).certifierId,
               description: mockAttribute.description,
             },
             {
@@ -383,7 +396,7 @@ describe("database test", () => {
           code: "code",
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
-          origin: tenant.features[0].certifierId,
+          origin: getTenantCertifierFeature(tenant).certifierId,
         };
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
@@ -413,7 +426,7 @@ describe("database test", () => {
             {
               name: attribute.name,
               code: attribute.code,
-              origin: tenant.features[0].certifierId,
+              origin: getTenantCertifierFeature(tenant).certifierId,
               description: attribute.description,
             },
             {
