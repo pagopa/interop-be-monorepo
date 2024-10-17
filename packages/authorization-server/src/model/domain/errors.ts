@@ -6,11 +6,11 @@ import {
 import {
   ApiError,
   ClientKindTokenStates,
+  GeneratedTokenAuditDetails,
   makeApiProblemBuilder,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
-import { GeneratedTokenAuditDetails } from "./models.js";
 
 export const errorCodes = {
   clientAssertionRequestValidationFailed: "0001",
@@ -25,6 +25,7 @@ export const errorCodes = {
   keyTypeMismatch: "0010",
   unexpectedTokenGenerationStatesEntry: "0011",
   tokenGenerationFailed: "0012",
+  platformStateValidationFailed: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -35,7 +36,9 @@ export function clientAssertionRequestValidationFailed(
   request: authorizationServerApi.AccessTokenRequest
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion request validation failed for request: ${request}`,
+    detail: `Client assertion request validation failed for request: ${JSON.stringify(
+      request
+    )}`,
     code: "clientAssertionRequestValidationFailed",
     title: "Client assertion request validation failed",
   });
@@ -57,7 +60,9 @@ export function clientAssertionSignatureValidationFailed(
   key: ConsumerKey | ApiKey
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion signature validation failed for clientAssertion: ${clientAssertion}, key: ${key}`,
+    detail: `Client assertion signature validation failed for clientAssertion: ${clientAssertion}, key: ${JSON.stringify(
+      key
+    )}`,
     code: "clientAssertionSignatureValidationFailed",
     title: "Client assertion signature validation failed",
   });
@@ -75,7 +80,9 @@ export function fallbackAuditFailed(
   messageBody: GeneratedTokenAuditDetails
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Fallback audit failed. Message body: ${messageBody}`,
+    detail: `Fallback audit failed. Message body: ${JSON.stringify(
+      messageBody
+    )}`,
     code: "fallbackAuditFailed",
     title: "Fallback audit failed",
   });
@@ -142,5 +149,13 @@ export function tokenGenerationFailed(): ApiError<ErrorCodes> {
     detail: "Token generation failed",
     code: "tokenGenerationFailed",
     title: "Token generation failed",
+  });
+}
+
+export function platformStateValidationFailed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Platform state validation failed",
+    code: "platformStateValidationFailed",
+    title: "Platform state validation failed",
   });
 }
