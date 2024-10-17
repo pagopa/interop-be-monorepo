@@ -40,12 +40,13 @@ export async function assertRequesterIsDelegateOrProducer(
 
   const delegation = await readModelService.getLatestDelegation({
     eserviceId,
-    delegateId: authData.organizationId,
     states: [delegationState.active],
   });
 
   if (delegation) {
-    throw operationForbidden;
+    if (authData.organizationId !== delegation.delegateId) {
+      throw operationForbidden;
+    }
   } else {
     assertRequesterIsProducer(producerId, authData);
   }

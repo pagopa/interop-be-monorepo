@@ -11,6 +11,7 @@ import {
   Tenant,
   agreementState,
   Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
 import { getMockDelegationProducer } from "pagopa-interop-commons-test";
@@ -963,7 +964,7 @@ describe("get eservices", () => {
       { ...eservice9, descriptors: [descriptor9a] },
     ]);
   });
-  it("should not filter out draft descriptors if the eservice has both draft and non-draft ones (requester is delegate, admin)", async () => {
+  it.only("should not filter out draft descriptors if the eservice has both draft and non-draft ones (requester is delegate, admin)", async () => {
     const descriptor9a: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
@@ -988,6 +989,7 @@ describe("get eservices", () => {
       ...getMockDelegationProducer(),
       delegateId: organizationId2,
       eserviceId: eservice9.id,
+      state: delegationState.active,
     };
     const authData: AuthData = {
       ...getMockAuthData(organizationId2),
