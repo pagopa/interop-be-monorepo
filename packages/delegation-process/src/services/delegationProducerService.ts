@@ -29,6 +29,7 @@ import {
   assertEserviceExists,
   assertTenantAllowedToReceiveProducerDelegation,
   assertIsDelegator,
+  assertIsDelegate,
   assertIsState,
   assertTenantAllowedToDelegation,
 } from "./validators.js";
@@ -101,7 +102,7 @@ export function delegationProducerServiceBuilder(
       return delegation;
     },
     async approveProducerDelegation(
-      delegatorId: TenantId,
+      delegateId: TenantId,
       delegationId: DelegationId,
       correlationId: string
     ): Promise<void> {
@@ -114,7 +115,7 @@ export function delegationProducerServiceBuilder(
         delegationWithMeta
       );
 
-      assertIsDelegator(delegation, delegatorId);
+      assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
       await repository.createEvent(
