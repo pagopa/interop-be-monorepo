@@ -514,7 +514,7 @@ export function readModelServiceBuilder(
       const data = await delegations.findOne(
         {
           "data.eserviceId": eserviceId,
-          ...(states.length > 0 ? { "data.states": { $in: states } } : {}),
+          ...(states.length > 0 ? { "data.state": { $in: states } } : {}),
           ...(delegateId ? { "data.delegateId": delegateId } : {}),
         },
         {
