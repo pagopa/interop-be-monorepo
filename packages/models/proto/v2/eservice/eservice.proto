@@ -12,6 +12,7 @@ message EServiceV2 {
   int64 createdAt = 7;
   repeated EServiceRiskAnalysisV2 riskAnalysis = 8;
   EServiceModeV2 mode = 9;
+  optional bool isSignalHubEnabled = 10;
 }
 
 

@@ -3,6 +3,7 @@ import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockValidRiskAnalysis,
+  randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -38,6 +39,7 @@ describe("update eService", () => {
   it("should write on event-store for the update of an eService (no technology change)", async () => {
     vi.spyOn(fileManager, "delete");
 
+    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
@@ -56,6 +58,7 @@ describe("update eService", () => {
         description: mockEService.description,
         technology: "REST",
         mode: "DELIVER",
+        isSignalHubEnabled,
       },
       {
         authData: getMockAuthData(mockEService.producerId),
@@ -68,6 +71,7 @@ describe("update eService", () => {
     const updatedEService: EService = {
       ...eservice,
       name: updatedName,
+      isSignalHubEnabled,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);

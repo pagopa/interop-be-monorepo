@@ -3,6 +3,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockDescriptor,
+  randomArrayItem,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -38,6 +39,7 @@ describe("create eservice", () => {
     vi.useRealTimers();
   });
   it("should write on event-store for the creation of an eservice", async () => {
+    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
     const eservice = await catalogService.createEService(
       {
         name: mockEService.name,
@@ -45,6 +47,7 @@ describe("create eservice", () => {
         technology: "REST",
         mode: "DELIVER",
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+        isSignalHubEnabled,
       },
       {
         authData: getMockAuthData(mockEService.producerId),
@@ -91,11 +94,13 @@ describe("create eservice", () => {
       createdAt: new Date(),
       id: eservice.id,
       descriptors: [],
+      isSignalHubEnabled,
     };
     const expectedEserviceWithDescriptor: EService = {
       ...mockEService,
       createdAt: new Date(),
       id: eservice.id,
+      isSignalHubEnabled,
       descriptors: [
         {
           ...mockDescriptor,
