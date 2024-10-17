@@ -519,12 +519,21 @@ export const readCatalogEntry = async (
 
 export const getLastSuspendedOrActivatedPurposeVersion = (
   purposeVersions: PurposeVersion[]
-): PurposeVersion | undefined =>
-  purposeVersions.find(
+): PurposeVersion => {
+  const purposeVersion = purposeVersions.find(
     (v) =>
       v.state === purposeVersionState.active ||
       v.state === purposeVersionState.suspended
   );
+  if (!purposeVersion) {
+    throw genericInternalError(
+      `Unable to find last suspended or activated purpose version. Purpose versions: ${JSON.stringify(
+        purposeVersions
+      )}`
+    );
+  }
+  return purposeVersion;
+};
 
 const extractAgreementIdFromAgreementPK = (
   pk: PlatformStatesAgreementPK

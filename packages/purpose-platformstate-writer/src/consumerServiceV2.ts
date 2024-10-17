@@ -1,7 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   fromPurposeV2,
-  genericInternalError,
   ItemState,
   makePlatformStatesPurposePK,
   missingKafkaMessageDataError,
@@ -41,14 +40,6 @@ export async function handleMessageV2(
       const purposeVersion = getLastSuspendedOrActivatedPurposeVersion(
         purpose.versions
       );
-
-      if (purposeVersion === undefined) {
-        throw genericInternalError(
-          `Unable to find last suspended or activated purpose version. Purpose: ${JSON.stringify(
-            purpose
-          )}`
-        );
-      }
 
       if (existingPurposeEntry) {
         if (existingPurposeEntry.version > msg.version) {
