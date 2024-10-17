@@ -1,0 +1,26 @@
+meta {
+  name: Retrieves a producer eservice corresponding to the id
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/producers/eservices/:eserviceId
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Retrieves a producer eservice corresponding to the id
+}

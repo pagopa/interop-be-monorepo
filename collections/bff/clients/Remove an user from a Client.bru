@@ -1,0 +1,27 @@
+meta {
+  name: Remove an user from a Client
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{host-bff}}/clients/:clientId/users/:userId
+  body: none
+  auth: none
+}
+
+params:path {
+  clientId: bfb613c0-f07a-45ee-be0a-26cf9985f940
+  userId: bfb613c0-f07a-45ee-be0a-26cf9985f941
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Removes an user from a Client
+}

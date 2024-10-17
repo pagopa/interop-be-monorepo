@@ -1,0 +1,29 @@
+meta {
+  name: Creates declared attribute
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/declaredAttributes
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "description": "{{$randomWords}}",
+    "name": "{{$randomLoremWord}}"
+  }
+}
+
+docs {
+  Creates the attribute passed as payload
+}
