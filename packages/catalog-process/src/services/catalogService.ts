@@ -1820,15 +1820,13 @@ async function isUserAllowedToSeeDraft(
     return true;
   }
 
-  const delegation = await readModelService.getLatestDelegationByEServiceId(
-    eservice.id
-  );
+  const activeDelegation = await readModelService.getLatestDelegation({
+    eserviceId: eservice.id,
+    delegateId: authData.organizationId,
+    states: [delegationState.active],
+  });
 
-  return Boolean(
-    delegation &&
-      delegation.delegateId === authData.organizationId &&
-      delegation.state === delegationState.active
-  );
+  return Boolean(activeDelegation);
 }
 
 async function applyVisibilityToEService(
