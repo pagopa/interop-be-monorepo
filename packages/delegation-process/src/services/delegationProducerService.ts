@@ -29,10 +29,8 @@ import {
   assertDelegatorIsNotDelegate,
   assertEserviceExists,
   assertTenantAllowedToReceiveProducerDelegation,
-  assertIsDelegator,
   assertIsDelegate,
   assertIsState,
-  assertTenantAllowedToDelegation,
 } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
