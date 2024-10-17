@@ -118,9 +118,64 @@ export function delegationProducerServiceBuilder(
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
+      const now = new Date();
       await repository.createEvent(
         toCreateEventApproveDelegation(
-          { data: { ...delegation, state: delegationState.active }, metadata },
+          {
+            data: {
+              ...delegation,
+              state: delegationState.active,
+              approvedAt: now,
+              stamps: {
+                ...delegation.stamps,
+                activation: {
+                  who: delegateId,
+                  when: now,
+                },
+              },
+            },
+            metadata,
+          },
+          correlationId
+        )
+      );
+    },
+    async rejectProducerDelegation(
+      delegateId: TenantId,
+      delegationId: DelegationId,
+      correlationId: string,
+      rejectionReason: string
+    ): Promise<void> {
+      const delegationWithMeta = await readModelService.getDelegationById(
+        delegationId
+      );
+
+      const { data: delegation, metadata } = assertDelegationExists(
+        delegationId,
+        delegationWithMeta
+      );
+
+      assertIsDelegate(delegation, delegateId);
+      assertIsState(delegationState.waitingForApproval, delegation);
+
+      await repository.createEvent(
+        toCreateEventApproveDelegation(
+          {
+            data: {
+              ...delegation,
+              state: delegationState.rejected,
+              rejectedAt: new Date(),
+              rejectionReason,
+              stamps: {
+                ...delegation.stamps,
+                rejection: {
+                  who: delegateId,
+                  when: new Date(),
+                },
+              },
+            },
+            metadata,
+          },
           correlationId
         )
       );
