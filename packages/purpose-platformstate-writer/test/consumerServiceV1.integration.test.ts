@@ -48,10 +48,14 @@ import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import {
   getPurposeStateFromPurposeVersions,
   readPlatformPurposeEntry,
-  readAllTokenEntriesByGSIPKPurposeId,
   writePlatformPurposeEntry,
 } from "../src/utils.js";
-import { config, writeAgreementEntry, writeCatalogEntry } from "./utils.js";
+import {
+  config,
+  readAllTokenEntriesByGSIPKPurposeId,
+  writeAgreementEntry,
+  writeCatalogEntry,
+} from "./utils.js";
 
 describe("integration tests for events V1", () => {
   if (!config) {
@@ -1065,12 +1069,14 @@ describe("integration tests for events V1", () => {
         {
           ...previousTokenStateEntry1,
           purposeState: itemState.inactive,
+          purposeVersionId: purposeVersions[0].id,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry2,
           purposeState: itemState.inactive,
+          purposeVersionId: purposeVersions[0].id,
           updatedAt: new Date().toISOString(),
         };
       expect(retrievedTokenStateEntries).toHaveLength(2);

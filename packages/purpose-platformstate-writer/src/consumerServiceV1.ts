@@ -7,17 +7,18 @@ import {
   Purpose,
   PurposeEventEnvelopeV1,
   PurposeV1,
-  purposeVersionState,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   deletePlatformPurposeEntry,
   getPurposeStateFromPurposeVersions,
-  updatePurposeDataInTokenGenerationStatesTable,
   readPlatformPurposeEntry,
   updatePurposeDataInPlatformStatesEntry,
   writePlatformPurposeEntry,
-  updatePurposeEntriesInTokenGenerationStatesTable,
+  getLastSuspendedOrActivatedPurposeVersion,
+  updatePurposeDataInTokenEntries,
+  updateTokenEntriesWithPurposeAndPlatformStatesData,
+  getLastArchivedPurposeVersion,
 } from "./utils.js";
 
 export async function handleMessageV1(
@@ -33,14 +34,10 @@ export async function handleMessageV1(
         dynamoDBClient,
         primaryKey
       );
-      const purposeVersion = purpose.versions
-        .slice()
-        .filter(
-          (v) =>
-            v.state === purposeVersionState.active ||
-            v.state === purposeVersionState.suspended
-        )
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+      const purposeVersion = getLastSuspendedOrActivatedPurposeVersion(
+        purpose.versions
+      );
+
       if (existingPurposeEntry) {
         if (existingPurposeEntry.version > msg.version) {
           // Stops processing if the message is older than the purpose entry
@@ -50,13 +47,13 @@ export async function handleMessageV1(
           await updatePurposeDataInPlatformStatesEntry({
             dynamoDBClient,
             primaryKey,
-            purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
+            purposeState,
             version: msg.version,
             purposeVersionId: purposeVersion.id,
           });
 
           // token-generation-states
-          await updatePurposeDataInTokenGenerationStatesTable({
+          await updatePurposeDataInTokenEntries({
             dynamoDBClient,
             purposeId: purpose.id,
             purposeState,
@@ -77,7 +74,7 @@ export async function handleMessageV1(
         await writePlatformPurposeEntry(dynamoDBClient, purposeEntry);
 
         // token-generation-states
-        await updatePurposeEntriesInTokenGenerationStatesTable(
+        await updateTokenEntriesWithPurposeAndPlatformStatesData(
           dynamoDBClient,
           purpose,
           purposeState,
@@ -103,14 +100,16 @@ export async function handleMessageV1(
           dynamoDBClient,
           primaryKey,
           purposeState,
+          purposeVersionId: existingPurposeEntry.purposeVersionId,
           version: msg.version,
         });
 
         // token-generation-states
-        await updatePurposeDataInTokenGenerationStatesTable({
+        await updatePurposeDataInTokenEntries({
           dynamoDBClient,
           purposeId: purpose.id,
           purposeState,
+          purposeVersionId: existingPurposeEntry.purposeVersionId,
         });
       }
     })
@@ -122,10 +121,11 @@ export async function handleMessageV1(
       await deletePlatformPurposeEntry(dynamoDBClient, primaryKey);
 
       // token-generation-states
-      await updatePurposeDataInTokenGenerationStatesTable({
+      await updatePurposeDataInTokenEntries({
         dynamoDBClient,
         purposeId: purpose.id,
         purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
+        purposeVersionId: getLastArchivedPurposeVersion(purpose.versions).id,
       });
     })
     .with(
