@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
-import { getMockTenant } from "pagopa-interop-commons-test";
+import {
+  getMockTenant,
+  getTenantOneCertifierFeature,
+} from "pagopa-interop-commons-test";
 import {
   Tenant,
   Attribute,
@@ -59,7 +62,7 @@ describe("addCertifiedAttribute", async () => {
     ...getMockAttribute(),
     id: unsafeBrandId(tenantAttributeSeed.id),
     kind: attributeKind.certified,
-    origin: requesterTenant.features[0].certifierId,
+    origin: getTenantOneCertifierFeature(requesterTenant).certifierId,
   };
 
   beforeAll(async () => {
