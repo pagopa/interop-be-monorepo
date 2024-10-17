@@ -118,12 +118,17 @@ message EServiceDescriptionUpdatedV2 {
     EServiceV2 eservice = 1;
 }
 
-message EServiceDescriptorApprovedV2 {
+message EServiceDescriptorDelegateSubmittedV2 {
     string descriptorId = 1;
     EServiceV2 eservice = 2;
 }
 
-message EServiceDescriptorRejectedV2 {
+message EServiceDescriptorDelegatorApprovedV2 {
+    string descriptorId = 1;
+    EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorDelegatorRejectedV2 {
     string descriptorId = 1;
     EServiceV2 eservice = 2;
 }

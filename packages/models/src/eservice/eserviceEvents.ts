@@ -41,8 +41,9 @@ import {
   EServiceRiskAnalysisUpdatedV2,
   EServiceRiskAnalysisDeletedV2,
   EServiceDescriptionUpdatedV2,
-  EServiceDescriptorApprovedV2,
-  EServiceDescriptorRejectedV2,
+  EServiceDescriptorDelegateSubmittedV2,
+  EServiceDescriptorDelegatorApprovedV2,
+  EServiceDescriptorDelegatorRejectedV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -167,11 +168,14 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     .with({ type: "EServiceDescriptionUpdated" }, ({ data }) =>
       EServiceDescriptionUpdatedV2.toBinary(data)
     )
-    .with({ type: "EServiceDescriptorApproved" }, ({ data }) =>
-      EServiceDescriptorApprovedV2.toBinary(data)
+    .with({ type: "EServiceDescriptorDelegateSubmitted" }, ({ data }) =>
+      EServiceDescriptorDelegateSubmittedV2.toBinary(data)
     )
-    .with({ type: "EServiceDescriptorRejected" }, ({ data }) =>
-      EServiceDescriptorRejectedV2.toBinary(data)
+    .with({ type: "EServiceDescriptorDelegatorApproved" }, ({ data }) =>
+      EServiceDescriptorDelegatorApprovedV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorDelegatorRejected" }, ({ data }) =>
+      EServiceDescriptorDelegatorRejectedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -363,13 +367,18 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceDescriptorApproved"),
-    data: protobufDecoder(EServiceDescriptorApprovedV2),
+    type: z.literal("EServiceDescriptorDelegateSubmitted"),
+    data: protobufDecoder(EServiceDescriptorDelegateSubmittedV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceDescriptorRejected"),
-    data: protobufDecoder(EServiceDescriptorRejectedV2),
+    type: z.literal("EServiceDescriptorDelegatorApproved"),
+    data: protobufDecoder(EServiceDescriptorDelegatorApprovedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorDelegatorRejected"),
+    data: protobufDecoder(EServiceDescriptorDelegatorRejectedV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;
