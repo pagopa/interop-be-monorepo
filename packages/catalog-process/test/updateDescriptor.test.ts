@@ -225,76 +225,45 @@ describe("update descriptor", () => {
     );
   });
 
-  it("should throw notValidDescriptor if the descriptor is in draft state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.draft,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
-      {
-        voucherLifespan: 1000,
-        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
-        dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+  it.each([
+    descriptorState.draft,
+    descriptorState.waitingForApproval,
+    descriptorState.archived,
+  ])(
+    "should throw notValidDescriptor if the descriptor is in %s state",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        interface: mockDocument,
+        state,
       };
-
-    expect(
-      catalogService.updateDescriptor(
-        eservice.id,
-        descriptor.id,
-        updatedDescriptorQuotasSeed,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(
-      notValidDescriptor(mockDescriptor.id, descriptorState.draft)
-    );
-  });
-
-  it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.archived,
-      archivedAt: new Date(),
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
-      {
-        voucherLifespan: 1000,
-        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
-        dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
       };
-    expect(
-      catalogService.updateDescriptor(
-        eservice.id,
-        descriptor.id,
-        updatedDescriptorQuotasSeed,
+      await addOneEService(eservice);
+      const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
         {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(
-      notValidDescriptor(mockDescriptor.id, descriptorState.archived)
-    );
-  });
+          voucherLifespan: 1000,
+          dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+          dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+        };
+
+      expect(
+        catalogService.updateDescriptor(
+          eservice.id,
+          descriptor.id,
+          updatedDescriptorQuotasSeed,
+          {
+            authData: getMockAuthData(eservice.producerId),
+            correlationId: "",
+            serviceName: "",
+            logger: genericLogger,
+          }
+        )
+      ).rejects.toThrowError(notValidDescriptor(mockDescriptor.id, state));
+    }
+  );
 
   it("should throw operationForbidden if the requester is not the producer", async () => {
     const descriptor: Descriptor = {

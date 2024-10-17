@@ -378,30 +378,33 @@ describe("create descriptor", async () => {
     });
   });
 
-  it("should throw draftDescriptorAlreadyExists if a draft descriptor already exists", async () => {
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.draft,
-    };
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-    };
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should throw draftDescriptorAlreadyExists if a descriptor with state %s already exists",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state,
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [descriptor],
+      };
 
-    await addOneEService(eservice);
-    expect(
-      catalogService.createDescriptor(
-        eservice.id,
-        buildCreateDescriptorSeed(descriptor),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(draftDescriptorAlreadyExists(eservice.id));
-  });
+      await addOneEService(eservice);
+      expect(
+        catalogService.createDescriptor(
+          eservice.id,
+          buildCreateDescriptorSeed(descriptor),
+          {
+            authData: getMockAuthData(eservice.producerId),
+            correlationId: "",
+            serviceName: "",
+            logger: genericLogger,
+          }
+        )
+      ).rejects.toThrowError(draftDescriptorAlreadyExists(eservice.id));
+    }
+  );
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const mockEService = getMockEService();

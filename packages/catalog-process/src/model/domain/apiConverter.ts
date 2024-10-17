@@ -43,6 +43,7 @@ export function descriptorStateToApiEServiceDescriptorState(
     .with(descriptorState.suspended, () => "SUSPENDED")
     .with(descriptorState.deprecated, () => "DEPRECATED")
     .with(descriptorState.archived, () => "ARCHIVED")
+    .with(descriptorState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
     .exhaustive();
 }
 
@@ -55,6 +56,7 @@ export function apiDescriptorStateToDescriptorState(
     .with("SUSPENDED", () => descriptorState.suspended)
     .with("DEPRECATED", () => descriptorState.deprecated)
     .with("ARCHIVED", () => descriptorState.archived)
+    .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
     .exhaustive();
 }
 
