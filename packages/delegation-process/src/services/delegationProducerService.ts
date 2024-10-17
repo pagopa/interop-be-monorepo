@@ -8,24 +8,29 @@ import {
 import {
   Delegation,
   delegationEventToBinaryDataV2,
-  DelegationId,
   delegationKind,
-  delegationState,
   EServiceId,
   generateId,
   Tenant,
-  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { DelegationId, TenantId, delegationState } from "pagopa-interop-models";
 import { tenantNotFound } from "../model/domain/errors.js";
-import { toCreateEventProducerDelegation } from "../model/domain/toEvent.js";
+import {
+  toCreateEventApproveDelegation,
+  toCreateEventProducerDelegation,
+  toCreateEventRejectDelegation,
+} from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
+  assertDelegationExists,
   assertDelegationNotExists,
   assertDelegatorIsIPA,
   assertDelegatorIsNotDelegate,
   assertEserviceExists,
   assertTenantAllowedToReceiveProducerDelegation,
+  assertIsDelegate,
+  assertIsState,
 } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -94,6 +99,85 @@ export function delegationProducerServiceBuilder(
       );
 
       return delegation;
+    },
+    async approveProducerDelegation(
+      delegateId: TenantId,
+      delegationId: DelegationId,
+      correlationId: string
+    ): Promise<void> {
+      const delegationWithMeta = await readModelService.getDelegationById(
+        delegationId
+      );
+
+      const { data: delegation, metadata } = assertDelegationExists(
+        delegationId,
+        delegationWithMeta
+      );
+
+      assertIsDelegate(delegation, delegateId);
+      assertIsState(delegationState.waitingForApproval, delegation);
+
+      const now = new Date();
+      await repository.createEvent(
+        toCreateEventApproveDelegation(
+          {
+            data: {
+              ...delegation,
+              state: delegationState.active,
+              approvedAt: now,
+              stamps: {
+                ...delegation.stamps,
+                activation: {
+                  who: delegateId,
+                  when: now,
+                },
+              },
+            },
+            metadata,
+          },
+          correlationId
+        )
+      );
+    },
+    async rejectProducerDelegation(
+      delegateId: TenantId,
+      delegationId: DelegationId,
+      correlationId: string,
+      rejectionReason: string
+    ): Promise<void> {
+      const delegationWithMeta = await readModelService.getDelegationById(
+        delegationId
+      );
+
+      const { data: delegation, metadata } = assertDelegationExists(
+        delegationId,
+        delegationWithMeta
+      );
+
+      assertIsDelegate(delegation, delegateId);
+      assertIsState(delegationState.waitingForApproval, delegation);
+
+      await repository.createEvent(
+        toCreateEventRejectDelegation(
+          {
+            data: {
+              ...delegation,
+              state: delegationState.rejected,
+              rejectedAt: new Date(),
+              rejectionReason,
+              stamps: {
+                ...delegation.stamps,
+                rejection: {
+                  who: delegateId,
+                  when: new Date(),
+                },
+              },
+            },
+            metadata,
+          },
+          correlationId
+        )
+      );
     },
   };
 }
