@@ -75,13 +75,13 @@ describe("selfcareUpsertTenant", async () => {
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
-  it.only.each(Object.values(tenantKind))(
+  it.each(Object.values(tenantKind))(
     "Should create a tenant with kind %s if it does not exist",
     async (kind) => {
       const [origin, expectedKind] = match<TenantKind, [string, TenantKind]>(
         kind
       )
-        .with(tenantKind.PA, () => ["IPA", tenantKind.PA])
+        .with(tenantKind.PA, tenantKind.GSP, () => ["IPA", tenantKind.PA])
         .with(tenantKind.SCP, () => ["PDND_INFOCAMERE-SCP", tenantKind.SCP])
         .otherwise(() => ["Nothing", tenantKind.PRIVATE]);
 
