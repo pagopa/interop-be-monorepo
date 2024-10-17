@@ -15,7 +15,6 @@ import {
   Descriptor,
   EServiceId,
   delegationState,
-  DelegationState,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
@@ -39,14 +38,14 @@ export async function assertRequesterIsDelegateOrProducer(
     return;
   }
 
-  const delegation = await readModelService.getLatestDelegationByEServiceId(
-    eserviceId
-  );
+  const delegation = await readModelService.getLatestDelegation({
+    eserviceId,
+    delegateId: authData.organizationId,
+    states: [delegationState.active],
+  });
 
-  if (delegation && delegation.state === delegationState.active) {
-    if (authData.organizationId !== delegation.delegateId) {
-      throw operationForbidden;
-    }
+  if (delegation) {
+    throw operationForbidden;
   } else {
     assertRequesterIsProducer(producerId, authData);
   }
@@ -65,16 +64,12 @@ export async function assertNoValidDelegationAssociated(
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<void> {
-  const delegation = await readModelService.getLatestDelegationByEServiceId(
-    eserviceId
-  );
+  const delegation = await readModelService.getLatestDelegation({
+    eserviceId,
+    states: [delegationState.active, delegationState.waitingForApproval],
+  });
 
-  const validDelegationStates: DelegationState[] = [
-    delegationState.active,
-    delegationState.waitingForApproval,
-  ];
-
-  if (delegation && validDelegationStates.includes(delegation.state)) {
+  if (delegation) {
     throw operationForbidden;
   }
 }
