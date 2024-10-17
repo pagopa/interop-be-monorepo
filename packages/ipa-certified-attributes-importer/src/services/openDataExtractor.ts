@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable @typescript-eslint/array-type */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -29,7 +28,7 @@ export type Institution = {
 export type Category = {
   code: string;
   name: string;
-  kind: InstitutionKind;
+  kind: string;
   origin: string;
 };
 
@@ -85,7 +84,7 @@ export async function getAllCategories(): Promise<Category[]> {
       .map(([f, i]) => [f as CategoriesFields, i])
   );
 
-  return (response.data.records as Array<any>).reduce(
+  return (response.data.records as Array<any>).reduce<Category[]>(
     (accumulator, record: any[]) => {
       const extractor = fieldExtractor<CategoriesFields>(record, fields);
 
@@ -104,6 +103,7 @@ export async function getAllCategories(): Promise<Category[]> {
         return accumulator;
       }
 
+      // eslint-disable-next-line functional/immutable-data
       accumulator.push({
         code,
         name,
@@ -140,13 +140,12 @@ export async function getAllInstitutions(
       .map(([f, i]) => [f as InstitutionsFields, i])
   );
 
-  return (response.data.records as Array<any>).reduce(
+  return (response.data.records as Array<any>).reduce<Institution[]>(
     (accumulator, record: any[]) => {
       const extractor = fieldExtractor<InstitutionsFields>(record, fields);
 
       const taxCode = extractor("Codice_fiscale_ente", z.string());
       if (!taxCode) {
-        console.log("Missing tax code");
         return accumulator;
       }
 
@@ -159,7 +158,6 @@ export async function getAllInstitutions(
         z.string()
       );
       if (!originId) {
-        console.log("Missing origin id");
         return accumulator;
       }
 
@@ -173,7 +171,6 @@ export async function getAllInstitutions(
           return institutionsDetails.get(originId)?.category;
         });
       if (!category) {
-        console.log("Missing category");
         return accumulator;
       }
 
@@ -201,25 +198,21 @@ export async function getAllInstitutions(
         })
         .exhaustive();
       if (!description) {
-        console.log("Missing description");
         return accumulator;
       }
 
       const digitalAddress = extractor("Mail1", z.string());
       if (!digitalAddress) {
-        console.log("Missing digital address");
         return accumulator;
       }
 
       const address = extractor("Indirizzo", z.string());
       if (!address) {
-        console.log("Missing address");
         return accumulator;
       }
 
       const zipCode = extractor("CAP", z.string());
       if (!zipCode) {
-        console.log("Missing zip code");
         return accumulator;
       }
 
@@ -233,10 +226,10 @@ export async function getAllInstitutions(
           return institutionsDetails.get(originId)?.kind;
         });
       if (!kind) {
-        console.log("Missing kind");
         return accumulator;
       }
 
+      // eslint-disable-next-line functional/immutable-data
       accumulator.push({
         id: taxCode,
         originId,

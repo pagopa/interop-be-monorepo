@@ -1,8 +1,16 @@
 import axios from "axios";
 import { expect, vi, describe, it, MockedFunction } from "vitest";
-import { getAllInstitutions } from "../src/services/openDataExtractor.js";
-import { agencyDataset, aooDataset, uoDataset } from "./dataset.js";
-import { agency, aoo, uo } from "./expectation.js";
+import {
+  getAllCategories,
+  getAllInstitutions,
+} from "../src/services/openDataExtractor.js";
+import {
+  agencyDataset,
+  aooDataset,
+  categoriesDataset,
+  uoDataset,
+} from "./dataset.js";
+import { agency, aoo, categories, uo } from "./expectation.js";
 
 vi.mock("axios");
 
@@ -35,11 +43,11 @@ describe("OpenDataExtractor", async () => {
     const institutions = await getAllInstitutions(
       "AOO",
       new Map([
-        ["ZZ9A7J5X", { category: "SA", kind: "Stazioni Appaltanti" }],
-        ["YY9A7J6Y", { category: "L37", kind: "Gestori di Pubblici Servizi" }],
-        ["XX9A7J7Z", { category: "L33", kind: "Pubbliche Amministrazioni" }],
-        ["WW9A7J8A", { category: "SA", kind: "Stazioni Appaltanti" }],
-        ["VV9A7J9B", { category: "SAG", kind: "Gestori di Pubblici Servizi" }],
+        ["Z1234ABC", { category: "SA", kind: "Stazioni Appaltanti" }],
+        ["Z5678DEF", { category: "L37", kind: "Gestori di Pubblici Servizi" }],
+        ["Z9123GHI", { category: "L33", kind: "Pubbliche Amministrazioni" }],
+        ["Z3456JKL", { category: "SA", kind: "Stazioni Appaltanti" }],
+        ["Z6789MNO", { category: "SAG", kind: "Gestori di Pubblici Servizi" }],
       ])
     );
 
@@ -54,14 +62,24 @@ describe("OpenDataExtractor", async () => {
     const institutions = await getAllInstitutions(
       "UO",
       new Map([
-        ["ZX9M2HJ7", { category: "SA", kind: "Stazioni Appaltanti" }],
-        ["ZW0P9J2D", { category: "L37", kind: "Gestori di Pubblici Servizi" }],
-        ["ZX7E8QSG", { category: "L33", kind: "Pubbliche Amministrazioni" }],
-        ["ZZ8F4MT2", { category: "SA", kind: "Stazioni Appaltanti" }],
-        ["ZZ7W1AB3", { category: "SAG", kind: "Gestori di Pubblici Servizi" }],
+        ["Z1234ABC", { category: "SA", kind: "Stazioni Appaltanti" }],
+        ["Z5678DEF", { category: "L37", kind: "Gestori di Pubblici Servizi" }],
+        ["Z9123GHI", { category: "L33", kind: "Pubbliche Amministrazioni" }],
+        ["Z3456JKL", { category: "SA", kind: "Stazioni Appaltanti" }],
+        ["Z6789MNO", { category: "SAG", kind: "Gestori di Pubblici Servizi" }],
       ])
     );
 
     expect(institutions).toEqual(uo);
+  });
+
+  it("getAllCategories should extract the categories openData", async () => {
+    (axios.get as MockedFunction<typeof axios.get>).mockResolvedValue({
+      data: categoriesDataset,
+    });
+
+    const extractedCategories = await getAllCategories();
+
+    expect(extractedCategories).toEqual(categories);
   });
 });
