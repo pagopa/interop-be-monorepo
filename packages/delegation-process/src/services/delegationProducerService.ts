@@ -19,6 +19,7 @@ import { tenantNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventApproveDelegation,
   toCreateEventProducerDelegation,
+  toCreateEventRejectDelegation,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -159,7 +160,7 @@ export function delegationProducerServiceBuilder(
       assertIsState(delegationState.waitingForApproval, delegation);
 
       await repository.createEvent(
-        toCreateEventApproveDelegation(
+        toCreateEventRejectDelegation(
           {
             data: {
               ...delegation,

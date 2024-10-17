@@ -41,3 +41,21 @@ export function toCreateEventApproveDelegation(
     correlationId,
   };
 }
+
+export function toCreateEventRejectDelegation(
+  delegation: WithMetadata<Delegation>,
+  correlationId: string
+): CreateEvent<DelegationEventV2> {
+  return {
+    streamId: delegation.data.id,
+    version: delegation.metadata.version,
+    event: {
+      type: "DelegationRejected",
+      event_version: 2,
+      data: {
+        delegation: toDelegationV2(delegation.data),
+      },
+    },
+    correlationId,
+  };
+}
