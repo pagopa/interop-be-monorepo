@@ -17,8 +17,10 @@ import { config } from "../config/config.js";
 import { delegationProducerServiceBuilder } from "../services/delegationProducerService.js";
 import { delegationToApiDelegation } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { createProducerDelegationErrorMapper } from "../utilites/errorMappers.js";
-import { approveDelegationErrorMapper } from "../utilites/errorMappers.js";
+import {
+  approveRejectDelegationErrorMapper,
+  createProducerDelegationErrorMapper,
+} from "../utilites/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -92,7 +94,7 @@ const delegationProducerRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          approveDelegationErrorMapper,
+          approveRejectDelegationErrorMapper,
           ctx.logger
         );
 
@@ -116,7 +118,7 @@ const delegationProducerRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          approveDelegationErrorMapper, // TODO check mapper
+          approveRejectDelegationErrorMapper,
           ctx.logger
         );
 
