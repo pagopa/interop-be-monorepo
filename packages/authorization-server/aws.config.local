@@ -1,7 +1,7 @@
 [default]
-aws_access_key_id=key
-aws_secret_access_key=secret
-region=eu-south-1
+aws_access_key_id=testawskey
+aws_secret_access_key=testawssecret
+region=eu-central-1
 services=local
 
 [services local]
