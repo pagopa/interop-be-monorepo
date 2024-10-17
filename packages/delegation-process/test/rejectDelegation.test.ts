@@ -6,9 +6,8 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import { describe, expect, it, vi } from "vitest";
 import {
-  DelegationApprovedV2,
   DelegationId,
-  DelegationStateV2,
+  DelegationRejectedV2,
   toDelegationV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -49,7 +48,7 @@ describe("reject delegation", () => {
     const event = await readLastDelegationEvent(delegation.id);
 
     const { delegation: actualDelegation } = decodeProtobufPayload({
-      messageType: DelegationApprovedV2,
+      messageType: DelegationRejectedV2,
       payload: event.data,
     });
     const expectedDelegation = toDelegationV2({
