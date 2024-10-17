@@ -8,6 +8,7 @@ import {
 import {
   bffApi,
   selfcareV2InstitutionClientBuilder,
+  selfcareV2UsersClientBuilder,
 } from "pagopa-interop-api-clients";
 import { TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { z } from "zod";
@@ -27,6 +28,7 @@ const selfcareRouter = (
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const selfcareService = selfcareServiceBuilder(
     selfcareV2InstitutionClientBuilder(config),
+    selfcareV2UsersClientBuilder(config),
     clients.tenantProcessClient
   );
 
