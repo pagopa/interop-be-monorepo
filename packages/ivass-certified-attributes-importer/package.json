@@ -35,7 +35,7 @@
   "dependencies": {
     "ts-pattern": "5.2.0",
     "uuid": "10.0.0",
-    "@aws-sdk/client-s3": "3.387.0",
+    "@aws-sdk/client-s3": "3.673.0",
     "adm-zip": "0.5.15",
     "axios": "1.7.4",
     "csv": "6.3.2",
