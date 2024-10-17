@@ -1,0 +1,19 @@
+meta {
+  name: Get Agreement Attributes
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-api-gw}}/agreements/:agreementId/attributes
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

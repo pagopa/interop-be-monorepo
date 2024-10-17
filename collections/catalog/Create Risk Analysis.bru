@@ -1,39 +1,58 @@
 meta {
   name: Create Risk Analysis
   type: http
-  seq: 5
+  seq: 6
 }
 
 post {
-  url: {{host-catalog}}/eservices/:eServiceId/riskAnalysis
+  url: {{host-catalog}}/eservices/:eserviceId/riskAnalysis
   body: json
   auth: none
 }
 
 params:path {
-  eServiceId: {{eServiceId}}
+  eserviceId: {{eserviceId}}
 }
 
 headers {
-  Cache-Control: no-cache
-  Content-Type: application/json
-  Accept: */*
-  Accept-Encoding: gzip, deflate, br
-  Connection: keep-alive
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Content-Type: application/json
 }
 
 body:json {
   {
-      "name": "Test risk analysis",
+      "name": "{{randomName}}",
       "riskAnalysisForm": {
           "version": "3.0",
           "answers": {
               "purpose": ["INSTITUTIONAL"],
-              "institutionalPurpose":["MyPurpose"]
+              "institutionalPurpose": ["MyPurpose"],
+              "personalDataTypes": ["OTHER"],
+              "otherPersonalDataTypes": ["MyDataTypes"],
+              "legalBasis": ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
+              "legalObligationReference": ["somethingLegal"],
+              "legalBasisPublicInterest": ["RULE_OF_LAW"],
+              "ruleOfLawText": ["TheLaw"],
+              "knowsDataQuantity": ["NO"],
+              "dataQuantity": [],
+              "deliveryMethod": ["ANONYMOUS"],
+              "policyProvided": ["NO"],
+              "confirmPricipleIntegrityAndDiscretion": ["true"],
+              "reasonPolicyNotProvided": ["Because"],
+              "doneDpia": ["NO"],
+              "dataDownload": ["YES"],
+              "confirmDataRetentionPeriod": ["true"],
+              "purposePursuit": ["MERE_CORRECTNESS"],
+              "checkedExistenceMereCorrectnessInteropCatalogue": ["true"],
+              "usesThirdPartyData": ["NO"],
+              "declarationConfirmGDPR": ["true"]
           }
       }
   }
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
 }

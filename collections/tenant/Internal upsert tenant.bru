@@ -1,0 +1,27 @@
+meta {
+  name: Internal upsert tenant
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{host-tenant}}/internal/tenants
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "externalId": {
+      "origin": "try",
+      "value": "value"
+    },
+    "name": "test",
+    "certifiedAttributes": []
+  }
+}

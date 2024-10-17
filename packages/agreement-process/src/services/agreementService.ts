@@ -36,6 +36,7 @@ import {
   generateId,
   unsafeBrandId,
   CompactTenant,
+  CorrelationId,
 } from "pagopa-interop-models";
 import {
   declaredAttributesSatisfied,
@@ -601,13 +602,13 @@ export function agreementServiceBuilder(
 
       const verifiedValid = verifiedAttributesSatisfied(
         agreementToBeUpgraded.data.producerId,
-        newDescriptor,
-        consumer
+        newDescriptor.attributes,
+        consumer.attributes
       );
 
       const declaredValid = declaredAttributesSatisfied(
-        newDescriptor,
-        consumer
+        newDescriptor.attributes,
+        consumer.attributes
       );
 
       const contractBuilderInstance = contractBuilder(
@@ -1173,7 +1174,7 @@ export async function createAndCopyDocumentsForClonedAgreement(
 export function createAgreementArchivedByUpgradeEvent(
   agreement: WithMetadata<Agreement>,
   userId: UserId,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AgreementEvent> {
   const updateSeed: UpdateAgreementSeed = {
     state: agreementState.archived,
@@ -1197,7 +1198,7 @@ function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
   agreement: WithMetadata<Agreement>,
   nextStateByAttributes: AgreementState,
   recalculatedSuspendedByPlatform: boolean,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AgreementEvent> | undefined {
   if (
     nextStateByAttributes === agreementState.missingCertifiedAttributes &&

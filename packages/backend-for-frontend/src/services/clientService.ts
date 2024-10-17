@@ -7,6 +7,7 @@ import {
   selfcareV2ClientApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
+import { CorrelationId } from "pagopa-interop-models";
 import {
   AuthorizationProcessClient,
   PagoPAInteropBeClients,
@@ -132,19 +133,20 @@ export function clientServiceBuilder(
       });
     },
 
-    async addUserToClient(
-      userId: string,
+    async addUsersToClient(
+      userIds: string[],
       clientId: string,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
-      logger.info(`Add user ${userId} to client ${clientId}`);
+    ): Promise<void> {
+      logger.info(`Add users ${userIds.join(",")} to client ${clientId}`);
 
-      const { id } = await authorizationClient.client.addUser(undefined, {
-        params: { clientId, userId },
-        headers,
-      });
-
-      return { id };
+      await authorizationClient.client.addUsers(
+        { userIds },
+        {
+          params: { clientId },
+          headers,
+        }
+      );
     },
 
     async createKeys(
@@ -383,7 +385,7 @@ export async function getSelfcareUserById(
   selfcareClient: SelfcareV2UsersClient,
   userId: string,
   selfcareId: string,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<selfcareV2ClientApi.UserResponse> {
   try {
     return selfcareClient.getUserInfoUsingGET({
@@ -403,7 +405,7 @@ export async function decorateKey(
   key: authorizationApi.Key,
   selfcareId: string,
   members: string[],
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<bffApi.PublicKey> {
   const user = await getSelfcareUserById(
     selfcareClient,

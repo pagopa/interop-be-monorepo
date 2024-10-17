@@ -1,0 +1,30 @@
+meta {
+  name: Get attributes
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/attributes?kinds=["CERTIFIED" , "DECLARED", "VERIFIED"] &origin=dd6a5d81-fd7c-4e5b-9b27-b4bb8120b86a
+  body: none
+  auth: none
+}
+
+params:query {
+  q: et
+  limit: 10
+  offset: 0
+  kinds: ["CERTIFIED" , "DECLARED", "VERIFIED"] 
+  origin: dd6a5d81-fd7c-4e5b-9b27-b4bb8120b86a
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  returns attributes
+}

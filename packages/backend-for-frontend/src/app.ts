@@ -7,6 +7,7 @@ import {
   initRedisRateLimiter,
   rateLimiterMiddleware,
 } from "pagopa-interop-commons";
+import express from "express";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
@@ -27,6 +28,8 @@ import {
 } from "./utilities/middlewares.js";
 import clientRouter from "./routers/clientRouter.js";
 import producerKeychainRouter from "./routers/producerKeychainRouter.js";
+import delegationRouter from "./routers/delegationRouter.js";
+import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 
 const serviceName = "backend-for-frontend";
 const fileManager = initFileManager(config);
@@ -52,18 +55,22 @@ app.disable("x-powered-by");
 
 app.disable("etag");
 
-app.use(loggerMiddleware(serviceName));
-
+// parse files from multipart/form-data and put them in req.body
 app.use(multerMiddleware);
 app.use(fromFilesToBodyMiddleware);
-app.use(contextMiddleware(serviceName, true));
+
+// parse application/x-www-form-urlencoded and put it in req.body
+app.use(express.urlencoded({ extended: true }));
+
+app.use(loggerMiddleware(serviceName));
 
 app.use(
   `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}`,
   healthRouter,
+  contextMiddleware(serviceName, false),
   authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter),
-  authenticationMiddleware,
-  // Authenticated routes - rate limiter need authentication data to work
+  authenticationMiddleware(config),
+  // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
   catalogRouter(zodiosCtx, clients, fileManager),
   attributeRouter(zodiosCtx, clients),
@@ -71,11 +78,13 @@ app.use(
   agreementRouter(zodiosCtx, clients, fileManager),
   selfcareRouter(clients, zodiosCtx),
   supportRouter(zodiosCtx, clients, redisRateLimiter),
-  toolRouter(zodiosCtx),
+  toolRouter(zodiosCtx, clients),
   tenantRouter(zodiosCtx, clients),
   clientRouter(zodiosCtx, clients),
   privacyNoticeRouter(zodiosCtx),
-  producerKeychainRouter(zodiosCtx, clients)
+  producerKeychainRouter(zodiosCtx, clients),
+  delegationRouter(zodiosCtx, clients),
+  producerDelegationRouter(zodiosCtx, clients)
 );
 
 export default app;

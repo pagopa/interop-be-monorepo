@@ -51,7 +51,7 @@ describe("archive agreement", () => {
       {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -122,7 +122,7 @@ describe("archive agreement", () => {
       agreementService.archiveAgreement(agreementToArchiveId, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(agreementNotFound(agreementToArchiveId));
@@ -144,7 +144,7 @@ describe("archive agreement", () => {
       agreementService.archiveAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
@@ -171,7 +171,7 @@ describe("archive agreement", () => {
       agreementService.archiveAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(

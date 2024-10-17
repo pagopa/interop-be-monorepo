@@ -1,0 +1,21 @@
+meta {
+  name: Delete Client Key
+  type: http
+  seq: 10
+}
+
+delete {
+  url: {{host-authorization}}/clients/:clientId/keys/:keyId
+  body: none
+  auth: none
+}
+
+params:path {
+  keyId: {{keyId}}
+  clientId: {{clientId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

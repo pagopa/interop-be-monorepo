@@ -1,3 +1,4 @@
+import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
@@ -34,6 +35,18 @@ import {
   Key,
   technology,
   AttributeKind,
+  itemState,
+  ClientId,
+  PurposeId,
+  TokenGenerationStatesClientPurposeEntry,
+  makeGSIPKConsumerIdEServiceId,
+  makeGSIPKClientIdPurposeId,
+  makeGSIPKEServiceIdDescriptorId,
+  TokenGenerationStatesClientKidPurposePK,
+  makeTokenGenerationStatesClientKidPurposePK,
+  clientKindTokenStates,
+  AgreementId,
+  PurposeVersionId,
   ProducerKeychain,
   Delegation,
   delegationKind,
@@ -41,9 +54,13 @@ import {
   DelegationContractDocument,
   DelegationContractId,
   DelegationState,
+  TenantFeatureCertifier,
+  TenantFeature,
+  DescriptorState,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
+import { match } from "ts-pattern";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -62,6 +79,31 @@ export function randomBoolean(): boolean {
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export const getTenantCertifierFeatures = (
+  tenant: Tenant
+): TenantFeatureCertifier[] =>
+  tenant.features.reduce(
+    (acc: TenantFeatureCertifier[], feature: TenantFeature) =>
+      match(feature.type)
+        .with("PersistentCertifier", () => [
+          ...acc,
+          feature as TenantFeatureCertifier,
+        ])
+        .with("DelegatedProducer", () => acc)
+        .exhaustive(),
+    []
+  );
+
+export const getTenantOneCertifierFeature = (
+  tenant: Tenant
+): TenantFeatureCertifier => {
+  const certifiedFeatures = getTenantCertifierFeatures(tenant);
+  if (certifiedFeatures.length === 0) {
+    fail("Expected certifier feature not found in Tenant");
+  }
+  return certifiedFeatures[0];
+};
 
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
@@ -193,11 +235,11 @@ export const getMockAttribute = (
   origin: undefined,
 });
 
-export const getMockPurpose = (): Purpose => ({
+export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
   id: generateId(),
   eserviceId: generateId(),
   consumerId: generateId(),
-  versions: [],
+  versions: versions ?? [],
   title: "Purpose 1 - test",
   description: "Test purpose - description",
   createdAt: new Date(),
@@ -236,11 +278,11 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   createdAt: new Date(),
 });
 
-export const getMockDescriptor = (): Descriptor => ({
+export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
   version: "1",
   docs: [],
-  state: descriptorState.draft,
+  state: state || descriptorState.draft,
   audience: [],
   voucherLifespan: 60,
   dailyCallsPerConsumer: 10,
@@ -254,6 +296,11 @@ export const getMockDescriptor = (): Descriptor => ({
     declared: [],
   },
 });
+
+export const getMockDescriptorList = (length?: number): Descriptor[] => {
+  const arrayLength = length ?? Math.floor(Math.random() * 10) + 1;
+  return Array.from({ length: arrayLength }, () => getMockDescriptor());
+};
 
 export const getMockDocument = (): Document => ({
   name: "fileName",
@@ -352,3 +399,51 @@ export const getMockDelegationDocument = (
   path: "path",
   createdAt: new Date(),
 });
+
+export const getMockTokenStatesClientPurposeEntry = (
+  tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
+): TokenGenerationStatesClientPurposeEntry => {
+  const clientId = generateId<ClientId>();
+  const purposeId = generateId<PurposeId>();
+  const consumerId = generateId<TenantId>();
+  const eserviceId = generateId<EServiceId>();
+  const descriptorId = generateId<DescriptorId>();
+  const agreementId = generateId<AgreementId>();
+  const purposeVersionId = generateId<PurposeVersionId>();
+
+  return {
+    PK:
+      tokenStateEntryPK ||
+      makeTokenGenerationStatesClientKidPurposePK({
+        clientId,
+        kid: `kid ${Math.random()}`,
+        purposeId,
+      }),
+    descriptorState: itemState.inactive,
+    descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+    descriptorVoucherLifespan: 60,
+    updatedAt: new Date().toISOString(),
+    consumerId,
+    agreementId,
+    purposeVersionId,
+    GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+      consumerId,
+      eserviceId,
+    }),
+    clientKind: clientKindTokenStates.consumer,
+    publicKey: "PEM",
+    GSIPK_clientId: clientId,
+    GSIPK_kid: "KID",
+    agreementState: "ACTIVE",
+    GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+      eserviceId,
+      descriptorId,
+    }),
+    GSIPK_purposeId: purposeId,
+    purposeState: itemState.inactive,
+    GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      clientId,
+      purposeId,
+    }),
+  };
+};

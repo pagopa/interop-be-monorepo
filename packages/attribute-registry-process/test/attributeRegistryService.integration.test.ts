@@ -5,6 +5,7 @@ import {
   decodeProtobufPayload,
   getMockAttribute,
   getMockAuthData,
+  getTenantOneCertifierFeature,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
@@ -13,6 +14,7 @@ import {
   AttributeAddedV1,
   Tenant,
   attributeKind,
+  generateId,
   toAttributeV1,
 } from "pagopa-interop-models";
 import {
@@ -44,7 +46,7 @@ describe("database test", () => {
             },
             {
               authData: getMockAuthData(),
-              correlationId: "",
+              correlationId: generateId(),
               logger: genericLogger,
               serviceName: "",
             }
@@ -92,7 +94,7 @@ describe("database test", () => {
                 },
               },
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
@@ -112,7 +114,7 @@ describe("database test", () => {
             },
             {
               authData: getMockAuthData(),
-              correlationId: "",
+              correlationId: generateId(),
               logger: genericLogger,
               serviceName: "",
             }
@@ -131,7 +133,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           );
@@ -178,7 +180,7 @@ describe("database test", () => {
                 },
               },
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
@@ -199,7 +201,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
@@ -230,7 +232,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(tenant.id),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           );
@@ -255,7 +257,7 @@ describe("database test", () => {
           code: "code",
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
-          origin: tenant.features[0].certifierId,
+          origin: getTenantOneCertifierFeature(tenant).certifierId,
         };
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
@@ -290,7 +292,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(tenant.id),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
@@ -309,7 +311,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(mockTenant.id),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
@@ -327,7 +329,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(mockTenant.id),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
@@ -353,13 +355,13 @@ describe("database test", () => {
             {
               name: mockAttribute.name,
               code: "code",
-              origin: tenant.features[0].certifierId,
+              origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: mockAttribute.description,
             },
             {
               authData: getMockAuthData(),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           );
@@ -383,7 +385,7 @@ describe("database test", () => {
           code: "code",
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
-          origin: tenant.features[0].certifierId,
+          origin: getTenantOneCertifierFeature(tenant).certifierId,
         };
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
@@ -413,13 +415,13 @@ describe("database test", () => {
             {
               name: attribute.name,
               code: attribute.code,
-              origin: tenant.features[0].certifierId,
+              origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: attribute.description,
             },
             {
               authData: getMockAuthData(),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
