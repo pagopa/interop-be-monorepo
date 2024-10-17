@@ -1453,6 +1453,8 @@ components:
             $ref: "#/components/schemas/EServiceRiskAnalysis"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
     EServiceMode:
       type: string
       description: Risk Analysis Mode
