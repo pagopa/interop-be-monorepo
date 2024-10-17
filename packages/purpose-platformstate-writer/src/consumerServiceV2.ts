@@ -1,6 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   fromPurposeV2,
+  genericInternalError,
   ItemState,
   makePlatformStatesPurposePK,
   missingKafkaMessageDataError,
@@ -18,9 +19,9 @@ import {
   getPurposeStateFromPurposeVersions,
   readPlatformPurposeEntry,
   updatePurposeDataInPlatformStatesEntry,
-  updatePurposeDataInTokenGenerationStatesTable,
+  updatePurposeDataInTokenEntries,
   writePlatformPurposeEntry,
-  updatePurposeEntriesInTokenGenerationStatesTable,
+  updateTokenEntriesWithPurposeAndPlatformStatesData,
   getLastSuspendedOrActivatedPurposeVersion,
 } from "./utils.js";
 
@@ -31,7 +32,7 @@ export async function handleMessageV2(
   await match(message)
     .with({ type: "PurposeActivated" }, async (msg) => {
       const { purpose, primaryKey, purposeState, existingPurposeEntry } =
-        await parsePurpose({
+        await getPurposeData({
           dynamoDBClient,
           purposeV2: msg.data.purpose,
           msgType: msg.type,
@@ -40,6 +41,14 @@ export async function handleMessageV2(
       const purposeVersion = getLastSuspendedOrActivatedPurposeVersion(
         purpose.versions
       );
+
+      if (purposeVersion === undefined) {
+        throw genericInternalError(
+          `Unable to find last suspended or activated purpose version. Purpose: ${JSON.stringify(
+            purpose
+          )}`
+        );
+      }
 
       if (existingPurposeEntry) {
         if (existingPurposeEntry.version > msg.version) {
@@ -51,6 +60,7 @@ export async function handleMessageV2(
             dynamoDBClient,
             primaryKey,
             purposeState,
+            purposeVersionId: purposeVersion.id,
             version: msg.version,
           });
         }
@@ -69,7 +79,7 @@ export async function handleMessageV2(
       }
 
       // token-generation-states
-      await updatePurposeEntriesInTokenGenerationStatesTable(
+      await updateTokenEntriesWithPurposeAndPlatformStatesData(
         dynamoDBClient,
         purpose,
         purposeState,
@@ -79,58 +89,21 @@ export async function handleMessageV2(
     .with(
       { type: "NewPurposeVersionActivated" },
       { type: "PurposeVersionActivated" },
-      async (msg) => {
-        const {
-          purpose,
-          primaryKey,
-          purposeState,
-          existingPurposeEntry,
-          purposeVersionId,
-        } = await parsePurpose({
-          dynamoDBClient,
-          purposeV2: msg.data.purpose,
-          msgType: msg.type,
-          purposeVersionId: msg.data.versionId,
-        });
-
-        if (
-          !existingPurposeEntry ||
-          existingPurposeEntry.version > msg.version
-        ) {
-          // Stops processing if the message is older than the purpose entry or if it doesn't exist
-          return Promise.resolve();
-        } else {
-          // platform-states
-          await updatePurposeDataInPlatformStatesEntry({
-            dynamoDBClient,
-            primaryKey,
-            purposeState,
-            version: msg.version,
-            purposeVersionId,
-          });
-
-          // token-generation-states
-          await updatePurposeDataInTokenGenerationStatesTable({
-            dynamoDBClient,
-            purposeId: purpose.id,
-            purposeState,
-            purposeVersionId,
-          });
-        }
-      }
-    )
-    .with(
       { type: "PurposeVersionSuspendedByConsumer" },
       { type: "PurposeVersionSuspendedByProducer" },
       { type: "PurposeVersionUnsuspendedByConsumer" },
       { type: "PurposeVersionUnsuspendedByProducer" },
       async (msg) => {
         const { purpose, primaryKey, purposeState, existingPurposeEntry } =
-          await parsePurpose({
+          await getPurposeData({
             dynamoDBClient,
             purposeV2: msg.data.purpose,
             msgType: msg.type,
           });
+
+        const purposeVersionId = unsafeBrandId<PurposeVersionId>(
+          msg.data.versionId
+        );
 
         if (
           !existingPurposeEntry ||
@@ -144,20 +117,22 @@ export async function handleMessageV2(
             dynamoDBClient,
             primaryKey,
             purposeState,
+            purposeVersionId,
             version: msg.version,
           });
 
           // token-generation-states
-          await updatePurposeDataInTokenGenerationStatesTable({
+          await updatePurposeDataInTokenEntries({
             dynamoDBClient,
             purposeId: purpose.id,
             purposeState,
+            purposeVersionId,
           });
         }
       }
     )
     .with({ type: "PurposeArchived" }, async (msg) => {
-      const { purpose, primaryKey } = await parsePurpose({
+      const { purpose, primaryKey } = await getPurposeData({
         dynamoDBClient,
         purposeV2: msg.data.purpose,
         msgType: msg.type,
@@ -167,10 +142,11 @@ export async function handleMessageV2(
       await deletePlatformPurposeEntry(dynamoDBClient, primaryKey);
 
       // token-generation-states
-      await updatePurposeDataInTokenGenerationStatesTable({
+      await updatePurposeDataInTokenEntries({
         dynamoDBClient,
         purposeId: purpose.id,
         purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
+        purposeVersionId: unsafeBrandId<PurposeVersionId>(msg.data.versionId),
       });
     })
     .with(
@@ -189,22 +165,19 @@ export async function handleMessageV2(
     .exhaustive();
 }
 
-const parsePurpose = async ({
+const getPurposeData = async ({
   dynamoDBClient,
   purposeV2,
   msgType,
-  purposeVersionId,
 }: {
   dynamoDBClient: DynamoDBClient;
   purposeV2: PurposeV2 | undefined;
   msgType: string;
-  purposeVersionId?: string;
 }): Promise<{
   purpose: Purpose;
   primaryKey: PlatformStatesPurposePK;
   purposeState: ItemState;
   existingPurposeEntry: PlatformStatesPurposeEntry | undefined;
-  purposeVersionId?: PurposeVersionId;
 }> => {
   if (!purposeV2) {
     throw missingKafkaMessageDataError("purpose", msgType);
@@ -218,14 +191,5 @@ const parsePurpose = async ({
     primaryKey
   );
 
-  if (purposeVersionId) {
-    return {
-      purpose,
-      primaryKey,
-      purposeState,
-      existingPurposeEntry,
-      purposeVersionId: unsafeBrandId<PurposeVersionId>(purposeVersionId),
-    };
-  }
   return { purpose, primaryKey, purposeState, existingPurposeEntry };
 };
