@@ -9,6 +9,7 @@ import {
   JWTExpired,
   JWTInvalid,
 } from "jose/errors";
+import { createPublicKey } from "pagopa-interop-commons";
 import {
   failedValidation,
   successfulValidation,
@@ -200,9 +201,7 @@ export const verifyClientAssertionSignature = async (
       ]);
     }
 
-    const decoded = Buffer.from(key.publicKey, "base64").toString("utf8");
-    const publicKey = await jose.importSPKI(decoded, key.algorithm);
-
+    const publicKey = createPublicKey(key.publicKey);
     const result = await jose.jwtVerify(clientAssertionJws, publicKey, {
       algorithms: [key.algorithm],
     });

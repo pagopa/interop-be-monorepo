@@ -104,13 +104,7 @@ const signClientAssertion = async ({
     format: "pem",
   });
 
-  const privateKey = await jose.importPKCS8(
-    Buffer.isBuffer(pemPrivateKey)
-      ? pemPrivateKey.toString("utf8")
-      : pemPrivateKey,
-    "RS256"
-  );
-
+  const privateKey = crypto.createPrivateKey(pemPrivateKey);
   return await new jose.SignJWT(payload)
     .setProtectedHeader(headers)
     .sign(privateKey);
