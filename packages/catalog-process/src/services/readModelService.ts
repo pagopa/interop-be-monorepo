@@ -6,7 +6,6 @@ import {
   hasPermission,
   AuthData,
   TenantCollection,
-  DelegationCollection,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -29,6 +28,7 @@ import {
   TenantReadModel,
   genericInternalError,
   Delegation,
+  DelegationState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -85,31 +85,6 @@ async function getTenant(
   if (!result.success) {
     throw genericInternalError(
       `Unable to parse tenant item: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
-    );
-  }
-
-  return result.data;
-}
-
-async function getLatestDelegation(
-  delegations: DelegationCollection,
-  filter: Filter<WithId<WithMetadata<Delegation>>>
-): Promise<Delegation | undefined> {
-  const data = await delegations.findOne(filter, {
-    projection: { data: true, metadata: true },
-    sort: { "data.createdAt": -1 },
-  });
-
-  if (!data) {
-    return undefined;
-  }
-  const result = Delegation.safeParse(data.data);
-
-  if (!result.success) {
-    throw genericInternalError(
-      `Unable to parse delegation item: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
@@ -527,12 +502,41 @@ export function readModelServiceBuilder(
       return getTenant(tenants, { "data.id": id });
     },
 
-    getLatestDelegationByEServiceId(
-      eserviceId: EServiceId
-    ): Promise<Delegation | undefined> {
-      return getLatestDelegation(delegations, {
-        "data.eserviceId": eserviceId,
-      });
+    async getLatestDelegation({
+      eserviceId,
+      states,
+      delegateId,
+    }: {
+      eserviceId: EServiceId;
+      states: DelegationState[];
+      delegateId?: TenantId;
+    }): Promise<Delegation | undefined> {
+      const data = await delegations.findOne(
+        {
+          "data.eserviceId": eserviceId,
+          ...(states.length > 0 ? { "data.states": { $in: states } } : {}),
+          ...(delegateId ? { "data.delegateId": delegateId } : {}),
+        },
+        {
+          projection: { data: true },
+          sort: { "data.createdAt": -1 },
+        }
+      );
+
+      if (!data) {
+        return undefined;
+      }
+      const result = Delegation.safeParse(data.data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse delegation item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
     },
   };
 }
