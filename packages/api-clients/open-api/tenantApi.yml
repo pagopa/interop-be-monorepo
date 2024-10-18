@@ -1377,7 +1377,7 @@ components:
           $ref: "#/components/schemas/MailKind"
         address:
           type: string
-          maxLength: 30
+          maxLength: 320
         createdAt:
           type: string
           format: date-time
