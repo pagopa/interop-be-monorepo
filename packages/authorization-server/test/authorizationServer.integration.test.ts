@@ -34,7 +34,10 @@ import {
 import { formatDateyyyyMMdd, genericLogger } from "pagopa-interop-commons";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { config } from "../src/config/config.js";
-import { clientAssertionRequestValidationFailed } from "../src/model/domain/errors.js";
+import {
+  clientAssertionRequestValidationFailed,
+  clientAssertionValidationFailed,
+} from "../src/model/domain/errors.js";
 import {
   configTokenGenerationStates,
   dynamoDBClient,
@@ -70,7 +73,6 @@ describe("authorization server tests", () => {
   // - rate limiter
   // tokenGenerationStatesEntryNotFound
   // - key type mismatch
-  // clientAssertionValidationFailed
   // clientAssertionSignatureValidationFailed
   // platformStateValidationFailed
   // tokenSigningFailed
@@ -381,5 +383,21 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(clientAssertionRequestValidationFailed(request));
+  });
+
+  it("clientAssertionValidationFailed", async () => {
+    const { jws } = await getMockClientAssertion({
+      standardClaimsOverride: { iat: undefined },
+    });
+
+    const clientId = generateId<ClientId>();
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
+    };
+    expect(
+      tokenService.generateToken(request, generateId(), genericLogger)
+    ).rejects.toThrowError(clientAssertionValidationFailed(jws, clientId));
   });
 });
