@@ -13,6 +13,8 @@ import {
   Tenant,
   TenantKind,
   Descriptor,
+  EServiceId,
+  delegationState,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
@@ -24,15 +26,51 @@ import {
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
 } from "../model/domain/errors.js";
+import { ReadModelService } from "./readModelService.js";
 
-export function assertRequesterAllowed(
+export async function assertRequesterIsDelegateOrProducer(
+  producerId: TenantId,
+  eserviceId: EServiceId,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<void> {
+  if (authData.userRoles.includes("internal")) {
+    return;
+  }
+
+  const delegation = await readModelService.getLatestDelegation({
+    eserviceId,
+    states: [delegationState.active],
+  });
+
+  if (delegation) {
+    if (authData.organizationId !== delegation.delegateId) {
+      throw operationForbidden;
+    }
+  } else {
+    assertRequesterIsProducer(producerId, authData);
+  }
+}
+
+export function assertRequesterIsProducer(
   producerId: TenantId,
   authData: AuthData
 ): void {
-  if (
-    !authData.userRoles.includes("internal") &&
-    producerId !== authData.organizationId
-  ) {
+  if (producerId !== authData.organizationId) {
+    throw operationForbidden;
+  }
+}
+
+export async function assertNoValidDelegationAssociated(
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<void> {
+  const delegation = await readModelService.getLatestDelegation({
+    eserviceId,
+    states: [delegationState.active, delegationState.waitingForApproval],
+  });
+
+  if (delegation) {
     throw operationForbidden;
   }
 }

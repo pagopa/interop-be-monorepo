@@ -5,6 +5,7 @@ import {
   randomArrayItem,
   getMockTenant,
   getMockValidRiskAnalysis,
+  getMockDelegationProducer,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -18,6 +19,8 @@ import {
   Tenant,
   generateId,
   operationForbidden,
+  Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import {
@@ -42,6 +45,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockAgreement,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("publish descriptor", () => {
@@ -336,6 +340,34 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    };
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.publishDescriptor(eservice.id, descriptor.id, {
+        authData: getMockAuthData(eservice.producerId),
         correlationId: "",
         serviceName: "",
         logger: genericLogger,

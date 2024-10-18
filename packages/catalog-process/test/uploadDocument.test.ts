@@ -10,9 +10,14 @@ import {
   unsafeBrandId,
   operationForbidden,
   Document,
+  Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockDelegationProducer,
+} from "pagopa-interop-commons-test/index.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -30,6 +35,7 @@ import {
   getMockDocument,
   getMockEService,
   buildDocumentSeed,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("upload Document", () => {
@@ -59,6 +65,78 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(eservice.producerId),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent.stream_id).toBe(eservice.id);
+      expect(writtenEvent.version).toBe("1");
+      expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
+      expect(writtenEvent.event_version).toBe(2);
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorInterfaceDeletedV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedEservice = toEServiceV2({
+        ...eservice,
+        descriptors: [
+          {
+            ...descriptor,
+            interface: {
+              ...mockDocument,
+              id: unsafeBrandId(
+                writtenPayload.eservice!.descriptors[0]!.interface!.id
+              ),
+              checksum:
+                writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
+              uploadDate: new Date(
+                writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
+              ),
+            },
+            serverUrls: ["pagopa.it"],
+          },
+        ],
+      });
+
+      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+      expect(writtenPayload.eservice).toEqual(expectedEservice);
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    }
+  );
+  it.each(
+    Object.values(descriptorState).filter(
+      (state) => state !== descriptorState.archived
+    )
+  )(
+    "should write on event-store for the upload of a document when descriptor state is %s (delegate)",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(state),
+        serverUrls: [],
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      const delegation: Delegation = {
+        ...getMockDelegationProducer(),
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      };
+
+      await addOneEService(eservice);
+      await addOneDelegation(delegation);
+
+      const returnedEService = await catalogService.uploadDocument(
+        eservice.id,
+        descriptor.id,
+        buildInterfaceSeed(),
+        {
+          authData: getMockAuthData(delegation.delegateId),
           correlationId: "",
           serviceName: "",
           logger: genericLogger,
@@ -134,6 +212,63 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw operationForbidden if the requester is not the producer", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.uploadDocument(
+        eservice.id,
+        descriptor.id,
+        buildInterfaceSeed(),
+        {
+          authData: getMockAuthData(),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    };
+
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.uploadDocument(
+        eservice.id,
+        descriptor.id,
+        buildInterfaceSeed(),
+        {
+          authData: getMockAuthData(eservice.producerId),
           correlationId: "",
           serviceName: "",
           logger: genericLogger,

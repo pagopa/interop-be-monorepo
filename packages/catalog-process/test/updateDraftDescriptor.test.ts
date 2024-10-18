@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockDelegationProducer,
+} from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -11,6 +14,8 @@ import {
   EServiceDraftDescriptorUpdatedV2,
   toEServiceV2,
   operationForbidden,
+  Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -30,6 +35,7 @@ import {
   getMockEService,
   getMockDocument,
   buildUpdateDescriptorSeed,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("update draft descriptor", () => {
@@ -89,6 +95,84 @@ describe("update draft descriptor", () => {
       updatedDescriptorSeed,
       {
         authData: getMockAuthData(eservice.producerId),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDraftDescriptorUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorUpdatedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+  });
+  it("should write on event-store for the update of a draft descriptor (delegate)", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    };
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+    const attribute: Attribute = {
+      name: "Attribute name",
+      id: generateId(),
+      kind: "Declared",
+      description: "Attribute Description",
+      creationTime: new Date(),
+    };
+    await addOneAttribute(attribute);
+
+    const updatedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      dailyCallsTotal: 200,
+      attributes: {
+        certified: [],
+        declared: [
+          [{ id: attribute.id, explicitAttributeVerification: false }],
+        ],
+        verified: [],
+      },
+    };
+
+    const updatedEService: EService = {
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          dailyCallsTotal: 200,
+          attributes: {
+            certified: [],
+            declared: [
+              [{ id: attribute.id, explicitAttributeVerification: false }],
+            ],
+            verified: [],
+          },
+        },
+      ],
+    };
+    await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      updatedDescriptorSeed,
+      {
+        authData: getMockAuthData(delegation.delegateId),
         correlationId: "",
         serviceName: "",
         logger: genericLogger,
@@ -291,6 +375,44 @@ describe("update draft descriptor", () => {
         buildUpdateDescriptorSeed(updatedDescriptor),
         {
           authData: getMockAuthData(),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    };
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    const updatedDescriptor = {
+      ...descriptor,
+      dailyCallsTotal: 200,
+    };
+    expect(
+      catalogService.updateDraftDescriptor(
+        eservice.id,
+        descriptor.id,
+        buildUpdateDescriptorSeed(updatedDescriptor),
+        {
+          authData: getMockAuthData(eservice.producerId),
           correlationId: "",
           serviceName: "",
           logger: genericLogger,

@@ -2,6 +2,7 @@
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockDelegationProducer,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -12,6 +13,8 @@ import {
   operationForbidden,
   EServiceDraftDescriptorDeletedV2,
   toEServiceV2,
+  delegationState,
+  Delegation,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi } from "vitest";
 import {
@@ -29,6 +32,7 @@ import {
   getMockEService,
   postgresDB,
   fileManager,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("delete eservice", () => {
@@ -205,6 +209,50 @@ describe("delete eservice", () => {
       })
     ).rejects.toThrowError(operationForbidden);
   });
+
+  it.each([delegationState.active, delegationState.waitingForApproval])(
+    "should throw operationForbidden if the eservice is associated with a delegation with state %s",
+    async (delegationState) => {
+      const delegation: Delegation = {
+        ...getMockDelegationProducer(),
+        eserviceId: mockEService.id,
+        state: delegationState,
+      };
+
+      await addOneEService(mockEService);
+      await addOneDelegation(delegation);
+      expect(
+        catalogService.deleteEService(mockEService.id, {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(operationForbidden);
+    }
+  );
+
+  it.each([delegationState.revoked, delegationState.rejected])(
+    "should not throw operationForbidden if the eservice is associated with a delegation with state %s",
+    async (delegationState) => {
+      const delegation: Delegation = {
+        ...getMockDelegationProducer(),
+        eserviceId: mockEService.id,
+        state: delegationState,
+      };
+
+      await addOneEService(mockEService);
+      await addOneDelegation(delegation);
+      expect(
+        catalogService.deleteEService(mockEService.id, {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
+      ).resolves.not.toThrowError(operationForbidden);
+    }
+  );
 
   it("should throw eserviceNotInDraftState if the eservice has both draft and non-draft descriptors", async () => {
     const descriptor1: Descriptor = {
