@@ -23,6 +23,7 @@ import {
 import {
   ClientId,
   clientKidPrefix,
+  clientKidPurposePrefix,
   clientKindTokenStates,
   GeneratedTokenAuditDetails,
   generateId,
@@ -492,6 +493,43 @@ describe("authorization server tests", () => {
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
       keyTypeMismatch(clientKidPrefix, clientKindTokenStates.consumer)
+    );
+  });
+
+  it("keyTypeMismatch - clientKidPurpose entry with api kind", async () => {
+    const purposeId = generateId<PurposeId>();
+
+    const { jws, clientAssertion } = await getMockClientAssertion({
+      customClaims: { purposeId },
+    });
+
+    const clientId = generateId<ClientId>();
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
+    };
+
+    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
+      {
+        clientId,
+        kid: clientAssertion.header.kid!,
+        purposeId,
+      }
+    );
+
+    const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
+      {
+        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+        clientKind: clientKindTokenStates.api,
+      };
+
+    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+
+    expect(
+      tokenService.generateToken(request, generateId(), genericLogger)
+    ).rejects.toThrowError(
+      keyTypeMismatch(clientKidPurposePrefix, clientKindTokenStates.api)
     );
   });
 });
