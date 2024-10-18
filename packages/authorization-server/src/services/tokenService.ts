@@ -61,7 +61,7 @@ import {
   invalidTokenClientKidPurposeEntry,
   kafkaAuditingFailed,
   tokenGenerationStatesEntryNotFound,
-  keyRetrievalFailed,
+  // keyRetrievalFailed,
   keyTypeMismatch,
   unexpectedTokenGenerationError,
   tokenSigningFailed,
@@ -237,131 +237,128 @@ export const retrieveKey = async (
     TableName: config.tokenGenerationStatesTable,
   };
 
-  try {
-    // TODO should we use try/catch in every dynamoDB query?
-    const command = new GetItemCommand(input);
-    const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+  // try {
+  // TODO should we use try/catch in every dynamoDB query?
+  const command = new GetItemCommand(input);
+  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
 
-    if (!data.Item) {
-      throw tokenGenerationStatesEntryNotFound(pk);
-    } else {
-      const unmarshalled = unmarshall(data.Item);
-      const tokenGenerationEntry =
-        TokenGenerationStatesGenericEntry.safeParse(unmarshalled);
+  if (!data.Item) {
+    throw tokenGenerationStatesEntryNotFound(pk);
+  } else {
+    const unmarshalled = unmarshall(data.Item);
+    const tokenGenerationEntry =
+      TokenGenerationStatesGenericEntry.safeParse(unmarshalled);
 
-      if (!tokenGenerationEntry.success) {
-        throw genericInternalError(
-          `Unable to parse token generation entry item: result ${JSON.stringify(
-            tokenGenerationEntry
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
+    if (!tokenGenerationEntry.success) {
+      throw genericInternalError(
+        `Unable to parse token generation entry item: result ${JSON.stringify(
+          tokenGenerationEntry
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
 
-      return match(tokenGenerationEntry.data)
-        .when(
-          (entry) =>
-            entry.clientKind === clientKindTokenStates.consumer &&
-            entry.PK.startsWith(clientKidPurposePrefix),
-          () => {
-            // TODO: remove as
-            const clientKidPurposeEntry =
-              tokenGenerationEntry.data as TokenGenerationStatesClientPurposeEntry;
-            if (
-              !clientKidPurposeEntry.GSIPK_purposeId ||
-              !clientKidPurposeEntry.purposeState ||
-              !clientKidPurposeEntry.purposeVersionId ||
-              !clientKidPurposeEntry.agreementId ||
-              !clientKidPurposeEntry.agreementState ||
-              !clientKidPurposeEntry.GSIPK_eserviceId_descriptorId ||
-              !clientKidPurposeEntry.descriptorState ||
-              !clientKidPurposeEntry.descriptorAudience ||
-              !clientKidPurposeEntry.descriptorVoucherLifespan
-            ) {
-              throw invalidTokenClientKidPurposeEntry();
-            }
+    return match(tokenGenerationEntry.data)
+      .when(
+        (entry) =>
+          entry.clientKind === clientKindTokenStates.consumer &&
+          entry.PK.startsWith(clientKidPurposePrefix),
+        () => {
+          // TODO: remove as
+          const clientKidPurposeEntry =
+            tokenGenerationEntry.data as TokenGenerationStatesClientPurposeEntry;
+          if (
+            !clientKidPurposeEntry.GSIPK_purposeId ||
+            !clientKidPurposeEntry.purposeState ||
+            !clientKidPurposeEntry.purposeVersionId ||
+            !clientKidPurposeEntry.agreementId ||
+            !clientKidPurposeEntry.agreementState ||
+            !clientKidPurposeEntry.GSIPK_eserviceId_descriptorId ||
+            !clientKidPurposeEntry.descriptorState ||
+            !clientKidPurposeEntry.descriptorAudience ||
+            !clientKidPurposeEntry.descriptorVoucherLifespan
+          ) {
+            throw invalidTokenClientKidPurposeEntry();
+          }
 
-            const key: ConsumerKey = {
-              kid: clientKidPurposeEntry.GSIPK_kid,
-              purposeId: clientKidPurposeEntry.GSIPK_purposeId,
-              clientId: clientKidPurposeEntry.GSIPK_clientId,
-              consumerId: clientKidPurposeEntry.consumerId,
-              publicKey: clientKidPurposeEntry.publicKey,
-              // algorithm: clientAssertion.header.alg,
-              algorithm: "RS256" /* TODO pass this as a parameter? */,
-              clientKind: clientKindTokenStates.consumer, // TODO this doesn't work with clientKidPurpose Entry.clientKind, but it should be already validated in the "when"
-              purposeState: {
-                state: clientKidPurposeEntry.purposeState,
-                versionId: clientKidPurposeEntry.purposeVersionId,
-              },
-              agreementId: clientKidPurposeEntry.agreementId,
-              agreementState: {
-                state: clientKidPurposeEntry.agreementState,
-              },
-              // TODO: make function for this split
-              eServiceId: unsafeBrandId<EServiceId>(
+          const key: ConsumerKey = {
+            kid: clientKidPurposeEntry.GSIPK_kid,
+            purposeId: clientKidPurposeEntry.GSIPK_purposeId,
+            clientId: clientKidPurposeEntry.GSIPK_clientId,
+            consumerId: clientKidPurposeEntry.consumerId,
+            publicKey: clientKidPurposeEntry.publicKey,
+            // algorithm: clientAssertion.header.alg,
+            algorithm: "RS256" /* TODO pass this as a parameter? */,
+            clientKind: clientKindTokenStates.consumer, // TODO this doesn't work with clientKidPurpose Entry.clientKind, but it should be already validated in the "when"
+            purposeState: {
+              state: clientKidPurposeEntry.purposeState,
+              versionId: clientKidPurposeEntry.purposeVersionId,
+            },
+            agreementId: clientKidPurposeEntry.agreementId,
+            agreementState: {
+              state: clientKidPurposeEntry.agreementState,
+            },
+            // TODO: make function for this split
+            eServiceId: unsafeBrandId<EServiceId>(
+              clientKidPurposeEntry.GSIPK_eserviceId_descriptorId.split("#")[0]
+            ),
+            eServiceState: {
+              state: clientKidPurposeEntry.descriptorState,
+              descriptorId: unsafeBrandId<DescriptorId>(
                 clientKidPurposeEntry.GSIPK_eserviceId_descriptorId.split(
                   "#"
-                )[0]
+                )[1]
               ),
-              eServiceState: {
-                state: clientKidPurposeEntry.descriptorState,
-                descriptorId: unsafeBrandId<DescriptorId>(
-                  clientKidPurposeEntry.GSIPK_eserviceId_descriptorId.split(
-                    "#"
-                  )[1]
-                ),
-                audience: clientKidPurposeEntry.descriptorAudience,
-                voucherLifespan:
-                  clientKidPurposeEntry.descriptorVoucherLifespan,
-              },
-            };
-            return key;
-          }
-        )
-        .when(
-          (entry) =>
-            entry.clientKind === clientKindTokenStates.consumer &&
-            entry.PK.startsWith(clientKidPrefix),
-          (entry) => {
-            throw keyTypeMismatch(clientKidPrefix, entry.clientKind);
-          }
-        )
-        .when(
-          (entry) =>
-            entry.clientKind === clientKindTokenStates.api &&
-            entry.PK.startsWith(clientKidPurposePrefix),
-          (entry) => {
-            throw keyTypeMismatch(clientKidPurposePrefix, entry.clientKind);
-          }
-        )
-        .when(
-          (entry) =>
-            entry.clientKind === clientKindTokenStates.api &&
-            entry.PK.startsWith(clientKidPrefix),
-          () => {
-            const clientKidEntry =
-              tokenGenerationEntry.data as TokenGenerationStatesClientEntry;
+              audience: clientKidPurposeEntry.descriptorAudience,
+              voucherLifespan: clientKidPurposeEntry.descriptorVoucherLifespan,
+            },
+          };
+          return key;
+        }
+      )
+      .when(
+        (entry) =>
+          entry.clientKind === clientKindTokenStates.consumer &&
+          entry.PK.startsWith(clientKidPrefix),
+        (entry) => {
+          throw keyTypeMismatch(clientKidPrefix, entry.clientKind);
+        }
+      )
+      .when(
+        (entry) =>
+          entry.clientKind === clientKindTokenStates.api &&
+          entry.PK.startsWith(clientKidPurposePrefix),
+        (entry) => {
+          throw keyTypeMismatch(clientKidPurposePrefix, entry.clientKind);
+        }
+      )
+      .when(
+        (entry) =>
+          entry.clientKind === clientKindTokenStates.api &&
+          entry.PK.startsWith(clientKidPrefix),
+        () => {
+          const clientKidEntry =
+            tokenGenerationEntry.data as TokenGenerationStatesClientEntry;
 
-            const key: ApiKey = {
-              kid: clientKidEntry.GSIPK_kid,
-              clientId: clientKidEntry.GSIPK_clientId,
-              consumerId: clientKidEntry.consumerId,
-              publicKey: clientKidEntry.publicKey,
-              algorithm: "RS256", // TODO pass this as a parameter?,
-              clientKind: clientKindTokenStates.api, // TODO this doesn't work with clientKidEntry.clientKind, but it should be already validated in the "when"
-            };
-            return key;
-          }
-        )
-        .otherwise(() => {
-          throw unexpectedTokenGenerationStatesEntry();
-        });
-    }
-  } catch (error) {
-    // error handling.
-    // TODO Handle both dynamodb errors and throw error for empty public key
-    throw keyRetrievalFailed();
+          const key: ApiKey = {
+            kid: clientKidEntry.GSIPK_kid,
+            clientId: clientKidEntry.GSIPK_clientId,
+            consumerId: clientKidEntry.consumerId,
+            publicKey: clientKidEntry.publicKey,
+            algorithm: "RS256", // TODO pass this as a parameter?,
+            clientKind: clientKindTokenStates.api, // TODO this doesn't work with clientKidEntry.clientKind, but it should be already validated in the "when"
+          };
+          return key;
+        }
+      )
+      .otherwise(() => {
+        throw unexpectedTokenGenerationStatesEntry();
+      });
   }
+  // } catch (error) {
+  //   // error handling.
+  //   // TODO Handle both dynamodb errors and throw error for empty public key
+  //   throw keyRetrievalFailed();
+  // }
 };
 
 export const generateInteropToken = async (
