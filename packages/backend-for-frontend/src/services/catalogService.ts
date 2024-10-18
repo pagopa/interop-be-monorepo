@@ -1200,5 +1200,19 @@ export function catalogServiceBuilder(
         descriptorId: eservice.descriptors[0].id,
       };
     },
+    approveDelegatedEServiceDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: EServiceId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(`Approving e-service ${eServiceId} version ${descriptorId}`);
+      await catalogProcessClient.approveDelegatedEServiceDescriptor(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
   };
 }

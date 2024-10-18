@@ -532,7 +532,9 @@ describe("submit agreement", () => {
       id: descriptorId,
       state: randomArrayItem(
         Object.values(descriptorState).filter(
-          (state: DescriptorState) => state !== descriptorState.draft
+          (state: DescriptorState) =>
+            state !== descriptorState.draft &&
+            state !== descriptorState.waitingForApproval
         )
       ),
       version: "1",
@@ -542,7 +544,9 @@ describe("submit agreement", () => {
       ...getMockDescriptor(),
       state: randomArrayItem(
         Object.values(descriptorState).filter(
-          (state: DescriptorState) => state !== descriptorState.draft
+          (state: DescriptorState) =>
+            state !== descriptorState.draft &&
+            state !== descriptorState.waitingForApproval
         )
       ),
       version: "2",
@@ -602,7 +606,9 @@ describe("submit agreement", () => {
       state: randomArrayItem(
         Object.values(descriptorState).filter(
           (state: DescriptorState) =>
-            !allowedStatus.includes(state) && state !== descriptorState.draft
+            !allowedStatus.includes(state) &&
+            state !== descriptorState.draft &&
+            state !== descriptorState.waitingForApproval
         )
       ),
     };
