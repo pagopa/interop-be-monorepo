@@ -209,6 +209,7 @@ const validateLatestDescriptor = (
 ): Descriptor => {
   const recentActiveDescriptors = eservice.descriptors
     .filter((d) => d.state !== descriptorState.draft)
+    .filter((d) => d.state !== descriptorState.waitingForApproval)
     .sort((a, b) => Number(b.version) - Number(a.version));
 
   if (

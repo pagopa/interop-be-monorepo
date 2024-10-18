@@ -44,7 +44,9 @@ describe("upload Document", () => {
   const mockDocument = getMockDocument();
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state !== descriptorState.archived
+      (state) =>
+        state !== descriptorState.archived &&
+        state !== descriptorState.waitingForApproval
     )
   )(
     "should write on event-store for the upload of a document when descriptor state is %s",
@@ -109,7 +111,9 @@ describe("upload Document", () => {
   );
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state !== descriptorState.archived
+      (state) =>
+        state !== descriptorState.archived &&
+        state !== descriptorState.waitingForApproval
     )
   )(
     "should write on event-store for the upload of a document when descriptor state is %s (delegate)",
@@ -301,7 +305,9 @@ describe("upload Document", () => {
 
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state === descriptorState.archived
+      (state) =>
+        state === descriptorState.archived ||
+        state === descriptorState.waitingForApproval
     )
   )(
     "should throw notValidDescriptor if the descriptor is in %s state",

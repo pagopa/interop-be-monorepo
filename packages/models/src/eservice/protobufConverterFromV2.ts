@@ -10,6 +10,7 @@ import {
   EServiceModeV2,
   EServiceRiskAnalysisV2,
   EServiceRiskAnalysisFormV2,
+  DescriptorRejectionReasonV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -29,6 +30,7 @@ import {
   Descriptor,
   EService,
   Document,
+  DescriptorRejectionReason,
 } from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV2 = (
@@ -56,6 +58,8 @@ export const fromEServiceDescriptorStateV2 = (
       return descriptorState.published;
     case EServiceDescriptorStateV2.DEPRECATED:
       return descriptorState.deprecated;
+    case EServiceDescriptorStateV2.WAITING_FOR_APPROVAL:
+      return descriptorState.waitingForApproval;
   }
 };
 
@@ -90,6 +94,13 @@ export const fromDocumentV2 = (input: EServiceDocumentV2): Document => ({
   uploadDate: new Date(input.uploadDate),
 });
 
+export const fromDescriptorRejectionReasonV2 = (
+  input: DescriptorRejectionReasonV2
+): DescriptorRejectionReason => ({
+  ...input,
+  rejectedAt: bigIntToDate(input.rejectedAt),
+});
+
 export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -118,6 +129,10 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   suspendedAt: bigIntToDate(input.suspendedAt),
   deprecatedAt: bigIntToDate(input.deprecatedAt),
   archivedAt: bigIntToDate(input.archivedAt),
+  rejectionReasons:
+    input.rejectionReasons.length > 0
+      ? input.rejectionReasons.map(fromDescriptorRejectionReasonV2)
+      : undefined,
 });
 
 export const fromRiskAnalysisFormV2 = (

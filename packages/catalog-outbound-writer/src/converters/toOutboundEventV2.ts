@@ -98,6 +98,9 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorPublished" },
       { type: "EServiceDescriptorSuspended" },
       { type: "EServiceDraftDescriptorDeleted" },
+      { type: "EServiceDescriptorDelegateSubmitted" },
+      { type: "EServiceDescriptorDelegatorApproved" },
+      { type: "EServiceDescriptorDelegatorRejected" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
