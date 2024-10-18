@@ -509,6 +509,6 @@ export const fallbackAudit = async (
     );
     logger.info("auditing succeeded through fallback");
   } catch {
-    throw fallbackAuditFailed(messageBody);
+    throw fallbackAuditFailed(messageBody.jwtId);
   }
 };
