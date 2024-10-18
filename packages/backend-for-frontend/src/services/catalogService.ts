@@ -320,6 +320,7 @@ export function catalogServiceBuilder(
         riskAnalysis: eservice.riskAnalysis.map(
           toBffCatalogApiEserviceRiskAnalysis
         ),
+        isSignalHubEnabled: eservice.isSignalHubEnabled,
       };
     },
     updateEServiceDescription: async (
