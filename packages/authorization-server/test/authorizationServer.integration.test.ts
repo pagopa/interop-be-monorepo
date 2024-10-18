@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
 import {
@@ -31,7 +32,9 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { formatDateyyyyMMdd, genericLogger } from "pagopa-interop-commons";
+import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { config } from "../src/config/config.js";
+import { clientAssertionRequestValidationFailed } from "../src/model/domain/errors.js";
 import {
   configTokenGenerationStates,
   dynamoDBClient,
@@ -67,7 +70,6 @@ describe("authorization server tests", () => {
   // - rate limiter
   // tokenGenerationStatesEntryNotFound
   // - key type mismatch
-  // clientAssertionRequestValidationFailed
   // clientAssertionValidationFailed
   // clientAssertionSignatureValidationFailed
   // platformStateValidationFailed
@@ -364,5 +366,20 @@ describe("authorization server tests", () => {
 
     // const decodedFileContent = new TextDecoder().decode(fileContent);
     // expect(decodedFileContent).toEqual(expectedFileContent);
+  });
+
+  it("clientAssertionRequestValidationFailed", async () => {
+    const { jws } = await getMockClientAssertion();
+
+    const clientId = generateId<ClientId>();
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion_type: "wrong-client-assertion-type",
+      client_assertion: jws,
+      client_id: clientId,
+    };
+    expect(
+      tokenService.generateToken(request, generateId(), genericLogger)
+    ).rejects.toThrowError(clientAssertionRequestValidationFailed(request));
   });
 });
