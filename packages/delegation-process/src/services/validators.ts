@@ -7,11 +7,9 @@ import {
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
-  WithMetadata,
 } from "pagopa-interop-models";
 import {
   delegationAlreadyExists,
-  delegationNotFound,
   delegatorAndDelegateSameIdError,
   eserviceNotFound,
   incorrectState,
@@ -104,17 +102,6 @@ export const assertDelegationNotExists = async (
       delegation.data.id
     );
   }
-};
-
-export const assertDelegationExists = (
-  delegationId: string,
-  delegationWithMeta: WithMetadata<Delegation> | undefined
-): WithMetadata<Delegation> => {
-  if (!delegationWithMeta) {
-    throw delegationNotFound(delegationId);
-  }
-
-  return delegationWithMeta;
 };
 
 export const assertIsDelegate = (

@@ -24,7 +24,7 @@ import {
 } from "./utils.js";
 
 describe("approve delegation", () => {
-  it("should approve delegation in the happy path", async () => {
+  it("should approve delegation if validations succed", async () => {
     const currentExecutionTime = new Date();
     vi.useFakeTimers();
     vi.setSystemTime(currentExecutionTime);

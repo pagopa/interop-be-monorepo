@@ -13,9 +13,10 @@ import {
   generateId,
   Tenant,
   unsafeBrandId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { DelegationId, TenantId, delegationState } from "pagopa-interop-models";
-import { tenantNotFound } from "../model/domain/errors.js";
+import { delegationNotFound, tenantNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventApproveDelegation,
   toCreateEventProducerDelegation,
@@ -23,7 +24,6 @@ import {
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
-  assertDelegationExists,
   assertDelegationNotExists,
   assertDelegatorIsIPA,
   assertDelegatorIsNotDelegate,
@@ -45,6 +45,16 @@ export function delegationProducerServiceBuilder(
     }
     return tenant;
   };
+
+  const getDelegationById = async (
+    delegationId: DelegationId
+  ): Promise<WithMetadata<Delegation>> => {
+    const delegation = await readModelService.getDelegationById(delegationId);
+    if (!delegation?.data) {
+      throw delegationNotFound(delegationId);
+    }
+    return delegation;
+  }; 
 
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
   return {
@@ -105,14 +115,7 @@ export function delegationProducerServiceBuilder(
       delegationId: DelegationId,
       correlationId: string
     ): Promise<void> {
-      const delegationWithMeta = await readModelService.getDelegationById(
-        delegationId
-      );
-
-      const { data: delegation, metadata } = assertDelegationExists(
-        delegationId,
-        delegationWithMeta
-      );
+      const { data: delegation, metadata } = await getDelegationById(delegationId);
 
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
@@ -145,14 +148,7 @@ export function delegationProducerServiceBuilder(
       correlationId: string,
       rejectionReason: string
     ): Promise<void> {
-      const delegationWithMeta = await readModelService.getDelegationById(
-        delegationId
-      );
-
-      const { data: delegation, metadata } = assertDelegationExists(
-        delegationId,
-        delegationWithMeta
-      );
+      const { data: delegation, metadata } = await getDelegationById(delegationId);
 
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
