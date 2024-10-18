@@ -679,4 +679,52 @@ describe("authorization server tests", () => {
       },
     });
   });
+
+  it("kafka audit failed and fallback audit failed", async () => {
+    const uuid = generateId();
+    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    uuidSpy.mockReturnValue(uuid);
+
+    mockProducer.send.mockImplementationOnce(async () => Promise.reject());
+    vi.spyOn(fileManager, "storeBytes").mockImplementationOnce(() =>
+      Promise.reject()
+    );
+
+    const purposeId = generateId<PurposeId>();
+    const clientId = generateId<ClientId>();
+
+    const { jws, clientAssertion, publicKeyEncodedPem } =
+      await getMockClientAssertion({
+        standardClaimsOverride: { sub: clientId },
+        customClaims: { purposeId },
+      });
+
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
+    };
+
+    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
+      {
+        clientId,
+        kid: clientAssertion.header.kid!,
+        purposeId,
+      }
+    );
+
+    const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
+      {
+        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+        publicKey: publicKeyEncodedPem,
+      };
+
+    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+
+    expect(
+      tokenService.generateToken(request, generateId(), genericLogger)
+    ).rejects.toThrowError(fallbackAuditFailed(uuid));
+  });
+
+  it("kafka audit failed and fallback audit succeeded", () => {});
 });
