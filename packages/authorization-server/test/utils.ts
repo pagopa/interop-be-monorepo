@@ -19,8 +19,8 @@ import { authorizationServerApi } from "pagopa-interop-api-clients";
 import * as uuidv4 from "uuid";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
 
-const uuid = generateId();
-vi.spyOn(uuidv4, "v4").mockReturnValue(uuid);
+// const uuid = generateId();
+// vi.spyOn(uuidv4, "v4").mockReturnValue(uuid);
 
 export const configTokenGenerationStates = inject(
   "tokenGenerationReadModelConfig"
