@@ -186,5 +186,6 @@ export const ConfigurationEservice = z.object({
   mode: bffApi.EServiceMode,
   descriptor: ConfigurationDescriptor,
   riskAnalysis: z.array(ConfigurationRiskAnalysis),
+  isSignalHubEnabled: z.boolean().optional(),
 });
 export type ConfigurationEservice = z.infer<typeof ConfigurationEservice>;

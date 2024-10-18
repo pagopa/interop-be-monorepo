@@ -1119,6 +1119,7 @@ export function catalogServiceBuilder(
           agreementApprovalPolicy:
             importedEservice.descriptor.agreementApprovalPolicy,
         },
+        isSignalHubEnabled: importedEservice.isSignalHubEnabled,
       };
 
       const pollEServiceById = createPollingByCondition(() =>
