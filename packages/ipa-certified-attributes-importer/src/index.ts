@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { createHash } from "crypto";
 import {
   InteropTokenGenerator,
@@ -38,6 +39,10 @@ const loggerInstance = logger({
   correlationId: uuidv4(),
 });
 
+function toKey<T>(a: T): string {
+  return JSON.stringify(a);
+}
+
 async function checkAttributesPresence(
   readModelService: ReadModelService,
   newAttributes: attributeRegistryApi.InternalCertifiedAttributeSeed[]
@@ -47,23 +52,24 @@ async function checkAttributesPresence(
   const certifiedAttributeIndex = new Map(
     attributes
       .filter((a) => a.kind === "Certified" && a.origin && a.code)
-      .map((a) => [{ origin: a.origin, code: a.code }, a])
+      .map((a) => [toKey({ origin: a.origin, code: a.code }), a])
   );
 
   const missingAttributes = newAttributes.filter(
-    (i) => !certifiedAttributeIndex.get({ origin: i.origin, code: i.code })
+    (i) =>
+      !certifiedAttributeIndex.get(toKey({ origin: i.origin, code: i.code }))
   );
 
   return missingAttributes.length === 0;
 }
 
-function getTenantUpsertData(
+export function getTenantUpsertData(
   registryData: RegistryData,
   platformTenant: Tenant[]
 ): TenantSeed[] {
   // get a set with the external id of all tenants that have a selfcareId
   const platformTenantIndex = new Set(
-    platformTenant.filter((t) => t.selfcareId).map((t) => t.externalId)
+    platformTenant.map((t) => toKey(t.externalId))
   );
 
   // filter the institutions open data retrieving only the tenants
@@ -71,7 +77,7 @@ function getTenantUpsertData(
   const institutionAlreadyPresent = registryData.institutions.filter(
     (i) =>
       i.id.length > 0 &&
-      platformTenantIndex.has({ origin: i.origin, value: i.originId })
+      platformTenantIndex.has(toKey({ origin: i.origin, value: i.originId }))
   );
 
   // get a set with the attributes that should be created
@@ -145,19 +151,19 @@ function getNewAttributes(
   const platformAttributeIndex = new Set(
     attributes
       .filter((a) => a.kind === "Certified" && a.origin && a.code)
-      .map((a) => ({ origin: a.origin, code: a.code }))
+      .map((a) => toKey({ origin: a.origin, code: a.code }))
   );
 
   const newAttributesIndex = new Set(
     tenantUpsertData.flatMap((t) =>
-      t.attributes.map((a) => ({ origin: a.origin, code: a.code }))
+      t.attributes.map((a) => toKey({ origin: a.origin, code: a.code }))
     )
   );
 
   return registryData.attributes.filter(
     (a) =>
-      newAttributesIndex.has({ origin: a.origin, code: a.code }) &&
-      !platformAttributeIndex.has({ origin: a.origin, code: a.code })
+      newAttributesIndex.has(toKey({ origin: a.origin, code: a.code })) &&
+      !platformAttributeIndex.has(toKey({ origin: a.origin, code: a.code }))
   );
 }
 
@@ -167,7 +173,9 @@ async function assignNewAttribute(
   tenantSeed: TenantSeed[],
   headers: Header
 ): Promise<void> {
-  const tenantIndex = new Map(platformTenant.map((t) => [t.externalId, t]));
+  const tenantIndex = new Map(
+    platformTenant.map((t) => [toKey(t.externalId), t])
+  );
 
   const certifiedAttribute = new Map(
     platformAttributes
@@ -179,7 +187,7 @@ async function assignNewAttribute(
     .map((i) => {
       const externalId = { origin: i.origin, value: i.originId };
 
-      const tenant = tenantIndex.get(externalId);
+      const tenant = tenantIndex.get(toKey(externalId));
 
       if (!tenant) {
         return undefined;
@@ -209,7 +217,7 @@ async function assignNewAttribute(
             return undefined;
           })
           .filter((a) => a !== undefined)
-          .map((a) => [{ origin: a?.origin, code: a?.code }, a])
+          .map((a) => [toKey({ origin: a?.origin, code: a?.code }), a])
       );
 
       return tenant
@@ -218,10 +226,12 @@ async function assignNewAttribute(
             name: tenant.name,
             certifiedAttributes: i.attributes
               .filter((a) => {
-                const attribute = tenantCurrentAttribute.get({
-                  origin: a.origin,
-                  code: a.code,
-                });
+                const attribute = tenantCurrentAttribute.get(
+                  toKey({
+                    origin: a.origin,
+                    code: a.code,
+                  })
+                );
 
                 if (!attribute) {
                   return true;
@@ -257,13 +267,17 @@ async function revokeAttributes(
   headers: Header
 ): Promise<void> {
   const indexFromOpenData = new Set(
-    registryData.attributes.map((a) => ({ origin: a.origin, value: a.code }))
+    registryData.attributes.map((a) =>
+      toKey({ origin: a.origin, value: a.code })
+    )
   );
 
   const tenantSeedIndex = new Map(
     tenantSeed.map((t) => [
-      { origin: t.origin, value: t.originId },
-      new Set(t.attributes.map((a) => ({ origin: a.origin, value: a.code }))),
+      toKey({ origin: t.origin, value: t.originId }),
+      new Set(
+        t.attributes.map((a) => toKey({ origin: a.origin, value: a.code }))
+      ),
     ])
   );
 
@@ -283,16 +297,16 @@ async function revokeAttributes(
       return false;
     }
 
-    const registryAttributes = tenantSeedIndex.get(externalId);
+    const registryAttributes = tenantSeedIndex.get(toKey(externalId));
     if (!registryAttributes) {
       return false;
     }
 
-    if (registryAttributes.has(externalId)) {
+    if (registryAttributes.has(toKey(externalId))) {
       return false;
     }
 
-    return !indexFromOpenData.has(externalId);
+    return !indexFromOpenData.has(toKey(externalId));
   };
 
   const toRevoke = platformTenants.flatMap((t) =>
