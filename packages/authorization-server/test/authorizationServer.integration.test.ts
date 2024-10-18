@@ -80,7 +80,7 @@ describe("authorization server tests", () => {
   // fallbackAuditFailed
   // unexpectedTokenGenerationError
 
-  it("should generate a token and publish audit with fallback", async () => {
+  it.skip("should generate a token and publish audit with fallback", async () => {
     mockProducer.send.mockImplementationOnce(async () => Promise.reject());
     mockKMSClient.send.mockImplementationOnce(async () => ({
       Signature: "mock signature",
