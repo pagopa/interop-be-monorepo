@@ -14,6 +14,7 @@ import {
   clientKindTokenStates,
   DescriptorId,
   EServiceId,
+  GeneratedTokenAuditDetails,
   generateId,
   genericInternalError,
   makeTokenGenerationStatesClientKidPK,
