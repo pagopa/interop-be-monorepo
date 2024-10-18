@@ -3,6 +3,7 @@ import {
   EServiceId,
   makeApiProblemBuilder,
   TenantId,
+  DelegationState,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -13,6 +14,8 @@ export const errorCodes = {
   invalidDelegatorAndDelegateIds: "0005",
   invalidExternalOriginId: "0006",
   tenantNotAllowedToDelegation: "0007",
+  operationRestrictedToDelegate: "0008",
+  incorrectState: "0009",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -82,5 +85,28 @@ export function tenantNotAllowedToDelegation(
     detail: `Tenant ${tenantId} not allowed to delegation`,
     code: "tenantNotAllowedToDelegation",
     title: "Tenant not allowed to delegation",
+  });
+}
+
+export function operationRestrictedToDelegate(
+  tenantId: string,
+  delegationId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not a delegate for delegation ${delegationId}`,
+    code: "operationRestrictedToDelegate",
+    title: "Operation restricted to delegate",
+  });
+}
+
+export function incorrectState(
+  delegationId: string,
+  actualState: DelegationState,
+  expectedState: DelegationState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} is in state ${actualState} but expected ${expectedState}`,
+    code: "incorrectState",
+    title: "Incorrect state",
   });
 }

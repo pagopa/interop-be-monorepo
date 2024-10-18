@@ -37,7 +37,7 @@ import {
   addOneTenant,
   delegationProducerService,
   getRandomValidDelegationStatus,
-  readLastAgreementEvent,
+  readLastDelegationEvent,
 } from "./utils.js";
 
 /**
@@ -60,7 +60,9 @@ const expectedDelegationCreation = async (
   expect(expectedDelegation.id).toBeDefined();
   expect(actualDelegation.id).toEqual(expectedDelegation.id);
 
-  const lastDelegationEvent = await readLastAgreementEvent(actualDelegation.id);
+  const lastDelegationEvent = await readLastDelegationEvent(
+    actualDelegation.id
+  );
 
   if (!lastDelegationEvent) {
     fail("Creation fails: delegation not found in event-store");

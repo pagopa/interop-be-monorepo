@@ -14,11 +14,11 @@ export function delegationServiceBuilder(readModelService: ReadModelService) {
     async getDelegationById(delegationId: DelegationId): Promise<Delegation> {
       const delegation = await readModelService.getDelegationById(delegationId);
 
-      if (!delegation) {
+      if (!delegation?.data) {
         throw delegationNotFound(delegationId);
       }
 
-      return delegation;
+      return delegation.data;
     },
     // eslint-disable-next-line max-params
     async getDelegations(
