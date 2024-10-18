@@ -32,21 +32,11 @@ type MockedApiRequestOptions<
 
 type MockedApiRequester<TApi extends Array<ZodiosEndpointDefinition<unknown>>> =
   {
-    get: <TPath extends ZodiosPathsByMethod<TApi, "get">>(
-      opts: MockedApiRequestOptions<TApi, "get", TPath>
-    ) => Promise<ZodiosResponseByPath<TApi, "get", TPath>>;
-
-    post: <TPath extends ZodiosPathsByMethod<TApi, "post">>(
-      opts: MockedApiRequestOptions<TApi, "post", TPath>
-    ) => Promise<ZodiosResponseByPath<TApi, "post", TPath>>;
-
-    delete: <TPath extends ZodiosPathsByMethod<TApi, "delete">>(
-      opts: MockedApiRequestOptions<TApi, "delete", TPath>
-    ) => Promise<ZodiosResponseByPath<TApi, "delete", TPath>>;
-
-    put: <TPath extends ZodiosPathsByMethod<TApi, "put">>(
-      opts: MockedApiRequestOptions<TApi, "put", TPath>
-    ) => Promise<ZodiosResponseByPath<TApi, "put", TPath>>;
+    [TMethod in "get" | "post" | "delete" | "put"]: <
+      TPath extends ZodiosPathsByMethod<TApi, TMethod>
+    >(
+      opts: MockedApiRequestOptions<TApi, TMethod, TPath>
+    ) => Promise<ZodiosResponseByPath<TApi, TMethod, TPath>>;
   };
 
 export function createMockedApiRequester<
