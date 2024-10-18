@@ -1,10 +1,13 @@
 import {
   randomArrayItem,
   ReadEvent,
+  readEventByStreamIdAndVersion,
   readLastEventByStreamId,
   setupTestContainersVitest,
+  StoredEvent,
+  writeInEventstore,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Delegation,
   DelegationEvent,
@@ -13,6 +16,7 @@ import {
   delegationState,
   EService,
   Tenant,
+  toDelegationV2,
   toReadModelEService,
   toReadModelTenant,
 } from "pagopa-interop-models";
@@ -49,14 +53,46 @@ export const delegationProducerService = delegationProducerServiceBuilder(
 
 export const delegationService = delegationServiceBuilder(readModelService);
 
+export const writeDelegationInEventstore = async (
+  delegation: Delegation
+): Promise<void> => {
+  const createProducerDelegationEvent: DelegationEvent = {
+    type: "DelegationSubmitted",
+    event_version: 2,
+    data: {
+      delegation: toDelegationV2(delegation),
+    },
+  };
+
+  const eventToWrite: StoredEvent<DelegationEvent> = {
+    stream_id: delegation.id,
+    version: 0,
+    event: createProducerDelegationEvent,
+  };
+
+  await writeInEventstore(eventToWrite, "delegation", postgresDB);
+};
+
 export const readLastAgreementEvent = async (
   delegationId: DelegationId
 ): Promise<ReadEvent<DelegationEvent>> =>
   await readLastEventByStreamId(delegationId, "delegation", postgresDB);
 
+export const readDelegationEventByVersion = async (
+  delegationId: DelegationId,
+  version: number
+): Promise<ReadEvent<DelegationEvent>> =>
+  await readEventByStreamIdAndVersion(
+    delegationId,
+    version,
+    "delegation",
+    postgresDB
+  );
+
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
+  await writeDelegationInEventstore(delegation);
   await writeInReadmodel(delegation, delegations);
 };
 
