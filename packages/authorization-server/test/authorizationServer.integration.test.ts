@@ -27,6 +27,7 @@ import {
   makeGSIPKKid,
   makeTokenGenerationStatesClientKidPurposePK,
   Purpose,
+  PurposeId,
   purposeVersionState,
   TokenGenerationStatesClientPurposeEntry,
   unsafeBrandId,
@@ -37,6 +38,7 @@ import { config } from "../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
   clientAssertionValidationFailed,
+  tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
 import {
   configTokenGenerationStates,
@@ -399,5 +401,28 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(clientAssertionValidationFailed(jws, clientId));
+  });
+
+  it("clientAssertionValidationFailed", async () => {
+    const purposeId = generateId<PurposeId>();
+    const { jws, clientAssertion } = await getMockClientAssertion({
+      standardClaimsOverride: { purposeId },
+    });
+
+    const clientId = generateId<ClientId>();
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
+    };
+
+    const entryPK = makeTokenGenerationStatesClientKidPurposePK({
+      clientId,
+      kid: clientAssertion.header.kid!,
+      purposeId,
+    });
+    expect(
+      tokenService.generateToken(request, generateId(), genericLogger)
+    ).rejects.toThrowError(tokenGenerationStatesEntryNotFound(entryPK));
   });
 });
