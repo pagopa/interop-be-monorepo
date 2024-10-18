@@ -38,6 +38,7 @@ import { config } from "../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
   clientAssertionValidationFailed,
+  invalidTokenClientKidPurposeEntry,
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -424,5 +425,37 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(tokenGenerationStatesEntryNotFound(entryPK));
+  });
+
+  it("invalidTokenClientKidPurposeEntry", async () => {
+    const purposeId = generateId<PurposeId>();
+    const { jws, clientAssertion } = await getMockClientAssertion({
+      standardClaimsOverride: { purposeId },
+    });
+
+    const clientId = generateId<ClientId>();
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
+    };
+
+    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
+      {
+        clientId,
+        kid: clientAssertion.header.kid!,
+        purposeId,
+      }
+    );
+
+    const tokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry = {
+      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      agreementId: undefined,
+    };
+
+    await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
+    expect(
+      tokenService.generateToken(request, generateId(), genericLogger)
+    ).rejects.toThrowError(invalidTokenClientKidPurposeEntry());
   });
 });
