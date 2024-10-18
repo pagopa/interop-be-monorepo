@@ -18,17 +18,22 @@ import {
   writeTokenStateEntry,
   getMockPurpose,
   getMockPurposeVersion,
+  getMockTokenStatesClientEntry,
 } from "pagopa-interop-commons-test";
 import {
   ClientId,
+  clientKidPrefix,
+  clientKindTokenStates,
   GeneratedTokenAuditDetails,
   generateId,
   itemState,
   makeGSIPKKid,
+  makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
   Purpose,
   PurposeId,
   purposeVersionState,
+  TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -39,6 +44,7 @@ import {
   clientAssertionRequestValidationFailed,
   clientAssertionValidationFailed,
   invalidTokenClientKidPurposeEntry,
+  keyTypeMismatch,
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -50,6 +56,7 @@ import {
   mockKMSClient,
   mockProducer,
   tokenService,
+  writeTokenStateClientEntry,
 } from "./utils.js";
 
 describe("authorization server tests", () => {
@@ -457,5 +464,34 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(invalidTokenClientKidPurposeEntry());
+  });
+
+  it("keyTypeMismatch - clientKid entry with consumer kind", async () => {
+    const { jws, clientAssertion } = await getMockClientAssertion();
+
+    const clientId = generateId<ClientId>();
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
+    };
+
+    const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
+      clientId,
+      kid: clientAssertion.header.kid!,
+    });
+
+    const tokenClientKidEntry: TokenGenerationStatesClientEntry = {
+      ...getMockTokenStatesClientEntry(tokenClientKidPK),
+      clientKind: clientKindTokenStates.consumer,
+    };
+
+    await writeTokenStateClientEntry(tokenClientKidEntry, dynamoDBClient);
+
+    expect(
+      tokenService.generateToken(request, generateId(), genericLogger)
+    ).rejects.toThrowError(
+      keyTypeMismatch(clientKidPrefix, clientKindTokenStates.consumer)
+    );
   });
 });
