@@ -15,6 +15,7 @@ import {
   getMockDescriptor,
   getMockPurpose,
   getMockPurposeVersion,
+  readAllTokenStateItems,
   writeTokenStateEntry,
 } from "pagopa-interop-commons-test";
 import {
@@ -81,6 +82,59 @@ describe("integration tests for events V1", () => {
   });
 
   describe("PurposeVersionActivated", () => {
+    it("should insert the entry in platform states and do no operation in token-generation-states", async () => {
+      const messageVersion = 1;
+
+      const purpose: Purpose = {
+        ...getMockPurpose(),
+        versions: [getMockPurposeVersion(purposeVersionState.active)],
+      };
+      const payload: PurposeVersionActivatedV1 = {
+        purpose: toPurposeV1(purpose),
+      };
+      const message: PurposeEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purpose.id,
+        version: messageVersion,
+        type: "PurposeVersionActivated",
+        event_version: 1,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      // platform-states
+      const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purpose.id);
+      expect(
+        await readPlatformPurposeEntry(dynamoDBClient, purposeEntryPrimaryKey)
+      ).toBeUndefined();
+
+      // token-generation-states
+      expect(await readAllTokenStateItems(dynamoDBClient)).toHaveLength(0);
+
+      await handleMessageV1(message, dynamoDBClient);
+
+      // platform-states
+      const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
+        dynamoDBClient,
+        purposeEntryPrimaryKey
+      );
+      const expectedPlatformPurposeEntry: PlatformStatesPurposeEntry = {
+        PK: purposeEntryPrimaryKey,
+        state: getPurposeStateFromPurposeVersions(purpose.versions),
+        purposeVersionId: purpose.versions[0].id,
+        purposeEserviceId: purpose.eserviceId,
+        purposeConsumerId: purpose.consumerId,
+        version: messageVersion,
+        updatedAt: mockDate.toISOString(),
+      };
+      expect(retrievedPlatformPurposeEntry).toEqual(
+        expectedPlatformPurposeEntry
+      );
+
+      // token-generation-states
+      expect(await readAllTokenStateItems(dynamoDBClient)).toHaveLength(0);
+    });
+
     it("should insert the entry in platform states if it doesn't exist and update token generation states", async () => {
       const messageVersion = 1;
       const purpose: Purpose = {
