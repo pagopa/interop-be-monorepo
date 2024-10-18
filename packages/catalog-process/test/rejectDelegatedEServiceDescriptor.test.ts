@@ -43,7 +43,7 @@ describe("reject descriptor", () => {
   afterAll(() => {
     vi.useRealTimers();
   });
-  it.only("should write on event-store for the rejection of a waiting for approval descriptor", async () => {
+  it("should write on event-store for the rejection of a waiting for approval descriptor", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.waitingForApproval,
