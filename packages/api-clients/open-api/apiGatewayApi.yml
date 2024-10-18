@@ -2617,6 +2617,8 @@ components:
           type: array
           items:
             type: string
+        isSignalHubEnabled:
+          type: boolean
     EServiceAttributes:
       description: the attributes set associated to the EService
       properties:

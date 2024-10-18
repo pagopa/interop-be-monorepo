@@ -15,13 +15,24 @@ headers {
   x-correlation-id: {{correlation-id}}
 }
 
-
-
 body:json {
   {
-    "name": "<string>",
-    "description": "<string>",
+    "name": "{{randomName}}",
+    "description": "This is a test from BFF",
     "technology": "SOAP",
-    "mode": "DELIVER"
+    "mode": "DELIVER",
+    "isSignalHubEnabled": true
   }
+}
+
+vars:post-response {
+  eserviceId: res.body.id
+  descriptorId: res.body.descriptorId
+}
+
+script:pre-request {
+    const random = Math.round(Math.random() * 10000)
+    
+    bru.setVar("randomName",`test name ${random}`)
+    bru.setVar("randomCode",random)
 }

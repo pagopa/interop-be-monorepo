@@ -118,6 +118,7 @@ export function toBffCatalogDescriptorEService(
     riskAnalysis: eservice.riskAnalysis.map(
       toBffCatalogApiEserviceRiskAnalysis
     ),
+    isSignalHubEnabled: eservice.isSignalHubEnabled,
   };
 }
 
@@ -263,6 +264,7 @@ export function toBffCatalogApiProducerDescriptorEService(
       toBffCatalogApiEserviceRiskAnalysis
     ),
     descriptors: notDraftDecriptors,
+    isSignalHubEnabled: eservice.isSignalHubEnabled,
   };
 }
 

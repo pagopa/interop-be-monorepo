@@ -1,0 +1,25 @@
+meta {
+  name: Retrieve a producer eservice descriptor
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/producers/eservices/:eserviceId/descriptors/:descriptorId
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+docs {
+  Retrieves a producer eservice descriptor corresponding to the id
+}
