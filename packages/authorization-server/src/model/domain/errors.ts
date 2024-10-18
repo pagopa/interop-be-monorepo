@@ -24,7 +24,7 @@ export const errorCodes = {
   invalidTokenClientKidPurposeEntry: "0009",
   keyTypeMismatch: "0010",
   unexpectedTokenGenerationStatesEntry: "0011",
-  tokenGenerationFailed: "0012",
+  unexpectedTokenGenerationError: "0012",
   platformStateValidationFailed: "0013",
 };
 
@@ -144,11 +144,11 @@ export function unexpectedTokenGenerationStatesEntry(): ApiError<ErrorCodes> {
   });
 }
 
-export function tokenGenerationFailed(): ApiError<ErrorCodes> {
+export function unexpectedTokenGenerationError(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Token generation failed",
-    code: "tokenGenerationFailed",
-    title: "Token generation failed",
+    detail: "Unexpected token generation error",
+    code: "unexpectedTokenGenerationError",
+    title: "Unexpected token generation error",
   });
 }
 

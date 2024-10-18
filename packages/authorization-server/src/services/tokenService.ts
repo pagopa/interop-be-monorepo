@@ -25,6 +25,7 @@ import {
   TokenGenerationStatesClientPurposeEntry,
   TokenGenerationStatesGenericEntry,
   unsafeBrandId,
+  GeneratedTokenAuditDetails,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -40,7 +41,6 @@ import {
   FileManager,
   formatDateyyyyMMdd,
   formatTimehhmmss,
-  genericLogger,
   Logger,
   RateLimiter,
   RateLimiterStatus,
@@ -48,7 +48,6 @@ import {
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import {
-  GeneratedTokenAuditDetails,
   InteropJwtHeader,
   InteropJwtPayload,
   InteropToken,
@@ -64,9 +63,10 @@ import {
   tokenGenerationStatesEntryNotFound,
   keyRetrievalFailed,
   keyTypeMismatch,
-  tokenGenerationFailed,
+  unexpectedTokenGenerationError,
   tokenSigningFailed,
   unexpectedTokenGenerationStatesEntry,
+  platformStateValidationFailed,
 } from "../model/domain/errors.js";
 
 // TODO: copied
@@ -94,21 +94,19 @@ export function tokenServiceBuilder({
   kmsClient,
   redisRateLimiter,
   producer,
-  correlationId,
   fileManager,
-  logger,
 }: {
   dynamoDBClient: DynamoDBClient;
   kmsClient: KMSClient;
   redisRateLimiter: RateLimiter;
   producer: Awaited<ReturnType<typeof initProducer>>;
-  correlationId: string;
   fileManager: FileManager;
-  logger: Logger;
 }) {
   return {
     async generateToken(
-      request: authorizationServerApi.AccessTokenRequest
+      request: authorizationServerApi.AccessTokenRequest,
+      correlationId: string,
+      logger: Logger
     ): Promise<GenerateTokenReturnType> {
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: request.client_assertion,
@@ -146,7 +144,8 @@ export function tokenServiceBuilder({
       const key = await retrieveKey(dynamoDBClient, pk);
 
       const { errors: clientAssertionSignatureErrors } =
-        verifyClientAssertionSignature(request.client_assertion, key);
+        await verifyClientAssertionSignature(request.client_assertion, key);
+
       if (clientAssertionSignatureErrors) {
         throw clientAssertionSignatureValidationFailed(
           request.client_assertion,
@@ -157,17 +156,11 @@ export function tokenServiceBuilder({
       const { errors: platformStateErrors } =
         validateClientKindAndPlatformState(key, jwt);
       if (platformStateErrors) {
-        throw clientAssertionSignatureValidationFailed(
-          request.client_assertion,
-          key
-        );
+        throw platformStateValidationFailed();
       }
 
       const { limitReached, ...rateLimiterStatus } =
-        await redisRateLimiter.rateLimitByOrganization(
-          key.consumerId,
-          genericLogger
-        );
+        await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
 
       if (limitReached) {
         return {
@@ -224,7 +217,7 @@ export function tokenServiceBuilder({
           rateLimiterStatus,
         };
       } else {
-        throw tokenGenerationFailed();
+        throw unexpectedTokenGenerationError();
       }
     },
   };
@@ -264,7 +257,7 @@ export const retrieveKey = async (
         );
       }
 
-      match(tokenGenerationEntry.data)
+      return match(tokenGenerationEntry.data)
         .when(
           (entry) =>
             entry.clientKind === clientKindTokenStates.consumer &&
@@ -360,9 +353,9 @@ export const retrieveKey = async (
             return key;
           }
         )
-        .run();
-
-      throw unexpectedTokenGenerationStatesEntry();
+        .otherwise(() => {
+          throw unexpectedTokenGenerationStatesEntry();
+        });
     }
   } catch (error) {
     // error handling.
@@ -376,6 +369,7 @@ export const generateInteropToken = async (
   clientAssertion: ClientAssertion,
   audience: string[],
   tokenDurationInSeconds: number,
+  // TODO: improve object type
   customClaims: object
 ): Promise<InteropToken> => {
   const currentTimestamp = Date.now();
@@ -449,9 +443,9 @@ export const publishAudit = async ({
     organizationId: key.consumerId,
     agreementId: key.agreementId,
     eserviceId: key.eServiceId,
-    descriptorId: key.eServiceState.descriptorId,
+    descriptorId: unsafeBrandId(key.eServiceState.descriptorId),
     purposeId: key.purposeId,
-    purposeVersionId: key.purposeState.versionId,
+    purposeVersionId: unsafeBrandId(key.purposeState.versionId),
     algorithm: generatedToken.header.alg,
     keyId: generatedToken.header.kid,
     audience: generatedToken.payload.aud.join(","),
@@ -461,7 +455,11 @@ export const publishAudit = async ({
     issuer: generatedToken.payload.iss,
     clientAssertion: {
       algorithm: clientAssertion.header.alg,
-      audience: clientAssertion.payload.aud.join(","),
+      // TODO: improve typeof
+      audience:
+        typeof clientAssertion.payload.aud === "string"
+          ? clientAssertion.payload.aud
+          : clientAssertion.payload.aud.join(","),
       // TODO: double check if the toMillis function is needed
       expirationTime: clientAssertion.payload.exp,
       issuedAt: clientAssertion.payload.iat,
@@ -478,11 +476,10 @@ export const publishAudit = async ({
         {
           // TODO: is this key correct?
           key: generatedToken.payload.jti,
-          value: JSON.stringify(messageBody),
+          value: JSON.stringify(messageBody) + "\n",
         },
       ],
     });
-
     if (res.length === 0 || res[0].errorCode !== 0) {
       throw kafkaAuditingFailed();
     }
@@ -502,15 +499,15 @@ export const fallbackAudit = async (
   const hmsTime = formatTimehhmmss(date);
 
   const fileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
-  const filePath = `token-details/${ymdDate}/${fileName}`;
+  const filePath = `token-details/${ymdDate}`;
 
   try {
     await fileManager.storeBytes(
       {
-        bucket: config.interopGeneratedJwtDetailsFallback,
+        bucket: config.s3Bucket,
         path: filePath,
         name: fileName,
-        content: Buffer.from(JSON.stringify(messageBody)),
+        content: Buffer.from(JSON.stringify(messageBody) + "\n"),
       },
       logger
     );

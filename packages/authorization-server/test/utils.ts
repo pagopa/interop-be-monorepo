@@ -4,11 +4,14 @@ import { ClientId, generateId } from "pagopa-interop-models";
 import { afterEach, inject, vi } from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
-import { genericLogger } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
 import * as jose from "jose";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
+import * as uuidv4 from "uuid";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
+
+const uuid = generateId();
+vi.spyOn(uuidv4, "v4").mockReturnValue(uuid);
 
 export const configTokenGenerationStates = inject(
   "tokenGenerationReadModelConfig"
@@ -39,17 +42,13 @@ export const mockProducer = {
 export const mockKMSClient = {
   send: vi.fn(),
 };
-const logger = genericLogger;
-const correlationId = generateId();
 
 export const tokenService = tokenServiceBuilder({
   dynamoDBClient,
   kmsClient: mockKMSClient as unknown as KMSClient,
   redisRateLimiter,
   producer: mockProducer as unknown as Awaited<ReturnType<typeof initProducer>>,
-  correlationId,
   fileManager,
-  logger,
 });
 
 // TODO: copied from client-assertion-validation
@@ -110,6 +109,10 @@ export const getMockClientAssertion = async (props?: {
   customHeader?: { [k: string]: unknown };
 }): Promise<{
   jws: string;
+  clientAssertion: {
+    payload: jose.JWTPayload;
+    header: jose.JWTHeaderParameters;
+  };
   publicKeyEncodedPem: string;
 }> => {
   const { keySet, publicKeyEncodedPem } = generateKeySet();
@@ -144,6 +147,10 @@ export const getMockClientAssertion = async (props?: {
 
   return {
     jws,
+    clientAssertion: {
+      payload: actualPayload,
+      header: headers,
+    },
     publicKeyEncodedPem,
   };
 };
@@ -159,3 +166,33 @@ export const getMockAccessTokenRequest =
       grant_type: "client_credentials",
     };
   };
+
+// export const generateExpectedInteropToken = async (
+//   jws: string,
+//   clientId: ClientId
+// ): Promise<InteropToken> => {
+//   const { data: jwt } = verifyClientAssertion(jws, clientId);
+//   if (!jwt) {
+//     fail();
+//   }
+
+//   const currentTimestamp = Date.now();
+//   const token: InteropToken = {
+//     header: {
+//       alg: "RS256",
+//       use: "sig",
+//       typ: "at+jwt",
+//       kid: config.generatedInteropTokenKid,
+//     },
+//     payload: {
+//       jti: generateId(),
+//       iss: config.generatedInteropTokenIssuer,
+//       aud: jwt.payload.aud,
+//       sub: jwt.payload.sub,
+//       iat: currentTimestamp,
+//       nbf: currentTimestamp,
+//       exp: currentTimestamp + tokenDurationInSeconds * 1000,
+//     },
+//     serialized: "",
+//   };
+// };

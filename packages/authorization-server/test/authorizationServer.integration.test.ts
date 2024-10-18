@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
-import * as uuidv4 from "uuid";
 import {
   afterAll,
   afterEach,
@@ -20,6 +20,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   ClientId,
+  GeneratedTokenAuditDetails,
   generateId,
   itemState,
   makeGSIPKKid,
@@ -27,8 +28,9 @@ import {
   Purpose,
   purposeVersionState,
   TokenGenerationStatesClientPurposeEntry,
+  unsafeBrandId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import { formatDateyyyyMMdd, genericLogger } from "pagopa-interop-commons";
 import { config } from "../src/config/config.js";
 import {
   configTokenGenerationStates,
@@ -52,6 +54,7 @@ describe("authorization server tests", () => {
     await deleteDynamoDBTables(dynamoDBClient);
   });
   const mockDate = new Date();
+
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(mockDate);
@@ -60,14 +63,25 @@ describe("authorization server tests", () => {
     vi.useRealTimers();
   });
 
-  it.only("success consumer", async () => {
-    mockProducer.send.mockImplementationOnce(async () => Promise.resolve());
+  // TODO: tests
+  // - rate limiter
+  // tokenGenerationStatesEntryNotFound
+  // - key type mismatch
+  // clientAssertionRequestValidationFailed
+  // clientAssertionValidationFailed
+  // clientAssertionSignatureValidationFailed
+  // platformStateValidationFailed
+  // tokenSigningFailed
+  // kafkaAuditingFailed
+  // fallbackAuditFailed
+  // unexpectedTokenGenerationError
+
+  it("should generate a token and publish audit with fallback", async () => {
+    mockProducer.send.mockImplementationOnce(async () => Promise.reject());
     mockKMSClient.send.mockImplementationOnce(async () => ({
-      Signature: undefined,
+      Signature: "mock signature",
     }));
 
-    const uuid = generateId();
-    vi.spyOn(uuidv4, "v4").mockReturnValue(uuid);
     vi.spyOn(fileManager, "storeBytes");
 
     const purpose: Purpose = {
@@ -76,11 +90,18 @@ describe("authorization server tests", () => {
     };
     const clientId = generateId<ClientId>();
     const kid = `kid`;
-    const { jws, publicKeyEncodedPem } = await getMockClientAssertion({
-      standardClaimsOverride: { sub: clientId },
-      customHeader: { kid },
-      customClaims: { purposeId: purpose.id },
-    });
+
+    const { jws, clientAssertion, publicKeyEncodedPem } =
+      await getMockClientAssertion({
+        standardClaimsOverride: {
+          sub: clientId,
+          exp: Date.now() / 1000 + 3600,
+        },
+        customHeader: { kid },
+        customClaims: { purposeId: purpose.id },
+      });
+    console.log("jws", jws);
+    console.log("clientId", clientId);
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
       {
         clientId,
@@ -88,7 +109,6 @@ describe("authorization server tests", () => {
         purposeId: purpose.id,
       }
     );
-    console.log("tokenClientKidPurposePK", tokenClientKidPurposePK);
     const tokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry = {
       ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
       consumerId: purpose.consumerId,
@@ -102,16 +122,22 @@ describe("authorization server tests", () => {
       publicKey: publicKeyEncodedPem,
     };
 
-    console.log(
-      await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient)
-    );
+    await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
 
     const request = {
       ...(await getMockAccessTokenRequest()),
       client_assertion: jws,
       client_id: clientId,
     };
-    const result = await tokenService.generateToken(request);
+    vi.useRealTimers();
+    const result = await tokenService.generateToken(
+      request,
+      generateId(),
+      genericLogger
+    );
+    vi.useFakeTimers();
+    vi.setSystemTime(mockDate);
+
     expect(result.token).toBeDefined();
     const expectedResult = {
       limitReached: false,
@@ -125,68 +151,218 @@ describe("authorization server tests", () => {
     };
     expect(result).toEqual(expectedResult);
 
-    expect(fileManager.storeBytes).toHaveBeenCalledWith(
+    const date = new Date();
+    const ymdDate = formatDateyyyyMMdd(date);
+
+    const fileList = await fileManager.listFiles(
       config.s3Bucket,
-      // TODO: remove hard coded path
-      "token-details",
       genericLogger
     );
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain("token-details/..${  }.ndjson");
+    expect(fileList).toHaveLength(1);
+    const file = fileList[0];
+    const split = file.split("_");
+    expect(split[0]).toEqual(`token-details/${ymdDate}/${ymdDate}`);
+    expect(split[2]).toEqual(`${generateId()}.ndjson`);
+
+    const messageBody: GeneratedTokenAuditDetails = {
+      jwtId: result.token!.payload.jti,
+      correlationId: generateId(),
+      issuedAt: result.token!.payload.iat,
+      clientId,
+      organizationId: purpose.consumerId,
+      agreementId: unsafeBrandId(tokenClientPurposeEntry.agreementId!),
+      eserviceId: unsafeBrandId(
+        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
+      ),
+      descriptorId: unsafeBrandId(
+        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
+      ),
+      purposeId: purpose.id,
+      purposeVersionId: purpose.versions[0].id,
+      algorithm: result.token!.header.alg,
+      keyId: result.token!.header.kid,
+      audience: result.token!.payload.aud.join(","),
+      subject: result.token!.payload.sub,
+      notBefore: result.token!.payload.nbf,
+      expirationTime: result.token!.payload.exp,
+      issuer: result.token!.payload.iss,
+      clientAssertion: {
+        algorithm: clientAssertion.header.alg,
+        // TODO: improve typeof
+        audience: !clientAssertion.payload.aud
+          ? ""
+          : typeof clientAssertion.payload.aud === "string"
+          ? clientAssertion.payload.aud
+          : clientAssertion.payload.aud.join(","),
+        // TODO: double check if the toMillis function is needed
+        expirationTime: clientAssertion.payload.exp!,
+        issuedAt: clientAssertion.payload.iat!,
+        issuer: clientAssertion.payload.iss!,
+        jwtId: clientAssertion.payload.jti!,
+        keyId: clientAssertion.header.kid!,
+        subject: unsafeBrandId(clientAssertion.payload.sub!),
+      },
+    };
+
+    const expectedFileContent = JSON.stringify(messageBody) + "\n";
+
+    const fileContent = await fileManager.get(
+      config.s3Bucket,
+      file,
+      genericLogger
+    );
+
+    const decodedFileContent = new TextDecoder().decode(fileContent);
+    expect(decodedFileContent).toEqual(expectedFileContent);
   });
 
-  // it("success api", async () => {
-  //   vi.spyOn(fileManager, "storeBytes");
+  // TODO: kafka should return list of RecordMetadata with partition, topic name, errorCode
+  it("should generate a token and publish audit with kafka", async () => {
+    mockProducer.send.mockImplementationOnce(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+    mockKMSClient.send.mockImplementationOnce(async () => ({
+      Signature: "mock signature",
+    }));
 
-  //   // TODO: replace with logic from https://github.com/pagopa/interop-be-monorepo/pull/1098
-  //   const keySet = crypto.generateKeyPairSync("rsa", {
-  //     modulusLength: 2048,
-  //   });
-  //   const clientId = generateId<ClientId>();
-  //   const kid = `kid ${Math.random()}`;
-  //   const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
-  //     clientId,
-  //     kid,
-  //   });
-  //   const tokenClientEntry: TokenGenerationStatesClientEntry = {
-  //     ...getMockTokenStatesClientEntry(tokenClientKidPK),
-  //     GSIPK_clientId: clientId,
-  //     GSIPK_kid: makeGSIPKKid(kid),
-  //     publicKey: keySet.publicKey
-  //       .export({ type: "pkcs1", format: "pem" })
-  //       .toString("base64url"),
-  //   };
+    vi.spyOn(mockProducer, "send");
 
-  //   await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+    };
+    const clientId = generateId<ClientId>();
+    const kid = `kid`;
 
-  //   const clientAssertion = getMockClientAssertion({
-  //     customHeader: { kid },
-  //     standardClaimsOverride: {
-  //       iss: clientId,
-  //       sub: clientId,
-  //     },
-  //     customClaims: {},
-  //     keySet,
-  //   });
-  //   const a = {
-  //     ...getMockAccessTokenRequest(),
-  //     client_assertion: clientAssertion,
-  //     client_id: clientId,
-  //   };
-  //   const result = await tokenService.generateToken(a);
-  //   expect(result.limitReached).toBeFalsy();
-  //   expect(result.token).toBeDefined();
-  //   // TODO: how to test result.rateLimiterStatus
+    const { jws, clientAssertion, publicKeyEncodedPem } =
+      await getMockClientAssertion({
+        standardClaimsOverride: {
+          sub: clientId,
+          exp: Date.now() / 1000 + 3600,
+        },
+        customHeader: { kid },
+        customClaims: { purposeId: purpose.id },
+      });
 
-  //   expect(fileManager.storeBytes).toHaveBeenCalledWith(
-  //     config.s3Bucket,
-  //     // TODO: remove hard coded path
-  //     "token-details",
-  //     genericLogger
-  //   );
-  //   expect(
-  //     await fileManager.listFiles(config.s3Bucket, genericLogger)
-  //   ).toContain("token-details");
-  // });
+    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
+      {
+        clientId,
+        kid,
+        purposeId: purpose.id,
+      }
+    );
+    const tokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry = {
+      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      consumerId: purpose.consumerId,
+      GSIPK_purposeId: purpose.id,
+      purposeState: itemState.active,
+      purposeVersionId: purpose.versions[0].id,
+      agreementState: itemState.active,
+      descriptorState: itemState.active,
+      GSIPK_clientId: clientId,
+      GSIPK_kid: makeGSIPKKid(kid),
+      publicKey: publicKeyEncodedPem,
+    };
+
+    await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
+
+    const request = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
+    };
+    vi.useRealTimers();
+    const result = await tokenService.generateToken(
+      request,
+      generateId(),
+      genericLogger
+    );
+    vi.useFakeTimers();
+    vi.setSystemTime(mockDate);
+
+    expect(result.token).toBeDefined();
+    const expectedResult = {
+      limitReached: false,
+      // TODO:
+      token: result.token,
+      rateLimiterStatus: {
+        maxRequests: 2,
+        rateInterval: 1000,
+        remainingRequests: 1,
+      },
+    };
+    expect(result).toEqual(expectedResult);
+
+    // const date = new Date();
+    // const ymdDate = formatDateyyyyMMdd(date);
+
+    const fileList = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+    expect(fileList).toHaveLength(0);
+    // const file = fileList[0];
+    // const split = file.split("_");
+    // expect(split[0]).toEqual(`token-details/${ymdDate}/${ymdDate}`);
+    // expect(split[2]).toEqual(`${generateId()}.ndjson`);
+
+    const messageBody: GeneratedTokenAuditDetails = {
+      jwtId: result.token!.payload.jti,
+      correlationId: generateId(),
+      issuedAt: result.token!.payload.iat,
+      clientId,
+      organizationId: purpose.consumerId,
+      agreementId: unsafeBrandId(tokenClientPurposeEntry.agreementId!),
+      eserviceId: unsafeBrandId(
+        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
+      ),
+      descriptorId: unsafeBrandId(
+        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
+      ),
+      purposeId: purpose.id,
+      purposeVersionId: purpose.versions[0].id,
+      algorithm: result.token!.header.alg,
+      keyId: result.token!.header.kid,
+      audience: result.token!.payload.aud.join(","),
+      subject: result.token!.payload.sub,
+      notBefore: result.token!.payload.nbf,
+      expirationTime: result.token!.payload.exp,
+      issuer: result.token!.payload.iss,
+      clientAssertion: {
+        algorithm: clientAssertion.header.alg,
+        // TODO: improve typeof
+        audience: !clientAssertion.payload.aud
+          ? ""
+          : typeof clientAssertion.payload.aud === "string"
+          ? clientAssertion.payload.aud
+          : clientAssertion.payload.aud.join(","),
+        expirationTime: clientAssertion.payload.exp!,
+        issuedAt: clientAssertion.payload.iat!,
+        issuer: clientAssertion.payload.iss!,
+        jwtId: clientAssertion.payload.jti!,
+        keyId: clientAssertion.header.kid!,
+        subject: unsafeBrandId(clientAssertion.payload.sub!),
+      },
+    };
+
+    expect(mockProducer.send).toHaveBeenCalledWith({
+      messages: [
+        {
+          key: messageBody.jwtId,
+          value: JSON.stringify(messageBody) + "\n",
+        },
+      ],
+    });
+
+    // const expectedFileContent = JSON.stringify(messageBody) + "\n";
+
+    // const fileContent = await fileManager.get(
+    //   config.s3Bucket,
+    //   file,
+    //   genericLogger
+    // );
+
+    // const decodedFileContent = new TextDecoder().decode(fileContent);
+    // expect(decodedFileContent).toEqual(expectedFileContent);
+  });
 });
