@@ -88,6 +88,9 @@ describe("authorization server tests", () => {
   // kafkaAuditingFailed
   // fallbackAuditFailed
   // unexpectedTokenGenerationError
+  mockKMSClient.send.mockImplementation(async () => ({
+    Signature: "mock signature",
+  }));
 
   it.skip("should generate a token and publish audit with fallback", async () => {
     mockProducer.send.mockImplementationOnce(async () => Promise.reject());
@@ -603,5 +606,66 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(platformStateValidationFailed());
+  });
+
+  it("rate limit exceeded", async () => {
+    const purposeId = generateId<PurposeId>();
+
+    const { jws, clientAssertion, publicKeyEncodedPem } =
+      await getMockClientAssertion({
+        customClaims: { purposeId },
+      });
+
+    const clientId = generateId<ClientId>();
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
+    };
+
+    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
+      {
+        clientId,
+        kid: clientAssertion.header.kid!,
+        purposeId,
+      }
+    );
+
+    const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
+      {
+        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+        publicKey: publicKeyEncodedPem,
+      };
+
+    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    // eslint-disable-next-line functional/no-let
+    for (let i = 0; i < config.rateLimiterMaxRequests; i++) {
+      const response = await tokenService.generateToken(
+        request,
+        generateId(),
+        genericLogger
+      );
+      expect(response.limitReached).toBe(false);
+      expect(response.rateLimiterStatus.remainingRequests).toBe(
+        config.rateLimiterMaxRequests - i - 1
+      );
+    }
+
+    const responseAfterLimitExceeded = await tokenService.generateToken(
+      request,
+      generateId(),
+      genericLogger
+    );
+
+    expect(responseAfterLimitExceeded).toEqual({
+      limitReached: true,
+      rateLimitedTenantId: tokenClientKidPurposeEntry.consumerId,
+      token: undefined,
+      rateLimiterStatus: {
+        maxRequests: config.rateLimiterMaxRequests,
+        rateInterval: config.rateLimiterRateInterval,
+        remainingRequests: 0,
+      },
+    });
   });
 });
