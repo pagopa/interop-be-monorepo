@@ -403,7 +403,7 @@ describe("authorization server tests", () => {
     ).rejects.toThrowError(clientAssertionValidationFailed(jws, clientId));
   });
 
-  it("clientAssertionValidationFailed", async () => {
+  it("tokenGenerationStatesEntryNotFound", async () => {
     const purposeId = generateId<PurposeId>();
     const { jws, clientAssertion } = await getMockClientAssertion({
       standardClaimsOverride: { purposeId },
