@@ -137,7 +137,7 @@ export async function handleMessageV2(
         dynamoDBClient,
         purposeId: purpose.id,
         purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
-        purposeVersionId: unsafeBrandId<PurposeVersionId>(msg.data.versionId),
+        purposeVersionId: unsafeBrandId(msg.data.versionId),
       });
     })
     .with(
