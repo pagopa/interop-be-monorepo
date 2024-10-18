@@ -41,3 +41,13 @@ export function zipBy<A, B, K>(
     .map((av) => [av, mapB.get(getValueA(av))])
     .filter(([_, bv]) => bv !== undefined) as Array<[A, B]>;
 }
+
+export function removeDuplicateObjectsBy<A>(
+  objects: A[],
+  callback: (a: A) => string | number
+): A[] {
+  const uniqueIds = removeDuplicates(objects.map(callback));
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return uniqueIds.map((id) => objects.find((a) => callback(a) === id)!);
+}
