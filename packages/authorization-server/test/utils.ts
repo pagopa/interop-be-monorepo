@@ -1,8 +1,17 @@
 import crypto from "crypto";
+import { config } from "process";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
-import { ClientId, generateId } from "pagopa-interop-models";
+import {
+  ClientId,
+  generateId,
+  TokenGenerationStatesClientEntry,
+} from "pagopa-interop-models";
 import { afterEach, inject, vi } from "vitest";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  PutItemCommand,
+  PutItemInput,
+} from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import * as jose from "jose";
@@ -196,3 +205,39 @@ export const getMockAccessTokenRequest =
 //     serialized: "",
 //   };
 // };
+
+// TODO this is duplicated: move to commons
+export const writeTokenStateClientEntry = async (
+  tokenStateEntry: TokenGenerationStatesClientEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: tokenStateEntry.PK,
+      },
+      updatedAt: {
+        S: tokenStateEntry.updatedAt,
+      },
+      consumerId: {
+        S: tokenStateEntry.consumerId,
+      },
+      clientKind: {
+        S: tokenStateEntry.clientKind,
+      },
+      publicKey: {
+        S: tokenStateEntry.publicKey,
+      },
+      GSIPK_clientId: {
+        S: tokenStateEntry.GSIPK_clientId,
+      },
+      GSIPK_kid: {
+        S: tokenStateEntry.GSIPK_kid,
+      },
+    },
+    TableName: "token-generation-states",
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
