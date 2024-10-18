@@ -5,6 +5,7 @@ export const tenantKind = {
   PA: "PA",
   GSP: "GSP",
   PRIVATE: "PRIVATE",
+  SCP: "SCP",
 } as const;
 
 export const TenantKind = z.enum([
