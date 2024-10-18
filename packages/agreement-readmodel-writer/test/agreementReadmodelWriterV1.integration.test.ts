@@ -27,11 +27,11 @@ import {
   toReadModelAgreement,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import {
   toAgreementDocumentV1,
   toAgreementV1,
-} from "./protobufConverterToV1.js";
+} from "pagopa-interop-commons-test";
+import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { agreements } from "./utils.js";
 
 describe("events V1", async () => {
