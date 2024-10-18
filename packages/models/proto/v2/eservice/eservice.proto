@@ -80,7 +80,7 @@ message EServiceDescriptorV2 {
   optional int64 deprecatedAt = 16;
   optional int64 archivedAt = 17;
   EServiceAttributesV2 attributes = 18;
-  repeated DescriptorRejectionReasonV2 rejectedReasons = 19;
+  repeated DescriptorRejectionReasonV2 rejectionReasons = 19;
 }
 
 message EServiceDocumentV2 {

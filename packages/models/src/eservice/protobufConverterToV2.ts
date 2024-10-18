@@ -117,7 +117,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   suspendedAt: dateToBigInt(input.suspendedAt),
   deprecatedAt: dateToBigInt(input.deprecatedAt),
   archivedAt: dateToBigInt(input.archivedAt),
-  rejectedReasons:
+  rejectionReasons:
     input.rejectionReasons?.map(toDescriptorRejectedReasonV2) ?? [],
 });
 
