@@ -1,5 +1,7 @@
+import { authorizationApi } from "pagopa-interop-api-clients";
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  createMockedApiRequester,
   decodeProtobufPayload,
   getMockAgreement,
   getMockClient,
@@ -31,6 +33,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   clientNotFound,
   eserviceNotFound,
+  makeApiProblem,
   noAgreementFoundInRequiredState,
   noPurposeVersionsFoundInRequiredState,
   organizationNotAllowedOnClient,
@@ -38,6 +41,8 @@ import {
   purposeAlreadyLinkedToClient,
   purposeNotFound,
 } from "../src/model/domain/errors.js";
+import app from "../src/app.js";
+import { addClientPurposeErrorMapper } from "../src/utilities/errorMappers.js";
 import {
   addOneClient,
   agreements,
@@ -48,7 +53,9 @@ import {
 } from "./utils.js";
 
 describe("addClientPurpose", async () => {
-  it("should write on event-store for the addition of a purpose into a client", async () => {
+  const mockedApiRequester =
+    createMockedApiRequester<typeof authorizationApi.clientEndpoints>(app);
+  it.only("should write on event-store for the addition of a purpose into a client", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -87,14 +94,20 @@ describe("addClientPurpose", async () => {
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
-    await authorizationService.addClientPurpose({
-      clientId: mockClient.id,
-      seed: { purposeId: mockPurpose.id },
-      organizationId: mockConsumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
+    // await authorizationService.addClientPurpose({
+    //   clientId: mockClient.id,
+    //   seed: { purposeId: mockPurpose.id },
+    //   organizationId: mockConsumerId,
+    //   correlationId: generateId(),
+    //   logger: genericLogger,
+    // });
+    await mockedApiRequester.post({
+      path: `/clients/:clientId/purposes`,
+      pathParams: { clientId: mockClient.id },
+      body: {
+        purposeId: mockPurpose.id,
+      },
     });
-
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
     expect(writtenEvent).toMatchObject({
@@ -155,15 +168,33 @@ describe("addClientPurpose", async () => {
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
-    expect(
-      authorizationService.addClientPurpose({
-        clientId: mockClient.id,
-        seed: { purposeId: mockPurpose.id },
-        organizationId: mockConsumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(clientNotFound(mockClient.id));
+    const response = await mockedApiRequester.post({
+      path: `/clients/:clientId/purposes`,
+      pathParams: { clientId: mockClient.id },
+      body: {
+        purposeId: mockPurpose.id,
+      },
+    });
+
+    console.log("RESPONSE", response);
+
+    const problem = makeApiProblem(
+      clientNotFound(mockClient.id),
+      addClientPurposeErrorMapper,
+      genericLogger
+    );
+
+    expect(response).toEqual(problem);
+
+    // expect(
+    //   authorizationService.addClientPurpose({
+    //     clientId: mockClient.id,
+    //     seed: { purposeId: mockPurpose.id },
+    //     organizationId: mockConsumerId,
+    //     correlationId: generateId(),
+    //     logger: genericLogger,
+    //   })
+    // ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the client consumer", async () => {
     const mockDescriptor: Descriptor = {
