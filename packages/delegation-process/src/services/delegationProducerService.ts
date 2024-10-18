@@ -33,6 +33,8 @@ import {
   assertIsDelegate,
   assertIsState,
 } from "./validators.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationProducerServiceBuilder(
@@ -124,6 +126,21 @@ export function delegationProducerServiceBuilder(
       assertIsState(delegationState.waitingForApproval, delegation);
 
       const now = new Date();
+
+      const createPdfDelegation = () => {
+
+        const filename = fileURLToPath(import.meta.url);
+        const dirname = path.dirname(filename);
+        const templateFilePath = path.resolve(
+          dirname,
+          "..",
+          "resources/templates/documents",
+          "delegationApproved.html"
+        );
+
+
+      };
+
       await repository.createEvent(
         toCreateEventApproveDelegation(
           {
