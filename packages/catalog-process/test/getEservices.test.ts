@@ -964,7 +964,7 @@ describe("get eservices", () => {
       { ...eservice9, descriptors: [descriptor9a] },
     ]);
   });
-  it.only("should not filter out draft descriptors if the eservice has both draft and non-draft ones (requester is delegate, admin)", async () => {
+  it("should not filter out draft descriptors if the eservice has both draft and non-draft ones (requester is delegate, admin)", async () => {
     const descriptor9a: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
