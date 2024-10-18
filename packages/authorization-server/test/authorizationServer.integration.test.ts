@@ -43,6 +43,7 @@ import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { config } from "../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
+  clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
   invalidTokenClientKidPurposeEntry,
   keyTypeMismatch,
@@ -82,9 +83,6 @@ describe("authorization server tests", () => {
 
   // TODO: tests
   // - rate limiter
-  // tokenGenerationStatesEntryNotFound
-  // - key type mismatch
-  // clientAssertionSignatureValidationFailed
   // platformStateValidationFailed
   // tokenSigningFailed
   // kafkaAuditingFailed
@@ -530,6 +528,43 @@ describe("authorization server tests", () => {
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
       keyTypeMismatch(clientKidPurposePrefix, clientKindTokenStates.api)
+    );
+  });
+
+  it.only("clientAssertionSignatureValidationFailed", async () => {
+    const purposeId = generateId<PurposeId>();
+
+    const { jws, clientAssertion } = await getMockClientAssertion({
+      customClaims: { purposeId },
+    });
+
+    const splitJws = jws.split(".");
+    const jwsWithWrongSignature = `${splitJws[0]}.${splitJws[1]}.wrong-singature`;
+
+    const clientId = generateId<ClientId>();
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jwsWithWrongSignature,
+      client_id: clientId,
+    };
+
+    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
+      {
+        clientId,
+        kid: clientAssertion.header.kid!,
+        purposeId,
+      }
+    );
+
+    const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
+      getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK);
+
+    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+
+    expect(
+      tokenService.generateToken(request, generateId(), genericLogger)
+    ).rejects.toThrowError(
+      clientAssertionSignatureValidationFailed(request.client_assertion)
     );
   });
 });
