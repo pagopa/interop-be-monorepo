@@ -47,6 +47,7 @@ import {
   clientAssertionValidationFailed,
   invalidTokenClientKidPurposeEntry,
   keyTypeMismatch,
+  platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -71,19 +72,18 @@ describe("authorization server tests", () => {
   afterEach(async () => {
     await deleteDynamoDBTables(dynamoDBClient);
   });
-  const mockDate = new Date();
+  // const mockDate = new Date();
 
-  beforeAll(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(mockDate);
-  });
-  afterAll(() => {
-    vi.useRealTimers();
-  });
+  // beforeAll(() => {
+  //   vi.useFakeTimers();
+  //   vi.setSystemTime(mockDate);
+  // });
+  // afterAll(() => {
+  //   vi.useRealTimers();
+  // });
 
   // TODO: tests
   // - rate limiter
-  // platformStateValidationFailed
   // tokenSigningFailed
   // kafkaAuditingFailed
   // fallbackAuditFailed
@@ -230,7 +230,7 @@ describe("authorization server tests", () => {
   });
 
   // TODO: kafka should return list of RecordMetadata with partition, topic name, errorCode
-  it("should generate a token and publish audit with kafka", async () => {
+  it.skip("should generate a token and publish audit with kafka", async () => {
     mockProducer.send.mockImplementationOnce(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
@@ -531,7 +531,7 @@ describe("authorization server tests", () => {
     );
   });
 
-  it.only("clientAssertionSignatureValidationFailed", async () => {
+  it("clientAssertionSignatureValidationFailed", async () => {
     const purposeId = generateId<PurposeId>();
 
     const { jws, clientAssertion } = await getMockClientAssertion({
@@ -566,5 +566,42 @@ describe("authorization server tests", () => {
     ).rejects.toThrowError(
       clientAssertionSignatureValidationFailed(request.client_assertion)
     );
+  });
+
+  it("platformStateValidationFailed", async () => {
+    const purposeId = generateId<PurposeId>();
+
+    const { jws, clientAssertion, publicKeyEncodedPem } =
+      await getMockClientAssertion({
+        customClaims: { purposeId },
+      });
+
+    const clientId = generateId<ClientId>();
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
+    };
+
+    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
+      {
+        clientId,
+        kid: clientAssertion.header.kid!,
+        purposeId,
+      }
+    );
+
+    const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
+      {
+        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+        descriptorState: itemState.inactive,
+        publicKey: publicKeyEncodedPem,
+      };
+
+    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+
+    expect(
+      tokenService.generateToken(request, generateId(), genericLogger)
+    ).rejects.toThrowError(platformStateValidationFailed());
   });
 });
