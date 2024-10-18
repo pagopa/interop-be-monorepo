@@ -129,7 +129,7 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   suspendedAt: bigIntToDate(input.suspendedAt),
   deprecatedAt: bigIntToDate(input.deprecatedAt),
   archivedAt: bigIntToDate(input.archivedAt),
-  rejectionReasons: input.rejectedReasons.map(fromDescriptorRejectionReasonV2),
+  rejectionReasons: input.rejectionReasons.map(fromDescriptorRejectionReasonV2),
 });
 
 export const fromRiskAnalysisFormV2 = (
