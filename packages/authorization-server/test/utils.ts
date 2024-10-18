@@ -126,14 +126,17 @@ export const getMockClientAssertion = async (props?: {
 }> => {
   const { keySet, publicKeyEncodedPem } = generateKeySet();
 
+  const threeHourLater = new Date();
+  threeHourLater.setHours(threeHourLater.getHours() + 3);
+
   const clientId = generateId<ClientId>();
   const defaultPayload: jose.JWTPayload = {
     iss: clientId,
     sub: clientId,
     aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
-    exp: 60,
+    exp: threeHourLater.getTime() / 1000,
     jti: generateId(),
-    iat: 5,
+    iat: new Date().getTime() / 1000,
   };
 
   const actualPayload: jose.JWTPayload = {
