@@ -348,7 +348,7 @@ export const getMockTokenStatesClientPurposeEntry = (
         kid,
         purposeId,
       }),
-    descriptorState: itemState.inactive,
+    descriptorState: itemState.active,
     descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
     descriptorVoucherLifespan: 60,
     updatedAt: new Date().toISOString(),
@@ -369,7 +369,7 @@ export const getMockTokenStatesClientPurposeEntry = (
       descriptorId,
     }),
     GSIPK_purposeId: purposeId,
-    purposeState: itemState.inactive,
+    purposeState: itemState.active,
     GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
       clientId,
       purposeId,

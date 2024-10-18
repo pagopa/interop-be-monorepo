@@ -50,7 +50,31 @@ export const ClientAssertion = z
   .strict();
 export type ClientAssertion = z.infer<typeof ClientAssertion>;
 
+const ComponentState = z.object({
+  state: ItemState,
+});
+
+export type ComponentState = z.infer<typeof ComponentState>;
+
+const AgreementComponentState = ComponentState;
+export type AgreementComponentState = z.infer<typeof AgreementComponentState>;
+
+const EServiceComponentState = ComponentState.extend({
+  descriptorId: z.string(),
+  audience: z.array(z.string()),
+  voucherLifespan: z.number(),
+});
+
+export type EServiceComponentState = z.infer<typeof EServiceComponentState>;
+
+const PurposeComponentState = ComponentState.extend({
+  versionId: z.string(),
+});
+
+export type PurposeComponentState = z.infer<typeof PurposeComponentState>;
+
 export const Base64Encoded = z.string().base64().min(1);
+
 export const Key = z
   .object({
     clientId: ClientId,
@@ -65,11 +89,12 @@ export type Key = z.infer<typeof Key>;
 export const ConsumerKey = Key.extend({
   clientKind: z.literal(clientKindTokenStates.consumer),
   purposeId: PurposeId,
-  purposeState: ItemState,
+  // TODO: can we rename the type to purposeDetails or something similar (avoid misleading "state" term)?
+  purposeState: PurposeComponentState,
   agreementId: AgreementId,
-  agreementState: ItemState,
+  agreementState: AgreementComponentState,
   eServiceId: EServiceId,
-  descriptorState: ItemState,
+  eServiceState: EServiceComponentState,
 }).strict();
 export type ConsumerKey = z.infer<typeof ConsumerKey>;
 
