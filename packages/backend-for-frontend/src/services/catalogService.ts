@@ -1214,5 +1214,20 @@ export function catalogServiceBuilder(
         },
       });
     },
+    rejectDelegatedEServiceDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: EServiceId,
+      body: catalogApi.RejectDelegatedEServiceDescriptorSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(`Rejecting e-service ${eServiceId} version ${descriptorId}`);
+      await catalogProcessClient.rejectDelegatedEServiceDescriptor(body, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
   };
 }
