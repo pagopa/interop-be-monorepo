@@ -40,11 +40,13 @@ import {
 } from "pagopa-interop-models";
 import { formatDateyyyyMMdd, genericLogger } from "pagopa-interop-commons";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
+import * as uuidv4 from "uuid";
 import { config } from "../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
   clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
+  fallbackAuditFailed,
   invalidTokenClientKidPurposeEntry,
   keyTypeMismatch,
   platformStateValidationFailed,
@@ -68,9 +70,13 @@ describe("authorization server tests", () => {
   }
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
+    mockKMSClient.send.mockImplementation(async () => ({
+      Signature: "mock signature",
+    }));
   });
   afterEach(async () => {
     await deleteDynamoDBTables(dynamoDBClient);
+    vi.restoreAllMocks();
   });
   // const mockDate = new Date();
 
@@ -83,14 +89,10 @@ describe("authorization server tests", () => {
   // });
 
   // TODO: tests
-  // - rate limiter
   // tokenSigningFailed
   // kafkaAuditingFailed
   // fallbackAuditFailed
   // unexpectedTokenGenerationError
-  mockKMSClient.send.mockImplementation(async () => ({
-    Signature: "mock signature",
-  }));
 
   it.skip("should generate a token and publish audit with fallback", async () => {
     mockProducer.send.mockImplementationOnce(async () => Promise.reject());
@@ -415,11 +417,12 @@ describe("authorization server tests", () => {
 
   it("tokenGenerationStatesEntryNotFound", async () => {
     const purposeId = generateId<PurposeId>();
+    const clientId = generateId<ClientId>();
     const { jws, clientAssertion } = await getMockClientAssertion({
-      standardClaimsOverride: { purposeId },
+      standardClaimsOverride: { sub: clientId },
+      customClaims: { purposeId },
     });
 
-    const clientId = generateId<ClientId>();
     const request: authorizationServerApi.AccessTokenRequest = {
       ...(await getMockAccessTokenRequest()),
       client_assertion: jws,
@@ -438,11 +441,13 @@ describe("authorization server tests", () => {
 
   it("invalidTokenClientKidPurposeEntry", async () => {
     const purposeId = generateId<PurposeId>();
+    const clientId = generateId<ClientId>();
+
     const { jws, clientAssertion } = await getMockClientAssertion({
-      standardClaimsOverride: { purposeId },
+      standardClaimsOverride: { sub: clientId },
+      customClaims: { purposeId },
     });
 
-    const clientId = generateId<ClientId>();
     const request: authorizationServerApi.AccessTokenRequest = {
       ...(await getMockAccessTokenRequest()),
       client_assertion: jws,
@@ -469,9 +474,11 @@ describe("authorization server tests", () => {
   });
 
   it("keyTypeMismatch - clientKid entry with consumer kind", async () => {
-    const { jws, clientAssertion } = await getMockClientAssertion();
-
     const clientId = generateId<ClientId>();
+    const { jws, clientAssertion } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
+    });
+
     const request: authorizationServerApi.AccessTokenRequest = {
       ...(await getMockAccessTokenRequest()),
       client_assertion: jws,
@@ -499,12 +506,13 @@ describe("authorization server tests", () => {
 
   it("keyTypeMismatch - clientKidPurpose entry with api kind", async () => {
     const purposeId = generateId<PurposeId>();
+    const clientId = generateId<ClientId>();
 
     const { jws, clientAssertion } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
       customClaims: { purposeId },
     });
 
-    const clientId = generateId<ClientId>();
     const request: authorizationServerApi.AccessTokenRequest = {
       ...(await getMockAccessTokenRequest()),
       client_assertion: jws,
@@ -536,15 +544,16 @@ describe("authorization server tests", () => {
 
   it("clientAssertionSignatureValidationFailed", async () => {
     const purposeId = generateId<PurposeId>();
+    const clientId = generateId<ClientId>();
 
     const { jws, clientAssertion } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
       customClaims: { purposeId },
     });
 
     const splitJws = jws.split(".");
     const jwsWithWrongSignature = `${splitJws[0]}.${splitJws[1]}.wrong-singature`;
 
-    const clientId = generateId<ClientId>();
     const request: authorizationServerApi.AccessTokenRequest = {
       ...(await getMockAccessTokenRequest()),
       client_assertion: jwsWithWrongSignature,
@@ -573,13 +582,14 @@ describe("authorization server tests", () => {
 
   it("platformStateValidationFailed", async () => {
     const purposeId = generateId<PurposeId>();
+    const clientId = generateId<ClientId>();
 
     const { jws, clientAssertion, publicKeyEncodedPem } =
       await getMockClientAssertion({
+        standardClaimsOverride: { sub: clientId },
         customClaims: { purposeId },
       });
 
-    const clientId = generateId<ClientId>();
     const request: authorizationServerApi.AccessTokenRequest = {
       ...(await getMockAccessTokenRequest()),
       client_assertion: jws,
@@ -610,13 +620,14 @@ describe("authorization server tests", () => {
 
   it("rate limit exceeded", async () => {
     const purposeId = generateId<PurposeId>();
+    const clientId = generateId<ClientId>();
 
     const { jws, clientAssertion, publicKeyEncodedPem } =
       await getMockClientAssertion({
+        standardClaimsOverride: { sub: clientId },
         customClaims: { purposeId },
       });
 
-    const clientId = generateId<ClientId>();
     const request: authorizationServerApi.AccessTokenRequest = {
       ...(await getMockAccessTokenRequest()),
       client_assertion: jws,
