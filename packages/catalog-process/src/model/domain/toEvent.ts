@@ -516,3 +516,22 @@ export const toCreateEventEServiceDescriptorDelegatorApproved = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceDescriptorDelegatorRejected = (
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorDelegatorRejected",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
