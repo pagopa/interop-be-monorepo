@@ -148,8 +148,7 @@ export function tokenServiceBuilder({
 
       if (clientAssertionSignatureErrors) {
         throw clientAssertionSignatureValidationFailed(
-          request.client_assertion,
-          key
+          request.client_assertion
         );
       }
 

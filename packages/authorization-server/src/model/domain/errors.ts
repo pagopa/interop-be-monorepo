@@ -1,9 +1,5 @@
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
-  ApiKey,
-  ConsumerKey,
-} from "pagopa-interop-client-assertion-validation";
-import {
   ApiError,
   ClientKindTokenStates,
   GeneratedTokenAuditDetails,
@@ -56,13 +52,10 @@ export function clientAssertionValidationFailed(
 }
 
 export function clientAssertionSignatureValidationFailed(
-  clientAssertion: string,
-  key: ConsumerKey | ApiKey
+  clientAssertion: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion signature validation failed for clientAssertion: ${clientAssertion}, key: ${JSON.stringify(
-      key
-    )}`,
+    detail: `Client assertion signature validation failed for clientAssertion: ${clientAssertion}`,
     code: "clientAssertionSignatureValidationFailed",
     title: "Client assertion signature validation failed",
   });
