@@ -1,0 +1,23 @@
+meta {
+  name: Retrieve Consumers for an EService
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/eservices/:eServiceId/consumers
+  body: none
+  auth: none
+}
+
+params:path {
+  eServiceId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+  Accept: application/octet-stream
+}
+
+
