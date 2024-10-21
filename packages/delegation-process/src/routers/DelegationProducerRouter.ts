@@ -18,8 +18,9 @@ import { delegationProducerServiceBuilder } from "../services/delegationProducer
 import { delegationToApiDelegation } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
-  approveRejectDelegationErrorMapper,
+    approveDelegationErrorMapper,
   createProducerDelegationErrorMapper,
+  rejectDelegationErrorMapper,
 } from "../utilites/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -94,7 +95,7 @@ const delegationProducerRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          approveRejectDelegationErrorMapper,
+          approveDelegationErrorMapper,
           ctx.logger
         );
 
@@ -118,7 +119,7 @@ const delegationProducerRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          approveRejectDelegationErrorMapper,
+          rejectDelegationErrorMapper,
           ctx.logger
         );
 
