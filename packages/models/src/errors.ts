@@ -15,13 +15,11 @@ export class ApiError<T> extends Error {
   public title: string;
   public detail: string;
   public errors: Array<{ code: T; detail: string }>;
-  public correlationId?: CorrelationId; // TODO consider removing it from here
 
   constructor({
     code,
     title,
     detail,
-    correlationId,
     errors,
   }: {
     code: T;
@@ -34,7 +32,6 @@ export class ApiError<T> extends Error {
     this.code = code;
     this.title = title;
     this.detail = detail;
-    this.correlationId = correlationId;
     this.errors =
       errors && errors.length > 0
         ? errors.map((e) => ({ code, detail: e.message }))
@@ -53,12 +50,12 @@ export class InternalError<T> extends Error {
   }
 }
 
-export type ProblemError = {
+type ProblemError = {
   code: string;
   detail: string;
 };
 
-export type Problem = {
+type Problem = {
   type: string;
   status: number;
   title: string;
@@ -68,7 +65,7 @@ export type Problem = {
   toString: () => string;
 };
 
-export type MakeApiProblemFn<T extends string> = (
+type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
   logger: { error: (message: string) => void; warn: (message: string) => void },
@@ -94,18 +91,13 @@ export function makeApiProblemBuilder<T extends string>(
   return (error, httpMapper, logger, correlationId, operationalLogMessage) => {
     const makeProblem = (
       httpStatus: number,
-      {
-        title,
-        detail,
-        correlationId: apiErrorCorrelationId,
-        errors,
-      }: ApiError<T | CommonErrorCodes>
+      { title, detail, errors }: ApiError<T | CommonErrorCodes>
     ): Problem => ({
       type: "about:blank",
       title,
       status: httpStatus,
       detail,
-      correlationId: apiErrorCorrelationId || correlationId,
+      correlationId,
       errors: errors.map(({ code, detail }) => ({
         code: allErrors[code],
         detail,

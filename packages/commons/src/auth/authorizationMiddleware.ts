@@ -4,7 +4,6 @@ import {
   Method,
 } from "@zodios/core";
 import {
-  Problem,
   makeApiProblemBuilder,
   genericError,
   ApiError,
@@ -80,7 +79,7 @@ export const authorizationMiddleware =
 
       return next();
     } catch (err) {
-      const problem = match<unknown, Problem>(err)
+      const problem = match(err)
         .with(P.instanceOf(ApiError), (error) =>
           makeApiProblem(
             error,
