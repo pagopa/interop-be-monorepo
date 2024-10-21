@@ -25,7 +25,6 @@ export class ApiError<T> extends Error {
     code: T;
     title: string;
     detail: string;
-    correlationId?: CorrelationId;
     errors?: Error[];
   }) {
     super(detail);
