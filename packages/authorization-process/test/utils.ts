@@ -34,7 +34,7 @@ export const { cleanup, readModelRepository, postgresDB } =
     inject("eventStoreConfig")
   );
 
-// afterEach(cleanup);
+afterEach(cleanup);
 
 export const {
   agreements,
@@ -128,4 +128,4 @@ app.use(
     jwksCacheMaxAge: undefined,
   })
 );
-app.use(authorizationRouter(zodiosCtx));
+app.use(authorizationRouter(zodiosCtx, authorizationService));

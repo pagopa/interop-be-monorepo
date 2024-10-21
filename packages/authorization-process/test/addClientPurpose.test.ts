@@ -43,29 +43,19 @@ import {
 } from "../src/model/domain/errors.js";
 import { addClientPurposeErrorMapper } from "../src/utilities/errorMappers.js";
 import {
+  app,
   addOneClient,
   agreements,
-  app,
   authorizationService,
   eservices,
   purposes,
   readLastAuthorizationEvent,
-  readModelRepository,
 } from "./utils.js";
 
 describe("addClientPurpose", async () => {
-  it.only("random", async () => {
-    console.log(readModelRepository.clients);
-    const mockedApiRequester =
-      createMockedApiRequester<typeof authorizationApi.clientEndpoints>(app);
-    console.log(readModelRepository.clients);
-
-    expect(1).toEqual(1);
-  });
-  it("should write on event-store for the addition of a purpose into a client", async () => {
-    // const mockedApiRequester =
-    //   createMockedApiRequester<typeof authorizationApi.clientEndpoints>(app);
-
+  const mockedApiRequester =
+    createMockedApiRequester<typeof authorizationApi.clientEndpoints>(app);
+  it.only("should write on event-store for the addition of a purpose into a client", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -104,20 +94,20 @@ describe("addClientPurpose", async () => {
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
-    await authorizationService.addClientPurpose({
-      clientId: mockClient.id,
-      seed: { purposeId: mockPurpose.id },
-      organizationId: mockConsumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
-    // await mockedApiRequester.post({
-    //   path: `/clients/:clientId/purposes`,
-    //   pathParams: { clientId: mockClient.id },
-    //   body: {
-    //     purposeId: mockPurpose.id,
-    //   },
+    // await authorizationService.addClientPurpose({
+    //   clientId: mockClient.id,
+    //   seed: { purposeId: mockPurpose.id },
+    //   organizationId: mockConsumerId,
+    //   correlationId: generateId(),
+    //   logger: genericLogger,
     // });
+    await mockedApiRequester.post({
+      path: `/clients/:clientId/purposes`,
+      pathParams: { clientId: mockClient.id },
+      body: {
+        purposeId: mockPurpose.id,
+      },
+    });
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
     expect(writtenEvent).toMatchObject({
@@ -178,23 +168,23 @@ describe("addClientPurpose", async () => {
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
-    // const response = await mockedApiRequester.post({
-    //   path: `/clients/:clientId/purposes`,
-    //   pathParams: { clientId: mockClient.id },
-    //   body: {
-    //     purposeId: mockPurpose.id,
-    //   },
-    // });
+    const response = await mockedApiRequester.post({
+      path: `/clients/:clientId/purposes`,
+      pathParams: { clientId: mockClient.id },
+      body: {
+        purposeId: mockPurpose.id,
+      },
+    });
 
     // console.log("RESPONSE", response);
 
-    // const problem = makeApiProblem(
-    //   clientNotFound(mockClient.id),
-    //   addClientPurposeErrorMapper,
-    //   genericLogger
-    // );
+    const problem = makeApiProblem(
+      clientNotFound(mockClient.id),
+      addClientPurposeErrorMapper,
+      genericLogger
+    );
 
-    // expect(response).toEqual(problem);
+    expect(response).toEqual(problem);
 
     expect(
       authorizationService.addClientPurpose({

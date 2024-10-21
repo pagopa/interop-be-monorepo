@@ -6,8 +6,6 @@ import {
   ZodiosContext,
   authorizationMiddleware,
   zodiosValidationErrorToApiProblem,
-  ReadModelRepository,
-  initDB,
   fromAppContext,
 } from "pagopa-interop-commons";
 import {
@@ -16,13 +14,8 @@ import {
   UserId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  authorizationApi,
-  selfcareV2InstitutionClientBuilder,
-} from "pagopa-interop-api-clients";
-import { config } from "../config/config.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { authorizationServiceBuilder } from "../services/authorizationService.js";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { AuthorizationService } from "../services/authorizationService.js";
 import {
   apiClientKindToClientKind,
   clientToApiClient,
@@ -63,26 +56,9 @@ import {
   getProducerKeychainErrorMapper,
 } from "../utilities/errorMappers.js";
 
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-
-const authorizationService = authorizationServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  selfcareV2InstitutionClientBuilder(config)
-);
-
 export const authorizationRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  authorizationService: AuthorizationService
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE, API_ROLE } =
     userRoles;
@@ -518,6 +494,7 @@ export const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
+          console.log("SONO ARRIVAYO QUI");
           await authorizationService.addClientPurpose({
             clientId: unsafeBrandId(req.params.clientId),
             seed: req.body,

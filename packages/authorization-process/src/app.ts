@@ -6,6 +6,7 @@ import {
 import healthRouter from "./routers/HealthRouter.js";
 import authorizationRouter from "./routers/AuthorizationRouter.js";
 import { config } from "./config/config.js";
+import { authorizationService } from "./routers/AuthorizationRouterSetup.js";
 
 const serviceName = "authorization-process";
 
@@ -18,6 +19,6 @@ app.disable("x-powered-by");
 app.use(healthRouter);
 app.use(contextMiddleware(serviceName));
 app.use(authenticationMiddleware(config));
-app.use(authorizationRouter(zodiosCtx));
+app.use(authorizationRouter(zodiosCtx, authorizationService));
 
 export default app;

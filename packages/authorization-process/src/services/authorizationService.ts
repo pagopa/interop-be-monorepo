@@ -586,6 +586,7 @@ export function authorizationServiceBuilder(
       logger.info(
         `Adding purpose with id ${seed.purposeId} to client ${clientId}`
       );
+      console.log("OOOOOOOOOOOOOOOOOOOOOOO");
       const purposeId: PurposeId = unsafeBrandId(seed.purposeId);
 
       const client = await retrieveClient(clientId, readModelService);
