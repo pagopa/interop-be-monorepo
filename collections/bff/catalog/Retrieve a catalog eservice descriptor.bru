@@ -1,0 +1,25 @@
+meta {
+  name: Retrieve a catalog eservice descriptor
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/catalog/eservices/:eserviceId/descriptor/:descriptorId
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+docs {
+  Retrieves the catalog eservice descriptor corresponding to the id
+}

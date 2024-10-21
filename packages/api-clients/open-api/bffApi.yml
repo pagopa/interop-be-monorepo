@@ -12205,6 +12205,8 @@ components:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
     EServiceSeed:
       type: object
       additionalProperties: false
@@ -12222,6 +12224,8 @@ components:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
     UpdateEServiceDescriptorQuotas:
       required:
         - voucherLifespan
@@ -12467,6 +12471,8 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         mail:
           $ref: "#/components/schemas/Mail"
+        isSignalHubEnabled:
+          type: boolean
     ProducerEServiceDetails:
       type: object
       additionalProperties: false
@@ -12493,6 +12499,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceRiskAnalysis"
+        isSignalHubEnabled:
+          type: boolean
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -12618,6 +12626,8 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         mail:
           $ref: "#/components/schemas/Mail"
+        isSignalHubEnabled:
+          type: boolean
     EServiceDoc:
       type: object
       additionalProperties: false
@@ -13049,6 +13059,7 @@ components:
         - PA
         - PRIVATE
         - GSP
+        - SCP
     CompactOrganizations:
       type: object
       additionalProperties: false

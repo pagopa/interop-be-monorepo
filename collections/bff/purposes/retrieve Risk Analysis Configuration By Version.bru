@@ -1,0 +1,30 @@
+meta {
+  name: retrieve Risk Analysis Configuration By Version
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/purposes/riskAnalysis/version/:riskAnalysisVersion?eserviceId=d0b75bf4-6dfb-44bb-9f12-a298bbc5d37e
+  body: none
+  auth: none
+}
+
+params:query {
+  eserviceId: d0b75bf4-6dfb-44bb-9f12-a298bbc5d37e
+}
+
+params:path {
+  riskAnalysisVersion: 1.0
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Retrieve a specified version of risk analysis configuration
+}

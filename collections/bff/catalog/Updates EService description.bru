@@ -1,0 +1,26 @@
+meta {
+  name: Updates EService description
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-bff}}/eservices/:eServiceId/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: bd341631-cc6b-4d6a-8a01-0c619a00ed3a
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "description": "UPDATED {{$randomLoremWord}}"
+  }
+}
