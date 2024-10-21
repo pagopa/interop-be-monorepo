@@ -1,0 +1,28 @@
+meta {
+  name: Retrieves Tenants that are producers with existing Agreements
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/agreements/filter/producers
+  body: none
+  auth: none
+}
+
+params:query {
+  q: 
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Retrieves Tenants that are producers with existing Agreements
+}

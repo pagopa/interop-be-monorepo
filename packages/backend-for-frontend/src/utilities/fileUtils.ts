@@ -80,6 +80,7 @@ export function buildJsonConfig(
     description: eservice.description,
     technology: eservice.technology,
     mode: eservice.mode,
+    isSignalHubEnabled: eservice.isSignalHubEnabled,
     descriptor: {
       interface: descriptor.interface && {
         prettyName: descriptor.interface.prettyName,
