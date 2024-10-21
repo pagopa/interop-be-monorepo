@@ -1,4 +1,5 @@
 import {
+  Delegation,
   DelegationKind,
   DelegationState,
   delegationState,
@@ -11,7 +12,9 @@ import {
   delegationAlreadyExists,
   delegatorAndDelegateSameIdError,
   eserviceNotFound,
+  incorrectState,
   invalidExternalOriginError,
+  operationRestrictedToDelegate,
   tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../model/domain/errors.js";
@@ -95,8 +98,30 @@ export const assertDelegationNotExists = async (
       delegatorId,
       delegateId,
       eserviceId,
-      delegation.kind,
-      delegation.id
+      delegation.data.kind,
+      delegation.data.id
+    );
+  }
+};
+
+export const assertIsDelegate = (
+  delegation: Delegation,
+  delegateId: TenantId
+): void => {
+  if (delegation.delegateId !== delegateId) {
+    throw operationRestrictedToDelegate(delegateId, delegation.id);
+  }
+};
+
+export const assertIsState = (
+  state: DelegationState,
+  delegation: Delegation
+): void => {
+  if (delegation.state !== state) {
+    throw incorrectState(
+      delegation.id,
+      delegation.state,
+      delegationState.waitingForApproval
     );
   }
 };
