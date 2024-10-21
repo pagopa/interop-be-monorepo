@@ -13059,6 +13059,7 @@ components:
         - PA
         - PRIVATE
         - GSP
+        - SCP
     CompactOrganizations:
       type: object
       additionalProperties: false

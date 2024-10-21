@@ -29,6 +29,7 @@ import {
   TenantEvent,
   tenantMailKind,
   CorrelationId,
+  tenantKind,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -79,6 +80,7 @@ import {
   assertRequesterAllowed,
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
+  getTenantKind,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -362,6 +364,10 @@ export function tenantServiceBuilder(
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
           createdAt: new Date(),
+          kind:
+            getTenantKind([], tenantSeed.externalId) === tenantKind.SCP
+              ? tenantKind.SCP
+              : undefined,
         };
         return await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)
