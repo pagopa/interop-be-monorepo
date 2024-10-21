@@ -45,7 +45,7 @@ export const deleteProducerDelegationErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("delegationNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("delegationNotRevokable", () => HTTP_STATUS_FORBIDDEN)
     .with("operationNotAllowOnDelegation", () => HTTP_STATUS_UNAUTHORIZED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
