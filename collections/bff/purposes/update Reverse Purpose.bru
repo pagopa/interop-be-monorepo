@@ -1,0 +1,36 @@
+meta {
+  name: update Reverse Purpose
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/reverse/purposes/:purposeId
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: be3505b7-98a5-4788-84de-7e4cad878f63
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "title": "{{$randomLoremWord}} test",
+    "description": "{{$randomLoremWords}}",
+    "isFreeOfCharge": {{$randomBoolean}},
+    "dailyCalls": {{$randomInt}},
+    "freeOfChargeReason": "{{$randomLoremText}}"
+  }
+}
+
+docs {
+  Updates a reverse Purpose
+}

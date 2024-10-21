@@ -1,0 +1,23 @@
+meta {
+  name: Gets the verified attributes of an institution using internal institution id
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/tenants/:tenantId/attributes/verified
+  body: none
+  auth: none
+}
+
+params:path {
+  tenantId: 69e2865e-65ab-4e48-a638-2037a9ee2ee7
+}
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+docs {
+  Gets verified attributes for institution using internal institution id
+}

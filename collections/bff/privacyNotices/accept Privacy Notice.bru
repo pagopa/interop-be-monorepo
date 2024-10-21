@@ -1,0 +1,32 @@
+meta {
+  name: accept Privacy Notice
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-bff}}/user/consent/:consentType
+  body: json
+  auth: none
+}
+
+params:path {
+  consentType: PP
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "latestVersionId": "65ae113e-e62e-4f68-b79d-5b5659385264"
+  }
+}
+
+docs {
+  User approve a privacy notice
+}

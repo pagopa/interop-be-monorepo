@@ -1,0 +1,25 @@
+meta {
+  name: revoke Verified Attribute
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{host-bff}}/tenants/:tenantId/attributes/verified/:attributeId
+  body: none
+  auth: none
+}
+
+params:path {
+  tenantId: 69e2865e-65ab-4e48-a638-2037a9ee2ee7
+  attributeId: e7e06185-f8b9-4fbd-852b-ede8be523962
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+docs {
+  Revoke a Verified attribute to a Tenant by the requester Tenant
+}
