@@ -402,7 +402,7 @@ export const generateInteropToken = async (
   const response = await kmsClient.send(command);
 
   if (!response.Signature) {
-    throw tokenSigningFailed(serializedToken);
+    throw tokenSigningFailed(payload.jti);
   }
 
   const jwtSignature = b64ByteUrlEncode(response.Signature);
