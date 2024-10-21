@@ -46,7 +46,7 @@ export function delegationProducerServiceBuilder(
     return tenant;
   };
 
-  const getDelegationById = async (
+  const retrieveDelegationById = async (
     delegationId: DelegationId
   ): Promise<WithMetadata<Delegation>> => {
     const delegation = await readModelService.getDelegationById(delegationId);
@@ -119,7 +119,7 @@ export function delegationProducerServiceBuilder(
         `Revoking delegation:${delegationId} by producer:${delegatorId}`
       );
 
-      const currentDelegation = await getDelegationById(delegationId);
+      const currentDelegation = await retrieveDelegationById(delegationId);
       assertDelegationIsRevokable(currentDelegation.data, delegatorId);
 
       const now = new Date();
