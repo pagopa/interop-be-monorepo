@@ -124,7 +124,12 @@ const purposeRouter = (
             })
           );
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            () => 500,
+            ctx.logger,
+            ctx.correlationId
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -153,7 +158,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             createPurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -183,7 +189,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             createReversePurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -214,7 +221,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             updateReversePurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -249,7 +257,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             getPurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -280,7 +289,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             updatePurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -303,7 +313,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             deletePurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -333,7 +344,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             createPurposeVersionErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -357,7 +369,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             deletePurposeVersionErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -387,7 +400,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             getRiskAnalysisDocumentErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -412,7 +426,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             rejectPurposeVersionErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -443,7 +458,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             activatePurposeVersionErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -474,7 +490,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             clonePurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -504,7 +521,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             suspendPurposeVersionErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -534,7 +552,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             archivePurposeVersionErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -567,7 +586,12 @@ const purposeRouter = (
               )
             );
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            () => 500,
+            ctx.logger,
+            ctx.correlationId
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -603,7 +627,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             retrieveRiskAnalysisConfigurationByVersionErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }

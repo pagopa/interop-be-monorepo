@@ -50,7 +50,7 @@ describe("get document by id", () => {
       {
         authData,
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       }
     );
@@ -83,7 +83,7 @@ describe("get document by id", () => {
       {
         authData,
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       }
     );
@@ -105,7 +105,7 @@ describe("get document by id", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
         }
       )
@@ -133,7 +133,7 @@ describe("get document by id", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
         }
       )
@@ -169,7 +169,7 @@ describe("get document by id", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
         }
       )
@@ -202,7 +202,7 @@ describe("get document by id", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
         }
       )
@@ -233,7 +233,7 @@ describe("get document by id", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
         }
       )
@@ -264,7 +264,7 @@ describe("get document by id", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
         }
       )

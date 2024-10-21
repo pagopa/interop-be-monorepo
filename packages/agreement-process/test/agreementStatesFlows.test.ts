@@ -357,7 +357,7 @@ describe("Agreeement states flows", () => {
       {
         authData: producerAuthData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -610,7 +610,7 @@ describe("Agreeement states flows", () => {
       {
         authData: producerAuthData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );

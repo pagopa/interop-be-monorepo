@@ -37,7 +37,12 @@ describe("update agreement", () => {
     const returnedAgreement = await agreementService.updateAgreement(
       agreement.id,
       { consumerNotes: "Updated consumer notes" },
-      { authData, serviceName: "", correlationId: "", logger: genericLogger }
+      {
+        authData,
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      }
     );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -75,7 +80,7 @@ describe("update agreement", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       )
@@ -93,7 +98,7 @@ describe("update agreement", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       )
@@ -118,7 +123,7 @@ describe("update agreement", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       )

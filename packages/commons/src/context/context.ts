@@ -5,7 +5,12 @@ import {
 } from "@zodios/express";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { makeApiProblemBuilder, missingHeader } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  makeApiProblemBuilder,
+  missingHeader,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { AuthData } from "../auth/authData.js";
 import { genericLogger, Logger, logger } from "../logging/index.js";
 import { parseCorrelationIdHeader } from "../auth/headers.js";
@@ -13,7 +18,7 @@ import { parseCorrelationIdHeader } from "../auth/headers.js";
 export const AppContext = z.object({
   serviceName: z.string(),
   authData: AuthData,
-  correlationId: z.string(),
+  correlationId: CorrelationId,
 });
 export type AppContext = z.infer<typeof AppContext>;
 
@@ -39,7 +44,7 @@ export const contextMiddleware =
       // eslint-disable-next-line functional/immutable-data
       req.ctx = {
         serviceName,
-        correlationId,
+        correlationId: unsafeBrandId(correlationId),
       } as AppContext;
     };
 
@@ -50,7 +55,8 @@ export const contextMiddleware =
         const problem = makeApiProblem(
           missingHeader("X-Correlation-Id"),
           () => constants.HTTP_STATUS_BAD_REQUEST,
-          genericLogger
+          genericLogger,
+          unsafeBrandId("MISSING")
         );
         return res.status(problem.status).send(problem);
       }

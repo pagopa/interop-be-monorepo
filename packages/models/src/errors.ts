@@ -2,6 +2,7 @@
 import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { CorrelationId } from "./brandedIds.js";
 
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
@@ -14,7 +15,7 @@ export class ApiError<T> extends Error {
   public title: string;
   public detail: string;
   public errors: Array<{ code: T; detail: string }>;
-  public correlationId?: string;
+  public correlationId?: CorrelationId; // TODO consider removing it from here
 
   constructor({
     code,
@@ -26,7 +27,7 @@ export class ApiError<T> extends Error {
     code: T;
     title: string;
     detail: string;
-    correlationId?: string;
+    correlationId?: CorrelationId;
     errors?: Error[];
   }) {
     super(detail);
@@ -71,7 +72,8 @@ export type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
   logger: { error: (message: string) => void; warn: (message: string) => void },
-  logMessage?: string
+  correlationId: CorrelationId,
+  operationalLogMessage?: string
 ) => Problem;
 
 const makeProblemLogString = (
@@ -89,16 +91,21 @@ export function makeApiProblemBuilder<T extends string>(
   problemErrorsPassthrough: boolean = true
 ): MakeApiProblemFn<T> {
   const allErrors = { ...errorCodes, ...errors };
-  return (error, httpMapper, logger, operationalMsg) => {
+  return (error, httpMapper, logger, correlationId, operationalLogMessage) => {
     const makeProblem = (
       httpStatus: number,
-      { title, detail, correlationId, errors }: ApiError<T | CommonErrorCodes>
+      {
+        title,
+        detail,
+        correlationId: apiErrorCorrelationId,
+        errors,
+      }: ApiError<T | CommonErrorCodes>
     ): Problem => ({
       type: "about:blank",
       title,
       status: httpStatus,
       detail,
-      correlationId,
+      correlationId: apiErrorCorrelationId || correlationId,
       errors: errors.map(({ code, detail }) => ({
         code: allErrors[code],
         detail,
@@ -107,6 +114,9 @@ export function makeApiProblemBuilder<T extends string>(
 
     const genericProblem = makeProblem(500, genericError("Unexpected error"));
 
+    if (operationalLogMessage) {
+      logger.warn(operationalLogMessage);
+    }
     return match<unknown, Problem>(error)
       .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
         const problem = makeProblem(httpMapper(error), error);
@@ -135,10 +145,6 @@ export function makeApiProblemBuilder<T extends string>(
         },
         (e) => {
           const receivedProblem: Problem = e.response.data;
-          if (operationalMsg) {
-            logger.warn(operationalMsg);
-          }
-
           if (problemErrorsPassthrough) {
             logger.warn(makeProblemLogString(receivedProblem, error));
             return receivedProblem;
