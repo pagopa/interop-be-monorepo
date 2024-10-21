@@ -38,6 +38,7 @@ export type AuthorizationProcessClient = {
     typeof authorizationApi.createProducerKeychainApiClient
   >;
   user: ReturnType<typeof authorizationApi.createUserApiClient>;
+  token: ReturnType<typeof authorizationApi.createTokenGenerationApiClient>;
 };
 
 export type SelfcareV2Client = {
@@ -81,6 +82,9 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
         config.authorizationUrl
       ),
       user: authorizationApi.createUserApiClient(config.authorizationUrl),
+      token: authorizationApi.createTokenGenerationApiClient(
+        config.authorizationUrl
+      ),
     },
     selfcareV2Client: {
       institution: selfcareV2InstitutionClientBuilder(config),

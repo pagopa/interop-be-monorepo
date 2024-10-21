@@ -1,0 +1,21 @@
+meta {
+  name: Delete Purpose Version
+  type: http
+  seq: 11
+}
+
+delete {
+  url: {{host-purpose}}/purposes/:id/versions/:versionId
+  body: none
+  auth: none
+}
+
+params:path {
+  versionId: {{purposeVersionId}}
+  id: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

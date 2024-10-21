@@ -1,0 +1,27 @@
+meta {
+  name: get Privacy Notice Content
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/privacyNotices/:consentType
+  body: none
+  auth: none
+}
+
+params:path {
+  consentType: PP
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+  Accept: application/octet-stream
+}
+
+
+
+docs {
+  Retrieve the content of the privacy notice version
+}
