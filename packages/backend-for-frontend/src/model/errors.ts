@@ -45,9 +45,10 @@ export const errorCodes = {
   missingActivePurposeVersion: "0036",
   activeAgreementByEserviceAndConsumerNotFound: "0037",
   purposeIdNotFoundInClientAssertion: "0038",
-  clientAssertionPublicKeyNotFound: "0049",
+  delegationNotFound: "0039",
   organizationNotAllowed: "0040",
   cannotGetKeyWithClient: "0041",
+  clientAssertionPublicKeyNotFound: "0042",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -415,5 +416,13 @@ export function cannotGetKeyWithClient(
     detail: `Cannot get key with client ${clientId} and key ${keyId}`,
     code: "cannotGetKeyWithClient",
     title: "Cannot get key with client",
+  });
+}
+
+export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} not found`,
+    code: "delegationNotFound",
+    title: "Delegation not found",
   });
 }
