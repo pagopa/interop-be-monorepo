@@ -1,8 +1,9 @@
 import { IncomingHttpHeaders } from "http";
 import { AppContext, WithLogger, logger } from "pagopa-interop-commons";
+import { CorrelationId } from "pagopa-interop-models";
 
 export type Headers = {
-  "X-Correlation-Id": string;
+  "X-Correlation-Id": CorrelationId;
   Authorization: string | undefined;
 };
 

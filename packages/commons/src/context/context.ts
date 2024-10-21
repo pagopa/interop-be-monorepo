@@ -44,7 +44,7 @@ export const contextMiddleware =
       // eslint-disable-next-line functional/immutable-data
       req.ctx = {
         serviceName,
-        correlationId: unsafeBrandId(correlationId),
+        correlationId: unsafeBrandId<CorrelationId>(correlationId),
       } as AppContext;
     };
 

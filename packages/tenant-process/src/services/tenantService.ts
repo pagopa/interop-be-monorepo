@@ -28,6 +28,7 @@ import {
   TenantMail,
   TenantEvent,
   tenantMailKind,
+  CorrelationId,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -376,7 +377,7 @@ export function tenantServiceBuilder(
       }: {
         attributeId: AttributeId;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -431,7 +432,7 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         tenantAttributeSeed: tenantApi.CertifiedTenantAttributeSeed;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -516,7 +517,7 @@ export function tenantServiceBuilder(
       }: {
         tenantAttributeSeed: tenantApi.DeclaredTenantAttributeSeed;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -668,7 +669,7 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -842,7 +843,7 @@ export function tenantServiceBuilder(
         tenantExternalId: string;
         attributeOrigin: string;
         attributeExternalId: string;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -915,7 +916,7 @@ export function tenantServiceBuilder(
         tenantExternalId: string;
         attributeOrigin: string;
         attributeExternalId: string;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -1016,7 +1017,7 @@ export function tenantServiceBuilder(
       }: {
         tenantId: TenantId;
         version: number;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -1043,7 +1044,7 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         mailId: string;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -1083,7 +1084,7 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         mailSeed: tenantApi.MailSeed;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -1426,7 +1427,7 @@ export function tenantServiceBuilder(
       }: {
         tenantId: TenantId;
         certifierId: string;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -1488,7 +1489,7 @@ export function tenantServiceBuilder(
       tenantOrigin: string;
       tenantExternalId: string;
       attributeExternalId: string;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(
