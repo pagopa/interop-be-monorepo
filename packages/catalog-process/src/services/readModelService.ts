@@ -29,6 +29,7 @@ import {
   genericInternalError,
   Delegation,
   DelegationState,
+  delegationState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -150,10 +151,32 @@ export function readModelServiceBuilder(
           "data.id": { $in: ids },
         });
 
-      const producersIdsFilter: ReadModelFilter<EService> =
-        ReadModelRepository.arrayToFilter(producersIds, {
-          "data.producerId": { $in: producersIds },
-        });
+      const producersIdsFilter = ReadModelRepository.arrayToFilter(
+        producersIds,
+        {
+          $or: [
+            { "data.producerId": { $in: producersIds } },
+            {
+              "delegation.data.delegateId": { $in: producersIds },
+              "delegation.data.state": { $eq: delegationState.active },
+            },
+          ],
+        }
+      );
+
+      const delegationLookup =
+        producersIds.length > 0
+          ? [
+              {
+                $lookup: {
+                  from: "delegations",
+                  localField: "data.id",
+                  foreignField: "data.eserviceId",
+                  as: "delegation",
+                },
+              },
+            ]
+          : [];
 
       const descriptorsStateFilter: ReadModelFilter<EService> =
         ReadModelRepository.arrayToFilter(states, {
@@ -239,6 +262,7 @@ export function readModelServiceBuilder(
         : {};
 
       const aggregationPipeline = [
+        ...delegationLookup,
         {
           $match: {
             ...nameFilter,
