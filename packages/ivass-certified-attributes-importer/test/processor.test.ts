@@ -1,14 +1,32 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { randomUUID } from "crypto";
-import { it, afterEach, beforeAll, describe, expect, vi, vitest } from "vitest";
+import {
+  it,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  vi,
+  vitest,
+  inject,
+} from "vitest";
 import {
   InteropToken,
   InteropTokenGenerator,
-  ReadModelRepository,
   RefreshableInteropToken,
   genericLogger,
 } from "pagopa-interop-commons";
-import { Tenant, unsafeBrandId } from "pagopa-interop-models";
+import {
+  Tenant,
+  TenantId,
+  toReadModelTenant,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import {
+  getMockTenant,
+  setupTestContainersVitest,
+  writeInReadmodel,
+} from "pagopa-interop-commons-test";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import { ReadModelQueries } from "../src/service/readModelQueriesService.js";
 import { importAttributes } from "../src/service/processor.js";
@@ -16,9 +34,7 @@ import {
   ATTRIBUTE_IVASS_INSURANCES_ID,
   downloadCSVMock,
   downloadCSVMockGenerator,
-  getAttributeByExternalIdMock,
   getIVASSTenantsMock,
-  getTenantByIdMock,
   getTenantByIdMockGenerator,
   getTenantsMockGenerator,
   getTenantsWithAttributesMock,
@@ -28,22 +44,36 @@ import {
   persistentTenantAttribute,
 } from "./helpers.js";
 
-describe("IVASS Certified Attributes Importer", () => {
+export const readModelConfig = inject("readModelConfig");
+
+// TODO WIP
+const { cleanup, readModelRepository } = await setupTestContainersVitest(
+  readModelConfig,
+  undefined,
+  undefined,
+  undefined
+);
+
+describe("IVASS Certified Attributes Importer", async () => {
   const tokenGeneratorMock = {} as InteropTokenGenerator;
   const refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   const tenantProcessMock = new TenantProcessService("url");
   const csvDownloaderMock = downloadCSVMock;
-  const readModelClient = {} as ReadModelRepository;
-  const readModelQueriesMock = new ReadModelQueries(readModelClient);
+  const readModelQueries = new ReadModelQueries(readModelRepository);
+
+  // WIP
+  const mockTenantId = unsafeBrandId<TenantId>(
+    "f50da1f7-604e-4386-b090-1a89ed0de421"
+  );
 
   const run = () =>
     importAttributes(
       csvDownloaderMock,
-      readModelQueriesMock,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
       10,
-      "ivass-tenant-id",
+      mockTenantId,
       genericLogger
     );
 
@@ -80,28 +110,35 @@ describe("IVASS Certified Attributes Importer", () => {
     .spyOn(tenantProcessMock, "internalRevokeCertifiedAttribute")
     .mockImplementation(internalRevokeCertifiedAttributeMock);
 
-  const getIVASSTenantsSpy = vi
-    .spyOn(readModelQueriesMock, "getIVASSTenants")
-    .mockImplementation(getIVASSTenantsMock);
-  const getTenantsWithAttributesSpy = vi
-    .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
-    .mockImplementation(getTenantsWithAttributesMock);
-  const getTenantByIdSpy = vi
-    .spyOn(readModelQueriesMock, "getTenantById")
-    .mockImplementation(getTenantByIdMock);
-  const getAttributeByExternalIdSpy = vi
-    .spyOn(readModelQueriesMock, "getAttributeByExternalId")
-    .mockImplementation(getAttributeByExternalIdMock);
+  const getIVASSTenantsSpy = vi.spyOn(readModelQueries, "getIVASSTenants");
+
+  const getTenantsWithAttributesSpy = vi.spyOn(
+    readModelQueries,
+    "getTenantsWithAttributes"
+  );
+
+  const getTenantByIdSpy = vi.spyOn(readModelQueries, "getTenantById");
+
+  const getAttributeByExternalIdSpy = vi.spyOn(
+    readModelQueries,
+    "getAttributeByExternalId"
+  );
 
   beforeAll(() => {
     vitest.clearAllMocks();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vitest.clearAllMocks();
+    await cleanup();
   });
 
   it("should succeed", async () => {
+    await writeInReadmodel(
+      toReadModelTenant(getMockTenant(mockTenantId)),
+      readModelRepository.tenants
+    );
+
     await run();
 
     expect(downloadCSVMock).toBeCalledTimes(1);
@@ -130,21 +167,15 @@ describe("IVASS Certified Attributes Importer", () => {
     ];
 
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
-
-    const getIVASSTenantsMock = getTenantsMockGenerator(
-      (_) => readModelTenants
-    );
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
+    const getIVASSTenantsSpy = vi.spyOn(readModelQueries, "getIVASSTenants");
 
     await importAttributes(
       localDownloadCSVMock,
-      readModelQueriesMock,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
       10,
-      "ivass-tenant-id",
+      mockTenantId,
       genericLogger
     );
 
@@ -194,16 +225,11 @@ describe("IVASS Certified Attributes Importer", () => {
 
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
-    const getIVASSTenantsMock = getTenantsMockGenerator(
-      (_) => readModelTenants
-    );
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
+    const getIVASSTenantsSpy = vi.spyOn(readModelQueries, "getIVASSTenants");
 
     await importAttributes(
       localDownloadCSVMock,
-      readModelQueriesMock,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
       10,
@@ -267,7 +293,7 @@ describe("IVASS Certified Attributes Importer", () => {
 
     const getIVASSTenantsMock = getTenantsMockGenerator((_) => [tenant3]);
     const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
+      .spyOn(readModelQueries, "getIVASSTenants")
       .mockImplementation(getIVASSTenantsMock);
 
     const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
@@ -276,12 +302,12 @@ describe("IVASS Certified Attributes Importer", () => {
       tenant3,
     ]);
     const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
+      .spyOn(readModelQueries, "getTenantsWithAttributes")
       .mockImplementation(getTenantsWithAttributesMock);
 
     await importAttributes(
       localDownloadCSVMock,
-      readModelQueriesMock,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
       10,
@@ -323,19 +349,19 @@ describe("IVASS Certified Attributes Importer", () => {
 
     const getIVASSTenantsMock = getTenantsMockGenerator((_) => []);
     const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
+      .spyOn(readModelQueries, "getIVASSTenants")
       .mockImplementation(getIVASSTenantsMock);
 
     const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
       tenant3,
     ]);
     const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
+      .spyOn(readModelQueries, "getTenantsWithAttributes")
       .mockImplementation(getTenantsWithAttributesMock);
 
     await importAttributes(
       localDownloadCSVMock,
-      readModelQueriesMock,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
       10,
@@ -372,16 +398,16 @@ describe("IVASS Certified Attributes Importer", () => {
 
     const getIVASSTenantsMock = getTenantsMockGenerator((_) => [tenant3]);
     const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
+      .spyOn(readModelQueries, "getIVASSTenants")
       .mockImplementation(getIVASSTenantsMock);
 
     const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
+      .spyOn(readModelQueries, "getTenantsWithAttributes")
       .mockImplementation(getTenantsWithAttributesMock);
 
     await importAttributes(
       localDownloadCSVMock,
-      readModelQueriesMock,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
       10,
@@ -430,7 +456,7 @@ describe("IVASS Certified Attributes Importer", () => {
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
     const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
+      .spyOn(readModelQueries, "getIVASSTenants")
       .mockImplementationOnce(
         getTenantsMockGenerator((_) => readModelTenantsBatch1)
       )
@@ -439,12 +465,12 @@ describe("IVASS Certified Attributes Importer", () => {
       );
 
     const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
+      .spyOn(readModelQueries, "getTenantsWithAttributes")
       .mockImplementation(getTenantsWithAttributesMock);
 
     await importAttributes(
       localDownloadCSVMock,
-      readModelQueriesMock,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
       1,
@@ -474,7 +500,7 @@ describe("IVASS Certified Attributes Importer", () => {
     await expect(() =>
       importAttributes(
         localDownloadCSVMock,
-        readModelQueriesMock,
+        readModelQueries,
         tenantProcessMock,
         refreshableTokenMock,
         1,
@@ -545,19 +571,19 @@ describe("IVASS Certified Attributes Importer", () => {
 
     const getIVASSTenantsMock = getTenantsMockGenerator((_) => [tenant3]);
     const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
+      .spyOn(readModelQueries, "getIVASSTenants")
       .mockImplementation(getIVASSTenantsMock);
 
     const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
       tenant2,
     ]);
     const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
+      .spyOn(readModelQueries, "getTenantsWithAttributes")
       .mockImplementation(getTenantsWithAttributesMock);
 
     await importAttributes(
       localDownloadCSVMock,
-      readModelQueriesMock,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
       10,
@@ -621,7 +647,7 @@ describe("IVASS Certified Attributes Importer", () => {
       (_) => readModelTenants
     );
     const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
+      .spyOn(readModelQueries, "getIVASSTenants")
       .mockImplementation(getIVASSTenantsMock);
 
     const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
@@ -629,12 +655,12 @@ describe("IVASS Certified Attributes Importer", () => {
       tenant3,
     ]);
     const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
+      .spyOn(readModelQueries, "getTenantsWithAttributes")
       .mockImplementation(getTenantsWithAttributesMock);
 
     await importAttributes(
       localDownloadCSVMock,
-      readModelQueriesMock,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
       10,
@@ -696,19 +722,19 @@ describe("IVASS Certified Attributes Importer", () => {
 
     const getIVASSTenantsMock = getTenantsMockGenerator((_) => [tenant3]);
     const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
+      .spyOn(readModelQueries, "getIVASSTenants")
       .mockImplementation(getIVASSTenantsMock);
 
     const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
       tenant1,
     ]);
     const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
+      .spyOn(readModelQueries, "getTenantsWithAttributes")
       .mockImplementation(getTenantsWithAttributesMock);
 
     await importAttributes(
       localDownloadCSVMock,
-      readModelQueriesMock,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
       1,
@@ -735,16 +761,16 @@ describe("IVASS Certified Attributes Importer", () => {
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
     const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
+      .spyOn(readModelQueries, "getIVASSTenants")
       .mockImplementation(getIVASSTenantsMock);
     const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
+      .spyOn(readModelQueries, "getTenantsWithAttributes")
       .mockImplementation(getTenantsWithAttributesMock);
 
     await expect(() =>
       importAttributes(
         localDownloadCSVMock,
-        readModelQueriesMock,
+        readModelQueries,
         tenantProcessMock,
         refreshableTokenMock,
         10,
