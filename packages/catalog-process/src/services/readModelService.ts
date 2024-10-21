@@ -155,7 +155,7 @@ export function readModelServiceBuilder(
         {
           $or: [
             { "data.producerId": { $in: producersIds } },
-            { "data.delegation.data.delegateId": { $in: producersIds } },
+            { "delegation.data.delegateId": { $in: producersIds } },
           ],
         }
       );
@@ -168,7 +168,7 @@ export function readModelServiceBuilder(
                   from: "delegations",
                   localField: "data.id",
                   foreignField: "data.eserviceId",
-                  as: "data.delegation",
+                  as: "delegation",
                 },
               },
             ]
