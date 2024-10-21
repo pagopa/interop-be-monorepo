@@ -1,0 +1,32 @@
+meta {
+  name: get Consumer Purposes
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/consumer/purposes
+  body: none
+  auth: none
+}
+
+params:query {
+  q: 
+  eservicesIds: 
+  consumersIds: 
+  producersIds: 
+  states: 
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Retrieve Purposes from the consumer prospective
+}

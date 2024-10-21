@@ -1,0 +1,32 @@
+meta {
+  name: Adds a purpose to a client
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/clients/:clientId/purposes
+  body: json
+  auth: none
+}
+
+params:path {
+  clientId: bfb613c0-f07a-45ee-be0a-26cf9985f940
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "purposeId": "be3505b7-98a5-4788-84de-7e4cad878f63"
+  }
+}
+
+docs {
+  Adds a purpose to a client
+}

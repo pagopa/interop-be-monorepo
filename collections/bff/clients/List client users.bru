@@ -1,0 +1,26 @@
+meta {
+  name: List client users
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/clients/:clientId/users
+  body: none
+  auth: none
+}
+
+params:path {
+  clientId: bfb613c0-f07a-45ee-be0a-26cf9985f940
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  List client users
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Remove a consumer Document from an Agreement
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{host-bff}}/agreements/:agreementId/consumer-documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: 22db6870-5d5a-4ded-b0f6-8eff866e09d3
+  documentId: a4c0136b-d46b-4759-a3c3-8467717baf23
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Remove a consumer Document from an Agreement
+}
