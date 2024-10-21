@@ -1,0 +1,26 @@
+meta {
+  name: Adds the declared attribute to the Institution
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/tenants/attributes/declared
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "id": "d8fa4097-d3cb-42ea-a82b-c99e4c7506fd"
+  }
+}
+
+docs {
+  Adds the declared attribute to the Institution
+}

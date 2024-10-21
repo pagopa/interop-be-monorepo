@@ -1,0 +1,27 @@
+meta {
+  name: Activate Purpose Version
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/purposes/:purposeId/versions/:versionId/activate
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: be3505b7-98a5-4788-84de-7e4cad878f63
+  versionId: 60982b1b-e826-425f-be0e-4345294323f7
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  activates the purpose version by id
+}
