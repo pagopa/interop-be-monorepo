@@ -1,0 +1,25 @@
+meta {
+  name: Gets the corresponding user
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/users/:userId
+  body: none
+  auth: none
+}
+
+params:path {
+  userId: d0b75bf4-6dfb-44bb-9f12-a298bbc5d37e
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+
+docs {
+  Gets user
+}

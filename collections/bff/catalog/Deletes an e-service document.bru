@@ -1,0 +1,24 @@
+meta {
+  name: Deletes an e-service document
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{host-bff}}/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  eServiceId: <uuid>
+  descriptorId: <uuid>
+  documentId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
