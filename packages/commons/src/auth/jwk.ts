@@ -45,7 +45,7 @@ function assertNotPrivateKey(key: string): void {
   throw notAllowedPrivateKeyException();
 }
 
-function createPublicKey(key: string): KeyObject {
+export function createPublicKey(key: string): KeyObject {
   const pemKey = decodeBase64ToPem(key);
 
   assertNotPrivateKey(pemKey);
