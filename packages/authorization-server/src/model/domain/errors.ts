@@ -1,9 +1,5 @@
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
-  ApiKey,
-  ConsumerKey,
-} from "pagopa-interop-client-assertion-validation";
-import {
   ApiError,
   ClientKindTokenStates,
   GeneratedTokenAuditDetails,
@@ -24,7 +20,8 @@ export const errorCodes = {
   invalidTokenClientKidPurposeEntry: "0009",
   keyTypeMismatch: "0010",
   unexpectedTokenGenerationStatesEntry: "0011",
-  tokenGenerationFailed: "0012",
+  unexpectedTokenGenerationError: "0012",
+  platformStateValidationFailed: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -35,7 +32,9 @@ export function clientAssertionRequestValidationFailed(
   request: authorizationServerApi.AccessTokenRequest
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion request validation failed for request: ${request}`,
+    detail: `Client assertion request validation failed for request: ${JSON.stringify(
+      request
+    )}`,
     code: "clientAssertionRequestValidationFailed",
     title: "Client assertion request validation failed",
   });
@@ -53,11 +52,10 @@ export function clientAssertionValidationFailed(
 }
 
 export function clientAssertionSignatureValidationFailed(
-  clientAssertion: string,
-  key: ConsumerKey | ApiKey
+  clientAssertion: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion signature validation failed for clientAssertion: ${clientAssertion}, key: ${key}`,
+    detail: `Client assertion signature validation failed for clientAssertion: ${clientAssertion}`,
     code: "clientAssertionSignatureValidationFailed",
     title: "Client assertion signature validation failed",
   });
@@ -71,11 +69,9 @@ export function kafkaAuditingFailed(): ApiError<ErrorCodes> {
   });
 }
 
-export function fallbackAuditFailed(
-  messageBody: GeneratedTokenAuditDetails
-): ApiError<ErrorCodes> {
+export function fallbackAuditFailed(jti: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Fallback audit failed. Message body: ${messageBody}`,
+    detail: `Fallback audit failed. Jti: ${jti}`,
     code: "fallbackAuditFailed",
     title: "Fallback audit failed",
   });
@@ -137,10 +133,18 @@ export function unexpectedTokenGenerationStatesEntry(): ApiError<ErrorCodes> {
   });
 }
 
-export function tokenGenerationFailed(): ApiError<ErrorCodes> {
+export function unexpectedTokenGenerationError(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Token generation failed",
-    code: "tokenGenerationFailed",
-    title: "Token generation failed",
+    detail: "Unexpected token generation error",
+    code: "unexpectedTokenGenerationError",
+    title: "Unexpected token generation error",
+  });
+}
+
+export function platformStateValidationFailed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Platform state validation failed",
+    code: "platformStateValidationFailed",
+    title: "Platform state validation failed",
   });
 }

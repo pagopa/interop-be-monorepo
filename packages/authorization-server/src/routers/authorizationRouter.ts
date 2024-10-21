@@ -1,7 +1,8 @@
 import {
-  genericLogger,
   initFileManager,
   initRedisRateLimiter,
+  logger,
+  LoggerMetadata,
   rateLimiterHeadersFromStatus,
 } from "pagopa-interop-commons";
 import { fastifyFormbody } from "@fastify/formbody";
@@ -33,14 +34,11 @@ const redisRateLimiter = await initRedisRateLimiter({
 });
 const producer = await initProducer(config, config.tokenAuditingTopic);
 const fileManager = initFileManager(config);
-// TODO: logger in middleware?
-const logger = genericLogger;
 
 // TODO Enable logging once error handling is completed
 // const server: FastifyInstance = Fastify({ logger: { level: 'error' } })
 const fastifyServer: FastifyInstance = Fastify();
 await fastifyServer.register(fastifyFormbody);
-const correlationId = generateId();
 
 // TODO: temporary export for tests
 const tokenService = tokenServiceBuilder({
@@ -48,9 +46,7 @@ const tokenService = tokenServiceBuilder({
   kmsClient,
   redisRateLimiter,
   producer,
-  correlationId,
   fileManager,
-  logger,
 });
 
 // TODO: add middlewares with @fastify/express?
@@ -63,15 +59,26 @@ fastifyServer.post(
     }>,
     reply
   ) => {
+    const correlationId = generateId();
+    const loggerMetadata: LoggerMetadata = {
+      serviceName: "authorization-server",
+      correlationId,
+    };
+    const loggerInstance = logger(loggerMetadata);
+
     try {
-      const res = await tokenService.generateToken(request.body);
+      const res = await tokenService.generateToken(
+        request.body,
+        correlationId,
+        loggerInstance
+      );
 
       if (res.limitReached) {
         const headers = rateLimiterHeadersFromStatus(res.rateLimiterStatus);
         const errorRes = makeApiProblem(
           tooManyRequestsError(res.rateLimitedTenantId),
           authorizationServerErrorMapper,
-          logger
+          loggerInstance
         );
 
         return reply.status(errorRes.status).headers(headers).send(errorRes);
@@ -83,17 +90,16 @@ fastifyServer.post(
         expires_in: res.token.payload.exp,
       });
     } catch (err) {
-      // TODO correlationId? It's supposed to be in the ApiError object, but it's never done in the project
       const errorRes = makeApiProblem(
         err,
         authorizationServerErrorMapper,
-        logger
+        loggerInstance
       );
       return reply.status(errorRes.status).send(errorRes);
     }
   }
 );
 
-fastifyServer.get("/health", async (_, reply) => reply.status(204));
+fastifyServer.get("/status", async (_, reply) => reply.status(200).send());
 
 export default fastifyServer;
