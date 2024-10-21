@@ -530,6 +530,13 @@ export const getLastSuspendedOrActivatedPurposeVersion = (
   return purposeVersion;
 };
 
+export const getLastArchivedPurposeVersion = (
+  purposeVersions: PurposeVersion[]
+): PurposeVersion =>
+  purposeVersions
+    .filter((v) => v.state === purposeVersionState.archived)
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+
 const extractAgreementIdFromAgreementPK = (
   pk: PlatformStatesAgreementPK
 ): AgreementId => {
