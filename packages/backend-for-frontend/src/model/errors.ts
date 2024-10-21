@@ -42,6 +42,7 @@ export const errorCodes = {
   privacyNoticeNotFoundInConfiguration: "0033",
   privacyNoticeNotFound: "0034",
   privacyNoticeVersionIsNotTheLatest: "0035",
+  delegationNotFound: "0036",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -350,5 +351,13 @@ export function invalidZipStructure(description: string): ApiError<ErrorCodes> {
     detail: `Invalid zip structure: ${description}`,
     code: "invalidZipStructure",
     title: "Invalid zip structure",
+  });
+}
+
+export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} not found`,
+    code: "delegationNotFound",
+    title: "Delegation not found",
   });
 }

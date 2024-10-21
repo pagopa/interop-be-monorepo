@@ -14,6 +14,7 @@ import {
 } from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { toBffDelegationApiDelegation } from "../api/delegationApiConverter.js";
+import { delegationNotFound } from "../model/errors.js";
 
 async function enhanceDelegation(
   delegationClient: DelegationProcessClient,
@@ -26,6 +27,10 @@ async function enhanceDelegation(
     await delegationClient.delegation.getDelegation({
       params: { delegationId },
     });
+
+  if (!delegation) {
+    throw delegationNotFound(delegationId);
+  }
 
   const delegator: tenantApi.Tenant = await tenantClient.tenant.getTenant({
     params: { id: delegation.delegatorId },

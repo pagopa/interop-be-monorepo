@@ -7,7 +7,6 @@ import {
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-// import { delegationServiceBuilder } from "../services/delegationService.js";
 
 const producerDelegationRouter = (
   ctx: ZodiosContext,
@@ -20,10 +19,10 @@ const producerDelegationRouter = (
     }
   );
 
-  // const delegationService = delegationServiceBuilder(processClients);
-
   producerDelegationRouter
-    .post("/producer/delegations", async (_req, res) => res.status(501).send())
+    .post("/producer/delegations", async (_req, res) => {
+      res.status(501).send();
+    })
     .post("/producer/delegations/:delegationId/approve", async (_req, res) =>
       res.status(501).send()
     )
