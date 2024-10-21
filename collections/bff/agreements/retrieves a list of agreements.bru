@@ -1,0 +1,32 @@
+meta {
+  name: retrieves a list of agreements
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/agreements
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  eservicesIds: 
+  producersIds: 
+  consumersIds: 
+  states: 
+  showOnlyUpgradeable: false
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  retrieves a list of agreements
+}

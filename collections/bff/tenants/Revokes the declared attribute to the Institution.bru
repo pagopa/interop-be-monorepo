@@ -1,0 +1,24 @@
+meta {
+  name: Revokes the declared attribute to the Institution
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{host-bff}}/tenants/attributes/declared/:attributeId
+  body: none
+  auth: none
+}
+
+params:path {
+  attributeId: d8fa4097-d3cb-42ea-a82b-c99e4c7506fd
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+docs {
+  Revokes the declared attribute to the Institution
+}
