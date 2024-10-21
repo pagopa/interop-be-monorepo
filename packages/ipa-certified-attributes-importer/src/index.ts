@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { createHash } from "crypto";
 import {
   InteropTokenGenerator,
@@ -263,13 +262,19 @@ async function assignNewAttribute(
   }
 }
 
-async function revokeAttributes(
+export async function getAttributesToRevoke(
   registryData: RegistryData,
   tenantSeed: TenantSeed[],
   platformTenants: Tenant[],
-  platformAttributes: Attribute[],
-  headers: Header
-): Promise<void> {
+  platformAttributes: Attribute[]
+): Promise<
+  Array<{
+    tOrigin: string;
+    tExtenalId: string;
+    aOrigin: string;
+    aCode: string;
+  }>
+> {
   const indexFromOpenData = new Set(
     registryData.attributes.map((a) =>
       toKey({ origin: a.origin, value: a.code })
@@ -291,17 +296,20 @@ async function revokeAttributes(
       .map((a) => [a.id, a])
   );
 
-  const canBeRevoked = (attribute: {
-    origin: string;
-    code: string;
-  }): boolean => {
+  const canBeRevoked = (
+    attribute: {
+      origin: string;
+      code: string;
+    },
+    tenantExternalId: { origin: string; value: string }
+  ): boolean => {
     const externalId = { origin: attribute.origin, value: attribute.code };
 
     if (attribute.origin !== "IPA") {
       return false;
     }
 
-    const registryAttributes = tenantSeedIndex.get(toKey(externalId));
+    const registryAttributes = tenantSeedIndex.get(toKey(tenantExternalId));
     if (!registryAttributes) {
       return false;
     }
@@ -313,7 +321,7 @@ async function revokeAttributes(
     return !indexFromOpenData.has(toKey(externalId));
   };
 
-  const toRevoke = platformTenants.flatMap((t) =>
+  return platformTenants.flatMap((t) =>
     t.attributes
       // eslint-disable-next-line sonarjs/no-identical-functions
       .map((a) => {
@@ -343,27 +351,43 @@ async function revokeAttributes(
           a.revocationTimestamp === undefined &&
           a.origin &&
           a.code &&
-          canBeRevoked({ origin: a.origin, code: a.code })
+          canBeRevoked(
+            {
+              origin: a.origin,
+              code: a.code,
+            },
+            t.externalId
+          )
       )
       .map((a) => ({
         tOrigin: t.externalId.origin,
         tExtenalId: t.externalId.value,
-        aOrigin: a?.origin,
-        aCode: a?.code,
+        aOrigin: a?.origin as string,
+        aCode: a?.code as string,
       }))
   );
+}
 
+async function revokeAttributes(
+  attributesToRevoke: Array<{
+    tOrigin: string;
+    tExtenalId: string;
+    aOrigin: string;
+    aCode: string;
+  }>,
+  headers: Header
+): Promise<void> {
   const tenantClient = tenantApi.createInternalApiClient(
     config.tenantProcessUrl
   );
 
-  for (const a of toRevoke) {
+  for (const a of attributesToRevoke) {
     await tenantClient.internalRevokeCertifiedAttribute(undefined, {
       params: {
         tOrigin: a.tOrigin,
         tExternalId: a.tExtenalId,
-        aOrigin: a.aOrigin as string,
-        aExternalId: a.aCode as string,
+        aOrigin: a.aOrigin,
+        aExternalId: a.aCode,
       },
       headers,
     });
@@ -425,11 +449,15 @@ try {
     await getHeader(refreshableToken, correlatsionId)
   );
 
-  await revokeAttributes(
+  const attributesToRevoke = await getAttributesToRevoke(
     registryData,
     tenantUpsertData,
     ipaTenants,
-    attributes,
+    attributes
+  );
+
+  await revokeAttributes(
+    attributesToRevoke,
     await getHeader(refreshableToken, correlatsionId)
   );
 } catch (error) {

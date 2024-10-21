@@ -1,7 +1,192 @@
+/* eslint-disable functional/immutable-data */
+/* eslint-disable sonarjs/no-identical-functions */
+import { Attribute, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+import { v4 as uuidv4 } from "uuid";
+import { TenantSeed, getAttributesToRevoke } from "../src/index.js";
+import { agency, aoo, attributes, uo } from "./expectation.js";
 
-describe("RevokeAttributes", async () => {
-  it("todo", async () => {
-    expect(true).toEqual(true);
+describe("GetAttributesToRevoke", async () => {
+  it("should revoke only assigned attributes that exist and doesn't have a revocation timestamp", async () => {
+    const registryData = {
+      institutions: [...agency, ...aoo, ...uo],
+      attributes,
+    };
+
+    const tenantSeed: TenantSeed[] = [
+      {
+        origin: "IPA",
+        originId: "1",
+        description: "tenant1",
+        attributes: [],
+      },
+    ];
+
+    const platformAttributes: Attribute[] = [
+      ...attributes.slice(0, 1),
+      ...attributes.slice(2),
+    ].map((a) => ({
+      ...a,
+      creationTime: new Date(),
+      kind: "Certified",
+      id: unsafeBrandId(uuidv4()),
+    }));
+
+    const ipaTenants: Tenant[] = [
+      {
+        id: unsafeBrandId("1"),
+        selfcareId: "fake-selfcare-id",
+        externalId: { origin: "IPA", value: "1" },
+        features: [],
+        attributes: [
+          {
+            id: platformAttributes[0].id,
+            type: "PersistentCertifiedAttribute",
+            assignmentTimestamp: new Date(),
+            revocationTimestamp: new Date(),
+          },
+          {
+            id: platformAttributes[1].id,
+            type: "PersistentCertifiedAttribute",
+            assignmentTimestamp: new Date(),
+          },
+        ],
+        createdAt: new Date(),
+        mails: [],
+        name: "tenant 1",
+      },
+    ];
+
+    const attributesToAssign = await getAttributesToRevoke(
+      registryData,
+      tenantSeed,
+      ipaTenants,
+      platformAttributes
+    );
+
+    expect(attributesToAssign).toEqual([]);
+  });
+
+  it("should revoke only assigned attributes with origin IPA", async () => {
+    const registryData = {
+      institutions: [...agency, ...aoo, ...uo],
+      attributes: attributes.slice(2),
+    };
+
+    const tenantSeed: TenantSeed[] = [
+      {
+        origin: "IPA",
+        originId: "1",
+        description: "tenant1",
+        attributes: [],
+      },
+    ];
+
+    const platformAttributes: Attribute[] = attributes.map((a) => ({
+      ...a,
+      creationTime: new Date(),
+      kind: "Certified",
+      id: unsafeBrandId(uuidv4()),
+    }));
+
+    platformAttributes[0].origin = "NON-IPA";
+
+    const ipaTenants: Tenant[] = [
+      {
+        id: unsafeBrandId("1"),
+        selfcareId: "fake-selfcare-id",
+        externalId: { origin: "IPA", value: "1" },
+        features: [],
+        attributes: [
+          {
+            id: platformAttributes[0].id,
+            type: "PersistentCertifiedAttribute",
+            assignmentTimestamp: new Date(),
+          },
+          {
+            id: platformAttributes[1].id,
+            type: "PersistentCertifiedAttribute",
+            assignmentTimestamp: new Date(),
+          },
+        ],
+        createdAt: new Date(),
+        mails: [],
+        name: "tenant 1",
+      },
+    ];
+
+    const attributesToRevoke = await getAttributesToRevoke(
+      registryData,
+      tenantSeed,
+      ipaTenants,
+      platformAttributes
+    );
+
+    expect(attributesToRevoke).toEqual([
+      {
+        tOrigin: ipaTenants[0].externalId.origin,
+        tExtenalId: ipaTenants[0].externalId.value,
+        aOrigin: attributes[1].origin,
+        aCode: attributes[1].code,
+      },
+    ]);
+  });
+
+  it("should not revoke attributes if are present in the registry data", async () => {
+    const registryData = {
+      institutions: [...agency, ...aoo, ...uo],
+      attributes,
+    };
+
+    const tenantSeed: TenantSeed[] = [
+      {
+        origin: "IPA",
+        originId: "1",
+        description: "tenant1",
+        attributes: [],
+      },
+    ];
+
+    const platformAttributes: Attribute[] = attributes.map((a) => ({
+      ...a,
+      creationTime: new Date(),
+      kind: "Certified",
+      id: unsafeBrandId(uuidv4()),
+    }));
+
+    platformAttributes[0].origin = "NON-IPA";
+
+    const ipaTenants: Tenant[] = [
+      {
+        id: unsafeBrandId("1"),
+        selfcareId: "fake-selfcare-id",
+        externalId: { origin: "IPA", value: "1" },
+        features: [],
+        attributes: [
+          {
+            id: platformAttributes[0].id,
+            type: "PersistentCertifiedAttribute",
+            assignmentTimestamp: new Date(),
+          },
+          {
+            id: platformAttributes[1].id,
+            type: "PersistentCertifiedAttribute",
+            assignmentTimestamp: new Date(),
+          },
+        ],
+        createdAt: new Date(),
+        mails: [],
+        name: "tenant 1",
+      },
+    ];
+
+    const attributesToRevoke = await getAttributesToRevoke(
+      registryData,
+      tenantSeed,
+      ipaTenants,
+      platformAttributes
+    );
+
+    expect(attributesToRevoke).toEqual([]);
   });
 });
