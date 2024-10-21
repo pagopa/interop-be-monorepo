@@ -35,6 +35,8 @@ describe("approve delegation", () => {
       delegateId: delegate.id,
     });
     await addOneDelegation(delegation);
+    const {version} = await readLastDelegationEvent(delegation.id);
+    expect(version).toBe("0");
 
     await delegationProducerService.approveProducerDelegation(
       delegate.id,
@@ -43,6 +45,7 @@ describe("approve delegation", () => {
     );
 
     const event = await readLastDelegationEvent(delegation.id);
+    expect(event.version).toBe("1");
 
     const { delegation: actualDelegation } = decodeProtobufPayload({
       messageType: DelegationApprovedV2,
