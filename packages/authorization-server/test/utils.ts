@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import { config } from "process";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import {
   ClientId,
@@ -16,11 +15,7 @@ import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import * as jose from "jose";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
-import * as uuidv4 from "uuid";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
-
-// const uuid = generateId();
-// vi.spyOn(uuidv4, "v4").mockReturnValue(uuid);
 
 export const configTokenGenerationStates = inject(
   "tokenGenerationReadModelConfig"
