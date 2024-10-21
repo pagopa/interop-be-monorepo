@@ -1,0 +1,35 @@
+meta {
+  name: Add producer keychain key
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/producerKeychains/:producerKeychainId/keys
+  body: json
+  auth: none
+}
+
+params:path {
+  producerKeychainId: c164a9fc-2000-48a1-8c5b-1820925b79a2
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+      "key": "{{keyEncodedPem}}",
+      "name": "some key",
+      "use": "SIG",
+      "alg": "RS256"
+  }
+}
+
+docs {
+  retrieves a list of clients
+}

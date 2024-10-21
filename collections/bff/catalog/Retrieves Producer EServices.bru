@@ -1,0 +1,29 @@
+meta {
+  name: Retrieves Producer EServices
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/producers/eservices?q=<string>&consumersIds=&offset=<integer>&limit=<integer>
+  body: none
+  auth: none
+}
+
+params:query {
+  q: <string>
+  consumersIds: 
+  offset: <integer>
+  limit: <integer>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Retrieves Producer EServices
+}
