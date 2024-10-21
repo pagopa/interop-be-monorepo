@@ -81,7 +81,7 @@ const authorizationService = authorizationServiceBuilder(
   selfcareV2InstitutionClientBuilder(config)
 );
 
-const authorizationRouter = (
+export const authorizationRouter = (
   ctx: ZodiosContext
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE, API_ROLE } =

@@ -5,3 +5,5 @@ export const APIEndpoint = z
   .min(1)
   .transform((s) => s.replace(/\/+$/, ""))
   .brand<"APIEndpoint">();
+
+export type APIEndpoint = z.infer<typeof APIEndpoint>;

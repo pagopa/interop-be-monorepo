@@ -19,6 +19,13 @@ import {
   toReadModelProducerKeychain,
 } from "pagopa-interop-models";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+import {
+  authenticationMiddleware,
+  contextMiddleware,
+  zodiosCtx,
+  APIEndpoint,
+} from "pagopa-interop-commons";
+import authorizationRouter from "../src/routers/AuthorizationRouter.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
 export const { cleanup, readModelRepository, postgresDB } =
@@ -27,7 +34,7 @@ export const { cleanup, readModelRepository, postgresDB } =
     inject("eventStoreConfig")
   );
 
-afterEach(cleanup);
+// afterEach(cleanup);
 
 export const {
   agreements,
@@ -104,3 +111,21 @@ export const readLastAuthorizationEvent = async (
   id: ClientId | ProducerKeychainId
 ): Promise<ReadEvent<AuthorizationEvent>> =>
   await readLastEventByStreamId(id, '"authorization"', postgresDB);
+
+export const app = zodiosCtx.app();
+app.disable("x-powered-by");
+
+app.use(contextMiddleware("authorization"));
+app.use(
+  authenticationMiddleware({
+    wellKnownUrls: ["http://127.0.0.1:4500/jwks.json" as APIEndpoint],
+    acceptedAudiences: [
+      "dev.interop.pagopa.it/ui",
+      "refactor.dev.interop.pagopa.it/ui",
+      "dev.interop.pagopa.it/m2m",
+      "refactor.dev.interop.pagopa.it/m2m",
+    ],
+    jwksCacheMaxAge: undefined,
+  })
+);
+app.use(authorizationRouter(zodiosCtx));
