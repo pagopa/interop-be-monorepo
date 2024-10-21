@@ -16,7 +16,6 @@ import {
   clientKidPrefix,
   clientKidPurposePrefix,
   clientKindTokenStates,
-  GeneratedTokenAuditDetails,
   generateId,
   itemState,
   makeGSIPKKid,
@@ -27,7 +26,6 @@ import {
   purposeVersionState,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { formatDateyyyyMMdd, genericLogger } from "pagopa-interop-commons";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
@@ -666,45 +664,44 @@ describe("authorization server tests", () => {
     // expect(split[0]).toEqual(`token-details/${ymdDate}/${ymdDate}`);
     // expect(split[2]).toEqual(`${generateId()}.ndjson`);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const messageBody: GeneratedTokenAuditDetails = {
-      jwtId: result.token!.payload.jti,
-      correlationId: generateId(),
-      issuedAt: result.token!.payload.iat,
-      clientId,
-      organizationId: purpose.consumerId,
-      agreementId: unsafeBrandId(tokenClientPurposeEntry.agreementId!),
-      eserviceId: unsafeBrandId(
-        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
-      ),
-      descriptorId: unsafeBrandId(
-        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
-      ),
-      purposeId: purpose.id,
-      purposeVersionId: purpose.versions[0].id,
-      algorithm: result.token!.header.alg,
-      keyId: result.token!.header.kid,
-      audience: result.token!.payload.aud.join(","),
-      subject: result.token!.payload.sub,
-      notBefore: result.token!.payload.nbf,
-      expirationTime: result.token!.payload.exp,
-      issuer: result.token!.payload.iss,
-      clientAssertion: {
-        algorithm: clientAssertion.header.alg,
-        // TODO: improve typeof
-        audience: !clientAssertion.payload.aud
-          ? ""
-          : typeof clientAssertion.payload.aud === "string"
-          ? clientAssertion.payload.aud
-          : clientAssertion.payload.aud.join(","),
-        expirationTime: clientAssertion.payload.exp!,
-        issuedAt: clientAssertion.payload.iat!,
-        issuer: clientAssertion.payload.iss!,
-        jwtId: clientAssertion.payload.jti!,
-        keyId: clientAssertion.header.kid!,
-        subject: unsafeBrandId(clientAssertion.payload.sub!),
-      },
-    };
+    // const _messageBody: GeneratedTokenAuditDetails = {
+    //   jwtId: result.token!.payload.jti,
+    //   correlationId: generateId(),
+    //   issuedAt: result.token!.payload.iat,
+    //   clientId,
+    //   organizationId: purpose.consumerId,
+    //   agreementId: unsafeBrandId(tokenClientPurposeEntry.agreementId!),
+    //   eserviceId: unsafeBrandId(
+    //     tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
+    //   ),
+    //   descriptorId: unsafeBrandId(
+    //     tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
+    //   ),
+    //   purposeId: purpose.id,
+    //   purposeVersionId: purpose.versions[0].id,
+    //   algorithm: result.token!.header.alg,
+    //   keyId: result.token!.header.kid,
+    //   audience: result.token!.payload.aud.join(","),
+    //   subject: result.token!.payload.sub,
+    //   notBefore: result.token!.payload.nbf,
+    //   expirationTime: result.token!.payload.exp,
+    //   issuer: result.token!.payload.iss,
+    //   clientAssertion: {
+    //     algorithm: clientAssertion.header.alg,
+    //     // TODO: improve typeof
+    //     audience: !clientAssertion.payload.aud
+    //       ? ""
+    //       : typeof clientAssertion.payload.aud === "string"
+    //       ? clientAssertion.payload.aud
+    //       : clientAssertion.payload.aud.join(","),
+    //     expirationTime: clientAssertion.payload.exp!,
+    //     issuedAt: clientAssertion.payload.iat!,
+    //     issuer: clientAssertion.payload.iss!,
+    //     jwtId: clientAssertion.payload.jti!,
+    //     keyId: clientAssertion.header.kid!,
+    //     subject: unsafeBrandId(clientAssertion.payload.sub!),
+    //   },
+    // };
 
     // expect(mockProducer.send).toHaveBeenCalledWith({
     //   messages: [
