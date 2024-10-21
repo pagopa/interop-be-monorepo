@@ -150,10 +150,29 @@ export function readModelServiceBuilder(
           "data.id": { $in: ids },
         });
 
-      const producersIdsFilter: ReadModelFilter<EService> =
-        ReadModelRepository.arrayToFilter(producersIds, {
-          "data.producerId": { $in: producersIds },
-        });
+      const producersIdsFilter = ReadModelRepository.arrayToFilter(
+        producersIds,
+        {
+          $or: [
+            { "data.producerId": { $in: producersIds } },
+            { "data.delegation.data.delegateId": { $in: producersIds } },
+          ],
+        }
+      );
+
+      const delegationLookup =
+        producersIds.length > 0
+          ? [
+              {
+                $lookup: {
+                  from: "delegations",
+                  localField: "data.id",
+                  foreignField: "data.eserviceId",
+                  as: "data.delegation",
+                },
+              },
+            ]
+          : [];
 
       const descriptorsStateFilter: ReadModelFilter<EService> =
         ReadModelRepository.arrayToFilter(states, {
@@ -239,6 +258,7 @@ export function readModelServiceBuilder(
         : {};
 
       const aggregationPipeline = [
+        ...delegationLookup,
         {
           $match: {
             ...nameFilter,
