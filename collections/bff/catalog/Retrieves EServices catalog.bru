@@ -1,0 +1,33 @@
+meta {
+  name: Retrieves EServices catalog
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/catalog
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~q: <string>
+  ~producersIds: 
+  ~attributesIds: 
+  ~states: 
+  ~agreementStates: 
+  ~mode: RECEIVE
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Retrieves EServices catalog
+}

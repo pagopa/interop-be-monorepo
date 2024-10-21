@@ -1,0 +1,31 @@
+meta {
+  name: Update expirationDate for Verified Attribute of Tenant
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/tenants/:tenantId/attributes/verified/:attributeId
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: 69e2865e-65ab-4e48-a638-2037a9ee2ee7
+  attributeId: e7e06185-f8b9-4fbd-852b-ede8be523962
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "expirationDate": "2024-10-10T13:17:21.845Z"
+  }
+}
+
+docs {
+  Update expirationDate for Verified Attribute of Tenant
+}
