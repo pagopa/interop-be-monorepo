@@ -1,0 +1,27 @@
+meta {
+  name: Get Attribute by origin and code
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/attributes/origin/:origin/code/:code
+  body: none
+  auth: none
+}
+
+params:path {
+  origin: dd6a5d81-fd7c-4e5b-9b27-b4bb8120b86a
+  code: 000
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  returns the attribute in the registry corresponding to origin and code, if any.
+}

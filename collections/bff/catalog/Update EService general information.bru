@@ -1,0 +1,37 @@
+meta {
+  name: Update EService general information
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{host-bff}}/eservices/:eServiceId
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "name": "{{randomName}} updated",
+    "description": "test eservice updated from BFF",
+    "technology": "SOAP",
+    "mode": "RECEIVE",
+    "isSignalHubEnabled": false
+  }
+}
+
+script:pre-request {
+    const random = Math.round(Math.random() * 10000)
+
+    bru.setVar("randomName",`test name ${random}`)
+    bru.setVar("randomCode",random)
+}

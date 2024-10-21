@@ -1,0 +1,30 @@
+meta {
+  name: get Producer Purposes
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/producer/purposes?producersIds=69e2865e-65ab-4e48-a638-2037a9ee2ee7&offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  producersIds: 69e2865e-65ab-4e48-a638-2037a9ee2ee7
+  offset: 0
+  limit: 10
+  ~q: 
+  ~eservicesIds: 
+  ~consumersIds: 
+  ~states: 
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+docs {
+  Retrieve Purposes from the producer prospective
+}

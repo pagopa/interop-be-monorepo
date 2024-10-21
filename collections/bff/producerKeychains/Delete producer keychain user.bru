@@ -1,0 +1,27 @@
+meta {
+  name: Delete producer keychain user
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{host-bff}}/producerKeychains/:producerKeychainId/users/:userId
+  body: none
+  auth: none
+}
+
+params:path {
+  producerKeychainId: c164a9fc-2000-48a1-8c5b-1820925b79a2
+  userId: c164a9fc-2000-48a1-8c5b-1820925b79a2
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  retrieves a list of clients
+}
