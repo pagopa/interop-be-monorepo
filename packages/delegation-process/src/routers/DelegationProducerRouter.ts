@@ -2,24 +2,24 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
+  authorizationMiddleware,
   ExpressContext,
+  fromAppContext,
+  initDB,
   ReadModelRepository,
   userRoles,
   ZodiosContext,
-  fromAppContext,
   zodiosValidationErrorToApiProblem,
-  authorizationMiddleware,
-  initDB,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
-import { delegationProducerServiceBuilder } from "../services/delegationProducerService.js";
 import { delegationToApiDelegation } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { delegationProducerServiceBuilder } from "../services/delegationProducerService.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   createProducerDelegationErrorMapper,
-  deleteProducerDelegationErrorMapper,
+  revokeDelegationErrorMapper,
 } from "../utilites/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -102,7 +102,7 @@ const delegationProducerRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deleteProducerDelegationErrorMapper,
+            revokeDelegationErrorMapper,
             ctx.logger
           );
 
