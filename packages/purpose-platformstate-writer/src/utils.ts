@@ -36,7 +36,6 @@ import {
   PurposeVersionId,
   purposeVersionState,
   TokenGenerationStatesClientPurposeEntry,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { config } from "./config/config.js";
@@ -253,9 +252,7 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
           dynamoDBClient,
           makePlatformStatesEServiceDescriptorPK({
             eserviceId: purpose.eserviceId,
-            descriptorId: unsafeBrandId(
-              platformAgreementEntry.agreementDescriptorId
-            ),
+            descriptorId: platformAgreementEntry.agreementDescriptorId,
           })
         )
       : undefined;
@@ -305,9 +302,7 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
             ":GSIPK_eserviceId_descriptorId": {
               S: makeGSIPKEServiceIdDescriptorId({
                 eserviceId: purpose.eserviceId,
-                descriptorId: unsafeBrandId(
-                  platformAgreementEntry.agreementDescriptorId
-                ),
+                descriptorId: platformAgreementEntry.agreementDescriptorId,
               }),
             },
             ":descriptorState": {
