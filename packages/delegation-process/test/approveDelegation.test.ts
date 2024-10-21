@@ -12,6 +12,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { delegationState } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   delegationNotFound,
   operationRestrictedToDelegate,
@@ -41,7 +42,8 @@ describe("approve delegation", () => {
     await delegationProducerService.approveProducerDelegation(
       delegate.id,
       delegation.id,
-      "9999"
+      "9999",
+      genericLogger
     );
 
     const event = await readLastDelegationEvent(delegation.id);
@@ -75,7 +77,8 @@ describe("approve delegation", () => {
       delegationProducerService.approveProducerDelegation(
         delegateId,
         nonExistentDelegationId,
-        "9999"
+        "9999",
+        genericLogger
       )
     ).rejects.toThrow(delegationNotFound(nonExistentDelegationId));
   });
@@ -93,7 +96,8 @@ describe("approve delegation", () => {
       delegationProducerService.approveProducerDelegation(
         wrongDelegate.id,
         delegation.id,
-        "9999"
+        "9999",
+        genericLogger
       )
     ).rejects.toThrow(
       operationRestrictedToDelegate(wrongDelegate.id, delegation.id)
@@ -112,7 +116,8 @@ describe("approve delegation", () => {
       delegationProducerService.approveProducerDelegation(
         delegate.id,
         delegation.id,
-        "9999"
+        "9999",
+        genericLogger
       )
     ).rejects.toThrow(
       incorrectState(
@@ -120,6 +125,24 @@ describe("approve delegation", () => {
         delegationState.active,
         delegationState.waitingForApproval
       )
+    );
+  });
+
+  it("should generete a pdf document for a delegation", async () => {
+    const delegate = getMockTenant();
+    const delegation = getMockDelegationProducer({
+      state: "WaitingForApproval",
+      delegateId: delegate.id,
+    });
+    await addOneDelegation(delegation);
+    const { version } = await readLastDelegationEvent(delegation.id);
+    expect(version).toBe("0");
+
+    await delegationProducerService.approveProducerDelegation(
+      delegate.id,
+      delegation.id,
+      "9999",
+      genericLogger
     );
   });
 });

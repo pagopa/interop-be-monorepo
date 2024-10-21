@@ -20,6 +20,7 @@ import {
   toReadModelTenant,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
+import { initPDFGenerator } from "pagopa-interop-commons";
 import { delegationProducerServiceBuilder } from "../src/services/delegationProducerService.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -32,10 +33,11 @@ export const getRandomValidDelegationStatus = (): DelegationState =>
     )
   );
 
-export const { cleanup, readModelRepository, postgresDB } =
+export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
     inject("readModelConfig"),
-    inject("eventStoreConfig")
+    inject("eventStoreConfig"),
+    inject("fileManagerConfig")
   );
 afterEach(cleanup);
 
@@ -45,9 +47,13 @@ export const tenants = readModelRepository.tenants;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
+const pdfGenerator = await initPDFGenerator();
+
 export const delegationProducerService = delegationProducerServiceBuilder(
   postgresDB,
-  readModelService
+  readModelService,
+  pdfGenerator,
+  fileManager
 );
 
 export const delegationService = delegationServiceBuilder(readModelService);

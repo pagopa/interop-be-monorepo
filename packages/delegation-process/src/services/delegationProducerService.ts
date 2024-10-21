@@ -3,6 +3,9 @@ import {
   AppContext,
   DB,
   eventRepository,
+  FileManager,
+  Logger,
+  PDFGenerator,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
@@ -33,13 +36,14 @@ import {
   assertIsDelegate,
   assertIsState,
 } from "./validators.js";
-import path from "path";
-import { fileURLToPath } from "url";
+import { createPdfDelegation } from "./pdfUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationProducerServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  pdfGenerator: PDFGenerator,
+  fileManager: FileManager
 ) {
   const getTenantById = async (tenantId: TenantId): Promise<Tenant> => {
     const tenant = await readModelService.getTenantById(tenantId);
@@ -116,7 +120,8 @@ export function delegationProducerServiceBuilder(
     async approveProducerDelegation(
       delegateId: TenantId,
       delegationId: DelegationId,
-      correlationId: CorrelationId
+      correlationId: CorrelationId,
+      logger: Logger
     ): Promise<void> {
       const { data: delegation, metadata } = await getDelegationById(
         delegationId
@@ -127,19 +132,7 @@ export function delegationProducerServiceBuilder(
 
       const now = new Date();
 
-      const createPdfDelegation = () => {
-
-        const filename = fileURLToPath(import.meta.url);
-        const dirname = path.dirname(filename);
-        const templateFilePath = path.resolve(
-          dirname,
-          "..",
-          "resources/templates/documents",
-          "delegationApproved.html"
-        );
-
-
-      };
+      await createPdfDelegation(delegation, pdfGenerator, fileManager, logger);
 
       await repository.createEvent(
         toCreateEventApproveDelegation(
