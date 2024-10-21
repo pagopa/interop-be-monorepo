@@ -210,7 +210,7 @@ describe("get eservices", () => {
     expect(result.totalCount).toBe(3);
     expect(result.results).toEqual([eservice1, eservice2, eservice3]);
   });
-  it("should get the eServices, including the delegated ones, if they exist (parameters: producersIds)", async () => {
+  it("should get the eServices, including the ones with an active delegation, if they exist (parameters: producersIds)", async () => {
     const delegatedOrganization1 = generateId<TenantId>();
     const delegatedOrganization2 = generateId<TenantId>();
 
@@ -218,18 +218,21 @@ describe("get eservices", () => {
       ...getMockDelegationProducer(),
       eserviceId: eservice4.id,
       delegateId: delegatedOrganization1,
+      state: delegationState.active,
     });
 
     await addOneDelegation({
       ...getMockDelegationProducer(),
       eserviceId: eservice5.id,
       delegateId: delegatedOrganization2,
+      state: delegationState.active,
     });
 
     await addOneDelegation({
       ...getMockDelegationProducer(),
       eserviceId: eservice6.id,
       delegateId: delegatedOrganization2,
+      state: delegationState.rejected,
     });
 
     const result = await catalogService.getEServices(
@@ -249,14 +252,13 @@ describe("get eservices", () => {
       50,
       genericLogger
     );
-    expect(result.totalCount).toBe(6);
+    expect(result.totalCount).toBe(5);
     expect(result.results).toEqual([
       eservice1,
       eservice2,
       eservice3,
       eservice4,
       eservice5,
-      eservice6,
     ]);
   });
   it("should get the eServices if they exist (parameters: states)", async () => {
@@ -393,7 +395,7 @@ describe("get eservices", () => {
     expect(result.totalCount).toBe(1);
     expect(result.results).toEqual([eservice5]);
   });
-  it("should get the eServices, including the delegated ones, if they exist (parameters: producersIds, states, name)", async () => {
+  it("should get the eServices, including the ones with an active delegation, if they exist (parameters: producersIds, states, name)", async () => {
     const delegatedOrganization1: TenantId = generateId();
     const delegatedOrganization2: TenantId = generateId();
 
@@ -455,33 +457,59 @@ describe("get eservices", () => {
       ],
     };
 
+    const delegatedEService5: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "delegated eservice 5 test",
+      producerId: organizationId1,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.published,
+        },
+      ],
+    };
+
     await addOneEService(delegatedEService1);
     await addOneEService(delegatedEService2);
     await addOneEService(delegatedEService3);
     await addOneEService(delegatedEService4);
+    await addOneEService(delegatedEService5);
 
     await addOneDelegation({
       ...getMockDelegationProducer(),
       eserviceId: delegatedEService1.id,
       delegateId: delegatedOrganization1,
+      state: delegationState.active,
     });
 
     await addOneDelegation({
       ...getMockDelegationProducer(),
       eserviceId: delegatedEService2.id,
       delegateId: delegatedOrganization1,
+      state: delegationState.active,
     });
 
     await addOneDelegation({
       ...getMockDelegationProducer(),
       eserviceId: delegatedEService3.id,
       delegateId: delegatedOrganization1,
+      state: delegationState.active,
     });
 
     await addOneDelegation({
       ...getMockDelegationProducer(),
       eserviceId: delegatedEService4.id,
       delegateId: delegatedOrganization2,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation({
+      ...getMockDelegationProducer(),
+      eserviceId: delegatedEService5.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.waitingForApproval,
     });
 
     const result = await catalogService.getEServices(
@@ -630,7 +658,7 @@ describe("get eservices", () => {
     });
   });
 
-  it("should get the eServices, including the delegated ones, if they exist (parameters: producersIds, mode)", async () => {
+  it("should get the eServices, including the ones with an active delegation, if they exist (parameters: producersIds, mode)", async () => {
     const delegatedOrganization1: TenantId = generateId();
     const delegatedOrganization2: TenantId = generateId();
 
@@ -679,26 +707,52 @@ describe("get eservices", () => {
       ],
     };
 
+    const delegatedEService4: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "delegated eservice 4",
+      producerId: organizationId1,
+      mode: eserviceMode.deliver,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.published,
+        },
+      ],
+    };
+
     await addOneEService(delegatedEService1);
     await addOneEService(delegatedEService2);
     await addOneEService(delegatedEService3);
+    await addOneEService(delegatedEService4);
 
     await addOneDelegation({
       ...getMockDelegationProducer(),
       eserviceId: delegatedEService1.id,
       delegateId: delegatedOrganization1,
+      state: delegationState.active,
     });
 
     await addOneDelegation({
       ...getMockDelegationProducer(),
       eserviceId: delegatedEService2.id,
       delegateId: delegatedOrganization1,
+      state: delegationState.active,
     });
 
     await addOneDelegation({
       ...getMockDelegationProducer(),
       eserviceId: delegatedEService3.id,
       delegateId: delegatedOrganization2,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation({
+      ...getMockDelegationProducer(),
+      eserviceId: delegatedEService4.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.rejected,
     });
 
     const result = await catalogService.getEServices(

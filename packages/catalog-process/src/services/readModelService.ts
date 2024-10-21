@@ -29,6 +29,7 @@ import {
   genericInternalError,
   Delegation,
   DelegationState,
+  delegationState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -155,7 +156,10 @@ export function readModelServiceBuilder(
         {
           $or: [
             { "data.producerId": { $in: producersIds } },
-            { "delegation.data.delegateId": { $in: producersIds } },
+            {
+              "delegation.data.delegateId": { $in: producersIds },
+              "delegation.data.state": { $eq: delegationState.active },
+            },
           ],
         }
       );
