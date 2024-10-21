@@ -18,7 +18,7 @@ import { delegationProducerServiceBuilder } from "../services/delegationProducer
 import { delegationToApiDelegation } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
-    approveDelegationErrorMapper,
+  approveDelegationErrorMapper,
   createProducerDelegationErrorMapper,
   rejectDelegationErrorMapper,
 } from "../utilites/errorMappers.js";

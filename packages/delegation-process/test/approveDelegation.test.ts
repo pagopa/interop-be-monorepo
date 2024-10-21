@@ -35,7 +35,7 @@ describe("approve delegation", () => {
       delegateId: delegate.id,
     });
     await addOneDelegation(delegation);
-    const {version} = await readLastDelegationEvent(delegation.id);
+    const { version } = await readLastDelegationEvent(delegation.id);
     expect(version).toBe("0");
 
     await delegationProducerService.approveProducerDelegation(

@@ -54,7 +54,7 @@ export function delegationProducerServiceBuilder(
       throw delegationNotFound(delegationId);
     }
     return delegation;
-  }; 
+  };
 
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
   return {
@@ -115,7 +115,9 @@ export function delegationProducerServiceBuilder(
       delegationId: DelegationId,
       correlationId: string
     ): Promise<void> {
-      const { data: delegation, metadata } = await getDelegationById(delegationId);
+      const { data: delegation, metadata } = await getDelegationById(
+        delegationId
+      );
 
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
@@ -148,7 +150,9 @@ export function delegationProducerServiceBuilder(
       correlationId: string,
       rejectionReason: string
     ): Promise<void> {
-      const { data: delegation, metadata } = await getDelegationById(delegationId);
+      const { data: delegation, metadata } = await getDelegationById(
+        delegationId
+      );
 
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
