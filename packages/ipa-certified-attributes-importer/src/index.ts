@@ -22,7 +22,7 @@ import {
   kindToBeExcluded,
 } from "./services/openDataService.js";
 
-type TenantSeed = {
+export type TenantSeed = {
   origin: string;
   originId: string;
   description: string;
@@ -142,7 +142,7 @@ async function createNewAttributes(
   } while (!(await checkAttributesPresence(readModelService, newAttributes)));
 }
 
-function getNewAttributes(
+export function getNewAttributes(
   registryData: RegistryData,
   tenantUpsertData: TenantSeed[],
   attributes: Attribute[]
