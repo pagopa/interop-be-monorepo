@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { inject, vi } from "vitest";
 
 export const config = inject("tokenGenerationReadModelConfig");
