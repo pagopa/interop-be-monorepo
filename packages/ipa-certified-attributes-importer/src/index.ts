@@ -167,12 +167,11 @@ export function getNewAttributes(
   );
 }
 
-async function assignNewAttribute(
+export async function getAttributesToAssign(
   platformTenant: Tenant[],
   platformAttributes: Attribute[],
-  tenantSeed: TenantSeed[],
-  headers: Header
-): Promise<void> {
+  tenantSeed: TenantSeed[]
+): Promise<tenantApi.InternalTenantSeed[]> {
   const tenantIndex = new Map(
     platformTenant.map((t) => [toKey(t.externalId), t])
   );
@@ -183,7 +182,7 @@ async function assignNewAttribute(
       .map((a) => [a.id, a])
   );
 
-  const attributesToAssign: tenantApi.InternalTenantSeed[] = tenantSeed
+  return tenantSeed
     .map((i) => {
       const externalId = { origin: i.origin, value: i.originId };
 
@@ -249,7 +248,12 @@ async function assignNewAttribute(
     .filter(
       (t) => t !== undefined && t.certifiedAttributes.length > 0
     ) as tenantApi.InternalTenantSeed[];
+}
 
+async function assignNewAttribute(
+  attributesToAssign: tenantApi.InternalTenantSeed[],
+  headers: Header
+): Promise<void> {
   const tenantClient = tenantApi.createInternalApiClient(
     config.tenantProcessUrl
   );
@@ -410,10 +414,14 @@ try {
     await getHeader(refreshableToken, correlatsionId)
   );
 
-  await assignNewAttribute(
+  const attributesToAssign = await getAttributesToAssign(
     ipaTenants,
     attributes,
-    tenantUpsertData,
+    tenantUpsertData
+  );
+
+  await assignNewAttribute(
+    attributesToAssign,
     await getHeader(refreshableToken, correlatsionId)
   );
 
