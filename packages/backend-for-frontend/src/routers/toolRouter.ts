@@ -41,6 +41,7 @@ const toolRouter = (
         error,
         toolsErrorMapper,
         ctx.logger,
+        ctx.correlationId,
         "Error validating token generation request"
       );
       return res.status(errorRes.status).send(errorRes);

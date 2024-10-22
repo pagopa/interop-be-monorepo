@@ -305,7 +305,7 @@ describe("activate agreement", () => {
         await agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         });
 
@@ -448,7 +448,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(agreementActivationFailed(agreement.id));
@@ -568,7 +568,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(agreementActivationFailed(agreement.id));
@@ -588,7 +588,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
@@ -713,7 +713,7 @@ describe("activate agreement", () => {
           await agreementService.activateAgreement(agreement.id, {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           });
 
@@ -848,7 +848,7 @@ describe("activate agreement", () => {
         await agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         });
 
@@ -1048,7 +1048,7 @@ describe("activate agreement", () => {
             await agreementService.activateAgreement(agreement.id, {
               authData,
               serviceName: "",
-              correlationId: "",
+              correlationId: generateId(),
               logger: genericLogger,
             });
 
@@ -1105,7 +1105,7 @@ describe("activate agreement", () => {
             await agreementService.activateAgreement(agreement.id, {
               authData,
               serviceName: "",
-              correlationId: "",
+              correlationId: generateId(),
               logger: genericLogger,
             });
 
@@ -1326,7 +1326,7 @@ describe("activate agreement", () => {
             await agreementService.activateAgreement(agreement.id, {
               authData,
               serviceName: "",
-              correlationId: "",
+              correlationId: generateId(),
               logger: genericLogger,
             });
           const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -1377,7 +1377,7 @@ describe("activate agreement", () => {
             await agreementService.activateAgreement(agreement.id, {
               authData,
               serviceName: "",
-              correlationId: "",
+              correlationId: generateId(),
               logger: genericLogger,
             });
 
@@ -1440,7 +1440,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreementId, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(agreementNotFound(agreementId));
@@ -1454,7 +1454,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
@@ -1480,7 +1480,7 @@ describe("activate agreement", () => {
           agreementService.activateAgreement(agreement.id, {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           })
         ).rejects.toThrowError(
@@ -1505,7 +1505,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
@@ -1535,7 +1535,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(
@@ -1581,7 +1581,7 @@ describe("activate agreement", () => {
           agreementService.activateAgreement(agreement.id, {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           })
         ).rejects.toThrowError(
@@ -1626,7 +1626,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(tenantNotFound(consumerId));
@@ -1665,7 +1665,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(tenantNotFound(producerId));
@@ -1710,7 +1710,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(agreementStampNotFound("submission"));
@@ -1758,7 +1758,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(agreementSelfcareIdNotFound(agreement.consumerId));
@@ -1813,7 +1813,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(
@@ -1870,7 +1870,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(agreementMissingUserInfo(authData.userId));
@@ -1936,7 +1936,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(
@@ -2004,7 +2004,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(agreementMissingUserInfo(authData.userId));
@@ -2073,7 +2073,7 @@ describe("activate agreement", () => {
         agreementService.activateAgreement(agreement.id, {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(

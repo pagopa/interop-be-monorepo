@@ -61,6 +61,7 @@ const authorizationRouter = (
           error,
           sessionTokenErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           "Error creating a session token"
         );
 

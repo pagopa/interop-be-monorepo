@@ -115,7 +115,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             createConsumerClientErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -145,7 +146,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             createApiClientErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -201,7 +203,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             getClientsWithKeysErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -249,7 +252,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             getClientsErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -283,7 +287,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             getClientErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -306,7 +311,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteClientErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -333,7 +339,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             getClientUsersErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -357,7 +364,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             removeClientUserErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -390,7 +398,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             addClientUserErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -418,7 +427,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             createKeysErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -451,7 +461,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             getClientKeysErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -482,7 +493,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             getClientKeyErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -506,7 +518,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteClientKeyByIdErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -530,7 +543,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             addClientPurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -554,7 +568,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             removeClientPurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -573,7 +588,12 @@ const authorizationRouter = (
           });
           return res.status(204).send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            () => 500,
+            ctx.logger,
+            ctx.correlationId
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -619,7 +639,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             createProducerKeychainErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -668,7 +689,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             getProducerKeychainsErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -702,7 +724,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             getProducerKeychainErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -725,7 +748,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteProducerKeychainErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -752,7 +776,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             getProducerKeychainUsersErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -787,7 +812,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             addProducerKeychainUserErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -811,7 +837,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             removeProducerKeychainUserErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -840,7 +867,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             createProducerKeychainKeyErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -871,7 +899,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             getProducerKeychainKeysErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -902,7 +931,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             getProducerKeychainKeyErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -926,7 +956,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteProducerKeychainKeyByIdErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -950,7 +981,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             addPurposeKeychainEServiceErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -974,7 +1006,8 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             removeProducerKeychainEServiceErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1015,7 +1048,8 @@ const authorizationRouter = (
         const errorRes = makeApiProblem(
           error,
           getClientKeyWithClientErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }

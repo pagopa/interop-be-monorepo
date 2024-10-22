@@ -65,7 +65,7 @@ describe("agreement consumer document", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       );
@@ -84,7 +84,7 @@ describe("agreement consumer document", () => {
           {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           }
         )
@@ -101,7 +101,7 @@ describe("agreement consumer document", () => {
           {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           }
         )
@@ -118,7 +118,7 @@ describe("agreement consumer document", () => {
           {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           }
         )
@@ -148,7 +148,7 @@ describe("agreement consumer document", () => {
           {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           }
         );
@@ -201,7 +201,7 @@ describe("agreement consumer document", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       );
@@ -226,7 +226,7 @@ describe("agreement consumer document", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       );
@@ -262,7 +262,7 @@ describe("agreement consumer document", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       );
@@ -293,7 +293,7 @@ describe("agreement consumer document", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       );
@@ -343,7 +343,7 @@ describe("agreement consumer document", () => {
           {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           }
         );
@@ -380,7 +380,7 @@ describe("agreement consumer document", () => {
           {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           }
         );
@@ -400,7 +400,7 @@ describe("agreement consumer document", () => {
           {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           }
         );
@@ -433,7 +433,7 @@ describe("agreement consumer document", () => {
           {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           }
         );
@@ -454,7 +454,7 @@ describe("agreement consumer document", () => {
           {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           }
         );
@@ -476,7 +476,7 @@ describe("agreement consumer document", () => {
           {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           }
         )
