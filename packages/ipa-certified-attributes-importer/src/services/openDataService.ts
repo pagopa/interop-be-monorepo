@@ -1,5 +1,4 @@
 import { createHash } from "crypto";
-import { removeDuplicateObjectsBy } from "pagopa-interop-commons";
 import {
   Category,
   Institution,
@@ -7,7 +6,7 @@ import {
   getAllInstitutions,
 } from "./openDataExtractor.js";
 
-export const kindToBeExcluded: Set<string> = new Set([
+export const kindsToBeExcluded: Set<string> = new Set([
   "Enti Nazionali di Previdenza ed Assistenza Sociale in Conto Economico Consolidato",
   "Gestori di Pubblici Servizi",
   "Societa' in Conto Economico Consolidato",
@@ -70,12 +69,11 @@ async function loadCertifiedAttributes(
     origin: c.origin,
   }));
 
-  const attributeSeedsCategoriesKinds = removeDuplicateObjectsBy(
-    data.categories,
-    (c) => c.kind
-  )
-    .filter((c) => !kindToBeExcluded.has(c.kind))
-    .map((c) => ({
+  const attributeSeedsCategoriesKinds = [
+    ...new Map(data.categories.map((c) => [c.kind, c])),
+  ]
+    .filter(([kind, _]) => !kindsToBeExcluded.has(kind))
+    .map(([_, c]) => ({
       code: createHash("sha256").update(c.kind).digest("hex"),
       description: c.kind,
       name: c.name,

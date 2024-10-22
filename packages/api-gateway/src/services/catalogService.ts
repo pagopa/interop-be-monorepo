@@ -254,5 +254,6 @@ export async function enhanceEservice(
     state: latestNonDraftDescriptor.state,
     serverUrls: latestNonDraftDescriptor.serverUrls,
     producer: producerOrganization,
+    isSignalHubEnabled: eservice.isSignalHubEnabled,
   };
 }

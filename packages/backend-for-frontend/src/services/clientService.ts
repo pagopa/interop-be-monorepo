@@ -7,6 +7,7 @@ import {
   selfcareV2ClientApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
+import { CorrelationId } from "pagopa-interop-models";
 import {
   AuthorizationProcessClient,
   PagoPAInteropBeClients,
@@ -384,7 +385,7 @@ export async function getSelfcareUserById(
   selfcareClient: SelfcareV2UsersClient,
   userId: string,
   selfcareId: string,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<selfcareV2ClientApi.UserResponse> {
   try {
     return selfcareClient.getUserInfoUsingGET({
@@ -404,7 +405,7 @@ export async function decorateKey(
   key: authorizationApi.Key,
   selfcareId: string,
   members: string[],
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<bffApi.PublicKey> {
   const user = await getSelfcareUserById(
     selfcareClient,

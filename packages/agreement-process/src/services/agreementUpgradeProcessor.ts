@@ -8,6 +8,7 @@ import {
   Agreement,
   AgreementEvent,
   AgreementId,
+  CorrelationId,
   Descriptor,
   EService,
   Tenant,
@@ -55,7 +56,7 @@ export async function createUpgradeOrNewDraft({
   copyFile: FileManager["copy"];
   authData: AuthData;
   contractBuilder: ContractBuilder;
-  correlationId: string;
+  correlationId: CorrelationId;
   logger: Logger;
 }): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const newAgreementId = generateId<AgreementId>();

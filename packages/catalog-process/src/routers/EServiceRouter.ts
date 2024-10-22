@@ -158,7 +158,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             createEServiceErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -189,7 +190,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             getEServiceErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -216,7 +218,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateEServiceErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -238,7 +241,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteEServiceErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -281,7 +285,12 @@ const eservicesRouter = (
             })
           );
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            () => 500,
+            ctx.logger,
+            ctx.correlationId
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -319,7 +328,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentGetErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -347,7 +357,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentCreateErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -371,7 +382,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentDeleteErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -402,7 +414,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentUpdateErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -431,7 +444,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             createDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -454,7 +468,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteDraftDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -482,7 +497,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDraftDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -505,7 +521,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             publishDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -528,7 +545,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             suspendDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -551,7 +569,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             activateDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -581,7 +600,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             cloneEServiceByDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -604,7 +624,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             archiveDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -632,7 +653,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -655,7 +677,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             createRiskAnalysisErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -679,7 +702,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateRiskAnalysisErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -707,7 +731,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateEServiceDescriptionErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -730,7 +755,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteRiskAnalysisErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }

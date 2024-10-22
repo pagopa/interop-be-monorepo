@@ -103,9 +103,30 @@ export const PrivacyNotice = z.object({
 });
 export type PrivacyNotice = z.infer<typeof PrivacyNotice>;
 
+export const UserPrivacyNoticeConsentTypePP = z.object({
+  PP: z.literal("PP"),
+});
+export type UserPrivacyNoticeConsentTypePP = z.infer<
+  typeof UserPrivacyNoticeConsentTypePP
+>;
+
+export const UserPrivacyNoticeConsentTypeTOS = z.object({
+  TOS: z.literal("TOS"),
+});
+export type UserPrivacyNoticeConsentTypeTOS = z.infer<
+  typeof UserPrivacyNoticeConsentTypeTOS
+>;
+
+export const UserPrivacyNoticeConsentType = UserPrivacyNoticeConsentTypePP.or(
+  UserPrivacyNoticeConsentTypeTOS
+);
+export type UserPrivacyNoticeConsentType = z.infer<
+  typeof UserPrivacyNoticeConsentType
+>;
+
 export const UserPrivacyNoticeVersion = z.object({
   versionId: z.string(),
-  kind: bffApi.ConsentType,
+  kind: UserPrivacyNoticeConsentType,
   version: z.number(),
 });
 export type UserPrivacyNoticeVersion = z.infer<typeof UserPrivacyNoticeVersion>;
@@ -186,5 +207,6 @@ export const ConfigurationEservice = z.object({
   mode: bffApi.EServiceMode,
   descriptor: ConfigurationDescriptor,
   riskAnalysis: z.array(ConfigurationRiskAnalysis),
+  isSignalHubEnabled: z.boolean().optional(),
 });
 export type ConfigurationEservice = z.infer<typeof ConfigurationEservice>;

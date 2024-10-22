@@ -5,10 +5,15 @@ import {
   RefreshableInteropToken,
   logger,
 } from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
 import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import { Attribute, ORIGIN_IPA, Tenant } from "pagopa-interop-models";
+import {
+  Attribute,
+  CorrelationId,
+  ORIGIN_IPA,
+  Tenant,
+  generateId,
+} from "pagopa-interop-models";
 import { config } from "./config/config.js";
 import {
   ReadModelService,
@@ -18,7 +23,7 @@ import {
   InternalCertifiedAttribute,
   RegistryData,
   getRegistryData,
-  kindToBeExcluded,
+  kindsToBeExcluded,
 } from "./services/openDataService.js";
 
 export type TenantSeed = {
@@ -29,13 +34,14 @@ export type TenantSeed = {
 };
 
 type Header = {
-  "X-Correlation-Id": string;
+  "X-Correlation-Id": CorrelationId;
   Authorization: string;
 };
 
+const correlationId = generateId<CorrelationId>();
 const loggerInstance = logger({
   serviceName: "ipa-certified-attributes-importer",
-  correlationId: uuidv4(),
+  correlationId,
 });
 
 function toKey<T>(a: T): string {
@@ -64,23 +70,23 @@ async function checkAttributesPresence(
 
 export function getTenantUpsertData(
   registryData: RegistryData,
-  platformTenant: Tenant[]
+  platformTenants: Tenant[]
 ): TenantSeed[] {
-  // get a set with the external id of all tenants that have a selfcareId
-  const platformTenantIndex = new Set(
-    platformTenant.map((t) => toKey(t.externalId))
+  // get a set with the external id of all tenants
+  const platformTenantsIndex = new Set(
+    platformTenants.map((t) => toKey(t.externalId))
   );
 
   // filter the institutions open data retrieving only the tenants
   // that are already present in the platform
-  const institutionAlreadyPresent = registryData.institutions.filter(
+  const institutionsAlreadyPresent = registryData.institutions.filter(
     (i) =>
       i.id.length > 0 &&
-      platformTenantIndex.has(toKey({ origin: i.origin, value: i.originId }))
+      platformTenantsIndex.has(toKey({ origin: i.origin, value: i.originId }))
   );
 
   // get a set with the attributes that should be created
-  return institutionAlreadyPresent.map((i) => {
+  return institutionsAlreadyPresent.map((i) => {
     const attributesWithoutKind = match(i.classification)
       .with("Agency", () => [
         {
@@ -99,7 +105,7 @@ export function getTenantUpsertData(
         },
       ]);
 
-    const shouldKindBeExcluded = kindToBeExcluded.has(i.kind);
+    const shouldKindBeExcluded = kindsToBeExcluded.has(i.kind);
 
     const attributes = shouldKindBeExcluded
       ? attributesWithoutKind
@@ -135,7 +141,7 @@ async function createNewAttributes(
     });
   }
 
-  // wait untill every event reach the read model store
+  // wait until every event reaches the read model store
   do {
     await new Promise((r) => setTimeout(r, config.attributeCreationWaitTime));
   } while (!(await checkAttributesPresence(readModelService, newAttributes)));
@@ -147,7 +153,7 @@ export function getNewAttributes(
   attributes: Attribute[]
 ): InternalCertifiedAttribute[] {
   // get a set with all the certified attributes in the platform
-  const platformAttributeIndex = new Set(
+  const platformAttributesIndex = new Set(
     attributes
       .filter((a) => a.kind === "Certified" && a.origin && a.code)
       .map((a) => toKey({ origin: a.origin, code: a.code }))
@@ -162,36 +168,36 @@ export function getNewAttributes(
   return registryData.attributes.filter(
     (a) =>
       newAttributesIndex.has(toKey({ origin: a.origin, code: a.code })) &&
-      !platformAttributeIndex.has(toKey({ origin: a.origin, code: a.code }))
+      !platformAttributesIndex.has(toKey({ origin: a.origin, code: a.code }))
   );
 }
 
 export async function getAttributesToAssign(
-  platformTenant: Tenant[],
+  platformTenants: Tenant[],
   platformAttributes: Attribute[],
-  tenantSeed: TenantSeed[]
+  tenantSeeds: TenantSeed[]
 ): Promise<tenantApi.InternalTenantSeed[]> {
-  const tenantIndex = new Map(
-    platformTenant.map((t) => [toKey(t.externalId), t])
+  const tenantsIndex = new Map(
+    platformTenants.map((t) => [toKey(t.externalId), t])
   );
 
-  const certifiedAttribute = new Map(
+  const certifiedsAttribute = new Map(
     platformAttributes
       .filter((a) => a.kind === "Certified" && a.origin && a.code)
       .map((a) => [a.id, a])
   );
 
-  return tenantSeed
+  return tenantSeeds
     .map((i) => {
       const externalId = { origin: i.origin, value: i.originId };
 
-      const tenant = tenantIndex.get(toKey(externalId));
+      const tenant = tenantsIndex.get(toKey(externalId));
 
       if (!tenant) {
         return undefined;
       }
 
-      const tenantCurrentAttribute = new Map(
+      const tenantCurrentAttributes = new Map(
         tenant.attributes
           .map((a) => {
             const withRevocation = match(a)
@@ -202,7 +208,7 @@ export async function getAttributesToAssign(
               .otherwise((_) => undefined);
 
             if (withRevocation) {
-              const attribute = certifiedAttribute.get(withRevocation.id);
+              const attribute = certifiedsAttribute.get(withRevocation.id);
 
               if (attribute) {
                 return {
@@ -224,7 +230,7 @@ export async function getAttributesToAssign(
             name: tenant.name,
             certifiedAttributes: i.attributes
               .filter((a) => {
-                const attribute = tenantCurrentAttribute.get(
+                const attribute = tenantCurrentAttributes.get(
                   toKey({
                     origin: a.origin,
                     code: a.code,
@@ -249,7 +255,7 @@ export async function getAttributesToAssign(
     ) as tenantApi.InternalTenantSeed[];
 }
 
-async function assignNewAttribute(
+async function assignNewAttributes(
   attributesToAssign: tenantApi.InternalTenantSeed[],
   headers: Header
 ): Promise<void> {
@@ -264,7 +270,7 @@ async function assignNewAttribute(
 
 export async function getAttributesToRevoke(
   registryData: RegistryData,
-  tenantSeed: TenantSeed[],
+  tenantSeeds: TenantSeed[],
   platformTenants: Tenant[],
   platformAttributes: Attribute[]
 ): Promise<
@@ -281,8 +287,8 @@ export async function getAttributesToRevoke(
     )
   );
 
-  const tenantSeedIndex = new Map(
-    tenantSeed.map((t) => [
+  const tenantSeedsIndex = new Map(
+    tenantSeeds.map((t) => [
       toKey({ origin: t.origin, value: t.originId }),
       new Set(
         t.attributes.map((a) => toKey({ origin: a.origin, value: a.code }))
@@ -290,7 +296,7 @@ export async function getAttributesToRevoke(
     ])
   );
 
-  const certifiedAttribute = new Map(
+  const certifiedAttributes = new Map(
     platformAttributes
       .filter((a) => a.kind === "Certified" && a.origin && a.code)
       .map((a) => [a.id, a])
@@ -309,7 +315,7 @@ export async function getAttributesToRevoke(
       return false;
     }
 
-    const registryAttributes = tenantSeedIndex.get(toKey(tenantExternalId));
+    const registryAttributes = tenantSeedsIndex.get(toKey(tenantExternalId));
     if (!registryAttributes) {
       return false;
     }
@@ -333,7 +339,7 @@ export async function getAttributesToRevoke(
           .otherwise((_) => undefined);
 
         if (withRevocation) {
-          const attribute = certifiedAttribute.get(withRevocation.id);
+          const attribute = certifiedAttributes.get(withRevocation.id);
 
           if (attribute) {
             return {
@@ -396,7 +402,7 @@ async function revokeAttributes(
 
 async function getHeader(
   refreshableToken: RefreshableInteropToken,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<Header> {
   const token = (await refreshableToken.get()).serialized;
 
@@ -409,8 +415,6 @@ async function getHeader(
 loggerInstance.info("Starting ipa-certified-attributes-importer");
 
 try {
-  const correlatsionId = uuidv4();
-
   const readModelService = readModelServiceBuilder(
     ReadModelRepository.init(config)
   );
@@ -437,7 +441,7 @@ try {
   await createNewAttributes(
     newAttributes,
     readModelService,
-    await getHeader(refreshableToken, correlatsionId)
+    await getHeader(refreshableToken, correlationId)
   );
 
   const attributesToAssign = await getAttributesToAssign(
@@ -446,9 +450,9 @@ try {
     tenantUpsertData
   );
 
-  await assignNewAttribute(
+  await assignNewAttributes(
     attributesToAssign,
-    await getHeader(refreshableToken, correlatsionId)
+    await getHeader(refreshableToken, correlationId)
   );
 
   const attributesToRevoke = await getAttributesToRevoke(
@@ -460,7 +464,7 @@ try {
 
   await revokeAttributes(
     attributesToRevoke,
-    await getHeader(refreshableToken, correlatsionId)
+    await getHeader(refreshableToken, correlationId)
   );
 } catch (error) {
   loggerInstance.error(error);
