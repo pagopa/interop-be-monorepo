@@ -37,11 +37,10 @@ export function delegationAlreadyExists(
   delgatorId: string,
   delegeteId: string,
   eserviceId: string,
-  delegationKind: string,
-  delegationId: string
+  delegationKind: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegation type ${delegationKind} already exists with id ${delegationId} for delegator ${delgatorId} and delegate ${delegeteId} for EService ${eserviceId}`,
+    detail: `Delegation type ${delegationKind} already exists for delegator ${delgatorId} and delegate ${delegeteId} for EService ${eserviceId}`,
     code: "delegationAlreadyExists",
     title: "Delegation already exists",
   });

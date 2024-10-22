@@ -1,5 +1,5 @@
+import { Filter, WithId } from "mongodb";
 import {
-  DelegationCollection,
   EServiceCollection,
   ReadModelFilter,
   ReadModelRepository,
@@ -7,24 +7,22 @@ import {
 import {
   Delegation,
   DelegationId,
+  DelegationKind,
+  DelegationState,
   EService,
   EServiceId,
   EServiceReadModel,
-  DelegationKind,
-  DelegationReadModel,
-  DelegationState,
-  TenantId,
-  WithMetadata,
   genericInternalError,
   Tenant,
+  TenantId,
+  WithMetadata,
 } from "pagopa-interop-models";
-import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 import { GetDelegationsFilters } from "../model/domain/models.js";
 
 const toReadModelFilter = (
   filters: GetDelegationsFilters
-): Filter<WithId<WithMetadata<DelegationReadModel>>> => {
+): ReadModelFilter<Delegation> => {
   const { delegateId, delegatorId, eserviceId, delegationKind, states } =
     filters;
 
@@ -102,14 +100,15 @@ export function readModelServiceBuilder(
         };
       }
     },
-    async getLatestDelegation(
-      delegations: DelegationCollection,
-      filter: Filter<WithId<WithMetadata<DelegationReadModel>>>
+    async getDelegationById(
+      id: DelegationId
     ): Promise<WithMetadata<Delegation> | undefined> {
-      const data = await delegations.findOne(filter, {
-        projection: { data: true, metadata: true },
-        sort: { "metadata.version": "desc" },
-      });
+      const data = await delegations.findOne(
+        { "data.id": id },
+        {
+          projection: { data: true, metadata: true },
+        }
+      );
       if (!data) {
         return undefined;
       }
@@ -124,15 +123,30 @@ export function readModelServiceBuilder(
       }
       return data;
     },
-    async getDelegationById(
-      id: DelegationId
-    ): Promise<WithMetadata<Delegation> | undefined> {
-      return this.getLatestDelegation(delegations, { "data.id": id });
-    },
-    async findDelegation(
+    async findDelegations(
       filters: GetDelegationsFilters
-    ): Promise<WithMetadata<Delegation> | undefined> {
-      return this.getLatestDelegation(delegations, toReadModelFilter(filters));
+    ): Promise<Delegation[]> {
+      const results = await delegations
+        .aggregate([{ $match: toReadModelFilter(filters) }], {
+          allowDiskUse: true,
+        })
+        .toArray();
+
+      if (!results) {
+        return [];
+      }
+
+      return results.map((res) => {
+        const result = Delegation.safeParse(res.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse delegation item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(res)} `
+          );
+        }
+        return result.data;
+      });
     },
     async getEServiceById(
       id: EServiceId

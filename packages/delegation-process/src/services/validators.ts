@@ -28,9 +28,9 @@ export const delegationNotActivableStates: DelegationState[] = [
   delegationState.revoked,
 ];
 
-export const delegationRevokableStates: DelegationState[] = [
-  delegationState.active,
+export const activeDelegationStates: DelegationState[] = [
   delegationState.waitingForApproval,
+  delegationState.active,
 ];
 
 export const assertEserviceExists = async (
@@ -90,7 +90,7 @@ export const assertDelegationIsRevokable = (
     throw delegatorNotAllowToRevoke(delegation);
   }
 
-  if (!delegationRevokableStates.includes(delegation.state)) {
+  if (!activeDelegationStates.includes(delegation.state)) {
     throw delegationNotRevokable(delegation);
   }
 };
@@ -105,7 +105,7 @@ export const assertDelegationNotExists = async (
   const delegatorId = delegator.id;
   const delegateId = delegate.id;
 
-  const delegation = await readModelService.findDelegation({
+  const delegations = await readModelService.findDelegations({
     delegatorId,
     delegateId,
     eserviceId,
@@ -113,13 +113,12 @@ export const assertDelegationNotExists = async (
     states: [delegationState.active, delegationState.waitingForApproval],
   });
 
-  if (delegation?.data) {
+  if (delegations.length > 0) {
     throw delegationAlreadyExists(
       delegatorId,
       delegateId,
       eserviceId,
-      delegation.data.kind,
-      delegation.data.id
+      delegationKind
     );
   }
 };

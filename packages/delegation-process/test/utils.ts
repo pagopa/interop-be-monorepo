@@ -1,5 +1,4 @@
 import {
-  randomArrayItem,
   ReadEvent,
   readEventByStreamIdAndVersion,
   readLastEventByStreamId,
@@ -12,8 +11,6 @@ import {
   Delegation,
   DelegationEvent,
   DelegationId,
-  DelegationState,
-  delegationState,
   EService,
   Tenant,
   toDelegationV2,
@@ -24,14 +21,6 @@ import { afterEach, inject } from "vitest";
 import { delegationProducerServiceBuilder } from "../src/services/delegationProducerService.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
-import { delegationNotActivableStates } from "../src/services/validators.js";
-
-export const getRandomValidDelegationStatus = (): DelegationState =>
-  randomArrayItem(
-    Object.values(delegationState).filter(
-      (s) => !delegationNotActivableStates.includes(s)
-    )
-  );
 
 export const { cleanup, readModelRepository, postgresDB } =
   await setupTestContainersVitest(
