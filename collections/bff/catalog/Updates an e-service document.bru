@@ -1,0 +1,30 @@
+meta {
+  name: Updates an e-service document
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: <uuid>
+  descriptorId: <uuid>
+  documentId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "prettyName": "<string>"
+  }
+}

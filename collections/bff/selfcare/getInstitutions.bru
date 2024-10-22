@@ -1,0 +1,21 @@
+meta {
+  name: getInstitutions
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/selfcare/institutions
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+
+docs {
+  The service retrieves all the onboarded institutions related to the provided user
+}
