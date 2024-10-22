@@ -1,6 +1,6 @@
 /* eslint-disable max-params */
 import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
-import { Tenant, TenantFeatureCertifier } from "pagopa-interop-models";
+import { TenantFeatureCertifier } from "pagopa-interop-models";
 import { parse } from "csv/sync";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -11,6 +11,7 @@ import {
 import { IVASS_INSURANCES_ATTRIBUTE_CODE } from "../config/constants.js";
 import { CsvRow, RawCsvRow } from "../model/csvRowModel.js";
 import { InteropContext } from "../model/interopContextModel.js";
+import { PersistentTenant } from "../model/tenantModel.js";
 import { ReadModelQueries } from "./readModelQueriesService.js";
 import { TenantProcessService } from "./tenantProcessService.js";
 
@@ -157,7 +158,7 @@ async function getAttributesIdentifiers(
   readModel: ReadModelQueries,
   ivassTenantId: string
 ): Promise<IvassAttributes> {
-  const ivassTenant: Tenant = await readModel.getTenantById(ivassTenantId);
+  const ivassTenant = await readModel.getTenantById(ivassTenantId);
   const certifier = ivassTenant.features.find(
     (f) => f.type === "PersistentCertifier"
   );
@@ -189,7 +190,7 @@ const isAttributeAssigned = (org: CsvRow, now: number): boolean =>
 async function assignAttribute(
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
-  tenant: Tenant,
+  tenant: PersistentTenant,
   attribute: AttributeIdentifiers,
   logger: Logger
 ): Promise<void> {
@@ -215,7 +216,7 @@ async function assignAttribute(
 async function unassignAttribute(
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
-  tenant: Tenant,
+  tenant: PersistentTenant,
   attribute: AttributeIdentifiers,
   logger: Logger
 ): Promise<void> {
@@ -238,7 +239,10 @@ async function unassignAttribute(
   }
 }
 
-function tenantContainsAttribute(tenant: Tenant, attributeId: string): boolean {
+function tenantContainsAttribute(
+  tenant: PersistentTenant,
+  attributeId: string
+): boolean {
   return (
     tenant.attributes.find((attribute) => attribute.id === attributeId) !==
     undefined
