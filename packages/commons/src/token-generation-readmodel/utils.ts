@@ -1,8 +1,18 @@
 import {
+  genericInternalError,
+  PlatformStatesClientEntry,
+  PlatformStatesClientPK,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
-import { PutItemCommand, PutItemInput } from "@aws-sdk/client-dynamodb";
+import {
+  GetItemCommand,
+  GetItemCommandOutput,
+  GetItemInput,
+  PutItemCommand,
+  PutItemInput,
+} from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { TokenGenerationReadModelRepository } from "../repositories/TokenGenerationReadModelRepository.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -155,6 +165,71 @@ export function tokenGenerationCommonReadModelServiceBuilder(
         },
         TableName:
           tokenGenerationReadModelRepository.tokenGenerationStatesTableName,
+      };
+      const command = new PutItemCommand(input);
+      await dynamoDBClient.send(command);
+    },
+
+    async readClientEntry(
+      primaryKey: PlatformStatesClientPK
+    ): Promise<PlatformStatesClientEntry | undefined> {
+      const input: GetItemInput = {
+        Key: {
+          PK: { S: primaryKey },
+        },
+        TableName: tokenGenerationReadModelRepository.platformStatesTableName,
+      };
+      const command = new GetItemCommand(input);
+      const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+
+      if (!data.Item) {
+        return undefined;
+      } else {
+        const unmarshalled = unmarshall(data.Item);
+        const clientEntry = PlatformStatesClientEntry.safeParse(unmarshalled);
+
+        if (!clientEntry.success) {
+          throw genericInternalError(
+            `Unable to parse client entry item: result ${JSON.stringify(
+              clientEntry
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return clientEntry.data;
+      }
+    },
+
+    async writeClientEntry(
+      clientEntry: PlatformStatesClientEntry
+    ): Promise<void> {
+      const input: PutItemInput = {
+        ConditionExpression: "attribute_not_exists(PK)",
+        Item: {
+          PK: {
+            S: clientEntry.PK,
+          },
+          state: {
+            S: clientEntry.state,
+          },
+          clientPurposesIds: {
+            L: clientEntry.clientPurposesIds.map((purposeId) => ({
+              S: purposeId,
+            })),
+          },
+          clientKind: {
+            S: clientEntry.clientKind,
+          },
+          clientConsumerId: {
+            S: clientEntry.clientConsumerId,
+          },
+          version: {
+            N: clientEntry.version.toString(),
+          },
+          updatedAt: {
+            S: clientEntry.updatedAt,
+          },
+        },
+        TableName: tokenGenerationReadModelRepository.platformStatesTableName,
       };
       const command = new PutItemCommand(input);
       await dynamoDBClient.send(command);

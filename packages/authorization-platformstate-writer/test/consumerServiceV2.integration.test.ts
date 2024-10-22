@@ -61,14 +61,8 @@ import {
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import {
-  clientKindToTokenGenerationStatesClientKind,
-  readClientEntry,
-  writeClientEntry,
-  writeTokenStateClientEntry,
-  writeTokenStateClientPurposeEntry,
-} from "../src/utils.js";
-import { config } from "./utils.js";
+import { clientKindToTokenGenerationStatesClientKind } from "../src/utils.js";
+import { config, tokenGenerationCommonReadModelService } from "./utils.js";
 
 describe("integration tests V2 events", async () => {
   if (!config) {
@@ -141,7 +135,9 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(key.kid),
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -628,10 +624,10 @@ describe("integration tests V2 events", async () => {
       await handleMessageV2(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
         ...previousPlatformClientEntry,
         clientPurposesIds: [],
@@ -1097,7 +1093,9 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(oldKey.kid),
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -1195,8 +1193,12 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(addedKey.kid),
       };
-      await writeTokenStateClientEntry(tokenClientEntry1, dynamoDBClient);
-      await writeTokenStateClientEntry(tokenClientEntry2, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry1
+      );
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry2
+      );
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -1286,7 +1288,9 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(kidToRemove),
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -1453,9 +1457,8 @@ describe("integration tests V2 events", async () => {
         tokenClientPurposeEntryWithKid,
         dynamoDBClient
       );
-      await writeTokenStateClientEntry(
-        tokenClientEntryWithOtherKid,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntryWithOtherKid
       );
 
       await handleMessageV2(message, dynamoDBClient);
@@ -1527,7 +1530,9 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenStatesClientEntry(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -1592,7 +1597,9 @@ describe("integration tests V2 events", async () => {
         tokenClientPurposeEntry,
         dynamoDBClient
       );
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -1728,8 +1735,12 @@ describe("integration tests V2 events", async () => {
       const tokenClientPurposeEntryWithOtherClient =
         getMockTokenStatesClientPurposeEntry();
 
-      await writeTokenStateClientEntry(tokenClientEntry1, dynamoDBClient);
-      await writeTokenStateClientEntry(tokenClientEntry2, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry1
+      );
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry2
+      );
       await writeTokenStateClientPurposeEntry(
         tokenClientPurposeEntryWithOtherClient,
         dynamoDBClient
@@ -1994,9 +2005,8 @@ describe("integration tests V2 events", async () => {
         tokenClientPurposeEntry2,
         dynamoDBClient
       );
-      await writeTokenStateClientEntry(
-        tokenClientEntryWithOtherClient,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntryWithOtherClient
       );
 
       await handleMessageV2(message, dynamoDBClient);
@@ -2298,9 +2308,8 @@ describe("integration tests V2 events", async () => {
         tokenClientPurposeEntry4,
         dynamoDBClient
       );
-      await writeTokenStateClientEntry(
-        tokenClientEntryWithOtherClient,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntryWithOtherClient
       );
 
       await handleMessageV2(message, dynamoDBClient);
@@ -2426,7 +2435,9 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenStatesClientEntry(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -2483,7 +2494,9 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenStatesClientEntry(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -2583,7 +2596,9 @@ describe("integration tests V2 events", async () => {
           GSIPK_purposeId: purposeId2,
         };
 
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
       await writeTokenStateClientPurposeEntry(
         tokenClientPurposeEntry1,
         dynamoDBClient
@@ -2677,7 +2692,9 @@ describe("integration tests V2 events", async () => {
         GSIPK_purposeId: purposeId,
       };
 
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
       await writeTokenStateClientPurposeEntry(
         tokenClientPurposeEntry,
         dynamoDBClient

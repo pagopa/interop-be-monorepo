@@ -11,7 +11,6 @@ import {
   it,
   vi,
 } from "vitest";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -65,15 +64,10 @@ import {
   TokenGenerationStatesClientPurposeEntry,
   toKeyV1,
 } from "pagopa-interop-models";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
-import {
-  clientKindToTokenGenerationStatesClientKind,
-  readClientEntry,
-  writeClientEntry,
-  writeTokenStateClientEntry,
-  writeTokenStateClientPurposeEntry,
-} from "../src/utils.js";
-import { config } from "./utils.js";
+import { clientKindToTokenGenerationStatesClientKind } from "../src/utils.js";
+import { config, tokenGenerationCommonReadModelService } from "./utils.js";
 
 describe("integration tests V1 events", async () => {
   if (!config) {
@@ -128,15 +122,18 @@ describe("integration tests V1 events", async () => {
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry,
+        dynamoDBClient
+      );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       expect(retrievedPlatformClientEntry).toEqual(previousPlatformClientEntry);
     });
 
@@ -161,16 +158,18 @@ describe("integration tests V1 events", async () => {
       // platform-states
       const platformClientPK = makePlatformStatesClientPK(client.id);
       expect(
-        await readClientEntry(platformClientPK, dynamoDBClient)
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        )
       ).toBeUndefined();
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformClientEntry: PlatformStatesClientEntry = {
         PK: platformClientPK,
         version: messageVersion,
@@ -213,15 +212,17 @@ describe("integration tests V1 events", async () => {
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformClientEntry: PlatformStatesClientEntry = {
         PK: platformClientPK,
         version: messageVersion,
@@ -276,7 +277,9 @@ describe("integration tests V1 events", async () => {
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
@@ -288,15 +291,17 @@ describe("integration tests V1 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(key.kid),
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       expect(retrievedPlatformClientEntry).toEqual(previousPlatformClientEntry);
 
       // token-generation-states
@@ -337,7 +342,9 @@ describe("integration tests V1 events", async () => {
       // platform-states
       const platformClientPK = makePlatformStatesClientPK(client.id);
       expect(
-        await readClientEntry(platformClientPK, dynamoDBClient)
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        )
       ).toBeUndefined();
 
       // token-generation-states
@@ -350,15 +357,17 @@ describe("integration tests V1 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(key.kid),
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       expect(retrievedPlatformClientEntry).toBeUndefined();
 
       // token-generation-states
@@ -512,7 +521,9 @@ describe("integration tests V1 events", async () => {
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const tokenClientKidPurposePK1 =
@@ -553,22 +564,20 @@ describe("integration tests V1 events", async () => {
           GSIPK_clientId_purposeId: gsiPKClientIdPurposeId2,
           GSIPK_purposeId: purpose2.id,
         };
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry1,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry1
       );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry2,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry2
       );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
         ...previousPlatformClientEntry,
         version: messageVersion,
@@ -798,7 +807,9 @@ describe("integration tests V1 events", async () => {
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const tokenClientKidPurposePK1 =
@@ -879,30 +890,26 @@ describe("integration tests V1 events", async () => {
           GSIPK_clientId_purposeId: gsiPKClientIdPurposeId4,
           GSIPK_purposeId: purpose2.id,
         };
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry1,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry1
       );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry2,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry2
       );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry3,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry3
       );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry4,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry4
       );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
         ...previousPlatformClientEntry,
         version: messageVersion,
@@ -1029,7 +1036,9 @@ describe("integration tests V1 events", async () => {
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
@@ -1042,15 +1051,17 @@ describe("integration tests V1 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(oldKey.kid),
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
         ...previousPlatformClientEntry,
         version: messageVersion,
@@ -1122,7 +1133,9 @@ describe("integration tests V1 events", async () => {
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const tokenClientKidPK1 = makeTokenGenerationStatesClientKidPK({
@@ -1144,16 +1157,20 @@ describe("integration tests V1 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(addedKey.kid),
       };
-      await writeTokenStateClientEntry(tokenClientEntry1, dynamoDBClient);
-      await writeTokenStateClientEntry(tokenClientEntry2, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry1
+      );
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry2
+      );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
         ...previousPlatformClientEntry,
         version: messageVersion,
@@ -1223,7 +1240,9 @@ describe("integration tests V1 events", async () => {
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
@@ -1235,15 +1254,17 @@ describe("integration tests V1 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(kidToRemove),
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       expect(retrievedPlatformClientEntry).toEqual(previousPlatformClientEntry);
 
       // token-generation-states
@@ -1281,7 +1302,9 @@ describe("integration tests V1 events", async () => {
       // platform-states
       const platformClientPK = makePlatformStatesClientPK(client.id);
       expect(
-        await readClientEntry(platformClientPK, dynamoDBClient)
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        )
       ).toBeUndefined();
 
       // token-generation-states
@@ -1304,22 +1327,20 @@ describe("integration tests V1 events", async () => {
           GSIPK_clientId: client.id,
         };
 
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntryWithKid,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntryWithKid
       );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntryWithOtherKid,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntryWithOtherKid
       );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformStatesEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformStatesEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       expect(retrievedPlatformStatesEntry).toBeUndefined();
 
       // token-generation-states
@@ -1372,7 +1393,9 @@ describe("integration tests V1 events", async () => {
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId],
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const tokenClientKidPurposePK =
@@ -1399,22 +1422,20 @@ describe("integration tests V1 events", async () => {
         GSIPK_kid: makeGSIPKKid(otherKid),
       };
 
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntryWithKid,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntryWithKid
       );
-      await writeTokenStateClientEntry(
-        tokenClientEntryWithOtherKid,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntryWithOtherKid
       );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformStatesEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformStatesEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
         ...previousPlatformClientEntry,
         version: messageVersion,
@@ -1473,7 +1494,9 @@ describe("integration tests V1 events", async () => {
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
       // token-generation-states
       const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
         clientId: client.id,
@@ -1483,15 +1506,17 @@ describe("integration tests V1 events", async () => {
         ...getMockTokenStatesClientEntry(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       expect(retrievedPlatformClientEntry).toEqual(previousPlatformClientEntry);
 
       // token-generation-states
@@ -1534,7 +1559,9 @@ describe("integration tests V1 events", async () => {
       // platform-states
       const platformClientPK = makePlatformStatesClientPK(client.id);
       expect(
-        await readClientEntry(platformClientPK, dynamoDBClient)
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        )
       ).toBeUndefined();
 
       // token-generation-states
@@ -1546,15 +1573,17 @@ describe("integration tests V1 events", async () => {
         ...getMockTokenStatesClientEntry(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       expect(retrievedPlatformClientEntry).toBeUndefined();
 
       // token-generation-states
@@ -1607,26 +1636,29 @@ describe("integration tests V1 events", async () => {
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const tokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry =
         getMockTokenStatesClientPurposeEntry();
       const tokenClientEntry: TokenGenerationStatesClientEntry =
         getMockTokenStatesClientEntry();
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry
       );
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformStatesEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformStatesEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
         ...previousPlatformClientEntry,
         version: messageVersion,
@@ -1734,7 +1766,9 @@ describe("integration tests V1 events", async () => {
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const kid1 = "KID1";
@@ -1761,20 +1795,23 @@ describe("integration tests V1 events", async () => {
       const tokenClientPurposeEntryWithOtherClient =
         getMockTokenStatesClientPurposeEntry();
 
-      await writeTokenStateClientEntry(tokenClientEntry1, dynamoDBClient);
-      await writeTokenStateClientEntry(tokenClientEntry2, dynamoDBClient);
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntryWithOtherClient,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry1
+      );
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry2
+      );
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntryWithOtherClient
       );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformStatesEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformStatesEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
         ...previousPlatformClientEntry,
         version: messageVersion,
@@ -1984,7 +2021,9 @@ describe("integration tests V1 events", async () => {
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purpose1.id],
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const kid1 = "KID1";
@@ -2026,26 +2065,23 @@ describe("integration tests V1 events", async () => {
         };
       const tokenClientEntryWithOtherClient = getMockTokenStatesClientEntry();
 
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry1,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry1
       );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry2,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry2
       );
-      await writeTokenStateClientEntry(
-        tokenClientEntryWithOtherClient,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntryWithOtherClient
       );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformStatesEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformStatesEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
         ...previousPlatformClientEntry,
         version: messageVersion,
@@ -2257,7 +2293,9 @@ describe("integration tests V1 events", async () => {
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purpose1.id],
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const kid1 = "KID1";
@@ -2329,34 +2367,29 @@ describe("integration tests V1 events", async () => {
         };
       const tokenClientEntryWithOtherClient = getMockTokenStatesClientEntry();
 
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry1,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry1
       );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry2,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry2
       );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry3,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry3
       );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry4,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry4
       );
-      await writeTokenStateClientEntry(
-        tokenClientEntryWithOtherClient,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntryWithOtherClient
       );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformStatesEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformStatesEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
         ...previousPlatformClientEntry,
         version: messageVersion,
@@ -2462,7 +2495,9 @@ describe("integration tests V1 events", async () => {
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
@@ -2473,15 +2508,17 @@ describe("integration tests V1 events", async () => {
         ...getMockTokenStatesClientEntry(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       expect(retrievedPlatformClientEntry).toEqual(previousPlatformClientEntry);
 
       // token-generation-states
@@ -2517,7 +2554,9 @@ describe("integration tests V1 events", async () => {
       // platform-states
       const platformClientPK = makePlatformStatesClientPK(client.id);
       expect(
-        await readClientEntry(platformClientPK, dynamoDBClient)
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        )
       ).toBeUndefined();
 
       // token-generation-states
@@ -2530,15 +2569,17 @@ describe("integration tests V1 events", async () => {
         ...getMockTokenStatesClientEntry(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformClientEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformClientEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       expect(retrievedPlatformClientEntry).toBeUndefined();
 
       // token-generation-states
@@ -2584,7 +2625,9 @@ describe("integration tests V1 events", async () => {
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId1, purposeId2],
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const mockClientKidPurpose1 = "mockClientKidPurpose1";
@@ -2630,23 +2673,23 @@ describe("integration tests V1 events", async () => {
           GSIPK_purposeId: purposeId2,
         };
 
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry1,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
       );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry2,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry1
+      );
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry2
       );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformStatesEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformStatesEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
         ...previousPlatformClientEntry,
         clientPurposesIds: [purposeId1],
@@ -2699,7 +2742,9 @@ describe("integration tests V1 events", async () => {
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId],
       };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        previousPlatformClientEntry
+      );
 
       // token-generation-states
       const mockClientKidPurpose = "mockClientKidPurpose";
@@ -2724,19 +2769,20 @@ describe("integration tests V1 events", async () => {
         GSIPK_purposeId: purposeId,
       };
 
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
+        tokenClientEntry
+      );
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry
       );
 
       await handleMessageV1(message, dynamoDBClient);
 
       // platform-states
-      const retrievedPlatformStatesEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
+      const retrievedPlatformStatesEntry =
+        await tokenGenerationCommonReadModelService.readClientEntry(
+          platformClientPK
+        );
       expect(retrievedPlatformStatesEntry).toBeUndefined();
 
       // token-generation-states
@@ -2807,8 +2853,12 @@ describe("integration tests V1 events", async () => {
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
-      await writeClientEntry(clientPlatformStateEntry1, dynamoDBClient);
-      await writeClientEntry(clientPlatformStateEntry2, dynamoDBClient);
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        clientPlatformStateEntry1
+      );
+      await tokenGenerationCommonReadModelService.writeClientEntry(
+        clientPlatformStateEntry2
+      );
 
       // token-generation-states
       const pkTokenStates1 = makeTokenGenerationStatesClientKidPurposePK({
@@ -2835,13 +2885,11 @@ describe("integration tests V1 events", async () => {
           GSIPK_clientId: otherClientId,
         };
 
-      await writeTokenStateClientPurposeEntry(
-        clientPurposeTokenStateEntry,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        clientPurposeTokenStateEntry
       );
-      await writeTokenStateClientPurposeEntry(
-        otherClientPurposeTokenStateEntry,
-        dynamoDBClient
+      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
+        otherClientPurposeTokenStateEntry
       );
 
       await handleMessageV1(message, dynamoDBClient);

@@ -1,4 +1,3 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   AuthorizationEventEnvelopeV2,
   Client,
@@ -26,27 +25,14 @@ import {
 import { match } from "ts-pattern";
 import {
   clientKindToTokenGenerationStatesClientKind,
-  convertEntriesToClientKidInTokenGenerationStates,
-  deleteClientEntryFromPlatformStates,
-  deleteEntriesFromTokenStatesByClient,
-  deleteEntriesFromTokenStatesByKid,
-  deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable,
-  readClientEntry,
-  writeClientEntry,
-  readClientEntriesInTokenGenerationStates,
-  deleteClientEntryFromTokenGenerationStatesTable,
   extractKidFromTokenEntryPK,
   extractAgreementIdFromAgreementPK,
-  retrievePlatformStatesByPurpose,
-  upsertPlatformClientEntry,
-  upsertTokenClientKidEntry,
-  upsertTokenStateClientPurposeEntry,
-  setClientPurposeIdsInPlatformStatesEntry,
+  AuthorizationPlatfromStateReadModelService,
 } from "./utils.js";
 
 export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
-  dynamoDBClient: DynamoDBClient
+  service: AuthorizationPlatfromStateReadModelService
 ): Promise<void> {
   await match(message)
     // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -61,7 +47,7 @@ export async function handleMessageV2(
       }
 
       const pk = makePlatformStatesClientPK(client.id);
-      const clientEntry = await readClientEntry(pk, dynamoDBClient);
+      const clientEntry = await service.readClientEntry(pk);
 
       if (clientEntry && clientEntry.version > msg.version) {
         return Promise.resolve();
@@ -75,15 +61,14 @@ export async function handleMessageV2(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(dynamoDBClient, platformClientEntry);
+        await service.upsertPlatformClientEntry(platformClientEntry);
       }
       if (client.purposes.length > 0) {
         const map: Map<PurposeId, TokenGenerationStatesClientPurposeEntry> =
           new Map();
 
         for (const purposeId of client.purposes) {
-          const states = await retrievePlatformStatesByPurpose(
-            dynamoDBClient,
+          const states = await service.retrievePlatformStatesByPurpose(
             purposeId
           );
 
@@ -129,19 +114,16 @@ export async function handleMessageV2(
               updatedAt: new Date().toISOString(),
             };
 
-          await upsertTokenStateClientPurposeEntry(
-            clientKidPurposeEntry,
-            dynamoDBClient
+          await service.upsertTokenStateClientPurposeEntry(
+            clientKidPurposeEntry
           );
 
           map.set(purposeId, clientKidPurposeEntry);
         }
 
         for (const purposeId of client.purposes) {
-          const secondRetrievalStates = await retrievePlatformStatesByPurpose(
-            dynamoDBClient,
-            purposeId
-          );
+          const secondRetrievalStates =
+            await service.retrievePlatformStatesByPurpose(purposeId);
           const addedClientKidPurposeEntry = map.get(purposeId);
 
           if (!addedClientKidPurposeEntry) {
@@ -187,9 +169,8 @@ export async function handleMessageV2(
                 updatedAt: new Date().toISOString(),
               };
 
-            await upsertTokenStateClientPurposeEntry(
-              updatedTokenClientPurposeEntry,
-              dynamoDBClient
+            await service.upsertTokenStateClientPurposeEntry(
+              updatedTokenClientPurposeEntry
             );
           }
         }
@@ -206,13 +187,13 @@ export async function handleMessageV2(
           GSIPK_kid: makeGSIPKKid(msg.data.kid),
           updatedAt: new Date().toISOString(),
         };
-        await upsertTokenClientKidEntry(dynamoDBClient, clientKidEntry);
+        await service.upsertTokenClientKidEntry(clientKidEntry);
       }
     })
     .with({ type: "ClientKeyDeleted" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
       const pk = makePlatformStatesClientPK(client.id);
-      const clientEntry = await readClientEntry(pk, dynamoDBClient);
+      const clientEntry = await service.readClientEntry(pk);
 
       if (clientEntry && clientEntry.version > msg.version) {
         return Promise.resolve();
@@ -226,24 +207,23 @@ export async function handleMessageV2(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(dynamoDBClient, platformClientEntry);
+        await service.upsertPlatformClientEntry(platformClientEntry);
       }
 
       const GSIPK_kid = makeGSIPKKid(msg.data.kid);
-      await deleteEntriesFromTokenStatesByKid(GSIPK_kid, dynamoDBClient);
+      await service.deleteEntriesFromTokenStatesByKid(GSIPK_kid);
     })
     // eslint-disable-next-line sonarjs/cognitive-complexity
     .with({ type: "ClientPurposeAdded" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
 
       const pk = makePlatformStatesClientPK(client.id);
-      const clientEntry = await readClientEntry(pk, dynamoDBClient);
+      const clientEntry = await service.readClientEntry(pk);
       if (clientEntry) {
         if (clientEntry.version > msg.version) {
           return Promise.resolve();
         } else {
-          await setClientPurposeIdsInPlatformStatesEntry(
-            dynamoDBClient,
+          await service.setClientPurposeIdsInPlatformStatesEntry(
             pk,
             msg.version,
             []
@@ -260,20 +240,18 @@ export async function handleMessageV2(
           version: 1,
           updatedAt: new Date().toISOString(),
         };
-        await writeClientEntry(clientEntry, dynamoDBClient);
+        await service.writeClientEntry(clientEntry);
       }
 
       const GSIPK_clientId = client.id;
-      const tokenClientEntries = await readClientEntriesInTokenGenerationStates(
-        GSIPK_clientId,
-        dynamoDBClient
-      );
+      const tokenClientEntries =
+        await service.readClientEntriesInTokenGenerationStates(GSIPK_clientId);
       if (tokenClientEntries.length === 0) {
         return Promise.resolve();
       } else {
         const purposeId = unsafeBrandId<PurposeId>(msg.data.purposeId);
         const { purposeEntry, agreementEntry, catalogEntry } =
-          await retrievePlatformStatesByPurpose(dynamoDBClient, purposeId);
+          await service.retrievePlatformStatesByPurpose(purposeId);
 
         const addedTokenClientPurposeEntries =
           new Array<TokenGenerationStatesClientPurposeEntry>();
@@ -316,13 +294,11 @@ export async function handleMessageV2(
                 descriptorVoucherLifespan:
                   catalogEntry.descriptorVoucherLifespan,
               };
-            await upsertTokenStateClientPurposeEntry(
-              newTokenClientPurposeEntry,
-              dynamoDBClient
+            await service.upsertTokenStateClientPurposeEntry(
+              newTokenClientPurposeEntry
             );
-            await deleteClientEntryFromTokenGenerationStatesTable(
-              entry,
-              dynamoDBClient
+            await service.deleteClientEntryFromTokenGenerationStatesTable(
+              entry
             );
             // eslint-disable-next-line functional/immutable-data
             addedTokenClientPurposeEntries.push(newTokenClientPurposeEntry);
@@ -367,9 +343,8 @@ export async function handleMessageV2(
                   descriptorVoucherLifespan:
                     catalogEntry.descriptorVoucherLifespan,
                 };
-              await upsertTokenStateClientPurposeEntry(
-                newClientPurposeEntry,
-                dynamoDBClient
+              await service.upsertTokenStateClientPurposeEntry(
+                newClientPurposeEntry
               );
 
               kidSet.add(kid);
@@ -381,10 +356,8 @@ export async function handleMessageV2(
           }
         }
 
-        const secondRetrievalStates = await retrievePlatformStatesByPurpose(
-          dynamoDBClient,
-          purposeId
-        );
+        const secondRetrievalStates =
+          await service.retrievePlatformStatesByPurpose(purposeId);
         for (const clientPurposeEntry of addedTokenClientPurposeEntries) {
           if (
             secondRetrievalStates.agreementEntry.state !==
@@ -421,9 +394,8 @@ export async function handleMessageV2(
                 updatedAt: new Date().toISOString(),
               };
 
-            await upsertTokenStateClientPurposeEntry(
-              updatedTokenClientPurposeEntry,
-              dynamoDBClient
+            await service.upsertTokenStateClientPurposeEntry(
+              updatedTokenClientPurposeEntry
             );
           }
         }
@@ -432,7 +404,7 @@ export async function handleMessageV2(
     .with({ type: "ClientPurposeRemoved" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
       const pk = makePlatformStatesClientPK(client.id);
-      const clientEntry = await readClientEntry(pk, dynamoDBClient);
+      const clientEntry = await service.readClientEntry(pk);
 
       if (clientEntry) {
         if (clientEntry.version > msg.version) {
@@ -444,26 +416,23 @@ export async function handleMessageV2(
           });
           if (client.purposes.length > 0) {
             // platform-states
-            await setClientPurposeIdsInPlatformStatesEntry(
-              dynamoDBClient,
+            await service.setClientPurposeIdsInPlatformStatesEntry(
               pk,
               msg.version,
               []
             );
 
             // token-generation-states
-            await deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable(
-              GSIPK_clientId_purposeId,
-              dynamoDBClient
+            await service.deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable(
+              GSIPK_clientId_purposeId
             );
           } else {
             // platform-states
-            await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
+            await service.deleteClientEntryFromPlatformStates(pk);
 
             // token-generation-states
-            await convertEntriesToClientKidInTokenGenerationStates(
-              GSIPK_clientId_purposeId,
-              dynamoDBClient
+            await service.convertEntriesToClientKidInTokenGenerationStates(
+              GSIPK_clientId_purposeId
             );
           }
         }
@@ -472,13 +441,10 @@ export async function handleMessageV2(
     .with({ type: "ClientDeleted" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
       const pk = makePlatformStatesClientPK(client.id);
-      await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
+      await service.deleteClientEntryFromPlatformStates(pk);
 
       const GSIPK_clientId = client.id;
-      await deleteEntriesFromTokenStatesByClient(
-        GSIPK_clientId,
-        dynamoDBClient
-      );
+      await service.deleteEntriesFromTokenStatesByClient(GSIPK_clientId);
     })
     .with(
       { type: "ClientAdded" },
