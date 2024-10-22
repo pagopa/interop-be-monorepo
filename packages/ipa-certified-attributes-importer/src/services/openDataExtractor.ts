@@ -1,7 +1,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable @typescript-eslint/array-type */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/array-type */
 import axios from "axios";
 import { z } from "zod";
 import { match } from "ts-pattern";
