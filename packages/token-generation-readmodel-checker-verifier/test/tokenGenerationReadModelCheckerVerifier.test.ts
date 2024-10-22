@@ -22,6 +22,7 @@ import {
   ClientId,
   Descriptor,
   descriptorState,
+  EService,
   generateId,
   itemState,
   makeGSIPKClientIdPurposeId,
@@ -37,6 +38,7 @@ import {
   PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
   PlatformStatesPurposeEntry,
+  Purpose,
   purposeVersionState,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
@@ -51,9 +53,18 @@ import {
   vi,
 } from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
+  compareReadModelAgreementsWithPlatformStates,
+  compareReadModelClientsWithPlatformStates,
+  compareReadModelEServicesWithPlatformStates,
+  compareReadModelPurposesWithPlatformStates,
   compareTokenGenerationReadModel,
+  countAgreementDifferences,
+  countCatalogDifferences,
+  countClientDifferences,
+  countPurposeDifferences,
 } from "../src/utils/utils.js";
 import {
   addOneAgreement,
@@ -61,10 +72,11 @@ import {
   addOneEService,
   addOnePurpose,
   config,
+  readModelRepository,
   writeClientEntry,
 } from "./utils.js";
 
-describe("sample", () => {
+describe("Token Generation Read Model Checker Verifier tests", () => {
   if (!config) {
     fail();
   }
@@ -94,6 +106,7 @@ describe("sample", () => {
       await addOnePurpose(purpose);
 
       // platform-states
+      // TODO: should missing platform-states entry be an error or skipped?
       const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purpose.id);
       const platformPurposeEntry: PlatformStatesPurposeEntry = {
         PK: purposeEntryPrimaryKey,
@@ -125,6 +138,18 @@ describe("sample", () => {
         }),
       };
       await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+
+      const purposeDifferences =
+        await compareReadModelPurposesWithPlatformStates({
+          platformStatesEntries: [platformPurposeEntry],
+          tokenGenerationStatesEntries: [tokenStateEntry],
+          readModel: readModelRepository,
+        });
+      expect(purposeDifferences).toHaveLength(0);
+
+      expect(
+        countPurposeDifferences(purposeDifferences, genericLogger)
+      ).toEqual(0);
 
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
@@ -164,6 +189,26 @@ describe("sample", () => {
       };
       await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
 
+      const purposeDifferences =
+        await compareReadModelPurposesWithPlatformStates({
+          platformStatesEntries: [platformPurposeEntry],
+          tokenGenerationStatesEntries: [tokenStateEntry],
+          readModel: readModelRepository,
+        });
+      const expectedPurposeDifferences: [
+        [
+          PlatformStatesPurposeEntry | undefined,
+          TokenGenerationStatesClientPurposeEntry[] | undefined,
+          Purpose | undefined
+        ]
+      ] = [[platformPurposeEntry, [tokenStateEntry], undefined]];
+      expect(purposeDifferences).toHaveLength(1);
+      expect(purposeDifferences).toEqual(expectedPurposeDifferences);
+
+      expect(
+        countPurposeDifferences(purposeDifferences, genericLogger)
+      ).toEqual(1);
+
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
       ).rejects.toThrowError();
@@ -175,6 +220,26 @@ describe("sample", () => {
       ]);
       await addOnePurpose(purpose);
 
+      const purposeDifferences =
+        await compareReadModelPurposesWithPlatformStates({
+          platformStatesEntries: [],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        });
+      const expectedPurposeDifferences: [
+        [
+          PlatformStatesPurposeEntry | undefined,
+          TokenGenerationStatesClientPurposeEntry[] | undefined,
+          Purpose | undefined
+        ]
+      ] = [[undefined, [], purpose]];
+      expect(purposeDifferences).toHaveLength(1);
+      expect(purposeDifferences).toEqual(expectedPurposeDifferences);
+
+      expect(
+        countPurposeDifferences(purposeDifferences, genericLogger)
+      ).toEqual(1);
+
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
       ).rejects.toThrowError();
@@ -185,6 +250,26 @@ describe("sample", () => {
         getMockPurposeVersion(purposeVersionState.archived),
       ]);
       await addOnePurpose(purpose);
+
+      const purposeDifferences =
+        await compareReadModelPurposesWithPlatformStates({
+          platformStatesEntries: [],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        });
+      const expectedPurposeDifferences: [
+        [
+          PlatformStatesPurposeEntry | undefined,
+          TokenGenerationStatesClientPurposeEntry[],
+          Purpose | undefined
+        ]
+      ] = [[undefined, [], purpose]];
+      expect(purposeDifferences).toHaveLength(1);
+      expect(purposeDifferences).toEqual(expectedPurposeDifferences);
+
+      expect(
+        countPurposeDifferences(purposeDifferences, genericLogger)
+      ).toEqual(0);
 
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
@@ -245,6 +330,18 @@ describe("sample", () => {
       };
       await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
 
+      const agreementDifferences =
+        await compareReadModelAgreementsWithPlatformStates({
+          platformStatesEntries: [platformAgreementEntry],
+          tokenGenerationStatesEntries: [tokenStateEntry],
+          readModel: readModelRepository,
+        });
+      expect(agreementDifferences).toHaveLength(0);
+
+      expect(
+        countAgreementDifferences(agreementDifferences, genericLogger)
+      ).toEqual(0);
+
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
       ).resolves.not.toThrowError();
@@ -262,6 +359,7 @@ describe("sample", () => {
         },
       };
 
+      // platform-states
       const agreementEntryPrimaryKey = makePlatformStatesAgreementPK(
         agreement.id
       );
@@ -281,6 +379,26 @@ describe("sample", () => {
       };
       await writePlatformAgreementEntry(platformAgreementEntry, dynamoDBClient);
 
+      const agreementDifferences =
+        await compareReadModelAgreementsWithPlatformStates({
+          platformStatesEntries: [platformAgreementEntry],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        });
+      const expectedAgreementDifferences: [
+        [
+          PlatformStatesAgreementEntry | undefined,
+          TokenGenerationStatesClientPurposeEntry[],
+          Agreement | undefined
+        ]
+      ] = [[platformAgreementEntry, [], undefined]];
+      expect(agreementDifferences).toHaveLength(1);
+      expect(agreementDifferences).toEqual(expectedAgreementDifferences);
+
+      expect(
+        countAgreementDifferences(agreementDifferences, genericLogger)
+      ).toEqual(1);
+
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
       ).rejects.toThrowError();
@@ -299,6 +417,26 @@ describe("sample", () => {
       };
       await addOneAgreement(agreement);
 
+      const agreementDifferences =
+        await compareReadModelAgreementsWithPlatformStates({
+          platformStatesEntries: [],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        });
+      const expectedAgreementDifferences: [
+        [
+          PlatformStatesAgreementEntry | undefined,
+          TokenGenerationStatesClientPurposeEntry[],
+          Agreement | undefined
+        ]
+      ] = [[undefined, [], agreement]];
+      expect(agreementDifferences).toHaveLength(1);
+      expect(agreementDifferences).toEqual(expectedAgreementDifferences);
+
+      expect(
+        countAgreementDifferences(agreementDifferences, genericLogger)
+      ).toEqual(1);
+
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
       ).rejects.toThrowError();
@@ -316,6 +454,27 @@ describe("sample", () => {
         },
       };
       await addOneAgreement(agreement);
+
+      const agreementDifferences =
+        await compareReadModelAgreementsWithPlatformStates({
+          platformStatesEntries: [],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        });
+      const expectedAgreementDifferences: [
+        [
+          PlatformStatesAgreementEntry | undefined,
+          TokenGenerationStatesClientPurposeEntry[],
+          Agreement | undefined
+        ]
+      ] = [[undefined, [], agreement]];
+      // TODO: maybe  change to length 0
+      expect(agreementDifferences).toHaveLength(1);
+      expect(agreementDifferences).toEqual(expectedAgreementDifferences);
+
+      expect(
+        countAgreementDifferences(agreementDifferences, genericLogger)
+      ).toEqual(0);
 
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
@@ -370,6 +529,18 @@ describe("sample", () => {
       };
       await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
 
+      const catalogDifferences =
+        await compareReadModelEServicesWithPlatformStates({
+          platformStatesEntries: [platformCatalogEntry],
+          tokenGenerationStatesEntries: [tokenStateEntry],
+          readModel: readModelRepository,
+        });
+      expect(catalogDifferences).toHaveLength(0);
+
+      expect(
+        countCatalogDifferences(catalogDifferences, genericLogger)
+      ).toEqual(0);
+
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
       ).resolves.not.toThrowError();
@@ -386,6 +557,7 @@ describe("sample", () => {
         descriptors: [descriptor],
       };
 
+      // platform-states
       const catalogEntryPrimaryKey = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
@@ -399,6 +571,26 @@ describe("sample", () => {
         updatedAt: new Date().toISOString(),
       };
       await writeCatalogEntry(platformCatalogEntry, dynamoDBClient);
+
+      const catalogDifferences =
+        await compareReadModelEServicesWithPlatformStates({
+          platformStatesEntries: [platformCatalogEntry],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        });
+      const expectedAgreementDifferences: [
+        [
+          PlatformStatesCatalogEntry | undefined,
+          TokenGenerationStatesClientPurposeEntry[],
+          EService | undefined
+        ]
+      ] = [[platformCatalogEntry, [], undefined]];
+      expect(catalogDifferences).toHaveLength(1);
+      expect(catalogDifferences).toEqual(expectedAgreementDifferences);
+
+      expect(
+        countCatalogDifferences(catalogDifferences, genericLogger)
+      ).toEqual(1);
 
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
@@ -417,6 +609,26 @@ describe("sample", () => {
       };
       await addOneEService(eservice);
 
+      const catalogDifferences =
+        await compareReadModelEServicesWithPlatformStates({
+          platformStatesEntries: [],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        });
+      const expectedAgreementDifferences: [
+        [
+          PlatformStatesCatalogEntry | undefined,
+          TokenGenerationStatesClientPurposeEntry[],
+          EService | undefined
+        ]
+      ] = [[undefined, [], eservice]];
+      expect(catalogDifferences).toHaveLength(1);
+      expect(catalogDifferences).toEqual(expectedAgreementDifferences);
+
+      expect(
+        countCatalogDifferences(catalogDifferences, genericLogger)
+      ).toEqual(1);
+
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
       ).rejects.toThrowError();
@@ -433,6 +645,26 @@ describe("sample", () => {
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
+
+      const catalogDifferences =
+        await compareReadModelEServicesWithPlatformStates({
+          platformStatesEntries: [],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        });
+      const expectedAgreementDifferences: [
+        [
+          PlatformStatesCatalogEntry | undefined,
+          TokenGenerationStatesClientPurposeEntry[],
+          EService | undefined
+        ]
+      ] = [[undefined, [], eservice]];
+      expect(catalogDifferences).toHaveLength(1);
+      expect(catalogDifferences).toEqual(expectedAgreementDifferences);
+
+      expect(
+        countCatalogDifferences(catalogDifferences, genericLogger)
+      ).toEqual(0);
 
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
@@ -484,6 +716,19 @@ describe("sample", () => {
       };
       await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
 
+      const clientDifferences = await compareReadModelClientsWithPlatformStates(
+        {
+          platformStatesEntries: [platformClientEntry],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        }
+      );
+      expect(clientDifferences).toHaveLength(0);
+
+      expect(countClientDifferences(clientDifferences, genericLogger)).toEqual(
+        0
+      );
+
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
       ).resolves.not.toThrowError();
@@ -506,6 +751,27 @@ describe("sample", () => {
         updatedAt: new Date().toISOString(),
       };
       await writeClientEntry(platformClientEntry, dynamoDBClient);
+
+      const clientDifferences = await compareReadModelClientsWithPlatformStates(
+        {
+          platformStatesEntries: [platformClientEntry],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        }
+      );
+      const expectedClientDifferences: [
+        [
+          PlatformStatesClientEntry | undefined,
+          TokenGenerationStatesClientPurposeEntry[],
+          EService | undefined
+        ]
+      ] = [[platformClientEntry, [], undefined]];
+      expect(clientDifferences).toHaveLength(1);
+      expect(clientDifferences).toEqual(expectedClientDifferences);
+
+      expect(countClientDifferences(clientDifferences, genericLogger)).toEqual(
+        1
+      );
 
       await expect(
         compareTokenGenerationReadModel(dynamoDBClient)
