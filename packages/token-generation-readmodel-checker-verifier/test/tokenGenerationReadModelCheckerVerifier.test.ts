@@ -11,24 +11,34 @@ import {
   writeCatalogEntry,
   writePlatformAgreementEntry,
   writePlatformPurposeEntry,
+  getMockTokenStatesClientPurposeEntry,
+  writeTokenStateEntry,
+  getMockKey,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
   agreementState,
+  Client,
+  ClientId,
   Descriptor,
   descriptorState,
   generateId,
   itemState,
+  makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
+  makeGSIPKEServiceIdDescriptorId,
+  makeGSIPKKid,
   makePlatformStatesAgreementPK,
   makePlatformStatesClientPK,
   makePlatformStatesEServiceDescriptorPK,
   makePlatformStatesPurposePK,
+  makeTokenGenerationStatesClientKidPurposePK,
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
   PlatformStatesPurposeEntry,
   purposeVersionState,
+  TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import {
   afterAll,
@@ -43,7 +53,7 @@ import {
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   clientKindToTokenGenerationStatesClientKind,
-  main,
+  compareTokenGenerationReadModel,
 } from "../src/utils/utils.js";
 import {
   addOneAgreement,
@@ -83,6 +93,7 @@ describe("sample", () => {
       ]);
       await addOnePurpose(purpose);
 
+      // platform-states
       const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purpose.id);
       const platformPurposeEntry: PlatformStatesPurposeEntry = {
         PK: purposeEntryPrimaryKey,
@@ -95,7 +106,29 @@ describe("sample", () => {
       };
       await writePlatformPurposeEntry(platformPurposeEntry, dynamoDBClient);
 
-      await expect(main(dynamoDBClient)).resolves.not.toThrowError();
+      // token-generation-states
+      const clientId = generateId<ClientId>();
+      const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
+        clientId,
+        kid: `kid ${Math.random()}`,
+        purposeId: purpose.id,
+      });
+      const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+        GSIPK_purposeId: purpose.id,
+        purposeState: itemState.active,
+        purposeVersionId: purpose.versions[0].id,
+        consumerId: purpose.consumerId,
+        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+          clientId,
+          purposeId: purpose.id,
+        }),
+      };
+      await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).resolves.not.toThrowError();
     });
 
     it("read model purpose missing", async () => {
@@ -103,6 +136,7 @@ describe("sample", () => {
         getMockPurposeVersion(purposeVersionState.active),
       ]);
 
+      // platform-states
       const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purpose.id);
       const platformPurposeEntry: PlatformStatesPurposeEntry = {
         PK: purposeEntryPrimaryKey,
@@ -115,7 +149,24 @@ describe("sample", () => {
       };
       await writePlatformPurposeEntry(platformPurposeEntry, dynamoDBClient);
 
-      await expect(main(dynamoDBClient)).rejects.toThrowError();
+      // token-generation-states
+      const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: purpose.id,
+      });
+      const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+        GSIPK_purposeId: purpose.id,
+        purposeState: itemState.active,
+        purposeVersionId: purpose.versions[0].id,
+        consumerId: purpose.consumerId,
+      };
+      await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).rejects.toThrowError();
     });
 
     it("platform-states entry missing with read model purpose not archived", async () => {
@@ -124,7 +175,9 @@ describe("sample", () => {
       ]);
       await addOnePurpose(purpose);
 
-      await expect(main(dynamoDBClient)).rejects.toThrowError();
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).rejects.toThrowError();
     });
 
     it("platform-states entry missing with read model purpose archived", async () => {
@@ -133,7 +186,9 @@ describe("sample", () => {
       ]);
       await addOnePurpose(purpose);
 
-      await expect(main(dynamoDBClient)).resolves.not.toThrowError();
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).resolves.not.toThrowError();
     });
   });
 
@@ -151,6 +206,7 @@ describe("sample", () => {
       };
       await addOneAgreement(agreement);
 
+      // platform-states
       const agreementEntryPrimaryKey = makePlatformStatesAgreementPK(
         agreement.id
       );
@@ -170,7 +226,28 @@ describe("sample", () => {
       };
       await writePlatformAgreementEntry(platformAgreementEntry, dynamoDBClient);
 
-      await expect(main(dynamoDBClient)).resolves.not.toThrowError();
+      // token-generation-states
+      const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
+      const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+        consumerId: agreement.consumerId,
+        agreementId: agreement.id,
+        agreementState: itemState.active,
+        GSIPK_consumerId_eserviceId,
+      };
+      await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).resolves.not.toThrowError();
     });
 
     it("read model agreement missing", async () => {
@@ -204,7 +281,9 @@ describe("sample", () => {
       };
       await writePlatformAgreementEntry(platformAgreementEntry, dynamoDBClient);
 
-      await expect(main(dynamoDBClient)).rejects.toThrowError();
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).rejects.toThrowError();
     });
 
     it("platform-states entry missing with read model agreement not archived", async () => {
@@ -220,7 +299,9 @@ describe("sample", () => {
       };
       await addOneAgreement(agreement);
 
-      await expect(main(dynamoDBClient)).rejects.toThrowError();
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).rejects.toThrowError();
     });
 
     it("platform-states entry missing with read model purpose archived", async () => {
@@ -236,7 +317,9 @@ describe("sample", () => {
       };
       await addOneAgreement(agreement);
 
-      await expect(main(dynamoDBClient)).resolves.not.toThrowError();
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).resolves.not.toThrowError();
     });
   });
 
@@ -253,6 +336,7 @@ describe("sample", () => {
       };
       await addOneEService(eservice);
 
+      // platform-states
       const catalogEntryPrimaryKey = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
@@ -267,7 +351,28 @@ describe("sample", () => {
       };
       await writeCatalogEntry(platformCatalogEntry, dynamoDBClient);
 
-      await expect(main(dynamoDBClient)).resolves.not.toThrowError();
+      // token-generation-states
+      const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+        // TODO: where's this
+        // consumerId: descriptor.
+        descriptorState: itemState.active,
+        descriptorAudience: descriptor.audience,
+        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        }),
+      };
+      await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).resolves.not.toThrowError();
     });
 
     it("read model eservice missing", async () => {
@@ -295,7 +400,9 @@ describe("sample", () => {
       };
       await writeCatalogEntry(platformCatalogEntry, dynamoDBClient);
 
-      await expect(main(dynamoDBClient)).rejects.toThrowError();
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).rejects.toThrowError();
     });
 
     it("platform-states entry missing with read model descriptor not archived", async () => {
@@ -310,7 +417,9 @@ describe("sample", () => {
       };
       await addOneEService(eservice);
 
-      await expect(main(dynamoDBClient)).rejects.toThrowError();
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).rejects.toThrowError();
     });
 
     it("platform-states entry missing with read model descriptor archived", async () => {
@@ -325,31 +434,59 @@ describe("sample", () => {
       };
       await addOneEService(eservice);
 
-      await expect(main(dynamoDBClient)).resolves.not.toThrowError();
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).resolves.not.toThrowError();
     });
   });
 
   describe("client", () => {
     it("same states", async () => {
-      const client = {
+      const purpose = getMockPurpose();
+      const client: Client = {
         ...getMockClient(),
-        purposes: [getMockPurpose().id],
+        purposes: [purpose.id, generateId()],
+        consumerId: purpose.consumerId,
+        keys: [getMockKey()],
       };
       await addOneClient(client);
 
+      // platform-states
       const catalogEntryPrimaryKey = makePlatformStatesClientPK(client.id);
       const platformClientEntry: PlatformStatesClientEntry = {
         PK: catalogEntryPrimaryKey,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
-        clientPurposesIds: client.purposes,
+        clientPurposesIds: [],
         version: 1,
         updatedAt: new Date().toISOString(),
       };
       await writeClientEntry(platformClientEntry, dynamoDBClient);
 
-      await expect(main(dynamoDBClient)).resolves.not.toThrowError();
+      // token-generation-states
+      const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: client.id,
+        kid: client.keys[0].kid,
+        purposeId: purpose.id,
+      });
+      const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+        consumerId: purpose.consumerId,
+        GSIPK_clientId: client.id,
+        GSIPK_kid: makeGSIPKKid(client.keys[0].kid),
+        clientKind: platformClientEntry.clientKind,
+        publicKey: client.keys[0].encodedPem,
+        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+          clientId: client.id,
+          purposeId: purpose.id,
+        }),
+      };
+      await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).resolves.not.toThrowError();
     });
 
     it("read model eservice missing", async () => {
@@ -370,7 +507,9 @@ describe("sample", () => {
       };
       await writeClientEntry(platformClientEntry, dynamoDBClient);
 
-      await expect(main(dynamoDBClient)).rejects.toThrowError();
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).rejects.toThrowError();
     });
 
     it.skip("platform-states entry missing with read model eservice not archived", async () => {
@@ -380,7 +519,9 @@ describe("sample", () => {
       };
       await addOneClient(client);
 
-      await expect(main(dynamoDBClient)).rejects.toThrowError();
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).rejects.toThrowError();
     });
 
     it.skip("platform-states entry missing with read model purpose archived", async () => {
@@ -390,7 +531,9 @@ describe("sample", () => {
       };
       await addOneClient(client);
 
-      await expect(main(dynamoDBClient)).resolves.not.toThrowError();
+      await expect(
+        compareTokenGenerationReadModel(dynamoDBClient)
+      ).resolves.not.toThrowError();
     });
   });
 });
