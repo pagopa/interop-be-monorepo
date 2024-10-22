@@ -1,0 +1,27 @@
+meta {
+  name: Suspend Purpose Version
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/purposes/:purposeId/versions/:versionId/suspend
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: <uuid>
+  versionId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  suspends the purpose version by id
+}

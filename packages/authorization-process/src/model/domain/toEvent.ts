@@ -2,6 +2,7 @@ import { CreateEvent } from "pagopa-interop-commons";
 import {
   AuthorizationEventV2,
   Client,
+  CorrelationId,
   EServiceId,
   ProducerKeychain,
   PurposeId,
@@ -12,7 +13,7 @@ import {
 
 export function toCreateEventClientAdded(
   client: Client,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: client.id,
@@ -31,7 +32,7 @@ export function toCreateEventClientAdded(
 export function toCreateEventClientDeleted(
   client: Client,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: client.id,
@@ -52,7 +53,7 @@ export function toCreateEventClientUserDeleted(
   client: Client,
   userId: UserId,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: client.id,
@@ -73,7 +74,7 @@ export function toCreateEventClientKeyDeleted(
   client: Client,
   keyId: string,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: client.id,
@@ -94,7 +95,7 @@ export function toCreateEventClientPurposeRemoved(
   client: Client,
   purposeId: PurposeId,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: client.id,
@@ -115,7 +116,7 @@ export function toCreateEventClientUserAdded(
   userId: UserId,
   client: Client,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: client.id,
@@ -136,7 +137,7 @@ export function toCreateEventClientPurposeAdded(
   purposeId: PurposeId,
   client: Client,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: client.id,
@@ -157,7 +158,7 @@ export function toCreateEventKeyAdded(
   kid: string,
   client: Client,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: client.id,
@@ -176,7 +177,7 @@ export function toCreateEventKeyAdded(
 
 export function toCreateEventProducerKeychainAdded(
   producerKeychain: ProducerKeychain,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: producerKeychain.id,
@@ -195,7 +196,7 @@ export function toCreateEventProducerKeychainAdded(
 export function toCreateEventProducerKeychainDeleted(
   producerKeychain: ProducerKeychain,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: producerKeychain.id,
@@ -216,7 +217,7 @@ export function toCreateEventProducerKeychainUserAdded(
   userId: UserId,
   producerKeychain: ProducerKeychain,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: producerKeychain.id,
@@ -237,7 +238,7 @@ export function toCreateEventProducerKeychainUserDeleted(
   producerKeychain: ProducerKeychain,
   userId: UserId,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: producerKeychain.id,
@@ -258,7 +259,7 @@ export function toCreateEventProducerKeychainKeyAdded(
   kid: string,
   producerKeychain: ProducerKeychain,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: producerKeychain.id,
@@ -279,7 +280,7 @@ export function toCreateEventProducerKeychainKeyDeleted(
   producerKeychain: ProducerKeychain,
   keyId: string,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: producerKeychain.id,
@@ -300,7 +301,7 @@ export function toCreateEventProducerKeychainEServiceAdded(
   eserviceId: EServiceId,
   producerKeychain: ProducerKeychain,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: producerKeychain.id,
@@ -321,7 +322,7 @@ export function toCreateEventProducerKeychainEServiceRemoved(
   producerKeychain: ProducerKeychain,
   eserviceId: EServiceId,
   version: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: producerKeychain.id,

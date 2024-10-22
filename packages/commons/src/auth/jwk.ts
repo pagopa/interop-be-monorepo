@@ -1,10 +1,12 @@
 import crypto, { JsonWebKey, KeyObject } from "crypto";
+import jwksClient, { JwksClient } from "jwks-rsa";
 import {
   invalidKey,
   jwkDecodingError,
   notAllowedCertificateException,
   notAllowedPrivateKeyException,
 } from "pagopa-interop-models";
+import { JWTConfig } from "../config/index.js";
 
 export const decodeBase64ToPem = (base64String: string): string => {
   try {
@@ -43,7 +45,7 @@ function assertNotPrivateKey(key: string): void {
   throw notAllowedPrivateKeyException();
 }
 
-function createPublicKey(key: string): KeyObject {
+export function createPublicKey(key: string): KeyObject {
   const pemKey = decodeBase64ToPem(key);
 
   assertNotPrivateKey(pemKey);
@@ -63,4 +65,18 @@ export function sortJWK(jwk: JsonWebKey): JsonWebKey {
       (prev, sortedKey) => ({ ...prev, [sortedKey]: jwk[sortedKey] }),
       {}
     );
+}
+
+export function getJwksClients(config: JWTConfig): JwksClient[] {
+  return config.wellKnownUrls.map((url) =>
+    jwksClient({
+      cache: true,
+      rateLimit: true,
+      jwksUri: url,
+      /* If JWKS_CACHE_MAX_AGE_MILLIS not provided using 10 minute like default value: 
+      https://github.com/auth0/node-jwks-rsa/blob/master/EXAMPLES.md#configuration 
+      */
+      cacheMaxAge: config.jwksCacheMaxAge ?? 600000,
+    })
+  );
 }

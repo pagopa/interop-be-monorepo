@@ -1,0 +1,26 @@
+meta {
+  name: Delete a Client
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{host-bff}}/clients/:clientId
+  body: none
+  auth: none
+}
+
+params:path {
+  clientId: 89ebd3ff-6c50-4af6-805e-63b290262561
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Deletes a Client
+}
