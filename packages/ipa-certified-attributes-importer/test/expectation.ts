@@ -460,7 +460,7 @@ export const attributes = [
   {
     code: "290d1371af230243db2c12eaaaa465ffd1457f06c91d8a14b7c5bca8d4e29bdf",
     description: "Pubbliche Amministrazioni",
-    name: "Consorzi di Sviluppo Turistico",
+    name: "Agenzie per la Ristrutturazione Urbana",
     origin: "IPA",
   },
   {
