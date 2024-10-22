@@ -173,6 +173,7 @@ function getIdentificationKey<T extends { PK: string } | { id: string }>(
   obj: T
 ): string {
   if ("PK" in obj) {
+    // TODO: make extract functions
     return obj.PK.split("#")[1];
   } else {
     return obj.id;
@@ -183,7 +184,7 @@ function getIdentificationKey<T extends { PK: string } | { id: string }>(
 export async function compareReadModelPurposesWithPlatformStates({
   platformStatesEntries,
   tokenGenerationStatesEntries,
-  readModel: readModel,
+  readModel,
 }: {
   platformStatesEntries: PlatformStatesPurposeEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
@@ -368,7 +369,7 @@ export function countPurposeDifferences(
 export async function compareReadModelAgreementsWithPlatformStates({
   platformStatesEntries,
   tokenGenerationStatesEntries,
-  readModel: readModel,
+  readModel,
 }: {
   platformStatesEntries: PlatformStatesAgreementEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
@@ -553,7 +554,7 @@ export function countAgreementDifferences(
 export async function compareReadModelClientsWithPlatformStates({
   platformStatesEntries,
   tokenGenerationStatesEntries,
-  readModel: readModel,
+  readModel,
 }: {
   platformStatesEntries: PlatformStatesClientEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesGenericEntry[];
@@ -717,7 +718,7 @@ export function countClientDifferences(
 export async function compareReadModelEServicesWithPlatformStates({
   platformStatesEntries,
   tokenGenerationStatesEntries,
-  readModel: readModel,
+  readModel,
 }: {
   platformStatesEntries: PlatformStatesCatalogEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
