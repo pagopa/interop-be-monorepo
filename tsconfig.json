@@ -1,9 +1,11 @@
 {
   "extends": "@tsconfig/node-lts",
   "compilerOptions": {
+    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": true,
   }
 }
