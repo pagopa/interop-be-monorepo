@@ -6,7 +6,6 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   getMockTokenStatesClientPurposeEntry,
-  writeTokenStateEntry,
   getMockPurpose,
   getMockPurposeVersion,
   getMockTokenStatesClientEntry,
@@ -27,7 +26,11 @@ import {
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
-import { formatDateyyyyMMdd, genericLogger } from "pagopa-interop-commons";
+import {
+  formatDateyyyyMMdd,
+  genericLogger,
+  writeTokenStateClientPurposeEntry,
+} from "pagopa-interop-commons";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import * as uuidv4 from "uuid";
 import { config } from "../src/config/config.js";
@@ -164,7 +167,10 @@ describe("authorization server tests", () => {
       agreementId: undefined,
     };
 
-    await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
+    await writeTokenStateClientPurposeEntry(
+      tokenClientPurposeEntry,
+      dynamoDBClient
+    );
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(invalidTokenClientKidPurposeEntry());
@@ -230,7 +236,10 @@ describe("authorization server tests", () => {
         clientKind: clientKindTokenStates.api,
       };
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
+    );
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
@@ -268,7 +277,10 @@ describe("authorization server tests", () => {
     const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
       getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK);
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
+    );
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
@@ -308,7 +320,10 @@ describe("authorization server tests", () => {
         publicKey: publicKeyEncodedPem,
       };
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
+    );
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
@@ -345,7 +360,10 @@ describe("authorization server tests", () => {
         publicKey: publicKeyEncodedPem,
       };
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
+    );
     // eslint-disable-next-line functional/no-let
     for (let i = 0; i < config.rateLimiterMaxRequests; i++) {
       const response = await tokenService.generateToken(
@@ -416,7 +434,10 @@ describe("authorization server tests", () => {
         publicKey: publicKeyEncodedPem,
       };
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
+    );
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
@@ -502,7 +523,10 @@ describe("authorization server tests", () => {
         publicKey: publicKeyEncodedPem,
       };
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
+    );
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
@@ -545,7 +569,10 @@ describe("authorization server tests", () => {
         publicKey: publicKeyEncodedPem,
       };
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
+    );
 
     const fileListBeforeAudit = await fileManager.listFiles(
       config.s3Bucket,
@@ -625,7 +652,10 @@ describe("authorization server tests", () => {
       publicKey: publicKeyEncodedPem,
     };
 
-    await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
+    await writeTokenStateClientPurposeEntry(
+      tokenClientPurposeEntry,
+      dynamoDBClient
+    );
 
     const request = {
       ...(await getMockAccessTokenRequest()),
@@ -832,7 +862,7 @@ describe("authorization server tests", () => {
       publicKey: publicKeyEncodedPem,
     };
 
-    await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
+    await writeTokenStateClientPurposeEntry(tokenClientPurposeEntry, dynamoDBClient);
 
     const request = {
       ...(await getMockAccessTokenRequest()),
