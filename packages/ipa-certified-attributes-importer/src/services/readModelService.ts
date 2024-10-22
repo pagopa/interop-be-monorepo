@@ -1,7 +1,6 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
-import { Attribute, Tenant } from "pagopa-interop-models";
+import { Attribute, ORIGIN_IPA, Tenant } from "pagopa-interop-models";
 import { z } from "zod";
-import { ORIGIN_IPA } from "../index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(

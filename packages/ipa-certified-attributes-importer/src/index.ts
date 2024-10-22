@@ -8,7 +8,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import { Attribute, Tenant } from "pagopa-interop-models";
+import { Attribute, ORIGIN_IPA, Tenant } from "pagopa-interop-models";
 import { config } from "./config/config.js";
 import {
   ReadModelService,
@@ -20,8 +20,6 @@ import {
   getRegistryData,
   kindToBeExcluded,
 } from "./services/openDataService.js";
-
-export const ORIGIN_IPA = "IPA";
 
 export type TenantSeed = {
   origin: string;
@@ -420,6 +418,8 @@ try {
   const tokenGenerator = new InteropTokenGenerator(config);
   const refreshableToken = new RefreshableInteropToken(tokenGenerator);
   await refreshableToken.init();
+
+  loggerInstance.info("Getting registry data");
 
   const registryData = await getRegistryData();
 

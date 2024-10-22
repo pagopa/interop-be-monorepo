@@ -4,8 +4,8 @@
 import axios from "axios";
 import { z } from "zod";
 import { match } from "ts-pattern";
+import { ORIGIN_IPA } from "pagopa-interop-models";
 import { config } from "../config/config.js";
-import { ORIGIN_IPA } from "../index.js";
 
 type Classification = "Agency" | "AOO" | "UO";
 
