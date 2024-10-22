@@ -5,6 +5,8 @@ import {
   deleteDynamoDBTables,
   getMockTokenStatesClientEntry,
   getMockTokenStatesClientPurposeEntry,
+  writeTokenStateClientEntry,
+  writeTokenStateClientPurposeEntry,
 } from "pagopa-interop-commons-test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -39,7 +41,6 @@ import {
   getMockAuditMessage,
   mockKMSClient,
   mockProducer,
-  tokenGenerationCommonReadModelService,
 } from "./utils.js";
 
 describe("unit tests", () => {
@@ -79,8 +80,9 @@ describe("unit tests", () => {
       const tokenClientPurposeEntry1: TokenGenerationStatesClientPurposeEntry =
         getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK1);
 
-      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry1
+      await writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry1,
+        dynamoDBClient
       );
 
       expect(
@@ -108,9 +110,7 @@ describe("unit tests", () => {
       const tokenClientEntry1: TokenGenerationStatesClientEntry =
         getMockTokenStatesClientEntry(tokenClientKidPK1);
 
-      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
-        tokenClientEntry1
-      );
+      await writeTokenStateClientEntry(tokenClientEntry1, dynamoDBClient);
 
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPK2)
@@ -136,8 +136,9 @@ describe("unit tests", () => {
         agreementId: undefined,
       };
 
-      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry
+      await writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry,
+        dynamoDBClient
       );
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPurposePK)
@@ -161,8 +162,9 @@ describe("unit tests", () => {
         clientKind: clientKindTokenStates.consumer,
       };
 
-      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry
+      await writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry,
+        dynamoDBClient
       );
       const key = await retrieveKey(dynamoDBClient, tokenClientKidPurposePK);
 
@@ -212,9 +214,7 @@ describe("unit tests", () => {
         clientKind: clientKindTokenStates.consumer,
       };
 
-      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
-        tokenClientEntry
-      );
+      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPK)
       ).rejects.toThrowError(
@@ -239,8 +239,9 @@ describe("unit tests", () => {
         clientKind: clientKindTokenStates.api,
       };
 
-      await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry
+      await writeTokenStateClientPurposeEntry(
+        tokenClientPurposeEntry,
+        dynamoDBClient
       );
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPurposePK)
@@ -263,9 +264,7 @@ describe("unit tests", () => {
         clientKind: clientKindTokenStates.api,
       };
 
-      await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
-        tokenClientEntry
-      );
+      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
       const key = await retrieveKey(dynamoDBClient, tokenClientKidPK);
 
       const expectedKey: ApiKey = {

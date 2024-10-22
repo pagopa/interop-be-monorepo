@@ -9,6 +9,7 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
   getMockTokenStatesClientEntry,
+  writeTokenStateClientPurposeEntry,
 } from "pagopa-interop-commons-test";
 import {
   ClientId,
@@ -49,8 +50,8 @@ import {
   getMockClientAssertion,
   mockKMSClient,
   mockProducer,
-  tokenGenerationCommonReadModelService,
   tokenService,
+  writeTokenStateClientEntry,
 } from "./utils.js";
 
 describe("authorization server tests", () => {
@@ -163,8 +164,9 @@ describe("authorization server tests", () => {
       agreementId: undefined,
     };
 
-    await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-      tokenClientPurposeEntry
+    await writeTokenStateClientPurposeEntry(
+      tokenClientPurposeEntry,
+      dynamoDBClient
     );
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
@@ -193,9 +195,7 @@ describe("authorization server tests", () => {
       clientKind: clientKindTokenStates.consumer,
     };
 
-    await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
-      tokenClientKidEntry
-    );
+    await writeTokenStateClientEntry(tokenClientKidEntry, dynamoDBClient);
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
@@ -233,8 +233,9 @@ describe("authorization server tests", () => {
         clientKind: clientKindTokenStates.api,
       };
 
-    await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-      tokenClientKidPurposeEntry
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
     );
 
     expect(
@@ -273,8 +274,9 @@ describe("authorization server tests", () => {
     const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
       getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK);
 
-    await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-      tokenClientKidPurposeEntry
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
     );
 
     expect(
@@ -315,8 +317,9 @@ describe("authorization server tests", () => {
         publicKey: publicKeyEncodedPem,
       };
 
-    await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-      tokenClientKidPurposeEntry
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
     );
 
     expect(
@@ -354,8 +357,9 @@ describe("authorization server tests", () => {
         publicKey: publicKeyEncodedPem,
       };
 
-    await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-      tokenClientKidPurposeEntry
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
     );
     // eslint-disable-next-line functional/no-let
     for (let i = 0; i < config.rateLimiterMaxRequests; i++) {
@@ -427,8 +431,9 @@ describe("authorization server tests", () => {
         publicKey: publicKeyEncodedPem,
       };
 
-    await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-      tokenClientKidPurposeEntry
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
     );
 
     expect(
@@ -469,9 +474,7 @@ describe("authorization server tests", () => {
       publicKey: publicKeyEncodedPem,
     };
 
-    await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
-      tokenClientKidEntry
-    );
+    await writeTokenStateClientEntry(tokenClientKidEntry, dynamoDBClient);
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
@@ -517,8 +520,9 @@ describe("authorization server tests", () => {
         publicKey: publicKeyEncodedPem,
       };
 
-    await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-      tokenClientKidPurposeEntry
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
     );
 
     expect(
@@ -562,8 +566,9 @@ describe("authorization server tests", () => {
         publicKey: publicKeyEncodedPem,
       };
 
-    await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-      tokenClientKidPurposeEntry
+    await writeTokenStateClientPurposeEntry(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
     );
 
     const fileListBeforeAudit = await fileManager.listFiles(
@@ -644,8 +649,9 @@ describe("authorization server tests", () => {
       publicKey: publicKeyEncodedPem,
     };
 
-    await tokenGenerationCommonReadModelService.writeTokenStateClientPurposeEntry(
-      tokenClientPurposeEntry
+    await writeTokenStateClientPurposeEntry(
+      tokenClientPurposeEntry,
+      dynamoDBClient
     );
 
     const request = {
@@ -775,9 +781,7 @@ describe("authorization server tests", () => {
       publicKey: publicKeyEncodedPem,
     };
 
-    await tokenGenerationCommonReadModelService.writeTokenStateClientEntry(
-      tokenClientKidEntry
-    );
+    await writeTokenStateClientEntry(tokenClientKidEntry, dynamoDBClient);
 
     const fileListBefore = await fileManager.listFiles(
       config.s3Bucket,

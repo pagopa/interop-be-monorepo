@@ -22,10 +22,6 @@ import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import * as jose from "jose";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
-import {
-  tokenGenerationCommonReadModelServiceBuilder,
-  TokenGenerationReadModelRepository,
-} from "pagopa-interop-commons";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
 
 export const configTokenGenerationStates = inject(
@@ -65,20 +61,6 @@ export const tokenService = tokenServiceBuilder({
   producer: mockProducer as unknown as Awaited<ReturnType<typeof initProducer>>,
   fileManager,
 });
-
-const tokenGenerationReadModelRepository =
-  TokenGenerationReadModelRepository.init({
-    dynamoDBClient,
-    platformStatesTableName:
-      configTokenGenerationStates.tokenGenerationReadModelTableNamePlatform,
-    tokenGenerationStatesTableName:
-      configTokenGenerationStates.tokenGenerationReadModelTableNameTokenGeneration,
-  });
-
-export const tokenGenerationCommonReadModelService =
-  tokenGenerationCommonReadModelServiceBuilder(
-    tokenGenerationReadModelRepository
-  );
 
 // TODO: copied from client-assertion-validation
 export const generateKeySet = (): {
