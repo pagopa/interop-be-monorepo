@@ -1,8 +1,15 @@
 import crypto from "crypto";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import {
+  AgreementId,
   ClientId,
+  DescriptorId,
+  EServiceId,
+  GeneratedTokenAuditDetails,
   generateId,
+  PurposeId,
+  PurposeVersionId,
+  TenantId,
   TokenGenerationStatesClientEntry,
 } from "pagopa-interop-models";
 import { afterEach, inject, vi } from "vitest";
@@ -256,4 +263,47 @@ export const writeTokenStateClientEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
+};
+
+export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
+  const correlationId = generateId();
+  const eserviceId = generateId<EServiceId>();
+  const descriptorId = generateId<DescriptorId>();
+  const agreementId = generateId<AgreementId>();
+  const clientId = generateId<ClientId>();
+  const purposeId = generateId<PurposeId>();
+  const kid = "kid";
+  const purposeVersionId = generateId<PurposeVersionId>();
+  const consumerId = generateId<TenantId>();
+  const clientAssertionJti = generateId();
+
+  return {
+    correlationId,
+    eserviceId,
+    descriptorId,
+    agreementId,
+    subject: clientId,
+    audience: "pagopa.it",
+    purposeId,
+    algorithm: "RS256",
+    clientId,
+    keyId: kid,
+    purposeVersionId,
+    jwtId: generateId(),
+    issuedAt: new Date().getTime() / 1000,
+    issuer: "interop jwt issuer",
+    expirationTime: new Date().getTime() / 1000,
+    organizationId: consumerId,
+    notBefore: 0,
+    clientAssertion: {
+      subject: clientId,
+      audience: "pagopa.it",
+      algorithm: "RS256",
+      keyId: kid,
+      jwtId: clientAssertionJti,
+      issuedAt: new Date().getTime() / 1000,
+      issuer: consumerId,
+      expirationTime: new Date().getTime() / 1000,
+    },
+  };
 };

@@ -24,15 +24,21 @@ import {
   ApiKey,
   ConsumerKey,
 } from "pagopa-interop-client-assertion-validation";
-import { retrieveKey } from "../src/services/tokenService.js";
+import { genericLogger } from "pagopa-interop-commons";
+import { fallbackAudit, retrieveKey } from "../src/services/tokenService.js";
 import {
+  fallbackAuditFailed,
   invalidTokenClientKidPurposeEntry,
   keyTypeMismatch,
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
 import {
   dynamoDBClient,
+  fileManager,
+  getMockAuditMessage,
   mockKMSClient,
+  mockProducer,
   tokenGenerationCommonReadModelService,
 } from "./utils.js";
 
@@ -47,6 +53,7 @@ describe("unit tests", () => {
     await deleteDynamoDBTables(dynamoDBClient);
     vi.restoreAllMocks();
   });
+
   describe("retrieveKey", () => {
     it("should throw tokenGenerationStatesEntryNotFound if the clientKidPurpose entry doesn't exist in token-generation-states", async () => {
       const clientId1 = generateId<ClientId>();
@@ -111,6 +118,7 @@ describe("unit tests", () => {
         tokenGenerationStatesEntryNotFound(tokenClientKidPK2)
       );
     });
+
     it("should throw invalidTokenClientKidPurposeEntry - clientKidPurpose entry - consumer key - missing info", async () => {
       const clientId = generateId<ClientId>();
       const kid = "kid";
@@ -135,6 +143,7 @@ describe("unit tests", () => {
         retrieveKey(dynamoDBClient, tokenClientKidPurposePK)
       ).rejects.toThrowError(invalidTokenClientKidPurposeEntry());
     });
+
     it("should succeed - clientKidPurpose entry - consumer key", async () => {
       const clientId = generateId<ClientId>();
       const kid = "kid";
@@ -188,6 +197,7 @@ describe("unit tests", () => {
 
       expect(key).toEqual(expectedKey);
     });
+
     it("should throw keyTypeMismatch - clientKid entry with consumer key", async () => {
       const clientId = generateId<ClientId>();
       const kid = "kid";
@@ -211,6 +221,7 @@ describe("unit tests", () => {
         keyTypeMismatch(clientKidPrefix, clientKindTokenStates.consumer)
       );
     });
+
     it("should throw keyTypeMismatch - clientKidPurpose entry with api key", async () => {
       const clientId = generateId<ClientId>();
       const kid = "kid";
@@ -237,6 +248,7 @@ describe("unit tests", () => {
         keyTypeMismatch(clientKidPurposePrefix, clientKindTokenStates.api)
       );
     });
+
     it("should succeed - clientKid entry - api key", async () => {
       const clientId = generateId<ClientId>();
       const kid = "kid";
@@ -268,17 +280,54 @@ describe("unit tests", () => {
       expect(key).toEqual(expectedKey);
     });
   });
+
   describe("generateInteropToken", () => {
     it("should generate a consumer token", () => {});
     it("should generate an api token", () => {});
     it("should throw tokenSigningFailed if the KMS signing operation fails", () => {});
   });
-  describe("publishAudit", () => {
-    it("should publish the message to Kafka", () => {});
-    it("should trigger the fallback audit in case of unsuccessful Kafka write operation", () => {});
-  });
+
   describe("fallbackAudit", () => {
-    it("should write the audit message to the file storage", () => {});
-    it("should throw fallbackAuditFailed in case of unsuccessful file write operation", () => {});
+    it("should write the audit message to the file storage", async () => {
+      const mockAuditMessage = getMockAuditMessage();
+
+      const fileListBeforeAudit = await fileManager.listFiles(
+        config.s3Bucket,
+        genericLogger
+      );
+      expect(fileListBeforeAudit).toHaveLength(0);
+
+      await fallbackAudit(mockAuditMessage, fileManager, genericLogger);
+
+      const fileListAfterAudit = await fileManager.listFiles(
+        config.s3Bucket,
+        genericLogger
+      );
+      expect(fileListAfterAudit).toHaveLength(1);
+
+      const fileContent = await fileManager.get(
+        config.s3Bucket,
+        fileListAfterAudit[0],
+        genericLogger
+      );
+
+      const expectedFileContent = JSON.stringify(mockAuditMessage) + "\n";
+
+      const decodedFileContent = new TextDecoder().decode(fileContent);
+      expect(decodedFileContent).toEqual(expectedFileContent);
+    });
+
+    it("should throw fallbackAuditFailed in case of unsuccessful file write operation", async () => {
+      const mockAuditMessage = getMockAuditMessage();
+
+      mockProducer.send.mockImplementationOnce(async () => Promise.reject());
+      vi.spyOn(fileManager, "storeBytes").mockImplementationOnce(() =>
+        Promise.reject()
+      );
+
+      expect(
+        fallbackAudit(mockAuditMessage, fileManager, genericLogger)
+      ).rejects.toThrowError(fallbackAuditFailed(mockAuditMessage.jwtId));
+    });
   });
 });
