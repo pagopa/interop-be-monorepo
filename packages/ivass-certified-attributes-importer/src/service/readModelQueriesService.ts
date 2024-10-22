@@ -1,24 +1,24 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
 import { Attribute, Tenant } from "pagopa-interop-models";
 
-const projectUnrevokedCertifiedAttributes = {
-  _id: 0,
-  "data.id": 1,
-  "data.externalId": 1,
-  "data.features": 1,
-  "data.attributes": {
-    $filter: {
-      input: "$data.attributes",
-      as: "attribute",
-      cond: {
-        $and: [
-          { $eq: ["$$attribute.type", "PersistentCertifiedAttribute"] },
-          { $lt: ["$$attribute.revocationTimestamp", null] },
-        ],
-      },
-    },
-  },
-};
+// const projectUnrevokedCertifiedAttributes = {
+//   _id: 0,
+//   "data.id": 1,
+//   "data.externalId": 1,
+//   "data.features": 1,
+//   "data.attributes": {
+//     $filter: {
+//       input: "$data.attributes",
+//       as: "attribute",
+//       cond: {
+//         $and: [
+//           { $eq: ["$$attribute.type", "PersistentCertifiedAttribute"] },
+//           { $lt: ["$$attribute.revocationTimestamp", null] },
+//         ],
+//       },
+//     },
+//   },
+// };
 
 // TODO fix: i removed projections as zod parse fails
 export class ReadModelQueries {
