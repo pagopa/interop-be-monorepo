@@ -6,6 +6,7 @@ import axios from "axios";
 import { z } from "zod";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
+import { ORIGIN_IPA } from "../index.js";
 
 type Classification = "Agency" | "AOO" | "UO";
 
@@ -108,7 +109,7 @@ export async function getAllCategories(): Promise<Category[]> {
         code,
         name,
         kind,
-        origin: config.ipaOrigin,
+        origin: ORIGIN_IPA,
       });
 
       return accumulator;
@@ -239,7 +240,7 @@ export async function getAllInstitutions(
         digitalAddress,
         address,
         zipCode,
-        origin: config.ipaOrigin,
+        origin: ORIGIN_IPA,
         kind,
         classification: match<InstitutionKind, Classification>(institutionKind)
           .with("Agency", () => "Agency")

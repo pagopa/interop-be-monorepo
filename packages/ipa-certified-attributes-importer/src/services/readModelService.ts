@@ -1,6 +1,7 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
 import { Attribute, Tenant } from "pagopa-interop-models";
 import { z } from "zod";
+import { ORIGIN_IPA } from "../index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
@@ -10,7 +11,7 @@ export function readModelServiceBuilder(
   return {
     getIPATenants: async (): Promise<Tenant[]> => {
       const data = await tenants
-        .find({ "data.externalId.origin": "IPA" })
+        .find({ "data.externalId.origin": ORIGIN_IPA })
         .toArray();
 
       return z.array(Tenant).parse(data);
@@ -19,7 +20,7 @@ export function readModelServiceBuilder(
       const data = await attributes
         .find({
           "data.kind": "Certified",
-          "data.origin": "IPA",
+          "data.origin": ORIGIN_IPA,
         })
         .toArray();
 

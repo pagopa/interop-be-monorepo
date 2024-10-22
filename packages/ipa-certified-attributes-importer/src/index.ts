@@ -21,6 +21,8 @@ import {
   kindToBeExcluded,
 } from "./services/openDataService.js";
 
+export const ORIGIN_IPA = "IPA";
+
 export type TenantSeed = {
   origin: string;
   originId: string;
@@ -305,7 +307,7 @@ export async function getAttributesToRevoke(
   ): boolean => {
     const externalId = { origin: attribute.origin, value: attribute.code };
 
-    if (attribute.origin !== "IPA") {
+    if (attribute.origin !== ORIGIN_IPA) {
       return false;
     }
 

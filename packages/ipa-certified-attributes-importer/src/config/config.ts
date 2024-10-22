@@ -41,7 +41,6 @@ export const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
         AOO_URL: APIEndpoint,
         UO_URL: APIEndpoint,
         INSTITUTIONS_CATEGORIES_URL: APIEndpoint,
-        IPA_ORIGIN: z.string(),
         ATTRIBUTE_CREATION_WAIT_TIME: z.coerce.number(),
       })
       .transform((c) => ({
@@ -49,7 +48,6 @@ export const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
         aooUrl: c.AOO_URL,
         uoUrl: c.UO_URL,
         institutionsCategoriesUrl: c.INSTITUTIONS_CATEGORIES_URL,
-        ipaOrigin: c.IPA_ORIGIN,
         attributeCreationWaitTime: c.ATTRIBUTE_CREATION_WAIT_TIME,
       }))
   );
