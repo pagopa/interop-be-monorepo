@@ -1599,10 +1599,10 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
   updatedPurposeVersion: PurposeVersion;
 } {
   const newPurposeVersion: PurposeVersion = {
-    ...purposeVersion,
     createdAt: new Date(),
     state: purposeVersionState.waitingForApproval,
     id: generateId<PurposeVersionId>(),
+    dailyCalls: purposeVersion.dailyCalls,
   };
 
   const oldVersions = purpose.data.versions.filter(
