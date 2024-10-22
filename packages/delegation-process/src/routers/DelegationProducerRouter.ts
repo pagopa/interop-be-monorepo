@@ -74,7 +74,8 @@ const delegationProducerRouter = (
           const errorRes = makeApiProblem(
             error,
             createProducerDelegationErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -99,7 +100,8 @@ const delegationProducerRouter = (
           const errorRes = makeApiProblem(
             error,
             revokeDelegationErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -122,7 +124,8 @@ const delegationProducerRouter = (
         const errorRes = makeApiProblem(
           error,
           approveDelegationErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -146,7 +149,8 @@ const delegationProducerRouter = (
         const errorRes = makeApiProblem(
           error,
           rejectDelegationErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
 
         return res.status(errorRes.status).send(errorRes);

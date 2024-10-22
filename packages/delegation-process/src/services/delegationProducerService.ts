@@ -17,6 +17,7 @@ import {
   TenantId,
   unsafeBrandId,
   WithMetadata,
+  CorrelationId,
 } from "pagopa-interop-models";
 import { delegationNotFound, tenantNotFound } from "../model/domain/errors.js";
 import {
@@ -153,7 +154,7 @@ export function delegationProducerServiceBuilder(
     async approveProducerDelegation(
       delegateId: TenantId,
       delegationId: DelegationId,
-      correlationId: string
+      correlationId: CorrelationId
     ): Promise<void> {
       const { data: delegation, metadata } = await retrieveDelegationById(
         delegationId
@@ -187,7 +188,7 @@ export function delegationProducerServiceBuilder(
     async rejectProducerDelegation(
       delegateId: TenantId,
       delegationId: DelegationId,
-      correlationId: string,
+      correlationId: CorrelationId,
       rejectionReason: string
     ): Promise<void> {
       const { data: delegation, metadata } = await retrieveDelegationById(
