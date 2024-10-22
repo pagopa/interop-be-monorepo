@@ -9,6 +9,7 @@ import {
   EServiceDescriptorActivatedV2,
   toEServiceV2,
   operationForbidden,
+  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -42,7 +43,7 @@ describe("archive descriptor", () => {
     await addOneEService(eservice);
     await catalogService.archiveDescriptor(eservice.id, descriptor.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -77,7 +78,7 @@ describe("archive descriptor", () => {
     expect(
       catalogService.archiveDescriptor(mockEService.id, mockDescriptor.id, {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -94,7 +95,7 @@ describe("archive descriptor", () => {
     expect(
       catalogService.archiveDescriptor(eservice.id, mockDescriptor.id, {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -116,7 +117,7 @@ describe("archive descriptor", () => {
     expect(
       catalogService.archiveDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })

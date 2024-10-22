@@ -12,6 +12,7 @@ import {
   Client,
   Key,
   genericInternalError,
+  CorrelationId,
 } from "pagopa-interop-models";
 import { authorizationManagementApi } from "pagopa-interop-api-clients";
 import {
@@ -32,7 +33,7 @@ export type AuthorizationService = {
     audience: string[],
     voucherLifespan: number,
     logger: Logger,
-    correlationId: string
+    correlationId: CorrelationId
   ) => Promise<void>;
   updateAgreementState: (
     state: authorizationManagementApi.ClientComponentState,
@@ -40,7 +41,7 @@ export type AuthorizationService = {
     eserviceId: EServiceId,
     consumerId: TenantId,
     logger: Logger,
-    correlationId: string
+    correlationId: CorrelationId
   ) => Promise<void>;
   updateAgreementAndEServiceStates: (
     agreementState: authorizationManagementApi.ClientComponentState,
@@ -52,61 +53,61 @@ export type AuthorizationService = {
     audience: string[],
     voucherLifespan: number,
     logger: Logger,
-    correlationId: string
+    correlationId: CorrelationId
   ) => Promise<void>;
   deletePurposeFromClient: (
     clientId: ClientId,
     purposeId: PurposeId,
     logger: Logger,
-    correlationId: string
+    correlationId: CorrelationId
   ) => Promise<void>;
   updatePurposeState: (
     purposeId: PurposeId,
     versionId: PurposeVersionId,
     state: authorizationManagementApi.ClientComponentState,
     logger: Logger,
-    correlationId: string
+    correlationId: CorrelationId
   ) => Promise<void>;
   addClient: (
     client: Client,
     logger: Logger,
-    correlationId: string
+    correlationId: CorrelationId
   ) => Promise<void>;
   deleteClient: (
     clientId: ClientId,
     logger: Logger,
-    correlationId: string
+    correlationId: CorrelationId
   ) => Promise<void>;
   addClientKey: (
     client: ClientId,
     key: Key,
     logger: Logger,
-    correlationId: string
+    correlationId: CorrelationId
   ) => Promise<void>;
   deleteClientKey: (
     clientId: ClientId,
     kid: string,
     logger: Logger,
-    correlationId: string
+    correlationId: CorrelationId
   ) => Promise<void>;
   addClientUser: (
     clientId: ClientId,
     userId: UserId,
     logger: Logger,
-    correlationId: string
+    correlationId: CorrelationId
   ) => Promise<void>;
   deleteClientUser: (
     clientId: ClientId,
     userId: UserId,
     logger: Logger,
-    correlationId: string
+    correlationId: CorrelationId
   ) => Promise<void>;
   addClientPurpose: (
     clientId: ClientId,
     purposeId: PurposeId,
     readModelService: ReadModelService,
     logger: Logger,
-    correlationId: string
+    correlationId: CorrelationId
   ) => Promise<void>;
 };
 
@@ -114,7 +115,7 @@ export const authorizationServiceBuilder = (
   authMgmtClients: AuthorizationManagementClients,
   refreshableToken: RefreshableInteropToken
 ): AuthorizationService => {
-  const getHeaders = (correlationId: string, token: string) => ({
+  const getHeaders = (correlationId: CorrelationId, token: string) => ({
     "X-Correlation-Id": correlationId,
     Authorization: `Bearer ${token}`,
   });
@@ -128,7 +129,7 @@ export const authorizationServiceBuilder = (
       audience: string[],
       voucherLifespan: number,
       logger: Logger,
-      correlationId: string
+      correlationId: CorrelationId
     ) {
       const clientEServiceDetailsUpdate = {
         state,
@@ -156,7 +157,7 @@ export const authorizationServiceBuilder = (
       eserviceId: EServiceId,
       consumerId: TenantId,
       logger: Logger,
-      correlationId: string
+      correlationId: CorrelationId
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
@@ -188,7 +189,7 @@ export const authorizationServiceBuilder = (
       audience: string[],
       voucherLifespan: number,
       logger: Logger,
-      correlationId: string
+      correlationId: CorrelationId
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
@@ -220,7 +221,7 @@ export const authorizationServiceBuilder = (
       clientId: ClientId,
       purposeId: PurposeId,
       logger: Logger,
-      correlationId: string
+      correlationId: CorrelationId
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
@@ -236,7 +237,7 @@ export const authorizationServiceBuilder = (
       versionId: PurposeVersionId,
       state: authorizationManagementApi.ClientComponentState,
       logger: Logger,
-      correlationId: string
+      correlationId: CorrelationId
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
@@ -250,7 +251,11 @@ export const authorizationServiceBuilder = (
       );
       logger.info(`Updated Purpose ${purposeId} state for all clients`);
     },
-    async addClient(client: Client, logger: Logger, correlationId: string) {
+    async addClient(
+      client: Client,
+      logger: Logger,
+      correlationId: CorrelationId
+    ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
       await authMgmtClients.clientApiClient.createClient(
@@ -273,7 +278,7 @@ export const authorizationServiceBuilder = (
     async deleteClient(
       clientId: ClientId,
       logger: Logger,
-      correlationId: string
+      correlationId: CorrelationId
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
@@ -288,7 +293,7 @@ export const authorizationServiceBuilder = (
       clientId: ClientId,
       key: Key,
       logger: Logger,
-      correlationId: string
+      correlationId: CorrelationId
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
@@ -315,7 +320,7 @@ export const authorizationServiceBuilder = (
       clientId: ClientId,
       kid: string,
       logger: Logger,
-      correlationId: string
+      correlationId: CorrelationId
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
@@ -330,7 +335,7 @@ export const authorizationServiceBuilder = (
       clientId: ClientId,
       userId: UserId,
       logger: Logger,
-      correlationId: string
+      correlationId: CorrelationId
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
@@ -348,7 +353,7 @@ export const authorizationServiceBuilder = (
       clientId: ClientId,
       userId: UserId,
       logger: Logger,
-      correlationId: string
+      correlationId: CorrelationId
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
@@ -364,7 +369,7 @@ export const authorizationServiceBuilder = (
       purposeId: PurposeId,
       readModelService: ReadModelService,
       logger: Logger,
-      correlationId: string
+      correlationId: CorrelationId
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
