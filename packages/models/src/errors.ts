@@ -58,7 +58,7 @@ type Problem = {
   type: string;
   status: number;
   title: string;
-  correlationId?: string; // TODO maybe make mandatory and use also here branding
+  correlationId?: string;
   detail: string;
   errors: ProblemError[];
   toString: () => string;
