@@ -4,7 +4,7 @@
  * the script will log the differences and exit with a non-zero exit code.
  */
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { main as compareTokenGenerationReadModel } from "./utils/utils.js";
+import { compareTokenGenerationReadModel } from "./utils/utils.js";
 
 const dynamoDBClient = new DynamoDBClient({});
 await compareTokenGenerationReadModel(dynamoDBClient);
