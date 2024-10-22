@@ -14,7 +14,7 @@ const {
   HTTP_STATUS_UNAUTHORIZED,
 } = constants;
 
-export const getDelegationByIdErrorMapper = (
+export const getDelegationByIdsrrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -49,3 +49,13 @@ export const revokeDelegationErrorMapper = (
     .with("delegationNotRevokable", () => HTTP_STATUS_FORBIDDEN)
     .with("operationNotAllowOnDelegation", () => HTTP_STATUS_UNAUTHORIZED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const approveDelegationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationRestrictedToDelegate", () => HTTP_STATUS_FORBIDDEN)
+    .with("incorrectState", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const rejectDelegationErrorMapper = approveDelegationErrorMapper;

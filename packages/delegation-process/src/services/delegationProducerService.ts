@@ -7,8 +7,8 @@ import {
 } from "pagopa-interop-commons";
 import {
   Delegation,
-  delegationEventToBinaryDataV2,
   DelegationId,
+  delegationEventToBinaryDataV2,
   delegationKind,
   delegationState,
   EServiceId,
@@ -22,6 +22,8 @@ import { delegationNotFound, tenantNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventProducerDelegation,
   toRevokeEventProducerDelegation,
+  toCreateEventApproveDelegation,
+  toCreateEventRejectDelegation,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -31,6 +33,8 @@ import {
   assertDelegatorIsNotDelegate,
   assertEserviceExists,
   assertTenantAllowedToReceiveProducerDelegation,
+  assertIsDelegate,
+  assertIsState,
 } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -145,6 +149,75 @@ export function delegationProducerServiceBuilder(
       );
 
       return revokedDelegation;
+    },
+    async approveProducerDelegation(
+      delegateId: TenantId,
+      delegationId: DelegationId,
+      correlationId: string
+    ): Promise<void> {
+      const { data: delegation, metadata } = await retrieveDelegationById(
+        delegationId
+      );
+
+      assertIsDelegate(delegation, delegateId);
+      assertIsState(delegationState.waitingForApproval, delegation);
+
+      const now = new Date();
+      await repository.createEvent(
+        toCreateEventApproveDelegation(
+          {
+            data: {
+              ...delegation,
+              state: delegationState.active,
+              approvedAt: now,
+              stamps: {
+                ...delegation.stamps,
+                activation: {
+                  who: delegateId,
+                  when: now,
+                },
+              },
+            },
+            metadata,
+          },
+          correlationId
+        )
+      );
+    },
+    async rejectProducerDelegation(
+      delegateId: TenantId,
+      delegationId: DelegationId,
+      correlationId: string,
+      rejectionReason: string
+    ): Promise<void> {
+      const { data: delegation, metadata } = await retrieveDelegationById(
+        delegationId
+      );
+
+      assertIsDelegate(delegation, delegateId);
+      assertIsState(delegationState.waitingForApproval, delegation);
+
+      await repository.createEvent(
+        toCreateEventRejectDelegation(
+          {
+            data: {
+              ...delegation,
+              state: delegationState.rejected,
+              rejectedAt: new Date(),
+              rejectionReason,
+              stamps: {
+                ...delegation.stamps,
+                rejection: {
+                  who: delegateId,
+                  when: new Date(),
+                },
+              },
+            },
+            metadata,
+          },
+          correlationId
+        )
+      );
     },
   };
 }

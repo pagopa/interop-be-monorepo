@@ -53,7 +53,7 @@ export const delegationProducerService = delegationProducerServiceBuilder(
 
 export const delegationService = delegationServiceBuilder(readModelService);
 
-export const writeDelegationInEventstore = async (
+export const writeSubmitDelegationInEventstore = async (
   delegation: Delegation
 ): Promise<void> => {
   const createProducerDelegationEvent: DelegationEvent = {
@@ -73,7 +73,7 @@ export const writeDelegationInEventstore = async (
   await writeInEventstore(eventToWrite, "delegation", postgresDB);
 };
 
-export const readLastAgreementEvent = async (
+export const readLastDelegationEvent = async (
   delegationId: DelegationId
 ): Promise<ReadEvent<DelegationEvent>> =>
   await readLastEventByStreamId(delegationId, "delegation", postgresDB);
@@ -92,7 +92,7 @@ export const readDelegationEventByVersion = async (
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
-  await writeDelegationInEventstore(delegation);
+  await writeSubmitDelegationInEventstore(delegation);
   await writeInReadmodel(delegation, delegations);
 };
 
