@@ -30,5 +30,6 @@ export function toBffDelegationApiDelegation(
     submittedAt: delegation.submittedAt,
     rejectionReason: delegation.rejectionReason,
     state: delegation.state,
+    kind: delegation.kind,
   };
 }
