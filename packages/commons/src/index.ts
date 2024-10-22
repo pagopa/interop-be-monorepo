@@ -13,6 +13,7 @@ export * from "./pdf-generator/pdfGenerator.js";
 export * from "./repositories/EventRepository.js";
 export * from "./repositories/ReadModelRepository.js";
 export * from "./repositories/db.js";
+export * from "./repositories/TokenGenerationReadModelRepository.js";
 export * from "./risk-analysis/index.js";
 export * from "./router/zodiosValidationErrorHandler.js";
 export * from "./templating/htmlTemplateService.js";
