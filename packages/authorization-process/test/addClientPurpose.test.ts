@@ -2,6 +2,7 @@
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockAuthData,
   getMockClient,
   getMockDescriptor,
   getMockDocument,
@@ -38,17 +39,19 @@ import {
   purposeAlreadyLinkedToClient,
   purposeNotFound,
 } from "../src/model/domain/errors.js";
+
 import {
   addOneClient,
   agreements,
   authorizationService,
   eservices,
+  mockClientRouterRequest,
   purposes,
   readLastAuthorizationEvent,
 } from "./utils.js";
 
 describe("addClientPurpose", async () => {
-  it("should write on event-store for the addition of a purpose into a client", async () => {
+  it.only("should write on event-store for the addition of a purpose into a client", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -87,12 +90,19 @@ describe("addClientPurpose", async () => {
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
-    await authorizationService.addClientPurpose({
-      clientId: mockClient.id,
-      seed: { purposeId: mockPurpose.id },
-      organizationId: mockConsumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
+    // await authorizationService.addClientPurpose({
+    //   clientId: mockClient.id,
+    //   seed: { purposeId: mockPurpose.id },
+    //   organizationId: mockConsumerId,
+    //   correlationId: generateId(),
+    //   logger: genericLogger,
+    // });
+
+    const result = await mockClientRouterRequest.post({
+      path: "/clients/:clientId/purposes",
+      body: { purposeId: mockPurpose.id },
+      pathParams: { clientId: mockClient.id },
+      authData: getMockAuthData(mockConsumerId),
     });
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);

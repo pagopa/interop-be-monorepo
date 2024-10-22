@@ -5,8 +5,9 @@ import {
   writeInEventstore,
   writeInReadmodel,
   readLastEventByStreamId,
+  createMockedApiRequester,
 } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
+import { afterEach, inject, vi } from "vitest";
 import {
   AuthorizationEvent,
   Client,
@@ -18,9 +19,22 @@ import {
   toReadModelClient,
   toReadModelProducerKeychain,
 } from "pagopa-interop-models";
-import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
+import { ZodiosRouterContextRequestHandler } from "@zodios/express";
+import {
+  AuthData,
+  ExpressContext,
+  fromAppContext,
+  genericLogger,
+  jwtFromAuthHeader,
+  readAuthDataFromJwtToken,
+} from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
+
 export const { cleanup, readModelRepository, postgresDB } =
   await setupTestContainersVitest(
     inject("readModelConfig"),
@@ -104,3 +118,39 @@ export const readLastAuthorizationEvent = async (
   id: ClientId | ProducerKeychainId
 ): Promise<ReadEvent<AuthorizationEvent>> =>
   await readLastEventByStreamId(id, '"authorization"', postgresDB);
+
+vi.mock("pagopa-interop-commons", async (importActual) => {
+  const authenticationMiddleware: (
+    config: unknown
+  ) => ZodiosRouterContextRequestHandler<ExpressContext> =
+    () =>
+    async (req, _res, next): Promise<unknown> => {
+      const jwtToken = jwtFromAuthHeader(req, genericLogger);
+      const authData: AuthData = readAuthDataFromJwtToken(
+        jwtToken,
+        genericLogger
+      );
+      // eslint-disable-next-line functional/immutable-data
+      req.ctx.authData = authData;
+      return next();
+    };
+  const actual = await importActual<typeof import("pagopa-interop-commons")>();
+  return {
+    ...actual,
+    authenticationMiddleware,
+  };
+});
+
+vi.mock("../src/config/config.js", async (importActual) => {
+  const actual = await importActual<typeof import("../src/config/config.js")>();
+  return {
+    ...actual,
+    ...inject("readModelConfig"),
+    ...inject("eventStoreConfig"),
+  };
+});
+
+const { default: app } = await import("../src/app.js");
+
+export const mockClientRouterRequest =
+  createMockedApiRequester<typeof authorizationApi.clientEndpoints>(app);
