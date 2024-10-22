@@ -141,6 +141,7 @@ export function getTenantKind(
       () => tenantKind.GSP
     )
     .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => tenantKind.PA)
+    .with(SCP, () => tenantKind.SCP)
     .otherwise(() => tenantKind.PRIVATE);
 }
 

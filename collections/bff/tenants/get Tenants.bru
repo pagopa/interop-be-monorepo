@@ -1,0 +1,27 @@
+meta {
+  name: get Tenants
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/tenants
+  body: none
+  auth: none
+}
+
+params:query {
+  name: 
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Retrieve Tenants by name
+}

@@ -30,6 +30,8 @@ import {
   TenantEvent,
   tenantMailKind,
   TenantFeatureCertifier,
+  CorrelationId,
+  tenantKind,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -83,6 +85,7 @@ import {
   retrieveCertifierId,
   assertRequesterIPAOrigin,
   assertDelegatedProducerFeatureNotAssigned,
+  getTenantKind,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -366,6 +369,10 @@ export function tenantServiceBuilder(
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
           createdAt: new Date(),
+          kind:
+            getTenantKind([], tenantSeed.externalId) === tenantKind.SCP
+              ? tenantKind.SCP
+              : undefined,
         };
         return await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)
@@ -381,7 +388,7 @@ export function tenantServiceBuilder(
       }: {
         attributeId: AttributeId;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -436,7 +443,7 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         tenantAttributeSeed: tenantApi.CertifiedTenantAttributeSeed;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -521,7 +528,7 @@ export function tenantServiceBuilder(
       }: {
         tenantAttributeSeed: tenantApi.DeclaredTenantAttributeSeed;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -673,7 +680,7 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -783,24 +790,24 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attributeId);
       }
 
-      if (
-        verifiedTenantAttribute.revokedBy.some(
-          (a) => a.id === authData.organizationId
-        )
-      ) {
-        throw attributeAlreadyRevoked(
-          tenantId,
-          authData.organizationId,
-          attributeId
-        );
-      }
-
       const verifier = verifiedTenantAttribute.verifiedBy.find(
         (a) => a.id === authData.organizationId
       );
 
       if (!verifier) {
         throw attributeRevocationNotAllowed(tenantId, attributeId);
+      }
+
+      const isInRevokedBy = verifiedTenantAttribute.revokedBy.some(
+        (a) => a.id === authData.organizationId
+      );
+
+      if (isInRevokedBy) {
+        throw attributeAlreadyRevoked(
+          tenantId,
+          authData.organizationId,
+          attributeId
+        );
       }
 
       const updatedTenant: Tenant = {
@@ -847,7 +854,7 @@ export function tenantServiceBuilder(
         tenantExternalId: string;
         attributeOrigin: string;
         attributeExternalId: string;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -920,7 +927,7 @@ export function tenantServiceBuilder(
         tenantExternalId: string;
         attributeOrigin: string;
         attributeExternalId: string;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -1021,7 +1028,7 @@ export function tenantServiceBuilder(
       }: {
         tenantId: TenantId;
         version: number;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -1048,7 +1055,7 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         mailId: string;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -1088,7 +1095,7 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         mailSeed: tenantApi.MailSeed;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -1431,7 +1438,7 @@ export function tenantServiceBuilder(
       }: {
         tenantId: TenantId;
         certifierId: string;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -1495,7 +1502,7 @@ export function tenantServiceBuilder(
       tenantOrigin: string;
       tenantExternalId: string;
       attributeExternalId: string;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(
@@ -1774,7 +1781,7 @@ function reassignVerifiedAttribute(
             tenantAttributeSeed.expirationDate
           ),
           revokedBy: verifiedTenantAttribute.revokedBy.filter(
-            (i) => i.id !== attr.id
+            (i) => i.id !== organizationId
           ),
         }
       : attr

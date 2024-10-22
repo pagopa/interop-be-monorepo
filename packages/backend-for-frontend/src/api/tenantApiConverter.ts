@@ -1,4 +1,3 @@
-import { TenantWithOnlyAttributes } from "pagopa-interop-agreement-lifecycle";
 import {
   attributeRegistryApi,
   bffApi,
@@ -8,6 +7,7 @@ import { isDefined } from "pagopa-interop-commons";
 import {
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
+  Tenant,
   TenantAttribute,
   TenantMail,
   VerifiedTenantAttribute,
@@ -33,13 +33,13 @@ export function toTenantAttribute(
     type: tenantAttributeType.VERIFIED,
     assignmentTimestamp: new Date(att.verified.assignmentTimestamp),
     verifiedBy: att.verified.verifiedBy.map((v) => ({
-      id: v.id,
+      id: unsafeBrandId(v.id),
       verificationDate: new Date(v.verificationDate),
       expirationDate: v.expirationDate ? new Date(v.expirationDate) : undefined,
       extensionDate: v.extensionDate ? new Date(v.extensionDate) : undefined,
     })),
     revokedBy: att.verified.revokedBy.map((r) => ({
-      id: r.id,
+      id: unsafeBrandId(r.id),
       verificationDate: new Date(r.verificationDate),
       revocationDate: new Date(r.revocationDate),
       expirationDate: r.expirationDate ? new Date(r.expirationDate) : undefined,
@@ -61,13 +61,10 @@ export function toTenantAttribute(
   );
 }
 
-export function toTenantWithOnlyAttributes(
-  tenant: tenantApi.Tenant
-): TenantWithOnlyAttributes {
-  return {
-    ...tenant,
-    attributes: tenant.attributes.map(toTenantAttribute).flat(),
-  };
+export function tenantAttributesFromApi(
+  tenantApiAttributes: tenantApi.Tenant["attributes"]
+): Tenant["attributes"] {
+  return tenantApiAttributes.map(toTenantAttribute).flat();
 }
 
 export const toBffApiRequesterCertifiedAttributes = (

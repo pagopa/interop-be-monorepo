@@ -95,7 +95,7 @@ describe("compute Agreements state by attribute", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       );
@@ -145,7 +145,7 @@ describe("compute Agreements state by attribute", () => {
           {
             authData,
             serviceName: "",
-            correlationId: "",
+            correlationId: generateId(),
             logger: genericLogger,
           }
         );
@@ -200,7 +200,7 @@ describe("compute Agreements state by attribute", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       );
@@ -311,7 +311,7 @@ describe("compute Agreements state by attribute", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       );
@@ -367,7 +367,7 @@ describe("compute Agreements state by attribute", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       );
@@ -425,7 +425,7 @@ describe("compute Agreements state by attribute", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       );
@@ -544,7 +544,7 @@ describe("compute Agreements state by attribute", () => {
       {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );

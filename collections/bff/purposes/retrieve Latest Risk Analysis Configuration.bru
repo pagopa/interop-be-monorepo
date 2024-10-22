@@ -1,0 +1,22 @@
+meta {
+  name: retrieve Latest Risk Analysis Configuration
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/purposes/riskAnalysis/latest
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Retrieve latest risk analysis configuration
+}

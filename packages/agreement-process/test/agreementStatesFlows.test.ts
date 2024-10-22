@@ -169,7 +169,7 @@ describe("Agreeement states flows", () => {
       {
         authData: consumerAuthData,
         serviceName: "AgreementService",
-        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -188,7 +188,7 @@ describe("Agreeement states flows", () => {
       {
         authData: consumerAuthData,
         serviceName: "AgreementService",
-        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -204,7 +204,7 @@ describe("Agreeement states flows", () => {
       {
         authData: consumerAuthData,
         serviceName: "Agreement Service",
-        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -265,7 +265,7 @@ describe("Agreeement states flows", () => {
       {
         authData: consumerAuthData,
         serviceName: "Agreement Service",
-        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -289,7 +289,7 @@ describe("Agreeement states flows", () => {
       {
         authData: consumerAuthData,
         serviceName: "Agreement Service",
-        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -357,7 +357,7 @@ describe("Agreeement states flows", () => {
       {
         authData: producerAuthData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -447,7 +447,7 @@ describe("Agreeement states flows", () => {
       {
         authData: consumerAuthData,
         serviceName: "AgreementService",
-        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -466,7 +466,7 @@ describe("Agreeement states flows", () => {
       {
         authData: consumerAuthData,
         serviceName: "AgreementService",
-        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -524,7 +524,7 @@ describe("Agreeement states flows", () => {
       {
         authData: consumerAuthData,
         serviceName: "Agreement Service",
-        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -548,7 +548,7 @@ describe("Agreeement states flows", () => {
       {
         authData: consumerAuthData,
         serviceName: "Agreement Service",
-        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -610,7 +610,7 @@ describe("Agreeement states flows", () => {
       {
         authData: producerAuthData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );

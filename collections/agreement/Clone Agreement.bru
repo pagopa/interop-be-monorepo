@@ -1,0 +1,24 @@
+meta {
+  name: Clone Agreement
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/clone
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+vars:post-response {
+  agreementId: res.body.id
+}
