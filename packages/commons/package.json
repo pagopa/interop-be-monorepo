@@ -20,6 +20,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.637.0",
     "@aws-sdk/client-kms": "3.600.0",
     "@aws-sdk/client-s3": "3.600.0",
     "@aws-sdk/client-sesv2": "3.620.1",
