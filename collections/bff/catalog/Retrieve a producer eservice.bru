@@ -1,5 +1,5 @@
 meta {
-  name: Retrieves a producer eservice corresponding to the id
+  name: Retrieve a producer eservice
   type: http
   seq: 1
 }
@@ -11,15 +11,13 @@ get {
 }
 
 params:path {
-  eserviceId: <uuid>
+  eserviceId: {{eserviceId}}
 }
 
 headers {
   Authorization: {{JWT}}
   x-correlation-id: {{correlation-id}}
 }
-
-
 
 docs {
   Retrieves a producer eservice corresponding to the id
