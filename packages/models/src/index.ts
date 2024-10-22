@@ -54,6 +54,7 @@ export * from "./authorization/authorizationReadModelAdapter.js";
 
 export * from "./user/user.js";
 
+// Token generation read model
 export * from "./token-generation-readmodel/platform-states-entry.js";
 export * from "./token-generation-readmodel/token-generation-states-entry.js";
 export * from "./token-generation-readmodel/commons.js";
