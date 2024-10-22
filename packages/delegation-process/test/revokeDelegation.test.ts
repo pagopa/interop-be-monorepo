@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import { fail } from "assert";
 import {
   decodeProtobufPayload,
@@ -140,7 +139,7 @@ describe("revoke delegation", () => {
       {
         authData,
         logger: genericLogger,
-        correlationId: randomUUID(),
+        correlationId: generateId(),
         serviceName: "DelegationServiceTest",
       }
     );
@@ -194,7 +193,7 @@ describe("revoke delegation", () => {
       delegationProducerService.revokeDelegation(delegationId, {
         authData,
         logger: genericLogger,
-        correlationId: randomUUID(),
+        correlationId: generateId(),
         serviceName: "DelegationServiceTest",
       })
     ).rejects.toThrow(delegationNotFound(delegationId));
@@ -239,7 +238,7 @@ describe("revoke delegation", () => {
       delegationProducerService.revokeDelegation(delegationId, {
         authData,
         logger: genericLogger,
-        correlationId: randomUUID(),
+        correlationId: generateId(),
         serviceName: "DelegationServiceTest",
       })
     ).rejects.toThrow(delegatorNotAllowToRevoke(existentDelegation));
@@ -288,7 +287,7 @@ describe("revoke delegation", () => {
         delegationProducerService.revokeDelegation(existentDelegation.id, {
           authData,
           logger: genericLogger,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "DelegationServiceTest",
         })
       ).rejects.toThrow(delegationNotRevokable(existentDelegation));

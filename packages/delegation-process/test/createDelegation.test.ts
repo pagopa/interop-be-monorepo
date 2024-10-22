@@ -1,5 +1,4 @@
 import { fail } from "assert";
-import { randomUUID } from "crypto";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
