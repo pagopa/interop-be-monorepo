@@ -18,12 +18,11 @@ import {
 } from "pagopa-interop-commons";
 import {
   Tenant,
-  TenantId,
+  toReadModelAttribute,
   toReadModelTenant,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  getMockTenant,
   setupTestContainersVitest,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
@@ -34,12 +33,9 @@ import {
   ATTRIBUTE_IVASS_INSURANCES_ID,
   downloadCSVMock,
   downloadCSVMockGenerator,
-  getIVASSTenantsMock,
-  getTenantByIdMockGenerator,
-  getTenantsMockGenerator,
-  getTenantsWithAttributesMock,
   internalAssignCertifiedAttributeMock,
   internalRevokeCertifiedAttributeMock,
+  MOCK_TENANT_ID,
   persistentTenant,
   persistentTenantAttribute,
 } from "./helpers.js";
@@ -47,11 +43,8 @@ import {
 export const readModelConfig = inject("readModelConfig");
 
 // TODO WIP
-const { cleanup, readModelRepository } = await setupTestContainersVitest(
-  readModelConfig,
-  undefined,
-  undefined,
-  undefined
+export const { cleanup, readModelRepository } = await setupTestContainersVitest(
+  inject("readModelConfig")
 );
 
 describe("IVASS Certified Attributes Importer", async () => {
@@ -61,11 +54,6 @@ describe("IVASS Certified Attributes Importer", async () => {
   const csvDownloaderMock = downloadCSVMock;
   const readModelQueries = new ReadModelQueries(readModelRepository);
 
-  // WIP
-  const mockTenantId = unsafeBrandId<TenantId>(
-    "f50da1f7-604e-4386-b090-1a89ed0de421"
-  );
-
   const run = () =>
     importAttributes(
       csvDownloaderMock,
@@ -73,7 +61,7 @@ describe("IVASS Certified Attributes Importer", async () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
-      mockTenantId,
+      MOCK_TENANT_ID,
       genericLogger
     );
 
@@ -134,10 +122,7 @@ describe("IVASS Certified Attributes Importer", async () => {
   });
 
   it("should succeed", async () => {
-    await writeInReadmodel(
-      toReadModelTenant(getMockTenant(mockTenantId)),
-      readModelRepository.tenants
-    );
+    await writeInitialData();
 
     await run();
 
@@ -166,6 +151,14 @@ describe("IVASS Certified Attributes Importer", async () => {
       },
     ];
 
+    await writeInitialData();
+
+    await Promise.all(
+      readModelTenants.map((tenant) =>
+        writeInReadmodel(toReadModelTenant(tenant), readModelRepository.tenants)
+      )
+    );
+
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
     const getIVASSTenantsSpy = vi.spyOn(readModelQueries, "getIVASSTenants");
 
@@ -175,7 +168,7 @@ describe("IVASS Certified Attributes Importer", async () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
-      mockTenantId,
+      MOCK_TENANT_ID,
       genericLogger
     );
 
@@ -200,6 +193,8 @@ describe("IVASS Certified Attributes Importer", async () => {
     D0002;2020-06-10;9999-12-31;Org2;0000012345678902
     D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
 
+    await writeInitialData();
+
     const readModelTenants: Tenant[] = [
       {
         ...persistentTenant,
@@ -223,6 +218,12 @@ describe("IVASS Certified Attributes Importer", async () => {
       },
     ];
 
+    await Promise.all(
+      readModelTenants.map((tenant) =>
+        writeInReadmodel(toReadModelTenant(tenant), readModelRepository.tenants)
+      )
+    );
+
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
     const getIVASSTenantsSpy = vi.spyOn(readModelQueries, "getIVASSTenants");
@@ -233,7 +234,7 @@ describe("IVASS Certified Attributes Importer", async () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
-      "ivass-tenant-id",
+      MOCK_TENANT_ID,
       genericLogger
     );
 
@@ -291,19 +292,18 @@ describe("IVASS Certified Attributes Importer", async () => {
 
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
-    const getIVASSTenantsMock = getTenantsMockGenerator((_) => [tenant3]);
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueries, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
+    await writeInitialData();
+    await Promise.all(
+      [tenant1, tenant2, tenant3].map((tenant) =>
+        writeInReadmodel(toReadModelTenant(tenant), readModelRepository.tenants)
+      )
+    );
 
-    const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
-      tenant1,
-      tenant2,
-      tenant3,
-    ]);
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueries, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
+    const getIVASSTenantsSpy = vi.spyOn(readModelQueries, "getIVASSTenants");
+    const getTenantsWithAttributesSpy = vi.spyOn(
+      readModelQueries,
+      "getTenantsWithAttributes"
+    );
 
     await importAttributes(
       localDownloadCSVMock,
@@ -311,7 +311,7 @@ describe("IVASS Certified Attributes Importer", async () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
-      "ivass-tenant-id",
+      MOCK_TENANT_ID,
       genericLogger
     );
 
@@ -345,19 +345,20 @@ describe("IVASS Certified Attributes Importer", async () => {
       ],
     };
 
+    await writeInitialData();
+    await writeInReadmodel(
+      toReadModelTenant(tenant3),
+      readModelRepository.tenants
+    );
+
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
-    const getIVASSTenantsMock = getTenantsMockGenerator((_) => []);
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueries, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
+    const getIVASSTenantsSpy = vi.spyOn(readModelQueries, "getIVASSTenants");
 
-    const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
-      tenant3,
-    ]);
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueries, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
+    const getTenantsWithAttributesSpy = vi.spyOn(
+      readModelQueries,
+      "getTenantsWithAttributes"
+    );
 
     await importAttributes(
       localDownloadCSVMock,
@@ -365,7 +366,7 @@ describe("IVASS Certified Attributes Importer", async () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
-      "ivass-tenant-id",
+      MOCK_TENANT_ID,
       genericLogger
     );
 
@@ -394,16 +395,20 @@ describe("IVASS Certified Attributes Importer", async () => {
       attributes: [{ ...persistentTenantAttribute }],
     };
 
+    await writeInitialData();
+    await writeInReadmodel(
+      toReadModelTenant(tenant3),
+      readModelRepository.tenants
+    );
+
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
-    const getIVASSTenantsMock = getTenantsMockGenerator((_) => [tenant3]);
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueries, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
+    const getIVASSTenantsSpy = vi.spyOn(readModelQueries, "getIVASSTenants");
 
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueries, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
+    const getTenantsWithAttributesSpy = vi.spyOn(
+      readModelQueries,
+      "getTenantsWithAttributes"
+    );
 
     await importAttributes(
       localDownloadCSVMock,
@@ -411,7 +416,7 @@ describe("IVASS Certified Attributes Importer", async () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
-      "ivass-tenant-id",
+      MOCK_TENANT_ID,
       genericLogger
     );
 
@@ -445,28 +450,20 @@ describe("IVASS Certified Attributes Importer", async () => {
       },
     ];
 
-    const readModelTenantsBatch2: Tenant[] = [
-      {
-        ...persistentTenant,
-        externalId: { origin: "IVASS", value: "12345678903" },
-        attributes: [{ ...persistentTenantAttribute }],
-      },
-    ];
+    await writeInitialData();
+    await Promise.all(
+      readModelTenantsBatch1.map((tenant) =>
+        writeInReadmodel(toReadModelTenant(tenant), readModelRepository.tenants)
+      )
+    );
 
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueries, "getIVASSTenants")
-      .mockImplementationOnce(
-        getTenantsMockGenerator((_) => readModelTenantsBatch1)
-      )
-      .mockImplementation(
-        getTenantsMockGenerator((_) => readModelTenantsBatch2)
-      );
-
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueries, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
+    const getIVASSTenantsSpy = vi.spyOn(readModelQueries, "getIVASSTenants");
+    const getTenantsWithAttributesSpy = vi.spyOn(
+      readModelQueries,
+      "getTenantsWithAttributes"
+    );
 
     await importAttributes(
       localDownloadCSVMock,
@@ -474,7 +471,7 @@ describe("IVASS Certified Attributes Importer", async () => {
       tenantProcessMock,
       refreshableTokenMock,
       1,
-      "ivass-tenant-id",
+      MOCK_TENANT_ID,
       genericLogger
     );
 
@@ -497,6 +494,8 @@ describe("IVASS Certified Attributes Importer", async () => {
         (): Promise<string> => Promise.reject(new Error("CSV Retrieve error"))
       );
 
+    await writeInitialData();
+
     await expect(() =>
       importAttributes(
         localDownloadCSVMock,
@@ -504,7 +503,7 @@ describe("IVASS Certified Attributes Importer", async () => {
         tenantProcessMock,
         refreshableTokenMock,
         1,
-        "ivass-tenant-id",
+        MOCK_TENANT_ID,
         genericLogger
       )
     ).rejects.toThrowError("CSV Retrieve error");
@@ -522,15 +521,21 @@ describe("IVASS Certified Attributes Importer", async () => {
   });
 
   it("should fail if the tenant is not configured as certifier", async () => {
-    const getTenantByIdMock = getTenantByIdMockGenerator((tenantId) => ({
-      ...persistentTenant,
-      id: unsafeBrandId(tenantId),
-      features: [],
-    }));
-    getTenantByIdSpy.mockImplementationOnce(getTenantByIdMock);
+    await writeInReadmodel(
+      toReadModelTenant({
+        attributes: [],
+        externalId: { origin: "IVASS", value: "ivass-tenant-id" },
+        createdAt: new Date(),
+        features: [],
+        id: MOCK_TENANT_ID,
+        mails: [],
+        name: "IVASS Tenant",
+      }),
+      readModelRepository.tenants
+    );
 
     await expect(() => run()).rejects.toThrowError(
-      "Tenant with id ivass-tenant-id is not a certifier"
+      `Tenant with id ${MOCK_TENANT_ID} is not a certifier`
     );
 
     expect(downloadCSVMock).toBeCalledTimes(1);
@@ -569,17 +574,19 @@ describe("IVASS Certified Attributes Importer", async () => {
 
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
-    const getIVASSTenantsMock = getTenantsMockGenerator((_) => [tenant3]);
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueries, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
+    await writeInitialData();
+    await Promise.all(
+      [tenant2, tenant3].map((tenant) =>
+        writeInReadmodel(toReadModelTenant(tenant), readModelRepository.tenants)
+      )
+    );
 
-    const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
-      tenant2,
-    ]);
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueries, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
+    const getIVASSTenantsSpy = vi.spyOn(readModelQueries, "getIVASSTenants");
+
+    const getTenantsWithAttributesSpy = vi.spyOn(
+      readModelQueries,
+      "getTenantsWithAttributes"
+    );
 
     await importAttributes(
       localDownloadCSVMock,
@@ -587,7 +594,7 @@ describe("IVASS Certified Attributes Importer", async () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
-      "ivass-tenant-id",
+      MOCK_TENANT_ID,
       genericLogger
     );
 
@@ -641,22 +648,19 @@ describe("IVASS Certified Attributes Importer", async () => {
 
     const readModelTenants: Tenant[] = [tenant1, tenant2, tenant3];
 
+    await writeInitialData();
+    await Promise.all(
+      readModelTenants.map((tenant) =>
+        writeInReadmodel(toReadModelTenant(tenant), readModelRepository.tenants)
+      )
+    );
+
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
-    const getIVASSTenantsMock = getTenantsMockGenerator(
-      (_) => readModelTenants
+    const getTenantsWithAttributesSpy = vi.spyOn(
+      readModelQueries,
+      "getTenantsWithAttributes"
     );
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueries, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
-
-    const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
-      tenant1,
-      tenant3,
-    ]);
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueries, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
 
     await importAttributes(
       localDownloadCSVMock,
@@ -664,7 +668,7 @@ describe("IVASS Certified Attributes Importer", async () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
-      "ivass-tenant-id",
+      MOCK_TENANT_ID,
       genericLogger
     );
 
@@ -718,19 +722,21 @@ describe("IVASS Certified Attributes Importer", async () => {
       ],
     };
 
+    await writeInitialData();
+    await Promise.all(
+      [tenant1, tenant3].map((tenant) =>
+        writeInReadmodel(toReadModelTenant(tenant), readModelRepository.tenants)
+      )
+    );
+
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
-    const getIVASSTenantsMock = getTenantsMockGenerator((_) => [tenant3]);
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueries, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
+    const getIVASSTenantsSpy = vi.spyOn(readModelQueries, "getIVASSTenants");
 
-    const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
-      tenant1,
-    ]);
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueries, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
+    const getTenantsWithAttributesSpy = vi.spyOn(
+      readModelQueries,
+      "getTenantsWithAttributes"
+    );
 
     await importAttributes(
       localDownloadCSVMock,
@@ -738,7 +744,7 @@ describe("IVASS Certified Attributes Importer", async () => {
       tenantProcessMock,
       refreshableTokenMock,
       1,
-      "ivass-tenant-id",
+      MOCK_TENANT_ID,
       genericLogger
     );
 
@@ -760,12 +766,12 @@ describe("IVASS Certified Attributes Importer", async () => {
 
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueries, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueries, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
+    await writeInitialData();
+    const getIVASSTenantsSpy = vi.spyOn(readModelQueries, "getIVASSTenants");
+    const getTenantsWithAttributesSpy = vi.spyOn(
+      readModelQueries,
+      "getTenantsWithAttributes"
+    );
 
     await expect(() =>
       importAttributes(
@@ -774,7 +780,7 @@ describe("IVASS Certified Attributes Importer", async () => {
         tenantProcessMock,
         refreshableTokenMock,
         10,
-        "ivass-tenant-id",
+        MOCK_TENANT_ID,
         genericLogger
       )
     ).rejects.toThrowError("File does not contain valid assignments");
@@ -791,3 +797,33 @@ describe("IVASS Certified Attributes Importer", async () => {
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
 });
+
+function writeInitialData() {
+  return Promise.all([
+    writeInReadmodel(
+      toReadModelTenant({
+        id: MOCK_TENANT_ID,
+        externalId: { origin: "IVASS", value: "12345678901" },
+        attributes: [],
+        createdAt: new Date(),
+        features: [{ type: "PersistentCertifier", certifierId: "IVASS" }],
+        mails: [],
+        name: "tenantName",
+      }),
+      readModelRepository.tenants
+    ),
+
+    writeInReadmodel(
+      toReadModelAttribute({
+        origin: "IVASS",
+        code: "insurances",
+        creationTime: new Date(),
+        description: "Insurance",
+        id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
+        kind: "Certified",
+        name: "Insurance",
+      }),
+      readModelRepository.attributes
+    ),
+  ]);
+}

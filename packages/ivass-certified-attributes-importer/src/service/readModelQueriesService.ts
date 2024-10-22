@@ -20,6 +20,7 @@ const projectUnrevokedCertifiedAttributes = {
   },
 };
 
+// TODO fix: i removed projections as zod parse fails
 export class ReadModelQueries {
   constructor(private readModelClient: ReadModelRepository) {}
 
@@ -34,9 +35,6 @@ export class ReadModelQueries {
             "data.externalId.origin": "IVASS",
             "data.externalId.value": { $in: externalId },
           },
-        },
-        {
-          $project: projectUnrevokedCertifiedAttributes,
         },
       ])
       .map(({ data }) => Tenant.parse(data))
@@ -53,9 +51,6 @@ export class ReadModelQueries {
             "data.attributes.id": { $in: attributeIds },
           },
         },
-        {
-          $project: projectUnrevokedCertifiedAttributes,
-        },
       ])
       .map(({ data }) => Tenant.parse(data))
       .toArray();
@@ -68,9 +63,6 @@ export class ReadModelQueries {
           $match: {
             "data.id": tenantId,
           },
-        },
-        {
-          $project: projectUnrevokedCertifiedAttributes,
         },
       ])
       .map(({ data }) => Tenant.parse(data))
