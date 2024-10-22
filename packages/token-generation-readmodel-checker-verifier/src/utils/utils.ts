@@ -193,7 +193,7 @@ export async function compareReadModelPurposesWithPlatformStates({
   Array<
     [
       PlatformStatesPurposeEntry | undefined,
-      TokenGenerationStatesClientPurposeEntry[] | undefined,
+      TokenGenerationStatesClientPurposeEntry[],
       Purpose | undefined
     ]
   >
@@ -260,7 +260,7 @@ function validatePurposeTokenGenerationStates({
   purposeState,
   lastPurposeVersion,
 }: {
-  tokenEntries: TokenGenerationStatesClientPurposeEntry[] | undefined;
+  tokenEntries: TokenGenerationStatesClientPurposeEntry[];
   purpose: Purpose;
   purposeState: ItemState;
   lastPurposeVersion: PurposeVersion;
@@ -288,7 +288,7 @@ export function zipPurposeDataById(
 ): Array<
   [
     PlatformStatesPurposeEntry | undefined,
-    TokenGenerationStatesClientPurposeEntry[] | undefined,
+    TokenGenerationStatesClientPurposeEntry[],
     Purpose | undefined
   ]
 > {
@@ -310,7 +310,7 @@ export function countPurposeDifferences(
   differences: Array<
     [
       PlatformStatesPurposeEntry | undefined,
-      TokenGenerationStatesClientPurposeEntry[] | undefined,
+      TokenGenerationStatesClientPurposeEntry[],
       Purpose | undefined
     ]
   >,
@@ -378,7 +378,7 @@ export async function compareReadModelAgreementsWithPlatformStates({
   Array<
     [
       PlatformStatesAgreementEntry | undefined,
-      TokenGenerationStatesClientPurposeEntry[] | undefined,
+      TokenGenerationStatesClientPurposeEntry[],
       Agreement | undefined
     ]
   >
@@ -441,7 +441,7 @@ function validateAgreementTokenGenerationStates({
   agreement,
 }: {
   platformAgreementEntry: PlatformStatesAgreementEntry;
-  tokenEntries: TokenGenerationStatesClientPurposeEntry[] | undefined;
+  tokenEntries: TokenGenerationStatesClientPurposeEntry[];
   agreement: Agreement;
 }): boolean {
   if (!tokenEntries || tokenEntries.length === 0) {
@@ -470,7 +470,7 @@ export function zipAgreementDataById(
 ): Array<
   [
     PlatformStatesAgreementEntry | undefined,
-    TokenGenerationStatesClientPurposeEntry[] | undefined,
+    TokenGenerationStatesClientPurposeEntry[],
     Agreement | undefined
   ]
 > {
@@ -492,7 +492,7 @@ export function countAgreementDifferences(
   differences: Array<
     [
       PlatformStatesAgreementEntry | undefined,
-      TokenGenerationStatesClientPurposeEntry[] | undefined,
+      TokenGenerationStatesClientPurposeEntry[],
       Agreement | undefined
     ]
   >,
@@ -727,7 +727,7 @@ export async function compareReadModelEServicesWithPlatformStates({
   Array<
     [
       PlatformStatesCatalogEntry | undefined,
-      TokenGenerationStatesClientPurposeEntry[] | undefined,
+      TokenGenerationStatesClientPurposeEntry[],
       EService | undefined
     ]
   >
@@ -801,7 +801,7 @@ function validateCatalogTokenGenerationStates({
   eService,
 }: {
   platformCatalogEntry: PlatformStatesCatalogEntry;
-  tokenEntries: TokenGenerationStatesClientPurposeEntry[] | undefined;
+  tokenEntries: TokenGenerationStatesClientPurposeEntry[];
   descriptor: Descriptor;
   eService: EService;
 }): boolean {
@@ -837,7 +837,7 @@ export function zipEServiceDataById(
 ): Array<
   [
     PlatformStatesCatalogEntry | undefined,
-    TokenGenerationStatesClientPurposeEntry[] | undefined,
+    TokenGenerationStatesClientPurposeEntry[],
     EService | undefined
   ]
 > {
@@ -860,7 +860,7 @@ export function countCatalogDifferences(
   differences: Array<
     [
       PlatformStatesCatalogEntry | undefined,
-      TokenGenerationStatesClientPurposeEntry[] | undefined,
+      TokenGenerationStatesClientPurposeEntry[],
       EService | undefined
     ]
   >,
