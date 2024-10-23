@@ -63,7 +63,7 @@ async function enhanceDelegation<
 }
 
 export function delegationServiceBuilder(
-  delegationClient: DelegationProcessClient,
+  delegationClients: DelegationProcessClient,
   tenantClient: TenantProcessClient,
   catalogClient: CatalogProcessClient
 ) {
@@ -75,7 +75,7 @@ export function delegationServiceBuilder(
       logger.info(`Retrieving delegation with id ${delegationId}`);
 
       return enhanceDelegation<bffApi.Delegation>(
-        delegationClient,
+        delegationClients,
         tenantClient,
         catalogClient,
         delegationId,
@@ -104,7 +104,7 @@ export function delegationServiceBuilder(
       logger.info("Retrieving all delegations");
 
       const delegationsResults =
-        await delegationClient.delegation.getDelegations({
+        await delegationClients.delegation.getDelegations({
           queries: {
             limit,
             offset,
@@ -118,7 +118,7 @@ export function delegationServiceBuilder(
       const delegationEnanched = await Promise.all(
         delegationsResults.results.map((delegation) =>
           enhanceDelegation<bffApi.CompactDelegation>(
-            delegationClient,
+            delegationClients,
             tenantClient,
             catalogClient,
             delegation.id,
@@ -136,6 +136,52 @@ export function delegationServiceBuilder(
           totalCount: delegationsResults.totalCount,
         },
       };
+    },
+    async createDelegation(
+      createDelegationBody: bffApi.DelegationSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      const delegation =
+        await delegationClients.producer.createProducerDelegation(
+          createDelegationBody,
+          { headers }
+        );
+
+      return { id: delegation.id };
+    },
+    async delegatorRevokeDelegation(
+      delegationId: DelegationId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      return delegationClients.producer.revokeProducerDelegation(undefined, {
+        params: {
+          delegationId,
+        },
+        headers,
+      });
+    },
+    async delegateRejectDelegation(
+      delegationId: DelegationId,
+      rejectBody: bffApi.RejectDelegationPayload,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      return delegationClients.producer.rejectProducerDelegation(rejectBody, {
+        params: {
+          delegationId,
+        },
+        headers,
+      });
+    },
+    async delegateApproveDelegation(
+      delegationId: DelegationId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      return delegationClients.producer.approveProducerDelegation(undefined, {
+        params: {
+          delegationId,
+        },
+        headers,
+      });
     },
   };
 }

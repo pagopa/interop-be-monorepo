@@ -200,11 +200,10 @@ export const exportEServiceDescriptorErrorMapper = (
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getDelegationByIdErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
+const delegationNotFoundErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getDelegationsErrorMapper = getDelegationByIdErrorMapper;
+export const getDelegationByIdErrorMapper = delegationNotFoundErrorMapper;
+export const getDelegationsErrorMapper = delegationNotFoundErrorMapper;
