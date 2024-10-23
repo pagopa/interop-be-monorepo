@@ -10,14 +10,9 @@ import {
   PurposeId,
   PurposeVersionId,
   TenantId,
-  TokenGenerationStatesClientEntry,
 } from "pagopa-interop-models";
 import { afterEach, inject, vi } from "vitest";
-import {
-  DynamoDBClient,
-  PutItemCommand,
-  PutItemInput,
-} from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import * as jose from "jose";
@@ -192,72 +187,6 @@ export const getMockAccessTokenRequest =
       grant_type: "client_credentials",
     };
   };
-
-// export const generateExpectedInteropToken = async (
-//   jws: string,
-//   clientId: ClientId
-// ): Promise<InteropToken> => {
-//   const { data: jwt } = verifyClientAssertion(jws, clientId);
-//   if (!jwt) {
-//     fail();
-//   }
-
-//   const currentTimestamp = Date.now();
-//   const token: InteropToken = {
-//     header: {
-//       alg: "RS256",
-//       use: "sig",
-//       typ: "at+jwt",
-//       kid: config.generatedInteropTokenKid,
-//     },
-//     payload: {
-//       jti: generateId(),
-//       iss: config.generatedInteropTokenIssuer,
-//       aud: jwt.payload.aud,
-//       sub: jwt.payload.sub,
-//       iat: currentTimestamp,
-//       nbf: currentTimestamp,
-//       exp: currentTimestamp + tokenDurationInSeconds * 1000,
-//     },
-//     serialized: "",
-//   };
-// };
-
-// TODO this is duplicated: move to commons
-export const writeTokenStateClientEntry = async (
-  tokenStateEntry: TokenGenerationStatesClientEntry,
-  dynamoDBClient: DynamoDBClient
-): Promise<void> => {
-  const input: PutItemInput = {
-    ConditionExpression: "attribute_not_exists(PK)",
-    Item: {
-      PK: {
-        S: tokenStateEntry.PK,
-      },
-      updatedAt: {
-        S: tokenStateEntry.updatedAt,
-      },
-      consumerId: {
-        S: tokenStateEntry.consumerId,
-      },
-      clientKind: {
-        S: tokenStateEntry.clientKind,
-      },
-      publicKey: {
-        S: tokenStateEntry.publicKey,
-      },
-      GSIPK_clientId: {
-        S: tokenStateEntry.GSIPK_clientId,
-      },
-      GSIPK_kid: {
-        S: tokenStateEntry.GSIPK_kid,
-      },
-    },
-    TableName: "token-generation-states",
-  };
-  const command = new PutItemCommand(input);
-  await dynamoDBClient.send(command);
-};
 
 export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
   const correlationId = generateId();

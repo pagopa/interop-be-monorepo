@@ -10,6 +10,7 @@ import {
   getMockPurposeVersion,
   getMockTokenStatesClientEntry,
   writeTokenStateEntry,
+  writeTokenStateClientEntry,
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
@@ -54,7 +55,6 @@ import {
   mockKMSClient,
   mockProducer,
   tokenService,
-  writeTokenStateClientEntry,
 } from "./utils.js";
 
 describe("authorization server tests", () => {
