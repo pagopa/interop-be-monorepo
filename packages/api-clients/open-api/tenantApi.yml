@@ -1103,6 +1103,7 @@ components:
         - PA
         - PRIVATE
         - GSP
+        - SCP
     Tenants:
       type: object
       additionalProperties: false
