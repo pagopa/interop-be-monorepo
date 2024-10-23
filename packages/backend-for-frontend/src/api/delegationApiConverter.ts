@@ -33,3 +33,19 @@ export function toBffDelegationApiDelegation(
     kind: delegation.kind,
   };
 }
+
+export function toBffDelegationApiCompactDelegation(
+  delegation: delegationApi.Delegation,
+  delegator: tenantApi.Tenant,
+  delegate: tenantApi.Tenant,
+  eservice: catalogApi.EService
+): bffApi.CompactDelegation {
+  return {
+    id: delegation.id,
+    eserviceName: eservice.name,
+    delegatedName: delegate.name,
+    delegatorName: delegator.name,
+    state: delegation.state,
+    kind: delegation.kind,
+  };
+}
