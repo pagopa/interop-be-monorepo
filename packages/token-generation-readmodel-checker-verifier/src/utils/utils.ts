@@ -186,7 +186,6 @@ function getIdentificationKey<T extends { PK: string } | { id: string }>(
   obj: T
 ): string {
   if ("PK" in obj) {
-    // TODO: make extract functions
     return unsafeBrandId(obj.PK.split("#")[1]);
   } else {
     return obj.id;
@@ -219,35 +218,35 @@ export async function compareReadModelPurposesWithPlatformStates({
     ),
     readModelService.getAllReadModelPurposes(),
   ]);
-  console.log("zip", zipPurposeDataById(resultsA, resultsB, resultsC));
   return zipPurposeDataById(resultsA, resultsB, resultsC).filter(
     ([a, b, c]) => {
       if (c) {
         const purposeState = getPurposeStateFromPurposeVersions(c.versions);
         const lastPurposeVersion = getLastPurposeVersion(c.versions);
-        if (a) {
-          const isPlatformStatesCorrect = validatePurposePlatformStates({
-            platformPurposeEntry: a,
-            purpose: c,
-            purposeState,
-            lastPurposeVersion,
-          });
+        const isPlatformStatesCorrect = a
+          ? validatePurposePlatformStates({
+              platformPurposeEntry: a,
+              purpose: c,
+              purposeState,
+              lastPurposeVersion,
+            })
+          : true;
+        // TODO: should a missing platform-states entry be considered an error or not?
+        // } else if (!a && c) {
+        //   const lastPurposeVersion = getLastPurposeVersion(c.versions);
+        //   return lastPurposeVersion.state !== purposeVersionState.archived;
 
-          return !isPlatformStatesCorrect;
-          // TODO: should a missing platform-states entry be considered an error or not?
-          // } else if (!a && c) {
-          //   const lastPurposeVersion = getLastPurposeVersion(c.versions);
-          //   return lastPurposeVersion.state !== purposeVersionState.archived;
-        } else if (b) {
-          const isTokenGenerationStatesCorrect =
-            validatePurposeTokenGenerationStates({
+        const isTokenGenerationStatesCorrect = b
+          ? validatePurposeTokenGenerationStates({
               tokenEntries: b,
               purpose: c,
               purposeState,
               lastPurposeVersion,
-            });
+            })
+          : true;
 
-          return !isTokenGenerationStatesCorrect;
+        if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
+          return false;
         }
       }
       return true;
@@ -419,23 +418,24 @@ export async function compareReadModelAgreementsWithPlatformStates({
     ([a, b, c]) => {
       if (c) {
         const agreementState = agreementStateToItemState(c.state);
-        if (a) {
-          const isPlatformStatesCorrect = validateAgreementPlatformStates({
-            platformAgreementEntry: a,
-            agreement: c,
-            agreementState,
-          });
+        const isPlatformStatesCorrect = a
+          ? validateAgreementPlatformStates({
+              platformAgreementEntry: a,
+              agreement: c,
+              agreementState,
+            })
+          : true;
 
-          return !isPlatformStatesCorrect;
-        } else if (b) {
-          const isTokenGenerationStatesCorrect =
-            validateAgreementTokenGenerationStates({
+        const isTokenGenerationStatesCorrect = b
+          ? validateAgreementTokenGenerationStates({
               tokenEntries: b,
               agreementState,
               agreement: c,
-            });
+            })
+          : true;
 
-          return !isTokenGenerationStatesCorrect;
+        if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
+          return false;
         }
       }
       return true;
@@ -604,21 +604,25 @@ export async function compareReadModelClientsWithPlatformStates({
   ]);
   return zipClientDataById(resultsA, resultsB, resultsC).filter(([a, b, c]) => {
     if (c) {
-      if (a) {
-        const isPlatformStatesCorrect = validateClientPlatformStates({
-          platformClientEntry: a,
-          client: c,
-        });
-
-        return !isPlatformStatesCorrect;
-      } else if (b) {
-        const isTokenGenerationStatesCorrect =
-          validateClientTokenGenerationStates({
+      const isPlatformStatesCorrect = a
+        ? validateClientPlatformStates({
+            platformClientEntry: a,
+            client: c,
+          })
+        : true;
+      console.log("isPlatformStatesCorrect", isPlatformStatesCorrect);
+      const isTokenGenerationStatesCorrect = b
+        ? validateClientTokenGenerationStates({
             tokenEntries: b,
             client: c,
-          });
-
-        return !isTokenGenerationStatesCorrect;
+          })
+        : true;
+      console.log(
+        "isTokenGenerationStatesCorrect",
+        isTokenGenerationStatesCorrect
+      );
+      if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
+        return false;
       }
     }
     return true;
@@ -772,23 +776,29 @@ export async function compareReadModelEServicesWithPlatformStates({
   return zipEServiceDataById(resultsA, resultsB, resultsC).filter(
     ([a, b, c]) => {
       if (c) {
-        if (a) {
-          const isPlatformStatesCorrect = validateCatalogPlatformStates({
-            platformCatalogEntry: a,
-            eservice: c,
-          });
-
-          return !isPlatformStatesCorrect;
-        } else if (b) {
-          const isTokenGenerationStatesCorrect =
-            validateCatalogTokenGenerationStates({
+        const isPlatformStatesCorrect = a
+          ? validateCatalogPlatformStates({
+              platformCatalogEntry: a,
+              eservice: c,
+            })
+          : true;
+        console.log("isPlatformStatesCorrect", isPlatformStatesCorrect);
+        console.log("b", b);
+        const isTokenGenerationStatesCorrect = b
+          ? validateCatalogTokenGenerationStates({
               tokenEntries: b,
               eservice: c,
-            });
-
-          return !isTokenGenerationStatesCorrect;
+            })
+          : true;
+        console.log(
+          "isTokenGenerationStatesCorrect",
+          isTokenGenerationStatesCorrect
+        );
+        if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
+          return false;
         }
       }
+
       return true;
     }
   );
@@ -853,7 +863,6 @@ function validateCatalogTokenGenerationStates({
       }
 
       const catalogState = descriptorStateToItemState(descriptor.state);
-
       return (
         (!e.descriptorState || e.descriptorState === catalogState) &&
         (!e.descriptorAudience ||
