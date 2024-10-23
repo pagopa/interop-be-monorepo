@@ -138,8 +138,7 @@ export function toCreateEventClientPurposeAdded(
   version: number,
   correlationId: string
 ): CreateEvent<AuthorizationEventV2> {
-  console.log("EVENTOOOOOOOOOO");
-  const a: CreateEvent<AuthorizationEventV2> = {
+  return {
     streamId: client.id,
     version,
     event: {
@@ -152,8 +151,6 @@ export function toCreateEventClientPurposeAdded(
     },
     correlationId,
   };
-  console.log("FINE EVENTOOOOOOOOOO");
-  return a;
 }
 
 export function toCreateEventKeyAdded(

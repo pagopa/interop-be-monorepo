@@ -5,10 +5,8 @@ import {
   writeInEventstore,
   writeInReadmodel,
   readLastEventByStreamId,
-  createMockedApiRequester,
-  mockAuthenticationMiddleware,
 } from "pagopa-interop-commons-test";
-import { afterEach, inject, vi } from "vitest";
+import { afterEach, inject } from "vitest";
 import {
   AuthorizationEvent,
   Client,
@@ -20,11 +18,7 @@ import {
   toReadModelClient,
   toReadModelProducerKeychain,
 } from "pagopa-interop-models";
-import {
-  authorizationApi,
-  SelfcareV2InstitutionClient,
-} from "pagopa-interop-api-clients";
-import { DB } from "pagopa-interop-commons";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
 
@@ -35,29 +29,6 @@ export const { cleanup, readModelRepository, postgresDB } =
   );
 
 afterEach(cleanup);
-
-vi.mock("pagopa-interop-commons", async (importActual) => {
-  const actual = await importActual<typeof import("pagopa-interop-commons")>();
-  return {
-    ...actual,
-    initDB: (): DB => postgresDB,
-    authenticationMiddleware: mockAuthenticationMiddleware,
-  };
-});
-
-vi.mock("../src/config/config.js", async (importActual) => {
-  const actual = await importActual<typeof import("../src/config/config.js")>();
-  return {
-    ...actual,
-    ...inject("readModelConfig"),
-    ...inject("eventStoreConfig"),
-  };
-});
-
-const { default: app } = await import("../src/app.js");
-
-export const mockClientRouterRequest =
-  createMockedApiRequester<typeof authorizationApi.clientEndpoints>(app);
 
 export const {
   agreements,

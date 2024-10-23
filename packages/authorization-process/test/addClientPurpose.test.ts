@@ -28,7 +28,7 @@ import {
   toReadModelEService,
   toReadModelPurpose,
 } from "pagopa-interop-models";
-import { genericLogger, userRoles } from "pagopa-interop-commons";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   clientNotFound,
   eserviceNotFound,
@@ -45,14 +45,13 @@ import {
   agreements,
   authorizationService,
   eservices,
-  getAuthDataAndToken,
-  mockClientRouterRequest,
   purposes,
   readLastAuthorizationEvent,
 } from "./utils.js";
+import { mockClientRouterRequest } from "./supertestSetup.js";
 
 describe("addClientPurpose", async () => {
-  it.only("should write on event-store for the addition of a purpose into a client", async () => {
+  it("should write on event-store for the addition of a purpose into a client", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -91,14 +90,6 @@ describe("addClientPurpose", async () => {
     await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-
-    // await authorizationService.addClientPurpose({
-    //   clientId: mockClient.id,
-    //   seed: { purposeId: mockPurpose.id },
-    //   organizationId: mockConsumerId,
-    //   correlationId: generateId(),
-    //   logger: genericLogger,
-    // });
 
     await mockClientRouterRequest.post({
       path: "/clients/:clientId/purposes",
