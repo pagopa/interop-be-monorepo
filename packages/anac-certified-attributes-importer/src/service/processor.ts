@@ -2,7 +2,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { parse } from "csv/sync";
 import { Logger, RefreshableInteropToken, zipBy } from "pagopa-interop-commons";
-import { Tenant } from "pagopa-interop-models";
 import {
   AnacAttributes,
   AttributeIdentifiers,
@@ -10,6 +9,7 @@ import {
 } from "../model/processorModel.js";
 import { CsvRow, NonPaRow, PaRow } from "../model/csvRowModel.js";
 import { InteropContext } from "../model/interopContextModel.js";
+import { PersistentTenant } from "../model/tenantModel.js";
 import { TenantProcessService } from "./tenantProcessService.js";
 import { ReadModelQueries } from "./readmodelQueriesService.js";
 import { SftpClient } from "./sftpService.js";
@@ -188,7 +188,9 @@ async function getAttributesIdentifiers(
   readModel: ReadModelQueries,
   anacTenantId: string
 ): Promise<AnacAttributes> {
-  const anacTenant: Tenant = await readModel.getTenantById(anacTenantId);
+  const anacTenant: PersistentTenant = await readModel.getTenantById(
+    anacTenantId
+  );
   const certifier = anacTenant.features.find(
     (f) => f.type === "PersistentCertifier"
   );
@@ -244,7 +246,7 @@ const prepareTenantsProcessor = (
   async function processTenants<T extends CsvRow>(
     orgs: T[],
     extractTenantCode: (org: T) => string,
-    retrieveTenants: (codes: string[]) => Promise<Tenant[]>
+    retrieveTenants: (codes: string[]) => Promise<PersistentTenant[]>
   ): Promise<void> {
     if (orgs.length === 0) {
       return;
@@ -329,7 +331,7 @@ const prepareTenantsProcessor = (
 async function assignAttribute(
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
-  tenant: Tenant,
+  tenant: PersistentTenant,
   attribute: AttributeIdentifiers,
   logger: Logger
 ): Promise<void> {
@@ -355,7 +357,7 @@ async function assignAttribute(
 async function unassignAttribute(
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
-  tenant: Tenant,
+  tenant: PersistentTenant,
   attribute: AttributeIdentifiers,
   logger: Logger
 ): Promise<void> {
@@ -378,7 +380,10 @@ async function unassignAttribute(
   }
 }
 
-function tenantContainsAttribute(tenant: Tenant, attributeId: string): boolean {
+function tenantContainsAttribute(
+  tenant: PersistentTenant,
+  attributeId: string
+): boolean {
   return (
     tenant.attributes.find((attribute) => attribute.id === attributeId) !==
     undefined
@@ -387,7 +392,7 @@ function tenantContainsAttribute(tenant: Tenant, attributeId: string): boolean {
 
 function getMissingTenants(
   expectedExternalId: string[],
-  tenants: Tenant[]
+  tenants: PersistentTenant[]
 ): string[] {
   const existingSet = new Set(tenants.map((t) => t.externalId.value));
 

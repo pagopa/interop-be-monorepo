@@ -42,7 +42,6 @@ import {
 
 export const readModelConfig = inject("readModelConfig");
 
-// TODO WIP
 export const { cleanup, readModelRepository } = await setupTestContainersVitest(
   inject("readModelConfig")
 );

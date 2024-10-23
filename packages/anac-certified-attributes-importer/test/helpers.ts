@@ -24,6 +24,10 @@ export const sftpConfigTest: SftpConfig = {
   forceFileName: "test-file.csv",
 };
 
+export const MOCK_ANAC_ID = unsafeBrandId<TenantId>(
+  "f50da1f7-604e-4386-b090-1a89ed0de421"
+);
+
 const csvFileContent = `codiceFiscaleGestore,denominazioneGestore,PEC,codiceIPA,ANAC_incaricato,ANAC_abilitato,ANAC_in_convalida
 0123456789,Org name in IPA,gsp1@pec.it,ipa_code_123,TRUE,FALSE,TRUE
 0011223344,E-Procurement 1,eprocurement1@pec.it,,TRUE,TRUE,FALSE
