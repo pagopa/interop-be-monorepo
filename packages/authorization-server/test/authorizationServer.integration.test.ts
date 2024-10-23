@@ -658,7 +658,7 @@ describe("authorization server tests", () => {
     });
   });
 
-  it.only("should succeed - consumer key - kafka audit succeeded", async () => {
+  it("should succeed - consumer key - kafka audit succeeded", async () => {
     mockProducer.send.mockImplementationOnce(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
