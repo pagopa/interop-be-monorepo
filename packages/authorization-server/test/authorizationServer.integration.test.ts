@@ -12,10 +12,13 @@ import {
   writeTokenStateClientPurposeEntry,
 } from "pagopa-interop-commons-test";
 import {
+  AgreementId,
   ClientId,
   clientKidPrefix,
   clientKidPurposePrefix,
   clientKindTokenStates,
+  EServiceId,
+  GeneratedTokenAuditDetails,
   generateId,
   itemState,
   makeGSIPKKid,
@@ -26,6 +29,7 @@ import {
   purposeVersionState,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { formatDateyyyyMMdd, genericLogger } from "pagopa-interop-commons";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
@@ -96,7 +100,7 @@ describe("authorization server tests", () => {
     ).rejects.toThrowError(clientAssertionRequestValidationFailed(request));
   });
 
-  it("clientAssertionValidationFailed", async () => {
+  it("should throw clientAssertionValidationFailed", async () => {
     const { jws } = await getMockClientAssertion({
       standardClaimsOverride: { iat: undefined },
     });
@@ -531,10 +535,6 @@ describe("authorization server tests", () => {
   });
 
   it("should succeed - consumer key - kafka audit failed and fallback audit succeeded", async () => {
-    const uuid = generateId();
-    const uuidSpy = vi.spyOn(uuidv4, "v4");
-    uuidSpy.mockReturnValue(uuid);
-
     mockProducer.send.mockImplementationOnce(async () => Promise.reject());
 
     const purposeId = generateId<PurposeId>();
@@ -577,6 +577,10 @@ describe("authorization server tests", () => {
     );
     expect(fileListBeforeAudit).toHaveLength(0);
 
+    const uuid = generateId();
+    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    uuidSpy.mockReturnValue(uuid);
+
     const response = await tokenService.generateToken(
       request,
       generateId(),
@@ -594,8 +598,57 @@ describe("authorization server tests", () => {
     const file = fileListAfterAudit[0];
     const split = file.split("_");
     expect(split[0]).toEqual(`token-details/${ymdDate}/${ymdDate}`);
-    // TODO check file content
 
+    const fileContent = await fileManager.get(
+      config.s3Bucket,
+      file,
+      genericLogger
+    );
+
+    const decodedFileContent = new TextDecoder().decode(fileContent);
+    const parsedDecodedFileContent = JSON.parse(decodedFileContent);
+
+    const expectedMessageBody: GeneratedTokenAuditDetails = {
+      jwtId: generateId(),
+      correlationId: generateId(),
+      issuedAt: parsedDecodedFileContent.issuedAt,
+      clientId,
+      organizationId: tokenClientKidPurposeEntry.consumerId,
+      agreementId: unsafeBrandId<AgreementId>(
+        tokenClientKidPurposeEntry.agreementId!
+      ),
+      eserviceId: unsafeBrandId<EServiceId>(
+        tokenClientKidPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
+      ),
+      descriptorId: unsafeBrandId(
+        tokenClientKidPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
+      ),
+      purposeId: tokenClientKidPurposeEntry.GSIPK_purposeId!,
+      purposeVersionId: tokenClientKidPurposeEntry.purposeVersionId!,
+      algorithm: "RS256",
+      keyId: config.generatedInteropTokenKid,
+      audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
+      subject: clientId,
+      notBefore: parsedDecodedFileContent.notBefore,
+      expirationTime: parsedDecodedFileContent.expirationTime,
+      issuer: config.generatedInteropTokenIssuer,
+      clientAssertion: {
+        algorithm: clientAssertion.header.alg,
+        // TODO: improve typeof
+        audience: !clientAssertion.payload.aud
+          ? ""
+          : typeof clientAssertion.payload.aud === "string"
+          ? clientAssertion.payload.aud
+          : clientAssertion.payload.aud.join(","),
+        expirationTime: clientAssertion.payload.exp!,
+        issuedAt: clientAssertion.payload.iat!,
+        issuer: clientAssertion.payload.iss!,
+        jwtId: clientAssertion.payload.jti!,
+        keyId: clientAssertion.header.kid!,
+        subject: unsafeBrandId(clientAssertion.payload.sub!),
+      },
+    };
+    expect(parsedDecodedFileContent).toEqual(expectedMessageBody);
     expect(response.limitReached).toBe(false);
     expect(response.token).toBeDefined(); // TODO check expected token?
     expect(response.rateLimiterStatus).toEqual({
@@ -605,7 +658,7 @@ describe("authorization server tests", () => {
     });
   });
 
-  it("should succeed - consumer key - kafka audit succeeded", async () => {
+  it.only("should succeed - consumer key - kafka audit succeeded", async () => {
     mockProducer.send.mockImplementationOnce(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
@@ -614,6 +667,7 @@ describe("authorization server tests", () => {
     }));
 
     vi.spyOn(mockProducer, "send");
+    vi.spyOn(fileManager, "storeBytes");
 
     const purpose: Purpose = {
       ...getMockPurpose(),
@@ -659,6 +713,11 @@ describe("authorization server tests", () => {
       client_assertion: jws,
       client_id: clientId,
     };
+
+    const uuid = generateId();
+    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    uuidSpy.mockReturnValue(uuid);
+
     const result = await tokenService.generateToken(
       request,
       generateId(),
@@ -666,17 +725,14 @@ describe("authorization server tests", () => {
     );
 
     expect(result.token).toBeDefined();
-    const expectedResult = {
-      limitReached: false,
-      // TODO:
-      token: result.token,
-      rateLimiterStatus: {
-        maxRequests: config.rateLimiterMaxRequests,
-        rateInterval: config.rateLimiterRateInterval,
-        remainingRequests: config.rateLimiterMaxRequests - 1,
-      },
-    };
-    expect(result).toEqual(expectedResult);
+
+    expect(result.limitReached).toBe(false);
+    expect(result.token).toBeDefined(); // TODO check expected token?
+    expect(result.rateLimiterStatus).toEqual({
+      maxRequests: config.rateLimiterMaxRequests,
+      rateInterval: config.rateLimiterRateInterval,
+      remainingRequests: config.rateLimiterMaxRequests - 1,
+    });
 
     // const date = new Date();
     // const ymdDate = formatDateyyyyMMdd(date);
@@ -686,75 +742,58 @@ describe("authorization server tests", () => {
       genericLogger
     );
     expect(fileList).toHaveLength(0);
-    // const file = fileList[0];
-    // const split = file.split("_");
-    // expect(split[0]).toEqual(`token-details/${ymdDate}/${ymdDate}`);
-    // expect(split[2]).toEqual(`${generateId()}.ndjson`);
+    expect(fileManager.storeBytes).not.toHaveBeenCalled();
 
-    // const _messageBody: GeneratedTokenAuditDetails = {
-    //   jwtId: result.token!.payload.jti,
-    //   correlationId: generateId(),
-    //   issuedAt: result.token!.payload.iat,
-    //   clientId,
-    //   organizationId: purpose.consumerId,
-    //   agreementId: unsafeBrandId(tokenClientPurposeEntry.agreementId!),
-    //   eserviceId: unsafeBrandId(
-    //     tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
-    //   ),
-    //   descriptorId: unsafeBrandId(
-    //     tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
-    //   ),
-    //   purposeId: purpose.id,
-    //   purposeVersionId: purpose.versions[0].id,
-    //   algorithm: result.token!.header.alg,
-    //   keyId: result.token!.header.kid,
-    //   audience: result.token!.payload.aud.join(","),
-    //   subject: result.token!.payload.sub,
-    //   notBefore: result.token!.payload.nbf,
-    //   expirationTime: result.token!.payload.exp,
-    //   issuer: result.token!.payload.iss,
-    //   clientAssertion: {
-    //     algorithm: clientAssertion.header.alg,
-    //     // TODO: improve typeof
-    //     audience: !clientAssertion.payload.aud
-    //       ? ""
-    //       : typeof clientAssertion.payload.aud === "string"
-    //       ? clientAssertion.payload.aud
-    //       : clientAssertion.payload.aud.join(","),
-    //     expirationTime: clientAssertion.payload.exp!,
-    //     issuedAt: clientAssertion.payload.iat!,
-    //     issuer: clientAssertion.payload.iss!,
-    //     jwtId: clientAssertion.payload.jti!,
-    //     keyId: clientAssertion.header.kid!,
-    //     subject: unsafeBrandId(clientAssertion.payload.sub!),
-    //   },
-    // };
+    const actualMessageSent = mockProducer.send.mock.calls[0][0]
+      .messages[0] as { key: string; value: string };
 
-    // expect(mockProducer.send).toHaveBeenCalledWith({
-    //   messages: [
-    //     {
-    //       key: messageBody.jwtId,
-    //       value: JSON.stringify(messageBody) + "\n",
-    //     },
-    //   ],
-    // });
+    const parsedAuditSent = JSON.parse(actualMessageSent.value);
 
-    // const expectedFileContent = JSON.stringify(messageBody) + "\n";
+    const expectedMessageBody: GeneratedTokenAuditDetails = {
+      jwtId: generateId(),
+      correlationId: generateId(),
+      issuedAt: parsedAuditSent.issuedAt,
+      clientId,
+      organizationId: tokenClientPurposeEntry.consumerId,
+      agreementId: unsafeBrandId<AgreementId>(
+        tokenClientPurposeEntry.agreementId!
+      ),
+      eserviceId: unsafeBrandId<EServiceId>(
+        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
+      ),
+      descriptorId: unsafeBrandId(
+        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
+      ),
+      purposeId: tokenClientPurposeEntry.GSIPK_purposeId!,
+      purposeVersionId: tokenClientPurposeEntry.purposeVersionId!,
+      algorithm: "RS256",
+      keyId: config.generatedInteropTokenKid,
+      audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
+      subject: clientId,
+      notBefore: parsedAuditSent.notBefore,
+      expirationTime: parsedAuditSent.expirationTime,
+      issuer: config.generatedInteropTokenIssuer,
+      clientAssertion: {
+        algorithm: clientAssertion.header.alg,
+        // TODO: improve typeof
+        audience: !clientAssertion.payload.aud
+          ? ""
+          : typeof clientAssertion.payload.aud === "string"
+          ? clientAssertion.payload.aud
+          : clientAssertion.payload.aud.join(","),
+        expirationTime: clientAssertion.payload.exp!,
+        issuedAt: clientAssertion.payload.iat!,
+        issuer: clientAssertion.payload.iss!,
+        jwtId: clientAssertion.payload.jti!,
+        keyId: clientAssertion.header.kid!,
+        subject: unsafeBrandId(clientAssertion.payload.sub!),
+      },
+    };
 
-    // const fileContent = await fileManager.get(
-    //   config.s3Bucket,
-    //   file,
-    //   genericLogger
-    // );
-
-    // const decodedFileContent = new TextDecoder().decode(fileContent);
-    // expect(decodedFileContent).toEqual(expectedFileContent);
+    expect(parsedAuditSent).toEqual(expectedMessageBody);
   });
 
   it("should succeed - api key - no audit", async () => {
-    // const uuid = generateId();
-    // const uuidSpy = vi.spyOn(uuidv4, "v4");
-    // uuidSpy.mockReturnValue(uuid);
     vi.spyOn(fileManager, "storeBytes");
 
     const clientId = generateId<ClientId>();
@@ -811,145 +850,3 @@ describe("authorization server tests", () => {
     });
   });
 });
-
-/*
-  it.skip("should succeed (kafka and publish audit with fallback", async () => {
-    mockProducer.send.mockImplementationOnce(async () => Promise.reject());
-    mockKMSClient.send.mockImplementationOnce(async () => ({
-      Signature: "mock signature",
-    }));
-
-    vi.spyOn(fileManager, "storeBytes");
-
-    const purpose: Purpose = {
-      ...getMockPurpose(),
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
-    };
-    const clientId = generateId<ClientId>();
-    const kid = `kid`;
-
-    const { jws, clientAssertion, publicKeyEncodedPem } =
-      await getMockClientAssertion({
-        standardClaimsOverride: {
-          sub: clientId,
-          exp: Date.now() / 1000 + 3600,
-        },
-        customHeader: { kid },
-        customClaims: { purposeId: purpose.id },
-      });
-    console.log("jws", jws);
-    console.log("clientId", clientId);
-    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
-      {
-        clientId,
-        kid,
-        purposeId: purpose.id,
-      }
-    );
-    const tokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry = {
-      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
-      consumerId: purpose.consumerId,
-      GSIPK_purposeId: purpose.id,
-      purposeState: itemState.active,
-      purposeVersionId: purpose.versions[0].id,
-      agreementState: itemState.active,
-      descriptorState: itemState.active,
-      GSIPK_clientId: clientId,
-      GSIPK_kid: makeGSIPKKid(kid),
-      publicKey: publicKeyEncodedPem,
-    };
-
-    await writeTokenStateClientPurposeEntry(tokenClientPurposeEntry, dynamoDBClient);
-
-    const request = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
-    };
-    vi.useRealTimers();
-    const result = await tokenService.generateToken(
-      request,
-      generateId(),
-      genericLogger
-    );
-    vi.useFakeTimers();
-    vi.setSystemTime(mockDate);
-
-    expect(result.token).toBeDefined();
-    const expectedResult = {
-      limitReached: false,
-      // TODO:
-      token: result.token,
-      rateLimiterStatus: {
-        maxRequests: 2,
-        rateInterval: 1000,
-        remainingRequests: 1,
-      },
-    };
-    expect(result).toEqual(expectedResult);
-
-    const date = new Date();
-    const ymdDate = formatDateyyyyMMdd(date);
-
-    const fileList = await fileManager.listFiles(
-      config.s3Bucket,
-      genericLogger
-    );
-    expect(fileList).toHaveLength(1);
-    const file = fileList[0];
-    const split = file.split("_");
-    expect(split[0]).toEqual(`token-details/${ymdDate}/${ymdDate}`);
-    expect(split[2]).toEqual(`${generateId()}.ndjson`);
-
-    const messageBody: GeneratedTokenAuditDetails = {
-      jwtId: result.token!.payload.jti,
-      correlationId: generateId(),
-      issuedAt: result.token!.payload.iat,
-      clientId,
-      organizationId: purpose.consumerId,
-      agreementId: unsafeBrandId(tokenClientPurposeEntry.agreementId!),
-      eserviceId: unsafeBrandId(
-        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
-      ),
-      descriptorId: unsafeBrandId(
-        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
-      ),
-      purposeId: purpose.id,
-      purposeVersionId: purpose.versions[0].id,
-      algorithm: result.token!.header.alg,
-      keyId: result.token!.header.kid,
-      audience: result.token!.payload.aud.join(","),
-      subject: result.token!.payload.sub,
-      notBefore: result.token!.payload.nbf,
-      expirationTime: result.token!.payload.exp,
-      issuer: result.token!.payload.iss,
-      clientAssertion: {
-        algorithm: clientAssertion.header.alg,
-        // TODO: improve typeof
-        audience: !clientAssertion.payload.aud
-          ? ""
-          : typeof clientAssertion.payload.aud === "string"
-          ? clientAssertion.payload.aud
-          : clientAssertion.payload.aud.join(","),
-        // TODO: double check if the toMillis function is needed
-        expirationTime: clientAssertion.payload.exp!,
-        issuedAt: clientAssertion.payload.iat!,
-        issuer: clientAssertion.payload.iss!,
-        jwtId: clientAssertion.payload.jti!,
-        keyId: clientAssertion.header.kid!,
-        subject: unsafeBrandId(clientAssertion.payload.sub!),
-      },
-    };
-
-    const expectedFileContent = JSON.stringify(messageBody) + "\n";
-
-    const fileContent = await fileManager.get(
-      config.s3Bucket,
-      file,
-      genericLogger
-    );
-
-    const decodedFileContent = new TextDecoder().decode(fileContent);
-    expect(decodedFileContent).toEqual(expectedFileContent);
-  });
-  */
