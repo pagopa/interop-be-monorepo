@@ -341,7 +341,7 @@ export function countPurposeDifferences(
 ): number {
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
-  differences.forEach(([platformPurpose, _tokenPurpose, readModelPurpose]) => {
+  differences.forEach(([platformPurpose, tokenPurpose, readModelPurpose]) => {
     if (platformPurpose && !readModelPurpose) {
       console.warn(
         `Read model purpose not found for platform-states entry with PK: ${platformPurpose.PK}`
@@ -352,16 +352,17 @@ export function countPurposeDifferences(
       );
       differencesCount++;
     } else if (platformPurpose && readModelPurpose) {
-      console.warn("Platform states and read model states are not equal");
       logger.error(
-        `States are not equal for platform-states purpose entry:\n ${JSON.stringify(
-          platformPurpose
-        )} \nand purpose read-model:\n ${JSON.stringify(readModelPurpose)}`
+        `Purpose states are not equal.
+platform-states entry: ${JSON.stringify(platformPurpose)}
+token-generation-states entries: ${JSON.stringify(tokenPurpose)}
+purpose read-model: ${JSON.stringify(readModelPurpose)}`
       );
       console.warn(
-        `States are not equal for platform-states purpose entry:\n ${JSON.stringify(
-          platformPurpose
-        )} \nand purpose read-model:\n ${JSON.stringify(readModelPurpose)}`
+        `Purpose states are not equal.
+platform-states entry: ${JSON.stringify(platformPurpose)}
+token-generation-states entries: ${JSON.stringify(tokenPurpose)}
+purpose read-model: ${JSON.stringify(readModelPurpose)}`
       );
       differencesCount++;
     }
@@ -528,7 +529,7 @@ export function countAgreementDifferences(
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
   differences.forEach(
-    ([platformAgreement, _tokenAgreement, readModelAgreement]) => {
+    ([platformAgreement, tokenAgreement, readModelAgreement]) => {
       if (platformAgreement && !readModelAgreement) {
         console.warn(
           `Read model agreement not found for ${platformAgreement.PK}`
@@ -540,18 +541,16 @@ export function countAgreementDifferences(
         differencesCount++;
       } else if (platformAgreement && readModelAgreement) {
         logger.error(
-          `States are not equal for platform-states agreement entry:\n ${JSON.stringify(
-            platformAgreement
-          )} \nand agreement read-model:\n ${JSON.stringify(
-            readModelAgreement
-          )}`
+          `Agreement states are not equal.
+  platform-states entry: ${JSON.stringify(platformAgreement)}
+  token-generation-states entries: ${JSON.stringify(tokenAgreement)}
+  purpose read-model: ${JSON.stringify(readModelAgreement)}`
         );
         console.warn(
-          `States are not equal for platform-states agreement entry:\n ${JSON.stringify(
-            platformAgreement
-          )} \nand agreement read-model:\n ${JSON.stringify(
-            readModelAgreement
-          )}`
+          `Agreement states are not equal.
+  platform-states entry: ${JSON.stringify(platformAgreement)}
+  token-generation-states entries: ${JSON.stringify(tokenAgreement)}
+  purpose read-model: ${JSON.stringify(readModelAgreement)}`
         );
         differencesCount++;
       }
@@ -720,21 +719,23 @@ export function countClientDifferences(
 ): number {
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
-  differences.forEach(([platformClient, readModelClient]) => {
+  differences.forEach(([platformClient, tokenClient, readModelClient]) => {
     if (platformClient && !readModelClient) {
       logger.error(`Read model client not found for ${platformClient.PK}`);
       console.warn(`Read model client not found for ${platformClient.PK}`);
       differencesCount++;
     } else if (platformClient && readModelClient) {
       logger.error(
-        `States are not equal for platform-states client entry:\n ${JSON.stringify(
-          platformClient
-        )} \nand client read-model:\n ${JSON.stringify(readModelClient)}`
+        `Client states are not equal.
+        platform-states entry: ${JSON.stringify(platformClient)}
+        token-generation-states entries: ${JSON.stringify(tokenClient)}
+        purpose read-model: ${JSON.stringify(readModelClient)}`
       );
       console.warn(
-        `States are not equal for platform-states client entry:\n ${JSON.stringify(
-          platformClient
-        )} \nand client read-model:\n ${JSON.stringify(readModelClient)}`
+        `Client states are not equal.
+        platform-states entry: ${JSON.stringify(platformClient)}
+        token-generation-states entries: ${JSON.stringify(tokenClient)}
+        purpose read-model: ${JSON.stringify(readModelClient)}`
       );
       differencesCount++;
     }
@@ -922,16 +923,17 @@ export function countCatalogDifferences(
 ): number {
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
-  differences.forEach(([platformCatalog, _tokenCatalog, readModelEService]) => {
+  differences.forEach(([platformCatalog, tokenCatalog, readModelEService]) => {
     if (platformCatalog && !readModelEService) {
       logger.error(`Read model eservice not found for ${platformCatalog.PK}`);
       console.warn(`Read model eservice not found for ${platformCatalog.PK}`);
       differencesCount++;
     } else if (platformCatalog && readModelEService) {
       logger.error(
-        `States are not equal for platform-states catalog entry:\n ${JSON.stringify(
-          platformCatalog
-        )} \nand eservice read-model:\n ${JSON.stringify(readModelEService)}`
+        `Catalog states are not equal.
+        platform-states entry: ${JSON.stringify(platformCatalog)}
+        token-generation-states entries: ${JSON.stringify(tokenCatalog)}
+        purpose read-model: ${JSON.stringify(readModelEService)}`
       );
       console.warn(
         `States are not equal for platform-states catalog entry:\n ${JSON.stringify(
