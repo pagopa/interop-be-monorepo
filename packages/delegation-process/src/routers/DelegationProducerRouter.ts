@@ -2,24 +2,25 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
+  authorizationMiddleware,
   ExpressContext,
+  fromAppContext,
+  initDB,
   ReadModelRepository,
   userRoles,
   ZodiosContext,
-  fromAppContext,
   zodiosValidationErrorToApiProblem,
-  authorizationMiddleware,
-  initDB,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
-import { delegationProducerServiceBuilder } from "../services/delegationProducerService.js";
 import { delegationToApiDelegation } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { delegationProducerServiceBuilder } from "../services/delegationProducerService.js";
 import {
-  approveDelegationErrorMapper,
   createProducerDelegationErrorMapper,
+  revokeDelegationErrorMapper,
+  approveDelegationErrorMapper,
   rejectDelegationErrorMapper,
 } from "../utilites/errorMappers.js";
 
@@ -73,7 +74,34 @@ const delegationProducerRouter = (
           const errorRes = makeApiProblem(
             error,
             createProducerDelegationErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
+          );
+
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/producer/delegations/:delegationId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const { delegationId } = req.params;
+          await delegationProducerService.revokeDelegation(
+            unsafeBrandId(delegationId),
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeDelegationErrorMapper,
+            ctx.logger,
+            ctx.correlationId
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -96,7 +124,8 @@ const delegationProducerRouter = (
         const errorRes = makeApiProblem(
           error,
           approveDelegationErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -120,15 +149,13 @@ const delegationProducerRouter = (
         const errorRes = makeApiProblem(
           error,
           rejectDelegationErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
 
         return res.status(errorRes.status).send(errorRes);
       }
-    })
-    .delete("/producer/delegations/:delegationId", async (_req, res) =>
-      res.status(501).send()
-    );
+    });
 
   return delegationRouter;
 };

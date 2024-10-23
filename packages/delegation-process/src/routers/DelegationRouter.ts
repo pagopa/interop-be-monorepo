@@ -67,7 +67,8 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getDelegationErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -93,7 +94,8 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getDelegationErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
 
         return res.status(errorRes.status).send(errorRes);

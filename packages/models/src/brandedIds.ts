@@ -154,7 +154,7 @@ type IDS =
   | SelfcareId
   | ProducerKeychainId
   | DelegationId
-  | DelegationContractId;
+  | DelegationContractId
   | PlatformStatesEServiceDescriptorPK
   | PlatformStatesAgreementPK
   | PlatformStatesPurposePK

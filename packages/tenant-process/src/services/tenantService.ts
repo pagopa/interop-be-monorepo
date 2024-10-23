@@ -1591,7 +1591,7 @@ export function tenantServiceBuilder(
       logger,
     }: {
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       authData: AuthData;
       logger: Logger;
     }): Promise<void> {
