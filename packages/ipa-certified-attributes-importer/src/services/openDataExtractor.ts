@@ -1,5 +1,5 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable @typescript-eslint/array-type */
 import axios from "axios";
 import { z } from "zod";
@@ -74,47 +74,55 @@ function fieldExtractor<K>(
   };
 }
 
+function isCategoryField(field: string): field is CategoriesFields {
+  return (categoriesFields as readonly string[]).includes(field);
+}
+
 export async function getAllCategories(): Promise<Category[]> {
   const response = await axios.get(config.institutionsCategoriesUrl);
+  const responseFields = response.data.fields as Array<{ id: string }>;
+  const responseRecords = response.data.records as Array<any>;
 
   const fields: Map<CategoriesFields, number> = new Map(
-    (response.data.fields as Array<{ id: string }>)
+    responseFields
       .map<[string, number]>((f, index) => [f.id, index])
-      .filter(([f, _]) => (categoriesFields as readonly string[]).includes(f))
-      .map(([f, i]) => [f as CategoriesFields, i])
+      .filter((data): data is [CategoriesFields, number] =>
+        isCategoryField(data[0])
+      )
   );
 
-  return (response.data.records as Array<any>).reduce<Category[]>(
-    (accumulator, record: any[]) => {
-      const extractor = fieldExtractor<CategoriesFields>(record, fields);
+  return responseRecords.reduce<Category[]>((accumulator, record: any[]) => {
+    const extractor = fieldExtractor<CategoriesFields>(record, fields);
 
-      const code = extractor("Codice_categoria", z.string());
-      if (!code) {
-        return accumulator;
-      }
-
-      const name = extractor("Nome_categoria", z.string());
-      if (!name) {
-        return accumulator;
-      }
-
-      const kind = extractor("Tipologia_categoria", z.string());
-      if (!kind) {
-        return accumulator;
-      }
-
-      // eslint-disable-next-line functional/immutable-data
-      accumulator.push({
-        code,
-        name,
-        kind,
-        origin: ORIGIN_IPA,
-      });
-
+    const code = extractor("Codice_categoria", z.string());
+    if (!code) {
       return accumulator;
-    },
-    []
-  );
+    }
+
+    const name = extractor("Nome_categoria", z.string());
+    if (!name) {
+      return accumulator;
+    }
+
+    const kind = extractor("Tipologia_categoria", z.string());
+    if (!kind) {
+      return accumulator;
+    }
+
+    // eslint-disable-next-line functional/immutable-data
+    accumulator.push({
+      code,
+      name,
+      kind,
+      origin: ORIGIN_IPA,
+    });
+
+    return accumulator;
+  }, []);
+}
+
+function isInstitutionsField(field: string): field is InstitutionsFields {
+  return (institutionsFields as readonly string[]).includes(field);
 }
 
 export async function getAllInstitutions(
@@ -128,128 +136,128 @@ export async function getAllInstitutions(
     .exhaustive();
 
   const response = await axios.get(url);
+  const responseFields = response.data.fields as Array<{ id: string }>;
+  const responseRecords = response.data.records as Array<any>;
 
   if (!response.data.fields) {
     return [];
   }
 
   const fields: Map<InstitutionsFields, number> = new Map(
-    (response.data.fields as Array<{ id: string }>)
+    responseFields
       .map<[string, number]>((f, index) => [f.id, index])
-      .filter(([f, _]) => (institutionsFields as readonly string[]).includes(f))
-      .map(([f, i]) => [f as InstitutionsFields, i])
+      .filter((data): data is [InstitutionsFields, number] =>
+        isInstitutionsField(data[0])
+      )
   );
 
-  return (response.data.records as Array<any>).reduce<Institution[]>(
-    (accumulator, record: any[]) => {
-      const extractor = fieldExtractor<InstitutionsFields>(record, fields);
+  return responseRecords.reduce<Institution[]>((accumulator, record: any[]) => {
+    const extractor = fieldExtractor<InstitutionsFields>(record, fields);
 
-      const taxCode = extractor("Codice_fiscale_ente", z.string());
-      if (!taxCode) {
-        return accumulator;
-      }
-
-      const originId = extractor(
-        match<InstitutionKind, InstitutionsFields>(institutionKind)
-          .with("Agency", () => "Codice_IPA")
-          .with("AOO", () => "Codice_uni_aoo")
-          .with("UO", () => "Codice_uni_uo")
-          .exhaustive(),
-        z.string()
-      );
-      if (!originId) {
-        return accumulator;
-      }
-
-      const category = match(institutionKind)
-        .with("Agency", () => extractor("Codice_Categoria", z.string()))
-        .otherwise(() => {
-          const originId = extractor("Codice_IPA", z.string());
-          if (!originId) {
-            return undefined;
-          }
-          return institutionsDetails.get(originId)?.category;
-        });
-      if (!category) {
-        return accumulator;
-      }
-
-      const description = match(institutionKind)
-        .with("Agency", () => extractor("Denominazione_ente", z.string()))
-        .with("AOO", () => {
-          const aoo = extractor("Denominazione_aoo", z.string());
-          const agency = extractor("Denominazione_ente", z.string());
-
-          if (!aoo || !agency) {
-            return undefined;
-          }
-
-          return `${aoo} - ${agency}`;
-        })
-        .with("UO", () => {
-          const uo = extractor("Descrizione_uo", z.string());
-          const agency = extractor("Denominazione_ente", z.string());
-
-          if (!uo || !agency) {
-            return undefined;
-          }
-
-          return `${uo} - ${agency}`;
-        })
-        .exhaustive();
-      if (!description) {
-        return accumulator;
-      }
-
-      const digitalAddress = extractor("Mail1", z.string());
-      if (!digitalAddress) {
-        return accumulator;
-      }
-
-      const address = extractor("Indirizzo", z.string());
-      if (!address) {
-        return accumulator;
-      }
-
-      const zipCode = extractor("CAP", z.string());
-      if (!zipCode) {
-        return accumulator;
-      }
-
-      const kind = match(institutionKind)
-        .with("Agency", () => extractor("Tipologia", z.string()))
-        .otherwise(() => {
-          const originId = extractor("Codice_IPA", z.string());
-          if (!originId) {
-            return undefined;
-          }
-          return institutionsDetails.get(originId)?.kind;
-        });
-      if (!kind) {
-        return accumulator;
-      }
-
-      // eslint-disable-next-line functional/immutable-data
-      accumulator.push({
-        id: taxCode,
-        originId,
-        taxCode,
-        category,
-        description,
-        digitalAddress,
-        address,
-        zipCode,
-        origin: ORIGIN_IPA,
-        kind,
-        classification: match<InstitutionKind, Classification>(institutionKind)
-          .with("Agency", () => "Agency")
-          .with("AOO", () => "AOO")
-          .with("UO", () => "UO")
-          .exhaustive(),
-      });
-
+    const taxCode = extractor("Codice_fiscale_ente", z.string());
+    if (!taxCode) {
       return accumulator;
-    },
-    []
-  );
+    }
+
+    const originId = extractor(
+      match<InstitutionKind, InstitutionsFields>(institutionKind)
+        .with("Agency", () => "Codice_IPA")
+        .with("AOO", () => "Codice_uni_aoo")
+        .with("UO", () => "Codice_uni_uo")
+        .exhaustive(),
+      z.string()
+    );
+    if (!originId) {
+      return accumulator;
+    }
+
+    const category = match(institutionKind)
+      .with("Agency", () => extractor("Codice_Categoria", z.string()))
+      .otherwise(() => {
+        const originId = extractor("Codice_IPA", z.string());
+        if (!originId) {
+          return undefined;
+        }
+        return institutionsDetails.get(originId)?.category;
+      });
+    if (!category) {
+      return accumulator;
+    }
+
+    const description = match(institutionKind)
+      .with("Agency", () => extractor("Denominazione_ente", z.string()))
+      .with("AOO", () => {
+        const aoo = extractor("Denominazione_aoo", z.string());
+        const agency = extractor("Denominazione_ente", z.string());
+
+        if (!aoo || !agency) {
+          return undefined;
+        }
+
+        return `${aoo} - ${agency}`;
+      })
+      .with("UO", () => {
+        const uo = extractor("Descrizione_uo", z.string());
+        const agency = extractor("Denominazione_ente", z.string());
+
+        if (!uo || !agency) {
+          return undefined;
+        }
+
+        return `${uo} - ${agency}`;
+      })
+      .exhaustive();
+    if (!description) {
+      return accumulator;
+    }
+
+    const digitalAddress = extractor("Mail1", z.string());
+    if (!digitalAddress) {
+      return accumulator;
+    }
+
+    const address = extractor("Indirizzo", z.string());
+    if (!address) {
+      return accumulator;
+    }
+
+    const zipCode = extractor("CAP", z.string());
+    if (!zipCode) {
+      return accumulator;
+    }
+
+    const kind = match(institutionKind)
+      .with("Agency", () => extractor("Tipologia", z.string()))
+      .otherwise(() => {
+        const originId = extractor("Codice_IPA", z.string());
+        if (!originId) {
+          return undefined;
+        }
+        return institutionsDetails.get(originId)?.kind;
+      });
+    if (!kind) {
+      return accumulator;
+    }
+
+    // eslint-disable-next-line functional/immutable-data
+    accumulator.push({
+      id: taxCode,
+      originId,
+      taxCode,
+      category,
+      description,
+      digitalAddress,
+      address,
+      zipCode,
+      origin: ORIGIN_IPA,
+      kind,
+      classification: match<InstitutionKind, Classification>(institutionKind)
+        .with("Agency", () => "Agency")
+        .with("AOO", () => "AOO")
+        .with("UO", () => "UO")
+        .exhaustive(),
+    });
+
+    return accumulator;
+  }, []);
 }

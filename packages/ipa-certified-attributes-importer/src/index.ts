@@ -44,8 +44,18 @@ const loggerInstance = logger({
   correlationId,
 });
 
-function toKey<T>(a: T): string {
-  return JSON.stringify(a);
+function toTenantKey(key: {
+  origin: string | undefined;
+  value: string | undefined;
+}): string {
+  return JSON.stringify(key);
+}
+
+function toAttributeKey(key: {
+  origin: string | undefined;
+  code: string | undefined;
+}): string {
+  return JSON.stringify(key);
 }
 
 async function checkAttributesPresence(
@@ -57,12 +67,14 @@ async function checkAttributesPresence(
   const certifiedAttributeIndex = new Map(
     attributes
       .filter((a) => a.kind === "Certified" && a.origin && a.code)
-      .map((a) => [toKey({ origin: a.origin, code: a.code }), a])
+      .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a])
   );
 
   const missingAttributes = newAttributes.filter(
     (i) =>
-      !certifiedAttributeIndex.get(toKey({ origin: i.origin, code: i.code }))
+      !certifiedAttributeIndex.get(
+        toAttributeKey({ origin: i.origin, code: i.code })
+      )
   );
 
   return missingAttributes.length === 0;
@@ -74,7 +86,7 @@ export function getTenantUpsertData(
 ): TenantSeed[] {
   // get a set with the external id of all tenants
   const platformTenantsIndex = new Set(
-    platformTenants.map((t) => toKey(t.externalId))
+    platformTenants.map((t) => toTenantKey(t.externalId))
   );
 
   // filter the institutions open data retrieving only the tenants
@@ -82,7 +94,9 @@ export function getTenantUpsertData(
   const institutionsAlreadyPresent = registryData.institutions.filter(
     (i) =>
       i.id.length > 0 &&
-      platformTenantsIndex.has(toKey({ origin: i.origin, value: i.originId }))
+      platformTenantsIndex.has(
+        toTenantKey({ origin: i.origin, value: i.originId })
+      )
   );
 
   // get a set with the attributes that should be created
@@ -156,19 +170,25 @@ export function getNewAttributes(
   const platformAttributesIndex = new Set(
     attributes
       .filter((a) => a.kind === "Certified" && a.origin && a.code)
-      .map((a) => toKey({ origin: a.origin, code: a.code }))
+      .map((a) => toAttributeKey({ origin: a.origin, code: a.code }))
   );
 
   const newAttributesIndex = new Set(
     tenantUpsertData.flatMap((t) =>
-      t.attributes.map((a) => toKey({ origin: a.origin, code: a.code }))
+      t.attributes.map((a) =>
+        toAttributeKey({ origin: a.origin, code: a.code })
+      )
     )
   );
 
   return registryData.attributes.filter(
     (a) =>
-      newAttributesIndex.has(toKey({ origin: a.origin, code: a.code })) &&
-      !platformAttributesIndex.has(toKey({ origin: a.origin, code: a.code }))
+      newAttributesIndex.has(
+        toAttributeKey({ origin: a.origin, code: a.code })
+      ) &&
+      !platformAttributesIndex.has(
+        toAttributeKey({ origin: a.origin, code: a.code })
+      )
   );
 }
 
@@ -178,7 +198,7 @@ export async function getAttributesToAssign(
   tenantSeeds: TenantSeed[]
 ): Promise<tenantApi.InternalTenantSeed[]> {
   const tenantsIndex = new Map(
-    platformTenants.map((t) => [toKey(t.externalId), t])
+    platformTenants.map((t) => [toTenantKey(t.externalId), t])
   );
 
   const certifiedsAttribute = new Map(
@@ -191,7 +211,7 @@ export async function getAttributesToAssign(
     .map((i) => {
       const externalId = { origin: i.origin, value: i.originId };
 
-      const tenant = tenantsIndex.get(toKey(externalId));
+      const tenant = tenantsIndex.get(toTenantKey(externalId));
 
       if (!tenant) {
         return undefined;
@@ -220,8 +240,8 @@ export async function getAttributesToAssign(
 
             return undefined;
           })
-          .filter((a) => a !== undefined)
-          .map((a) => [toKey({ origin: a?.origin, code: a?.code }), a])
+          .filter((a): a is NonNullable<typeof a> => a !== undefined)
+          .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a])
       );
 
       return tenant
@@ -231,7 +251,7 @@ export async function getAttributesToAssign(
             certifiedAttributes: i.attributes
               .filter((a) => {
                 const attribute = tenantCurrentAttributes.get(
-                  toKey({
+                  toAttributeKey({
                     origin: a.origin,
                     code: a.code,
                   })
@@ -251,8 +271,9 @@ export async function getAttributesToAssign(
         : undefined;
     })
     .filter(
-      (t) => t !== undefined && t.certifiedAttributes.length > 0
-    ) as tenantApi.InternalTenantSeed[];
+      (t): t is tenantApi.InternalTenantSeed =>
+        t !== undefined && t.certifiedAttributes.length > 0
+    );
 }
 
 async function assignNewAttributes(
@@ -283,15 +304,17 @@ export async function getAttributesToRevoke(
 > {
   const indexFromOpenData = new Set(
     registryData.attributes.map((a) =>
-      toKey({ origin: a.origin, value: a.code })
+      toAttributeKey({ origin: a.origin, code: a.code })
     )
   );
 
   const tenantSeedsIndex = new Map(
     tenantSeeds.map((t) => [
-      toKey({ origin: t.origin, value: t.originId }),
+      toTenantKey({ origin: t.origin, value: t.originId }),
       new Set(
-        t.attributes.map((a) => toKey({ origin: a.origin, value: a.code }))
+        t.attributes.map((a) =>
+          toAttributeKey({ origin: a.origin, code: a.code })
+        )
       ),
     ])
   );
@@ -309,22 +332,24 @@ export async function getAttributesToRevoke(
     },
     tenantExternalId: { origin: string; value: string }
   ): boolean => {
-    const externalId = { origin: attribute.origin, value: attribute.code };
+    const externalId = { origin: attribute.origin, code: attribute.code };
 
     if (attribute.origin !== ORIGIN_IPA) {
       return false;
     }
 
-    const registryAttributes = tenantSeedsIndex.get(toKey(tenantExternalId));
+    const registryAttributes = tenantSeedsIndex.get(
+      toTenantKey(tenantExternalId)
+    );
     if (!registryAttributes) {
       return false;
     }
 
-    if (registryAttributes.has(toKey(externalId))) {
+    if (registryAttributes.has(toAttributeKey(externalId))) {
       return false;
     }
 
-    return !indexFromOpenData.has(toKey(externalId));
+    return !indexFromOpenData.has(toAttributeKey(externalId));
   };
 
   return platformTenants.flatMap((t) =>
