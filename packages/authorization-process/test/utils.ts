@@ -6,6 +6,7 @@ import {
   writeInReadmodel,
   readLastEventByStreamId,
   createMockedApiRequester,
+  createJwtToken,
 } from "pagopa-interop-commons-test";
 import { afterEach, inject, vi } from "vitest";
 import {
@@ -25,11 +26,10 @@ import {
 } from "pagopa-interop-api-clients";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import {
-  AuthData,
   ExpressContext,
-  fromAppContext,
+  // jwtFromAuthHeader,
   genericLogger,
-  jwtFromAuthHeader,
+  AuthData,
   readAuthDataFromJwtToken,
 } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -119,19 +119,30 @@ export const readLastAuthorizationEvent = async (
 ): Promise<ReadEvent<AuthorizationEvent>> =>
   await readLastEventByStreamId(id, '"authorization"', postgresDB);
 
+export function getAuthDataAndToken(): [string, AuthData] {
+  const newJwtToken = createJwtToken();
+  const authData: AuthData = readAuthDataFromJwtToken(
+    newJwtToken,
+    genericLogger
+  );
+  return [newJwtToken, authData];
+}
+
 vi.mock("pagopa-interop-commons", async (importActual) => {
   const authenticationMiddleware: (
     config: unknown
   ) => ZodiosRouterContextRequestHandler<ExpressContext> =
     () =>
     async (req, _res, next): Promise<unknown> => {
-      const jwtToken = jwtFromAuthHeader(req, genericLogger);
-      const authData: AuthData = readAuthDataFromJwtToken(
-        jwtToken,
-        genericLogger
-      );
-      // eslint-disable-next-line functional/immutable-data
-      req.ctx.authData = authData;
+      console.log("Middleware attivato");
+      try {
+        const [newJwtToken, authData] = getAuthDataAndToken();
+        req.ctx.authData = authData;
+        req.headers.authorization = `Bearer ${newJwtToken}`;
+        return next();
+      } catch (error) {
+        next(error);
+      }
       return next();
     };
   const actual = await importActual<typeof import("pagopa-interop-commons")>();

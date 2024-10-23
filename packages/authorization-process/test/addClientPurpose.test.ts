@@ -2,7 +2,6 @@
 import {
   decodeProtobufPayload,
   getMockAgreement,
-  getMockAuthData,
   getMockClient,
   getMockDescriptor,
   getMockDocument,
@@ -28,7 +27,7 @@ import {
   toReadModelEService,
   toReadModelPurpose,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import { genericLogger, userRoles } from "pagopa-interop-commons";
 import {
   clientNotFound,
   eserviceNotFound,
@@ -45,6 +44,7 @@ import {
   agreements,
   authorizationService,
   eservices,
+  getAuthDataAndToken,
   mockClientRouterRequest,
   purposes,
   readLastAuthorizationEvent,
@@ -63,7 +63,8 @@ describe("addClientPurpose", async () => {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
-    const mockConsumerId: TenantId = generateId();
+    const [, authData] = getAuthDataAndToken();
+    const mockConsumerId: TenantId = authData.organizationId;
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -102,8 +103,13 @@ describe("addClientPurpose", async () => {
       path: "/clients/:clientId/purposes",
       body: { purposeId: mockPurpose.id },
       pathParams: { clientId: mockClient.id },
-      authData: getMockAuthData(mockConsumerId),
+      authData: {
+        ...authData,
+        userRoles: [userRoles.ADMIN_ROLE],
+      },
     });
+
+    console.log(JSON.stringify(result, null, 2));
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 

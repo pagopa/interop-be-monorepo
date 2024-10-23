@@ -586,6 +586,7 @@ export function authorizationServiceBuilder(
       logger.info(
         `Adding purpose with id ${seed.purposeId} to client ${clientId}`
       );
+      console.log("SONO FINALMENTE NEL SERVICE");
       const purposeId: PurposeId = unsafeBrandId(seed.purposeId);
 
       const client = await retrieveClient(clientId, readModelService);
@@ -598,10 +599,13 @@ export function authorizationServiceBuilder(
         throw purposeAlreadyLinkedToClient(purposeId, client.data.id);
       }
 
+      console.log("FIN QUI CI ARRIVO");
       const eservice = await retrieveEService(
         purpose.eserviceId,
         readModelService
       );
+
+      console.log("FIN QUI CI ARRIVO2");
 
       const agreement = await readModelService.getActiveOrSuspendedAgreement(
         eservice.id,
@@ -612,7 +616,11 @@ export function authorizationServiceBuilder(
         throw noAgreementFoundInRequiredState(eservice.id, organizationId);
       }
 
+      console.log("FIN QUI CI ARRIVO3");
+
       retrieveDescriptor(agreement.descriptorId, eservice);
+
+      console.log("FIN QUI CI ARRIVO4");
 
       const validPurposeVersionStates: Set<PurposeVersionState> = new Set([
         purposeVersionState.active,
@@ -625,11 +633,14 @@ export function authorizationServiceBuilder(
       if (purposeVersion === undefined) {
         throw noPurposeVersionsFoundInRequiredState(purpose.id);
       }
+      console.log("FIN QUI CI ARRIVO5");
 
       const updatedClient: Client = {
         ...client.data,
         purposes: [...client.data.purposes, purposeId],
       };
+
+      console.log("FIN QUI CI ARRIVO6");
 
       await repository.createEvent(
         toCreateEventClientPurposeAdded(
