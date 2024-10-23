@@ -12,7 +12,6 @@ import {
   ClientKind,
   ClientKindTokenStates,
   clientKindTokenStates,
-  Descriptor,
   DescriptorId,
   DescriptorState,
   descriptorState,
@@ -57,7 +56,7 @@ type Accumulator = {
   platformClientEntries: PlatformStatesClientEntry[];
 };
 
-export function getLastPurposeVersion(
+function getLastPurposeVersion(
   purposeVersions: PurposeVersion[]
 ): PurposeVersion {
   return purposeVersions
@@ -65,12 +64,87 @@ export function getLastPurposeVersion(
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
 }
 
-export function getLastEServiceDescriptor(
-  descriptors: Descriptor[]
-): Descriptor {
-  return descriptors
-    .slice()
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+// function getLastEServiceDescriptor(descriptors: Descriptor[]): Descriptor {
+//   return descriptors
+//     .slice()
+//     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+// }
+
+function extractIdFromPlatformStatesPK<
+  T extends PurposeId | AgreementId | ClientId | EServiceId
+>(
+  pk:
+    | PlatformStatesPurposePK
+    | PlatformStatesAgreementPK
+    | PlatformStatesClientPK
+    | PlatformStatesEServiceDescriptorPK
+): {
+  id: T;
+  descriptorId?: DescriptorId;
+} {
+  const splitPK = pk.split("#");
+  if (PlatformStatesEServiceDescriptorPK.safeParse(pk).success) {
+    return {
+      id: unsafeBrandId<T>(splitPK[1]),
+      descriptorId: unsafeBrandId<DescriptorId>(splitPK[2]),
+    };
+  }
+  return { id: unsafeBrandId<T>(splitPK[1]) };
+}
+
+function extractIdsFromTokenGenerationStatesPK(
+  pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
+): {
+  clientId: ClientId;
+  kid: string;
+  purposeId?: PurposeId;
+} {
+  const splitPK = pk.split("#");
+  return {
+    clientId: unsafeBrandId<ClientId>(splitPK[1]),
+    kid: splitPK[2],
+    purposeId: unsafeBrandId<PurposeId>(splitPK[3]),
+  };
+}
+
+function extractIdsFromGSIPKClientIdPurposeId(gsipk: GSIPKClientIdPurposeId): {
+  clientId: ClientId;
+  purposeId: PurposeId;
+} {
+  const splitPK = gsipk.split("#");
+  return {
+    clientId: unsafeBrandId<ClientId>(splitPK[0]),
+    purposeId: unsafeBrandId<PurposeId>(splitPK[1]),
+  };
+}
+
+function extractIdsFromGSIPKEServiceIdDescriptorId(
+  gsipk?: GSIPKEServiceIdDescriptorId
+):
+  | {
+      eserviceId: EServiceId;
+      descriptorId: DescriptorId;
+    }
+  | undefined {
+  if (!gsipk) {
+    return undefined;
+  }
+
+  const splitPK = gsipk.split("#");
+  return {
+    eserviceId: unsafeBrandId<EServiceId>(splitPK[0]),
+    descriptorId: unsafeBrandId<DescriptorId>(splitPK[1]),
+  };
+}
+
+function getIdentificationKey<T extends { PK: string } | { id: string }>(
+  obj: T
+): string {
+  if ("PK" in obj) {
+    return unsafeBrandId(obj.PK.split("#")[1]);
+  } else {
+    return obj.id;
+  }
 }
 
 export async function compareTokenGenerationReadModel(
@@ -142,23 +216,25 @@ export async function compareTokenGenerationReadModel(
       platformClientEntries: [],
     }
   );
-  const purposeDifferences = await compareReadModelPurposesWithPlatformStates({
-    platformStatesEntries: platformPurposeEntries,
-    tokenGenerationStatesEntries: tokenGenerationStatesClientPurposeEntries,
-    readModel,
-  });
+  const purposeDifferences =
+    await compareReadModelPurposesWithTokenGenReadModel({
+      platformStatesEntries: platformPurposeEntries,
+      tokenGenerationStatesEntries: tokenGenerationStatesClientPurposeEntries,
+      readModel,
+    });
   const agreementDifferences =
-    await compareReadModelAgreementsWithPlatformStates({
+    await compareReadModelAgreementsWithTokenGenReadModel({
       platformStatesEntries: platformAgreementEntries,
       tokenGenerationStatesEntries: tokenGenerationStatesClientPurposeEntries,
       readModel,
     });
-  const catalogDifferences = await compareReadModelEServicesWithPlatformStates({
-    platformStatesEntries: platformCatalogEntries,
-    tokenGenerationStatesEntries: tokenGenerationStatesClientPurposeEntries,
-    readModel,
-  });
-  const clientDifferences = await compareReadModelClientsWithPlatformStates({
+  const catalogDifferences =
+    await compareReadModelEServicesWithTokenGenReadModel({
+      platformStatesEntries: platformCatalogEntries,
+      tokenGenerationStatesEntries: tokenGenerationStatesClientPurposeEntries,
+      readModel,
+    });
+  const clientDifferences = await compareReadModelClientsWithTokenGenReadModel({
     platformStatesEntries: platformClientEntries,
     tokenGenerationStatesEntries,
     readModel,
@@ -177,18 +253,8 @@ export async function compareTokenGenerationReadModel(
   console.info("No differences found");
 }
 
-function getIdentificationKey<T extends { PK: string } | { id: string }>(
-  obj: T
-): string {
-  if ("PK" in obj) {
-    return unsafeBrandId(obj.PK.split("#")[1]);
-  } else {
-    return obj.id;
-  }
-}
-
 // purposes
-export async function compareReadModelPurposesWithPlatformStates({
+export async function compareReadModelPurposesWithTokenGenReadModel({
   platformStatesEntries,
   tokenGenerationStatesEntries,
   readModel,
@@ -386,7 +452,8 @@ purpose read-model: ${JSON.stringify(readModelPurpose)}`
 }
 
 // agreements
-export async function compareReadModelAgreementsWithPlatformStates({
+// TODO: rename
+export async function compareReadModelAgreementsWithTokenGenReadModel({
   platformStatesEntries,
   tokenGenerationStatesEntries,
   readModel,
@@ -572,180 +639,8 @@ export function countAgreementDifferences(
   return differencesCount;
 }
 
-// clients
-export async function compareReadModelClientsWithPlatformStates({
-  platformStatesEntries,
-  tokenGenerationStatesEntries,
-  readModel,
-}: {
-  platformStatesEntries: PlatformStatesClientEntry[];
-  tokenGenerationStatesEntries: TokenGenerationStatesGenericEntry[];
-  readModel: ReadModelRepository;
-}): Promise<
-  Array<
-    [
-      PlatformStatesClientEntry | undefined,
-      TokenGenerationStatesGenericEntry[] | undefined,
-      Client | undefined
-    ]
-  >
-> {
-  const readModelService = readModelServiceBuilder(readModel);
-  const [resultsA, resultsB, resultsC] = await Promise.all([
-    platformStatesEntries,
-    tokenGenerationStatesEntries,
-    readModelService.getAllReadModelClients(),
-  ]);
-  return zipClientDataById(resultsA, resultsB, resultsC).filter(([a, b, c]) => {
-    if (c) {
-      const isPlatformStatesCorrect = a
-        ? validateClientPlatformStates({
-            platformClientEntry: a,
-            client: c,
-          })
-        : true;
-      console.log("isPlatformStatesCorrect", isPlatformStatesCorrect);
-      const isTokenGenerationStatesCorrect = b
-        ? validateClientTokenGenerationStates({
-            tokenEntries: b,
-            client: c,
-          })
-        : true;
-      console.log(
-        "isTokenGenerationStatesCorrect",
-        isTokenGenerationStatesCorrect
-      );
-      if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
-        return false;
-      }
-    }
-    return true;
-  });
-}
-
-function validateClientPlatformStates({
-  platformClientEntry,
-  client,
-}: {
-  platformClientEntry: PlatformStatesClientEntry;
-  client: Client;
-}): boolean {
-  return (
-    extractIdFromPlatformStatesPK<ClientId>(platformClientEntry.PK).id ===
-      client.id &&
-    platformClientEntry.clientKind ===
-      clientKindToTokenGenerationStatesClientKind(client.kind) &&
-    platformClientEntry.clientConsumerId === client.consumerId &&
-    platformClientEntry.clientPurposesIds.every((p) =>
-      client.purposes.includes(p)
-    )
-  );
-}
-
-function validateClientTokenGenerationStates({
-  tokenEntries,
-  client,
-}: {
-  tokenEntries: TokenGenerationStatesGenericEntry[] | undefined;
-  client: Client;
-}): boolean {
-  if (!tokenEntries || tokenEntries.length === 0) {
-    return true;
-  }
-
-  const parsedTokenClientPurposeEntry =
-    TokenGenerationStatesClientPurposeEntry.safeParse(tokenEntries[0]);
-
-  return tokenEntries.some(
-    (e) =>
-      extractIdsFromTokenGenerationStatesPK(e.PK).clientId === client.id &&
-      e.consumerId === client.consumerId &&
-      e.clientKind ===
-        clientKindToTokenGenerationStatesClientKind(client.kind) &&
-      e.GSIPK_clientId === client.id &&
-      client.keys.some(
-        (k) => k.kid === e.GSIPK_kid && k.encodedPem === e.publicKey
-      ) &&
-      // TODO: should missing optional fields be considered correct or not?
-      (parsedTokenClientPurposeEntry.success
-        ? parsedTokenClientPurposeEntry.data.GSIPK_clientId_purposeId
-          ? extractIdsFromGSIPKClientIdPurposeId(
-              parsedTokenClientPurposeEntry.data.GSIPK_clientId_purposeId
-            ).clientId === client.id
-          : true
-        : false)
-  );
-}
-
-export function zipClientDataById(
-  dataA: PlatformStatesClientEntry[],
-  dataB: TokenGenerationStatesGenericEntry[],
-  dataC: Client[]
-): Array<
-  [
-    PlatformStatesClientEntry | undefined,
-    TokenGenerationStatesGenericEntry[] | undefined,
-    Client | undefined
-  ]
-> {
-  const allIds = new Set(
-    [...dataA, ...dataC].map((d) => getIdentificationKey(d))
-  );
-  return Array.from(allIds).map((id) => [
-    dataA.find(
-      (d: PlatformStatesClientEntry) => getIdentificationKey(d) === id
-    ),
-    dataB.filter(
-      (d: TokenGenerationStatesGenericEntry) => getIdentificationKey(d) === id
-    ),
-    dataC.find((d: Client) => getIdentificationKey(d) === id),
-  ]);
-}
-
-export function countClientDifferences(
-  differences: Array<
-    [
-      PlatformStatesClientEntry | undefined,
-      TokenGenerationStatesGenericEntry[] | undefined,
-      Client | undefined
-    ]
-  >,
-  logger: Logger
-): number {
-  // eslint-disable-next-line functional/no-let
-  let differencesCount = 0;
-  differences.forEach(([platformClient, tokenClient, readModelClient]) => {
-    if (platformClient && !readModelClient) {
-      logger.error(`Read model client not found for ${platformClient.PK}`);
-      console.warn(`Read model client not found for ${platformClient.PK}`);
-      differencesCount++;
-    } else if (platformClient && readModelClient) {
-      logger.error(
-        `Client states are not equal.
-        platform-states entry: ${JSON.stringify(platformClient)}
-        token-generation-states entries: ${JSON.stringify(tokenClient)}
-        purpose read-model: ${JSON.stringify(readModelClient)}`
-      );
-      console.warn(
-        `Client states are not equal.
-        platform-states entry: ${JSON.stringify(platformClient)}
-        token-generation-states entries: ${JSON.stringify(tokenClient)}
-        purpose read-model: ${JSON.stringify(readModelClient)}`
-      );
-      differencesCount++;
-    }
-    // else if (!platformClient && readModelClient) {
-    //   logger.error(``);
-    //   // TODO: how to tell if client is deleted
-    //   differencesCount++;
-    // }
-  });
-
-  return differencesCount;
-}
-
 // eservices
-export async function compareReadModelEServicesWithPlatformStates({
+export async function compareReadModelEServicesWithTokenGenReadModel({
   platformStatesEntries,
   tokenGenerationStatesEntries,
   readModel,
@@ -960,71 +855,176 @@ export function countCatalogDifferences(
   return differencesCount;
 }
 
-function extractIdFromPlatformStatesPK<
-  T extends PurposeId | AgreementId | ClientId | EServiceId
->(
-  pk:
-    | PlatformStatesPurposePK
-    | PlatformStatesAgreementPK
-    | PlatformStatesClientPK
-    | PlatformStatesEServiceDescriptorPK
-): {
-  id: T;
-  descriptorId?: DescriptorId;
-} {
-  const splitPK = pk.split("#");
-  if (PlatformStatesEServiceDescriptorPK.safeParse(pk).success) {
-    return {
-      id: unsafeBrandId<T>(splitPK[1]),
-      descriptorId: unsafeBrandId<DescriptorId>(splitPK[2]),
-    };
-  }
-  return { id: unsafeBrandId<T>(splitPK[1]) };
-}
-
-function extractIdsFromTokenGenerationStatesPK(
-  pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
-): {
-  clientId: ClientId;
-  kid: string;
-  purposeId?: PurposeId;
-} {
-  const splitPK = pk.split("#");
-  return {
-    clientId: unsafeBrandId<ClientId>(splitPK[1]),
-    kid: splitPK[2],
-    purposeId: unsafeBrandId<PurposeId>(splitPK[3]),
-  };
-}
-
-function extractIdsFromGSIPKClientIdPurposeId(gsipk: GSIPKClientIdPurposeId): {
-  clientId: ClientId;
-  purposeId: PurposeId;
-} {
-  const splitPK = gsipk.split("#");
-  return {
-    clientId: unsafeBrandId<ClientId>(splitPK[0]),
-    purposeId: unsafeBrandId<PurposeId>(splitPK[1]),
-  };
-}
-
-function extractIdsFromGSIPKEServiceIdDescriptorId(
-  gsipk?: GSIPKEServiceIdDescriptorId
-):
-  | {
-      eserviceId: EServiceId;
-      descriptorId: DescriptorId;
+// clients
+export async function compareReadModelClientsWithTokenGenReadModel({
+  platformStatesEntries,
+  tokenGenerationStatesEntries,
+  readModel,
+}: {
+  platformStatesEntries: PlatformStatesClientEntry[];
+  tokenGenerationStatesEntries: TokenGenerationStatesGenericEntry[];
+  readModel: ReadModelRepository;
+}): Promise<
+  Array<
+    [
+      PlatformStatesClientEntry | undefined,
+      TokenGenerationStatesGenericEntry[] | undefined,
+      Client | undefined
+    ]
+  >
+> {
+  const readModelService = readModelServiceBuilder(readModel);
+  const [resultsA, resultsB, resultsC] = await Promise.all([
+    platformStatesEntries,
+    tokenGenerationStatesEntries,
+    readModelService.getAllReadModelClients(),
+  ]);
+  return zipClientDataById(resultsA, resultsB, resultsC).filter(([a, b, c]) => {
+    if (c) {
+      const isPlatformStatesCorrect = a
+        ? validateClientPlatformStates({
+            platformClientEntry: a,
+            client: c,
+          })
+        : true;
+      console.log("isPlatformStatesCorrect", isPlatformStatesCorrect);
+      const isTokenGenerationStatesCorrect = b
+        ? validateClientTokenGenerationStates({
+            tokenEntries: b,
+            client: c,
+          })
+        : true;
+      console.log(
+        "isTokenGenerationStatesCorrect",
+        isTokenGenerationStatesCorrect
+      );
+      if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
+        return false;
+      }
     }
-  | undefined {
-  if (!gsipk) {
-    return undefined;
+    return true;
+  });
+}
+
+function validateClientPlatformStates({
+  platformClientEntry,
+  client,
+}: {
+  platformClientEntry: PlatformStatesClientEntry;
+  client: Client;
+}): boolean {
+  return (
+    extractIdFromPlatformStatesPK<ClientId>(platformClientEntry.PK).id ===
+      client.id &&
+    platformClientEntry.clientKind ===
+      clientKindToTokenGenerationStatesClientKind(client.kind) &&
+    platformClientEntry.clientConsumerId === client.consumerId &&
+    platformClientEntry.clientPurposesIds.every((p) =>
+      client.purposes.includes(p)
+    )
+  );
+}
+
+function validateClientTokenGenerationStates({
+  tokenEntries,
+  client,
+}: {
+  tokenEntries: TokenGenerationStatesGenericEntry[] | undefined;
+  client: Client;
+}): boolean {
+  if (!tokenEntries || tokenEntries.length === 0) {
+    return true;
   }
 
-  const splitPK = gsipk.split("#");
-  return {
-    eserviceId: unsafeBrandId<EServiceId>(splitPK[0]),
-    descriptorId: unsafeBrandId<DescriptorId>(splitPK[1]),
-  };
+  const parsedTokenClientPurposeEntry =
+    TokenGenerationStatesClientPurposeEntry.safeParse(tokenEntries[0]);
+
+  return tokenEntries.some(
+    (e) =>
+      extractIdsFromTokenGenerationStatesPK(e.PK).clientId === client.id &&
+      e.consumerId === client.consumerId &&
+      e.clientKind ===
+        clientKindToTokenGenerationStatesClientKind(client.kind) &&
+      e.GSIPK_clientId === client.id &&
+      client.keys.some(
+        (k) => k.kid === e.GSIPK_kid && k.encodedPem === e.publicKey
+      ) &&
+      // TODO: should missing optional fields be considered correct or not?
+      (parsedTokenClientPurposeEntry.success
+        ? parsedTokenClientPurposeEntry.data.GSIPK_clientId_purposeId
+          ? extractIdsFromGSIPKClientIdPurposeId(
+              parsedTokenClientPurposeEntry.data.GSIPK_clientId_purposeId
+            ).clientId === client.id
+          : true
+        : false)
+  );
+}
+
+export function zipClientDataById(
+  dataA: PlatformStatesClientEntry[],
+  dataB: TokenGenerationStatesGenericEntry[],
+  dataC: Client[]
+): Array<
+  [
+    PlatformStatesClientEntry | undefined,
+    TokenGenerationStatesGenericEntry[] | undefined,
+    Client | undefined
+  ]
+> {
+  const allIds = new Set(
+    [...dataA, ...dataC].map((d) => getIdentificationKey(d))
+  );
+  return Array.from(allIds).map((id) => [
+    dataA.find(
+      (d: PlatformStatesClientEntry) => getIdentificationKey(d) === id
+    ),
+    dataB.filter(
+      (d: TokenGenerationStatesGenericEntry) => getIdentificationKey(d) === id
+    ),
+    dataC.find((d: Client) => getIdentificationKey(d) === id),
+  ]);
+}
+
+export function countClientDifferences(
+  differences: Array<
+    [
+      PlatformStatesClientEntry | undefined,
+      TokenGenerationStatesGenericEntry[] | undefined,
+      Client | undefined
+    ]
+  >,
+  logger: Logger
+): number {
+  // eslint-disable-next-line functional/no-let
+  let differencesCount = 0;
+  differences.forEach(([platformClient, tokenClient, readModelClient]) => {
+    if (platformClient && !readModelClient) {
+      logger.error(`Read model client not found for ${platformClient.PK}`);
+      console.warn(`Read model client not found for ${platformClient.PK}`);
+      differencesCount++;
+    } else if (platformClient && readModelClient) {
+      logger.error(
+        `Client states are not equal.
+        platform-states entry: ${JSON.stringify(platformClient)}
+        token-generation-states entries: ${JSON.stringify(tokenClient)}
+        purpose read-model: ${JSON.stringify(readModelClient)}`
+      );
+      console.warn(
+        `Client states are not equal.
+        platform-states entry: ${JSON.stringify(platformClient)}
+        token-generation-states entries: ${JSON.stringify(tokenClient)}
+        purpose read-model: ${JSON.stringify(readModelClient)}`
+      );
+      differencesCount++;
+    }
+    // else if (!platformClient && readModelClient) {
+    //   logger.error(``);
+    //   // TODO: how to tell if client is deleted
+    //   differencesCount++;
+    // }
+  });
+
+  return differencesCount;
 }
 
 // TODO: copied

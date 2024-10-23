@@ -52,10 +52,10 @@ import {
 import { genericLogger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
-  compareReadModelAgreementsWithPlatformStates,
-  compareReadModelClientsWithPlatformStates,
-  compareReadModelEServicesWithPlatformStates,
-  compareReadModelPurposesWithPlatformStates,
+  compareReadModelAgreementsWithTokenGenReadModel,
+  compareReadModelClientsWithTokenGenReadModel,
+  compareReadModelEServicesWithTokenGenReadModel,
+  compareReadModelPurposesWithTokenGenReadModel,
   countAgreementDifferences,
   countCatalogDifferences,
   countClientDifferences,
@@ -151,7 +151,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         }),
       };
 
-      const differences = await compareReadModelPurposesWithPlatformStates({
+      const differences = await compareReadModelPurposesWithTokenGenReadModel({
         platformStatesEntries: [platformPurposeEntry1, platformPurposeEntry2],
         tokenGenerationStatesEntries: [tokenStatesEntry],
         readModel: readModelRepository,
@@ -384,14 +384,16 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         GSIPK_consumerId_eserviceId,
       };
 
-      const differences = await compareReadModelAgreementsWithPlatformStates({
-        platformStatesEntries: [
-          platformAgreementEntry1,
-          platformAgreementEntry2,
-        ],
-        tokenGenerationStatesEntries: [tokenStatesEntry],
-        readModel: readModelRepository,
-      });
+      const differences = await compareReadModelAgreementsWithTokenGenReadModel(
+        {
+          platformStatesEntries: [
+            platformAgreementEntry1,
+            platformAgreementEntry2,
+          ],
+          tokenGenerationStatesEntries: [tokenStatesEntry],
+          readModel: readModelRepository,
+        }
+      );
       const expectedDifferences: Array<
         [
           PlatformStatesAgreementEntry | undefined,
@@ -661,7 +663,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         }),
       };
 
-      const differences = await compareReadModelEServicesWithPlatformStates({
+      const differences = await compareReadModelEServicesWithTokenGenReadModel({
         platformStatesEntries: [platformCatalogEntry1, platformCatalogEntry2],
         tokenGenerationStatesEntries: [tokenStatesEntry],
         readModel: readModelRepository,
@@ -903,7 +905,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         }),
       };
 
-      const differences = await compareReadModelClientsWithPlatformStates({
+      const differences = await compareReadModelClientsWithTokenGenReadModel({
         platformStatesEntries: [platformClientEntry1, platformClientEntry2],
         tokenGenerationStatesEntries: [tokenStatesEntry],
         readModel: readModelRepository,

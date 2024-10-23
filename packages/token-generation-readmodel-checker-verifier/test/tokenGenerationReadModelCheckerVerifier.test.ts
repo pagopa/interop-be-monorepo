@@ -57,10 +57,10 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
-  compareReadModelAgreementsWithPlatformStates,
-  compareReadModelClientsWithPlatformStates,
-  compareReadModelEServicesWithPlatformStates,
-  compareReadModelPurposesWithPlatformStates,
+  compareReadModelAgreementsWithTokenGenReadModel,
+  compareReadModelClientsWithTokenGenReadModel,
+  compareReadModelEServicesWithTokenGenReadModel,
+  compareReadModelPurposesWithTokenGenReadModel,
   compareTokenGenerationReadModel,
   countAgreementDifferences,
   countCatalogDifferences,
@@ -158,7 +158,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
 
       const purposeDifferences =
-        await compareReadModelPurposesWithPlatformStates({
+        await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [platformPurposeEntry1, platformPurposeEntry2],
           tokenGenerationStatesEntries: [tokenStatesEntry],
           readModel: readModelRepository,
@@ -232,7 +232,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
 
       const purposeDifferences =
-        await compareReadModelPurposesWithPlatformStates({
+        await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [platformPurposeEntry1, platformPurposeEntry2],
           tokenGenerationStatesEntries: [tokenStatesEntry],
           readModel: readModelRepository,
@@ -268,7 +268,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOnePurpose(purpose);
 
       const purposeDifferences =
-        await compareReadModelPurposesWithPlatformStates({
+        await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
@@ -318,7 +318,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
 
       const purposeDifferences =
-        await compareReadModelPurposesWithPlatformStates({
+        await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [platformPurposeEntry],
           tokenGenerationStatesEntries: [tokenStatesEntry],
           readModel: readModelRepository,
@@ -349,7 +349,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOnePurpose(purpose);
 
       const purposeDifferences =
-        await compareReadModelPurposesWithPlatformStates({
+        await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
@@ -380,7 +380,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOnePurpose(purpose);
 
       const purposeDifferences =
-        await compareReadModelPurposesWithPlatformStates({
+        await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
@@ -488,7 +488,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
 
       const agreementDifferences =
-        await compareReadModelAgreementsWithPlatformStates({
+        await compareReadModelAgreementsWithTokenGenReadModel({
           platformStatesEntries: [
             platformAgreementEntry1,
             platformAgreementEntry2,
@@ -597,7 +597,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
 
       const agreementDifferences =
-        await compareReadModelAgreementsWithPlatformStates({
+        await compareReadModelAgreementsWithTokenGenReadModel({
           platformStatesEntries: [
             platformAgreementEntry1,
             platformAgreementEntry2,
@@ -643,7 +643,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOneAgreement(agreement);
 
       const agreementDifferences =
-        await compareReadModelAgreementsWithPlatformStates({
+        await compareReadModelAgreementsWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
@@ -692,7 +692,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await writePlatformAgreementEntry(platformAgreementEntry, dynamoDBClient);
 
       const agreementDifferences =
-        await compareReadModelAgreementsWithPlatformStates({
+        await compareReadModelAgreementsWithTokenGenReadModel({
           platformStatesEntries: [platformAgreementEntry],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
@@ -730,7 +730,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOneAgreement(agreement);
 
       const agreementDifferences =
-        await compareReadModelAgreementsWithPlatformStates({
+        await compareReadModelAgreementsWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
@@ -768,7 +768,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOneAgreement(agreement);
 
       const agreementDifferences =
-        await compareReadModelAgreementsWithPlatformStates({
+        await compareReadModelAgreementsWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
@@ -858,7 +858,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
 
       const catalogDifferences =
-        await compareReadModelEServicesWithPlatformStates({
+        await compareReadModelEServicesWithTokenGenReadModel({
           platformStatesEntries: [platformCatalogEntry1, platformCatalogEntry2],
           tokenGenerationStatesEntries: [tokenStatesEntry],
           readModel: readModelRepository,
@@ -946,7 +946,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
 
       const catalogDifferences =
-        await compareReadModelEServicesWithPlatformStates({
+        await compareReadModelEServicesWithTokenGenReadModel({
           platformStatesEntries: [platformCatalogEntry1, platformCatalogEntry2],
           tokenGenerationStatesEntries: [tokenStatesEntry],
           readModel: readModelRepository,
@@ -988,7 +988,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOneEService(eservice);
 
       const catalogDifferences =
-        await compareReadModelEServicesWithPlatformStates({
+        await compareReadModelEServicesWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
@@ -1031,7 +1031,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await writeCatalogEntry(platformCatalogEntry, dynamoDBClient);
 
       const catalogDifferences =
-        await compareReadModelEServicesWithPlatformStates({
+        await compareReadModelEServicesWithTokenGenReadModel({
           platformStatesEntries: [platformCatalogEntry],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
@@ -1068,7 +1068,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOneEService(eservice);
 
       const catalogDifferences =
-        await compareReadModelEServicesWithPlatformStates({
+        await compareReadModelEServicesWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
@@ -1105,7 +1105,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOneEService(eservice);
 
       const catalogDifferences =
-        await compareReadModelEServicesWithPlatformStates({
+        await compareReadModelEServicesWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
@@ -1187,13 +1187,12 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       };
       await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
 
-      const clientDifferences = await compareReadModelClientsWithPlatformStates(
-        {
+      const clientDifferences =
+        await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry1, platformClientEntry2],
           tokenGenerationStatesEntries: [tokenStatesEntry],
           readModel: readModelRepository,
-        }
-      );
+        });
       expect(clientDifferences).toHaveLength(0);
 
       expect(countClientDifferences(clientDifferences, genericLogger)).toEqual(
@@ -1269,13 +1268,12 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       };
       await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
 
-      const clientDifferences = await compareReadModelClientsWithPlatformStates(
-        {
+      const clientDifferences =
+        await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry1, platformClientEntry2],
           tokenGenerationStatesEntries: [tokenStatesEntry],
           readModel: readModelRepository,
-        }
-      );
+        });
       const expectedClientDifferences: Array<
         [
           PlatformStatesClientEntry | undefined,
@@ -1318,13 +1316,12 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       };
       await writeClientEntry(platformClientEntry, dynamoDBClient);
 
-      const clientDifferences = await compareReadModelClientsWithPlatformStates(
-        {
+      const clientDifferences =
+        await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
-        }
-      );
+        });
       const expectedClientDifferences: Array<
         [
           PlatformStatesClientEntry | undefined,
