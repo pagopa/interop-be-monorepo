@@ -8,7 +8,7 @@ export const allowedOrigins = [
   "IPA",
   "ANAC",
   "IVASS",
-  "PDND_INFOCAMERE-PVT",
+  "PDND_INFOCAMERE-PRV",
   "PDND_INFOCAMERE-SCP",
 ];
 
