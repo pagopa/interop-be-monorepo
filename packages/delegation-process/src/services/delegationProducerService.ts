@@ -13,6 +13,7 @@ import {
   Delegation,
   delegationEventToBinaryDataV2,
   delegationKind,
+  EService,
   EServiceId,
   generateId,
   Tenant,
@@ -20,12 +21,17 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { DelegationId, TenantId, delegationState } from "pagopa-interop-models";
-import { delegationNotFound, tenantNotFound } from "../model/domain/errors.js";
+import {
+  delegationNotFound,
+  eserviceNotFound,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import {
   toCreateEventApproveDelegation,
   toCreateEventProducerDelegation,
   toCreateEventRejectDelegation,
 } from "../model/domain/toEvent.js";
+import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertDelegationNotExists,
@@ -36,7 +42,7 @@ import {
   assertIsDelegate,
   assertIsState,
 } from "./validators.js";
-import { createPdfDelegation } from "./pdfUtils.js";
+import { generatePdfDelegation } from "./pdfUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationProducerServiceBuilder(
@@ -61,6 +67,14 @@ export function delegationProducerServiceBuilder(
       throw delegationNotFound(delegationId);
     }
     return delegation;
+  };
+
+  const getEserviceById = async (id: EServiceId): Promise<EService> => {
+    const eservice = await readModelService.getEServiceById(id);
+    if (!eservice) {
+      throw eserviceNotFound(id);
+    }
+    return eservice.data;
   };
 
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
@@ -127,12 +141,35 @@ export function delegationProducerServiceBuilder(
         delegationId
       );
 
+      const delegator = await getTenantById(delegation.delegatorId);
+      const delegate = await getTenantById(delegation.delegateId);
+      const eservice = await getEserviceById(delegation.eserviceId);
+
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
       const now = new Date();
 
-      await createPdfDelegation(delegation, pdfGenerator, fileManager, logger);
+      const pdfBuffer = await generatePdfDelegation(
+        now,
+        delegation,
+        delegator,
+        delegate,
+        eservice,
+        pdfGenerator
+      );
+
+      const documentPath = await fileManager.storeBytes(
+        {
+          bucket: config.s3Bucket,
+          path: config.delegationDocumentPath,
+          name: delegation.id,
+          content: pdfBuffer,
+        },
+        logger
+      );
+      logger.info(`Stored delegation document at ${documentPath}`);
+      // TODO store contract info
 
       await repository.createEvent(
         toCreateEventApproveDelegation(

@@ -1,33 +1,50 @@
 import path from "path";
 import { fileURLToPath } from "url";
-import { FileManager, Logger, PDFGenerator } from "pagopa-interop-commons";
-import { Delegation } from "pagopa-interop-models";
-import { config } from "../config/config.js";
+import {
+  dateAtRomeZone,
+  PDFGenerator,
+  timeAtRomeZone,
+} from "pagopa-interop-commons";
+import { Delegation, EService, Tenant } from "pagopa-interop-models";
 
-export const createPdfDelegation = async (
+// eslint-disable-next-line max-params
+export async function generatePdfDelegation(
+  today: Date,
   delegation: Delegation,
-  pdfGenerator: PDFGenerator,
-  fileManager: FileManager,
-  logger: Logger
-): Promise<void> => {
+  delegator: Tenant,
+  delegate: Tenant,
+  eservice: EService,
+  pdfGenerator: PDFGenerator
+): Promise<Buffer> {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
   const templateFilePath = path.resolve(
     dirname,
     "..",
     "resources/templates",
-    "delegationApproved.html"
+    "delegationApprovedTemplate.html"
   );
-  const pdfBuffer = await pdfGenerator.generate(templateFilePath, {});
+  const todayDate = dateAtRomeZone(today);
+  const todayTime = timeAtRomeZone(today);
 
-  const documentPath = await fileManager.storeBytes(
-    {
-      bucket: config.delegationDocumentBucket,
-      path: config.delegationDocumentPath,
-      name: delegation.id,
-      content: pdfBuffer,
-    },
-    logger
-  );
-  logger.info(`Stored delegation document at ${documentPath}`);
-};
+  const submissionDate = dateAtRomeZone(delegation.stamps.submission.when);
+  const submissionTime = timeAtRomeZone(delegation.stamps.submission.when);
+
+  return await pdfGenerator.generate(templateFilePath, {
+    todayDate,
+    todayTime,
+    delegationId: delegation.id,
+    delegatorName: delegator.name,
+    delegatorCode: delegator.externalId.value,
+    delegateName: delegate.name,
+    delegateCode: delegate.externalId.value,
+    submitterId: delegation.stamps.submission.who,
+    eServiceName: eservice.name,
+    eServiceId: eservice.id,
+    submissionDate,
+    submissionTime,
+    activationDate: todayDate,
+    activationTime: todayTime,
+    activatorId: delegate.id,
+  });
+}

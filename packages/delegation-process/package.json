@@ -33,7 +33,8 @@
     "testcontainers": "10.9.0",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
-    "vitest": "1.6.0"
+    "vitest": "1.6.0",
+    "puppeteer": "22.11.2"
   },
   "dependencies": {
     "@zodios/core": "10.9.6",

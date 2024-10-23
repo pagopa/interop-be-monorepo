@@ -9,11 +9,9 @@ import { z } from "zod";
 
 const DelegationDocumentConfig = z
   .object({
-    DELEGATION_DOCUMENT_BUCKET: z.string(),
     DELEGATION_DOCUMENT_PATH: z.string(),
   })
   .transform((c) => ({
-    delegationDocumentBucket: c.DELEGATION_DOCUMENT_BUCKET,
     delegationDocumentPath: c.DELEGATION_DOCUMENT_PATH,
   }));
 

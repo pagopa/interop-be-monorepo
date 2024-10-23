@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 import {
   randomArrayItem,
   ReadEvent,
@@ -19,8 +20,12 @@ import {
   toReadModelEService,
   toReadModelTenant,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
-import { initPDFGenerator } from "pagopa-interop-commons";
+import { afterAll, afterEach, inject, vi } from "vitest";
+import {
+  initPDFGenerator,
+  launchPuppeteerBrowser,
+} from "pagopa-interop-commons";
+import puppeteer, { Browser } from "puppeteer";
 import { delegationProducerServiceBuilder } from "../src/services/delegationProducerService.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -47,7 +52,22 @@ export const tenants = readModelRepository.tenants;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-const pdfGenerator = await initPDFGenerator();
+const testBrowserInstance: Browser = await launchPuppeteerBrowser({
+  pipe: true,
+});
+const closeTestBrowserInstance = async (): Promise<void> =>
+  await testBrowserInstance.close();
+
+afterAll(closeTestBrowserInstance);
+afterAll(() => {
+  vi.useRealTimers();
+});
+
+vi.spyOn(puppeteer, "launch").mockImplementation(
+  async () => testBrowserInstance
+);
+
+export const pdfGenerator = await initPDFGenerator();
 
 export const delegationProducerService = delegationProducerServiceBuilder(
   postgresDB,
@@ -94,3 +114,24 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 export const addOneEservice = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
 };
+
+export function areBuffersSimilar(
+  buffer1: Buffer,
+  buffer2: Buffer,
+  threshold = 0.99
+): boolean {
+  if (buffer1.length !== buffer2.length) {
+    return false;
+  }
+
+  let matchingBytes = 0;
+
+  for (let i = 0; i < buffer1.length; i++) {
+    if (buffer1[i] === buffer2[i]) {
+      matchingBytes++;
+    }
+  }
+
+  const similarity = matchingBytes / buffer1.length;
+  return similarity >= threshold;
+}

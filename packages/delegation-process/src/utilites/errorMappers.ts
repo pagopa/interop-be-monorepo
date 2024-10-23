@@ -45,6 +45,7 @@ export const approveDelegationErrorMapper = (
 ): number =>
   match(error.code)
     .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationRestrictedToDelegate", () => HTTP_STATUS_FORBIDDEN)
     .with("incorrectState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

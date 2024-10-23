@@ -3,11 +3,14 @@ import {
   decodeProtobufPayload,
   getMockDelegationProducer,
   getMockTenant,
+  getMockEService,
 } from "pagopa-interop-commons-test/index.js";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DelegationApprovedV2,
   DelegationId,
+  EService,
+  Tenant,
   toDelegationV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -18,22 +21,45 @@ import {
   operationRestrictedToDelegate,
   incorrectState,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
+import { generatePdfDelegation } from "../src/services/pdfUtils.js";
 import {
   addOneDelegation,
+  addOneTenant,
+  addOneEservice,
   delegationProducerService,
+  fileManager,
   readLastDelegationEvent,
+  pdfGenerator,
+  areBuffersSimilar,
 } from "./utils.js";
 
 describe("approve delegation", () => {
-  it("should approve delegation if validations succed", async () => {
-    const currentExecutionTime = new Date();
+  const currentExecutionTime = new Date();
+  beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(currentExecutionTime);
+  });
 
-    const delegate = getMockTenant();
+  let delegate: Tenant;
+  let delegator: Tenant;
+  let eservice: EService;
+
+  beforeEach(async () => {
+    delegate = getMockTenant();
+    delegator = getMockTenant();
+    eservice = getMockEService();
+    await addOneTenant(delegate);
+    await addOneTenant(delegator);
+    await addOneEservice(eservice);
+  });
+
+  it("should approve delegation if validations succed", async () => {
     const delegation = getMockDelegationProducer({
       state: "WaitingForApproval",
       delegateId: delegate.id,
+      delegatorId: delegator.id,
+      eserviceId: eservice.id,
     });
     await addOneDelegation(delegation);
     const { version } = await readLastDelegationEvent(delegation.id);
@@ -84,11 +110,13 @@ describe("approve delegation", () => {
   });
 
   it("should throw operationRestrictedToDelegate when approver is not the delegate", async () => {
-    const delegate = getMockTenant();
     const wrongDelegate = getMockTenant();
+    await addOneTenant(wrongDelegate);
     const delegation = getMockDelegationProducer({
       state: "WaitingForApproval",
       delegateId: delegate.id,
+      delegatorId: delegator.id,
+      eserviceId: eservice.id,
     });
     await addOneDelegation(delegation);
 
@@ -105,10 +133,11 @@ describe("approve delegation", () => {
   });
 
   it("should throw incorrectState when delegation is not in WaitingForApproval state", async () => {
-    const delegate = getMockTenant();
     const delegation = getMockDelegationProducer({
       state: "Active",
       delegateId: delegate.id,
+      delegatorId: delegator.id,
+      eserviceId: eservice.id,
     });
     await addOneDelegation(delegation);
 
@@ -129,10 +158,11 @@ describe("approve delegation", () => {
   });
 
   it("should generete a pdf document for a delegation", async () => {
-    const delegate = getMockTenant();
     const delegation = getMockDelegationProducer({
       state: "WaitingForApproval",
       delegateId: delegate.id,
+      delegatorId: delegator.id,
+      eserviceId: eservice.id,
     });
     await addOneDelegation(delegation);
     const { version } = await readLastDelegationEvent(delegation.id);
@@ -144,5 +174,24 @@ describe("approve delegation", () => {
       "9999",
       genericLogger
     );
+
+    const actualPDF = await fileManager.get(
+      config.s3Bucket,
+      `${config.delegationDocumentPath}/${delegation.id}`,
+      genericLogger
+    );
+
+    const expectedPDF = await generatePdfDelegation(
+      currentExecutionTime,
+      delegation,
+      delegator,
+      delegate,
+      eservice,
+      pdfGenerator
+    );
+
+    // Compare the two buffers but they differs for the creation date and modification date and this is not fixable with vi timers.
+    // So we just check if the buffers are similar
+    expect(areBuffersSimilar(Buffer.from(actualPDF), expectedPDF)).toBe(true);
   });
 });
