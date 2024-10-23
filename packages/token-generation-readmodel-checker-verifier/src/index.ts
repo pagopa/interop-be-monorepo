@@ -4,7 +4,14 @@
  * the script will log the differences and exit with a non-zero exit code.
  */
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { logger } from "pagopa-interop-commons";
+import { generateId } from "pagopa-interop-models";
 import { compareTokenGenerationReadModel } from "./utils/utils.js";
 
 const dynamoDBClient = new DynamoDBClient({});
-await compareTokenGenerationReadModel(dynamoDBClient);
+const loggerInstance = logger({
+  serviceName: "token-generation-readmodel-checker-verifier",
+  correlationId: generateId(),
+});
+
+await compareTokenGenerationReadModel(dynamoDBClient, loggerInstance);

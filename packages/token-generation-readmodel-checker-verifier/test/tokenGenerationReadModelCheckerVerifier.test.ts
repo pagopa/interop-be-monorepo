@@ -170,7 +170,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(0);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
 
@@ -257,7 +257,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(2);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
 
@@ -280,7 +280,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(0);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
 
@@ -338,7 +338,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(1);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
 
@@ -369,7 +369,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(1);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
 
@@ -392,7 +392,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(0);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
   });
@@ -503,7 +503,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(0);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
 
@@ -625,7 +625,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(2);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
 
@@ -655,7 +655,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(0);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
 
@@ -712,7 +712,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(1);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
 
@@ -750,7 +750,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(1);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
 
@@ -780,7 +780,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(0);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
   });
@@ -870,7 +870,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(0);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
 
@@ -971,7 +971,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(2);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
 
@@ -1000,7 +1000,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(0);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
 
@@ -1051,7 +1051,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(1);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
 
@@ -1088,7 +1088,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(1);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
 
@@ -1117,7 +1117,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       ).toEqual(0);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
   });
@@ -1201,7 +1201,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       );
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
 
@@ -1296,7 +1296,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       );
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
 
@@ -1340,7 +1340,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       );
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
 
@@ -1353,7 +1353,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOneClient(client);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
 
@@ -1365,7 +1365,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOneClient(client);
 
       await expect(
-        compareTokenGenerationReadModel(dynamoDBClient)
+        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
   });

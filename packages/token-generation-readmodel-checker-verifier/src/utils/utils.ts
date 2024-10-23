@@ -1,6 +1,6 @@
 // TODO: remove no-console
 /* eslint-disable no-console */
-import { ReadModelRepository, logger, Logger } from "pagopa-interop-commons";
+import { ReadModelRepository, Logger } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementId,
@@ -18,7 +18,6 @@ import {
   descriptorState,
   EService,
   EServiceId,
-  generateId,
   genericInternalError,
   GSIPKClientIdPurposeId,
   GSIPKEServiceIdDescriptorId,
@@ -74,13 +73,9 @@ export function getLastEServiceDescriptor(
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
 }
 
-const loggerInstance = logger({
-  serviceName: "token-generation-readmodel-checker-verifier",
-  correlationId: generateId(),
-});
-
 export async function compareTokenGenerationReadModel(
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  loggerInstance: Logger
 ): Promise<void> {
   loggerInstance.info("Program started.\n");
   loggerInstance.info("> Connecting to database...");
