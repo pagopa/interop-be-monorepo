@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { randomUUID } from "crypto";
 import { RequestListener } from "http";
 import jwt from "jsonwebtoken";
 import request from "supertest";
@@ -15,6 +14,7 @@ import type {
   ZodiosResponseByPath,
 } from "@zodios/core";
 import { AuthData } from "pagopa-interop-commons";
+import { generateId } from "pagopa-interop-models";
 import { getMockAuthData } from "./testUtils.js";
 
 type MockedApiRequestOptions<
@@ -72,16 +72,41 @@ export function createMockedApiRequester<
         body?: unknown;
         queryParams?: unknown;
       };
+
+      const payload = {
+        iss: "dev.interop.pagopa.it",
+        aud: "dev.interop.pagopa.it/ui",
+        uid: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
+        nbf: Math.floor(Date.now() / 1000),
+        name: "Ivan",
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iat: Math.floor(Date.now() / 1000),
+        family_name: "Diana",
+        jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
+        email: "i.diana@psp.it",
+        ...authData,
+        organization: {
+          id: authData.selfcareId,
+          name: "PagoPA S.p.A.",
+          roles: [
+            {
+              partyRole: "MANAGER",
+              role: "admin",
+            },
+          ],
+          fiscal_code: "15376371009",
+          ipaCode: "5N2TR557",
+        },
+        "user-roles": authData.userRoles.join(","),
+      };
+
+      const sessionToken = jwt.sign(payload, "test-secret");
+
       const request = requester[method](resolvePathParams(path, pathParams));
 
-      const mockedJwt = jwt.sign({}, null, {
-        header: { alg: "none", typ: "JWT", ...authData },
-        algorithm: "none",
-      });
-
       request.set({
-        "X-Correlation-Id": randomUUID(),
-        Authorization: `Bearer ${mockedJwt}`,
+        "X-Correlation-Id": generateId(),
+        Authorization: `Bearer ${sessionToken}`,
       });
 
       if (queryParams) {

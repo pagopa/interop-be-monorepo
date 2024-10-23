@@ -1,5 +1,4 @@
 /* eslint-disable functional/immutable-data */
-import crypto from "crypto";
 import { generateMock } from "@anatine/zod-mock";
 import { AuthData } from "pagopa-interop-commons";
 import {
@@ -53,7 +52,6 @@ import {
   DescriptorState,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import jwt from "jsonwebtoken";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -316,7 +314,7 @@ export const getMockKey = (): Key => ({
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
   userId: generateId(),
-  userRoles: [],
+  userRoles: ["admin"],
   externalId: {
     value: "123456",
     origin: "IPA",
@@ -370,50 +368,3 @@ export const getMockTokenStatesClientPurposeEntry = (
     }),
   };
 };
-
-export function createJwtToken(): string {
-  const header = {
-    typ: "at+jwt",
-    alg: "RS256",
-    use: "sig",
-    kid: "fcd1bab9-ae4d-49ce-9252-262db866e327",
-  };
-
-  const payload = {
-    iss: "dev.interop.pagopa.it",
-    externalId: {
-      origin: "IPA",
-      value: "5N2TR557",
-    },
-    "user-roles": "admin",
-    selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
-    organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
-    aud: "dev.interop.pagopa.it/ui",
-    uid: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
-    nbf: Math.floor(Date.now() / 1000),
-    organization: {
-      id: "1962d21c-c701-4805-93f6-53a877898756",
-      name: "PagoPA S.p.A.",
-      roles: [
-        {
-          partyRole: "MANAGER",
-          role: "admin",
-        },
-      ],
-      fiscal_code: "15376371009",
-      ipaCode: "5N2TR557",
-    },
-    name: "Ivan",
-    exp: Math.floor(Date.now() / 1000) + 3600,
-    iat: Math.floor(Date.now() / 1000),
-    family_name: "Diana",
-    jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
-    email: "i.diana@psp.it",
-  };
-
-  const privateKey = crypto.generateKeyPairSync("rsa", {
-    modulusLength: 2048,
-  }).privateKey;
-
-  return jwt.sign(payload, privateKey, { algorithm: "RS256", header });
-}

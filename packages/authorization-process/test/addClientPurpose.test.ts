@@ -2,6 +2,7 @@
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockAuthData,
   getMockClient,
   getMockDescriptor,
   getMockDocument,
@@ -63,8 +64,8 @@ describe("addClientPurpose", async () => {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
-    const [, authData] = getAuthDataAndToken();
-    const mockConsumerId: TenantId = authData.organizationId;
+
+    const mockConsumerId: TenantId = generateId();
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -99,17 +100,12 @@ describe("addClientPurpose", async () => {
     //   logger: genericLogger,
     // });
 
-    const result = await mockClientRouterRequest.post({
+    await mockClientRouterRequest.post({
       path: "/clients/:clientId/purposes",
       body: { purposeId: mockPurpose.id },
       pathParams: { clientId: mockClient.id },
-      authData: {
-        ...authData,
-        userRoles: [userRoles.ADMIN_ROLE],
-      },
+      authData: getMockAuthData(mockConsumerId),
     });
-
-    console.log(JSON.stringify(result, null, 2));
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
