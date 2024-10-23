@@ -149,7 +149,6 @@ export async function compareTokenGenerationReadModel(
     tokenGenerationStatesEntries: tokenGenerationStatesClientPurposeEntries,
     readModel,
   });
-  console.log("Catalog differences: ", catalogDifferences);
   const clientDifferences = await compareReadModelClientsWithPlatformStates({
     platformStatesEntries: platformClientEntries,
     tokenGenerationStatesEntries,
@@ -166,7 +165,7 @@ export async function compareTokenGenerationReadModel(
     process.exit(1);
   }
 
-  console.log("No differences found");
+  console.info("No differences found");
 }
 
 function getIdentificationKey<T extends { PK: string } | { id: string }>(
@@ -206,6 +205,7 @@ export async function compareReadModelPurposesWithPlatformStates({
     ),
     readModelService.getAllReadModelPurposes(),
   ]);
+  console.log("zip", zipPurposeDataById(resultsA, resultsB, resultsC));
   return zipPurposeDataById(resultsA, resultsB, resultsC).filter(
     ([a, b, c]) => {
       if (a && c) {
@@ -225,11 +225,16 @@ export async function compareReadModelPurposesWithPlatformStates({
             lastPurposeVersion,
           });
 
-        if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
-          return false;
-        }
+        return !(isPlatformStatesCorrect && isTokenGenerationStatesCorrect);
+        // TODO: should a missing platform-states entry be considered an error or not?
+        // } else if (!a && c) {
+        //   const lastPurposeVersion = getLastPurposeVersion(c.versions);
+        //   return lastPurposeVersion.state !== purposeVersionState.archived;
+      } else if (!c) {
+        return true;
       }
-      return true;
+
+      return false;
     }
   );
 }
@@ -341,25 +346,26 @@ export function countPurposeDifferences(
         )} \nand purpose read-model:\n ${JSON.stringify(readModelPurpose)}`
       );
       differencesCount++;
-    } else if (!platformPurpose && readModelPurpose) {
-      const lastPurposeVersion = getLastPurposeVersion(
-        readModelPurpose.versions
-      );
-
-      if (lastPurposeVersion.state !== purposeVersionState.archived) {
-        logger.error(
-          `platform-states purpose entry not found for read model purpose:\n${JSON.stringify(
-            readModelPurpose
-          )}`
-        );
-        console.warn(
-          `platform-states purpose entry not found for read model purpose:\n${JSON.stringify(
-            readModelPurpose
-          )}`
-        );
-        differencesCount++;
-      }
     }
+    // else if (!platformPurpose && readModelPurpose) {
+    //   const lastPurposeVersion = getLastPurposeVersion(
+    //     readModelPurpose.versions
+    //   );
+
+    //   if (lastPurposeVersion.state !== purposeVersionState.archived) {
+    //     logger.error(
+    //       `platform-states purpose entry not found for read model purpose:\n${JSON.stringify(
+    //         readModelPurpose
+    //       )}`
+    //     );
+    //     console.warn(
+    //       `platform-states purpose entry not found for read model purpose:\n${JSON.stringify(
+    //         readModelPurpose
+    //       )}`
+    //     );
+    //     differencesCount++;
+    //   }
+    // }
   });
 
   return differencesCount;
@@ -406,11 +412,11 @@ export async function compareReadModelAgreementsWithPlatformStates({
             agreement: c,
           });
 
-        if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
-          return false;
-        }
+        return !(isPlatformStatesCorrect && isTokenGenerationStatesCorrect);
+      } else if (!c) {
+        return true;
       }
-      return true;
+      return false;
     }
   );
 }
@@ -527,23 +533,24 @@ export function countAgreementDifferences(
           )}`
         );
         differencesCount++;
-      } else if (
-        !platformAgreement &&
-        readModelAgreement &&
-        readModelAgreement.state !== agreementState.archived
-      ) {
-        logger.error(
-          `platform-states agreement entry not found for read model agreement:\n${JSON.stringify(
-            readModelAgreement
-          )}`
-        );
-        console.warn(
-          `platform-states agreement entry not found for read model agreement:\n${JSON.stringify(
-            readModelAgreement
-          )}`
-        );
-        differencesCount++;
       }
+      // else if (
+      //   !platformAgreement &&
+      //   readModelAgreement &&
+      //   readModelAgreement.state !== agreementState.archived
+      // ) {
+      //   logger.error(
+      //     `platform-states agreement entry not found for read model agreement:\n${JSON.stringify(
+      //       readModelAgreement
+      //     )}`
+      //   );
+      //   console.warn(
+      //     `platform-states agreement entry not found for read model agreement:\n${JSON.stringify(
+      //       readModelAgreement
+      //     )}`
+      //   );
+      //   differencesCount++;
+      // }
     }
   );
 
@@ -587,11 +594,11 @@ export async function compareReadModelClientsWithPlatformStates({
           client: c,
         });
 
-      if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
-        return false;
-      }
+      return !(isPlatformStatesCorrect && isTokenGenerationStatesCorrect);
+    } else if (!c) {
+      return true;
     }
-    return true;
+    return false;
   });
 }
 
@@ -757,7 +764,6 @@ export async function compareReadModelEServicesWithPlatformStates({
             platformCatalogEntry: a,
             descriptor,
           });
-          console.log("isPlatformStatesCorrect", isPlatformStatesCorrect);
           const isTokenGenerationStatesCorrect =
             validateCatalogTokenGenerationStates({
               platformCatalogEntry: a,
@@ -766,12 +772,12 @@ export async function compareReadModelEServicesWithPlatformStates({
               eService: c,
             });
 
-          if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
-            return false;
-          }
+          return !(isPlatformStatesCorrect && isTokenGenerationStatesCorrect);
         }
+      } else if (!c) {
+        return true;
       }
-      return true;
+      return false;
     }
   );
 }
@@ -885,24 +891,25 @@ export function countCatalogDifferences(
         )} \nand eservice read-model:\n ${JSON.stringify(readModelEService)}`
       );
       differencesCount++;
-    } else if (!platformCatalog && readModelEService) {
-      const lastEServiceDescriptor = getLastEServiceDescriptor(
-        readModelEService.descriptors
-      );
-      if (lastEServiceDescriptor.state !== descriptorState.archived) {
-        logger.error(
-          `platform-states catalog entry not found for read model eservice:\n${JSON.stringify(
-            readModelEService
-          )}`
-        );
-        console.warn(
-          `platform-states catalog entry not found for read model eservice:\n${JSON.stringify(
-            readModelEService
-          )}`
-        );
-        differencesCount++;
-      }
     }
+    // else if (!platformCatalog && readModelEService) {
+    //   const lastEServiceDescriptor = getLastEServiceDescriptor(
+    //     readModelEService.descriptors
+    //   );
+    //   if (lastEServiceDescriptor.state !== descriptorState.archived) {
+    //     logger.error(
+    //       `platform-states catalog entry not found for read model eservice:\n${JSON.stringify(
+    //         readModelEService
+    //       )}`
+    //     );
+    //     console.warn(
+    //       `platform-states catalog entry not found for read model eservice:\n${JSON.stringify(
+    //         readModelEService
+    //       )}`
+    //     );
+    //     differencesCount++;
+    //   }
+    // }
   });
 
   return differencesCount;
