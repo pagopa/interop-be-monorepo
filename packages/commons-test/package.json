@@ -38,7 +38,6 @@
     "testcontainers": "10.9.0",
     "ts-pattern": "5.2.0",
     "typescript": "5.4.5",
-    "uuid": "10.0.0",
     "vitest": "1.6.0",
     "zod": "3.23.8"
   }

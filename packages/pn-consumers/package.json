@@ -24,7 +24,6 @@
     "@types/nodemailer": "6.4.9",
     "pagopa-interop-commons-test": "workspace:*",
     "@types/uuid": "9.0.8",
-    "uuid": "10.0.0",
     "prettier": "2.8.8",
     "testcontainers": "10.9.0",
     "ts-node": "10.9.2",

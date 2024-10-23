@@ -28,7 +28,6 @@
     "testcontainers": "10.9.0",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
-    "uuid": "10.0.0",
     "vitest": "1.6.0",
     "@anatine/zod-mock": "3.13.4"
   },
