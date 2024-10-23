@@ -6,7 +6,7 @@ import {
   getMockTokenStatesClientEntry,
   getMockTokenStatesClientPurposeEntry,
   writeTokenStateClientEntry,
-  writeTokenStateClientPurposeEntry,
+  writeTokenStateEntry,
 } from "pagopa-interop-commons-test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -80,10 +80,7 @@ describe("unit tests", () => {
       const tokenClientPurposeEntry1: TokenGenerationStatesClientPurposeEntry =
         getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK1);
 
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry1,
-        dynamoDBClient
-      );
+      await writeTokenStateEntry(tokenClientPurposeEntry1, dynamoDBClient);
 
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPurposePK2)
@@ -136,10 +133,7 @@ describe("unit tests", () => {
         agreementId: undefined,
       };
 
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry,
-        dynamoDBClient
-      );
+      await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPurposePK)
       ).rejects.toThrowError(invalidTokenClientKidPurposeEntry());
@@ -162,10 +156,7 @@ describe("unit tests", () => {
         clientKind: clientKindTokenStates.consumer,
       };
 
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry,
-        dynamoDBClient
-      );
+      await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
       const key = await retrieveKey(dynamoDBClient, tokenClientKidPurposePK);
 
       const expectedKey: ConsumerKey = {
@@ -239,10 +230,7 @@ describe("unit tests", () => {
         clientKind: clientKindTokenStates.api,
       };
 
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry,
-        dynamoDBClient
-      );
+      await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPurposePK)
       ).rejects.toThrowError(
