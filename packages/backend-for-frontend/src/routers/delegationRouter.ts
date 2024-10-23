@@ -11,7 +11,10 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 import { makeApiProblem } from "../model/errors.js";
-import { getDelegationByIdErrorMapper } from "../utilities/errorMappers.js";
+import {
+  getDelegationByIdErrorMapper,
+  getDelegationsErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const delegationRouter = (
   ctx: ZodiosContext,
@@ -32,7 +35,38 @@ const delegationRouter = (
   );
 
   delegationRouter
-    .get("/delegations", async (_req, res) => res.status(501).send())
+    .get("/delegations", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const { limit, offset, states, kind, delegatedIds, delegatorIds } =
+          req.query;
+
+        const delegations = await delegationService.getDelegations(
+          {
+            limit,
+            offset,
+            states,
+            delegatorIds,
+            delegatedIds,
+            kind,
+          },
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(bffApi.CompactDelegations.parse(delegations));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getDelegationsErrorMapper,
+          ctx.logger,
+          `Error retrieving delegations`
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/delegations/:delegationId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 

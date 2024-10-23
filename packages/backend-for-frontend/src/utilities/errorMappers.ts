@@ -201,3 +201,5 @@ export const getDelegationByIdErrorMapper = (
   match(error.code)
     .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getDelegationsErrorMapper = getDelegationByIdErrorMapper;
