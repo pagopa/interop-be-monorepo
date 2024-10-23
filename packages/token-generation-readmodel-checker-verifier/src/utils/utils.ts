@@ -208,33 +208,35 @@ export async function compareReadModelPurposesWithPlatformStates({
   console.log("zip", zipPurposeDataById(resultsA, resultsB, resultsC));
   return zipPurposeDataById(resultsA, resultsB, resultsC).filter(
     ([a, b, c]) => {
-      if (a && c) {
+      if (c) {
         const purposeState = getPurposeStateFromPurposeVersions(c.versions);
         const lastPurposeVersion = getLastPurposeVersion(c.versions);
-        const isPlatformStatesCorrect = validatePurposePlatformStates({
-          platformPurposeEntry: a,
-          purpose: c,
-          purposeState,
-          lastPurposeVersion,
-        });
-        const isTokenGenerationStatesCorrect =
-          validatePurposeTokenGenerationStates({
-            tokenEntries: b,
+        if (a) {
+          const isPlatformStatesCorrect = validatePurposePlatformStates({
+            platformPurposeEntry: a,
             purpose: c,
             purposeState,
             lastPurposeVersion,
           });
 
-        return !(isPlatformStatesCorrect && isTokenGenerationStatesCorrect);
-        // TODO: should a missing platform-states entry be considered an error or not?
-        // } else if (!a && c) {
-        //   const lastPurposeVersion = getLastPurposeVersion(c.versions);
-        //   return lastPurposeVersion.state !== purposeVersionState.archived;
-      } else if (!c) {
-        return true;
-      }
+          return !isPlatformStatesCorrect;
+          // TODO: should a missing platform-states entry be considered an error or not?
+          // } else if (!a && c) {
+          //   const lastPurposeVersion = getLastPurposeVersion(c.versions);
+          //   return lastPurposeVersion.state !== purposeVersionState.archived;
+        } else if (b) {
+          const isTokenGenerationStatesCorrect =
+            validatePurposeTokenGenerationStates({
+              tokenEntries: b,
+              purpose: c,
+              purposeState,
+              lastPurposeVersion,
+            });
 
-      return false;
+          return !isTokenGenerationStatesCorrect;
+        }
+      }
+      return true;
     }
   );
 }
@@ -398,25 +400,28 @@ export async function compareReadModelAgreementsWithPlatformStates({
 
   return zipAgreementDataById(resultsA, resultsB, resultsC).filter(
     ([a, b, c]) => {
-      if (a && c) {
+      if (c) {
         const agreementState = agreementStateToItemState(c.state);
-        const isPlatformStatesCorrect = validateAgreementPlatformStates({
-          platformAgreementEntry: a,
-          agreement: c,
-          agreementState,
-        });
-        const isTokenGenerationStatesCorrect =
-          validateAgreementTokenGenerationStates({
-            tokenEntries: b,
-            agreementState,
+        if (a) {
+          const isPlatformStatesCorrect = validateAgreementPlatformStates({
+            platformAgreementEntry: a,
             agreement: c,
+            agreementState,
           });
 
-        return !(isPlatformStatesCorrect && isTokenGenerationStatesCorrect);
-      } else if (!c) {
-        return true;
+          return !isPlatformStatesCorrect;
+        } else if (b) {
+          const isTokenGenerationStatesCorrect =
+            validateAgreementTokenGenerationStates({
+              tokenEntries: b,
+              agreementState,
+              agreement: c,
+            });
+
+          return !isTokenGenerationStatesCorrect;
+        }
       }
-      return false;
+      return true;
     }
   );
 }
@@ -581,22 +586,25 @@ export async function compareReadModelClientsWithPlatformStates({
     readModelService.getAllReadModelClients(),
   ]);
   return zipClientDataById(resultsA, resultsB, resultsC).filter(([a, b, c]) => {
-    if (a && c) {
-      const isPlatformStatesCorrect = validateClientPlatformStates({
-        platformClientEntry: a,
-        client: c,
-      });
-      const isTokenGenerationStatesCorrect =
-        validateClientTokenGenerationStates({
-          tokenEntries: b,
+    if (c) {
+      if (a) {
+        const isPlatformStatesCorrect = validateClientPlatformStates({
+          platformClientEntry: a,
           client: c,
         });
 
-      return !(isPlatformStatesCorrect && isTokenGenerationStatesCorrect);
-    } else if (!c) {
-      return true;
+        return !isPlatformStatesCorrect;
+      } else if (b) {
+        const isTokenGenerationStatesCorrect =
+          validateClientTokenGenerationStates({
+            tokenEntries: b,
+            client: c,
+          });
+
+        return !isTokenGenerationStatesCorrect;
+      }
     }
-    return false;
+    return true;
   });
 }
 
@@ -745,51 +753,47 @@ export async function compareReadModelEServicesWithPlatformStates({
 
   return zipEServiceDataById(resultsA, resultsB, resultsC).filter(
     ([a, b, c]) => {
-      if (a && c) {
-        const descriptor = c.descriptors.find(
-          (d) => d.id === a.PK.split("#")[2]
-        );
-
-        if (!descriptor) {
-          throw genericInternalError(
-            `Descriptor not found in EService with id ${c.id}`
-          );
-        }
-
-        if (descriptor) {
-          const catalogState = descriptorStateToItemState(descriptor.state);
+      if (c) {
+        if (a) {
           const isPlatformStatesCorrect = validateCatalogPlatformStates({
             platformCatalogEntry: a,
-            catalogState,
-            descriptor,
+            eservice: c,
           });
+
+          return !isPlatformStatesCorrect;
+        } else if (b) {
           const isTokenGenerationStatesCorrect =
             validateCatalogTokenGenerationStates({
               tokenEntries: b,
-              catalogState,
-              descriptor,
-              eService: c,
+              eservice: c,
             });
 
-          return !(isPlatformStatesCorrect && isTokenGenerationStatesCorrect);
+          return !isTokenGenerationStatesCorrect;
         }
-      } else if (!c) {
-        return true;
       }
-      return false;
+      return true;
     }
   );
 }
 
 function validateCatalogPlatformStates({
   platformCatalogEntry,
-  catalogState,
-  descriptor,
+  eservice,
 }: {
   platformCatalogEntry: PlatformStatesCatalogEntry;
-  catalogState: ItemState;
-  descriptor: Descriptor;
+  eservice: EService;
 }): boolean {
+  const descriptor = eservice.descriptors.find(
+    (d) => d.id === platformCatalogEntry.PK.split("#")[2]
+  );
+  if (!descriptor) {
+    throw genericInternalError(
+      `Descriptor not found in EService with id ${eservice.id}`
+    );
+  }
+
+  const catalogState = descriptorStateToItemState(descriptor.state);
+
   return (
     platformCatalogEntry.state === catalogState &&
     platformCatalogEntry.descriptorVoucherLifespan ===
@@ -802,35 +806,45 @@ function validateCatalogPlatformStates({
 
 function validateCatalogTokenGenerationStates({
   tokenEntries,
-  catalogState,
-  descriptor,
-  eService,
+  eservice,
 }: {
   tokenEntries: TokenGenerationStatesClientPurposeEntry[];
-  catalogState: ItemState;
-  descriptor: Descriptor;
-  eService: EService;
+  eservice: EService;
 }): boolean {
   if (!tokenEntries || tokenEntries.length === 0) {
     return true;
   }
 
-  return tokenEntries.some(
-    (e) =>
-      // TODO: Handle consumerId if needed
-      (!e.descriptorState || e.descriptorState === catalogState) &&
-      (!e.descriptorAudience ||
-        e.descriptorAudience.every((aud) =>
-          descriptor.audience.includes(aud)
-        )) &&
-      (!e.descriptorVoucherLifespan ||
-        e.descriptorVoucherLifespan === descriptor.voucherLifespan) &&
-      (!e.GSIPK_eserviceId_descriptorId ||
-        e.GSIPK_eserviceId_descriptorId ===
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eService.id,
-            descriptorId: descriptor.id,
-          }))
+  return tokenEntries.some((e) =>
+    // TODO: where's consumerId?
+    {
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === e.GSIPK_eserviceId_descriptorId?.split("#")[1]
+      );
+      if (!descriptor) {
+        throw genericInternalError(
+          `Descriptor not found in EService with id ${eservice.id}`
+        );
+      }
+
+      const catalogState = descriptorStateToItemState(descriptor.state);
+
+      return (
+        (!e.descriptorState || e.descriptorState === catalogState) &&
+        (!e.descriptorAudience ||
+          e.descriptorAudience.every((aud) =>
+            descriptor.audience.includes(aud)
+          )) &&
+        (!e.descriptorVoucherLifespan ||
+          e.descriptorVoucherLifespan === descriptor.voucherLifespan) &&
+        (!e.GSIPK_eserviceId_descriptorId ||
+          e.GSIPK_eserviceId_descriptorId ===
+            makeGSIPKEServiceIdDescriptorId({
+              eserviceId: eservice.id,
+              descriptorId: descriptor.id,
+            }))
+      );
+    }
   );
 }
 
