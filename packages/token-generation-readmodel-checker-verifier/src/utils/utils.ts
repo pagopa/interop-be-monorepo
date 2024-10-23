@@ -407,8 +407,8 @@ export async function compareReadModelAgreementsWithPlatformStates({
         });
         const isTokenGenerationStatesCorrect =
           validateAgreementTokenGenerationStates({
-            platformAgreementEntry: a,
             tokenEntries: b,
+            agreementState,
             agreement: c,
           });
 
@@ -442,12 +442,12 @@ function validateAgreementPlatformStates({
 }
 
 function validateAgreementTokenGenerationStates({
-  platformAgreementEntry,
   tokenEntries,
+  agreementState,
   agreement,
 }: {
-  platformAgreementEntry: PlatformStatesAgreementEntry;
   tokenEntries: TokenGenerationStatesClientPurposeEntry[];
+  agreementState: ItemState;
   agreement: Agreement;
 }): boolean {
   if (!tokenEntries || tokenEntries.length === 0) {
@@ -458,8 +458,7 @@ function validateAgreementTokenGenerationStates({
     (e) =>
       e.consumerId === agreement.consumerId &&
       (!e.agreementId || e.agreementId === agreement.id) &&
-      (!e.agreementState ||
-        e.agreementState === platformAgreementEntry.state) &&
+      (!e.agreementState || e.agreementState === agreementState) &&
       (!e.GSIPK_consumerId_eserviceId ||
         e.GSIPK_consumerId_eserviceId ===
           makeGSIPKConsumerIdEServiceId({
@@ -589,7 +588,6 @@ export async function compareReadModelClientsWithPlatformStates({
       });
       const isTokenGenerationStatesCorrect =
         validateClientTokenGenerationStates({
-          platformClientEntry: a,
           tokenEntries: b,
           client: c,
         });
@@ -621,11 +619,9 @@ function validateClientPlatformStates({
 }
 
 function validateClientTokenGenerationStates({
-  platformClientEntry,
   tokenEntries,
   client,
 }: {
-  platformClientEntry: PlatformStatesClientEntry;
   tokenEntries: TokenGenerationStatesGenericEntry[] | undefined;
   client: Client;
 }): boolean {
@@ -639,9 +635,10 @@ function validateClientTokenGenerationStates({
   return tokenEntries.some(
     (e) =>
       e.PK.split("#")[1] === client.id &&
-      e.consumerId === platformClientEntry.clientConsumerId &&
-      e.clientKind === platformClientEntry.clientKind &&
-      e.GSIPK_clientId === platformClientEntry.PK.split("#")[1] &&
+      e.consumerId === client.consumerId &&
+      e.clientKind ===
+        clientKindToTokenGenerationStatesClientKind(client.kind) &&
+      e.GSIPK_clientId === client.id &&
       client.keys.some(
         (k) => k.kid === e.GSIPK_kid && k.encodedPem === e.publicKey
       ) &&
@@ -760,14 +757,16 @@ export async function compareReadModelEServicesWithPlatformStates({
         }
 
         if (descriptor) {
+          const catalogState = descriptorStateToItemState(descriptor.state);
           const isPlatformStatesCorrect = validateCatalogPlatformStates({
             platformCatalogEntry: a,
+            catalogState,
             descriptor,
           });
           const isTokenGenerationStatesCorrect =
             validateCatalogTokenGenerationStates({
-              platformCatalogEntry: a,
               tokenEntries: b,
+              catalogState,
               descriptor,
               eService: c,
             });
@@ -784,14 +783,15 @@ export async function compareReadModelEServicesWithPlatformStates({
 
 function validateCatalogPlatformStates({
   platformCatalogEntry,
+  catalogState,
   descriptor,
 }: {
   platformCatalogEntry: PlatformStatesCatalogEntry;
+  catalogState: ItemState;
   descriptor: Descriptor;
 }): boolean {
   return (
-    platformCatalogEntry.state ===
-      descriptorStateToItemState(descriptor.state) &&
+    platformCatalogEntry.state === catalogState &&
     platformCatalogEntry.descriptorVoucherLifespan ===
       descriptor.voucherLifespan &&
     platformCatalogEntry.descriptorAudience.every((aud) =>
@@ -801,13 +801,13 @@ function validateCatalogPlatformStates({
 }
 
 function validateCatalogTokenGenerationStates({
-  platformCatalogEntry,
   tokenEntries,
+  catalogState,
   descriptor,
   eService,
 }: {
-  platformCatalogEntry: PlatformStatesCatalogEntry;
   tokenEntries: TokenGenerationStatesClientPurposeEntry[];
+  catalogState: ItemState;
   descriptor: Descriptor;
   eService: EService;
 }): boolean {
@@ -818,15 +818,13 @@ function validateCatalogTokenGenerationStates({
   return tokenEntries.some(
     (e) =>
       // TODO: Handle consumerId if needed
-      (!e.descriptorState ||
-        e.descriptorState === platformCatalogEntry.state) &&
+      (!e.descriptorState || e.descriptorState === catalogState) &&
       (!e.descriptorAudience ||
         e.descriptorAudience.every((aud) =>
-          platformCatalogEntry.descriptorAudience.includes(aud)
+          descriptor.audience.includes(aud)
         )) &&
       (!e.descriptorVoucherLifespan ||
-        e.descriptorVoucherLifespan ===
-          platformCatalogEntry.descriptorVoucherLifespan) &&
+        e.descriptorVoucherLifespan === descriptor.voucherLifespan) &&
       (!e.GSIPK_eserviceId_descriptorId ||
         e.GSIPK_eserviceId_descriptorId ===
           makeGSIPKEServiceIdDescriptorId({
