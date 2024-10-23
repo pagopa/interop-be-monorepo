@@ -289,7 +289,7 @@ export const toCreateEventMaintenanceTenantPromotedToCertifier = (
 export const toCreateEventTenantDelegatedProducerFeatureAdded = (
   version: number,
   updatedTenant: Tenant,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,

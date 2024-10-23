@@ -2,7 +2,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { parse } from "csv/sync";
 import { Logger, RefreshableInteropToken, zipBy } from "pagopa-interop-commons";
-import { Tenant } from "pagopa-interop-models";
+import { Tenant, TenantFeatureCertifier } from "pagopa-interop-models";
 import {
   AnacAttributes,
   AttributeIdentifiers,
@@ -190,7 +190,7 @@ async function getAttributesIdentifiers(
 ): Promise<AnacAttributes> {
   const anacTenant: Tenant = await readModel.getTenantById(anacTenantId);
   const certifier = anacTenant.features.find(
-    (f) => f.type === "PersistentCertifier"
+    (f): f is TenantFeatureCertifier => f.type === "PersistentCertifier"
   );
 
   if (!certifier) {
