@@ -15,16 +15,12 @@ import {
   RefreshableInteropToken,
   genericLogger,
 } from "pagopa-interop-commons";
-import {
-  Tenant,
-  toReadModelAttribute,
-  toReadModelTenant,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { toReadModelAttribute, toReadModelTenant } from "pagopa-interop-models";
 import {
   setupTestContainersVitest,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
+import { generateId, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import { SftpClient } from "../src/service/sftpService.js";
 import { ReadModelQueries } from "../src/service/readmodelQueriesService.js";
@@ -91,7 +87,8 @@ describe("ANAC Certified Attributes Importer", () => {
       refreshableTokenMock,
       10,
       MOCK_ANAC_ID,
-      genericLogger
+      genericLogger,
+      generateId()
     );
 
   const refreshableInternalTokenSpy = vi
@@ -334,7 +331,8 @@ describe("ANAC Certified Attributes Importer", () => {
       refreshableTokenMock,
       1,
       MOCK_ANAC_ID,
-      genericLogger
+      genericLogger,
+      generateId()
     );
 
     expect(downloadCSVSpy).toBeCalledTimes(1);

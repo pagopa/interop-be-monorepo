@@ -2,7 +2,7 @@ import { CorrelationId } from "pagopa-interop-models";
 import { z } from "zod";
 
 export const InteropHeaders = z.object({
-  "X-Correlation-Id": z.string(),
+  "X-Correlation-Id": CorrelationId,
   Authorization: z.string(),
 });
 

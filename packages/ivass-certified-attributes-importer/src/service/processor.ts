@@ -1,8 +1,7 @@
 /* eslint-disable max-params */
 import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
-import { TenantFeatureCertifier } from "pagopa-interop-models";
+import { CorrelationId, TenantFeatureCertifier } from "pagopa-interop-models";
 import { parse } from "csv/sync";
-import { v4 as uuidv4 } from "uuid";
 import {
   AttributeIdentifiers,
   BatchParseResult,
@@ -22,7 +21,8 @@ export async function importAttributes(
   refreshableToken: RefreshableInteropToken,
   recordsBatchSize: number,
   ivassTenantId: string,
-  logger: Logger
+  logger: Logger,
+  correlationId: CorrelationId
 ): Promise<void> {
   logger.info("IVASS Certified attributes importer started");
 
@@ -40,7 +40,8 @@ export async function importAttributes(
     attributes,
     fileContent,
     recordsBatchSize,
-    logger
+    logger,
+    correlationId
   );
 
   await unassignAttributes(
@@ -49,7 +50,8 @@ export async function importAttributes(
     refreshableToken,
     allOrgsInFile,
     attributes,
-    logger
+    logger,
+    correlationId
   );
 
   logger.info("IVASS Certified attributes importer completed");
@@ -62,7 +64,8 @@ async function assignAttributes(
   attributes: IvassAttributes,
   fileContent: string,
   batchSize: number,
-  logger: Logger
+  logger: Logger,
+  correlationId: CorrelationId
 ): Promise<string[]> {
   // eslint-disable-next-line functional/no-let
   let scanComplete = false;
@@ -101,7 +104,8 @@ async function assignAttributes(
             refreshableToken,
             tenant,
             attributes.ivassInsurances,
-            logger
+            logger,
+            correlationId
           );
         })
       );
@@ -130,7 +134,8 @@ async function unassignAttributes(
   refreshableToken: RefreshableInteropToken,
   allOrgsInFile: string[],
   attributes: IvassAttributes,
-  logger: Logger
+  logger: Logger,
+  correlationId: CorrelationId
 ): Promise<void> {
   logger.info("Revoking attributes...");
 
@@ -146,7 +151,8 @@ async function unassignAttributes(
           refreshableToken,
           tenant,
           attributes.ivassInsurances,
-          logger
+          logger,
+          correlationId
         );
       })
   );
@@ -192,14 +198,15 @@ async function assignAttribute(
   refreshableToken: RefreshableInteropToken,
   tenant: PersistentTenant,
   attribute: AttributeIdentifiers,
-  logger: Logger
+  logger: Logger,
+  correlationId: CorrelationId
 ): Promise<void> {
   if (!tenantContainsAttribute(tenant, attribute.id)) {
     logger.info(`Assigning attribute ${attribute.id} to tenant ${tenant.id}`);
 
     const token = await refreshableToken.get();
     const context: InteropContext = {
-      correlationId: uuidv4(),
+      correlationId,
       bearerToken: token.serialized,
     };
     await tenantProcess.internalAssignCertifiedAttribute(
@@ -218,14 +225,15 @@ async function unassignAttribute(
   refreshableToken: RefreshableInteropToken,
   tenant: PersistentTenant,
   attribute: AttributeIdentifiers,
-  logger: Logger
+  logger: Logger,
+  correlationId: CorrelationId
 ): Promise<void> {
   if (tenantContainsAttribute(tenant, attribute.id)) {
     logger.info(`Revoking attribute ${attribute.id} to tenant ${tenant.id}`);
 
     const token = await refreshableToken.get();
     const context: InteropContext = {
-      correlationId: uuidv4(),
+      correlationId,
       bearerToken: token.serialized,
     };
     await tenantProcess.internalRevokeCertifiedAttribute(

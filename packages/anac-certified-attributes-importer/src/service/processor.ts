@@ -1,7 +1,7 @@
 /* eslint-disable max-params */
-import { v4 as uuidv4 } from "uuid";
 import { parse } from "csv/sync";
 import { Logger, RefreshableInteropToken, zipBy } from "pagopa-interop-commons";
+import { CorrelationId } from "pagopa-interop-models";
 import {
   AnacAttributes,
   AttributeIdentifiers,
@@ -25,7 +25,8 @@ export async function importAttributes(
   refreshableToken: RefreshableInteropToken,
   recordsBatchSize: number,
   anacTenantId: string,
-  logger: Logger
+  logger: Logger,
+  correlationId: CorrelationId
 ): Promise<void> {
   logger.info("ANAC Certified attributes importer started");
 
@@ -43,7 +44,8 @@ export async function importAttributes(
     fileContent,
     attributes,
     recordsBatchSize,
-    logger
+    logger,
+    correlationId
   );
 
   if (allOrgsInFile.length === 0) {
@@ -56,7 +58,8 @@ export async function importAttributes(
     refreshableToken,
     allOrgsInFile,
     attributes,
-    logger
+    logger,
+    correlationId
   );
 
   logger.info("ANAC Certified attributes importer completed");
@@ -69,7 +72,8 @@ async function processFileContent(
   fileContent: string,
   attributes: AnacAttributes,
   recordsBatchSize: number,
-  logger: Logger
+  logger: Logger,
+  correlationId: CorrelationId
 ): Promise<string[]> {
   const batchSize = recordsBatchSize;
 
@@ -77,7 +81,8 @@ async function processFileContent(
     tenantProcess,
     refreshableToken,
     attributes,
-    logger
+    logger,
+    correlationId
   );
 
   // eslint-disable-next-line functional/no-let
@@ -144,7 +149,8 @@ async function unassignMissingOrgsAttributes(
   refreshableToken: RefreshableInteropToken,
   allOrgsInFile: string[],
   attributes: AnacAttributes,
-  logger: Logger
+  logger: Logger,
+  correlationId: CorrelationId
 ) {
   logger.info("Revoking attributes for organizations not in file...");
 
@@ -162,21 +168,24 @@ async function unassignMissingOrgsAttributes(
           refreshableToken,
           tenant,
           attributes.anacAbilitato,
-          logger
+          logger,
+          correlationId
         );
         await unassignAttribute(
           tenantProcess,
           refreshableToken,
           tenant,
           attributes.anacInConvalida,
-          logger
+          logger,
+          correlationId
         );
         await unassignAttribute(
           tenantProcess,
           refreshableToken,
           tenant,
           attributes.anacIncaricato,
-          logger
+          logger,
+          correlationId
         );
       })
   );
@@ -241,7 +250,8 @@ const prepareTenantsProcessor = (
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
   attributes: AnacAttributes,
-  logger: Logger
+  logger: Logger,
+  correlationId: CorrelationId
 ) =>
   async function processTenants<T extends CsvRow>(
     orgs: T[],
@@ -277,7 +287,8 @@ const prepareTenantsProcessor = (
             refreshableToken,
             tenant,
             attributes.anacAbilitato,
-            logger
+            logger,
+            correlationId
           );
         } else {
           await unassignAttribute(
@@ -285,7 +296,8 @@ const prepareTenantsProcessor = (
             refreshableToken,
             tenant,
             attributes.anacAbilitato,
-            logger
+            logger,
+            correlationId
           );
         }
 
@@ -295,7 +307,8 @@ const prepareTenantsProcessor = (
             refreshableToken,
             tenant,
             attributes.anacInConvalida,
-            logger
+            logger,
+            correlationId
           );
         } else {
           await unassignAttribute(
@@ -303,7 +316,8 @@ const prepareTenantsProcessor = (
             refreshableToken,
             tenant,
             attributes.anacInConvalida,
-            logger
+            logger,
+            correlationId
           );
         }
 
@@ -313,7 +327,8 @@ const prepareTenantsProcessor = (
             refreshableToken,
             tenant,
             attributes.anacIncaricato,
-            logger
+            logger,
+            correlationId
           );
         } else {
           await unassignAttribute(
@@ -321,7 +336,8 @@ const prepareTenantsProcessor = (
             refreshableToken,
             tenant,
             attributes.anacIncaricato,
-            logger
+            logger,
+            correlationId
           );
         }
       })
@@ -333,14 +349,15 @@ async function assignAttribute(
   refreshableToken: RefreshableInteropToken,
   tenant: PersistentTenant,
   attribute: AttributeIdentifiers,
-  logger: Logger
+  logger: Logger,
+  correlationId: CorrelationId
 ): Promise<void> {
   if (!tenantContainsAttribute(tenant, attribute.id)) {
     logger.info(`Assigning attribute ${attribute.id} to tenant ${tenant.id}`);
 
     const token = await refreshableToken.get();
     const context: InteropContext = {
-      correlationId: uuidv4(),
+      correlationId,
       bearerToken: token.serialized,
     };
     await tenantProcess.internalAssignCertifiedAttribute(
@@ -359,14 +376,15 @@ async function unassignAttribute(
   refreshableToken: RefreshableInteropToken,
   tenant: PersistentTenant,
   attribute: AttributeIdentifiers,
-  logger: Logger
+  logger: Logger,
+  correlationId: CorrelationId
 ): Promise<void> {
   if (tenantContainsAttribute(tenant, attribute.id)) {
     logger.info(`Revoking attribute ${attribute.id} to tenant ${tenant.id}`);
 
     const token = await refreshableToken.get();
     const context: InteropContext = {
-      correlationId: uuidv4(),
+      correlationId,
       bearerToken: token.serialized,
     };
     await tenantProcess.internalRevokeCertifiedAttribute(
