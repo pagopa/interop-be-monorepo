@@ -182,8 +182,8 @@ describe("IVASS Certified Attributes Importer", async () => {
     expect(getIVASSTenantsSpy).toBeCalledTimes(1);
     expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
 
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
-    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(1);
+    expect(refreshableInternalTokenSpy).toBeCalledTimes(2);
+    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(2);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
 
@@ -248,8 +248,8 @@ describe("IVASS Certified Attributes Importer", async () => {
     expect(getIVASSTenantsSpy).toBeCalledTimes(1);
     expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
 
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(2);
-    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(2);
+    expect(refreshableInternalTokenSpy).toBeCalledTimes(3);
+    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(3);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
 
@@ -431,8 +431,8 @@ describe("IVASS Certified Attributes Importer", async () => {
     expect(getIVASSTenantsSpy).toBeCalledTimes(1);
     expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
 
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
-    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(1);
+    expect(refreshableInternalTokenSpy).toBeCalledTimes(2);
+    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(2);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
 
