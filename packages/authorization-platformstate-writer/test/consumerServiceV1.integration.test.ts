@@ -28,6 +28,7 @@ import {
   getMockDescriptor,
   writeCatalogEntry,
   getMockKey,
+  writeTokenStateEntry,
 } from "pagopa-interop-commons-test";
 import {
   AuthorizationEventEnvelope,
@@ -71,7 +72,6 @@ import {
   readClientEntry,
   writeClientEntry,
   writeTokenStateClientEntry,
-  writeTokenStateClientPurposeEntry,
 } from "../src/utils.js";
 import { config } from "./utils.js";
 
@@ -553,14 +553,8 @@ describe("integration tests V1 events", async () => {
           GSIPK_clientId_purposeId: gsiPKClientIdPurposeId2,
           GSIPK_purposeId: purpose2.id,
         };
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry1,
-        dynamoDBClient
-      );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry2,
-        dynamoDBClient
-      );
+      await writeTokenStateEntry(tokenClientPurposeEntry1, dynamoDBClient);
+      await writeTokenStateEntry(tokenClientPurposeEntry2, dynamoDBClient);
 
       await handleMessageV1(message, dynamoDBClient);
 
@@ -879,22 +873,10 @@ describe("integration tests V1 events", async () => {
           GSIPK_clientId_purposeId: gsiPKClientIdPurposeId4,
           GSIPK_purposeId: purpose2.id,
         };
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry1,
-        dynamoDBClient
-      );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry2,
-        dynamoDBClient
-      );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry3,
-        dynamoDBClient
-      );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry4,
-        dynamoDBClient
-      );
+      await writeTokenStateEntry(tokenClientPurposeEntry1, dynamoDBClient);
+      await writeTokenStateEntry(tokenClientPurposeEntry2, dynamoDBClient);
+      await writeTokenStateEntry(tokenClientPurposeEntry3, dynamoDBClient);
+      await writeTokenStateEntry(tokenClientPurposeEntry4, dynamoDBClient);
 
       await handleMessageV1(message, dynamoDBClient);
 
@@ -1304,11 +1286,11 @@ describe("integration tests V1 events", async () => {
           GSIPK_clientId: client.id,
         };
 
-      await writeTokenStateClientPurposeEntry(
+      await writeTokenStateEntry(
         tokenClientPurposeEntryWithKid,
         dynamoDBClient
       );
-      await writeTokenStateClientPurposeEntry(
+      await writeTokenStateEntry(
         tokenClientPurposeEntryWithOtherKid,
         dynamoDBClient
       );
@@ -1399,7 +1381,7 @@ describe("integration tests V1 events", async () => {
         GSIPK_kid: makeGSIPKKid(otherKid),
       };
 
-      await writeTokenStateClientPurposeEntry(
+      await writeTokenStateEntry(
         tokenClientPurposeEntryWithKid,
         dynamoDBClient
       );
@@ -1614,10 +1596,7 @@ describe("integration tests V1 events", async () => {
         getMockTokenStatesClientPurposeEntry();
       const tokenClientEntry: TokenGenerationStatesClientEntry =
         getMockTokenStatesClientEntry();
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry,
-        dynamoDBClient
-      );
+      await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
       await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
 
       await handleMessageV1(message, dynamoDBClient);
@@ -1763,7 +1742,7 @@ describe("integration tests V1 events", async () => {
 
       await writeTokenStateClientEntry(tokenClientEntry1, dynamoDBClient);
       await writeTokenStateClientEntry(tokenClientEntry2, dynamoDBClient);
-      await writeTokenStateClientPurposeEntry(
+      await writeTokenStateEntry(
         tokenClientPurposeEntryWithOtherClient,
         dynamoDBClient
       );
@@ -2026,14 +2005,8 @@ describe("integration tests V1 events", async () => {
         };
       const tokenClientEntryWithOtherClient = getMockTokenStatesClientEntry();
 
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry1,
-        dynamoDBClient
-      );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry2,
-        dynamoDBClient
-      );
+      await writeTokenStateEntry(tokenClientPurposeEntry1, dynamoDBClient);
+      await writeTokenStateEntry(tokenClientPurposeEntry2, dynamoDBClient);
       await writeTokenStateClientEntry(
         tokenClientEntryWithOtherClient,
         dynamoDBClient
@@ -2329,22 +2302,10 @@ describe("integration tests V1 events", async () => {
         };
       const tokenClientEntryWithOtherClient = getMockTokenStatesClientEntry();
 
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry1,
-        dynamoDBClient
-      );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry2,
-        dynamoDBClient
-      );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry3,
-        dynamoDBClient
-      );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry4,
-        dynamoDBClient
-      );
+      await writeTokenStateEntry(tokenClientPurposeEntry1, dynamoDBClient);
+      await writeTokenStateEntry(tokenClientPurposeEntry2, dynamoDBClient);
+      await writeTokenStateEntry(tokenClientPurposeEntry3, dynamoDBClient);
+      await writeTokenStateEntry(tokenClientPurposeEntry4, dynamoDBClient);
       await writeTokenStateClientEntry(
         tokenClientEntryWithOtherClient,
         dynamoDBClient
@@ -2631,14 +2592,8 @@ describe("integration tests V1 events", async () => {
         };
 
       await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry1,
-        dynamoDBClient
-      );
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry2,
-        dynamoDBClient
-      );
+      await writeTokenStateEntry(tokenClientPurposeEntry1, dynamoDBClient);
+      await writeTokenStateEntry(tokenClientPurposeEntry2, dynamoDBClient);
 
       await handleMessageV1(message, dynamoDBClient);
 
@@ -2725,10 +2680,7 @@ describe("integration tests V1 events", async () => {
       };
 
       await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
-      await writeTokenStateClientPurposeEntry(
-        tokenClientPurposeEntry,
-        dynamoDBClient
-      );
+      await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
 
       await handleMessageV1(message, dynamoDBClient);
 
@@ -2835,11 +2787,8 @@ describe("integration tests V1 events", async () => {
           GSIPK_clientId: otherClientId,
         };
 
-      await writeTokenStateClientPurposeEntry(
-        clientPurposeTokenStateEntry,
-        dynamoDBClient
-      );
-      await writeTokenStateClientPurposeEntry(
+      await writeTokenStateEntry(clientPurposeTokenStateEntry, dynamoDBClient);
+      await writeTokenStateEntry(
         otherClientPurposeTokenStateEntry,
         dynamoDBClient
       );
