@@ -280,12 +280,6 @@ describe("unit tests", () => {
     });
   });
 
-  describe("generateInteropToken", () => {
-    it("should generate a consumer token", () => {});
-    it("should generate an api token", () => {});
-    it("should throw tokenSigningFailed if the KMS signing operation fails", () => {});
-  });
-
   describe("fallbackAudit", () => {
     it("should write the audit message to the file storage", async () => {
       const mockAuditMessage = getMockAuditMessage();

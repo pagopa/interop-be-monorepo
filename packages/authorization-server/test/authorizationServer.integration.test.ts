@@ -44,7 +44,6 @@ import {
   keyTypeMismatch,
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
-  tokenSigningFailed,
 } from "../src/model/domain/errors.js";
 import {
   configTokenGenerationStates,
@@ -442,7 +441,9 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(tokenSigningFailed(uuid));
+    ).rejects.toThrowError(
+      Error("JWT Signature failed. Empty signature returned")
+    );
   });
 
   it("should throw tokenSigningFailed - api key", async () => {
@@ -482,7 +483,9 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(tokenSigningFailed(uuid));
+    ).rejects.toThrowError(
+      Error("JWT Signature failed. Empty signature returned")
+    );
   });
 
   it("should throw fallbackAuditFailed - consumer key - kafka audit failed and fallback audit failed", async () => {
@@ -535,7 +538,7 @@ describe("authorization server tests", () => {
   });
 
   it("should succeed - consumer key - kafka audit failed and fallback audit succeeded", async () => {
-    mockProducer.send.mockImplementationOnce(async () => Promise.reject());
+    mockProducer.send.mockImplementation(async () => Promise.reject());
 
     const purposeId = generateId<PurposeId>();
     const clientId = generateId<ClientId>();
@@ -656,6 +659,10 @@ describe("authorization server tests", () => {
       rateInterval: config.rateLimiterRateInterval,
       remainingRequests: config.rateLimiterMaxRequests - 1,
     });
+    // const generatedToken = response.token as InteropJwtHeader;
+    // console.log(generatedToken);
+    // const expectedTokenHeader: InteropJwtHeader = {};
+    // expect(generatedToken.header).toEqual(expectedTokenHeader);
   });
 
   it("should succeed - consumer key - kafka audit succeeded", async () => {

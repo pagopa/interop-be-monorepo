@@ -22,6 +22,7 @@ import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import * as jose from "jose";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
+import { InteropTokenGenerator } from "pagopa-interop-commons";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
 
 export const configTokenGenerationStates = inject(
@@ -54,9 +55,20 @@ export const mockKMSClient = {
   send: vi.fn(),
 };
 
+const tokenGenerator = new InteropTokenGenerator(
+  {
+    generatedInteropTokenKid: "test",
+    generatedInteropTokenIssuer: "test",
+    generatedInteropTokenM2MAudience: "M2Maudience",
+    generatedInteropTokenM2MDurationSeconds: 300,
+    generatedInteropTokenAlgorithm: "RS256",
+  },
+  mockKMSClient as unknown as KMSClient
+);
+
 export const tokenService = tokenServiceBuilder({
+  tokenGenerator,
   dynamoDBClient,
-  kmsClient: mockKMSClient as unknown as KMSClient,
   redisRateLimiter,
   producer: mockProducer as unknown as Awaited<ReturnType<typeof initProducer>>,
   fileManager,

@@ -1,6 +1,7 @@
 import {
   initFileManager,
   initRedisRateLimiter,
+  InteropTokenGenerator,
   logger,
   LoggerMetadata,
   rateLimiterHeadersFromStatus,
@@ -11,17 +12,16 @@ import { FastifyInstance } from "fastify";
 import { generateId, tooManyRequestsError } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import { makeApiProblem } from ".././model/domain/errors.js";
 import { authorizationServerErrorMapper } from ".././utilities/errorMappers.js";
 import { tokenServiceBuilder } from ".././services/tokenService.js";
 import { config } from ".././config/config.js";
+import { InteropTokenResponse } from "../model/domain/models.js";
 
 // const serviceName = "authorization-server";
 
 const dynamoDBClient = new DynamoDBClient({});
-const kmsClient = new KMSClient({});
 const redisRateLimiter = await initRedisRateLimiter({
   // TODO add limiter group
   limiterGroup: "TODO",
@@ -40,10 +40,17 @@ const fileManager = initFileManager(config);
 const fastifyServer: FastifyInstance = Fastify();
 await fastifyServer.register(fastifyFormbody);
 
-// TODO: temporary export for tests
+const tokenGenerator = new InteropTokenGenerator({
+  generatedInteropTokenKid: config.generatedInteropTokenKid,
+  generatedInteropTokenIssuer: config.generatedInteropTokenIssuer,
+  generatedInteropTokenM2MAudience: config.generatedInteropTokenM2MAudience,
+  generatedInteropTokenM2MDurationSeconds:
+    config.generatedInteropTokenM2MDurationSeconds,
+});
+
 const tokenService = tokenServiceBuilder({
+  tokenGenerator,
   dynamoDBClient,
-  kmsClient,
   redisRateLimiter,
   producer,
   fileManager,
@@ -88,7 +95,7 @@ fastifyServer.post(
         access_token: res.token.serialized,
         token_type: "Bearer",
         expires_in: res.token.payload.exp,
-      });
+      } satisfies InteropTokenResponse);
     } catch (err) {
       const errorRes = makeApiProblem(
         err,
