@@ -3,33 +3,47 @@
 import { ReadModelRepository, logger, Logger } from "pagopa-interop-commons";
 import {
   Agreement,
+  AgreementId,
   agreementState,
   AgreementState,
   Client,
+  ClientId,
   clientKind,
   ClientKind,
   ClientKindTokenStates,
   clientKindTokenStates,
   Descriptor,
+  DescriptorId,
   DescriptorState,
   descriptorState,
   EService,
+  EServiceId,
   generateId,
   genericInternalError,
+  GSIPKClientIdPurposeId,
+  GSIPKEServiceIdDescriptorId,
   itemState,
   ItemState,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
   PlatformStatesAgreementEntry,
+  PlatformStatesAgreementPK,
   PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
+  PlatformStatesClientPK,
+  PlatformStatesEServiceDescriptorPK,
   PlatformStatesGenericEntry,
   PlatformStatesPurposeEntry,
+  PlatformStatesPurposePK,
   Purpose,
+  PurposeId,
   PurposeVersion,
   purposeVersionState,
+  TokenGenerationStatesClientKidPK,
+  TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientPurposeEntry,
   TokenGenerationStatesGenericEntry,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
@@ -173,7 +187,7 @@ function getIdentificationKey<T extends { PK: string } | { id: string }>(
 ): string {
   if ("PK" in obj) {
     // TODO: make extract functions
-    return obj.PK.split("#")[1];
+    return unsafeBrandId(obj.PK.split("#")[1]);
   } else {
     return obj.id;
   }
@@ -253,7 +267,8 @@ function validatePurposePlatformStates({
   lastPurposeVersion: PurposeVersion;
 }): boolean {
   return (
-    platformPurposeEntry.PK.split("#")[1] === purpose.id &&
+    extractIdFromPlatformStatesPK<PurposeId>(platformPurposeEntry.PK).id ===
+      purpose.id &&
     purposeState === platformPurposeEntry.state &&
     platformPurposeEntry.purposeConsumerId === purpose.consumerId &&
     platformPurposeEntry.purposeEserviceId === purpose.eserviceId &&
@@ -278,13 +293,14 @@ function validatePurposeTokenGenerationStates({
 
   return tokenEntries.some(
     (e) =>
-      e.PK.split("#")[3] === purpose.id &&
+      extractIdsFromTokenGenerationStatesPK(e.PK).purposeId === purpose.id &&
       e.consumerId === purpose.consumerId &&
       (!e.GSIPK_purposeId || e.GSIPK_purposeId === purpose.id) &&
       (!e.purposeState || e.purposeState === purposeState) &&
       (!e.purposeVersionId || e.purposeVersionId === lastPurposeVersion.id) &&
       (!e.GSIPK_clientId_purposeId ||
-        e.GSIPK_clientId_purposeId.split("#")[1] === purpose.id)
+        extractIdsFromGSIPKClientIdPurposeId(e.GSIPK_clientId_purposeId)
+          .purposeId === purpose.id)
   );
 }
 
@@ -307,7 +323,8 @@ export function zipPurposeDataById(
       (d: PlatformStatesPurposeEntry) => getIdentificationKey(d) === id
     ),
     dataB.filter(
-      (d: TokenGenerationStatesClientPurposeEntry) => d.PK.split("#")[3] === id
+      (d: TokenGenerationStatesClientPurposeEntry) =>
+        extractIdsFromTokenGenerationStatesPK(d.PK).purposeId === id
     ),
     dataC.find((d: Purpose) => getIdentificationKey(d) === id),
   ]);
@@ -616,7 +633,8 @@ function validateClientPlatformStates({
   client: Client;
 }): boolean {
   return (
-    platformClientEntry.PK.split("#")[1] === client.id &&
+    extractIdFromPlatformStatesPK<ClientId>(platformClientEntry.PK).id ===
+      client.id &&
     platformClientEntry.clientKind ===
       clientKindToTokenGenerationStatesClientKind(client.kind) &&
     platformClientEntry.clientConsumerId === client.consumerId &&
@@ -642,7 +660,7 @@ function validateClientTokenGenerationStates({
 
   return tokenEntries.some(
     (e) =>
-      e.PK.split("#")[1] === client.id &&
+      extractIdsFromTokenGenerationStatesPK(e.PK).clientId === client.id &&
       e.consumerId === client.consumerId &&
       e.clientKind ===
         clientKindToTokenGenerationStatesClientKind(client.kind) &&
@@ -653,9 +671,9 @@ function validateClientTokenGenerationStates({
       // TODO: should missing optional fields be considered correct or not?
       (parsedTokenClientPurposeEntry.success
         ? parsedTokenClientPurposeEntry.data.GSIPK_clientId_purposeId
-          ? parsedTokenClientPurposeEntry.data.GSIPK_clientId_purposeId.split(
-              "#"
-            )[0] === client.id
+          ? extractIdsFromGSIPKClientIdPurposeId(
+              parsedTokenClientPurposeEntry.data.GSIPK_clientId_purposeId
+            ).clientId === client.id
           : true
         : false)
   );
@@ -784,7 +802,10 @@ function validateCatalogPlatformStates({
   eservice: EService;
 }): boolean {
   const descriptor = eservice.descriptors.find(
-    (d) => d.id === platformCatalogEntry.PK.split("#")[2]
+    (d) =>
+      d.id ===
+      extractIdFromPlatformStatesPK<ClientId>(platformCatalogEntry.PK)
+        .descriptorId
   );
   if (!descriptor) {
     throw genericInternalError(
@@ -819,7 +840,11 @@ function validateCatalogTokenGenerationStates({
     // TODO: where's consumerId?
     {
       const descriptor = eservice.descriptors.find(
-        (d) => d.id === e.GSIPK_eserviceId_descriptorId?.split("#")[1]
+        (d) =>
+          d.id ===
+          extractIdsFromGSIPKEServiceIdDescriptorId(
+            e.GSIPK_eserviceId_descriptorId
+          )?.descriptorId
       );
       if (!descriptor) {
         throw genericInternalError(
@@ -868,7 +893,9 @@ export function zipEServiceDataById(
     ),
     dataB.filter(
       (d: TokenGenerationStatesClientPurposeEntry) =>
-        d.GSIPK_eserviceId_descriptorId?.split("#")[0] === id
+        extractIdsFromGSIPKEServiceIdDescriptorId(
+          d.GSIPK_eserviceId_descriptorId
+        )?.eserviceId === id
     ),
     dataC.find((d: EService) => getIdentificationKey(d) === id),
   ]);
@@ -925,6 +952,73 @@ export function countCatalogDifferences(
   });
 
   return differencesCount;
+}
+
+function extractIdFromPlatformStatesPK<
+  T extends PurposeId | AgreementId | ClientId | EServiceId
+>(
+  pk:
+    | PlatformStatesPurposePK
+    | PlatformStatesAgreementPK
+    | PlatformStatesClientPK
+    | PlatformStatesEServiceDescriptorPK
+): {
+  id: T;
+  descriptorId?: DescriptorId;
+} {
+  const splitPK = pk.split("#");
+  if (PlatformStatesEServiceDescriptorPK.safeParse(pk).success) {
+    return {
+      id: unsafeBrandId<T>(splitPK[1]),
+      descriptorId: unsafeBrandId<DescriptorId>(splitPK[2]),
+    };
+  }
+  return { id: unsafeBrandId<T>(splitPK[1]) };
+}
+
+function extractIdsFromTokenGenerationStatesPK(
+  pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
+): {
+  clientId: ClientId;
+  kid: string;
+  purposeId?: PurposeId;
+} {
+  const splitPK = pk.split("#");
+  return {
+    clientId: unsafeBrandId<ClientId>(splitPK[1]),
+    kid: splitPK[2],
+    purposeId: unsafeBrandId<PurposeId>(splitPK[3]),
+  };
+}
+
+function extractIdsFromGSIPKClientIdPurposeId(gsipk: GSIPKClientIdPurposeId): {
+  clientId: ClientId;
+  purposeId: PurposeId;
+} {
+  const splitPK = gsipk.split("#");
+  return {
+    clientId: unsafeBrandId<ClientId>(splitPK[0]),
+    purposeId: unsafeBrandId<PurposeId>(splitPK[1]),
+  };
+}
+
+function extractIdsFromGSIPKEServiceIdDescriptorId(
+  gsipk?: GSIPKEServiceIdDescriptorId
+):
+  | {
+      eserviceId: EServiceId;
+      descriptorId: DescriptorId;
+    }
+  | undefined {
+  if (!gsipk) {
+    return undefined;
+  }
+
+  const splitPK = gsipk.split("#");
+  return {
+    eserviceId: unsafeBrandId<EServiceId>(splitPK[0]),
+    descriptorId: unsafeBrandId<DescriptorId>(splitPK[1]),
+  };
 }
 
 // TODO: copied
