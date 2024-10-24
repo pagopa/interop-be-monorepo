@@ -52,14 +52,6 @@ describe("addProducerKeychainEService", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-    await authorizationService.addProducerKeychainEService({
-      producerKeychainId: mockProducerKeychain.id,
-      seed: { eserviceId: mockEService.id },
-      organizationId: mockProducerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
-
     await mockProducerKeyChainRouterRequest.post({
       path: "/producerKeychains/:producerKeychainId/eservices",
       body: { eserviceId: mockEService.id },
