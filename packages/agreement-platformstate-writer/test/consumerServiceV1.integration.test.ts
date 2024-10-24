@@ -1665,12 +1665,6 @@ describe("integration tests V1 events", async () => {
     });
   });
 
-  describe("AgreementUpgraded", async () => {
-    it("test", () => {
-      expect(2).toBe(2);
-    });
-  });
-
   describe("Agreement Updated (archived by consumer or by upgrade)", () => {
     it("agreement is the latest (includes operation on token states)", async () => {
       const sixHoursAgo = new Date();

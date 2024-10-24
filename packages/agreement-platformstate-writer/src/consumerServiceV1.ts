@@ -11,6 +11,7 @@ import {
   makePlatformStatesEServiceDescriptorPK,
   PlatformStatesAgreementEntry,
   agreementState,
+  PlatformStatesCatalogEntry,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
@@ -311,7 +312,9 @@ const handleUpgrade = async (
     await writeAgreementEntry(newAgreementEntry, dynamoDBClient);
   }
 
-  const doOperationOnTokenStates = async (): Promise<void> => {
+  const updateLatestAgreementOnTokenStates = async (
+    catalogEntry: PlatformStatesCatalogEntry
+  ): Promise<void> => {
     if (
       await isAgreementTheLatest(
         GSIPK_consumerId_eserviceId,
@@ -335,7 +338,7 @@ const handleUpgrade = async (
     }
   };
 
-  await doOperationOnTokenStates();
+  await updateLatestAgreementOnTokenStates(catalogEntry);
 
   const secondRetrievalCatalogEntry = await readCatalogEntry(
     pkCatalogEntry,
@@ -346,6 +349,6 @@ const handleUpgrade = async (
     throw genericInternalError("Catalog entry not found");
   }
   if (secondRetrievalCatalogEntry.state !== catalogEntry.state) {
-    await doOperationOnTokenStates();
+    await updateLatestAgreementOnTokenStates(secondRetrievalCatalogEntry);
   }
 };
