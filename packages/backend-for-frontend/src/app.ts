@@ -6,6 +6,7 @@ import {
   zodiosCtx,
   initRedisRateLimiter,
   rateLimiterMiddleware,
+  buildJwksClients,
 } from "pagopa-interop-commons";
 import express from "express";
 import { config } from "./config/config.js";
@@ -37,6 +38,8 @@ const clients = getInteropBeClients();
 
 const app = zodiosCtx.app();
 
+const jwksClients = buildJwksClients(config);
+
 const redisRateLimiter = await initRedisRateLimiter({
   limiterGroup: "BFF",
   maxRequests: config.rateLimiterMaxRequests,
@@ -66,8 +69,14 @@ app.use(
   `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}`,
   healthRouter,
   contextMiddleware(serviceName, false),
-  authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter),
-  authenticationMiddleware(config),
+  authorizationRouter(
+    zodiosCtx,
+    clients,
+    allowList,
+    redisRateLimiter,
+    jwksClients
+  ),
+  app.use(authenticationMiddleware(config, jwksClients)),
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
   catalogRouter(zodiosCtx, clients, fileManager),

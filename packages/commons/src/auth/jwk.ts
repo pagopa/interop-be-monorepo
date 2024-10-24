@@ -67,14 +67,14 @@ export function sortJWK(jwk: JsonWebKey): JsonWebKey {
     );
 }
 
-export function getJwksClients(config: JWTConfig): JwksClient[] {
+export function buildJwksClients(config: JWTConfig): JwksClient[] {
   return config.wellKnownUrls.map((url) =>
     jwksClient({
       cache: true,
       rateLimit: true,
       jwksUri: url,
-      /* If JWKS_CACHE_MAX_AGE_MILLIS not provided using 10 minute like default value: 
-      https://github.com/auth0/node-jwks-rsa/blob/master/EXAMPLES.md#configuration 
+      /* If JWKS_CACHE_MAX_AGE_MILLIS not provided using 10 minute like default value:
+      https://github.com/auth0/node-jwks-rsa/blob/master/EXAMPLES.md#configuration
       */
       cacheMaxAge: config.jwksCacheMaxAge ?? 600000,
     })

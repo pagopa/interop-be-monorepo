@@ -1,5 +1,6 @@
 import {
   authenticationMiddleware,
+  buildJwksClients,
   contextMiddleware,
   initRedisRateLimiter,
   loggerMiddleware,
@@ -16,6 +17,8 @@ const serviceName = "api-gateway";
 const clients = getInteropBeClients();
 
 const app = zodiosCtx.app();
+
+const jwksClients = buildJwksClients(config);
 
 const redisRateLimiter = await initRedisRateLimiter({
   limiterGroup: "API_GW",
@@ -37,7 +40,7 @@ app.use(
   `/api-gateway/${config.apiGatewayInterfaceVersion}`,
   healthRouter,
   contextMiddleware(serviceName, false),
-  authenticationMiddleware(config),
+  app.use(authenticationMiddleware(config, jwksClients)),
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
   apiGatewayRouter(zodiosCtx, clients)
