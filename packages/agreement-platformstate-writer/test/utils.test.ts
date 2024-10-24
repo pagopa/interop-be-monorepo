@@ -164,10 +164,9 @@ describe("utils", async () => {
 
   describe("readAgreementEntry", async () => {
     it("should return undefined if entry doesn't exist", async () => {
-      const primaryKey = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: generateId(),
-        descriptorId: generateId(),
-      });
+      const primaryKey = makePlatformStatesAgreementPK(
+        generateId<AgreementId>()
+      );
       const agreementEntry = await readAgreementEntry(
         primaryKey,
         dynamoDBClient
