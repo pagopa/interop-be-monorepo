@@ -76,7 +76,7 @@ app.use(
     redisRateLimiter,
     jwksClients
   ),
-  app.use(authenticationMiddleware(config, jwksClients)),
+  authenticationMiddleware(config, jwksClients),
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
   catalogRouter(zodiosCtx, clients, fileManager),

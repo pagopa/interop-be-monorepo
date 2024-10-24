@@ -40,7 +40,7 @@ app.use(
   `/api-gateway/${config.apiGatewayInterfaceVersion}`,
   healthRouter,
   contextMiddleware(serviceName, false),
-  app.use(authenticationMiddleware(config, jwksClients)),
+  authenticationMiddleware(config, jwksClients),
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
   apiGatewayRouter(zodiosCtx, clients)
