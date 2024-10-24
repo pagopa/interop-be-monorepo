@@ -12,16 +12,7 @@ import {
   TokenGenerationStatesClientKidPurposePK,
 } from "../brandedIds.js";
 import { ItemState } from "./platform-states-entry.js";
-
-export const clientKindTokenStates = {
-  consumer: "CONSUMER",
-  api: "API",
-} as const;
-export const ClientKindTokenStates = z.enum([
-  Object.values(clientKindTokenStates)[0],
-  ...Object.values(clientKindTokenStates).slice(1),
-]);
-export type ClientKindTokenStates = z.infer<typeof ClientKindTokenStates>;
+import { ClientKindTokenStates } from "./commons.js";
 
 const TokenGenerationStatesBaseEntry = z.object({
   consumerId: TenantId,

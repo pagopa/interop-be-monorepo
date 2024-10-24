@@ -11,6 +11,7 @@ import {
   PurposeVersionId,
   TenantId,
 } from "../brandedIds.js";
+import { ClientKindTokenStates } from "./commons.js";
 
 export const itemState = {
   active: "ACTIVE",
@@ -60,6 +61,8 @@ export type PlatformStatesAgreementEntry = z.infer<
 
 export const PlatformStatesClientEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesClientPK,
+  clientKind: ClientKindTokenStates,
+  clientConsumerId: TenantId,
   clientPurposesIds: z.array(PurposeId),
 });
 export type PlatformStatesClientEntry = z.infer<
