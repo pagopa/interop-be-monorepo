@@ -29,3 +29,8 @@ const { default: app } = await import("../src/app.js");
 
 export const mockClientRouterRequest =
   createMockedApiRequester<typeof authorizationApi.clientEndpoints>(app);
+
+export const mockProducerKeyChainRouterRequest =
+  createMockedApiRequester<typeof authorizationApi.producerKeychainEndpoints>(
+    app
+  );

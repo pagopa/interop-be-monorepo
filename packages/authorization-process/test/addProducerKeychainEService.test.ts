@@ -4,6 +4,7 @@ import {
   getMockProducerKeychain,
   getMockEService,
   writeInReadmodel,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import {
@@ -30,6 +31,7 @@ import {
   eservices,
   readLastAuthorizationEvent,
 } from "./utils.js";
+import { mockProducerKeyChainRouterRequest } from "./supertestSetup.js";
 
 describe("addProducerKeychainEService", async () => {
   it("should write on event-store for the addition of a eservice into a producer keychain", async () => {
@@ -56,6 +58,13 @@ describe("addProducerKeychainEService", async () => {
       organizationId: mockProducerId,
       correlationId: generateId(),
       logger: genericLogger,
+    });
+
+    await mockProducerKeyChainRouterRequest.post({
+      path: "/producerKeychains/:producerKeychainId/eservices",
+      body: { eserviceId: mockEService.id },
+      pathParams: { producerKeychainId: mockProducerKeychain.id },
+      authData: getMockAuthData(mockProducerId),
     });
 
     const writtenEvent = await readLastAuthorizationEvent(
