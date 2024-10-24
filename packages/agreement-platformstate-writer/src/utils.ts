@@ -69,7 +69,7 @@ export const writeAgreementEntry = async (
 };
 
 export const readAgreementEntry = async (
-  primaryKey: string,
+  primaryKey: PlatformStatesAgreementPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesAgreementEntry | undefined> => {
   const input: GetItemInput = {
@@ -99,7 +99,7 @@ export const readAgreementEntry = async (
 };
 
 export const deleteAgreementEntry = async (
-  primaryKey: string,
+  primaryKey: PlatformStatesAgreementPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: DeleteItemInput = {
