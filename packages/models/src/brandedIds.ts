@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 
+export const CorrelationId = z.string().brand("CorrelationId");
+export type CorrelationId = z.infer<typeof CorrelationId>;
+
 export const EServiceId = z.string().uuid().brand("EServiceId");
 export type EServiceId = z.infer<typeof EServiceId>;
 
@@ -123,6 +126,7 @@ export const GSIPKClientIdPurposeId = z.string().brand(`clientId#purposeId`);
 export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
 
 type IDS =
+  | CorrelationId
   | EServiceId
   | EServiceDocumentId
   | AgreementId

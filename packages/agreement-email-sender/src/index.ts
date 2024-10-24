@@ -11,7 +11,10 @@ import {
 } from "pagopa-interop-commons";
 import {
   AgreementEvent,
+  CorrelationId,
+  generateId,
   missingKafkaMessageDataError,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { readModelServiceBuilder } from "./services/readModelService.js";
@@ -47,7 +50,9 @@ export async function processMessage({
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
-    correlationId: decodedMessage.correlation_id,
+    correlationId: decodedMessage.correlation_id
+      ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+      : generateId<CorrelationId>(),
   });
   loggerInstance.debug(decodedMessage);
 

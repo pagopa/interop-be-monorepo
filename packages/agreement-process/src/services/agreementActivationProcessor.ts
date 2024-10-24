@@ -5,6 +5,7 @@ import {
   AgreementEvent,
   AgreementEventV2,
   AgreementState,
+  CorrelationId,
   Descriptor,
   EService,
   Tenant,
@@ -112,7 +113,7 @@ export async function createActivationEvent(
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
   authData: AuthData,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (isFirstActivation) {
     // Pending >>> Active
@@ -208,7 +209,7 @@ export const archiveRelatedToAgreements = async (
   agreement: Agreement,
   userId: UserId,
   readModelService: ReadModelService,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const existingAgreements = await readModelService.getAllAgreements({
     consumerId: agreement.consumerId,
@@ -230,7 +231,7 @@ export function maybeCreateSuspensionByPlatformEvents(
   updatedAgreement: Agreement,
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
-  correlationId: string
+  correlationId: CorrelationId
 ): Array<CreateEvent<AgreementEventV2>> {
   if (
     suspendedByPlatformChanged &&

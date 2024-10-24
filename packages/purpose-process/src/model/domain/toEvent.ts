@@ -1,5 +1,6 @@
 import { CreateEvent } from "pagopa-interop-commons";
 import {
+  CorrelationId,
   Purpose,
   PurposeEventV2,
   PurposeId,
@@ -16,7 +17,7 @@ export const toCreateEventWaitingForApprovalPurposeVersionDeleted = ({
   purpose: Purpose;
   version: number;
   versionId: PurposeVersionId;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -37,7 +38,7 @@ export const toCreateEventPurposeVersionRejected = ({
   purpose: Purpose;
   version: number;
   versionId: PurposeVersionId;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -56,7 +57,7 @@ export const toCreateEventDraftPurposeUpdated = ({
 }: {
   purpose: Purpose;
   version: number;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -77,7 +78,7 @@ export const toCreateEventDraftPurposeDeleted = ({
 }: {
   purpose: Purpose;
   version: number;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -96,7 +97,7 @@ export const toCreateEventWaitingForApprovalPurposeDeleted = ({
 }: {
   purpose: Purpose;
   version: number;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -117,7 +118,7 @@ export const toCreateEventPurposeArchived = ({
   purpose: Purpose;
   purposeVersionId: PurposeVersionId;
   version: number;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -138,7 +139,7 @@ export const toCreateEventPurposeSuspendedByConsumer = ({
   purpose: Purpose;
   purposeVersionId: PurposeVersionId;
   version: number;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -159,7 +160,7 @@ export const toCreateEventPurposeSuspendedByProducer = ({
   purpose: Purpose;
   purposeVersionId: PurposeVersionId;
   version: number;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -173,7 +174,7 @@ export const toCreateEventPurposeSuspendedByProducer = ({
 
 export function toCreateEventPurposeAdded(
   purpose: Purpose,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<PurposeEventV2> {
   return {
     streamId: purpose.id,
@@ -198,7 +199,7 @@ export const toCreateEventPurposeCloned = ({
   purpose: Purpose;
   sourcePurposeId: PurposeId;
   sourceVersionId: PurposeVersionId;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version: 0,
@@ -219,7 +220,7 @@ export function toCreateEventNewPurposeVersionActivated({
   purpose: Purpose;
   version: number;
   versionId: PurposeVersionId;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> {
   return {
     streamId: purpose.id,
@@ -245,7 +246,7 @@ export function toCreateEventNewPurposeVersionWaitingForApproval({
   purpose: Purpose;
   version: number;
   versionId: PurposeVersionId;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> {
   return {
     streamId: purpose.id,
@@ -269,7 +270,7 @@ export const toCreateEventPurposeActivated = ({
 }: {
   purpose: Purpose;
   version: number;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -288,7 +289,7 @@ export const toCreateEventPurposeWaitingForApproval = ({
 }: {
   purpose: Purpose;
   version: number;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -309,7 +310,7 @@ export const toCreateEventPurposeVersionActivated = ({
   purpose: Purpose;
   version: number;
   versionId: PurposeVersionId;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -330,7 +331,7 @@ export const toCreateEventPurposeVersionUnsuspenedByProducer = ({
   purpose: Purpose;
   version: number;
   versionId: PurposeVersionId;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -351,7 +352,7 @@ export const toCreateEventPurposeVersionUnsuspenedByConsumer = ({
   purpose: Purpose;
   version: number;
   versionId: PurposeVersionId;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -372,7 +373,7 @@ export const toCreateEventPurposeVersionOverQuotaUnsuspended = ({
   purpose: Purpose;
   version: number;
   versionId: PurposeVersionId;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,

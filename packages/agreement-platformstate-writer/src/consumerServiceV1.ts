@@ -17,10 +17,10 @@ import {
   readAgreementEntry,
   updateAgreementStateInPlatformStatesEntry,
   agreementStateToItemState,
-  updateAgreementStateInTokenGenerationStatesTable,
+  updateAgreementStateOnTokenStates,
   writeAgreementEntry,
   readCatalogEntry,
-  updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo,
+  updateAgreementStateAndDescriptorInfoOnTokenStates,
   isAgreementTheLatest,
   deleteAgreementEntry,
 } from "./utils.js";
@@ -164,7 +164,7 @@ const handleFirstActivation = async (
   });
 
   // token-generation-states
-  await updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo({
+  await updateAgreementStateAndDescriptorInfoOnTokenStates({
     GSIPK_consumerId_eserviceId,
     agreementState: agreement.state,
     dynamoDBClient,
@@ -222,7 +222,7 @@ const handleActivationOrSuspension = async (
     )
   ) {
     // token-generation-states
-    await updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo({
+    await updateAgreementStateAndDescriptorInfoOnTokenStates({
       GSIPK_consumerId_eserviceId,
       agreementState: agreement.state,
       dynamoDBClient,
@@ -251,7 +251,7 @@ const handleArchiving = async (
   ) {
     // token-generation-states only if agreement is the latest
 
-    await updateAgreementStateInTokenGenerationStatesTable({
+    await updateAgreementStateOnTokenStates({
       GSIPK_consumerId_eserviceId,
       agreementState: agreement.state,
       dynamoDBClient,
@@ -325,7 +325,7 @@ const handleUpgrade = async (
         descriptorId: agreement.descriptorId,
       });
 
-      await updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo({
+      await updateAgreementStateAndDescriptorInfoOnTokenStates({
         GSIPK_consumerId_eserviceId,
         agreementState: agreement.state,
         dynamoDBClient,

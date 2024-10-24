@@ -87,7 +87,7 @@ describe("revokeCertifiedAttributeById", async () => {
       },
       {
         authData,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -134,7 +134,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -154,7 +154,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -180,7 +180,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -208,7 +208,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -243,7 +243,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

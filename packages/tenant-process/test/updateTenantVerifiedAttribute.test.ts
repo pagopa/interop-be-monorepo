@@ -8,6 +8,7 @@ import {
   protobufDecoder,
   toTenantV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
+  CorrelationId,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
@@ -28,7 +29,7 @@ import {
 } from "./utils.js";
 
 describe("updateTenantVerifiedAttribute", async () => {
-  const correlationId = generateId();
+  const correlationId: CorrelationId = generateId();
   const expirationDate = new Date(
     currentDate.setDate(currentDate.getDate() + 1)
   );

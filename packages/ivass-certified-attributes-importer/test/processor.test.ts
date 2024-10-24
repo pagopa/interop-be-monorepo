@@ -8,7 +8,7 @@ import {
   RefreshableInteropToken,
   genericLogger,
 } from "pagopa-interop-commons";
-import { Tenant, unsafeBrandId } from "pagopa-interop-models";
+import { generateId, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import { ReadModelQueries } from "../src/service/readModelQueriesService.js";
 import { importAttributes } from "../src/service/processor.js";
@@ -44,7 +44,8 @@ describe("IVASS Certified Attributes Importer", () => {
       refreshableTokenMock,
       10,
       "ivass-tenant-id",
-      genericLogger
+      genericLogger,
+      generateId()
     );
 
   const interopToken: InteropToken = {
@@ -145,7 +146,8 @@ describe("IVASS Certified Attributes Importer", () => {
       refreshableTokenMock,
       10,
       "ivass-tenant-id",
-      genericLogger
+      genericLogger,
+      generateId()
     );
 
     expect(localDownloadCSVMock).toBeCalledTimes(1);
@@ -208,7 +210,8 @@ describe("IVASS Certified Attributes Importer", () => {
       refreshableTokenMock,
       10,
       "ivass-tenant-id",
-      genericLogger
+      genericLogger,
+      generateId()
     );
 
     expect(localDownloadCSVMock).toBeCalledTimes(1);
@@ -286,7 +289,8 @@ describe("IVASS Certified Attributes Importer", () => {
       refreshableTokenMock,
       10,
       "ivass-tenant-id",
-      genericLogger
+      genericLogger,
+      generateId()
     );
 
     expect(localDownloadCSVMock).toBeCalledTimes(1);
@@ -340,7 +344,8 @@ describe("IVASS Certified Attributes Importer", () => {
       refreshableTokenMock,
       10,
       "ivass-tenant-id",
-      genericLogger
+      genericLogger,
+      generateId()
     );
 
     expect(localDownloadCSVMock).toBeCalledTimes(1);
@@ -386,7 +391,8 @@ describe("IVASS Certified Attributes Importer", () => {
       refreshableTokenMock,
       10,
       "ivass-tenant-id",
-      genericLogger
+      genericLogger,
+      generateId()
     );
 
     expect(localDownloadCSVMock).toBeCalledTimes(1);
@@ -449,7 +455,8 @@ describe("IVASS Certified Attributes Importer", () => {
       refreshableTokenMock,
       1,
       "ivass-tenant-id",
-      genericLogger
+      genericLogger,
+      generateId()
     );
 
     expect(localDownloadCSVMock).toBeCalledTimes(1);
@@ -479,7 +486,8 @@ describe("IVASS Certified Attributes Importer", () => {
         refreshableTokenMock,
         1,
         "ivass-tenant-id",
-        genericLogger
+        genericLogger,
+        generateId()
       )
     ).rejects.toThrowError("CSV Retrieve error");
 
@@ -562,7 +570,8 @@ describe("IVASS Certified Attributes Importer", () => {
       refreshableTokenMock,
       10,
       "ivass-tenant-id",
-      genericLogger
+      genericLogger,
+      generateId()
     );
 
     expect(localDownloadCSVMock).toBeCalledTimes(1);
@@ -639,7 +648,8 @@ describe("IVASS Certified Attributes Importer", () => {
       refreshableTokenMock,
       10,
       "ivass-tenant-id",
-      genericLogger
+      genericLogger,
+      generateId()
     );
 
     expect(localDownloadCSVMock).toBeCalledTimes(1);
@@ -713,7 +723,8 @@ describe("IVASS Certified Attributes Importer", () => {
       refreshableTokenMock,
       1,
       "ivass-tenant-id",
-      genericLogger
+      genericLogger,
+      generateId()
     );
 
     expect(localDownloadCSVMock).toBeCalledTimes(1);
@@ -749,7 +760,8 @@ describe("IVASS Certified Attributes Importer", () => {
         refreshableTokenMock,
         10,
         "ivass-tenant-id",
-        genericLogger
+        genericLogger,
+        generateId()
       )
     ).rejects.toThrowError("File does not contain valid assignments");
 

@@ -116,7 +116,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getAgreementsErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -139,7 +140,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getAgreementErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -164,7 +166,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getAgreementErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -187,7 +190,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getAgreementErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -210,7 +214,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             createCertifiedAttributeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -233,7 +238,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getAttributeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -255,7 +261,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getClientErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -272,7 +279,12 @@ const apiGatewayRouter = (
             .status(200)
             .send(apiGatewayApi.CatalogEServices.parse(eservices));
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -292,7 +304,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getEserviceErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -315,7 +328,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getEserviceErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -339,7 +353,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getEserviceDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -357,7 +372,12 @@ const apiGatewayRouter = (
 
         return res.status(200).send(apiGatewayApi.Events.parse(events));
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -376,7 +396,12 @@ const apiGatewayRouter = (
 
           return res.status(200).send(apiGatewayApi.Events.parse(events));
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -396,7 +421,12 @@ const apiGatewayRouter = (
 
           return res.status(200).send(apiGatewayApi.Events.parse(events));
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -416,7 +446,12 @@ const apiGatewayRouter = (
 
           return res.status(200).send(apiGatewayApi.Events.parse(events));
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -437,7 +472,12 @@ const apiGatewayRouter = (
 
           return res.status(200).send(apiGatewayApi.Events.parse(events));
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -453,7 +493,12 @@ const apiGatewayRouter = (
 
           return res.status(200).send(apiGatewayApi.JWK.parse(jwk));
         } catch (error) {
-          const errorRes = makeApiProblem(error, getJWKErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getJWKErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -466,7 +511,12 @@ const apiGatewayRouter = (
 
         return res.status(200).send(apiGatewayApi.Purposes.parse(purposes));
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -486,7 +536,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getPurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -507,7 +558,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getAgreementByPurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -532,7 +584,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getOrganizationErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -556,7 +609,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             upsertTenantErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -579,7 +633,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             revokeTenantAttributeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -604,7 +659,8 @@ const apiGatewayRouter = (
           const errorRes = makeApiProblem(
             error,
             getOrganizationEservicesErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }

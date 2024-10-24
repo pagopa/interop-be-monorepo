@@ -10,11 +10,13 @@ import {
 } from "pagopa-interop-commons";
 import {
   AgreementEvent,
+  CorrelationId,
   fromAgreementV2,
+  generateId,
   missingKafkaMessageDataError,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { v4 as uuidv4 } from "uuid";
 import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { config } from "./config/config.js";
@@ -35,7 +37,9 @@ async function processMessage({
   partition,
 }: EachMessagePayload): Promise<void> {
   const decodedMsg = decodeKafkaMessage(message, AgreementEvent);
-  const correlationId = decodedMsg.correlation_id || uuidv4();
+  const correlationId: CorrelationId = decodedMsg.correlation_id
+    ? unsafeBrandId(decodedMsg.correlation_id)
+    : generateId();
 
   const loggerInstance = logger({
     serviceName: "eservice-descriptors-archiver",
