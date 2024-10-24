@@ -1,4 +1,6 @@
+/* eslint-disable functional/immutable-data */
 import { generateMock } from "@anatine/zod-mock";
+import { AuthData } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementState,
@@ -49,7 +51,6 @@ import {
   ProducerKeychain,
   DescriptorState,
 } from "pagopa-interop-models";
-import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
@@ -313,7 +314,7 @@ export const getMockKey = (): Key => ({
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
   userId: generateId(),
-  userRoles: [],
+  userRoles: ["admin"],
   externalId: {
     value: "123456",
     origin: "IPA",
