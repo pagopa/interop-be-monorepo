@@ -9,7 +9,11 @@ import {
 import { fastifyFormbody } from "@fastify/formbody";
 import Fastify, { FastifyRequest } from "fastify";
 import { FastifyInstance } from "fastify";
-import { generateId, tooManyRequestsError } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  generateId,
+  tooManyRequestsError,
+} from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { initProducer } from "kafka-iam-auth";
@@ -19,7 +23,7 @@ import { tokenServiceBuilder } from ".././services/tokenService.js";
 import { config } from ".././config/config.js";
 import { InteropTokenResponse } from "../model/domain/models.js";
 
-// const serviceName = "authorization-server";
+const serviceName = "authorization-server";
 
 const dynamoDBClient = new DynamoDBClient({});
 const redisRateLimiter = await initRedisRateLimiter({
@@ -56,8 +60,6 @@ const tokenService = tokenServiceBuilder({
   fileManager,
 });
 
-// TODO: add middlewares with @fastify/express?
-
 fastifyServer.post(
   "/token.oauth2",
   async (
@@ -66,9 +68,9 @@ fastifyServer.post(
     }>,
     reply
   ) => {
-    const correlationId = generateId();
+    const correlationId = generateId<CorrelationId>();
     const loggerMetadata: LoggerMetadata = {
-      serviceName: "authorization-server",
+      serviceName,
       correlationId,
     };
     const loggerInstance = logger(loggerMetadata);
@@ -85,7 +87,8 @@ fastifyServer.post(
         const errorRes = makeApiProblem(
           tooManyRequestsError(res.rateLimitedTenantId),
           authorizationServerErrorMapper,
-          loggerInstance
+          loggerInstance,
+          correlationId
         );
 
         return reply.status(errorRes.status).headers(headers).send(errorRes);
@@ -100,7 +103,8 @@ fastifyServer.post(
       const errorRes = makeApiProblem(
         err,
         authorizationServerErrorMapper,
-        loggerInstance
+        loggerInstance,
+        correlationId
       );
       return reply.status(errorRes.status).send(errorRes);
     }
