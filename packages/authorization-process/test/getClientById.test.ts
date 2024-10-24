@@ -37,6 +37,7 @@ describe("getClientById", async () => {
       pathParams: { clientId: expectedClient.id },
       authData: getMockAuthData(organizationId),
     });
+    console.log(client);
     // eslint-disable-next-line no-underscore-dangle
     expect(client.id).toEqual(expectedClient.id);
   });
