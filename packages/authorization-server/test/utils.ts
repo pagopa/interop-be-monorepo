@@ -1,20 +1,23 @@
 import crypto from "crypto";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import {
+  AgreementId,
   ClientId,
+  DescriptorId,
+  EServiceId,
+  GeneratedTokenAuditDetails,
   generateId,
-  TokenGenerationStatesClientEntry,
+  PurposeId,
+  PurposeVersionId,
+  TenantId,
 } from "pagopa-interop-models";
 import { afterEach, inject, vi } from "vitest";
-import {
-  DynamoDBClient,
-  PutItemCommand,
-  PutItemInput,
-} from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import * as jose from "jose";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
+import { InteropTokenGenerator } from "pagopa-interop-commons";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
 
 export const configTokenGenerationStates = inject(
@@ -47,9 +50,20 @@ export const mockKMSClient = {
   send: vi.fn(),
 };
 
+const tokenGenerator = new InteropTokenGenerator(
+  {
+    generatedInteropTokenKid: "test",
+    generatedInteropTokenIssuer: "test",
+    generatedInteropTokenM2MAudience: "M2Maudience",
+    generatedInteropTokenM2MDurationSeconds: 300,
+    generatedInteropTokenAlgorithm: "RS256",
+  },
+  mockKMSClient as unknown as KMSClient
+);
+
 export const tokenService = tokenServiceBuilder({
+  tokenGenerator,
   dynamoDBClient,
-  kmsClient: mockKMSClient as unknown as KMSClient,
   redisRateLimiter,
   producer: mockProducer as unknown as Awaited<ReturnType<typeof initProducer>>,
   fileManager,
@@ -174,68 +188,45 @@ export const getMockAccessTokenRequest =
     };
   };
 
-// export const generateExpectedInteropToken = async (
-//   jws: string,
-//   clientId: ClientId
-// ): Promise<InteropToken> => {
-//   const { data: jwt } = verifyClientAssertion(jws, clientId);
-//   if (!jwt) {
-//     fail();
-//   }
+export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
+  const correlationId = generateId();
+  const eserviceId = generateId<EServiceId>();
+  const descriptorId = generateId<DescriptorId>();
+  const agreementId = generateId<AgreementId>();
+  const clientId = generateId<ClientId>();
+  const purposeId = generateId<PurposeId>();
+  const kid = "kid";
+  const purposeVersionId = generateId<PurposeVersionId>();
+  const consumerId = generateId<TenantId>();
+  const clientAssertionJti = generateId();
 
-//   const currentTimestamp = Date.now();
-//   const token: InteropToken = {
-//     header: {
-//       alg: "RS256",
-//       use: "sig",
-//       typ: "at+jwt",
-//       kid: config.generatedInteropTokenKid,
-//     },
-//     payload: {
-//       jti: generateId(),
-//       iss: config.generatedInteropTokenIssuer,
-//       aud: jwt.payload.aud,
-//       sub: jwt.payload.sub,
-//       iat: currentTimestamp,
-//       nbf: currentTimestamp,
-//       exp: currentTimestamp + tokenDurationInSeconds * 1000,
-//     },
-//     serialized: "",
-//   };
-// };
-
-// TODO this is duplicated: move to commons
-export const writeTokenStateClientEntry = async (
-  tokenStateEntry: TokenGenerationStatesClientEntry,
-  dynamoDBClient: DynamoDBClient
-): Promise<void> => {
-  const input: PutItemInput = {
-    ConditionExpression: "attribute_not_exists(PK)",
-    Item: {
-      PK: {
-        S: tokenStateEntry.PK,
-      },
-      updatedAt: {
-        S: tokenStateEntry.updatedAt,
-      },
-      consumerId: {
-        S: tokenStateEntry.consumerId,
-      },
-      clientKind: {
-        S: tokenStateEntry.clientKind,
-      },
-      publicKey: {
-        S: tokenStateEntry.publicKey,
-      },
-      GSIPK_clientId: {
-        S: tokenStateEntry.GSIPK_clientId,
-      },
-      GSIPK_kid: {
-        S: tokenStateEntry.GSIPK_kid,
-      },
+  return {
+    correlationId,
+    eserviceId,
+    descriptorId,
+    agreementId,
+    subject: clientId,
+    audience: "pagopa.it",
+    purposeId,
+    algorithm: "RS256",
+    clientId,
+    keyId: kid,
+    purposeVersionId,
+    jwtId: generateId(),
+    issuedAt: new Date().getTime() / 1000,
+    issuer: "interop jwt issuer",
+    expirationTime: new Date().getTime() / 1000,
+    organizationId: consumerId,
+    notBefore: 0,
+    clientAssertion: {
+      subject: clientId,
+      audience: "pagopa.it",
+      algorithm: "RS256",
+      keyId: kid,
+      jwtId: clientAssertionJti,
+      issuedAt: new Date().getTime() / 1000,
+      issuer: consumerId,
+      expirationTime: new Date().getTime() / 1000,
     },
-    TableName: "token-generation-states",
   };
-  const command = new PutItemCommand(input);
-  await dynamoDBClient.send(command);
 };
