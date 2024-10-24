@@ -126,7 +126,8 @@ const attributeRouter = (
           const errorRes = makeApiProblem(
             error,
             getAttributesByNameErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -166,7 +167,8 @@ const attributeRouter = (
           const errorRes = makeApiProblem(
             error,
             getAttributeByOriginAndCodeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -202,7 +204,8 @@ const attributeRouter = (
           const errorRes = makeApiProblem(
             error,
             getAttributeByIdErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -262,7 +265,8 @@ const attributeRouter = (
           const errorRes = makeApiProblem(
             error,
             createCertifiedAttributesErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -289,7 +293,8 @@ const attributeRouter = (
           const errorRes = makeApiProblem(
             error,
             createDeclaredAttributesErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -316,7 +321,8 @@ const attributeRouter = (
           const errorRes = makeApiProblem(
             error,
             createVerifiedAttributesErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -343,7 +349,8 @@ const attributeRouter = (
           const errorRes = makeApiProblem(
             error,
             createInternalCertifiedAttributesErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }

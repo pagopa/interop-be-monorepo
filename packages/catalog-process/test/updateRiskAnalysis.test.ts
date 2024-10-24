@@ -103,7 +103,7 @@ describe("update risk analysis", () => {
       riskAnalysisUpdatedSeed,
       {
         authData: getMockAuthData(producer.id),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -180,7 +180,7 @@ describe("update risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -196,7 +196,7 @@ describe("update risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -222,7 +222,7 @@ describe("update risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -249,7 +249,7 @@ describe("update risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -276,7 +276,7 @@ describe("update risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -311,7 +311,7 @@ describe("update risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(producer.id),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -350,7 +350,7 @@ describe("update risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(producer.id),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -398,7 +398,7 @@ describe("update risk analysis", () => {
         riskAnalysisSeed,
         {
           authData: getMockAuthData(producer.id),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -462,7 +462,7 @@ describe("update risk analysis", () => {
         riskAnalysisUpdatedSeed,
         {
           authData: getMockAuthData(producer.id),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

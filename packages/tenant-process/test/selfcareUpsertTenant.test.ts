@@ -11,6 +11,7 @@ import {
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
   toTenantV2,
+  CorrelationId,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -25,7 +26,7 @@ import { addOneTenant, readLastTenantEvent, tenantService } from "./utils.js";
 
 describe("selfcareUpsertTenant", async () => {
   const mockTenant = getMockTenant();
-  const correlationId = generateId();
+  const correlationId: CorrelationId = generateId();
 
   beforeAll(async () => {
     vi.useFakeTimers();

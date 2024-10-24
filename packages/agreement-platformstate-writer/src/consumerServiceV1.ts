@@ -11,16 +11,17 @@ import {
   makePlatformStatesEServiceDescriptorPK,
   PlatformStatesAgreementEntry,
   agreementState,
+  PlatformStatesCatalogEntry,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   readAgreementEntry,
   updateAgreementStateInPlatformStatesEntry,
   agreementStateToItemState,
-  updateAgreementStateInTokenGenerationStatesTable,
+  updateAgreementStateOnTokenStates,
   writeAgreementEntry,
   readCatalogEntry,
-  updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo,
+  updateAgreementStateAndDescriptorInfoOnTokenStates,
   isAgreementTheLatest,
   deleteAgreementEntry,
 } from "./utils.js";
@@ -164,7 +165,7 @@ const handleFirstActivation = async (
   });
 
   // token-generation-states
-  await updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo({
+  await updateAgreementStateAndDescriptorInfoOnTokenStates({
     GSIPK_consumerId_eserviceId,
     agreementState: agreement.state,
     dynamoDBClient,
@@ -222,7 +223,7 @@ const handleActivationOrSuspension = async (
     )
   ) {
     // token-generation-states
-    await updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo({
+    await updateAgreementStateAndDescriptorInfoOnTokenStates({
       GSIPK_consumerId_eserviceId,
       agreementState: agreement.state,
       dynamoDBClient,
@@ -251,7 +252,7 @@ const handleArchiving = async (
   ) {
     // token-generation-states only if agreement is the latest
 
-    await updateAgreementStateInTokenGenerationStatesTable({
+    await updateAgreementStateOnTokenStates({
       GSIPK_consumerId_eserviceId,
       agreementState: agreement.state,
       dynamoDBClient,
@@ -311,7 +312,9 @@ const handleUpgrade = async (
     await writeAgreementEntry(newAgreementEntry, dynamoDBClient);
   }
 
-  const doOperationOnTokenStates = async (): Promise<void> => {
+  const updateLatestAgreementOnTokenStates = async (
+    catalogEntry: PlatformStatesCatalogEntry
+  ): Promise<void> => {
     if (
       await isAgreementTheLatest(
         GSIPK_consumerId_eserviceId,
@@ -325,7 +328,7 @@ const handleUpgrade = async (
         descriptorId: agreement.descriptorId,
       });
 
-      await updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo({
+      await updateAgreementStateAndDescriptorInfoOnTokenStates({
         GSIPK_consumerId_eserviceId,
         agreementState: agreement.state,
         dynamoDBClient,
@@ -335,7 +338,7 @@ const handleUpgrade = async (
     }
   };
 
-  await doOperationOnTokenStates();
+  await updateLatestAgreementOnTokenStates(catalogEntry);
 
   const secondRetrievalCatalogEntry = await readCatalogEntry(
     pkCatalogEntry,
@@ -346,6 +349,6 @@ const handleUpgrade = async (
     throw genericInternalError("Catalog entry not found");
   }
   if (secondRetrievalCatalogEntry.state !== catalogEntry.state) {
-    await doOperationOnTokenStates();
+    await updateLatestAgreementOnTokenStates(secondRetrievalCatalogEntry);
   }
 };
