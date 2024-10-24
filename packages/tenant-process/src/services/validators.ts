@@ -35,6 +35,8 @@ import {
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
+export { PUBLIC_ADMINISTRATIONS_IDENTIFIER, SCP };
+
 export function assertVerifiedAttributeExistsInTenant(
   attributeId: AttributeId,
   attribute: TenantAttribute | undefined,
