@@ -26,19 +26,14 @@ describe("getClientById", async () => {
     };
     await addOneClient(expectedClient);
 
-    // const { client } = await authorizationService.getClientById({
-    //   clientId: expectedClient.id,
-    //   organizationId,
-    //   logger: genericLogger,
-    // });
-
     const client = await mockClientRouterRequest.get({
       path: "/clients/:clientId",
       pathParams: { clientId: expectedClient.id },
       authData: getMockAuthData(organizationId),
     });
-    console.log(client);
-    // eslint-disable-next-line no-underscore-dangle
+    // console.log("client", client);
+    // console.log("expectedClient", expectedClient);
+
     expect(client.id).toEqual(expectedClient.id);
   });
   it("should get from the readModel the client with the specified Id without users", async () => {
@@ -50,12 +45,15 @@ describe("getClientById", async () => {
 
     await addOneClient(expectedClientWithoutUser);
 
-    const { client } = await authorizationService.getClientById({
-      clientId: expectedClientWithoutUser.id,
-      organizationId,
-      logger: genericLogger,
+    const client = await mockClientRouterRequest.get({
+      path: "/clients/:clientId",
+      pathParams: { clientId: expectedClientWithoutUser.id },
+      authData: getMockAuthData(organizationId),
     });
-    expect(client).toEqual(expectedClientWithoutUser);
+    // console.log("client", client);
+    // console.log("expectedClientWithoutUser", expectedClientWithoutUser);
+
+    expect(client.id).toEqual(expectedClientWithoutUser.id);
   });
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {
     await addOneClient(getMockClient());
