@@ -84,7 +84,7 @@ app.use(
   purposeRouter(zodiosCtx, clients),
   agreementRouter(zodiosCtx, clients, fileManager),
   selfcareRouter(clients, zodiosCtx),
-  supportRouter(zodiosCtx, clients, redisRateLimiter),
+  supportRouter(zodiosCtx, clients, redisRateLimiter, jwksClients),
   toolRouter(zodiosCtx, clients),
   tenantRouter(zodiosCtx, clients),
   clientRouter(zodiosCtx, clients),
