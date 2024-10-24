@@ -42,7 +42,7 @@ import {
   writeAgreementEntry,
   deleteAgreementEntry,
   agreementStateToItemState,
-  updateAgreementStateInTokenGenerationStatesTable,
+  updateAgreementStateOnTokenStates,
 } from "../src/utils.js";
 import { config } from "./utils.js";
 
@@ -348,7 +348,7 @@ describe("utils", async () => {
       const tokenStateEntries = await readAllTokenStateItems(dynamoDBClient);
       expect(tokenStateEntries).toEqual([]);
       expect(
-        updateAgreementStateInTokenGenerationStatesTable({
+        updateAgreementStateOnTokenStates({
           GSIPK_consumerId_eserviceId,
           agreementState: agreementState.archived,
           dynamoDBClient,
@@ -392,7 +392,7 @@ describe("utils", async () => {
           GSIPK_consumerId_eserviceId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
-      await updateAgreementStateInTokenGenerationStatesTable({
+      await updateAgreementStateOnTokenStates({
         GSIPK_consumerId_eserviceId,
         agreementState: agreementState.active,
         dynamoDBClient,
