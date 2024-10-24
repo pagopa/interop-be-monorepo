@@ -388,7 +388,6 @@ function validatePurposeTokenGenerationStates({
     };
   }
 
-  // Find all valid entries in tokenEntries
   const foundEntries = tokenEntries.filter(
     (e) =>
       extractIdsFromTokenGenerationStatesPK(e.PK).purposeId !== purpose.id ||
@@ -404,9 +403,8 @@ function validatePurposeTokenGenerationStates({
         .purposeId !== purpose.id
   );
 
-  // Return status and data based on whether any valid entries were found
   return {
-    status: foundEntries.length === 0, // true if any valid entries were found
+    status: foundEntries.length === 0,
     data: foundEntries.map((entry) => ({
       PK: entry.PK,
       consumerId: entry.consumerId,
@@ -476,25 +474,6 @@ export function countPurposeDifferences(
       );
       differencesCount++;
     }
-    // else if (!platformPurpose && readModelPurpose) {
-    //   const lastPurposeVersion = getLastPurposeVersion(
-    //     readModelPurpose.versions
-    //   );
-
-    //   if (lastPurposeVersion.state !== purposeVersionState.archived) {
-    //     logger.error(
-    //       `platform-states purpose entry not found for read model purpose:\n${JSON.stringify(
-    //         readModelPurpose
-    //       )}`
-    //     );
-    //     console.warn(
-    //       `platform-states purpose entry not found for read model purpose:\n${JSON.stringify(
-    //         readModelPurpose
-    //       )}`
-    //     );
-    //     differencesCount++;
-    //   }
-    // }
   });
 
   return differencesCount;
@@ -598,7 +577,11 @@ function validateAgreementTokenGenerationStates({
           makeGSIPKConsumerIdEServiceId({
             consumerId: agreement.consumerId,
             eserviceId: agreement.eserviceId,
-          }))
+          })) &&
+      (!e.GSIPK_eserviceId_descriptorId ||
+        extractIdsFromGSIPKEServiceIdDescriptorId(
+          e.GSIPK_eserviceId_descriptorId
+        )?.descriptorId === agreement.descriptorId)
   );
 }
 
