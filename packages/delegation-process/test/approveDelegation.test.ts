@@ -81,7 +81,7 @@ describe("approve delegation", () => {
     await delegationProducerService.approveProducerDelegation(
       delegate.id,
       delegation.id,
-      "9999",
+      unsafeBrandId("9999"),
       genericLogger
     );
 
@@ -127,7 +127,7 @@ describe("approve delegation", () => {
       delegationProducerService.approveProducerDelegation(
         delegateId,
         nonExistentDelegationId,
-        "9999",
+        unsafeBrandId("9999"),
         genericLogger
       )
     ).rejects.toThrow(delegationNotFound(nonExistentDelegationId));
@@ -148,7 +148,7 @@ describe("approve delegation", () => {
       delegationProducerService.approveProducerDelegation(
         wrongDelegate.id,
         delegation.id,
-        "9999",
+        unsafeBrandId("9999"),
         genericLogger
       )
     ).rejects.toThrow(
@@ -169,7 +169,7 @@ describe("approve delegation", () => {
       delegationProducerService.approveProducerDelegation(
         delegate.id,
         delegation.id,
-        "9999",
+        unsafeBrandId("9999"),
         genericLogger
       )
     ).rejects.toThrow(
@@ -195,7 +195,7 @@ describe("approve delegation", () => {
     await delegationProducerService.approveProducerDelegation(
       delegate.id,
       delegation.id,
-      "9999",
+      unsafeBrandId("9999"),
       genericLogger
     );
 
