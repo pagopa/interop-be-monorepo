@@ -1,7 +1,4 @@
-import { fail } from "assert";
 import {
-  buildDynamoDBTables,
-  deleteDynamoDBTables,
   getMockAgreement,
   getMockClient,
   getMockDescriptor,
@@ -11,17 +8,7 @@ import {
   getMockPurposeVersion,
   getMockTokenStatesClientPurposeEntry,
 } from "pagopa-interop-commons-test";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { describe, expect, it } from "vitest";
 import {
   purposeVersionState,
   makePlatformStatesPurposePK,
@@ -70,32 +57,10 @@ import {
   addOneClient,
   addOneEService,
   addOnePurpose,
-  config,
   readModelRepository,
 } from "./utils.js";
 
-describe("Token Generation Read Model Checker Verifier tests", () => {
-  if (!config) {
-    fail();
-  }
-  const dynamoDBClient = new DynamoDBClient({
-    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-  });
-  beforeEach(async () => {
-    await buildDynamoDBTables(dynamoDBClient);
-  });
-  afterEach(async () => {
-    await deleteDynamoDBTables(dynamoDBClient);
-  });
-  const mockDate = new Date();
-  beforeAll(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(mockDate);
-  });
-  afterAll(() => {
-    vi.useRealTimers();
-  });
-
+describe("Token Generation Read Model Checker Verifier utils tests", () => {
   describe("purpose utils", () => {
     it("compareReadModelPurposesWithPlatformStates", async () => {
       const purpose1 = getMockPurpose([
