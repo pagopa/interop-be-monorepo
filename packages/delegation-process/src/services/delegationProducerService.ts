@@ -82,10 +82,9 @@ export function delegationProducerServiceBuilder(
 
       assertTenantAllowedToReceiveProducerDelegation(delegate);
       await assertDelegatorIsIPA(delegator);
-      await assertEserviceExists(eserviceId, readModelService);
+      await assertEserviceExists(delegatorId, eserviceId, readModelService);
       await assertDelegationNotExists(
         delegator,
-        delegate,
         eserviceId,
         delegationKind.delegatedProducer,
         readModelService
