@@ -1,5 +1,4 @@
 import { fail } from "assert";
-import { randomUUID } from "crypto";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
@@ -10,6 +9,7 @@ import {
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
+  CorrelationId,
   Delegation,
   DelegationId,
   delegationKind,
@@ -119,7 +119,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: randomUUID(),
+          correlationId: generateId<CorrelationId>(),
           serviceName: "DelegationServiceTest",
         }
       );
@@ -195,7 +195,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: randomUUID(),
+          correlationId: generateId<CorrelationId>(),
           serviceName: "DelegationServiceTest",
         }
       );
@@ -266,7 +266,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: randomUUID(),
+          correlationId: generateId<CorrelationId>(),
           serviceName: "DelegationServiceTest",
         }
       )
@@ -299,7 +299,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: randomUUID(),
+          correlationId: generateId<CorrelationId>(),
           serviceName: "DelegationServiceTest",
         }
       )
@@ -332,7 +332,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: randomUUID(),
+          correlationId: generateId<CorrelationId>(),
           serviceName: "DelegationServiceTest",
         }
       )
@@ -352,7 +352,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: randomUUID(),
+          correlationId: generateId<CorrelationId>(),
           serviceName: "DelegationServiceTest",
         }
       )
@@ -392,7 +392,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: randomUUID(),
+          correlationId: generateId<CorrelationId>(),
           serviceName: "DelegationServiceTest",
         }
       )
@@ -441,7 +441,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: randomUUID(),
+          correlationId: generateId<CorrelationId>(),
           serviceName: "DelegationServiceTest",
         }
       )
@@ -473,7 +473,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: randomUUID(),
+          correlationId: generateId<CorrelationId>(),
           serviceName: "DelegationServiceTest",
         }
       )

@@ -6,6 +6,7 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
+  CorrelationId,
   Delegation,
   delegationEventToBinaryDataV2,
   delegationKind,
@@ -113,7 +114,7 @@ export function delegationProducerServiceBuilder(
     async approveProducerDelegation(
       delegateId: TenantId,
       delegationId: DelegationId,
-      correlationId: string
+      correlationId: CorrelationId
     ): Promise<void> {
       const { data: delegation, metadata } = await getDelegationById(
         delegationId
@@ -147,7 +148,7 @@ export function delegationProducerServiceBuilder(
     async rejectProducerDelegation(
       delegateId: TenantId,
       delegationId: DelegationId,
-      correlationId: string,
+      correlationId: CorrelationId,
       rejectionReason: string
     ): Promise<void> {
       const { data: delegation, metadata } = await getDelegationById(
