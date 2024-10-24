@@ -150,7 +150,7 @@ function getIdentificationKey<T extends { PK: string } | { id: string }>(
 export async function compareTokenGenerationReadModel(
   dynamoDBClient: DynamoDBClient,
   loggerInstance: Logger
-): Promise<void> {
+): Promise<number> {
   loggerInstance.info("Program started.\n");
   loggerInstance.info("> Connecting to database...");
   const readModel = ReadModelRepository.init(config);
@@ -240,17 +240,12 @@ export async function compareTokenGenerationReadModel(
     readModel,
   });
 
-  const differencesCount =
+  return (
     countPurposeDifferences(purposeDifferences, loggerInstance) +
     countAgreementDifferences(agreementDifferences, loggerInstance) +
     countCatalogDifferences(catalogDifferences, loggerInstance) +
-    countClientDifferences(clientDifferences, loggerInstance);
-  console.log("Differences count: ", differencesCount);
-  if (differencesCount > 0) {
-    process.exit(1);
-  }
-
-  console.info("No differences found");
+    countClientDifferences(clientDifferences, loggerInstance)
+  );
 }
 
 // purposes

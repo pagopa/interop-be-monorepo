@@ -1,3 +1,5 @@
+// TODO: remove no-console
+/* eslint-disable no-console */
 /**
  * This script is used to compare the data of the token generation readmodel with readmodel.
  * The comparison is done by comparing the data from the read models with a deep comparison, and if any differences are found,
@@ -14,4 +16,19 @@ const loggerInstance = logger({
   correlationId: generateId(),
 });
 
-await compareTokenGenerationReadModel(dynamoDBClient, loggerInstance);
+async function main(): Promise<void> {
+  const differencesCount = await compareTokenGenerationReadModel(
+    dynamoDBClient,
+    loggerInstance
+  );
+
+  console.log("Differences count: ", differencesCount);
+
+  if (differencesCount > 0) {
+    process.exit(1);
+  }
+
+  console.info("No differences found");
+}
+
+await main();
