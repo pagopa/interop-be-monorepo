@@ -23,7 +23,7 @@ import { tokenServiceBuilder } from ".././services/tokenService.js";
 import { config } from ".././config/config.js";
 import { InteropTokenResponse } from "../model/domain/models.js";
 
-// const serviceName = "authorization-server";
+const serviceName = "authorization-server";
 
 const dynamoDBClient = new DynamoDBClient({});
 const redisRateLimiter = await initRedisRateLimiter({
@@ -72,7 +72,7 @@ fastifyServer.post(
   ) => {
     const correlationId = generateId<CorrelationId>();
     const loggerMetadata: LoggerMetadata = {
-      serviceName: "authorization-server",
+      serviceName,
       correlationId,
     };
     const loggerInstance = logger(loggerMetadata);
