@@ -18,7 +18,8 @@ import {
 } from "pagopa-interop-models";
 import {
   OrganizationIsNotACertifier,
-  attributeDuplicate,
+  attributeDuplicateByName,
+  attributeDuplicateByNameAndCode,
   originNotCompliant,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
@@ -99,16 +100,17 @@ describe("database test", () => {
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
-      it("should throw attributeDuplicate if an attribute with the same name already exists", async () => {
+      it("should throw attributeDuplicate if an attribute with the same name already exists, case insensitive", async () => {
         const attribute = {
           ...mockAttribute,
+          name: mockAttribute.name.toUpperCase(),
           kind: attributeKind.declared,
         };
         await addOneAttribute(attribute);
         expect(
           attributeRegistryService.createDeclaredAttribute(
             {
-              name: attribute.name,
+              name: attribute.name.toLowerCase(),
               description: attribute.description,
             },
             {
@@ -118,7 +120,9 @@ describe("database test", () => {
               serviceName: "",
             }
           )
-        ).rejects.toThrowError(attributeDuplicate(attribute.name));
+        ).rejects.toThrowError(
+          attributeDuplicateByName(attribute.name.toLowerCase())
+        );
       });
     });
     describe("verified attribute creation", () => {
@@ -185,16 +189,17 @@ describe("database test", () => {
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
-      it("should throw attributeDuplicate if an attribute with the same name already exists", async () => {
+      it("should throw attributeDuplicate if an attribute with the same name already exists, case insensitive", async () => {
         const attribute = {
           ...mockAttribute,
+          name: mockAttribute.name.toUpperCase(),
           kind: attributeKind.verified,
         };
         await addOneAttribute(attribute);
         expect(
           attributeRegistryService.createVerifiedAttribute(
             {
-              name: attribute.name,
+              name: attribute.name.toLowerCase(),
               description: attribute.description,
             },
             {
@@ -204,7 +209,9 @@ describe("database test", () => {
               serviceName: "",
             }
           )
-        ).rejects.toThrowError(attributeDuplicate(attribute.name));
+        ).rejects.toThrowError(
+          attributeDuplicateByName(attribute.name.toLowerCase())
+        );
       });
     });
     describe("certified attribute creation", () => {
@@ -263,10 +270,11 @@ describe("database test", () => {
         );
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
-      it("should throw attributeDuplicate if an attribute with the same name and code already exists", async () => {
+      it("should throw attributeDuplicate if an attribute with the same name and code already exists, case insensitive", async () => {
         const attribute = {
           ...mockAttribute,
-          code: "123456",
+          name: mockAttribute.name.toUpperCase(),
+          code: "123456AB",
         };
 
         const tenant: Tenant = {
@@ -284,8 +292,8 @@ describe("database test", () => {
         expect(
           attributeRegistryService.createCertifiedAttribute(
             {
-              name: attribute.name,
-              code: attribute.code,
+              name: attribute.name.toLowerCase(),
+              code: attribute.code.toLowerCase(),
               description: attribute.description,
             },
             {
@@ -295,7 +303,12 @@ describe("database test", () => {
               serviceName: "",
             }
           )
-        ).rejects.toThrowError(attributeDuplicate(attribute.name));
+        ).rejects.toThrowError(
+          attributeDuplicateByNameAndCode(
+            attribute.name.toLowerCase(),
+            attribute.code.toLowerCase()
+          )
+        );
       });
       it("should throw OrganizationIsNotACertifier if the organization is not a certifier", async () => {
         await addOneTenant(mockTenant);
@@ -391,10 +404,11 @@ describe("database test", () => {
         );
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
-      it("should throw attributeDuplicate if an attribute with the same name and code already exists", async () => {
+      it("should throw attributeDuplicate if an attribute with the same name and code already exists, case insensitive", async () => {
         const attribute = {
           ...mockAttribute,
-          code: "123456",
+          name: mockAttribute.name.toUpperCase(),
+          code: "123456AB",
         };
 
         const tenant: Tenant = {
@@ -412,8 +426,8 @@ describe("database test", () => {
         expect(
           attributeRegistryService.createInternalCertifiedAttribute(
             {
-              name: attribute.name,
-              code: attribute.code,
+              name: attribute.name.toLowerCase(),
+              code: attribute.code.toLowerCase(),
               origin: tenant.features[0].certifierId,
               description: attribute.description,
             },
@@ -424,7 +438,12 @@ describe("database test", () => {
               serviceName: "",
             }
           )
-        ).rejects.toThrowError(attributeDuplicate(attribute.name));
+        ).rejects.toThrowError(
+          attributeDuplicateByNameAndCode(
+            attribute.name.toLowerCase(),
+            attribute.code.toLowerCase()
+          )
+        );
       });
     });
   });
