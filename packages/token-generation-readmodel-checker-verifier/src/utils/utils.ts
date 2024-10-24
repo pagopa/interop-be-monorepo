@@ -50,6 +50,7 @@ import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerat
 import { config } from "../configs/config.js";
 import {
   PlatformStatesPurposeEntryDiff,
+  PurposeDifferencesResult,
   ReducedPurpose,
   TokenGenerationStatesPurposeEntryDiff,
 } from "../models/types.js";
@@ -262,15 +263,7 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
   platformStatesEntries: PlatformStatesPurposeEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
   readModel: ReadModelRepository;
-}): Promise<
-  Array<
-    [
-      PlatformStatesPurposeEntryDiff | undefined,
-      TokenGenerationStatesPurposeEntryDiff[] | undefined,
-      ReducedPurpose | undefined
-    ]
-  >
-> {
+}): Promise<PurposeDifferencesResult> {
   const readModelService = readModelServiceBuilder(readModel);
   const [resultsA, resultsB, resultsC] = await Promise.all([
     platformStatesEntries,
@@ -280,15 +273,11 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
     readModelService.getAllReadModelPurposes(),
   ]);
 
-  return zipPurposeDataById(resultsA, resultsB, resultsC).reduce<
-    Array<
-      [
-        PlatformStatesPurposeEntryDiff | undefined,
-        TokenGenerationStatesPurposeEntryDiff[] | undefined,
-        ReducedPurpose | undefined
-      ]
-    >
-  >((acc, [a, b, c]) => {
+  return zipPurposeDataById(
+    resultsA,
+    resultsB,
+    resultsC
+  ).reduce<PurposeDifferencesResult>((acc, [a, b, c]) => {
     if (!c) {
       // eslint-disable-next-line functional/immutable-data
       acc.push([
@@ -456,13 +445,7 @@ export function zipPurposeDataById(
 }
 
 export function countPurposeDifferences(
-  differences: Array<
-    [
-      PlatformStatesPurposeEntryDiff | undefined,
-      TokenGenerationStatesPurposeEntryDiff[] | undefined,
-      ReducedPurpose | undefined
-    ]
-  >,
+  differences: PurposeDifferencesResult,
   logger: Logger
 ): number {
   // eslint-disable-next-line functional/no-let

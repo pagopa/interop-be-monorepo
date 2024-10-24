@@ -37,3 +37,11 @@ export const TokenGenerationStatesPurposeEntryDiff =
 export type TokenGenerationStatesPurposeEntryDiff = z.infer<
   typeof TokenGenerationStatesPurposeEntryDiff
 >;
+
+export type PurposeDifferencesResult = Array<
+  [
+    PlatformStatesPurposeEntryDiff | undefined,
+    TokenGenerationStatesPurposeEntryDiff[] | undefined,
+    ReducedPurpose | undefined
+  ]
+>;
