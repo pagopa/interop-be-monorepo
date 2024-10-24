@@ -13,7 +13,7 @@ import {
 import { match } from "ts-pattern";
 import { AgreementEventEnvelopeV1 } from "pagopa-interop-models";
 import { AgreementEvent as OutboundAgreementEvent } from "@pagopa/interop-outbound-models";
-import { Exact } from "../utils.js";
+import { Exact } from "pagopa-interop-commons";
 
 function toOutboundStampV1(stamp: StampV1): Exact<OutboundStampV1, StampV1> {
   return {

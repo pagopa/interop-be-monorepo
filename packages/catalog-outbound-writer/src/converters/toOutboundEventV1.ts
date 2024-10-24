@@ -11,7 +11,7 @@ import {
   EServiceDocumentV1 as OutboundEServiceDocumentV1,
 } from "@pagopa/interop-outbound-models";
 import { match } from "ts-pattern";
-import { Exact } from "../utils.js";
+import { Exact } from "pagopa-interop-commons";
 
 function toOuboundEServiceDocumentV1(
   document: EServiceDocumentV1

@@ -9,7 +9,7 @@ import {
   PurposeV1 as OutboundPurposeV1,
 } from "@pagopa/interop-outbound-models";
 import { match } from "ts-pattern";
-import { Exact } from "../utils.js";
+import { Exact } from "pagopa-interop-commons";
 
 function toOutboundPurposeVersionV1(
   purposeVersion: PurposeVersionV1
