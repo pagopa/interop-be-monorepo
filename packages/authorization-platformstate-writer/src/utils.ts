@@ -726,10 +726,11 @@ export const readClientEntriesInTokenGenerationStates = async (
   return await runPaginatedQuery(GSIPK_clientId, dynamoDBClient, undefined);
 };
 
-export const cleanClientPurposeIdsInPlatformStatesEntry = async (
+export const setClientPurposeIdsInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesClientPK,
-  version: number
+  version: number,
+  clientPurposeIds: PurposeId[]
 ): Promise<void> => {
   const input: UpdateItemInput = {
     ConditionExpression: "attribute_exists(PK)",
@@ -740,7 +741,9 @@ export const cleanClientPurposeIdsInPlatformStatesEntry = async (
     },
     ExpressionAttributeValues: {
       ":clientPurposesIds": {
-        L: [],
+        L: clientPurposeIds.map((purposeId) => ({
+          S: purposeId,
+        })),
       },
       ":newVersion": {
         N: version.toString(),
