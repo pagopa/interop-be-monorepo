@@ -48,6 +48,9 @@ import {
   PurposeVersionId,
   ProducerKeychain,
   DescriptorState,
+  GSIPKConsumerIdEServiceId,
+  PlatformStatesAgreementEntry,
+  PlatformStatesAgreementPK,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -368,3 +371,21 @@ export const getMockTokenStatesClientPurposeEntry = (
     }),
   };
 };
+
+export const getMockAgreementEntry = (
+  primaryKey: PlatformStatesAgreementPK,
+  GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId(
+    {
+      consumerId: generateId<TenantId>(),
+      eserviceId: generateId<EServiceId>(),
+    }
+  )
+): PlatformStatesAgreementEntry => ({
+  PK: primaryKey,
+  state: itemState.inactive,
+  version: 1,
+  updatedAt: new Date().toISOString(),
+  GSIPK_consumerId_eserviceId,
+  GSISK_agreementTimestamp: new Date().toISOString(),
+  agreementDescriptorId: generateId<DescriptorId>(),
+});

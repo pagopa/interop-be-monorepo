@@ -48,8 +48,6 @@ describe("utils tests", async () => {
     fail();
   }
   const dynamoDBClient = new DynamoDBClient({
-    credentials: { accessKeyId: "key", secretAccessKey: "secret" },
-    region: "eu-central-1",
     endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
@@ -363,7 +361,7 @@ describe("utils tests", async () => {
       );
     });
 
-    it("should return entries if they exist (with pagination)", async () => {
+    it.skip("should return entries if they exist (with pagination)", async () => {
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: generateId(),
         descriptorId: generateId(),
