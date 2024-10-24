@@ -3,6 +3,9 @@ import {
   AppContext,
   DB,
   eventRepository,
+  FileManager,
+  Logger,
+  PDFGenerator,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
@@ -10,6 +13,7 @@ import {
   Delegation,
   delegationEventToBinaryDataV2,
   delegationKind,
+  EService,
   EServiceId,
   generateId,
   Tenant,
@@ -17,12 +21,17 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { DelegationId, TenantId, delegationState } from "pagopa-interop-models";
-import { delegationNotFound, tenantNotFound } from "../model/domain/errors.js";
+import {
+  delegationNotFound,
+  eserviceNotFound,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import {
   toCreateEventApproveDelegation,
   toCreateEventProducerDelegation,
   toCreateEventRejectDelegation,
 } from "../model/domain/toEvent.js";
+import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertDelegationNotExists,
@@ -33,11 +42,14 @@ import {
   assertIsDelegate,
   assertIsState,
 } from "./validators.js";
+import { generatePdfDelegation } from "./pdfUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationProducerServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  pdfGenerator: PDFGenerator,
+  fileManager: FileManager
 ) {
   const getTenantById = async (tenantId: TenantId): Promise<Tenant> => {
     const tenant = await readModelService.getTenantById(tenantId);
@@ -55,6 +67,14 @@ export function delegationProducerServiceBuilder(
       throw delegationNotFound(delegationId);
     }
     return delegation;
+  };
+
+  const getEserviceById = async (id: EServiceId): Promise<EService> => {
+    const eservice = await readModelService.getEServiceById(id);
+    if (!eservice) {
+      throw eserviceNotFound(id);
+    }
+    return eservice.data;
   };
 
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
@@ -114,16 +134,41 @@ export function delegationProducerServiceBuilder(
     async approveProducerDelegation(
       delegateId: TenantId,
       delegationId: DelegationId,
-      correlationId: CorrelationId
+      correlationId: CorrelationId,
+      logger: Logger
     ): Promise<void> {
       const { data: delegation, metadata } = await getDelegationById(
         delegationId
       );
 
+      const delegator = await getTenantById(delegation.delegatorId);
+      const delegate = await getTenantById(delegation.delegateId);
+      const eservice = await getEserviceById(delegation.eserviceId);
+
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
       const now = new Date();
+
+      const pdfBuffer = await generatePdfDelegation(
+        now,
+        delegation,
+        delegator,
+        delegate,
+        eservice,
+        pdfGenerator
+      );
+
+      const documentPath = await fileManager.storeBytes(
+        {
+          bucket: config.s3Bucket,
+          path: config.delegationDocumentPath,
+          name: delegation.id,
+          content: pdfBuffer,
+        },
+        logger
+      );
+
       await repository.createEvent(
         toCreateEventApproveDelegation(
           {
@@ -131,6 +176,14 @@ export function delegationProducerServiceBuilder(
               ...delegation,
               state: delegationState.active,
               approvedAt: now,
+              contract: {
+                id: generateId(),
+                name: "Delega.pdf",
+                prettyName: "Delega.pdf",
+                contentType: "application/pdf",
+                path: documentPath,
+                createdAt: now,
+              },
               stamps: {
                 ...delegation.stamps,
                 activation: {

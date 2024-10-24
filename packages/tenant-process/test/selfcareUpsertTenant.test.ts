@@ -12,16 +12,14 @@ import {
   TenantOnboardedV2,
   toTenantV2,
   CorrelationId,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  SCP,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
 import { selfcareIdConflict } from "../src/model/domain/errors.js";
-import {
-  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-  SCP,
-} from "../src/services/validators.js";
 import { addOneTenant, readLastTenantEvent, tenantService } from "./utils.js";
 
 describe("selfcareUpsertTenant", async () => {
