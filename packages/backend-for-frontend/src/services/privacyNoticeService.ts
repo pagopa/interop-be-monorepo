@@ -146,7 +146,7 @@ export function privacyNoticeServiceBuilder(
         logger
       );
 
-      const path = `${config.privacyNoticesPath}/${latest.privacyNoticeVersion.versionId}/it/${config.privacyNoticesFileName}`;
+      const path = `${config.privacyNoticesPath}/${privacyNoticeId}/${latest.privacyNoticeVersion.versionId}/it/${config.privacyNoticesFileName}`;
       const bytes = await fileManager.get(
         config.privacyNoticesContainer,
         path,

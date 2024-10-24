@@ -1,7 +1,8 @@
+import { CorrelationId } from "pagopa-interop-models";
 import { z } from "zod";
 
 export const InteropHeaders = z.object({
-  "X-Correlation-Id": z.string(),
+  "X-Correlation-Id": CorrelationId,
   Authorization: z.string(),
 });
 
@@ -12,7 +13,7 @@ export const getInteropHeaders = ({
   correlationId,
 }: {
   token: string;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): InteropHeaders => ({
   "X-Correlation-Id": correlationId,
   Authorization: `Bearer ${token}`,

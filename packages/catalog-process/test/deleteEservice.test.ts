@@ -12,6 +12,7 @@ import {
   operationForbidden,
   EServiceDraftDescriptorDeletedV2,
   toEServiceV2,
+  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi } from "vitest";
 import {
@@ -43,7 +44,7 @@ describe("delete eservice", () => {
     await addOneEService(eservice);
     await catalogService.deleteEService(eservice.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -119,7 +120,7 @@ describe("delete eservice", () => {
     await addOneEService(eservice);
     await catalogService.deleteEService(eservice.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -187,7 +188,7 @@ describe("delete eservice", () => {
     void expect(
       catalogService.deleteEService(mockEService.id, {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -199,7 +200,7 @@ describe("delete eservice", () => {
     expect(
       catalogService.deleteEService(mockEService.id, {
         authData: getMockAuthData(),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -226,7 +227,7 @@ describe("delete eservice", () => {
     expect(
       catalogService.deleteEService(eservice.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
