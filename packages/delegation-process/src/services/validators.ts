@@ -11,6 +11,7 @@ import {
 import {
   delegationAlreadyExists,
   delegatorAndDelegateSameIdError,
+  differentEServiceProducer,
   eserviceNotFound,
   incorrectState,
   invalidExternalOriginError,
@@ -27,12 +28,17 @@ export const delegationNotActivableStates: DelegationState[] = [
 ];
 
 export const assertEserviceExists = async (
+  delegatorId: TenantId,
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<void> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
     throw eserviceNotFound(eserviceId);
+  }
+
+  if (eservice.data.producerId !== delegatorId) {
+    throw differentEServiceProducer(delegatorId);
   }
 };
 
@@ -77,17 +83,14 @@ export const assertTenantExists = async (
 
 export const assertDelegationNotExists = async (
   delegator: Tenant,
-  delegate: Tenant,
   eserviceId: EServiceId,
   delegationKind: DelegationKind,
   readModelService: ReadModelService
 ): Promise<void> => {
   const delegatorId = delegator.id;
-  const delegateId = delegate.id;
 
   const delegation = await readModelService.findDelegation({
     delegatorId,
-    delegateId,
     eserviceId,
     delegationKind,
     states: [delegationState.active, delegationState.waitingForApproval],
@@ -96,7 +99,6 @@ export const assertDelegationNotExists = async (
   if (delegation) {
     throw delegationAlreadyExists(
       delegatorId,
-      delegateId,
       eserviceId,
       delegation.data.kind,
       delegation.data.id
