@@ -15,7 +15,7 @@ describe("initSesMailManager", () => {
     sesMock.on(SendEmailCommand).resolves({});
 
     const awsSesConfig: AWSSesConfig = {
-      awsRegion: "eu-central-1",
+      awsRegion: "eu-south-1",
       awsSesEndpoint: undefined,
     };
     const emailManager = initSesMailManager(awsSesConfig);
