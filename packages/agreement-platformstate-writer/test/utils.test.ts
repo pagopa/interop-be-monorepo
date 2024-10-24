@@ -25,6 +25,10 @@ import {
   agreementState,
   makeTokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientPurposeEntry,
+  makeGSIPKEServiceIdDescriptorId,
+  EServiceId,
+  PlatformStatesCatalogEntry,
+  TenantId,
 } from "pagopa-interop-models";
 import {
   afterAll,
@@ -43,6 +47,8 @@ import {
   deleteAgreementEntry,
   agreementStateToItemState,
   updateAgreementStateOnTokenStates,
+  updateAgreementStateAndDescriptorInfoOnTokenStates,
+  isAgreementTheLatest,
 } from "../src/utils.js";
 import { config } from "./utils.js";
 
@@ -162,8 +168,11 @@ describe("utils", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const catalogEntry = await readAgreementEntry(primaryKey, dynamoDBClient);
-      expect(catalogEntry).toBeUndefined();
+      const agreementEntry = await readAgreementEntry(
+        primaryKey,
+        dynamoDBClient
+      );
+      expect(agreementEntry).toBeUndefined();
     });
 
     it("should return entry if it exists", async () => {
@@ -339,7 +348,7 @@ describe("utils", async () => {
     });
   });
 
-  describe("updateAgreementStateInTokenGenerationStatesTable", async () => {
+  describe("updateAgreementStateOnTokenStates", async () => {
     it("should do nothing if previous entry doesn't exist", async () => {
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: generateId(),
@@ -422,6 +431,219 @@ describe("utils", async () => {
           expectedTokenStateEntry2,
         ])
       );
+    });
+  });
+
+  describe("updateAgreementStateAndDescriptorInfoOnTokenStates", async () => {
+    it("should do nothing if previous entry doesn't exist", async () => {
+      const eserviceId = generateId<EServiceId>();
+      const descriptorId = generateId<DescriptorId>();
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: generateId(),
+        eserviceId,
+      });
+
+      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId,
+        descriptorId: generateId<DescriptorId>(),
+      });
+
+      const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
+        eserviceId,
+        descriptorId,
+      });
+
+      const catalogEntry: PlatformStatesCatalogEntry = {
+        PK: pkCatalogEntry,
+        state: itemState.active,
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+        descriptorVoucherLifespan: 60,
+        version: 3,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const tokenStateEntries = await readAllTokenStateItems(dynamoDBClient);
+      expect(tokenStateEntries).toEqual([]);
+      expect(
+        updateAgreementStateAndDescriptorInfoOnTokenStates({
+          GSIPK_consumerId_eserviceId,
+          agreementState: agreementState.archived,
+          dynamoDBClient,
+          GSIPK_eserviceId_descriptorId,
+          catalogEntry,
+        })
+      ).resolves.not.toThrowError();
+      const tokenStateEntriesAfterUpdate = await readAllTokenStateItems(
+        dynamoDBClient
+      );
+      expect(tokenStateEntriesAfterUpdate).toEqual([]);
+    });
+
+    it("should update state if previous entries exist", async () => {
+      const eserviceId = generateId<EServiceId>();
+      const descriptorId = generateId<DescriptorId>();
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: generateId(),
+        eserviceId,
+      });
+
+      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId,
+        descriptorId: generateId<DescriptorId>(),
+      });
+
+      const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
+        eserviceId,
+        descriptorId,
+      });
+
+      const catalogEntry: PlatformStatesCatalogEntry = {
+        PK: pkCatalogEntry,
+        state: itemState.active,
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+        descriptorVoucherLifespan: 60,
+        version: 3,
+        updatedAt: new Date().toISOString(),
+      };
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          agreementState: itemState.inactive,
+          GSIPK_consumerId_eserviceId,
+          descriptorState: undefined,
+          descriptorAudience: [],
+          descriptorVoucherLifespan: undefined,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          agreementState: itemState.inactive,
+          GSIPK_consumerId_eserviceId,
+          descriptorState: undefined,
+          descriptorAudience: [],
+          descriptorVoucherLifespan: undefined,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+      await updateAgreementStateAndDescriptorInfoOnTokenStates({
+        GSIPK_consumerId_eserviceId,
+        agreementState: agreementState.active,
+        dynamoDBClient,
+        GSIPK_eserviceId_descriptorId,
+        catalogEntry,
+      });
+      const retrievedTokenStateEntries =
+        await readTokenStateEntriesByConsumerIdEserviceId(
+          GSIPK_consumerId_eserviceId,
+          dynamoDBClient
+        );
+      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry1,
+          agreementState: itemState.active,
+          updatedAt: new Date().toISOString(),
+          descriptorState: catalogEntry.state,
+          descriptorAudience: catalogEntry.descriptorAudience,
+          descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
+        };
+      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry2,
+          agreementState: itemState.active,
+          updatedAt: new Date().toISOString(),
+          descriptorState: catalogEntry.state,
+          descriptorAudience: catalogEntry.descriptorAudience,
+          descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
+        };
+
+      expect(retrievedTokenStateEntries).toHaveLength(2);
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenStateEntry2,
+          expectedTokenStateEntry1,
+        ])
+      );
+    });
+  });
+
+  describe("isLatestAgreement", () => {
+    it("should return true if the agreement is the latest", async () => {
+      const eserviceId = generateId<EServiceId>();
+      const consumerId = generateId<TenantId>();
+      const agreementId1 = generateId<AgreementId>();
+      const agreementId2 = generateId<AgreementId>();
+      const now = new Date();
+      const threeHoursAgo = new Date();
+      threeHoursAgo.setHours(threeHoursAgo.getHours() - 3);
+
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      });
+
+      const agreementPK1 = makePlatformStatesAgreementPK(agreementId1);
+      const agreementPK2 = makePlatformStatesAgreementPK(agreementId2);
+
+      const agreementEntry1: PlatformStatesAgreementEntry = {
+        ...getMockAgreementEntry(agreementPK1, GSIPK_consumerId_eserviceId),
+        GSISK_agreementTimestamp: now.toISOString(),
+        state: itemState.active,
+      };
+
+      const agreementEntry2: PlatformStatesAgreementEntry = {
+        ...getMockAgreementEntry(agreementPK2, GSIPK_consumerId_eserviceId),
+        GSISK_agreementTimestamp: threeHoursAgo.toISOString(),
+        state: itemState.inactive,
+      };
+
+      await writeAgreementEntry(agreementEntry1, dynamoDBClient);
+      await writeAgreementEntry(agreementEntry2, dynamoDBClient);
+
+      expect(
+        await isAgreementTheLatest(
+          GSIPK_consumerId_eserviceId,
+          agreementId1,
+          dynamoDBClient
+        )
+      ).toEqual(true);
+
+      expect(
+        await isAgreementTheLatest(
+          GSIPK_consumerId_eserviceId,
+          agreementId2,
+          dynamoDBClient
+        )
+      ).toEqual(false);
+    });
+
+    it("should return true if there are no other agreements", async () => {
+      const eserviceId = generateId<EServiceId>();
+      const consumerId = generateId<TenantId>();
+      const agreementId1 = generateId<AgreementId>();
+
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      });
+
+      expect(
+        await isAgreementTheLatest(
+          GSIPK_consumerId_eserviceId,
+          agreementId1,
+          dynamoDBClient
+        )
+      ).toEqual(true);
     });
   });
 });
