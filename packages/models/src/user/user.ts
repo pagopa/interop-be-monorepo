@@ -6,7 +6,7 @@ export const certificationType = {
 } as const;
 
 export const CertificationType = z.enum([
-  Object.values(certificationType, undefined)[0],
+  Object.values(certificationType)[0],
   ...Object.values(certificationType).slice(1),
 ]);
 
