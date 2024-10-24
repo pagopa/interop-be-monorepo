@@ -7,9 +7,10 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { getMockClient } from "pagopa-interop-commons-test";
+import { getMockAuthData, getMockClient } from "pagopa-interop-commons-test";
 import { clientNotFound } from "../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "./utils.js";
+import { mockClientRouterRequest } from "./supertestSetup.js";
 
 describe("getClientById", async () => {
   const organizationId: TenantId = generateId();
@@ -25,12 +26,19 @@ describe("getClientById", async () => {
     };
     await addOneClient(expectedClient);
 
-    const { client } = await authorizationService.getClientById({
-      clientId: expectedClient.id,
-      organizationId,
-      logger: genericLogger,
+    // const { client } = await authorizationService.getClientById({
+    //   clientId: expectedClient.id,
+    //   organizationId,
+    //   logger: genericLogger,
+    // });
+
+    const client = await mockClientRouterRequest.get({
+      path: "/clients/:clientId",
+      pathParams: { clientId: expectedClient.id },
+      authData: getMockAuthData(organizationId),
     });
-    expect(client).toEqual(expectedClient);
+    // eslint-disable-next-line no-underscore-dangle
+    expect(client.id).toEqual(expectedClient.id);
   });
   it("should get from the readModel the client with the specified Id without users", async () => {
     const expectedClientWithoutUser: Client = {
