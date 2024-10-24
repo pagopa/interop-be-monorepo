@@ -116,16 +116,12 @@ export function createMockedApiRequester<
         request.send(body);
       }
 
-      type Response = Omit<request.Response, "body"> & {
-        body: ZodiosResponseByPath<TApi, TMethod, TPath>;
-      };
-
       return new Promise<Response>((resolve, reject) => {
         request.end((err, res) => {
           if (err) {
             reject(err);
           }
-          resolve(res);
+          resolve(res.body);
         });
       });
     };

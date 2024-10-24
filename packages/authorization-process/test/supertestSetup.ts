@@ -19,9 +19,11 @@ vi.mock("pagopa-interop-commons", async (importActual) => {
 vi.mock("../src/config/config.js", async (importActual) => {
   const actual = await importActual<typeof import("../src/config/config.js")>();
   return {
-    ...actual,
-    ...inject("readModelConfig"),
-    ...inject("eventStoreConfig"),
+    config: {
+      ...actual,
+      ...inject("readModelConfig"),
+      ...inject("eventStoreConfig"),
+    },
   };
 });
 
