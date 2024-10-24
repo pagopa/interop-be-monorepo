@@ -62,7 +62,7 @@ describe("update eService", () => {
       },
       {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -135,7 +135,7 @@ describe("update eService", () => {
       },
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -202,7 +202,7 @@ describe("update eService", () => {
         },
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -228,7 +228,7 @@ describe("update eService", () => {
       },
       {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -275,7 +275,7 @@ describe("update eService", () => {
       },
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -315,7 +315,7 @@ describe("update eService", () => {
         },
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -337,7 +337,7 @@ describe("update eService", () => {
         },
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -371,7 +371,7 @@ describe("update eService", () => {
         },
         {
           authData: getMockAuthData(eservice1.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -401,7 +401,7 @@ describe("update eService", () => {
         },
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -431,7 +431,7 @@ describe("update eService", () => {
         },
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -461,7 +461,7 @@ describe("update eService", () => {
         },
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -491,7 +491,7 @@ describe("update eService", () => {
         },
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

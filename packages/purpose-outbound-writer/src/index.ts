@@ -6,7 +6,12 @@ import {
   encodeOutboundPurposeEvent,
   PurposeEvent as PurposeOutboundEvent,
 } from "@pagopa/interop-outbound-models";
-import { PurposeEvent } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  generateId,
+  PurposeEvent,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { config } from "./config/config.js";
 import { toOutboundEventV1 } from "./converters/toOutboundEventV1.js";
 import { toOutboundEventV2 } from "./converters/toOutboundEventV2.js";
@@ -24,7 +29,9 @@ async function processMessage({
     eventType: msg.type,
     eventVersion: msg.event_version,
     streamId: msg.stream_id,
-    correlationId: msg.correlation_id,
+    correlationId: msg.correlation_id
+      ? unsafeBrandId<CorrelationId>(msg.correlation_id)
+      : generateId<CorrelationId>(),
   });
 
   const outboundEvent: PurposeOutboundEvent | undefined = match(msg)

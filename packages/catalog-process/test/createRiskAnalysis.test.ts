@@ -22,6 +22,7 @@ import {
   toEServiceV2,
   unsafeBrandId,
   operationForbidden,
+  generateId,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
@@ -78,7 +79,7 @@ describe("create risk analysis", () => {
 
     await catalogService.createRiskAnalysis(eservice.id, riskAnalysisSeed, {
       authData: getMockAuthData(producer.id),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -147,7 +148,7 @@ describe("create risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -162,7 +163,7 @@ describe("create risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -187,7 +188,7 @@ describe("create risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -213,7 +214,7 @@ describe("create risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -239,7 +240,7 @@ describe("create risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -273,7 +274,7 @@ describe("create risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(producer.id),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -315,7 +316,7 @@ describe("create risk analysis", () => {
     expect(
       catalogService.createRiskAnalysis(eservice.id, riskAnalysisSeed, {
         authData: getMockAuthData(producer.id),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -373,7 +374,7 @@ describe("create risk analysis", () => {
     expect(
       catalogService.createRiskAnalysis(eservice.id, invalidRiskAnalysisSeed, {
         authData: getMockAuthData(producer.id),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })

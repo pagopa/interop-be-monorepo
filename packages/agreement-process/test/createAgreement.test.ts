@@ -144,7 +144,12 @@ describe("create agreement", () => {
     };
     const createdAgreement = await agreementService.createAgreement(
       agreementData,
-      { authData, correlationId: "", serviceName: "", logger: genericLogger }
+      {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
     );
 
     await expectedAgreementCreation(
@@ -203,7 +208,12 @@ describe("create agreement", () => {
 
     const createdAgreement = await agreementService.createAgreement(
       apiAgreementPayload,
-      { authData, correlationId: "", serviceName: "", logger: genericLogger }
+      {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
     );
 
     await expectedAgreementCreation(
@@ -240,7 +250,12 @@ describe("create agreement", () => {
 
     const createdAgreement = await agreementService.createAgreement(
       apiAgreementPayload,
-      { authData, correlationId: "", serviceName: "", logger: genericLogger }
+      {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
     );
 
     await expectedAgreementCreation(
@@ -285,7 +300,12 @@ describe("create agreement", () => {
 
     const createdAgreement = await agreementService.createAgreement(
       apiAgreementPayload,
-      { authData, correlationId: "", serviceName: "", logger: genericLogger }
+      {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
     );
 
     await expectedAgreementCreation(
@@ -327,7 +347,12 @@ describe("create agreement", () => {
 
     const createdAgreement = await agreementService.createAgreement(
       apiAgreementPayload,
-      { authData, correlationId: "", serviceName: "", logger: genericLogger }
+      {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
     );
 
     await expectedAgreementCreation(
@@ -352,7 +377,7 @@ describe("create agreement", () => {
     await expect(
       agreementService.createAgreement(apiAgreementPayload, {
         authData,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -377,7 +402,7 @@ describe("create agreement", () => {
     await expect(
       agreementService.createAgreement(apiAgreementPayload, {
         authData,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -422,7 +447,7 @@ describe("create agreement", () => {
     await expect(
       agreementService.createAgreement(apiAgreementPayload, {
         authData,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -464,7 +489,7 @@ describe("create agreement", () => {
     await expect(
       agreementService.createAgreement(apiAgreementPayload, {
         authData,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -502,7 +527,7 @@ describe("create agreement", () => {
     await expect(
       agreementService.createAgreement(apiAgreementPayload, {
         authData,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -530,7 +555,7 @@ describe("create agreement", () => {
     await expect(() =>
       agreementService.createAgreement(apiAgreementPayload, {
         authData,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -579,7 +604,7 @@ describe("create agreement", () => {
     await expect(
       agreementService.createAgreement(apiAgreementPayload, {
         authData,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -638,7 +663,7 @@ describe("create agreement", () => {
     await expect(
       agreementService.createAgreement(apiAgreementPayload, {
         authData,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
