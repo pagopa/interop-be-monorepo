@@ -1,9 +1,9 @@
-import { randomUUID } from "crypto";
 import {
   initFileManager,
   logger,
   withExecutionTime,
 } from "pagopa-interop-commons";
+import { CorrelationId, generateId } from "../../models/dist/brandedIds.js";
 import { html2json } from "./services/html2json.js";
 import { OneTrustNoticeDBSchema } from "./models/index.js";
 
@@ -21,7 +21,7 @@ import { DynamoDbTableClient } from "./services/storage.js";
 
 const loggerInstance = logger({
   serviceName: "one-trust-notices",
-  correlationId: randomUUID(),
+  correlationId: generateId<CorrelationId>(),
 });
 const fileManager = initFileManager(config);
 

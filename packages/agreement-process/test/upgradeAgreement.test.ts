@@ -226,7 +226,7 @@ describe("upgrade Agreement", () => {
       {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -456,7 +456,7 @@ describe("upgrade Agreement", () => {
       {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -681,7 +681,7 @@ describe("upgrade Agreement", () => {
       {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -755,7 +755,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreementId, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(agreementNotFound(agreementId));
@@ -774,7 +774,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
@@ -800,7 +800,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
@@ -823,7 +823,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
@@ -860,7 +860,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(publishedDescriptorNotFound(agreement.eserviceId));
@@ -894,7 +894,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
@@ -931,7 +931,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
@@ -974,7 +974,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
@@ -1017,7 +1017,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
@@ -1060,7 +1060,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(tenantNotFound(consumerId));
@@ -1102,7 +1102,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(tenantNotFound(agreement.producerId));
@@ -1163,7 +1163,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
@@ -1220,7 +1220,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(FileManagerError);
@@ -1289,7 +1289,7 @@ describe("upgrade Agreement", () => {
       agreementService.upgradeAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
