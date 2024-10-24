@@ -168,8 +168,6 @@ export function delegationProducerServiceBuilder(
         },
         logger
       );
-      logger.info(`Stored delegation document at ${documentPath}`);
-      // TODO store contract info
 
       await repository.createEvent(
         toCreateEventApproveDelegation(
@@ -178,6 +176,14 @@ export function delegationProducerServiceBuilder(
               ...delegation,
               state: delegationState.active,
               approvedAt: now,
+              contract: {
+                id: generateId(),
+                name: "Delega.pdf",
+                prettyName: "Delega.pdf",
+                contentType: "application/pdf",
+                path: documentPath,
+                createdAt: now,
+              },
               stamps: {
                 ...delegation.stamps,
                 activation: {

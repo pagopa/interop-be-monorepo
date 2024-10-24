@@ -10,7 +10,9 @@ import {
   DelegationApprovedV2,
   DelegationId,
   EService,
+  generateId,
   Tenant,
+  toDelegationContractDocumentV2,
   toDelegationV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -31,7 +33,7 @@ import {
   fileManager,
   readLastDelegationEvent,
   pdfGenerator,
-  areBuffersSimilar,
+  flushPDFMetadata,
 } from "./utils.js";
 
 describe("approve delegation", () => {
@@ -55,11 +57,22 @@ describe("approve delegation", () => {
   });
 
   it("should approve delegation if validations succed", async () => {
+    const delegationId = generateId<DelegationId>();
+
     const delegation = getMockDelegationProducer({
+      id: delegationId,
       state: "WaitingForApproval",
       delegateId: delegate.id,
       delegatorId: delegator.id,
       eserviceId: eservice.id,
+      contract: {
+        id: generateId(),
+        contentType: "application/pdf",
+        createdAt: currentExecutionTime,
+        name: "Delega.pdf",
+        path: `delegation/${delegationId}`,
+        prettyName: "Delega.pdf",
+      },
     });
     await addOneDelegation(delegation);
     const { version } = await readLastDelegationEvent(delegation.id);
@@ -79,18 +92,29 @@ describe("approve delegation", () => {
       messageType: DelegationApprovedV2,
       payload: event.data,
     });
-    const expectedDelegation = toDelegationV2({
-      ...delegation,
-      state: delegationState.active,
-      approvedAt: currentExecutionTime,
-      stamps: {
-        ...delegation.stamps,
-        activation: {
-          who: delegate.id,
-          when: currentExecutionTime,
+
+    if (!actualDelegation?.contract || !delegation.contract) {
+      throw new Error("Contract should be defined");
+    }
+
+    const expectedDelegation = {
+      ...toDelegationV2({
+        ...delegation,
+        state: delegationState.active,
+        approvedAt: currentExecutionTime,
+        stamps: {
+          ...delegation.stamps,
+          activation: {
+            who: delegate.id,
+            when: currentExecutionTime,
+          },
         },
+      }),
+      contract: {
+        ...toDelegationContractDocumentV2(delegation.contract),
+        id: actualDelegation.contract.id,
       },
-    });
+    };
     expect(actualDelegation).toEqual(expectedDelegation);
   });
 
@@ -175,10 +199,12 @@ describe("approve delegation", () => {
       genericLogger
     );
 
-    const actualPDF = await fileManager.get(
-      config.s3Bucket,
-      `${config.delegationDocumentPath}/${delegation.id}`,
-      genericLogger
+    const actualPDF = Buffer.from(
+      await fileManager.get(
+        config.s3Bucket,
+        `${config.delegationDocumentPath}/${delegation.id}`,
+        genericLogger
+      )
     );
 
     const expectedPDF = await generatePdfDelegation(
@@ -190,8 +216,8 @@ describe("approve delegation", () => {
       pdfGenerator
     );
 
-    // Compare the two buffers but they differs for the creation date and modification date and this is not fixable with vi timers.
-    // So we just check if the buffers are similar
-    expect(areBuffersSimilar(Buffer.from(actualPDF), expectedPDF)).toBe(true);
+    expect(flushPDFMetadata(actualPDF, currentExecutionTime)).toEqual(
+      flushPDFMetadata(expectedPDF, currentExecutionTime)
+    );
   });
 });
