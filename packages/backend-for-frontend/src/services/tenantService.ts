@@ -4,7 +4,7 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { isDefined, WithLogger } from "pagopa-interop-commons";
-import { AttributeId, TenantId } from "pagopa-interop-models";
+import { AttributeId, CorrelationId, TenantId } from "pagopa-interop-models";
 import {
   AttributeProcessClient,
   SelfcareV2Client,
@@ -44,7 +44,7 @@ export function tenantServiceBuilder(
 ) {
   async function getLogoUrl(
     selfcareId: tenantApi.Tenant["selfcareId"],
-    correlationId: string
+    correlationId: CorrelationId
   ): Promise<bffApi.CompactTenant["logoUrl"]> {
     if (!selfcareId) {
       return undefined;
@@ -108,7 +108,7 @@ export function tenantServiceBuilder(
     async getTenants(
       name: string | undefined,
       limit: number,
-      { logger, headers }: WithLogger<BffAppContext>
+      { logger, headers, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.Tenants> {
       logger.info(`Getting tenants with name ${name}, limit ${limit}`);
       const offset = 0; // This BFF query gets only the limit as parameter, offset is always 0
@@ -124,7 +124,7 @@ export function tenantServiceBuilder(
       const results = await Promise.all(
         pagedResults.results.map((tenant) =>
           toBffApiCompactTenant(tenant, (selfcareId) =>
-            getLogoUrl(selfcareId, headers["X-Correlation-Id"])
+            getLogoUrl(selfcareId, correlationId)
           )
         )
       );

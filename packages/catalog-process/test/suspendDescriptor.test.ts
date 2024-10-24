@@ -9,6 +9,7 @@ import {
   EServiceDescriptorSuspendedV2,
   toEServiceV2,
   operationForbidden,
+  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -43,7 +44,7 @@ describe("suspend descriptor", () => {
     await addOneEService(eservice);
     await catalogService.suspendDescriptor(eservice.id, descriptor.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -79,7 +80,7 @@ describe("suspend descriptor", () => {
     expect(
       catalogService.suspendDescriptor(mockEService.id, mockDescriptor.id, {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -100,7 +101,7 @@ describe("suspend descriptor", () => {
     expect(
       catalogService.suspendDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -117,7 +118,7 @@ describe("suspend descriptor", () => {
     expect(
       catalogService.suspendDescriptor(eservice.id, mockDescriptor.id, {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -139,7 +140,7 @@ describe("suspend descriptor", () => {
     expect(
       catalogService.suspendDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -162,7 +163,7 @@ describe("suspend descriptor", () => {
     expect(
       catalogService.suspendDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -185,7 +186,7 @@ describe("suspend descriptor", () => {
     expect(
       catalogService.suspendDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })

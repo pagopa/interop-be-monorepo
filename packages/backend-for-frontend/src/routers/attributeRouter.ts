@@ -38,6 +38,7 @@ const attributeRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating certified attribute with seed ${JSON.stringify(
             req.body
           )}`
@@ -61,6 +62,7 @@ const attributeRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating verified attribute with seed ${JSON.stringify(
             req.body
           )}`
@@ -84,6 +86,7 @@ const attributeRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating declared attribute with seed ${JSON.stringify(
             req.body
           )}`
@@ -115,6 +118,7 @@ const attributeRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving attributes with name = ${req.query.q}, limit = ${req.query.limit}, offset = ${req.query.offset}, kinds = ${req.query.kinds}`
         );
         return res.status(errorRes.status).send();
@@ -136,6 +140,7 @@ const attributeRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving attribute with id ${req.params.attributeId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -158,6 +163,7 @@ const attributeRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving attribute with origin = ${req.params.origin} and code = ${req.params.code}`
         );
         return res.status(errorRes.status).send(errorRes);
