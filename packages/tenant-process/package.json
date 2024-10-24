@@ -30,7 +30,6 @@
     "vitest": "1.6.0"
   },
   "dependencies": {
-    "@types/uuid": "9.0.8",
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
     "axios": "1.7.4",

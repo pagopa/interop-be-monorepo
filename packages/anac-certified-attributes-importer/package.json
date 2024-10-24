@@ -24,7 +24,6 @@
     "@types/ssh2-sftp-client": "9.0.4",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
-    "@types/uuid": "9.0.8",
     "testcontainers": "10.9.0",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
