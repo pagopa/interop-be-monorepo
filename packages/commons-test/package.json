@@ -17,6 +17,15 @@
   },
   "author": "",
   "license": "Apache-2.0",
+  "nx": {
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist"
+        ]
+      }
+    }
+  },
   "devDependencies": {
     "@anatine/zod-mock": "3.13.4",
     "@aws-sdk/client-dynamodb": "3.637.0",

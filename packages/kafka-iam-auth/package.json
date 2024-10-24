@@ -17,6 +17,15 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "license": "Apache-2.0",
+  "nx": {
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist"
+        ]
+      }
+    }
+  },
   "dependencies": {
     "aws-msk-iam-sasl-signer-js": "1.0.0",
     "kafkajs": "2.2.4",

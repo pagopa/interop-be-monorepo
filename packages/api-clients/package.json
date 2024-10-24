@@ -22,6 +22,15 @@
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",
+  "nx": {
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist"
+        ]
+      }
+    }
+  },
   "devDependencies": {
     "@apidevtools/swagger-parser": "10.1.0",
     "@pagopa/eslint-config": "3.0.0",

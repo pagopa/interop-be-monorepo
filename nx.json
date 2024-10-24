@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "targetDefaults": {
+    "start": {
+      "dependsOn": ["build"]
+    },
+    "build": {
+      "dependsOn": ["generate-model", "generate-protobuf", "^build"],
+      "cache": true
+    },
+    "generate-model": {
+      "dependsOn": ["^generate-model"],
+      "outputs": ["{projectRoot}/src/generated"],
+      "cache": true
+    },
+    "generate-protobuf": {
+      "dependsOn": ["^generate-protobuf"],
+      "outputs": ["{projectRoot}/src/gen"],
+      "cache": true
+    },
+    "check": {
+      "dependsOn": ["^build"]
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "lint:autofix": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "options": {
+        "run": ""
+      }
+    },
+    "format:check": {},
+    "format:write": {}
+  },
+  "defaultBase": "main"
+}

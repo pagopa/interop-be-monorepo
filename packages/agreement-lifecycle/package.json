@@ -20,6 +20,15 @@
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",
+  "nx": {
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist"
+        ]
+      }
+    }
+  },
   "dependencies": {
     "@types/node": "20.14.6",
     "pagopa-interop-models": "workspace:*"
