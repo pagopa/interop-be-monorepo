@@ -1,6 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -18,7 +18,7 @@ describe("FileManager tests", async () => {
     it("should send a message to the queue and receive it back", async () => {
       await queueWriter.send(
         {
-          messageUUID: uuidv4(),
+          messageUUID: randomUUID(),
           kind: "TestMessageKind",
           eventJournalPersistenceId: "test-persistence-id",
           eventJournalSequenceNumber: 0,
@@ -47,7 +47,7 @@ describe("FileManager tests", async () => {
       await expect(
         nonExistingQueueWriter.send(
           {
-            messageUUID: uuidv4(),
+            messageUUID: randomUUID(),
             kind: "TestMessageKind",
             eventJournalPersistenceId: "test-persistence-id",
             eventJournalSequenceNumber: 0,
