@@ -41,7 +41,7 @@ describe("reject delegation", () => {
     await delegationProducerService.rejectProducerDelegation(
       delegate.id,
       delegation.id,
-      "9999",
+      unsafeBrandId("9999"),
       rejectionReason
     );
 
@@ -73,7 +73,7 @@ describe("reject delegation", () => {
       delegationProducerService.rejectProducerDelegation(
         delegateId,
         nonExistentDelegationId,
-        "9999",
+        unsafeBrandId("9999"),
         ""
       )
     ).rejects.toThrow(delegationNotFound(nonExistentDelegationId));
@@ -92,7 +92,7 @@ describe("reject delegation", () => {
       delegationProducerService.rejectProducerDelegation(
         wrongDelegate.id,
         delegation.id,
-        "9999",
+        unsafeBrandId("9999"),
         ""
       )
     ).rejects.toThrow(
@@ -112,7 +112,7 @@ describe("reject delegation", () => {
       delegationProducerService.rejectProducerDelegation(
         delegate.id,
         delegation.id,
-        "9999",
+        unsafeBrandId("9999"),
         ""
       )
     ).rejects.toThrow(
