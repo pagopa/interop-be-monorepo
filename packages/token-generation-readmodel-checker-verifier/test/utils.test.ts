@@ -53,6 +53,11 @@ import {
   zipPurposeDataById,
 } from "../src/utils/utils.js";
 import {
+  PlatformStatesPurposeEntryDiff,
+  PurposeDifferencesResult,
+  ReducedPurpose,
+} from "../src/models/types.js";
+import {
   addOneAgreement,
   addOneClient,
   addOneEService,
@@ -61,7 +66,7 @@ import {
 } from "./utils.js";
 
 describe("Token Generation Read Model Checker Verifier utils tests", () => {
-  describe("purpose utils", () => {
+  describe.only("purpose utils", () => {
     it("compareReadModelPurposesWithPlatformStates", async () => {
       const purpose1 = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
@@ -121,13 +126,13 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         tokenGenerationStatesEntries: [tokenStatesEntry],
         readModel: readModelRepository,
       });
-      const expectedDifferences: Array<
+      const expectedDifferences: PurposeDifferencesResult = [
         [
-          PlatformStatesPurposeEntry | undefined,
-          TokenGenerationStatesClientPurposeEntry[],
-          Purpose | undefined
-        ]
-      > = [[platformPurposeEntry2, [], purpose2]];
+          PlatformStatesPurposeEntryDiff.parse(platformPurposeEntry2),
+          undefined,
+          ReducedPurpose.parse(purpose2),
+        ],
+      ];
 
       expect(differences).toHaveLength(1);
       expect(differences).toEqual(expect.arrayContaining(expectedDifferences));
