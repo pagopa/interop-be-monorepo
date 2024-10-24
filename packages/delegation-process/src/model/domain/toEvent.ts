@@ -1,5 +1,6 @@
 import { CreateEvent } from "pagopa-interop-commons";
 import {
+  CorrelationId,
   Delegation,
   DelegationEventV2,
   WithMetadata,
@@ -8,7 +9,7 @@ import {
 
 export function toCreateEventProducerDelegation(
   delegation: Delegation,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<DelegationEventV2> {
   return {
     streamId: delegation.id,
@@ -26,7 +27,7 @@ export function toCreateEventProducerDelegation(
 
 export function toCreateEventApproveDelegation(
   delegation: WithMetadata<Delegation>,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<DelegationEventV2> {
   return {
     streamId: delegation.data.id,
@@ -44,7 +45,7 @@ export function toCreateEventApproveDelegation(
 
 export function toCreateEventRejectDelegation(
   delegation: WithMetadata<Delegation>,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<DelegationEventV2> {
   return {
     streamId: delegation.data.id,
