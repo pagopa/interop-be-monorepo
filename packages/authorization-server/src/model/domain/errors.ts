@@ -2,7 +2,6 @@ import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   ApiError,
   ClientKindTokenStates,
-  GeneratedTokenAuditDetails,
   makeApiProblemBuilder,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
