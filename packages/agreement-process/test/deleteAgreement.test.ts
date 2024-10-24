@@ -60,7 +60,7 @@ describe("delete agreement", () => {
     await agreementService.deleteAgreementById(agreement.id, {
       authData,
       serviceName: "",
-      correlationId: "",
+      correlationId: generateId(),
       logger: genericLogger,
     });
 
@@ -106,7 +106,7 @@ describe("delete agreement", () => {
       agreementService.deleteAgreementById(agreementId, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(agreementNotFound(agreementId));
@@ -120,7 +120,7 @@ describe("delete agreement", () => {
       agreementService.deleteAgreementById(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
@@ -141,7 +141,7 @@ describe("delete agreement", () => {
       agreementService.deleteAgreementById(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
@@ -165,7 +165,7 @@ describe("delete agreement", () => {
       agreementService.deleteAgreementById(agreement.id, {
         authData: getRandomAuthData(agreement.consumerId),
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(

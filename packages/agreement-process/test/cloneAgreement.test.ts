@@ -137,7 +137,7 @@ describe("clone agreement", () => {
       {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -215,7 +215,7 @@ describe("clone agreement", () => {
       agreementService.cloneAgreement(agreementId, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(agreementNotFound(agreementId));
@@ -229,7 +229,7 @@ describe("clone agreement", () => {
       agreementService.cloneAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
@@ -253,7 +253,7 @@ describe("clone agreement", () => {
       agreementService.cloneAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
@@ -275,7 +275,7 @@ describe("clone agreement", () => {
       agreementService.cloneAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
@@ -310,7 +310,7 @@ describe("clone agreement", () => {
       agreementService.cloneAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(agreementAlreadyExists(consumerId, eservice.id));
@@ -356,7 +356,7 @@ describe("clone agreement", () => {
       agreementService.cloneAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(tenantNotFound(consumerId));
@@ -383,7 +383,7 @@ describe("clone agreement", () => {
       agreementService.cloneAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
@@ -438,7 +438,7 @@ describe("clone agreement", () => {
       agreementService.cloneAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
@@ -481,7 +481,7 @@ describe("clone agreement", () => {
       agreementService.cloneAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(FileManagerError);
