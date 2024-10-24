@@ -2,9 +2,11 @@ import crypto from "crypto";
 import {
   ClientId,
   clientKindTokenStates,
+  DescriptorId,
   generateId,
   itemState,
   PurposeId,
+  PurposeVersionId,
   TenantId,
 } from "pagopa-interop-models";
 import * as jose from "jose";
@@ -122,11 +124,19 @@ export const getMockConsumerKey = (): ConsumerKey => ({
   ...getMockKey(),
   purposeId: generateId<PurposeId>(),
   clientKind: clientKindTokenStates.consumer,
-  purposeState: itemState.active,
+  purposeState: {
+    state: itemState.active,
+    versionId: generateId<PurposeVersionId>(),
+  },
   agreementId: generateId(),
-  agreementState: itemState.active,
+  agreementState: { state: itemState.active },
   eServiceId: generateId(),
-  descriptorState: itemState.active,
+  eServiceState: {
+    state: itemState.active,
+    descriptorId: generateId<DescriptorId>(),
+    audience: ["test.interop.pagopa.it"],
+    voucherLifespan: 60,
+  },
 });
 
 export const getMockApiKey = (): ApiKey => ({

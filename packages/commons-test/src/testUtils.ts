@@ -55,6 +55,7 @@ import {
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientEntry,
   makeTokenGenerationStatesClientKidPK,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -331,7 +332,9 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
 export const getMockTokenStatesClientPurposeEntry = (
   tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
 ): TokenGenerationStatesClientPurposeEntry => {
-  const clientId = generateId<ClientId>();
+  const clientId = tokenStateEntryPK
+    ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
+    : generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -348,7 +351,7 @@ export const getMockTokenStatesClientPurposeEntry = (
         kid,
         purposeId,
       }),
-    descriptorState: itemState.inactive,
+    descriptorState: itemState.active,
     descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
     descriptorVoucherLifespan: 60,
     updatedAt: new Date().toISOString(),
@@ -369,7 +372,7 @@ export const getMockTokenStatesClientPurposeEntry = (
       descriptorId,
     }),
     GSIPK_purposeId: purposeId,
-    purposeState: itemState.inactive,
+    purposeState: itemState.active,
     GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
       clientId,
       purposeId,
@@ -398,7 +401,10 @@ export const getMockAgreementEntry = (
 export const getMockTokenStatesClientEntry = (
   tokenStateEntryPK?: TokenGenerationStatesClientKidPK
 ): TokenGenerationStatesClientEntry => {
-  const clientId = generateId<ClientId>();
+  const clientId = tokenStateEntryPK
+    ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
+    : generateId<ClientId>();
+
   const consumerId = generateId<TenantId>();
   const kid = `kid ${Math.random()}`;
 
