@@ -48,6 +48,11 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerationReadModelService.js";
 import { config } from "../configs/config.js";
+import {
+  PlatformStatesPurposeEntryDiff,
+  ReducedPurpose,
+  TokenGenerationStatesPurposeEntryDiff,
+} from "../models/types.js";
 
 type Accumulator = {
   platformPurposeEntries: PlatformStatesPurposeEntry[];
@@ -260,9 +265,9 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
 }): Promise<
   Array<
     [
-      PlatformStatesPurposeEntry | undefined,
-      TokenGenerationStatesClientPurposeEntry[],
-      Purpose | undefined
+      PlatformStatesPurposeEntryDiff | undefined,
+      TokenGenerationStatesPurposeEntryDiff[] | undefined,
+      ReducedPurpose | undefined
     ]
   >
 > {
@@ -274,40 +279,58 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
     ),
     readModelService.getAllReadModelPurposes(),
   ]);
-  return zipPurposeDataById(resultsA, resultsB, resultsC).filter(
-    ([a, b, c]) => {
-      if (c) {
-        const purposeState = getPurposeStateFromPurposeVersions(c.versions);
-        const lastPurposeVersion = getLastPurposeVersion(c.versions);
-        const isPlatformStatesCorrect = a
-          ? validatePurposePlatformStates({
-              platformPurposeEntry: a,
-              purpose: c,
-              purposeState,
-              lastPurposeVersion,
-            })
-          : true;
-        // TODO: should a missing platform-states entry be considered an error or not?
-        // } else if (!a && c) {
-        //   const lastPurposeVersion = getLastPurposeVersion(c.versions);
-        //   return lastPurposeVersion.state !== purposeVersionState.archived;
 
-        const isTokenGenerationStatesCorrect = b
-          ? validatePurposeTokenGenerationStates({
-              tokenEntries: b,
-              purpose: c,
-              purposeState,
-              lastPurposeVersion,
-            })
-          : true;
-
-        if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
-          return false;
-        }
-      }
-      return true;
+  return zipPurposeDataById(resultsA, resultsB, resultsC).reduce<
+    Array<
+      [
+        PlatformStatesPurposeEntryDiff | undefined,
+        TokenGenerationStatesPurposeEntryDiff[] | undefined,
+        ReducedPurpose | undefined
+      ]
+    >
+  >((acc, [a, b, c]) => {
+    if (!c) {
+      // eslint-disable-next-line functional/immutable-data
+      acc.push([
+        PlatformStatesPurposeEntryDiff.parse(a),
+        TokenGenerationStatesPurposeEntryDiff.array().parse(b),
+        undefined,
+      ]);
+      return acc;
     }
-  );
+
+    const purposeState = getPurposeStateFromPurposeVersions(c.versions);
+    const lastPurposeVersion = getLastPurposeVersion(c.versions);
+
+    const { status: isPlatformStatesCorrect, data: platformPurposeEntryDiff } =
+      validatePurposePlatformStates({
+        platformPurposeEntry: a,
+        purpose: c,
+        purposeState,
+        lastPurposeVersion,
+      });
+
+    const {
+      status: isTokenGenerationStatesCorrect,
+      data: tokenPurposeEntryDiff,
+    } = validatePurposeTokenGenerationStates({
+      tokenEntries: b,
+      purpose: c,
+      purposeState,
+      lastPurposeVersion,
+    });
+
+    if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
+      // eslint-disable-next-line functional/immutable-data
+      acc.push([
+        platformPurposeEntryDiff,
+        tokenPurposeEntryDiff,
+        ReducedPurpose.parse(c),
+      ]);
+    }
+
+    return acc;
+  }, []);
 }
 
 function validatePurposePlatformStates({
@@ -316,19 +339,43 @@ function validatePurposePlatformStates({
   purposeState,
   lastPurposeVersion,
 }: {
-  platformPurposeEntry: PlatformStatesPurposeEntry;
+  platformPurposeEntry: PlatformStatesPurposeEntry | undefined;
   purpose: Purpose;
   purposeState: ItemState;
   lastPurposeVersion: PurposeVersion;
-}): boolean {
-  return (
-    extractIdFromPlatformStatesPK<PurposeId>(platformPurposeEntry.PK).id ===
-      purpose.id &&
-    purposeState === platformPurposeEntry.state &&
-    platformPurposeEntry.purposeConsumerId === purpose.consumerId &&
-    platformPurposeEntry.purposeEserviceId === purpose.eserviceId &&
-    platformPurposeEntry.purposeVersionId === lastPurposeVersion.id
-  );
+}): {
+  status: boolean;
+  data: PlatformStatesPurposeEntryDiff | undefined;
+} {
+  // no yes archived -> yes
+  // no yes not archived -> no
+  // yes yes archived -> no
+  // yes yes not archived -> yes check
+
+  const isArchived = lastPurposeVersion.state === purposeVersionState.archived;
+  const status = !platformPurposeEntry
+    ? isArchived
+    : !isArchived &&
+      extractIdFromPlatformStatesPK<PurposeId>(platformPurposeEntry.PK).id ===
+        purpose.id &&
+      purposeState === platformPurposeEntry.state &&
+      platformPurposeEntry.purposeConsumerId === purpose.consumerId &&
+      platformPurposeEntry.purposeEserviceId === purpose.eserviceId &&
+      platformPurposeEntry.purposeVersionId === lastPurposeVersion.id;
+
+  return {
+    status,
+    data:
+      !status && platformPurposeEntry
+        ? {
+            PK: platformPurposeEntry.PK,
+            state: platformPurposeEntry.state,
+            purposeConsumerId: platformPurposeEntry.purposeConsumerId,
+            purposeEserviceId: platformPurposeEntry.purposeEserviceId,
+            purposeVersionId: platformPurposeEntry.purposeVersionId,
+          }
+        : undefined,
+  };
 }
 
 function validatePurposeTokenGenerationStates({
@@ -337,26 +384,49 @@ function validatePurposeTokenGenerationStates({
   purposeState,
   lastPurposeVersion,
 }: {
-  tokenEntries: TokenGenerationStatesClientPurposeEntry[];
+  tokenEntries: TokenGenerationStatesClientPurposeEntry[] | undefined;
   purpose: Purpose;
   purposeState: ItemState;
   lastPurposeVersion: PurposeVersion;
-}): boolean {
+}): {
+  status: boolean;
+  data: TokenGenerationStatesPurposeEntryDiff[] | undefined;
+} {
   if (!tokenEntries || tokenEntries.length === 0) {
-    return true;
+    return {
+      status: true,
+      data: undefined,
+    };
   }
 
-  return tokenEntries.some(
+  // Find all valid entries in tokenEntries
+  const foundEntries = tokenEntries.filter(
     (e) =>
-      extractIdsFromTokenGenerationStatesPK(e.PK).purposeId === purpose.id &&
-      e.consumerId === purpose.consumerId &&
-      (!e.GSIPK_purposeId || e.GSIPK_purposeId === purpose.id) &&
-      (!e.purposeState || e.purposeState === purposeState) &&
-      (!e.purposeVersionId || e.purposeVersionId === lastPurposeVersion.id) &&
-      (!e.GSIPK_clientId_purposeId ||
-        extractIdsFromGSIPKClientIdPurposeId(e.GSIPK_clientId_purposeId)
-          .purposeId === purpose.id)
+      extractIdsFromTokenGenerationStatesPK(e.PK).purposeId !== purpose.id ||
+      e.consumerId !== purpose.consumerId ||
+      !e.GSIPK_purposeId ||
+      e.GSIPK_purposeId !== purpose.id ||
+      !e.purposeState ||
+      e.purposeState !== purposeState ||
+      !e.purposeVersionId ||
+      e.purposeVersionId !== lastPurposeVersion.id ||
+      !e.GSIPK_clientId_purposeId ||
+      extractIdsFromGSIPKClientIdPurposeId(e.GSIPK_clientId_purposeId)
+        .purposeId !== purpose.id
   );
+
+  // Return status and data based on whether any valid entries were found
+  return {
+    status: foundEntries.length === 0, // true if any valid entries were found
+    data: foundEntries.map((entry) => ({
+      PK: entry.PK,
+      consumerId: entry.consumerId,
+      GSIPK_purposeId: entry.GSIPK_purposeId,
+      purposeState: entry.purposeState,
+      purposeVersionId: entry.purposeVersionId,
+      GSIPK_clientId_purposeId: entry.GSIPK_clientId_purposeId,
+    })),
+  };
 }
 
 export function zipPurposeDataById(
@@ -388,9 +458,9 @@ export function zipPurposeDataById(
 export function countPurposeDifferences(
   differences: Array<
     [
-      PlatformStatesPurposeEntry | undefined,
-      TokenGenerationStatesClientPurposeEntry[],
-      Purpose | undefined
+      PlatformStatesPurposeEntryDiff | undefined,
+      TokenGenerationStatesPurposeEntryDiff[] | undefined,
+      ReducedPurpose | undefined
     ]
   >,
   logger: Logger
@@ -398,27 +468,28 @@ export function countPurposeDifferences(
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
   differences.forEach(([platformPurpose, tokenPurpose, readModelPurpose]) => {
-    if (platformPurpose && !readModelPurpose) {
-      console.warn(
-        `Read model purpose not found for platform-states entry with PK: ${platformPurpose.PK}`
-      );
+    if (!readModelPurpose && (platformPurpose || tokenPurpose)) {
+      const missingId = platformPurpose
+        ? extractIdFromPlatformStatesPK(platformPurpose.PK).id
+        : tokenPurpose
+        ? extractIdsFromTokenGenerationStatesPK(tokenPurpose[0].PK).purposeId
+        : undefined;
+      console.warn(`Read model purpose not found for id: ${missingId}`);
       // TODO
-      logger.error(
-        `Read model purpose not found for platform-states entry with PK: ${platformPurpose.PK}`
-      );
+      logger.error(`Read model purpose not found for id: ${missingId}`);
       differencesCount++;
-    } else if (platformPurpose && readModelPurpose) {
+    } else if (readModelPurpose) {
       logger.error(
-        `Purpose states are not equal.
-platform-states entry: ${JSON.stringify(platformPurpose)}
-token-generation-states entries: ${JSON.stringify(tokenPurpose)}
-purpose read-model: ${JSON.stringify(readModelPurpose)}`
+        `Purpose states are not equal:
+  platform-states entry: ${JSON.stringify(platformPurpose)}
+  token-generation-states entries: ${JSON.stringify(tokenPurpose)}
+  purpose read-model: ${JSON.stringify(readModelPurpose)}`
       );
       console.warn(
-        `Purpose states are not equal.
-platform-states entry: ${JSON.stringify(platformPurpose)}
-token-generation-states entries: ${JSON.stringify(tokenPurpose)}
-purpose read-model: ${JSON.stringify(readModelPurpose)}`
+        `Purpose states are not equal:
+  platform-states entry: ${JSON.stringify(platformPurpose)}
+  token-generation-states entries: ${JSON.stringify(tokenPurpose)}
+  purpose read-model: ${JSON.stringify(readModelPurpose)}`
       );
       differencesCount++;
     }
@@ -668,18 +739,12 @@ export async function compareReadModelEServicesWithTokenGenReadModel({
               eservice: c,
             })
           : true;
-        console.log("isPlatformStatesCorrect", isPlatformStatesCorrect);
-        console.log("b", b);
         const isTokenGenerationStatesCorrect = b
           ? validateCatalogTokenGenerationStates({
               tokenEntries: b,
               eservice: c,
             })
           : true;
-        console.log(
-          "isTokenGenerationStatesCorrect",
-          isTokenGenerationStatesCorrect
-        );
         if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
           return false;
         }
@@ -882,17 +947,12 @@ export async function compareReadModelClientsWithTokenGenReadModel({
             client: c,
           })
         : true;
-      console.log("isPlatformStatesCorrect", isPlatformStatesCorrect);
       const isTokenGenerationStatesCorrect = b
         ? validateClientTokenGenerationStates({
             tokenEntries: b,
             client: c,
           })
         : true;
-      console.log(
-        "isTokenGenerationStatesCorrect",
-        isTokenGenerationStatesCorrect
-      );
       if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
         return false;
       }
