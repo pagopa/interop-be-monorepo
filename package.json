@@ -10,6 +10,7 @@
     "start:catalog-platformstate-writer": "turbo start --filter pagopa-interop-catalog-platformstate-writer",
     "start:agreement": "turbo start --filter pagopa-interop-agreement-process",
     "start:agreement-readmodel-writer": "turbo start --filter pagopa-interop-agreement-readmodel-writer",
+    "start:agreement-platformstate-writer": "turbo start --filter pagopa-interop-agreement-platformstate-writer",
     "start:agreement-email-sender": "turbo start --filter pagopa-interop-agreement-email-sender",
     "start:attribute": "turbo start --filter pagopa-interop-attribute-registry-process",
     "start:attribute-readmodel-writer": "turbo start --filter pagopa-interop-attribute-registry-readmodel-writer",
