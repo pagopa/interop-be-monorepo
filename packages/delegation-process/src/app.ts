@@ -18,7 +18,7 @@ const app = zodiosCtx.app();
 app.disable("x-powered-by");
 app.use(contextMiddleware(serviceName));
 app.use(healthRouter);
-app.use(authenticationMiddleware);
+app.use(authenticationMiddleware(config));
 app.use(loggerMiddleware(serviceName));
 app.use(delegationRouter(zodiosCtx));
 app.use(delegationProducerRouter(zodiosCtx));
