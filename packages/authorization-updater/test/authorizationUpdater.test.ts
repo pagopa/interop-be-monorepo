@@ -19,6 +19,7 @@ import {
   AuthorizationEventEnvelopeV2,
   Client,
   ClientId,
+  CorrelationId,
   Descriptor,
   EService,
   EServiceEventEnvelopeV2,
@@ -81,7 +82,7 @@ import {
 } from "./utils.js";
 
 describe("Authorization Updater processMessage", () => {
-  const testCorrelationId = generateId();
+  const testCorrelationId: CorrelationId = generateId();
   const testToken = "mockToken";
   const testHeaders = {
     "X-Correlation-Id": testCorrelationId,

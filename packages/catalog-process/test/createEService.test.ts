@@ -11,6 +11,7 @@ import {
   EService,
   toEServiceV2,
   EServiceDescriptorAddedV2,
+  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import {
@@ -51,7 +52,7 @@ describe("create eservice", () => {
       },
       {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -132,7 +133,7 @@ describe("create eservice", () => {
         },
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -158,7 +159,7 @@ describe("create eservice", () => {
               origin: "not-allowed-origin",
             },
           },
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -182,7 +183,7 @@ describe("create eservice", () => {
         },
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

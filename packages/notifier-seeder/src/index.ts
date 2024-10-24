@@ -7,8 +7,11 @@ import { match } from "ts-pattern";
 import {
   AgreementEventV2,
   AuthorizationEventV2,
+  CorrelationId,
   EServiceEventV2,
+  generateId,
   PurposeEventV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { toCatalogItemEventNotification } from "./models/catalog/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "./models/catalog/catalogItemEventNotificationMessage.js";
@@ -82,7 +85,9 @@ async function processMessage(kafkaMessage: EachMessagePayload): Promise<void> {
       eventType: decodedMessage.type,
       eventVersion: decodedMessage.event_version,
       streamId: decodedMessage.stream_id,
-      correlationId: decodedMessage.correlation_id,
+      correlationId: decodedMessage.correlation_id
+        ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+        : generateId<CorrelationId>(),
     });
     if (decodedMessage.event_version !== 2) {
       loggerInstance.info(
