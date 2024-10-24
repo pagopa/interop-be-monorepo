@@ -60,8 +60,6 @@ const tokenService = tokenServiceBuilder({
   fileManager,
 });
 
-// TODO: add middlewares with @fastify/express?
-
 fastifyServer.post(
   "/token.oauth2",
   async (
