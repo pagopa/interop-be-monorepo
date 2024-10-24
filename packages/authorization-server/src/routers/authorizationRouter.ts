@@ -9,7 +9,11 @@ import {
 import { fastifyFormbody } from "@fastify/formbody";
 import Fastify, { FastifyRequest } from "fastify";
 import { FastifyInstance } from "fastify";
-import { generateId, tooManyRequestsError } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  generateId,
+  tooManyRequestsError,
+} from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { initProducer } from "kafka-iam-auth";
@@ -66,7 +70,7 @@ fastifyServer.post(
     }>,
     reply
   ) => {
-    const correlationId = generateId();
+    const correlationId = generateId<CorrelationId>();
     const loggerMetadata: LoggerMetadata = {
       serviceName: "authorization-server",
       correlationId,
@@ -85,7 +89,8 @@ fastifyServer.post(
         const errorRes = makeApiProblem(
           tooManyRequestsError(res.rateLimitedTenantId),
           authorizationServerErrorMapper,
-          loggerInstance
+          loggerInstance,
+          correlationId
         );
 
         return reply.status(errorRes.status).headers(headers).send(errorRes);
@@ -100,7 +105,8 @@ fastifyServer.post(
       const errorRes = makeApiProblem(
         err,
         authorizationServerErrorMapper,
-        loggerInstance
+        loggerInstance,
+        correlationId
       );
       return reply.status(errorRes.status).send(errorRes);
     }
