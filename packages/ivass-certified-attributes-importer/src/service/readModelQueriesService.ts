@@ -1,5 +1,6 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
-import { Attribute, Tenant } from "pagopa-interop-models";
+import { PersistentTenant } from "../model/tenantModel.js";
+import { PersistentAttribute } from "../model/attributeModels.js";
 
 const projectUnrevokedCertifiedAttributes = {
   _id: 0,
@@ -26,7 +27,9 @@ export class ReadModelQueries {
   /**
    * Retrieve tenants that match the given tax codes, with their unrevoked certified attribute
    */
-  public async getIVASSTenants(externalId: string[]): Promise<Tenant[]> {
+  public async getIVASSTenants(
+    externalId: string[]
+  ): Promise<PersistentTenant[]> {
     return await this.readModelClient.tenants
       .aggregate([
         {
@@ -39,13 +42,13 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => Tenant.parse(data))
+      .map(({ data }) => PersistentTenant.parse(data))
       .toArray();
   }
 
   public async getTenantsWithAttributes(
     attributeIds: string[]
-  ): Promise<Tenant[]> {
+  ): Promise<PersistentTenant[]> {
     return await this.readModelClient.tenants
       .aggregate([
         {
@@ -57,11 +60,11 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => Tenant.parse(data))
+      .map(({ data }) => PersistentTenant.parse(data))
       .toArray();
   }
 
-  public async getTenantById(tenantId: string): Promise<Tenant> {
+  public async getTenantById(tenantId: string): Promise<PersistentTenant> {
     const result = await this.readModelClient.tenants
       .aggregate([
         {
@@ -73,7 +76,7 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => Tenant.parse(data))
+      .map(({ data }) => PersistentTenant.parse(data))
       .toArray();
 
     if (result.length === 0) {
@@ -86,7 +89,7 @@ export class ReadModelQueries {
   public async getAttributeByExternalId(
     origin: string,
     code: string
-  ): Promise<Attribute> {
+  ): Promise<PersistentAttribute> {
     const result = await this.readModelClient.attributes
       .find(
         {
@@ -97,7 +100,7 @@ export class ReadModelQueries {
           projection: { data: true, metadata: true },
         }
       )
-      .map(({ data }) => Attribute.parse(data))
+      .map(({ data }) => PersistentAttribute.parse(data))
       .toArray();
 
     if (result.length === 0) {

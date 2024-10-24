@@ -1,44 +1,61 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  inject,
+  it,
+  vi,
+  vitest,
+} from "vitest";
 import {
   InteropToken,
   InteropTokenGenerator,
-  ReadModelRepository,
   RefreshableInteropToken,
   genericLogger,
 } from "pagopa-interop-commons";
+import { toReadModelAttribute, toReadModelTenant } from "pagopa-interop-models";
+import {
+  setupTestContainersVitest,
+  writeInReadmodel,
+} from "pagopa-interop-commons-test";
 import { generateId, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import { SftpClient } from "../src/service/sftpService.js";
 import { ReadModelQueries } from "../src/service/readmodelQueriesService.js";
-import { importAttributes } from "../src/service/processor.js";
+import {
+  ANAC_ASSIGNED_CODE,
+  ANAC_ENABLED_CODE,
+  ANAC_IN_VALIDATION_CODE,
+  importAttributes,
+} from "../src/service/processor.js";
 import {
   ATTRIBUTE_ANAC_ASSIGNED_ID,
   ATTRIBUTE_ANAC_ENABLED_ID,
   ATTRIBUTE_ANAC_IN_VALIDATION_ID,
   downloadCSVMock,
   downloadCSVMockGenerator,
-  getAttributeByExternalIdMock,
-  getNonPATenantsMock,
-  getPATenantsMock,
-  getTenantByIdMock,
-  getTenantByIdMockGenerator,
   getTenantsMockGenerator,
-  getTenantsWithAttributesMock,
   internalAssignCertifiedAttributeMock,
   internalRevokeCertifiedAttributeMock,
+  MOCK_ANAC_ID,
+  persistentAttribute,
   persistentTenant,
   persistentTenantAttribute,
   sftpConfigTest,
 } from "./helpers.js";
+
+export const { cleanup, readModelRepository } = await setupTestContainersVitest(
+  inject("readModelConfig")
+);
 
 describe("ANAC Certified Attributes Importer", () => {
   const tokenGeneratorMock = {} as InteropTokenGenerator;
   const refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   const tenantProcessMock = new TenantProcessService("url");
   const sftpClientMock = new SftpClient(sftpConfigTest);
-  const readModelClient = {} as ReadModelRepository;
-  const readModelQueriesMock = new ReadModelQueries(readModelClient);
+  const readModelQueries = new ReadModelQueries(readModelRepository);
 
   const interopToken: InteropToken = {
     header: {
@@ -65,11 +82,11 @@ describe("ANAC Certified Attributes Importer", () => {
   const run = () =>
     importAttributes(
       sftpClientMock,
-      readModelQueriesMock,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
       10,
-      "anac-tenant-id",
+      MOCK_ANAC_ID,
       genericLogger,
       generateId()
     );
@@ -85,28 +102,25 @@ describe("ANAC Certified Attributes Importer", () => {
     .spyOn(tenantProcessMock, "internalRevokeCertifiedAttribute")
     .mockImplementation(internalRevokeCertifiedAttributeMock);
 
-  const getPATenantsSpy = vi
-    .spyOn(readModelQueriesMock, "getPATenants")
-    .mockImplementation(getPATenantsMock);
-  const getNonPATenantsSpy = vi
-    .spyOn(readModelQueriesMock, "getNonPATenants")
-    .mockImplementation(getNonPATenantsMock);
-  const getTenantByIdSpy = vi
-    .spyOn(readModelQueriesMock, "getTenantById")
-    .mockImplementation((id) => getTenantByIdMock(unsafeBrandId(id)));
-  const getAttributeByExternalIdSpy = vi
-    .spyOn(readModelQueriesMock, "getAttributeByExternalId")
-    .mockImplementation(getAttributeByExternalIdMock);
-  const getTenantsWithAttributesSpy = vi
-    .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
-    .mockImplementation(getTenantsWithAttributesMock);
+  const getPATenantsSpy = vi.spyOn(readModelQueries, "getPATenants");
+  const getNonPATenantsSpy = vi.spyOn(readModelQueries, "getNonPATenants");
+  const getTenantByIdSpy = vi.spyOn(readModelQueries, "getTenantById");
+  const getAttributeByExternalIdSpy = vi.spyOn(
+    readModelQueries,
+    "getAttributeByExternalId"
+  );
+  const getTenantsWithAttributesSpy = vi.spyOn(
+    readModelQueries,
+    "getTenantsWithAttributes"
+  );
 
   beforeAll(() => {
     vitest.clearAllMocks();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vitest.clearAllMocks();
+    await cleanup();
   });
 
   it("should succeed", async () => {
@@ -114,6 +128,7 @@ describe("ANAC Certified Attributes Importer", () => {
       .spyOn(sftpClientMock, "downloadCSV")
       .mockImplementation(downloadCSVMock);
 
+    await writeInitialData();
     await run();
 
     expect(downloadCSVSpy).toBeCalledTimes(1);
@@ -146,15 +161,20 @@ describe("ANAC Certified Attributes Importer", () => {
       },
     ];
 
+    await writeInitialData();
+
+    await Promise.all(
+      readModelTenants.map((t) =>
+        writeInReadmodel(toReadModelTenant(t), readModelRepository.tenants)
+      )
+    );
+
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
     const downloadCSVSpy = vi
       .spyOn(sftpClientMock, "downloadCSV")
       .mockImplementation(localDownloadCSVMock);
 
-    const getPATenantsMock = getTenantsMockGenerator((_) => readModelTenants);
-    const getPATenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getPATenants")
-      .mockImplementation(getPATenantsMock);
+    const getPATenantsSpy = vi.spyOn(readModelQueries, "getPATenants");
 
     await run();
 
@@ -192,15 +212,19 @@ describe("ANAC Certified Attributes Importer", () => {
       },
     ];
 
+    await writeInitialData();
+    await Promise.all(
+      readModelTenants.map((t) =>
+        writeInReadmodel(toReadModelTenant(t), readModelRepository.tenants)
+      )
+    );
+
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
     const downloadCSVSpy = vi
       .spyOn(sftpClientMock, "downloadCSV")
       .mockImplementation(localDownloadCSVMock);
 
-    const getPATenantsMock = getTenantsMockGenerator((_) => readModelTenants);
-    const getPATenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getPATenants")
-      .mockImplementation(getPATenantsMock);
+    const getPATenantsSpy = vi.spyOn(readModelQueries, "getPATenants");
 
     await run();
 
@@ -235,15 +259,19 @@ describe("ANAC Certified Attributes Importer", () => {
       },
     ];
 
+    await writeInitialData();
+    await Promise.all(
+      readModelTenants.map((t) =>
+        writeInReadmodel(toReadModelTenant(t), readModelRepository.tenants)
+      )
+    );
+
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
     const downloadCSVSpy = vi
       .spyOn(sftpClientMock, "downloadCSV")
       .mockImplementation(localDownloadCSVMock);
 
-    const getPATenantsMock = getTenantsMockGenerator((_) => readModelTenants);
-    const getPATenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getPATenants")
-      .mockImplementation(getPATenantsMock);
+    const getPATenantsSpy = vi.spyOn(readModelQueries, "getPATenants");
 
     await run();
 
@@ -279,23 +307,30 @@ describe("ANAC Certified Attributes Importer", () => {
       },
     ];
 
+    await writeInitialData();
+    await Promise.all(
+      readModelTenants.map((t) =>
+        writeInReadmodel(toReadModelTenant(t), readModelRepository.tenants)
+      )
+    );
+
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
     const downloadCSVSpy = vi
       .spyOn(sftpClientMock, "downloadCSV")
       .mockImplementation(localDownloadCSVMock);
 
     const getPATenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getPATenants")
+      .spyOn(readModelQueries, "getPATenants")
       .mockImplementationOnce(getTenantsMockGenerator((_) => readModelTenants))
       .mockImplementation(getTenantsMockGenerator((_) => []));
 
     await importAttributes(
       sftpClientMock,
-      readModelQueriesMock,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
       1,
-      "anac-tenant-id",
+      MOCK_ANAC_ID,
       genericLogger,
       generateId()
     );
@@ -415,17 +450,18 @@ describe("ANAC Certified Attributes Importer", () => {
       .spyOn(sftpClientMock, "downloadCSV")
       .mockImplementation(localDownloadCSVMock);
 
-    const getPATenantsMock = getTenantsMockGenerator((_) => readModelTenants);
-    const getPATenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getPATenants")
-      .mockImplementation(getPATenantsMock);
-
-    const getTenantsWithAttributesMock = getTenantsMockGenerator(
-      (_) => readModelTenants
+    const getPATenantsSpy = vi.spyOn(readModelQueries, "getPATenants");
+    const getTenantsWithAttributesSpy = vi.spyOn(
+      readModelQueries,
+      "getTenantsWithAttributes"
     );
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
-      .mockImplementationOnce(getTenantsWithAttributesMock);
+
+    await writeInitialData();
+    await Promise.all(
+      readModelTenants.map((t) =>
+        writeInReadmodel(toReadModelTenant(t), readModelRepository.tenants)
+      )
+    );
 
     await run();
 
@@ -469,17 +505,17 @@ describe("ANAC Certified Attributes Importer", () => {
       .spyOn(sftpClientMock, "downloadCSV")
       .mockImplementation(downloadCSVMock);
 
-    const getTenantByIdMock = getTenantByIdMockGenerator((tenantId) => ({
-      ...persistentTenant,
-      id: tenantId,
-      features: [],
-    }));
-    getTenantByIdSpy.mockImplementationOnce((id) =>
-      getTenantByIdMock(unsafeBrandId(id))
+    await writeInReadmodel(
+      toReadModelTenant({
+        ...persistentTenant,
+        id: MOCK_ANAC_ID,
+        features: [],
+      }),
+      readModelRepository.tenants
     );
 
     await expect(() => run()).rejects.toThrowError(
-      "Tenant with id anac-tenant-id is not a certifier"
+      `Tenant with id ${MOCK_ANAC_ID} is not a certifier`
     );
 
     expect(downloadCSVSpy).toBeCalledTimes(1);
@@ -514,15 +550,19 @@ describe("ANAC Certified Attributes Importer", () => {
       },
     ];
 
+    await writeInitialData();
+    await Promise.all(
+      readModelTenants.map((t) =>
+        writeInReadmodel(toReadModelTenant(t), readModelRepository.tenants)
+      )
+    );
+
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
     const downloadCSVSpy = vi
       .spyOn(sftpClientMock, "downloadCSV")
       .mockImplementation(localDownloadCSVMock);
 
-    const getPATenantsMock = getTenantsMockGenerator((_) => readModelTenants);
-    const getPATenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getPATenants")
-      .mockImplementation(getPATenantsMock);
+    const getPATenantsSpy = vi.spyOn(readModelQueries, "getPATenants");
 
     await run();
 
@@ -539,3 +579,48 @@ describe("ANAC Certified Attributes Importer", () => {
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
 });
+
+function writeInitialData() {
+  return Promise.all([
+    writeInReadmodel(
+      toReadModelTenant({
+        id: MOCK_ANAC_ID,
+        externalId: { origin: "IVASS", value: "12345678901" },
+        attributes: [],
+        createdAt: new Date(),
+        features: [{ type: "PersistentCertifier", certifierId: "IVASS" }],
+        mails: [],
+        name: "tenantName",
+      }),
+      readModelRepository.tenants
+    ),
+
+    writeInReadmodel(
+      toReadModelAttribute({
+        ...persistentAttribute,
+        id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
+        origin: "IVASS",
+        code: ANAC_ENABLED_CODE,
+      }),
+      readModelRepository.attributes
+    ),
+    writeInReadmodel(
+      toReadModelAttribute({
+        ...persistentAttribute,
+        id: unsafeBrandId(ATTRIBUTE_ANAC_ASSIGNED_ID),
+        origin: "IVASS",
+        code: ANAC_ASSIGNED_CODE,
+      }),
+      readModelRepository.attributes
+    ),
+    writeInReadmodel(
+      toReadModelAttribute({
+        ...persistentAttribute,
+        id: unsafeBrandId(ATTRIBUTE_ANAC_IN_VALIDATION_ID),
+        origin: "IVASS",
+        code: ANAC_IN_VALIDATION_CODE,
+      }),
+      readModelRepository.attributes
+    ),
+  ]);
+}
