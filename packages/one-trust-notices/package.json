@@ -24,7 +24,7 @@
     "@types/lodash": "4.14.196",
     "@types/node": "20.4.9",
     "prettier": "2.8.8",
-    "ts-node": "10.9.2",
+    "tsx": "4.19.1",
     "typescript": "5.4.5"
   },
   "dependencies": {
