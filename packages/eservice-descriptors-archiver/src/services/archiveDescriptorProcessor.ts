@@ -1,6 +1,7 @@
 import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
 import {
   Agreement,
+  CorrelationId,
   descriptorState,
   genericInternalError,
 } from "pagopa-interop-models";
@@ -15,7 +16,7 @@ export async function archiveDescriptorForArchivedAgreement(
   readModelService: ReadModelService,
   catalogProcessClient: CatalogProcessClient,
   logger: Logger,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<void> {
   const relatingNonArchivedAgreements = (
     await readModelService.getNonArchivedAgreementsByEserviceAndDescriptorId(
@@ -54,7 +55,7 @@ export async function archiveDescriptorForArchivedAgreement(
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const getHeaders = (correlationId: string, token: string) => ({
+  const getHeaders = (correlationId: CorrelationId, token: string) => ({
     "X-Correlation-Id": correlationId,
     Authorization: `Bearer ${token}`,
   });

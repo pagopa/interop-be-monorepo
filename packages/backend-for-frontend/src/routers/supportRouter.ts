@@ -47,6 +47,7 @@ const supportRouter = (
         error,
         emptyErrorMapper,
         ctx.logger,
+        ctx.correlationId,
         "Error creating a session token"
       );
       return res.status(500).send();

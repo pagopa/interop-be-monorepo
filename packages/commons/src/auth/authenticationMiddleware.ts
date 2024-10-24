@@ -53,7 +53,8 @@ export const authenticationMiddleware: (
             .with("operationForbidden", () => 403)
             .with("missingHeader", "badBearerToken", () => 400)
             .otherwise(() => 500),
-        ctx.logger
+        ctx.logger,
+        ctx.correlationId
       );
       return res.status(problem.status).send(problem);
     }

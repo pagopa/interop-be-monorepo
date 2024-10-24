@@ -56,7 +56,7 @@ describe("update Document", () => {
         { prettyName: "updated prettyName" },
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -111,7 +111,7 @@ describe("update Document", () => {
         { prettyName: "updated prettyName" },
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -137,7 +137,7 @@ describe("update Document", () => {
         { prettyName: "updated prettyName" },
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -158,7 +158,7 @@ describe("update Document", () => {
         { prettyName: "updated prettyName" },
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -191,7 +191,7 @@ describe("update Document", () => {
           { prettyName: "updated prettyName" },
           {
             authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
+            correlationId: generateId(),
             serviceName: "",
             logger: genericLogger,
           }
@@ -220,7 +220,7 @@ describe("update Document", () => {
         { prettyName: "updated prettyName" },
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -257,7 +257,7 @@ describe("update Document", () => {
         { prettyName: document1.prettyName },
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
