@@ -432,6 +432,10 @@ export const getMockClientAssertion = async (props?: {
   customHeader?: { [k: string]: unknown };
 }): Promise<{
   jws: string;
+  clientAssertion: {
+    payload: jose.JWTPayload;
+    header: jose.JWTHeaderParameters;
+  };
   publicKeyEncodedPem: string;
 }> => {
   const { keySet, publicKeyEncodedPem } = generateKeySet();
@@ -469,6 +473,10 @@ export const getMockClientAssertion = async (props?: {
 
   return {
     jws,
+    clientAssertion: {
+      payload: actualPayload,
+      header: headers,
+    },
     publicKeyEncodedPem,
   };
 };
