@@ -33,7 +33,9 @@ describe("getClientById", async () => {
       authData: getMockAuthData(organizationId),
     });
 
-    expect(client.id).toEqual(expectedClient.id);
+    expect(client).toEqual(
+      clientToApiClient(expectedClient, { showUsers: true })
+    );
   });
   it("should get from the readModel the client with the specified Id without users", async () => {
     const expectedClientWithoutUser: Client = {
