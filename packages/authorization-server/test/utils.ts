@@ -1,5 +1,7 @@
-import crypto from "crypto";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
+import {
+  getMockClientAssertion,
+  setupTestContainersVitest,
+} from "pagopa-interop-commons-test";
 import {
   AgreementId,
   ClientId,
@@ -15,7 +17,6 @@ import { afterEach, inject, vi } from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
-import * as jose from "jose";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { InteropTokenGenerator } from "pagopa-interop-commons";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
@@ -68,113 +69,6 @@ export const tokenService = tokenServiceBuilder({
   producer: mockProducer as unknown as Awaited<ReturnType<typeof initProducer>>,
   fileManager,
 });
-
-// TODO: copied from client-assertion-validation
-export const generateKeySet = (): {
-  keySet: crypto.KeyPairKeyObjectResult;
-  publicKeyEncodedPem: string;
-} => {
-  const keySet: crypto.KeyPairKeyObjectResult = crypto.generateKeyPairSync(
-    "rsa",
-    {
-      modulusLength: 2048,
-    }
-  );
-
-  const pemPublicKey = keySet.publicKey
-    .export({
-      type: "spki",
-      format: "pem",
-    })
-    .toString();
-
-  const publicKeyEncodedPem = Buffer.from(pemPublicKey).toString("base64");
-  return {
-    keySet,
-    publicKeyEncodedPem,
-  };
-};
-
-const signClientAssertion = async ({
-  payload,
-  headers,
-  keySet,
-}: {
-  payload: jose.JWTPayload;
-  headers: jose.JWTHeaderParameters;
-  keySet: crypto.KeyPairKeyObjectResult;
-}): Promise<string> => {
-  const pemPrivateKey = keySet.privateKey.export({
-    type: "pkcs8",
-    format: "pem",
-  });
-
-  const privateKey = await jose.importPKCS8(
-    Buffer.isBuffer(pemPrivateKey)
-      ? pemPrivateKey.toString("utf8")
-      : pemPrivateKey,
-    "RS256"
-  );
-
-  return await new jose.SignJWT(payload)
-    .setProtectedHeader(headers)
-    .sign(privateKey);
-};
-
-export const getMockClientAssertion = async (props?: {
-  standardClaimsOverride?: Partial<jose.JWTPayload>;
-  customClaims?: { [k: string]: unknown };
-  customHeader?: { [k: string]: unknown };
-}): Promise<{
-  jws: string;
-  clientAssertion: {
-    payload: jose.JWTPayload;
-    header: jose.JWTHeaderParameters;
-  };
-  publicKeyEncodedPem: string;
-}> => {
-  const { keySet, publicKeyEncodedPem } = generateKeySet();
-
-  const threeHourLater = new Date();
-  threeHourLater.setHours(threeHourLater.getHours() + 3);
-
-  const clientId = generateId<ClientId>();
-  const defaultPayload: jose.JWTPayload = {
-    iss: clientId,
-    sub: clientId,
-    aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
-    exp: threeHourLater.getTime() / 1000,
-    jti: generateId(),
-    iat: new Date().getTime() / 1000,
-  };
-
-  const actualPayload: jose.JWTPayload = {
-    ...defaultPayload,
-    ...props?.standardClaimsOverride,
-    ...props?.customClaims,
-  };
-
-  const headers: jose.JWTHeaderParameters = {
-    alg: "RS256",
-    kid: "kid",
-    ...props?.customHeader,
-  };
-
-  const jws = await signClientAssertion({
-    payload: actualPayload,
-    headers,
-    keySet,
-  });
-
-  return {
-    jws,
-    clientAssertion: {
-      payload: actualPayload,
-      header: headers,
-    },
-    publicKeyEncodedPem,
-  };
-};
 
 export const getMockAccessTokenRequest =
   async (): Promise<authorizationServerApi.AccessTokenRequest> => {
