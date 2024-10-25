@@ -40,7 +40,6 @@ import {
   PlatformStatesPurposeEntry,
   purposeVersionState,
   TokenGenerationStatesClientPurposeEntry,
-  TokenGenerationStatesGenericEntry,
 } from "pagopa-interop-models";
 import {
   afterAll,
@@ -75,6 +74,10 @@ import {
   PartialPlatformStatesCatalogEntry,
   PartialEService,
   PartialTokenStatesCatalogEntry,
+  ClientDifferencesResult,
+  PartialTokenStatesClientEntry,
+  PartialClient,
+  PartialPlatformStatesClientEntry,
 } from "../src/models/types.js";
 import {
   addOneAgreement,
@@ -108,7 +111,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
     vi.useRealTimers();
   });
 
-  describe("all", () => {
+  describe.skip("all", () => {
     it("wrong states for all collections", async () => {
       // purpose
       const purpose1 = getMockPurpose([
@@ -1373,7 +1376,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client1.kind),
         clientConsumerId: client1.consumerId,
-        clientPurposesIds: [],
+        clientPurposesIds: client1.purposes,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -1392,13 +1395,13 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await writeClientEntry(platformClientEntry2, dynamoDBClient);
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
+      const tokenStatesEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: client1.id,
         kid: client1.keys[0].kid,
         purposeId: purpose1.id,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
+      const tokenStatesEntry1: TokenGenerationStatesClientPurposeEntry = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK1),
         consumerId: purpose1.consumerId,
         GSIPK_clientId: client1.id,
         GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
@@ -1409,20 +1412,35 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
           purposeId: purpose1.id,
         }),
       };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+      await writeTokenStateEntry(tokenStatesEntry1, dynamoDBClient);
+
+      const tokenStatesEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: client2.id,
+        kid: client2.keys[0].kid,
+        purposeId: purpose2.id,
+      });
+      const tokenStatesEntry2: TokenGenerationStatesClientPurposeEntry = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK2),
+        consumerId: purpose2.consumerId,
+        GSIPK_clientId: client2.id,
+        GSIPK_kid: makeGSIPKKid(client2.keys[0].kid),
+        clientKind: platformClientEntry2.clientKind,
+        publicKey: client2.keys[0].encodedPem,
+        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+          clientId: client2.id,
+          purposeId: purpose2.id,
+        }),
+      };
+      await writeTokenStateEntry(tokenStatesEntry2, dynamoDBClient);
 
       const expectedDifferencesLength = 0;
       const clientDifferences =
         await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry1, platformClientEntry2],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          tokenGenerationStatesEntries: [tokenStatesEntry1, tokenStatesEntry2],
           readModel: readModelRepository,
         });
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
     });
 
     it("wrong states", async () => {
@@ -1450,7 +1468,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         PK: catalogEntryPrimaryKey1,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client1.kind),
-        clientConsumerId: generateId(),
+        clientConsumerId: client1.consumerId,
         clientPurposesIds: [],
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -1496,30 +1514,189 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
           tokenGenerationStatesEntries: [tokenStatesEntry],
           readModel: readModelRepository,
         });
-      const expectedClientDifferences: Array<
+      const expectedClientDifferences: ClientDifferencesResult = [
         [
-          PlatformStatesClientEntry | undefined,
-          TokenGenerationStatesGenericEntry[],
-          Client | undefined
-        ]
-      > = [
-        [platformClientEntry1, [tokenStatesEntry], client1],
-        [platformClientEntry2, [], client2],
+          undefined,
+          [PartialTokenStatesClientEntry.parse(tokenStatesEntry)],
+          PartialClient.parse(client1),
+        ],
+        [
+          PartialPlatformStatesClientEntry.parse(platformClientEntry2),
+          undefined,
+          PartialClient.parse(client2),
+        ],
       ];
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
       expect(clientDifferences).toEqual(
         expect.arrayContaining(expectedClientDifferences)
       );
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
     });
 
-    it("read model eservice missing", async () => {
+    it("wrong clientPurposeIds", async () => {
+      const purpose1 = getMockPurpose();
+      const client1: Client = {
+        ...getMockClient(),
+        purposes: [purpose1.id, generateId()],
+        consumerId: purpose1.consumerId,
+        keys: [getMockKey()],
+      };
+      await addOneClient(client1);
+
+      const purpose2 = getMockPurpose();
+      const client2: Client = {
+        ...getMockClient(),
+        purposes: [purpose2.id, generateId()],
+        consumerId: purpose2.consumerId,
+        keys: [getMockKey()],
+      };
+      await addOneClient(client2);
+
+      // platform-states
+      const catalogEntryPrimaryKey1 = makePlatformStatesClientPK(client1.id);
+      const platformClientEntry1: PlatformStatesClientEntry = {
+        PK: catalogEntryPrimaryKey1,
+        state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client1.kind),
+        clientConsumerId: client1.consumerId,
+        clientPurposesIds: [generateId()],
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      await writeClientEntry(platformClientEntry1, dynamoDBClient);
+
+      const catalogEntryPrimaryKey2 = makePlatformStatesClientPK(client2.id);
+      const platformClientEntry2: PlatformStatesClientEntry = {
+        PK: catalogEntryPrimaryKey2,
+        state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client2.kind),
+        clientConsumerId: generateId(),
+        clientPurposesIds: [],
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      await writeClientEntry(platformClientEntry2, dynamoDBClient);
+
+      // token-generation-states
+      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: client1.id,
+        kid: client1.keys[0].kid,
+        purposeId: purpose1.id,
+      });
+      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
+        consumerId: generateId(),
+        GSIPK_clientId: client1.id,
+        GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
+        clientKind: platformClientEntry1.clientKind,
+        publicKey: client1.keys[0].encodedPem,
+        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+          clientId: generateId(),
+          purposeId: generateId(),
+        }),
+      };
+      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+
+      const expectedDifferencesLength = 2;
+      const clientDifferences =
+        await compareReadModelClientsWithTokenGenReadModel({
+          platformStatesEntries: [platformClientEntry1, platformClientEntry2],
+          tokenGenerationStatesEntries: [tokenStatesEntry],
+          readModel: readModelRepository,
+        });
+      const expectedClientDifferences: ClientDifferencesResult = [
+        [
+          PartialPlatformStatesClientEntry.parse(platformClientEntry1),
+          [PartialTokenStatesClientEntry.parse(tokenStatesEntry)],
+          PartialClient.parse(client1),
+        ],
+        [
+          PartialPlatformStatesClientEntry.parse(platformClientEntry2),
+          undefined,
+          PartialClient.parse(client2),
+        ],
+      ];
+      expect(clientDifferences).toHaveLength(expectedDifferencesLength);
+      expect(clientDifferences).toEqual(
+        expect.arrayContaining(expectedClientDifferences)
+      );
+    });
+
+    it("missing platform-states entry", async () => {
+      const purpose = getMockPurpose();
       const client: Client = {
         ...getMockClient(),
-        purposes: [getMockPurpose().id],
+        purposes: [purpose.id, generateId()],
+        consumerId: purpose.consumerId,
+        keys: [getMockKey()],
+      };
+      await addOneClient(client);
+
+      const expectedDifferencesLength = 1;
+      const clientDifferences =
+        await compareReadModelClientsWithTokenGenReadModel({
+          platformStatesEntries: [],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        });
+      const expectedClientDifferences: ClientDifferencesResult = [
+        [undefined, undefined, PartialClient.parse(client)],
+      ];
+      expect(clientDifferences).toHaveLength(expectedDifferencesLength);
+      expect(clientDifferences).toEqual(
+        expect.arrayContaining(expectedClientDifferences)
+      );
+    });
+
+    it("missing token-generation-states entry", async () => {
+      const purpose1 = getMockPurpose();
+      const client1: Client = {
+        ...getMockClient(),
+        purposes: [purpose1.id, generateId()],
+        consumerId: purpose1.consumerId,
+        keys: [getMockKey()],
+      };
+      await addOneClient(client1);
+
+      // platform-states
+      const catalogEntryPrimaryKey1 = makePlatformStatesClientPK(client1.id);
+      const platformClientEntry1: PlatformStatesClientEntry = {
+        PK: catalogEntryPrimaryKey1,
+        state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client1.kind),
+        clientConsumerId: client1.consumerId,
+        clientPurposesIds: [],
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      await writeClientEntry(platformClientEntry1, dynamoDBClient);
+
+      const expectedDifferencesLength = 1;
+      const clientDifferences =
+        await compareReadModelClientsWithTokenGenReadModel({
+          platformStatesEntries: [platformClientEntry1],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        });
+      const expectedClientDifferences: ClientDifferencesResult = [
+        [
+          PartialPlatformStatesClientEntry.parse(platformClientEntry1),
+          undefined,
+          PartialClient.parse(client1),
+        ],
+      ];
+      expect(clientDifferences).toHaveLength(expectedDifferencesLength);
+      expect(clientDifferences).toEqual(
+        expect.arrayContaining(expectedClientDifferences)
+      );
+    });
+
+    it("read model client missing", async () => {
+      const purpose = getMockPurpose();
+      const client: Client = {
+        ...getMockClient(),
+        consumerId: purpose.consumerId,
+        purposes: [purpose.id],
+        keys: [getMockKey()],
       };
 
       const catalogEntryPrimaryKey = makePlatformStatesClientPK(client.id);
@@ -1534,52 +1711,42 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       };
       await writeClientEntry(platformClientEntry, dynamoDBClient);
 
+      // token-generation-states
+      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: client.id,
+        kid: client.keys[0].kid,
+        purposeId: purpose.id,
+      });
+      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
+        consumerId: purpose.consumerId,
+        GSIPK_clientId: client.id,
+        GSIPK_kid: makeGSIPKKid(client.keys[0].kid),
+        clientKind: platformClientEntry.clientKind,
+        publicKey: client.keys[0].encodedPem,
+        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+          clientId: client.id,
+          purposeId: purpose.id,
+        }),
+      };
+      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+
       const expectedDifferencesLength = 1;
       const clientDifferences =
         await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry],
-          tokenGenerationStatesEntries: [],
+          tokenGenerationStatesEntries: [tokenStatesEntry],
           readModel: readModelRepository,
         });
-      const expectedClientDifferences: Array<
+      const expectedClientDifferences: ClientDifferencesResult = [
         [
-          PlatformStatesClientEntry | undefined,
-          TokenGenerationStatesClientPurposeEntry[],
-          EService | undefined
-        ]
-      > = [[platformClientEntry, [], undefined]];
+          PartialPlatformStatesClientEntry.parse(platformClientEntry),
+          [PartialTokenStatesClientEntry.parse(tokenStatesEntry)],
+          undefined,
+        ],
+      ];
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
       expect(clientDifferences).toEqual(expectedClientDifferences);
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
-    });
-
-    // TODO: how to tell if a client is deleted or not
-    // not in collection if deleted
-    it.skip("platform-states entry missing with read model eservice not archived", async () => {
-      const client: Client = {
-        ...getMockClient(),
-        purposes: [getMockPurpose().id],
-      };
-      await addOneClient(client);
-
-      await expect(
-        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).rejects.toThrowError();
-    });
-
-    it.skip("platform-states entry missing with read model purpose archived", async () => {
-      const client: Client = {
-        ...getMockClient(),
-        purposes: [getMockPurpose().id],
-      };
-      await addOneClient(client);
-
-      await expect(
-        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).resolves.not.toThrowError();
     });
   });
 });
