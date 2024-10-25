@@ -35,6 +35,7 @@ import {
   makeGSIPKKid,
   makePlatformStatesClientPK,
   PlatformStatesClientEntry,
+  clientKindTokenStates,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -56,6 +57,18 @@ import {
   PartialPlatformStatesPurposeEntry,
   PurposeDifferencesResult,
   PartialPurpose,
+  AgreementDifferencesResult,
+  PartialPlatformStatesAgreementEntry,
+  PartialTokenStatesAgreementEntry,
+  PartialAgreement,
+  CatalogDifferencesResult,
+  PartialPlatformStatesCatalogEntry,
+  PartialTokenStatesCatalogEntry,
+  PartialEService,
+  ClientDifferencesResult,
+  PartialTokenStatesClientEntry,
+  PartialClient,
+  PartialPlatformStatesClientEntry,
 } from "../src/models/types.js";
 import {
   addOneAgreement,
@@ -66,7 +79,7 @@ import {
 } from "./utils.js";
 
 describe("Token Generation Read Model Checker Verifier utils tests", () => {
-  describe.only("purpose utils", () => {
+  describe("purpose utils", () => {
     it("compareReadModelPurposesWithPlatformStates", async () => {
       const purpose1 = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
@@ -79,7 +92,6 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       await addOnePurpose(purpose2);
 
       // platform-states
-      // TODO: should missing platform-states entry be an error or skipped?
       const purposeEntryPrimaryKey1 = makePlatformStatesPurposePK(purpose1.id);
       const platformPurposeEntry1: PlatformStatesPurposeEntry = {
         PK: purposeEntryPrimaryKey1,
@@ -148,7 +160,6 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       ]);
 
       // platform-states
-      // TODO: should missing platform-states entry be an error or skipped?
       const purposeEntryPrimaryKey1 = makePlatformStatesPurposePK(purpose1.id);
       const platformPurposeEntry1: PlatformStatesPurposeEntry = {
         PK: purposeEntryPrimaryKey1,
@@ -364,15 +375,20 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
           readModel: readModelRepository,
         }
       );
-      const expectedDifferences: Array<
+      const expectedDifferences: AgreementDifferencesResult = [
         [
-          PlatformStatesAgreementEntry | undefined,
-          TokenGenerationStatesClientPurposeEntry[],
-          Agreement | undefined
-        ]
-      > = [[platformAgreementEntry2, [], agreement2]];
+          undefined,
+          [PartialTokenStatesAgreementEntry.parse(tokenStatesEntry)],
+          PartialAgreement.parse(agreement1),
+        ],
+        [
+          PartialPlatformStatesAgreementEntry.parse(platformAgreementEntry2),
+          undefined,
+          PartialAgreement.parse(agreement2),
+        ],
+      ];
 
-      expect(differences.length).toEqual(1);
+      expect(differences).toHaveLength(2);
       expect(differences).toEqual(expect.arrayContaining(expectedDifferences));
     });
 
@@ -470,7 +486,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         [platformAgreementEntry2, [], agreement2],
       ];
 
-      expect(zippedData.length).toEqual(2);
+      expect(zippedData).toHaveLength(2);
       expect(zippedData).toEqual(expect.arrayContaining(expectedZippedData));
     });
 
@@ -623,9 +639,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       });
       const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        // TODO: where's this
-        // consumerId: descriptor.
-        descriptorState: itemState.active,
+        descriptorState: itemState.inactive,
         descriptorAudience: descriptor1.audience,
         GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
           eserviceId: eservice1.id,
@@ -638,14 +652,19 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         tokenGenerationStatesEntries: [tokenStatesEntry],
         readModel: readModelRepository,
       });
-      const expectedDifferences: Array<
+      const expectedDifferences: CatalogDifferencesResult = [
         [
-          PlatformStatesCatalogEntry | undefined,
-          TokenGenerationStatesClientPurposeEntry[],
-          EService | undefined
-        ]
-      > = [[platformCatalogEntry2, [], eservice2]];
-      expect(differences).toHaveLength(1);
+          undefined,
+          [PartialTokenStatesCatalogEntry.parse(tokenStatesEntry)],
+          PartialEService.parse(eservice1),
+        ],
+        [
+          PartialPlatformStatesCatalogEntry.parse(platformCatalogEntry2),
+          undefined,
+          PartialEService.parse(eservice2),
+        ],
+      ];
+      expect(differences).toHaveLength(2);
       expect(differences).toEqual(expect.arrayContaining(expectedDifferences));
     });
 
@@ -705,8 +724,6 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       });
       const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        // TODO: where's this
-        // consumerId: descriptor.
         descriptorState: itemState.active,
         descriptorAudience: descriptor1.audience,
         GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
@@ -791,8 +808,6 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       });
       const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        // TODO: where's this
-        // consumerId: descriptor.
         descriptorState: itemState.inactive,
         descriptorAudience: ["wrong-audience-2"],
         GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
@@ -867,7 +882,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         consumerId: purpose1.consumerId,
         GSIPK_clientId: client1.id,
         GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
-        clientKind: platformClientEntry1.clientKind,
+        clientKind: clientKindTokenStates.api,
         publicKey: client1.keys[0].encodedPem,
         GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
           clientId: client1.id,
@@ -880,15 +895,20 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         tokenGenerationStatesEntries: [tokenStatesEntry],
         readModel: readModelRepository,
       });
-      const expectedDifferences: Array<
+      const expectedDifferences: ClientDifferencesResult = [
         [
-          PlatformStatesClientEntry | undefined,
-          TokenGenerationStatesClientPurposeEntry[],
-          Client | undefined
-        ]
-      > = [[platformClientEntry2, [], client2]];
+          undefined,
+          [PartialTokenStatesClientEntry.parse(tokenStatesEntry)],
+          PartialClient.parse(client1),
+        ],
+        [
+          PartialPlatformStatesClientEntry.parse(platformClientEntry2),
+          undefined,
+          PartialClient.parse(client2),
+        ],
+      ];
 
-      expect(differences).toHaveLength(1);
+      expect(differences).toHaveLength(2);
       expect(differences).toEqual(expect.arrayContaining(expectedDifferences));
     });
 
