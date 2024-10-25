@@ -3052,9 +3052,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -3070,9 +3067,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
