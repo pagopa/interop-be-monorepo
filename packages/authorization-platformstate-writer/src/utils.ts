@@ -52,12 +52,12 @@ import { config } from "./config/config.js";
 export const deleteEntriesFromTokenStatesByKid = async (
   GSIPK_kid: GSIPKKid,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+): Promise<TokenGenerationStatesGenericEntry[]> => {
   const runPaginatedQuery = async (
     GSIPK_kid: GSIPKKid,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesGenericEntry[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Kid",
@@ -77,7 +77,7 @@ export const deleteEntriesFromTokenStatesByKid = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+        .array(TokenGenerationStatesGenericEntry)
         .safeParse(unmarshalledItems);
 
       if (!tokenStateEntries.success) {
@@ -343,7 +343,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
           kid: entry.GSIPK_kid,
         }),
         consumerId: entry.consumerId,
-        clientKind: entry.clientKind,
+        clientKind: entry.clientKind, // TODO does it become api?
         publicKey: entry.publicKey,
         GSIPK_clientId: entry.GSIPK_clientId,
         GSIPK_kid: entry.GSIPK_kid,
@@ -753,7 +753,7 @@ export const setClientPurposeIdsInPlatformStatesEntry = async (
       },
     },
     UpdateExpression:
-      "SET clientPurposesIds = :clientPurposesIds,updatedAt = :newUpdateAt, version = :newVersion",
+      "SET clientPurposesIds = :clientPurposesIds, updatedAt = :newUpdateAt, version = :newVersion",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
   };
