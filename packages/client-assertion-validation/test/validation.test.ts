@@ -492,8 +492,8 @@ describe("validation test", async () => {
 
       const { jws, publicKeyEncodedPem } = await getMockClientAssertion({
         standardClaimsOverride: {
-          iat: new Date().getTime() / 1000,
-          exp: threeHourLater.getTime() / 1000,
+          iat: Math.floor(new Date().getTime() / 1000),
+          exp: Math.floor(threeHourLater.getTime() / 1000),
         },
       });
       const mockKey = {
@@ -531,8 +531,8 @@ describe("validation test", async () => {
           alg: notAllowedAlg,
         },
         standardClaimsOverride: {
-          iat: new Date().getTime() / 1000,
-          exp: threeHourLater.getTime() / 1000,
+          iat: Math.floor(new Date().getTime() / 1000),
+          exp: Math.floor(threeHourLater.getTime() / 1000),
         },
       });
       const mockKey: Key = {
@@ -555,8 +555,8 @@ describe("validation test", async () => {
 
       const { jws, publicKeyEncodedPem } = await getMockClientAssertion({
         standardClaimsOverride: {
-          iat: sixHoursAgo.getTime() / 1000,
-          exp: threeHourAgo.getTime() / 1000,
+          iat: Math.floor(sixHoursAgo.getTime() / 1000),
+          exp: Math.floor(threeHourAgo.getTime() / 1000),
         },
       });
 
@@ -652,9 +652,9 @@ describe("validation test", async () => {
 
       const { jws, publicKeyEncodedPem } = await getMockClientAssertion({
         standardClaimsOverride: {
-          iat: threeHoursAgo.getTime() / 1000,
-          exp: sixHoursLater.getTime() / 1000,
-          nbf: threeHoursLater.getTime() / 1000,
+          iat: Math.floor(threeHoursAgo.getTime() / 1000),
+          exp: Math.floor(sixHoursLater.getTime() / 1000),
+          nbf: Math.floor(threeHoursLater.getTime() / 1000),
         },
       });
       const mockKey = {
