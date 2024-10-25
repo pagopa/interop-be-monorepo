@@ -55,6 +55,9 @@ import {
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientEntry,
   makeTokenGenerationStatesClientKidPK,
+  PlatformStatesClientPK,
+  PlatformStatesClientEntry,
+  makePlatformStatesClientPK,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -417,3 +420,15 @@ export const getMockTokenStatesClientEntry = (
     GSIPK_kid: makeGSIPKKid(kid),
   };
 };
+
+export const getMockPlatformStatesClientEntry = (
+  pk?: PlatformStatesClientPK
+): PlatformStatesClientEntry => ({
+  PK: pk || makePlatformStatesClientPK(generateId<ClientId>()),
+  version: 0,
+  state: "ACTIVE",
+  updatedAt: new Date().toISOString(),
+  clientKind: "CONSUMER",
+  clientConsumerId: generateId<TenantId>(),
+  clientPurposesIds: [],
+});
