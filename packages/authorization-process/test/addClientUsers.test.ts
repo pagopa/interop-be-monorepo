@@ -73,6 +73,16 @@ describe("addClientUsers", () => {
       genericLogger
     );
 
+    // await mockClientRouterRequest.post({
+    //   path: "/clients/:clientId/users",
+    //   body: { userIds: usersToAdd },
+    //   pathParams: { clientId: mockClient.id },
+    //   authData: {
+    //     ...getMockAuthData(consumerId),
+    //     userRoles: [userRoles.ADMIN_ROLE],
+    //   },
+    // });
+
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
     expect(writtenEvent).toMatchObject({

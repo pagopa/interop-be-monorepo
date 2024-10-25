@@ -9,6 +9,7 @@ import {
 import { describe, it, expect } from "vitest";
 import { getMockAuthData, getMockClient } from "pagopa-interop-commons-test";
 import { clientNotFound } from "../src/model/domain/errors.js";
+import { clientToApiClient } from "../src/model/domain/apiConverter.js";
 import { addOneClient, authorizationService } from "./utils.js";
 import { mockClientRouterRequest } from "./supertestSetup.js";
 
@@ -31,8 +32,6 @@ describe("getClientById", async () => {
       pathParams: { clientId: expectedClient.id },
       authData: getMockAuthData(organizationId),
     });
-    // console.log("client", client);
-    // console.log("expectedClient", expectedClient);
 
     expect(client.id).toEqual(expectedClient.id);
   });
@@ -50,10 +49,10 @@ describe("getClientById", async () => {
       pathParams: { clientId: expectedClientWithoutUser.id },
       authData: getMockAuthData(organizationId),
     });
-    // console.log("client", client);
-    // console.log("expectedClientWithoutUser", expectedClientWithoutUser);
 
-    expect(client.id).toEqual(expectedClientWithoutUser.id);
+    expect(client).toEqual(
+      clientToApiClient(expectedClientWithoutUser, { showUsers: false })
+    );
   });
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {
     await addOneClient(getMockClient());
