@@ -267,9 +267,11 @@ export async function handleMessageV1(
       } else {
         const purposeIds = [...clientEntry.clientPurposesIds, purposeId];
         await setClientPurposeIdsInPlatformStatesEntry(
-          pk,
-          msg.version,
-          purposeIds,
+          {
+            primaryKey: pk,
+            version: msg.version,
+            clientPurposeIds: purposeIds,
+          },
           dynamoDBClient
         );
       }
@@ -466,9 +468,11 @@ export async function handleMessageV1(
           if (updatedPurposeIds.length > 0) {
             // platform-states
             await setClientPurposeIdsInPlatformStatesEntry(
-              pk,
-              msg.version,
-              updatedPurposeIds,
+              {
+                primaryKey: pk,
+                version: msg.version,
+                clientPurposeIds: updatedPurposeIds,
+              },
               dynamoDBClient
             );
 

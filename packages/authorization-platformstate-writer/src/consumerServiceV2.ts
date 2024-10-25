@@ -243,9 +243,11 @@ export async function handleMessageV2(
           return Promise.resolve();
         } else {
           await setClientPurposeIdsInPlatformStatesEntry(
-            pk,
-            msg.version,
-            [],
+            {
+              primaryKey: pk,
+              version: msg.version,
+              clientPurposeIds: [],
+            },
             dynamoDBClient
           );
         }
@@ -445,9 +447,7 @@ export async function handleMessageV2(
           if (client.purposes.length > 0) {
             // platform-states
             await setClientPurposeIdsInPlatformStatesEntry(
-              pk,
-              msg.version,
-              [],
+              { primaryKey: pk, version: msg.version, clientPurposeIds: [] },
               dynamoDBClient
             );
 

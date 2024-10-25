@@ -727,9 +727,15 @@ export const readClientEntriesInTokenGenerationStates = async (
 };
 
 export const setClientPurposeIdsInPlatformStatesEntry = async (
-  primaryKey: PlatformStatesClientPK,
-  version: number,
-  clientPurposeIds: PurposeId[],
+  {
+    primaryKey,
+    version,
+    clientPurposeIds,
+  }: {
+    primaryKey: PlatformStatesClientPK;
+    version: number;
+    clientPurposeIds: PurposeId[];
+  },
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: UpdateItemInput = {
