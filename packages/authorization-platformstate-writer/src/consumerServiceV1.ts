@@ -70,7 +70,7 @@ export async function handleMessageV1(
           updatedAt: new Date().toISOString(),
           clientPurposesIds: client.purposes,
         };
-        await upsertPlatformClientEntry(dynamoDBClient, updatedClientEntry);
+        await upsertPlatformClientEntry(updatedClientEntry, dynamoDBClient);
       }
     })
     // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -103,7 +103,7 @@ export async function handleMessageV1(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(dynamoDBClient, platformClientEntry);
+        await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
 
         if (platformClientEntry.clientPurposesIds.length > 0) {
           const map: Map<PurposeId, TokenGenerationStatesClientPurposeEntry> =
@@ -111,8 +111,8 @@ export async function handleMessageV1(
 
           for (const purposeId of clientPurposesIds) {
             const states = await retrievePlatformStatesByPurpose(
-              dynamoDBClient,
-              purposeId
+              purposeId,
+              dynamoDBClient
             );
 
             const pk = makeTokenGenerationStatesClientKidPurposePK({
@@ -154,8 +154,8 @@ export async function handleMessageV1(
 
           for (const purposeId of clientPurposesIds) {
             const secondRetrievalStates = await retrievePlatformStatesByPurpose(
-              dynamoDBClient,
-              purposeId
+              purposeId,
+              dynamoDBClient
             );
             const addedClientKidPurposeEntry = map.get(purposeId);
 
@@ -223,7 +223,7 @@ export async function handleMessageV1(
             GSIPK_kid: makeGSIPKKid(kid),
             updatedAt: new Date().toISOString(),
           };
-          await upsertTokenClientKidEntry(dynamoDBClient, clientKidEntry);
+          await upsertTokenClientKidEntry(clientKidEntry, dynamoDBClient);
         }
       }
     })
@@ -244,7 +244,7 @@ export async function handleMessageV1(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(dynamoDBClient, platformClientEntry);
+        await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
 
         const GSIPK_kid = makeGSIPKKid(msg.data.keyId);
         await deleteEntriesFromTokenStatesByKid(GSIPK_kid, dynamoDBClient);
@@ -267,10 +267,10 @@ export async function handleMessageV1(
       } else {
         const purposeIds = [...clientEntry.clientPurposesIds, purposeId];
         await setClientPurposeIdsInPlatformStatesEntry(
-          dynamoDBClient,
           pk,
           msg.version,
-          purposeIds
+          purposeIds,
+          dynamoDBClient
         );
       }
 
@@ -283,7 +283,7 @@ export async function handleMessageV1(
         return Promise.resolve();
       } else {
         const { purposeEntry, agreementEntry, catalogEntry } =
-          await retrievePlatformStatesByPurpose(dynamoDBClient, purposeId);
+          await retrievePlatformStatesByPurpose(purposeId, dynamoDBClient);
 
         const addedTokenClientPurposeEntries =
           new Array<TokenGenerationStatesClientPurposeEntry>();
@@ -392,8 +392,8 @@ export async function handleMessageV1(
           }
 
           const secondRetrievalStates = await retrievePlatformStatesByPurpose(
-            dynamoDBClient,
-            purposeId
+            purposeId,
+            dynamoDBClient
           );
 
           for (const clientPurposeEntry of addedTokenClientPurposeEntries) {
@@ -466,10 +466,10 @@ export async function handleMessageV1(
           if (updatedPurposeIds.length > 0) {
             // platform-states
             await setClientPurposeIdsInPlatformStatesEntry(
-              dynamoDBClient,
               pk,
               msg.version,
-              updatedPurposeIds
+              updatedPurposeIds,
+              dynamoDBClient
             );
 
             // token-generation-states
