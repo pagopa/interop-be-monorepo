@@ -1,0 +1,27 @@
+meta {
+  name: Archive Purpose Version
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/purposes/:purposeId/versions/:versionId/archive
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: be3505b7-98a5-4788-84de-7e4cad878f63
+  versionId: 0360c729-9902-4d3a-a3c9-34cc4b45dd4e
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  archives the purpose version by id
+}

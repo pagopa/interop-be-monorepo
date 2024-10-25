@@ -4,7 +4,6 @@ import {
   Method,
 } from "@zodios/core";
 import {
-  Problem,
   makeApiProblemBuilder,
   genericError,
   ApiError,
@@ -80,17 +79,13 @@ export const authorizationMiddleware =
 
       return next();
     } catch (err) {
-      const problem = match<unknown, Problem>(err)
+      const problem = match(err)
         .with(P.instanceOf(ApiError), (error) =>
           makeApiProblem(
-            new ApiError({
-              code: error.code,
-              detail: error.detail,
-              title: error.title,
-              correlationId: ctx.correlationId,
-            }),
+            error,
             (error) => (error.code === "unauthorizedError" ? 403 : 500),
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           )
         )
         .otherwise(() =>
@@ -99,7 +94,8 @@ export const authorizationMiddleware =
               "An unexpected error occurred during authorization checks"
             ),
             () => 500,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           )
         );
 

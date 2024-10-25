@@ -11,6 +11,7 @@ import {
   agreementApprovalPolicy,
   agreementState,
   CompactTenant,
+  CorrelationId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
@@ -211,7 +212,7 @@ function updateAgreementState(
   agreement: WithMetadata<Agreement>,
   consumer: CompactTenant,
   eservices: EService[],
-  correlationId: string,
+  correlationId: CorrelationId,
   logger: Logger
 ): CreateEvent<AgreementEvent> | void {
   const descriptor = eservices
@@ -312,7 +313,7 @@ export async function computeAgreementsStateByAttribute(
   attributeId: AttributeId,
   consumer: CompactTenant,
   readModelService: ReadModelService,
-  correlationId: string,
+  correlationId: CorrelationId,
   logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreements = await readModelService.getAllAgreements({

@@ -1,0 +1,35 @@
+meta {
+  name: create a purposes with an EService risk analysis
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/reverse/purposes
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "eserviceId": "26f433e1-2c3c-4022-a14e-3c300baefc51",
+    "consumerId": "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
+    "riskAnalysisId": "3b4c969a-8647-4abd-88a6-b05d2725073f",
+    "title": "TESTONE",
+    "description": "asaddsadsadsadas",
+    "isFreeOfCharge": true,
+    "dailyCalls": 100,
+    "freeOfChargeReason": "sdfasfs"
+  }
+}
+
+docs {
+  create a purposes with an EService risk analysis
+}

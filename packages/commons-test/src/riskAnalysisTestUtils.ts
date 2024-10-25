@@ -158,7 +158,7 @@ export const getMockValidRiskAnalysis = (
         generateMock(z.string())
       )
     )
-    .with(tenantKind.PRIVATE, tenantKind.GSP, () =>
+    .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
         validatedRiskAnalysis2_0_Private,
         generateMock(z.string())
@@ -175,7 +175,7 @@ export const getMockValidRiskAnalysisForm = (
         validatedRiskAnalysis3_0_Pa
       )
     )
-    .with(tenantKind.PRIVATE, tenantKind.GSP, () =>
+    .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
         validatedRiskAnalysis2_0_Private
       )
