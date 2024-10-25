@@ -442,8 +442,8 @@ export const readCatalogEntry = async (
 };
 
 export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
-  dynamoDBClient: DynamoDBClient,
-  gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId
+  gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId,
+  dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesAgreementEntry | undefined> => {
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNamePlatform,
@@ -478,8 +478,8 @@ export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
 };
 
 export const readPlatformPurposeEntry = async (
-  dynamoDBClient: DynamoDBClient,
-  primaryKey: PlatformStatesPurposePK
+  primaryKey: PlatformStatesPurposePK,
+  dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesPurposeEntry | undefined> => {
   const input: GetItemInput = {
     Key: {
@@ -727,10 +727,10 @@ export const readClientEntriesInTokenGenerationStates = async (
 };
 
 export const setClientPurposeIdsInPlatformStatesEntry = async (
-  dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesClientPK,
   version: number,
-  clientPurposeIds: PurposeId[]
+  clientPurposeIds: PurposeId[],
+  dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: UpdateItemInput = {
     ConditionExpression: "attribute_exists(PK)",
@@ -783,8 +783,8 @@ export const extractAgreementIdFromAgreementPK = (
 };
 
 export const retrievePlatformStatesByPurpose = async (
-  dynamoDBClient: DynamoDBClient,
-  purposeId: PurposeId
+  purposeId: PurposeId,
+  dynamoDBClient: DynamoDBClient
 ): Promise<{
   purposeEntry: PlatformStatesPurposeEntry;
   agreementEntry: PlatformStatesAgreementEntry;
@@ -792,8 +792,8 @@ export const retrievePlatformStatesByPurpose = async (
 }> => {
   const purposePK = makePlatformStatesPurposePK(purposeId);
   const purposeEntry = await readPlatformPurposeEntry(
-    dynamoDBClient,
-    purposePK
+    purposePK,
+    dynamoDBClient
   );
 
   // TODO: should this throw an error?
@@ -808,8 +808,8 @@ export const retrievePlatformStatesByPurpose = async (
 
   const agreementEntry =
     await readPlatformAgreementEntryByGSIPKConsumerIdEServiceId(
-      dynamoDBClient,
-      agreementGSI
+      agreementGSI,
+      dynamoDBClient
     );
 
   if (!agreementEntry) {
@@ -833,8 +833,8 @@ export const retrievePlatformStatesByPurpose = async (
 };
 
 export const upsertPlatformClientEntry = async (
-  dynamoDBClient: DynamoDBClient,
-  entry: PlatformStatesClientEntry
+  entry: PlatformStatesClientEntry,
+  dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
     Item: {
@@ -869,8 +869,8 @@ export const upsertPlatformClientEntry = async (
 };
 
 export const upsertTokenClientKidEntry = async (
-  dynamoDBClient: DynamoDBClient,
-  entry: TokenGenerationStatesClientEntry
+  entry: TokenGenerationStatesClientEntry,
+  dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
     Item: {

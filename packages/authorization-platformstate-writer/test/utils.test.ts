@@ -381,8 +381,8 @@ describe("utils", () => {
     await writePlatformAgreementEntry(agreementEntry3, dynamoDBClient);
 
     const res = await readPlatformAgreementEntryByGSIPKConsumerIdEServiceId(
-      dynamoDBClient,
-      GSIPK_consumerId_eserviceId
+      GSIPK_consumerId_eserviceId,
+      dynamoDBClient
     );
 
     expect(res).toEqual(agreementEntry2);
@@ -469,9 +469,9 @@ describe("utils", () => {
     await writeClientEntry(clientEntry2, dynamoDBClient);
 
     await cleanClientPurposeIdsInPlatformStatesEntry(
-      dynamoDBClient,
       clientEntry1.PK,
-      clientEntry1.version + 1
+      clientEntry1.version + 1,
+      dynamoDBClient
     );
 
     const res = await readAllPlatformStateItems(dynamoDBClient);
@@ -535,8 +535,8 @@ describe("utils", () => {
     await writeCatalogEntry(catalogEntry, dynamoDBClient);
 
     const res = await retrievePlatformStatesByPurpose(
-      dynamoDBClient,
-      purposeId
+      purposeId,
+      dynamoDBClient
     );
 
     expect(res).toEqual({
@@ -556,7 +556,7 @@ describe("utils", () => {
       const resultBefore = await readAllPlatformStateItems(dynamoDBClient);
       expect(resultBefore).toEqual([]);
 
-      await upsertPlatformClientEntry(dynamoDBClient, clientEntry);
+      await upsertPlatformClientEntry(clientEntry, dynamoDBClient);
 
       const resultAfter = await readAllPlatformStateItems(dynamoDBClient);
       expect(resultAfter).toEqual([clientEntry]);
@@ -573,7 +573,7 @@ describe("utils", () => {
         ...clientEntry,
         clientKind: clientKindTokenStates.api,
       };
-      await upsertPlatformClientEntry(dynamoDBClient, updatedEntry);
+      await upsertPlatformClientEntry(updatedEntry, dynamoDBClient);
 
       const resultAfter = await readAllPlatformStateItems(dynamoDBClient);
       expect(resultAfter).toEqual([updatedEntry]);
@@ -587,7 +587,7 @@ describe("utils", () => {
       const resultBefore = await readAllTokenStateItems(dynamoDBClient);
       expect(resultBefore).toEqual([]);
 
-      await upsertTokenClientKidEntry(dynamoDBClient, clientKidEntry);
+      await upsertTokenClientKidEntry(clientKidEntry, dynamoDBClient);
 
       const resultAfter = await readAllTokenStateItems(dynamoDBClient);
       expect(resultAfter).toEqual([clientKidEntry]);
@@ -603,7 +603,7 @@ describe("utils", () => {
         ...clientKidEntry,
         clientKind: clientKindTokenStates.api,
       };
-      await upsertTokenClientKidEntry(dynamoDBClient, updatedEntry);
+      await upsertTokenClientKidEntry(updatedEntry, dynamoDBClient);
 
       const resultAfter = await readAllTokenStateItems(dynamoDBClient);
       expect(resultAfter).toEqual([updatedEntry]);
