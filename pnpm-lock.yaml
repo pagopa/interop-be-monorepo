@@ -1557,6 +1557,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      jose:
+        specifier: 5.9.4
+        version: 5.9.4
       jsonwebtoken:
         specifier: 9.0.2
         version: 9.0.2
@@ -10844,7 +10847,6 @@ packages:
 
   /jose@5.9.4:
     resolution: {integrity: sha512-WBBl6au1qg6OHj67yCffCgFR3BADJBXN8MdRvCgJDuMv3driV2nHr7jdGvaKX9IolosAsn+M0XRArqLXUhyJHQ==}
-    dev: false
 
   /js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}

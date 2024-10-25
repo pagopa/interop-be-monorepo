@@ -11,6 +11,10 @@ import {
 } from "pagopa-interop-models";
 import * as jsonwebtoken from "jsonwebtoken";
 import {
+  generateKeySet,
+  getMockClientAssertion,
+} from "pagopa-interop-commons-test";
+import {
   validateClientKindAndPlatformState,
   validateRequestParameters,
   verifyClientAssertion,
@@ -55,12 +59,10 @@ import {
   Key,
 } from "../src/types.js";
 import {
-  generateKeySet,
   getMockAccessTokenRequest,
   getMockApiKey,
-  getMockClientAssertion,
   getMockConsumerKey,
-  getMockKey,
+  getMockTokenKey,
   value64chars,
 } from "./utils.js";
 
@@ -495,7 +497,7 @@ describe("validation test", async () => {
         },
       });
       const mockKey = {
-        ...getMockKey(),
+        ...getMockTokenKey(),
         publicKey: publicKeyEncodedPem,
       };
       const { errors } = await verifyClientAssertionSignature(jws, mockKey);
@@ -506,7 +508,7 @@ describe("validation test", async () => {
       const { jws, publicKeyEncodedPem } = await getMockClientAssertion();
 
       const mockKey = {
-        ...getMockKey(),
+        ...getMockTokenKey(),
         publicKey: Buffer.from(publicKeyEncodedPem, "base64").toString("utf8"),
       };
       const { errors } = await verifyClientAssertionSignature(jws, mockKey);
@@ -534,7 +536,7 @@ describe("validation test", async () => {
         },
       });
       const mockKey: Key = {
-        ...getMockKey(),
+        ...getMockTokenKey(),
         publicKey: publicKeyEncodedPem,
         algorithm: notAllowedAlg,
       };
@@ -559,7 +561,7 @@ describe("validation test", async () => {
       });
 
       const mockKey = {
-        ...getMockKey(),
+        ...getMockTokenKey(),
         publicKey: publicKeyEncodedPem,
       };
       const { errors } = await verifyClientAssertionSignature(jws, mockKey);
@@ -570,7 +572,7 @@ describe("validation test", async () => {
     it("jsonWebTokenError", async () => {
       const { publicKeyEncodedPem } = generateKeySet();
       const mockKey = {
-        ...getMockKey(),
+        ...getMockTokenKey(),
         publicKey: publicKeyEncodedPem,
       };
       const { errors } = await verifyClientAssertionSignature(
@@ -585,7 +587,7 @@ describe("validation test", async () => {
     it("invalidSignature", async () => {
       const { publicKeyEncodedPem } = generateKeySet();
       const mockKey = {
-        ...getMockKey(),
+        ...getMockTokenKey(),
         publicKey: publicKeyEncodedPem,
       };
       const { jws } = await getMockClientAssertion();
@@ -603,7 +605,7 @@ describe("validation test", async () => {
     it("jsonWebTokenError - malformed jwt", async () => {
       const { publicKeyEncodedPem } = generateKeySet();
       const mockKey = {
-        ...getMockKey(),
+        ...getMockTokenKey(),
         publicKey: publicKeyEncodedPem,
       };
       const { errors } = await verifyClientAssertionSignature(
@@ -620,7 +622,7 @@ describe("validation test", async () => {
         await getMockClientAssertion();
 
       const mockKey = {
-        ...getMockKey(),
+        ...getMockTokenKey(),
         publicKey: publicKeyEncodedPem,
       };
 
@@ -656,7 +658,7 @@ describe("validation test", async () => {
         },
       });
       const mockKey = {
-        ...getMockKey(),
+        ...getMockTokenKey(),
         publicKey: publicKeyEncodedPem,
       };
 
