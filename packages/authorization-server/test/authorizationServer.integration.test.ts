@@ -11,6 +11,7 @@ import {
   getMockTokenStatesClientEntry,
   writeTokenStateEntry,
   writeTokenStateClientEntry,
+  getMockClientAssertion,
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
@@ -51,7 +52,6 @@ import {
   dynamoDBClient,
   fileManager,
   getMockAccessTokenRequest,
-  getMockClientAssertion,
   mockKMSClient,
   mockProducer,
   tokenService,
