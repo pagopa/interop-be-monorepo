@@ -455,7 +455,7 @@ describe("utils", () => {
     );
   });
 
-  it("cleanClientPurposeIdsInPlatformStatesEntry", async () => {
+  it("setClientPurposeIdsInPlatformStatesEntry", async () => {
     const clientEntry1: PlatformStatesClientEntry = {
       ...getMockPlatformStatesClientEntry(),
       clientPurposesIds: [generateId(), generateId()],
