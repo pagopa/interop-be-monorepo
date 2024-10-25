@@ -1,6 +1,8 @@
 import {
   Agreement,
+  EService,
   PlatformStatesAgreementEntry,
+  PlatformStatesCatalogEntry,
   PlatformStatesPurposeEntry,
   Purpose,
   TokenGenerationStatesClientPurposeEntry,
@@ -88,5 +90,43 @@ export type AgreementDifferencesResult = Array<
     PartialPlatformStatesAgreementEntry | undefined,
     PartialTokenStatesAgreementEntry[] | undefined,
     PartialAgreement | undefined
+  ]
+>;
+
+// catalog
+export const PartialEService = EService.pick({
+  id: true,
+  descriptors: true,
+});
+export type PartialEService = z.infer<typeof PartialEService>;
+
+export const PartialPlatformStatesCatalogEntry =
+  PlatformStatesCatalogEntry.pick({
+    PK: true,
+    state: true,
+    descriptorAudience: true,
+    descriptorVoucherLifespan: true,
+  });
+export type PartialPlatformStatesCatalogEntry = z.infer<
+  typeof PartialPlatformStatesCatalogEntry
+>;
+
+export const PartialTokenStatesCatalogEntry =
+  TokenGenerationStatesClientPurposeEntry.pick({
+    PK: true,
+    GSIPK_eserviceId_descriptorId: true,
+    descriptorState: true,
+    descriptorAudience: true,
+    descriptorVoucherLifespan: true,
+  });
+export type PartialTokenStatesCatalogEntry = z.infer<
+  typeof PartialTokenStatesCatalogEntry
+>;
+
+export type CatalogDifferencesResult = Array<
+  [
+    PartialPlatformStatesCatalogEntry | undefined,
+    PartialTokenStatesCatalogEntry[] | undefined,
+    PartialEService | undefined
   ]
 >;
