@@ -7,13 +7,14 @@ import {
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import {
+  CorrelationId,
   fromTenantV2,
+  generateId,
   missingKafkaMessageDataError,
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { v4 as uuidv4 } from "uuid";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import { toApiCompactTenant } from "./converters.js";
@@ -32,7 +33,9 @@ async function processMessage({
   partition,
 }: EachMessagePayload): Promise<void> {
   const decodedMsg = decodeKafkaMessage(message, TenantEvent);
-  const correlationId = decodedMsg.correlation_id || uuidv4();
+  const correlationId: CorrelationId = decodedMsg.correlation_id
+    ? unsafeBrandId(decodedMsg.correlation_id)
+    : generateId();
 
   const loggerInstance = logger({
     serviceName: "compute-agreements-consumer",

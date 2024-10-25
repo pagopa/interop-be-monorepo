@@ -264,7 +264,7 @@ describe("Message processor", () => {
       })
     );
   });
-  it.each(["SCP", "PVT"])(
+  it.each(["SCP", "PRV"])(
     "should upsert tenant with institutionType %s correctly",
     async (institutionType) => {
       const origin = "PDND_INFOCAMERE";
