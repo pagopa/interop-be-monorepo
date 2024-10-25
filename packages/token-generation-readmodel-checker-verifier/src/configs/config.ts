@@ -1,13 +1,13 @@
 import {
   LoggerConfig,
-  PlatformStateWriterConfig,
   ReadModelDbConfig,
+  TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 const TokenReadModelCheckerVerifierConfig = LoggerConfig.and(
   ReadModelDbConfig
-).and(PlatformStateWriterConfig);
+).and(TokenGenerationReadModelDbConfig);
 
 export type TokenReadModelCheckerConfig = z.infer<
   typeof TokenReadModelCheckerVerifierConfig
