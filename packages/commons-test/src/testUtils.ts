@@ -55,6 +55,7 @@ import {
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientEntry,
   makeTokenGenerationStatesClientKidPK,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -331,7 +332,9 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
 export const getMockTokenStatesClientPurposeEntry = (
   tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
 ): TokenGenerationStatesClientPurposeEntry => {
-  const clientId = generateId<ClientId>();
+  const clientId = tokenStateEntryPK
+    ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
+    : generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -398,7 +401,10 @@ export const getMockAgreementEntry = (
 export const getMockTokenStatesClientEntry = (
   tokenStateEntryPK?: TokenGenerationStatesClientKidPK
 ): TokenGenerationStatesClientEntry => {
-  const clientId = generateId<ClientId>();
+  const clientId = tokenStateEntryPK
+    ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
+    : generateId<ClientId>();
+
   const consumerId = generateId<TenantId>();
   const kid = `kid ${Math.random()}`;
 

@@ -36,22 +36,17 @@ import {
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
 import {
-  b64ByteUrlEncode,
-  b64UrlEncode,
   FileManager,
   formatDateyyyyMMdd,
   formatTimehhmmss,
+  InteropApiToken,
+  InteropConsumerToken,
+  InteropTokenGenerator,
   Logger,
   RateLimiter,
   RateLimiterStatus,
 } from "pagopa-interop-commons";
-import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
-import {
-  InteropJwtHeader,
-  InteropJwtPayload,
-  InteropToken,
-} from "../model/domain/models.js";
 import { config } from "../config/config.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -61,15 +56,12 @@ import {
   invalidTokenClientKidPurposeEntry,
   kafkaAuditingFailed,
   tokenGenerationStatesEntryNotFound,
-  // keyRetrievalFailed,
   keyTypeMismatch,
   unexpectedTokenGenerationError,
-  tokenSigningFailed,
   unexpectedTokenGenerationStatesEntry,
   platformStateValidationFailed,
 } from "../model/domain/errors.js";
 
-// TODO: copied
 export type GenerateTokenReturnType =
   | {
       limitReached: true;
@@ -79,25 +71,20 @@ export type GenerateTokenReturnType =
     }
   | {
       limitReached: false;
-      token: InteropToken;
+      token: InteropConsumerToken | InteropApiToken;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
     };
 
-const PURPOSE_ID_CLAIM = "purposeId";
-const ORGANIZATION_ID_CLAIM = "organizationId";
-const GENERATED_INTEROP_TOKEN_M2M_ROLE = "m2m";
-const ROLE_CLAIM = "role";
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tokenServiceBuilder({
+  tokenGenerator,
   dynamoDBClient,
-  kmsClient,
   redisRateLimiter,
   producer,
   fileManager,
 }: {
+  tokenGenerator: InteropTokenGenerator;
   dynamoDBClient: DynamoDBClient;
-  kmsClient: KMSClient;
   redisRateLimiter: RateLimiter;
   producer: Awaited<ReturnType<typeof initProducer>>;
   fileManager: FileManager;
@@ -160,7 +147,6 @@ export function tokenServiceBuilder({
 
       const { limitReached, ...rateLimiterStatus } =
         await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
-
       if (limitReached) {
         return {
           limitReached: true,
@@ -172,14 +158,12 @@ export function tokenServiceBuilder({
 
       // TODO: match otherwise doesn't work somehow
       if (key.clientKind === clientKindTokenStates.consumer) {
-        const customClaims = { [PURPOSE_ID_CLAIM]: key.purposeId };
-        const token = await generateInteropToken(
-          kmsClient,
-          jwt,
-          key.eServiceState.audience,
-          key.eServiceState.voucherLifespan,
-          customClaims
-        );
+        const token = await tokenGenerator.generateInteropConsumerToken({
+          sub: jwt.payload.sub,
+          audience: key.eServiceState.audience,
+          purposeId: key.purposeId,
+          tokenDurationInSeconds: 10,
+        });
 
         await publishAudit({
           producer,
@@ -197,18 +181,10 @@ export function tokenServiceBuilder({
           rateLimiterStatus,
         };
       } else if (key.clientKind === clientKindTokenStates.api) {
-        const customClaims = {
-          [ORGANIZATION_ID_CLAIM]: key.consumerId,
-          [ROLE_CLAIM]: GENERATED_INTEROP_TOKEN_M2M_ROLE,
-        };
-
-        const token = await generateInteropToken(
-          kmsClient,
-          jwt,
-          [config.generatedInteropTokenM2MAudience],
-          config.generatedInteropTokenM2MDurationSeconds,
-          customClaims
-        );
+        const token = await tokenGenerator.generateInteropApiToken({
+          sub: jwt.payload.sub,
+          consumerId: key.consumerId,
+        });
 
         return {
           limitReached: false,
@@ -227,7 +203,6 @@ export type TokenService = ReturnType<typeof tokenServiceBuilder>;
 export const retrieveKey = async (
   dynamoDBClient: DynamoDBClient,
   pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
-  // clientAssertion: ClientAssertion
 ): Promise<ConsumerKey | ApiKey> => {
   const input: GetItemInput = {
     Key: {
@@ -285,7 +260,6 @@ export const retrieveKey = async (
             clientId: clientKidPurposeEntry.GSIPK_clientId,
             consumerId: clientKidPurposeEntry.consumerId,
             publicKey: clientKidPurposeEntry.publicKey,
-            // algorithm: clientAssertion.header.alg,
             algorithm: "RS256" /* TODO pass this as a parameter? */,
             clientKind: clientKindTokenStates.consumer, // TODO this doesn't work with clientKidPurpose Entry.clientKind, but it should be already validated in the "when"
             purposeState: {
@@ -360,60 +334,6 @@ export const retrieveKey = async (
   // }
 };
 
-export const generateInteropToken = async (
-  kmsClient: KMSClient,
-  clientAssertion: ClientAssertion,
-  audience: string[],
-  tokenDurationInSeconds: number,
-  // TODO: improve object type
-  customClaims: object
-): Promise<InteropToken> => {
-  const currentTimestamp = Date.now();
-
-  const header: InteropJwtHeader = {
-    alg: "RS256",
-    use: "sig",
-    typ: "at+jwt",
-    kid: config.generatedInteropTokenKid,
-  };
-
-  const payload: InteropJwtPayload = {
-    jti: generateId(),
-    iss: config.generatedInteropTokenIssuer,
-    aud: audience,
-    sub: clientAssertion.payload.sub,
-    iat: currentTimestamp,
-    nbf: currentTimestamp,
-    exp: currentTimestamp + tokenDurationInSeconds * 1000,
-    ...customClaims,
-  };
-
-  const serializedToken = `${b64UrlEncode(
-    JSON.stringify(header)
-  )}.${b64UrlEncode(JSON.stringify(payload))}`;
-
-  const commandParams: SignCommandInput = {
-    KeyId: config.generatedInteropTokenKid,
-    Message: new TextEncoder().encode(serializedToken),
-    SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256", // TODO move this to config?
-  };
-
-  const command = new SignCommand(commandParams);
-  const response = await kmsClient.send(command);
-
-  if (!response.Signature) {
-    throw tokenSigningFailed(payload.jti);
-  }
-
-  const jwtSignature = b64ByteUrlEncode(response.Signature);
-
-  return {
-    header,
-    payload,
-    serialized: `${serializedToken}.${jwtSignature}`,
-  };
-};
-
 export const publishAudit = async ({
   producer,
   generatedToken,
@@ -424,7 +344,7 @@ export const publishAudit = async ({
   logger,
 }: {
   producer: Awaited<ReturnType<typeof initProducer>>;
-  generatedToken: InteropToken;
+  generatedToken: InteropConsumerToken | InteropApiToken;
   key: ConsumerKey;
   clientAssertion: ClientAssertion;
   correlationId: string;

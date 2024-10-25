@@ -1,7 +1,12 @@
 import { EachMessagePayload } from "kafkajs";
 import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
-import { PurposeEvent } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  generateId,
+  PurposeEvent,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { handleMessageV1 } from "./consumerServiceV1.js";
@@ -20,7 +25,9 @@ async function processMessage({
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
-    correlationId: decodedMessage.correlation_id,
+    correlationId: decodedMessage.correlation_id
+      ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+      : generateId<CorrelationId>(),
   });
 
   await match(decodedMessage)

@@ -13,7 +13,7 @@ export const errorCodes = {
   clientAssertionSignatureValidationFailed: "0003",
   kafkaAuditingFailed: "0004",
   fallbackAuditFailed: "0005",
-  tokenSigningFailed: "0006",
+  // tokenSigningFailed: "0006",
   tokenGenerationStatesEntryNotFound: "0007",
   keyRetrievalFailed: "0008",
   invalidTokenClientKidPurposeEntry: "0009",
@@ -76,15 +76,15 @@ export function fallbackAuditFailed(jti: string): ApiError<ErrorCodes> {
   });
 }
 
-export function tokenSigningFailed(
-  serializedToken: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Token signing failed for token: ${serializedToken}`,
-    code: "tokenSigningFailed",
-    title: "Token signing failed",
-  });
-}
+// export function tokenSigningFailed(
+//   serializedToken: string
+// ): ApiError<ErrorCodes> {
+//   return new ApiError({
+//     detail: `Token signing failed for token: ${serializedToken}`,
+//     code: "tokenSigningFailed",
+//     title: "Token signing failed",
+//   });
+// }
 
 export function tokenGenerationStatesEntryNotFound(
   pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
