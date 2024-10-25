@@ -49,10 +49,14 @@ import { readModelServiceBuilder } from "../services/readModelService.js";
 import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerationReadModelService.js";
 import { config } from "../configs/config.js";
 import {
-  PlatformStatesPurposeEntryDiff,
+  AgreementDifferencesResult,
+  PartialPlatformStatesAgreementEntry,
+  PartialPlatformStatesPurposeEntry,
   PurposeDifferencesResult,
-  ReducedPurpose,
-  TokenGenerationStatesPurposeEntryDiff,
+  PartialAgreement,
+  PartialPurpose,
+  PartialTokenStatesAgreementEntry,
+  PartialTokenStatesPurposeEntry,
 } from "../models/types.js";
 
 type Accumulator = {
@@ -281,8 +285,8 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
     if (!c) {
       // eslint-disable-next-line functional/immutable-data
       acc.push([
-        PlatformStatesPurposeEntryDiff.parse(a),
-        TokenGenerationStatesPurposeEntryDiff.array().parse(b),
+        a ? PartialPlatformStatesPurposeEntry.parse(a) : undefined,
+        b ? PartialTokenStatesPurposeEntry.array().parse(b) : undefined,
         undefined,
       ]);
       return acc;
@@ -314,7 +318,7 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
       acc.push([
         platformPurposeEntryDiff,
         tokenPurposeEntryDiff,
-        ReducedPurpose.parse(c),
+        PartialPurpose.parse(c),
       ]);
     }
 
@@ -334,7 +338,7 @@ function validatePurposePlatformStates({
   lastPurposeVersion: PurposeVersion;
 }): {
   status: boolean;
-  data: PlatformStatesPurposeEntryDiff | undefined;
+  data: PartialPlatformStatesPurposeEntry | undefined;
 } {
   // no yes archived -> yes
   // no yes not archived -> no
@@ -379,7 +383,7 @@ function validatePurposeTokenGenerationStates({
   lastPurposeVersion: PurposeVersion;
 }): {
   status: boolean;
-  data: TokenGenerationStatesPurposeEntryDiff[] | undefined;
+  data: PartialTokenStatesPurposeEntry[] | undefined;
 } {
   if (!tokenEntries || tokenEntries.length === 0) {
     return {
@@ -427,9 +431,11 @@ export function zipPurposeDataById(
     Purpose | undefined
   ]
 > {
-  const allIds = new Set(
-    [...dataA, ...dataC].map((d) => getIdentificationKey(d))
-  );
+  const allIds = new Set([
+    ...dataA.map((d) => getIdentificationKey(d)),
+    ...dataB.map((d) => extractIdsFromTokenGenerationStatesPK(d.PK).purposeId),
+    ...dataC.map((d) => getIdentificationKey(d)),
+  ]);
   return Array.from(allIds).map((id) => [
     dataA.find(
       (d: PlatformStatesPurposeEntry) => getIdentificationKey(d) === id
@@ -489,69 +495,97 @@ export async function compareReadModelAgreementsWithTokenGenReadModel({
   platformStatesEntries: PlatformStatesAgreementEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
   readModel: ReadModelRepository;
-}): Promise<
-  Array<
-    [
-      PlatformStatesAgreementEntry | undefined,
-      TokenGenerationStatesClientPurposeEntry[],
-      Agreement | undefined
-    ]
-  >
-> {
+}): Promise<AgreementDifferencesResult> {
   const readModelService = readModelServiceBuilder(readModel);
   const [resultsA, resultsB, resultsC] = await Promise.all([
     platformStatesEntries,
     tokenGenerationStatesEntries,
     readModelService.getAllReadModelAgreements(),
   ]);
-
-  return zipAgreementDataById(resultsA, resultsB, resultsC).filter(
-    ([a, b, c]) => {
-      if (c) {
-        const agreementState = agreementStateToItemState(c.state);
-        const isPlatformStatesCorrect = a
-          ? validateAgreementPlatformStates({
-              platformAgreementEntry: a,
-              agreement: c,
-              agreementState,
-            })
-          : true;
-
-        const isTokenGenerationStatesCorrect = b
-          ? validateAgreementTokenGenerationStates({
-              tokenEntries: b,
-              agreementState,
-              agreement: c,
-            })
-          : true;
-
-        if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
-          return false;
-        }
-      }
-      return true;
+  return zipAgreementDataById(
+    resultsA,
+    resultsB,
+    resultsC
+  ).reduce<AgreementDifferencesResult>((acc, [a, b, c]) => {
+    if (!c) {
+      // eslint-disable-next-line functional/immutable-data
+      acc.push([
+        a ? PartialPlatformStatesAgreementEntry.parse(a) : undefined,
+        b ? PartialTokenStatesAgreementEntry.array().parse(b) : undefined,
+        undefined,
+      ]);
+      return acc;
     }
-  );
+
+    const agreementItemState = agreementStateToItemState(c.state);
+    const {
+      status: isPlatformStatesCorrect,
+      data: platformAgreementEntryDiff,
+    } = validateAgreementPlatformStates({
+      platformAgreementEntry: a,
+      agreement: c,
+      agreementItemState,
+    });
+
+    const {
+      status: isTokenGenerationStatesCorrect,
+      data: tokenAgreementEntryDiff,
+    } = validateAgreementTokenGenerationStates({
+      tokenEntries: b,
+      agreementState: agreementItemState,
+      agreement: c,
+    });
+
+    if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
+      // eslint-disable-next-line functional/immutable-data
+      acc.push([
+        platformAgreementEntryDiff,
+        tokenAgreementEntryDiff,
+        PartialAgreement.parse(c),
+      ]);
+    }
+
+    return acc;
+  }, []);
 }
 
 function validateAgreementPlatformStates({
   platformAgreementEntry,
   agreement,
-  agreementState,
+  agreementItemState,
 }: {
-  platformAgreementEntry: PlatformStatesAgreementEntry;
+  platformAgreementEntry: PlatformStatesAgreementEntry | undefined;
   agreement: Agreement;
-  agreementState: ItemState;
-}): boolean {
-  return (
-    agreementState === platformAgreementEntry.state &&
-    platformAgreementEntry.GSIPK_consumerId_eserviceId ===
-      makeGSIPKConsumerIdEServiceId({
-        consumerId: agreement.consumerId,
-        eserviceId: agreement.eserviceId,
-      }) &&
-    platformAgreementEntry.agreementDescriptorId === agreement.descriptorId
-  );
+  agreementItemState: ItemState;
+}): {
+  status: boolean;
+  data: PartialPlatformStatesAgreementEntry | undefined;
+} {
+  const isArchived = agreement.state === agreementState.archived;
+  const status = !platformAgreementEntry
+    ? isArchived
+    : !isArchived &&
+      agreementItemState === platformAgreementEntry.state &&
+      platformAgreementEntry.GSIPK_consumerId_eserviceId ===
+        makeGSIPKConsumerIdEServiceId({
+          consumerId: agreement.consumerId,
+          eserviceId: agreement.eserviceId,
+        }) &&
+      platformAgreementEntry.agreementDescriptorId === agreement.descriptorId;
+
+  return {
+    status,
+    data:
+      !status && platformAgreementEntry
+        ? {
+            PK: platformAgreementEntry.PK,
+            state: platformAgreementEntry.state,
+            GSIPK_consumerId_eserviceId:
+              platformAgreementEntry.GSIPK_consumerId_eserviceId,
+            agreementDescriptorId: platformAgreementEntry.agreementDescriptorId,
+          }
+        : undefined,
+  };
 }
 
 function validateAgreementTokenGenerationStates({
@@ -562,27 +596,46 @@ function validateAgreementTokenGenerationStates({
   tokenEntries: TokenGenerationStatesClientPurposeEntry[];
   agreementState: ItemState;
   agreement: Agreement;
-}): boolean {
+}): {
+  status: boolean;
+  data: PartialTokenStatesAgreementEntry[] | undefined;
+} {
   if (!tokenEntries || tokenEntries.length === 0) {
-    return true;
+    return {
+      status: true,
+      data: undefined,
+    };
   }
 
-  return tokenEntries.some(
+  const foundEntries = tokenEntries.filter(
     (e) =>
-      e.consumerId === agreement.consumerId &&
-      (!e.agreementId || e.agreementId === agreement.id) &&
-      (!e.agreementState || e.agreementState === agreementState) &&
-      (!e.GSIPK_consumerId_eserviceId ||
-        e.GSIPK_consumerId_eserviceId ===
-          makeGSIPKConsumerIdEServiceId({
-            consumerId: agreement.consumerId,
-            eserviceId: agreement.eserviceId,
-          })) &&
-      (!e.GSIPK_eserviceId_descriptorId ||
-        extractIdsFromGSIPKEServiceIdDescriptorId(
-          e.GSIPK_eserviceId_descriptorId
-        )?.descriptorId === agreement.descriptorId)
+      e.consumerId !== agreement.consumerId ||
+      !e.agreementId ||
+      e.agreementId !== agreement.id ||
+      !e.agreementState ||
+      e.agreementState !== agreementState ||
+      !e.GSIPK_consumerId_eserviceId ||
+      e.GSIPK_consumerId_eserviceId !==
+        makeGSIPKConsumerIdEServiceId({
+          consumerId: agreement.consumerId,
+          eserviceId: agreement.eserviceId,
+        }) ||
+      !e.GSIPK_eserviceId_descriptorId ||
+      extractIdsFromGSIPKEServiceIdDescriptorId(e.GSIPK_eserviceId_descriptorId)
+        ?.descriptorId !== agreement.descriptorId
   );
+
+  return {
+    status: foundEntries.length === 0,
+    data: foundEntries.map((entry) => ({
+      PK: entry.PK,
+      consumerId: entry.consumerId,
+      agreementId: entry.agreementId,
+      agreementState: entry.agreementState,
+      GSIPK_consumerId_eserviceId: entry.GSIPK_consumerId_eserviceId,
+      GSIPK_eserviceId_descriptorId: entry.GSIPK_eserviceId_descriptorId,
+    })),
+  };
 }
 
 export function zipAgreementDataById(
@@ -596,9 +649,11 @@ export function zipAgreementDataById(
     Agreement | undefined
   ]
 > {
-  const allIds = new Set(
-    [...dataA, ...dataC].map((d) => getIdentificationKey(d))
-  );
+  const allIds = new Set([
+    ...dataA.map((d) => getIdentificationKey(d)),
+    ...dataB.map((d) => d.agreementId),
+    ...dataC.map((d) => getIdentificationKey(d)),
+  ]);
   return Array.from(allIds).map((id) => [
     dataA.find(
       (d: PlatformStatesAgreementEntry) => getIdentificationKey(d) === id
@@ -611,60 +666,37 @@ export function zipAgreementDataById(
 }
 
 export function countAgreementDifferences(
-  differences: Array<
-    [
-      PlatformStatesAgreementEntry | undefined,
-      TokenGenerationStatesClientPurposeEntry[],
-      Agreement | undefined
-    ]
-  >,
+  differences: AgreementDifferencesResult,
   logger: Logger
 ): number {
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
   differences.forEach(
     ([platformAgreement, tokenAgreement, readModelAgreement]) => {
-      if (platformAgreement && !readModelAgreement) {
-        console.warn(
-          `Read model agreement not found for ${platformAgreement.PK}`
-        );
-        // TODO
-        logger.error(
-          `Read model agreement not found for ${platformAgreement.PK}`
-        );
+      if (!readModelAgreement && (platformAgreement || tokenAgreement)) {
+        const missingId = platformAgreement
+          ? extractIdFromPlatformStatesPK(platformAgreement.PK).id
+          : tokenAgreement
+          ? tokenAgreement[0].agreementId
+          : undefined;
+        console.warn(`Read model agreement not found for id: ${missingId}`);
+        logger.error(`Read model agreement not found for id: ${missingId}`);
         differencesCount++;
-      } else if (platformAgreement && readModelAgreement) {
+      } else if (readModelAgreement) {
         logger.error(
-          `Agreement states are not equal.
-  platform-states entry: ${JSON.stringify(platformAgreement)}
-  token-generation-states entries: ${JSON.stringify(tokenAgreement)}
-  purpose read-model: ${JSON.stringify(readModelAgreement)}`
+          `Agreement states are not equal:
+    platform-states entry: ${JSON.stringify(platformAgreement)}
+    token-generation-states entries: ${JSON.stringify(tokenAgreement)}
+    agreement read-model: ${JSON.stringify(readModelAgreement)}`
         );
         console.warn(
-          `Agreement states are not equal.
-  platform-states entry: ${JSON.stringify(platformAgreement)}
-  token-generation-states entries: ${JSON.stringify(tokenAgreement)}
-  purpose read-model: ${JSON.stringify(readModelAgreement)}`
+          `Agreement states are not equal:
+    platform-states entry: ${JSON.stringify(platformAgreement)}
+    token-generation-states entries: ${JSON.stringify(tokenAgreement)}
+    agreement read-model: ${JSON.stringify(readModelAgreement)}`
         );
         differencesCount++;
       }
-      // else if (
-      //   !platformAgreement &&
-      //   readModelAgreement &&
-      //   readModelAgreement.state !== agreementState.archived
-      // ) {
-      //   logger.error(
-      //     `platform-states agreement entry not found for read model agreement:\n${JSON.stringify(
-      //       readModelAgreement
-      //     )}`
-      //   );
-      //   console.warn(
-      //     `platform-states agreement entry not found for read model agreement:\n${JSON.stringify(
-      //       readModelAgreement
-      //     )}`
-      //   );
-      //   differencesCount++;
-      // }
     }
   );
 

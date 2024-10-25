@@ -63,9 +63,14 @@ import {
   compareTokenGenerationReadModel,
 } from "../src/utils/utils.js";
 import {
-  PlatformStatesPurposeEntryDiff,
-  ReducedPurpose,
-  TokenGenerationStatesPurposeEntryDiff,
+  AgreementDifferencesResult,
+  PartialPlatformStatesAgreementEntry,
+  PartialPlatformStatesPurposeEntry,
+  PartialAgreement,
+  PartialPurpose,
+  PartialTokenStatesAgreementEntry,
+  PartialTokenStatesPurposeEntry,
+  PurposeDifferencesResult,
 } from "../src/models/types.js";
 import {
   addOneAgreement,
@@ -410,7 +415,6 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOnePurpose(purpose2);
 
       // platform-states
-      // TODO: should missing platform-states entry be an error or skipped?
       const purposeEntryPrimaryKey1 = makePlatformStatesPurposePK(purpose1.id);
       const platformPurposeEntry1: PlatformStatesPurposeEntry = {
         PK: purposeEntryPrimaryKey1,
@@ -463,10 +467,6 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
           readModel: readModelRepository,
         });
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
     });
 
     it("wrong states", async () => {
@@ -481,7 +481,6 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOnePurpose(purpose2);
 
       // platform-states
-      // TODO: should missing platform-states entry be an error or skipped?
       const purposeEntryPrimaryKey1 = makePlatformStatesPurposePK(purpose1.id);
       const platformPurposeEntry1: PlatformStatesPurposeEntry = {
         PK: purposeEntryPrimaryKey1,
@@ -556,26 +555,21 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
           readModel: readModelRepository,
         });
       const expectedPurposeDifferences: PurposeDifferencesResult = [
-        // first platform-states entry is correct so it's undefined
         [
           undefined,
-          [TokenGenerationStatesPurposeEntryDiff.parse(wrongTokenStatesEntry)],
-          ReducedPurpose.parse(purpose1),
+          [PartialTokenStatesPurposeEntry.parse(wrongTokenStatesEntry)],
+          PartialPurpose.parse(purpose1),
         ],
         [
-          PlatformStatesPurposeEntryDiff.parse(platformPurposeEntry2),
+          PartialPlatformStatesPurposeEntry.parse(platformPurposeEntry2),
           undefined,
-          ReducedPurpose.parse(purpose2),
+          PartialPurpose.parse(purpose2),
         ],
       ];
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
       expect(purposeDifferences).toEqual(
         expect.arrayContaining(expectedPurposeDifferences)
       );
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
     });
 
     it("missing platform-states entry should not pass if purpose is not archived", async () => {
@@ -585,21 +579,17 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       await addOnePurpose(purpose);
 
       const expectedDifferencesLength = 1;
-      const purposeDifferences: PurposeDifferencesResult =
+      const purposeDifferences =
         await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
           readModel: readModelRepository,
         });
       const expectedPurposeDifferences: PurposeDifferencesResult = [
-        [undefined, undefined, ReducedPurpose.parse(purpose)],
+        [undefined, undefined, PartialPurpose.parse(purpose)],
       ];
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
       expect(purposeDifferences).toEqual(expectedPurposeDifferences);
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
     });
 
     it("missing platform-states entry should pass if purpose is archived", async () => {
@@ -636,10 +626,6 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
           readModel: readModelRepository,
         });
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
     });
 
     it("read model purpose missing", async () => {
@@ -684,17 +670,13 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         });
       const expectedPurposeDifferences: PurposeDifferencesResult = [
         [
-          PlatformStatesPurposeEntryDiff.parse(platformPurposeEntry),
-          [TokenGenerationStatesPurposeEntryDiff.parse(tokenStatesEntry)],
+          PartialPlatformStatesPurposeEntry.parse(platformPurposeEntry),
+          [PartialTokenStatesPurposeEntry.parse(tokenStatesEntry)],
           undefined,
         ],
       ];
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
       expect(purposeDifferences).toEqual(expectedPurposeDifferences);
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
     });
   });
 
@@ -779,12 +761,17 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         consumerId: agreement1.consumerId,
         eserviceId: agreement1.eserviceId,
       });
+      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: agreement1.eserviceId,
+        descriptorId: agreement1.descriptorId,
+      });
       const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         consumerId: agreement1.consumerId,
         agreementId: agreement1.id,
         agreementState: itemState.active,
         GSIPK_consumerId_eserviceId,
+        GSIPK_eserviceId_descriptorId,
       };
       await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
 
@@ -799,10 +786,6 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
           readModel: readModelRepository,
         });
       expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
     });
 
     it("wrong states", async () => {
@@ -904,30 +887,55 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
           tokenGenerationStatesEntries: [tokenStatesEntry],
           readModel: readModelRepository,
         });
-      const expectedAgreementDifferences: Array<
+      const expectedAgreementDifferences: AgreementDifferencesResult = [
         [
-          PlatformStatesAgreementEntry | undefined,
-          TokenGenerationStatesClientPurposeEntry[],
-          Agreement | undefined
-        ]
-      > = [
-        [platformAgreementEntry1, [tokenStatesEntry], agreement1],
-        [platformAgreementEntry2, [], agreement2],
+          undefined,
+          [PartialTokenStatesAgreementEntry.parse(tokenStatesEntry)],
+          PartialAgreement.parse(agreement1),
+        ],
+        [
+          PartialPlatformStatesAgreementEntry.parse(platformAgreementEntry2),
+          undefined,
+          PartialAgreement.parse(agreement2),
+        ],
       ];
       expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
       expect(agreementDifferences).toEqual(
         expect.arrayContaining(expectedAgreementDifferences)
       );
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
     });
 
-    it("missing platform-states entry should pass", async () => {
+    it("missing platform-states entry should not pass if agreement is not archived", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+      await addOneAgreement(agreement);
+
+      const expectedDifferencesLength = 1;
+      const agreementDifferences =
+        await compareReadModelAgreementsWithTokenGenReadModel({
+          platformStatesEntries: [],
+          tokenGenerationStatesEntries: [],
+          readModel: readModelRepository,
+        });
+      const expectedAgreementDifferences: AgreementDifferencesResult = [
+        [undefined, undefined, PartialAgreement.parse(agreement)],
+      ];
+      expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
+      expect(agreementDifferences).toEqual(expectedAgreementDifferences);
+    });
+
+    it("missing platform-states entry should pass if agreement is archived", async () => {
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.archived,
         stamps: {
           activation: {
             when: new Date(),
@@ -945,10 +953,6 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
           readModel: readModelRepository,
         });
       expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
     });
 
     it("read model agreement missing", async () => {
@@ -983,87 +987,46 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       };
       await writePlatformAgreementEntry(platformAgreementEntry, dynamoDBClient);
 
+      // token-generation-states
+      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
+      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: agreement.eserviceId,
+        descriptorId: agreement.descriptorId,
+      });
+      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
+        consumerId: agreement.consumerId,
+        agreementId: agreement.id,
+        agreementState: itemState.inactive,
+        GSIPK_consumerId_eserviceId,
+        GSIPK_eserviceId_descriptorId,
+      };
+      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+
       const expectedDifferencesLength = 1;
       const agreementDifferences =
         await compareReadModelAgreementsWithTokenGenReadModel({
-          platformStatesEntries: [platformAgreementEntry],
-          tokenGenerationStatesEntries: [],
+          platformStatesEntries: [],
+          tokenGenerationStatesEntries: [tokenStatesEntry],
           readModel: readModelRepository,
         });
-      const expectedAgreementDifferences: Array<
+      const expectedAgreementDifferences: AgreementDifferencesResult = [
         [
-          PlatformStatesAgreementEntry | undefined,
-          TokenGenerationStatesClientPurposeEntry[],
-          Agreement | undefined
-        ]
-      > = [[platformAgreementEntry, [], undefined]];
+          undefined,
+          [PartialTokenStatesAgreementEntry.parse(tokenStatesEntry)],
+          undefined,
+        ],
+      ];
       expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
       expect(agreementDifferences).toEqual(expectedAgreementDifferences);
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
-    });
-
-    it.skip("platform-states entry missing with read model agreement not archived", async () => {
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        state: agreementState.active,
-        stamps: {
-          activation: {
-            when: new Date(),
-            who: generateId(),
-          },
-        },
-      };
-      await addOneAgreement(agreement);
-
-      const agreementDifferences =
-        await compareReadModelAgreementsWithTokenGenReadModel({
-          platformStatesEntries: [],
-          tokenGenerationStatesEntries: [],
-          readModel: readModelRepository,
-        });
-      const expectedAgreementDifferences: Array<
-        [
-          PlatformStatesAgreementEntry | undefined,
-          TokenGenerationStatesClientPurposeEntry[],
-          Agreement | undefined
-        ]
-      > = [[undefined, [], agreement]];
-      expect(agreementDifferences).toHaveLength(1);
-      expect(agreementDifferences).toEqual(expectedAgreementDifferences);
-
-      await expect(
-        compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).rejects.toThrowError();
-    });
-
-    it("platform-states entry missing with read model purpose archived", async () => {
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        state: agreementState.archived,
-        stamps: {
-          activation: {
-            when: new Date(),
-            who: generateId(),
-          },
-        },
-      };
-      await addOneAgreement(agreement);
-
-      const expectedDifferencesLength = 0;
-      const agreementDifferences =
-        await compareReadModelAgreementsWithTokenGenReadModel({
-          platformStatesEntries: [],
-          tokenGenerationStatesEntries: [],
-          readModel: readModelRepository,
-        });
-      expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
-
-      expect(
-        await compareTokenGenerationReadModel(dynamoDBClient, genericLogger)
-      ).toEqual(expectedDifferencesLength);
     });
   });
 
@@ -1628,11 +1591,3 @@ readmodel NO and token readmodel YES -> impossible
 readmodel YES and token readmodel YES -> same states -> OK
 -> different states -> NOT OK
 */
-
-type PurposeDifferencesResult = Array<
-  [
-    PlatformStatesPurposeEntryDiff | undefined,
-    TokenGenerationStatesPurposeEntryDiff[] | undefined,
-    ReducedPurpose | undefined
-  ]
->;

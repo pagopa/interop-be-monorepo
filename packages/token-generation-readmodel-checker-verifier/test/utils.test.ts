@@ -53,9 +53,9 @@ import {
   zipPurposeDataById,
 } from "../src/utils/utils.js";
 import {
-  PlatformStatesPurposeEntryDiff,
+  PartialPlatformStatesPurposeEntry,
   PurposeDifferencesResult,
-  ReducedPurpose,
+  PartialPurpose,
 } from "../src/models/types.js";
 import {
   addOneAgreement,
@@ -128,9 +128,9 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       });
       const expectedDifferences: PurposeDifferencesResult = [
         [
-          PlatformStatesPurposeEntryDiff.parse(platformPurposeEntry2),
+          PartialPlatformStatesPurposeEntry.parse(platformPurposeEntry2),
           undefined,
-          ReducedPurpose.parse(purpose2),
+          PartialPurpose.parse(purpose2),
         ],
       ];
 
