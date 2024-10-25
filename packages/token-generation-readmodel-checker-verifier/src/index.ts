@@ -7,13 +7,13 @@
  */
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { logger } from "pagopa-interop-commons";
-import { generateId } from "pagopa-interop-models";
+import { CorrelationId, generateId } from "pagopa-interop-models";
 import { compareTokenGenerationReadModel } from "./utils/utils.js";
 
 const dynamoDBClient = new DynamoDBClient({});
 const loggerInstance = logger({
   serviceName: "token-generation-readmodel-checker-verifier",
-  correlationId: generateId(),
+  correlationId: generateId<CorrelationId>(),
 });
 
 async function main(): Promise<void> {
