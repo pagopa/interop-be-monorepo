@@ -105,16 +105,14 @@ export function selfcareServiceBuilder(
       userId: string | undefined,
       roles: string[],
       query: string | undefined,
-      { authData, logger, correlationId }: WithLogger<BffAppContext>
+      { authData, logger, correlationId, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.Users> {
       logger.info(`Retrieving users for institutions ${tenantId}`);
 
       const requesterId = authData.organizationId;
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
-        headers: {
-          "X-Correlation-Id": correlationId,
-        },
+        headers,
       });
 
       if (!tenant.selfcareId) {
