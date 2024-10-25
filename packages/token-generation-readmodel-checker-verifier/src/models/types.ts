@@ -114,6 +114,7 @@ export type PartialPlatformStatesCatalogEntry = z.infer<
 export const PartialTokenStatesCatalogEntry =
   TokenGenerationStatesClientPurposeEntry.pick({
     PK: true,
+    GSIPK_consumerId_eserviceId: true,
     GSIPK_eserviceId_descriptorId: true,
     descriptorState: true,
     descriptorAudience: true,
