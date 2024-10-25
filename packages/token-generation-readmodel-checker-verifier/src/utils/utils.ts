@@ -12,6 +12,7 @@ import {
   ClientKind,
   ClientKindTokenStates,
   clientKindTokenStates,
+  Descriptor,
   DescriptorId,
   DescriptorState,
   descriptorState,
@@ -19,6 +20,7 @@ import {
   EServiceId,
   genericInternalError,
   GSIPKClientIdPurposeId,
+  GSIPKConsumerIdEServiceId,
   GSIPKEServiceIdDescriptorId,
   itemState,
   ItemState,
@@ -37,6 +39,7 @@ import {
   PurposeId,
   PurposeVersion,
   purposeVersionState,
+  TenantId,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientPurposeEntry,
@@ -57,6 +60,10 @@ import {
   PartialPurpose,
   PartialTokenStatesAgreementEntry,
   PartialTokenStatesPurposeEntry,
+  PartialPlatformStatesCatalogEntry,
+  PartialTokenStatesCatalogEntry,
+  CatalogDifferencesResult,
+  PartialEService,
 } from "../models/types.js";
 
 type Accumulator = {
@@ -74,11 +81,13 @@ function getLastPurposeVersion(
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
 }
 
-// function getLastEServiceDescriptor(descriptors: Descriptor[]): Descriptor {
-//   return descriptors
-//     .slice()
-//     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
-// }
+function getLastEServiceDescriptor(
+  descriptors: Descriptor[]
+): Descriptor | undefined {
+  return descriptors
+    .slice()
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+}
 
 function extractIdFromPlatformStatesPK<
   T extends PurposeId | AgreementId | ClientId | EServiceId
@@ -117,11 +126,11 @@ function extractIdsFromTokenGenerationStatesPK(
   };
 }
 
-function extractIdsFromGSIPKClientIdPurposeId(gsipk: GSIPKClientIdPurposeId): {
+function extractIdsFromGSIPKClientIdPurposeId(gsiPK: GSIPKClientIdPurposeId): {
   clientId: ClientId;
   purposeId: PurposeId;
 } {
-  const splitPK = gsipk.split("#");
+  const splitPK = gsiPK.split("#");
   return {
     clientId: unsafeBrandId<ClientId>(splitPK[0]),
     purposeId: unsafeBrandId<PurposeId>(splitPK[1]),
@@ -129,21 +138,40 @@ function extractIdsFromGSIPKClientIdPurposeId(gsipk: GSIPKClientIdPurposeId): {
 }
 
 function extractIdsFromGSIPKEServiceIdDescriptorId(
-  gsipk?: GSIPKEServiceIdDescriptorId
+  gsiPK?: GSIPKEServiceIdDescriptorId
 ):
   | {
       eserviceId: EServiceId;
       descriptorId: DescriptorId;
     }
   | undefined {
-  if (!gsipk) {
+  if (!gsiPK) {
     return undefined;
   }
 
-  const splitPK = gsipk.split("#");
+  const splitPK = gsiPK.split("#");
   return {
     eserviceId: unsafeBrandId<EServiceId>(splitPK[0]),
     descriptorId: unsafeBrandId<DescriptorId>(splitPK[1]),
+  };
+}
+
+function extractIdsFromGSIPKConsumerIdEServiceId(
+  gsiPK?: GSIPKConsumerIdEServiceId
+):
+  | {
+      consumerId: TenantId;
+      eserviceId: EServiceId;
+    }
+  | undefined {
+  if (!gsiPK) {
+    return undefined;
+  }
+
+  const splitPK = gsiPK.split("#");
+  return {
+    consumerId: unsafeBrandId<TenantId>(splitPK[0]),
+    eserviceId: unsafeBrandId<EServiceId>(splitPK[1]),
   };
 }
 
@@ -286,7 +314,9 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
       // eslint-disable-next-line functional/immutable-data
       acc.push([
         a ? PartialPlatformStatesPurposeEntry.parse(a) : undefined,
-        b ? PartialTokenStatesPurposeEntry.array().parse(b) : undefined,
+        b && b.length > 0
+          ? PartialTokenStatesPurposeEntry.array().parse(b)
+          : undefined,
         undefined,
       ]);
       return acc;
@@ -409,14 +439,17 @@ function validatePurposeTokenGenerationStates({
 
   return {
     status: foundEntries.length === 0,
-    data: foundEntries.map((entry) => ({
-      PK: entry.PK,
-      consumerId: entry.consumerId,
-      GSIPK_purposeId: entry.GSIPK_purposeId,
-      purposeState: entry.purposeState,
-      purposeVersionId: entry.purposeVersionId,
-      GSIPK_clientId_purposeId: entry.GSIPK_clientId_purposeId,
-    })),
+    data:
+      foundEntries.length > 0
+        ? foundEntries.map((entry) => ({
+            PK: entry.PK,
+            consumerId: entry.consumerId,
+            GSIPK_purposeId: entry.GSIPK_purposeId,
+            purposeState: entry.purposeState,
+            purposeVersionId: entry.purposeVersionId,
+            GSIPK_clientId_purposeId: entry.GSIPK_clientId_purposeId,
+          }))
+        : undefined,
   };
 }
 
@@ -455,15 +488,34 @@ export function countPurposeDifferences(
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
   differences.forEach(([platformPurpose, tokenPurpose, readModelPurpose]) => {
-    if (!readModelPurpose && (platformPurpose || tokenPurpose)) {
-      const missingId = platformPurpose
-        ? extractIdFromPlatformStatesPK(platformPurpose.PK).id
-        : tokenPurpose
-        ? extractIdsFromTokenGenerationStatesPK(tokenPurpose[0].PK).purposeId
-        : undefined;
-      console.warn(`Read model purpose not found for id: ${missingId}`);
-      // TODO
-      logger.error(`Read model purpose not found for id: ${missingId}`);
+    if (!readModelPurpose) {
+      if (platformPurpose) {
+        console.warn(
+          `Read model purpose not found for id: ${
+            extractIdFromPlatformStatesPK(platformPurpose.PK).id
+          }`
+        );
+        logger.error(
+          `Read model purpose not found for id: ${
+            extractIdFromPlatformStatesPK(platformPurpose.PK).id
+          }`
+        );
+      } else if (tokenPurpose?.[0].GSIPK_purposeId) {
+        console.warn(
+          `Read model purpose not found for id: ${
+            extractIdsFromTokenGenerationStatesPK(tokenPurpose[0].PK).purposeId
+          }`
+        );
+        logger.error(
+          `Read model purpose not found for id: ${
+            extractIdsFromTokenGenerationStatesPK(tokenPurpose[0].PK).purposeId
+          }`
+        );
+      } else {
+        throw genericInternalError(
+          "Unexpected error while counting purpose differences"
+        );
+      }
       differencesCount++;
     } else if (readModelPurpose) {
       logger.error(
@@ -486,7 +538,6 @@ export function countPurposeDifferences(
 }
 
 // agreements
-// TODO: rename
 export async function compareReadModelAgreementsWithTokenGenReadModel({
   platformStatesEntries,
   tokenGenerationStatesEntries,
@@ -511,7 +562,9 @@ export async function compareReadModelAgreementsWithTokenGenReadModel({
       // eslint-disable-next-line functional/immutable-data
       acc.push([
         a ? PartialPlatformStatesAgreementEntry.parse(a) : undefined,
-        b ? PartialTokenStatesAgreementEntry.array().parse(b) : undefined,
+        b && b.length > 0
+          ? PartialTokenStatesAgreementEntry.array().parse(b)
+          : undefined,
         undefined,
       ]);
       return acc;
@@ -627,14 +680,17 @@ function validateAgreementTokenGenerationStates({
 
   return {
     status: foundEntries.length === 0,
-    data: foundEntries.map((entry) => ({
-      PK: entry.PK,
-      consumerId: entry.consumerId,
-      agreementId: entry.agreementId,
-      agreementState: entry.agreementState,
-      GSIPK_consumerId_eserviceId: entry.GSIPK_consumerId_eserviceId,
-      GSIPK_eserviceId_descriptorId: entry.GSIPK_eserviceId_descriptorId,
-    })),
+    data:
+      foundEntries.length > 0
+        ? foundEntries.map((entry) => ({
+            PK: entry.PK,
+            consumerId: entry.consumerId,
+            agreementId: entry.agreementId,
+            agreementState: entry.agreementState,
+            GSIPK_consumerId_eserviceId: entry.GSIPK_consumerId_eserviceId,
+            GSIPK_eserviceId_descriptorId: entry.GSIPK_eserviceId_descriptorId,
+          }))
+        : undefined,
   };
 }
 
@@ -673,14 +729,30 @@ export function countAgreementDifferences(
   let differencesCount = 0;
   differences.forEach(
     ([platformAgreement, tokenAgreement, readModelAgreement]) => {
-      if (!readModelAgreement && (platformAgreement || tokenAgreement)) {
-        const missingId = platformAgreement
-          ? extractIdFromPlatformStatesPK(platformAgreement.PK).id
-          : tokenAgreement
-          ? tokenAgreement[0].agreementId
-          : undefined;
-        console.warn(`Read model agreement not found for id: ${missingId}`);
-        logger.error(`Read model agreement not found for id: ${missingId}`);
+      if (!readModelAgreement) {
+        if (platformAgreement) {
+          console.warn(
+            `Read model agreement not found for id: ${
+              extractIdFromPlatformStatesPK(platformAgreement.PK).id
+            }`
+          );
+          logger.error(
+            `Read model agreement not found for id: ${
+              extractIdFromPlatformStatesPK(platformAgreement.PK).id
+            }`
+          );
+        } else if (tokenAgreement?.[0].agreementId) {
+          console.warn(
+            `Read model agreement not found for id: ${tokenAgreement[0].agreementId}`
+          );
+          logger.error(
+            `Read model agreement not found for id: ${tokenAgreement[0].agreementId}`
+          );
+        } else {
+          throw genericInternalError(
+            "Unexpected error while counting agreement differences"
+          );
+        }
         differencesCount++;
       } else if (readModelAgreement) {
         logger.error(
@@ -712,15 +784,7 @@ export async function compareReadModelEServicesWithTokenGenReadModel({
   platformStatesEntries: PlatformStatesCatalogEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
   readModel: ReadModelRepository;
-}): Promise<
-  Array<
-    [
-      PlatformStatesCatalogEntry | undefined,
-      TokenGenerationStatesClientPurposeEntry[],
-      EService | undefined
-    ]
-  >
-> {
+}): Promise<CatalogDifferencesResult> {
   const readModelService = readModelServiceBuilder(readModel);
   const [resultsA, resultsB, resultsC] = await Promise.all([
     platformStatesEntries,
@@ -728,107 +792,175 @@ export async function compareReadModelEServicesWithTokenGenReadModel({
     readModelService.getAllReadModelEServices(),
   ]);
 
-  return zipEServiceDataById(resultsA, resultsB, resultsC).filter(
-    ([a, b, c]) => {
-      if (c) {
-        const isPlatformStatesCorrect = a
-          ? validateCatalogPlatformStates({
-              platformCatalogEntry: a,
-              eservice: c,
-            })
-          : true;
-        const isTokenGenerationStatesCorrect = b
-          ? validateCatalogTokenGenerationStates({
-              tokenEntries: b,
-              eservice: c,
-            })
-          : true;
-        if (isPlatformStatesCorrect && isTokenGenerationStatesCorrect) {
-          return false;
-        }
-      }
-
-      return true;
+  return zipEServiceDataById(
+    resultsA,
+    resultsB,
+    resultsC
+  ).reduce<CatalogDifferencesResult>((acc, [a, b, c]) => {
+    const lastEServiceDescriptor = c
+      ? getLastEServiceDescriptor(c.descriptors)
+      : undefined;
+    if (!c || !lastEServiceDescriptor) {
+      // eslint-disable-next-line functional/immutable-data
+      acc.push([
+        a ? PartialPlatformStatesCatalogEntry.parse(a) : undefined,
+        b && b.length > 0
+          ? PartialTokenStatesCatalogEntry.array().parse(b)
+          : undefined,
+        c,
+      ]);
+      return acc;
     }
-  );
+
+    const { status: isPlatformStatesCorrect, data: platformCatalogEntryDiff } =
+      validateCatalogPlatformStates({
+        platformCatalogEntry: a,
+        descriptor: lastEServiceDescriptor,
+      });
+
+    const {
+      status: isTokenGenerationStatesCorrect,
+      data: tokenCatalogEntryDiff,
+    } = validateCatalogTokenGenerationStates({
+      tokenEntries: b,
+      eservice: c,
+      descriptor: lastEServiceDescriptor,
+    });
+
+    if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
+      // eslint-disable-next-line functional/immutable-data
+      acc.push([
+        platformCatalogEntryDiff,
+        tokenCatalogEntryDiff,
+        PartialEService.parse(c),
+      ]);
+    }
+
+    return acc;
+  }, []);
 }
 
 function validateCatalogPlatformStates({
   platformCatalogEntry,
-  eservice,
+  descriptor,
 }: {
-  platformCatalogEntry: PlatformStatesCatalogEntry;
-  eservice: EService;
-}): boolean {
-  const descriptor = eservice.descriptors.find(
-    (d) =>
-      d.id ===
-      extractIdFromPlatformStatesPK<ClientId>(platformCatalogEntry.PK)
-        .descriptorId
-  );
-  if (!descriptor) {
-    throw genericInternalError(
-      `Descriptor not found in EService with id ${eservice.id}`
-    );
+  platformCatalogEntry: PlatformStatesCatalogEntry | undefined;
+  descriptor: Descriptor;
+}): {
+  status: boolean;
+  data: PartialPlatformStatesCatalogEntry | undefined;
+} {
+  if (!platformCatalogEntry) {
+    return {
+      status: descriptor.state === descriptorState.archived,
+      data: undefined,
+    };
   }
 
+  const extractedDescriptorId = extractIdFromPlatformStatesPK<ClientId>(
+    platformCatalogEntry.PK
+  ).descriptorId;
+  if (descriptor.id !== extractedDescriptorId) {
+    return {
+      status: false,
+      data: PartialPlatformStatesCatalogEntry.parse(platformCatalogEntry),
+    };
+  }
+
+  const isArchived = descriptor.state === descriptorState.archived;
   const catalogState = descriptorStateToItemState(descriptor.state);
 
-  return (
+  const status =
+    !isArchived &&
     platformCatalogEntry.state === catalogState &&
     platformCatalogEntry.descriptorVoucherLifespan ===
       descriptor.voucherLifespan &&
     platformCatalogEntry.descriptorAudience.every((aud) =>
       descriptor.audience.includes(aud)
-    )
-  );
-}
+    );
 
+  return {
+    status,
+    data: !status
+      ? {
+          PK: platformCatalogEntry.PK,
+          state: platformCatalogEntry.state,
+          descriptorVoucherLifespan:
+            platformCatalogEntry.descriptorVoucherLifespan,
+          descriptorAudience: platformCatalogEntry.descriptorAudience,
+        }
+      : undefined,
+  };
+}
 function validateCatalogTokenGenerationStates({
   tokenEntries,
   eservice,
+  descriptor,
 }: {
   tokenEntries: TokenGenerationStatesClientPurposeEntry[];
   eservice: EService;
-}): boolean {
+  descriptor: Descriptor;
+}): {
+  status: boolean;
+  data: PartialTokenStatesCatalogEntry[] | undefined;
+} {
   if (!tokenEntries || tokenEntries.length === 0) {
-    return true;
+    return {
+      status: true,
+      data: undefined,
+    };
   }
 
-  return tokenEntries.some((e) =>
-    // TODO: where's consumerId?
-    {
-      const descriptor = eservice.descriptors.find(
-        (d) =>
-          d.id ===
-          extractIdsFromGSIPKEServiceIdDescriptorId(
-            e.GSIPK_eserviceId_descriptorId
-          )?.descriptorId
-      );
-      if (!descriptor) {
-        throw genericInternalError(
-          `Descriptor not found in EService with id ${eservice.id}`
-        );
-      }
-
-      const catalogState = descriptorStateToItemState(descriptor.state);
-      return (
-        (!e.descriptorState || e.descriptorState === catalogState) &&
-        (!e.descriptorAudience ||
-          e.descriptorAudience.every((aud) =>
-            descriptor.audience.includes(aud)
-          )) &&
-        (!e.descriptorVoucherLifespan ||
-          e.descriptorVoucherLifespan === descriptor.voucherLifespan) &&
-        (!e.GSIPK_eserviceId_descriptorId ||
-          e.GSIPK_eserviceId_descriptorId ===
-            makeGSIPKEServiceIdDescriptorId({
-              eserviceId: eservice.id,
-              descriptorId: descriptor.id,
-            }))
-      );
+  const foundEntries = tokenEntries.filter((e) => {
+    const entryDescriptor = eservice.descriptors.find(
+      (d) =>
+        d.id ===
+        extractIdsFromGSIPKEServiceIdDescriptorId(
+          e.GSIPK_eserviceId_descriptorId
+        )?.descriptorId
+    );
+    if (!entryDescriptor || entryDescriptor !== descriptor) {
+      return true;
     }
-  );
+
+    const catalogState = descriptorStateToItemState(entryDescriptor.state);
+    return (
+      !e.descriptorState ||
+      e.descriptorState !== catalogState ||
+      !e.descriptorAudience ||
+      !e.descriptorAudience.every((aud) =>
+        entryDescriptor.audience.includes(aud)
+      ) ||
+      !e.descriptorVoucherLifespan ||
+      e.descriptorVoucherLifespan !== entryDescriptor.voucherLifespan ||
+      !e.GSIPK_eserviceId_descriptorId ||
+      e.GSIPK_eserviceId_descriptorId !==
+        makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId: entryDescriptor.id,
+        }) ||
+      !e.GSIPK_consumerId_eserviceId ||
+      extractIdsFromGSIPKConsumerIdEServiceId(e.GSIPK_consumerId_eserviceId)
+        ?.eserviceId !== eservice.id
+    );
+  });
+  return {
+    status: foundEntries.length === 0,
+    data:
+      foundEntries.length > 0
+        ? foundEntries.map(
+            (entry): PartialTokenStatesCatalogEntry => ({
+              PK: entry.PK,
+              GSIPK_consumerId_eserviceId: entry.GSIPK_consumerId_eserviceId,
+              GSIPK_eserviceId_descriptorId:
+                entry.GSIPK_eserviceId_descriptorId,
+              descriptorState: entry.descriptorState,
+              descriptorAudience: entry.descriptorAudience,
+              descriptorVoucherLifespan: entry.descriptorVoucherLifespan,
+            })
+          )
+        : undefined,
+  };
 }
 
 export function zipEServiceDataById(
@@ -842,9 +974,25 @@ export function zipEServiceDataById(
     EService | undefined
   ]
 > {
-  const allIds = new Set(
-    [...dataA, ...dataC].map((d) => getIdentificationKey(d))
-  );
+  const allIds = new Set([
+    ...dataA.map((d) => getIdentificationKey(d)),
+    ...dataB.flatMap((d) =>
+      d.GSIPK_eserviceId_descriptorId
+        ? [
+            extractIdsFromGSIPKEServiceIdDescriptorId(
+              d.GSIPK_eserviceId_descriptorId
+            )?.eserviceId,
+          ]
+        : d.GSIPK_consumerId_eserviceId
+        ? [
+            extractIdsFromGSIPKConsumerIdEServiceId(
+              d.GSIPK_consumerId_eserviceId
+            )?.eserviceId,
+          ]
+        : []
+    ),
+    ...dataC.map((d) => getIdentificationKey(d)),
+  ]);
   return Array.from(allIds).map((id) => [
     dataA.find(
       (d: PlatformStatesCatalogEntry) => getIdentificationKey(d) === id
@@ -853,61 +1001,69 @@ export function zipEServiceDataById(
       (d: TokenGenerationStatesClientPurposeEntry) =>
         extractIdsFromGSIPKEServiceIdDescriptorId(
           d.GSIPK_eserviceId_descriptorId
-        )?.eserviceId === id
+        )?.eserviceId === id ||
+        extractIdsFromGSIPKConsumerIdEServiceId(d.GSIPK_consumerId_eserviceId)
+          ?.eserviceId === id
     ),
     dataC.find((d: EService) => getIdentificationKey(d) === id),
   ]);
 }
 
 export function countCatalogDifferences(
-  differences: Array<
-    [
-      PlatformStatesCatalogEntry | undefined,
-      TokenGenerationStatesClientPurposeEntry[],
-      EService | undefined
-    ]
-  >,
+  differences: CatalogDifferencesResult,
   logger: Logger
 ): number {
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
   differences.forEach(([platformCatalog, tokenCatalog, readModelEService]) => {
-    if (platformCatalog && !readModelEService) {
-      logger.error(`Read model eservice not found for ${platformCatalog.PK}`);
-      console.warn(`Read model eservice not found for ${platformCatalog.PK}`);
+    if (!readModelEService) {
+      if (platformCatalog) {
+        logger.error(
+          `Read model eservice not found for ${
+            extractIdFromPlatformStatesPK(platformCatalog.PK).id
+          }`
+        );
+        console.warn(
+          `Read model eservice not found for ${
+            extractIdFromPlatformStatesPK(platformCatalog.PK).id
+          }`
+        );
+      } else if (tokenCatalog?.[0].GSIPK_eserviceId_descriptorId) {
+        logger.error(
+          `Read model eservice not found for ${
+            extractIdsFromGSIPKEServiceIdDescriptorId(
+              tokenCatalog[0].GSIPK_eserviceId_descriptorId
+            )?.eserviceId
+          }`
+        );
+        console.warn(
+          `Read model eservice not found for ${
+            extractIdsFromGSIPKEServiceIdDescriptorId(
+              tokenCatalog[0].GSIPK_eserviceId_descriptorId
+            )?.eserviceId
+          }`
+        );
+      } else {
+        throw genericInternalError(
+          "Unexpected error while counting catalog differences"
+        );
+      }
       differencesCount++;
-    } else if (platformCatalog && readModelEService) {
+    } else if (readModelEService) {
       logger.error(
-        `Catalog states are not equal.
-        platform-states entry: ${JSON.stringify(platformCatalog)}
-        token-generation-states entries: ${JSON.stringify(tokenCatalog)}
-        purpose read-model: ${JSON.stringify(readModelEService)}`
+        `Catalog states are not equal:
+  platform-states entry: ${JSON.stringify(platformCatalog)}
+  token-generation-states entries: ${JSON.stringify(tokenCatalog)}
+  purpose read-model: ${JSON.stringify(readModelEService)}`
       );
       console.warn(
-        `States are not equal for platform-states catalog entry:\n ${JSON.stringify(
-          platformCatalog
-        )} \nand eservice read-model:\n ${JSON.stringify(readModelEService)}`
+        `Catalog states are not equal:
+  platform-states entry: ${JSON.stringify(platformCatalog)}
+  token-generation-states entries: ${JSON.stringify(tokenCatalog)}
+  purpose read-model: ${JSON.stringify(readModelEService)}`
       );
       differencesCount++;
     }
-    // else if (!platformCatalog && readModelEService) {
-    //   const lastEServiceDescriptor = getLastEServiceDescriptor(
-    //     readModelEService.descriptors
-    //   );
-    //   if (lastEServiceDescriptor.state !== descriptorState.archived) {
-    //     logger.error(
-    //       `platform-states catalog entry not found for read model eservice:\n${JSON.stringify(
-    //         readModelEService
-    //       )}`
-    //     );
-    //     console.warn(
-    //       `platform-states catalog entry not found for read model eservice:\n${JSON.stringify(
-    //         readModelEService
-    //       )}`
-    //     );
-    //     differencesCount++;
-    //   }
-    // }
   });
 
   return differencesCount;
