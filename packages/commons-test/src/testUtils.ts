@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
@@ -59,6 +60,7 @@ import {
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
+import * as jose from "jose";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -422,4 +424,93 @@ export const getMockTokenStatesClientEntry = (
     GSIPK_clientId: clientId,
     GSIPK_kid: makeGSIPKKid(kid),
   };
+};
+
+export const getMockClientAssertion = async (props?: {
+  standardClaimsOverride?: Partial<jose.JWTPayload>;
+  customClaims?: { [k: string]: unknown };
+  customHeader?: { [k: string]: unknown };
+}): Promise<{
+  jws: string;
+  publicKeyEncodedPem: string;
+}> => {
+  const { keySet, publicKeyEncodedPem } = generateKeySet();
+
+  const clientId = generateId<ClientId>();
+  const defaultPayload: jose.JWTPayload = {
+    iss: clientId,
+    sub: clientId,
+    aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
+    exp: 60,
+    jti: generateId(),
+    iat: 5,
+  };
+
+  const actualPayload: jose.JWTPayload = {
+    ...defaultPayload,
+    ...props?.standardClaimsOverride,
+    ...props?.customClaims,
+  };
+
+  const headers: jose.JWTHeaderParameters = {
+    alg: "RS256",
+    kid: "kid",
+    ...props?.customHeader,
+  };
+
+  const jws = await signClientAssertion({
+    payload: actualPayload,
+    headers,
+    keySet,
+  });
+
+  return {
+    jws,
+    publicKeyEncodedPem,
+  };
+};
+
+export const generateKeySet = (): {
+  keySet: crypto.KeyPairKeyObjectResult;
+  publicKeyEncodedPem: string;
+} => {
+  const keySet: crypto.KeyPairKeyObjectResult = crypto.generateKeyPairSync(
+    "rsa",
+    {
+      modulusLength: 2048,
+    }
+  );
+
+  const pemPublicKey = keySet.publicKey
+    .export({
+      type: "spki",
+      format: "pem",
+    })
+    .toString();
+
+  const publicKeyEncodedPem = Buffer.from(pemPublicKey).toString("base64");
+  return {
+    keySet,
+    publicKeyEncodedPem,
+  };
+};
+
+const signClientAssertion = async ({
+  payload,
+  headers,
+  keySet,
+}: {
+  payload: jose.JWTPayload;
+  headers: jose.JWTHeaderParameters;
+  keySet: crypto.KeyPairKeyObjectResult;
+}): Promise<string> => {
+  const pemPrivateKey = keySet.privateKey.export({
+    type: "pkcs8",
+    format: "pem",
+  });
+
+  const privateKey = crypto.createPrivateKey(pemPrivateKey);
+  return await new jose.SignJWT(payload)
+    .setProtectedHeader(headers)
+    .sign(privateKey);
 };
