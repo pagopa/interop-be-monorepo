@@ -1037,6 +1037,7 @@ export async function compareReadModelClientsWithTokenGenReadModel({
     resultsB,
     resultsC
   ).reduce<ClientDifferencesResult>((acc, [a, b, c]) => {
+    // TODO: are missing token entries considered errors or not?
     if (!c || (c && (!a || b?.length === 0))) {
       // eslint-disable-next-line functional/immutable-data
       acc.push([
