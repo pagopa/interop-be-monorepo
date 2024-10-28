@@ -1799,7 +1799,7 @@ async function isUserAllowedToSeeDraft(
     states: [delegationState.active],
   });
 
-  return Boolean(activeDelegation);
+  return activeDelegation != undefined;
 }
 
 async function applyVisibilityToEService(
