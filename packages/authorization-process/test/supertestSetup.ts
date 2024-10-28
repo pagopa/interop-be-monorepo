@@ -34,3 +34,8 @@ export const mockProducerKeyChainRouterRequest =
   createMockedApiRequester<typeof authorizationApi.producerKeychainEndpoints>(
     app
   );
+
+export const mockTokenGenerationRouterRequest =
+  createMockedApiRequester<typeof authorizationApi.tokenGenerationEndpoints>(
+    app
+  );
