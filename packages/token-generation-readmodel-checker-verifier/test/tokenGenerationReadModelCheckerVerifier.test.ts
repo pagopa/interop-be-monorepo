@@ -1604,10 +1604,3 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
     });
   });
 });
-
-/*
-readmodel YES and token readmodel NO -> only if archived -> skip or not -> it could be because of an unprocessed event
-readmodel NO and token readmodel YES -> impossible
-readmodel YES and token readmodel YES -> same states -> OK
--> different states -> NOT OK
-*/
