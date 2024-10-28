@@ -38,16 +38,22 @@ export async function assertRequesterIsDelegateOrProducer(
     return;
   }
 
+  // Search for active delegation
   const delegation = await readModelService.getLatestDelegation({
     eserviceId,
     states: [delegationState.active],
   });
 
+  // If an active delegation exists, check if the requester is the delegate
   if (delegation) {
-    if (authData.organizationId !== delegation.delegateId) {
+    const isRequesterDelegate =
+      authData.organizationId === delegation.delegateId;
+
+    if (!isRequesterDelegate) {
       throw operationForbidden;
     }
   } else {
+    // If no active delegation exists, ensure the requester is the producer
     assertRequesterIsProducer(producerId, authData);
   }
 }
