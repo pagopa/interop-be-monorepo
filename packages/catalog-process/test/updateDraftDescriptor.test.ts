@@ -173,7 +173,7 @@ describe("update draft descriptor", () => {
       updatedDescriptorSeed,
       {
         authData: getMockAuthData(delegation.delegateId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -413,7 +413,7 @@ describe("update draft descriptor", () => {
         buildUpdateDescriptorSeed(updatedDescriptor),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
