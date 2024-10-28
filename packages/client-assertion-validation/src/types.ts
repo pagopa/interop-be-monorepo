@@ -34,7 +34,7 @@ export const ClientAssertionPayload = z
     jti: z.string(),
     iat: z.number(),
     iss: z.string(),
-    aud: z.array(z.string()),
+    aud: z.array(z.string()).or(z.string()),
     exp: z.number(),
     digest: ClientAssertionDigest.optional(),
     purposeId: PurposeId.optional(),
@@ -50,14 +50,14 @@ export const ClientAssertion = z
   .strict();
 export type ClientAssertion = z.infer<typeof ClientAssertion>;
 
+export const Base64Encoded = z.string().base64().min(1);
 export const Key = z
   .object({
     clientId: ClientId,
     consumerId: TenantId,
     kid: z.string(),
-    purposeId: PurposeId,
-    publicKey: z.string().min(1),
-    algorithm: z.literal("RS256"),
+    publicKey: Base64Encoded,
+    algorithm: z.string(),
   })
   .strict();
 export type Key = z.infer<typeof Key>;
@@ -78,11 +78,13 @@ export const ApiKey = Key.extend({
 }).strict();
 export type ApiKey = z.infer<typeof ApiKey>;
 
-export type ValidationResult<T> = SuccessfulValidation<T> | FailedValidation;
+export type ValidationResult<T> =
+  | SuccessfulValidation<T>
+  | FailedValidation<ErrorCodes>;
 
 export type SuccessfulValidation<T> = { errors: undefined; data: T };
-export type FailedValidation = {
-  errors: Array<ApiError<ErrorCodes>>;
+export type FailedValidation<T> = {
+  errors: Array<ApiError<T>>;
   data: undefined;
 };
 

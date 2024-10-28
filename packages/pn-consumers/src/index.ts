@@ -4,7 +4,7 @@ import {
   logger,
   withExecutionTime,
 } from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
+import { CorrelationId, generateId } from "pagopa-interop-models";
 import { config } from "./configs/config.js";
 import { ReadModelQueriesClient } from "./services/readModelQueriesService.js";
 import { toCSV, toCsvDataRow } from "./utils/helpersUtils.js";
@@ -12,7 +12,7 @@ import { CSV_FILENAME, MAIL_BODY, MAIL_SUBJECT } from "./configs/constants.js";
 
 const loggerInstance = logger({
   serviceName: "pn-consumers",
-  correlationId: uuidv4(),
+  correlationId: generateId<CorrelationId>(),
 });
 
 async function main(): Promise<void> {
@@ -59,3 +59,8 @@ async function main(): Promise<void> {
 }
 
 await withExecutionTime(main, loggerInstance);
+
+process.exit(0);
+// process.exit() should not be required.
+// however, something in this script hangs on exit.
+// TODO figure out why and remove this workaround.

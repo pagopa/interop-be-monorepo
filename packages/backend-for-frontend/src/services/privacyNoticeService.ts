@@ -2,13 +2,19 @@
 
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import {
   privacyNoticeNotFoundInConfiguration,
   privacyNoticeNotFound,
   privacyNoticeVersionIsNotTheLatest,
 } from "../model/errors.js";
 import { config } from "../config/config.js";
-import { UserPrivacyNotice } from "../model/types.js";
+import {
+  UserPrivacyNotice,
+  UserPrivacyNoticeConsentType,
+  UserPrivacyNoticeConsentTypePP,
+  UserPrivacyNoticeConsentTypeTOS,
+} from "../model/types.js";
 import { PrivacyNoticeStorage } from "./privacyNoticeStorage.js";
 
 export function privacyNoticeServiceBuilder(
@@ -100,6 +106,11 @@ export function privacyNoticeServiceBuilder(
         return;
       }
 
+      const kind: UserPrivacyNoticeConsentType = match(consentType)
+        .with("PP", (): UserPrivacyNoticeConsentTypePP => ({ PP: "PP" }))
+        .with("TOS", (): UserPrivacyNoticeConsentTypeTOS => ({ TOS: "TOS" }))
+        .exhaustive();
+
       const privacyNotice: UserPrivacyNotice = {
         pnIdWithUserId: `${privacyNoticeId}#${userId}`,
         privacyNoticeId,
@@ -109,7 +120,7 @@ export function privacyNoticeServiceBuilder(
         version: {
           version: latest.privacyNoticeVersion.version,
           versionId: seed.latestVersionId,
-          kind: consentType,
+          kind,
         },
       };
       await privacyNoticeStorage.put(privacyNotice, logger);
@@ -135,7 +146,7 @@ export function privacyNoticeServiceBuilder(
         logger
       );
 
-      const path = `${config.privacyNoticesPath}/${latest.privacyNoticeVersion.versionId}/it/${config.privacyNoticesFileName}`;
+      const path = `${config.privacyNoticesPath}/${privacyNoticeId}/${latest.privacyNoticeVersion.versionId}/it/${config.privacyNoticesFileName}`;
       const bytes = await fileManager.get(
         config.privacyNoticesContainer,
         path,

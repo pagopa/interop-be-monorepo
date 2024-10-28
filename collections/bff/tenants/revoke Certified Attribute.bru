@@ -1,0 +1,25 @@
+meta {
+  name: revoke Certified Attribute
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{host-bff}}/tenants/:tenantId/attributes/certified/:attributeId
+  body: none
+  auth: none
+}
+
+params:path {
+  tenantId: 0cf1db41-3085-43a6-9e4c-57e0fb81a916
+  attributeId: ba9dd161-2768-48bc-bbb8-e597ce9d6387
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+docs {
+  Revoke a certified attribute to a Tenant by the requester Tenant
+}

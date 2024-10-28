@@ -1,0 +1,23 @@
+meta {
+  name: delete EService risk analysis
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{host-bff}}/eservices/:eServiceId/riskAnalysis/:riskAnalysisId
+  body: none
+  auth: none
+}
+
+params:path {
+  eServiceId: 26f433e1-2c3c-4022-a14e-3c300baefc51
+  riskAnalysisId: 59f5b13d-9b24-407a-b1db-6321aabb839c
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+

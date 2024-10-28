@@ -20,6 +20,7 @@ export function toApiTenantKind(input: TenantKind): tenantApi.TenantKind {
     .with(tenantKind.GSP, () => "GSP")
     .with(tenantKind.PA, () => "PA")
     .with(tenantKind.PRIVATE, () => "PRIVATE")
+    .with(tenantKind.SCP, () => "SCP")
     .exhaustive();
 }
 

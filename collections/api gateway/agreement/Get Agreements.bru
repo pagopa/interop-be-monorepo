@@ -1,0 +1,20 @@
+meta {
+  name: Get Agreements
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-api-gw}}/agreements/?producerId={{tenantId}}&consumerId={{tenantId}}
+  body: none
+  auth: none
+}
+
+params:query {
+  producerId: {{tenantId}}
+  consumerId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

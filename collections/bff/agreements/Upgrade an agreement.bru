@@ -1,0 +1,26 @@
+meta {
+  name: Upgrade an agreement
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/agreements/:agreementId/upgrade
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  returns the updated agreement
+}

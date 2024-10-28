@@ -1,0 +1,26 @@
+meta {
+  name: Verify verified attribute
+  type: http
+  seq: 22
+}
+
+post {
+  url: {{host-tenant}}/tenants/:tenantId/attributes/verified
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "id" : "1fd4a3be-0d04-4363-bd5d-b18fcf04d3e9"
+  }
+}

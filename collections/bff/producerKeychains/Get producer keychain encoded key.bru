@@ -1,0 +1,27 @@
+meta {
+  name: Get producer keychain encoded key
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/producerKeychains/:producerKeychainId/keys/:keyId
+  body: none
+  auth: none
+}
+
+params:path {
+  producerKeychainId: 
+  keyId: 
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  retrieves a list of clients
+}
