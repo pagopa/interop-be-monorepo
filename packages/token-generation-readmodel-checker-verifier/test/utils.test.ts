@@ -1,14 +1,21 @@
+import crypto from "crypto";
+import { fail } from "assert";
 import {
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
   getMockAgreement,
   getMockClient,
   getMockDescriptor,
   getMockEService,
   getMockKey,
+  getMockPlatformStatesClientEntry,
   getMockPurpose,
   getMockPurposeVersion,
   getMockTokenStatesClientPurposeEntry,
+  writeCatalogEntry,
+  writeTokenStateEntry,
 } from "pagopa-interop-commons-test";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   purposeVersionState,
   makePlatformStatesPurposePK,
@@ -38,6 +45,7 @@ import {
   clientKindTokenStates,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   clientKindToTokenGenerationStatesClientKind,
   compareReadModelAgreementsWithTokenGenReadModel,
@@ -70,15 +78,34 @@ import {
   PartialClient,
   PartialPlatformStatesClientEntry,
 } from "../src/models/types.js";
+import { tokenGenerationReadModelServiceBuilder } from "../src/services/tokenGenerationReadModelService.js";
 import {
   addOneAgreement,
   addOneClient,
   addOneEService,
   addOnePurpose,
+  config,
   readModelRepository,
+  writeClientEntry,
 } from "./utils.js";
 
 describe("Token Generation Read Model Checker Verifier utils tests", () => {
+  if (!config) {
+    fail();
+  }
+  const dynamoDBClient = new DynamoDBClient({
+    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
+  });
+  const tokenGenerationService =
+    tokenGenerationReadModelServiceBuilder(dynamoDBClient);
+
+  beforeEach(async () => {
+    await buildDynamoDBTables(dynamoDBClient);
+  });
+  afterEach(async () => {
+    await deleteDynamoDBTables(dynamoDBClient);
+  });
+
   describe("purpose utils", () => {
     it("compareReadModelPurposesWithPlatformStates", async () => {
       const purpose1 = getMockPurpose([
@@ -1059,6 +1086,111 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
           genericLogger
         )
       ).toEqual(2);
+    });
+  });
+
+  describe("readAllTokenGenerationStatesItems", () => {
+    it("no need for pagination", async () => {
+      const tokenEntriesLength = 2;
+
+      const tokenStateEntry1 = getMockTokenStatesClientPurposeEntry();
+      await writeTokenStateEntry(tokenStateEntry1, dynamoDBClient);
+
+      const tokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        getMockTokenStatesClientPurposeEntry();
+      await writeTokenStateEntry(tokenStateEntry2, dynamoDBClient);
+
+      vi.spyOn(dynamoDBClient, "send");
+      const tokenEntries =
+        await tokenGenerationService.readAllTokenGenerationStatesItems();
+
+      expect(dynamoDBClient.send).toHaveBeenCalledTimes(1);
+      expect(tokenEntries).toHaveLength(tokenEntriesLength);
+      expect(tokenEntries).toEqual(
+        expect.arrayContaining([tokenStateEntry1, tokenStateEntry2])
+      );
+    });
+
+    it("with pagination", async () => {
+      const tokenEntriesLength = 10;
+
+      const writtenEntries: TokenGenerationStatesClientPurposeEntry[] = [];
+      // eslint-disable-next-line functional/no-let
+      for (let i = 0; i < tokenEntriesLength; i++) {
+        const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+          publicKey: crypto.randomBytes(100000).toString("hex"),
+        };
+        await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+        // eslint-disable-next-line functional/immutable-data
+        writtenEntries.push(tokenStateEntry);
+      }
+      vi.spyOn(dynamoDBClient, "send");
+      const tokenEntries =
+        await tokenGenerationService.readAllTokenGenerationStatesItems();
+
+      expect(dynamoDBClient.send).toHaveBeenCalledTimes(2);
+      expect(tokenEntries).toHaveLength(tokenEntriesLength);
+      expect(tokenEntries).toEqual(expect.arrayContaining(writtenEntries));
+    });
+  });
+
+  describe("readAllPlatformStatesItems", () => {
+    it("no need for pagination", async () => {
+      const platformStatesEntriesLength = 2;
+
+      const platformStatesEntry1 = getMockPlatformStatesClientEntry();
+      await writeClientEntry(platformStatesEntry1, dynamoDBClient);
+
+      const platformStatesEntry2 = getMockPlatformStatesClientEntry();
+      await writeClientEntry(platformStatesEntry2, dynamoDBClient);
+
+      vi.spyOn(dynamoDBClient, "send");
+      const platformStatesEntries =
+        await tokenGenerationService.readAllPlatformStatesItems();
+
+      expect(dynamoDBClient.send).toHaveBeenCalledTimes(1);
+      expect(platformStatesEntries).toHaveLength(platformStatesEntriesLength);
+      expect(platformStatesEntries).toEqual(
+        expect.arrayContaining([platformStatesEntry1, platformStatesEntry2])
+      );
+    });
+
+    it("with pagination", async () => {
+      const platformStatesEntriesLength = 10;
+
+      const writtenEntries: PlatformStatesCatalogEntry[] = [];
+      // eslint-disable-next-line functional/no-let
+      for (let i = 0; i < platformStatesEntriesLength; i++) {
+        const platformStatesEntry: PlatformStatesCatalogEntry = {
+          PK: makePlatformStatesEServiceDescriptorPK({
+            eserviceId: generateId(),
+            descriptorId: generateId(),
+          }),
+          state: itemState.active,
+          descriptorAudience: [crypto.randomBytes(100000).toString("hex")],
+          descriptorVoucherLifespan: 60,
+          version: 1,
+          updatedAt: new Date().toISOString(),
+        };
+        await writeCatalogEntry(platformStatesEntry, dynamoDBClient);
+        // eslint-disable-next-line functional/immutable-data
+        writtenEntries.push(platformStatesEntry);
+      }
+      vi.spyOn(dynamoDBClient, "send");
+      const platformStatesEntries =
+        await tokenGenerationService.readAllPlatformStatesItems();
+
+      expect(dynamoDBClient.send).toHaveBeenCalledTimes(2);
+      expect(platformStatesEntries).toHaveLength(platformStatesEntriesLength);
+      expect(platformStatesEntries).toEqual(
+        expect.arrayContaining(writtenEntries)
+      );
     });
   });
 });
