@@ -1505,7 +1505,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       const purpose1 = getMockPurpose();
       const client1: Client = {
         ...getMockClient(),
-        purposes: [purpose1.id, generateId()],
+        purposes: [purpose1.id],
         consumerId: purpose1.consumerId,
         keys: [getMockKey()],
       };
