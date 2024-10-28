@@ -61,6 +61,7 @@ const delegationRouter = (
           error,
           getDelegationsErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving delegations`
         );
 
@@ -82,6 +83,7 @@ const delegationRouter = (
           error,
           getDelegationByIdErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving delegation by id ${req.params.delegationId}`
         );
 

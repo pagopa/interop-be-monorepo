@@ -49,6 +49,7 @@ const producerDelegationRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating delegation`
         );
 
@@ -69,6 +70,7 @@ const producerDelegationRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error approving delegation with id ${req.params.delegationId}`
         );
 
@@ -90,6 +92,7 @@ const producerDelegationRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error rejecting delegation with id ${req.params.delegationId}`
         );
 
@@ -111,6 +114,7 @@ const producerDelegationRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error revoke delegation with id ${req.params.delegationId}`
         );
 
