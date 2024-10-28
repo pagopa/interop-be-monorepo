@@ -270,7 +270,7 @@ export function userNotAllowedToDeleteClientKey(
   return new ApiError({
     detail: `User ${userId} is not allowed to delete client (${client}) key ${kid}`,
     code: "userNotAllowedToDeleteClientKey",
-    title: "User not allowed to delete producer keychain key",
+    title: "User not allowed to delete client key",
   });
 }
 
