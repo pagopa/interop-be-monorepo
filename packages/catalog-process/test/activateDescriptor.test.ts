@@ -71,7 +71,7 @@ describe("activate descriptor", () => {
 
     const expectedEservice = toEServiceV2({
       ...eservice,
-      descriptors: [updatedDescriptor],
+      descriptors: [expectedDescriptor],
     });
     expect(writtenPayload.eservice).toEqual(expectedEservice);
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
@@ -125,7 +125,7 @@ describe("activate descriptor", () => {
 
     const expectedEservice = toEServiceV2({
       ...eservice,
-      descriptors: [updatedDescriptor],
+      descriptors: [expectedDescriptor],
     });
     expect(writtenPayload.eservice).toEqual(expectedEservice);
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);

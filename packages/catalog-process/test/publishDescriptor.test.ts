@@ -206,12 +206,12 @@ describe("publish descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const updatedDescriptor1: Descriptor = {
+    const expectedDescriptor1: Descriptor = {
       ...descriptor1,
       archivedAt: new Date(),
       state: descriptorState.archived,
     };
-    const updatedDescriptor2: Descriptor = {
+    const expectedDescriptor2: Descriptor = {
       ...descriptor2,
       publishedAt: new Date(),
       state: descriptorState.published,
@@ -219,7 +219,7 @@ describe("publish descriptor", () => {
 
     const expectedEservice: EService = {
       ...eservice,
-      descriptors: [updatedDescriptor1, updatedDescriptor2],
+      descriptors: [expectedDescriptor1, expectedDescriptor2],
     };
     expect(writtenPayload).toEqual({
       eservice: toEServiceV2(expectedEservice),
@@ -277,12 +277,12 @@ describe("publish descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const updatedDescriptor1: Descriptor = {
+    const expectedDescriptor1: Descriptor = {
       ...descriptor1,
       deprecatedAt: new Date(),
       state: descriptorState.deprecated,
     };
-    const updatedDescriptor2: Descriptor = {
+    const expectedDescriptor2: Descriptor = {
       ...descriptor2,
       publishedAt: new Date(),
       state: descriptorState.published,
@@ -290,7 +290,7 @@ describe("publish descriptor", () => {
 
     const expectedEservice: EService = {
       ...eservice,
-      descriptors: [updatedDescriptor1, updatedDescriptor2],
+      descriptors: [expectedDescriptor1, expectedDescriptor2],
     };
     expect(writtenPayload).toEqual({
       eservice: toEServiceV2(expectedEservice),

@@ -64,7 +64,7 @@ export function assertRequesterIsProducer(
   }
 }
 
-export async function assertNoValidDelegationAssociated(
+export async function assertNoExistingDelegationInActiveOrPendingState(
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<void> {

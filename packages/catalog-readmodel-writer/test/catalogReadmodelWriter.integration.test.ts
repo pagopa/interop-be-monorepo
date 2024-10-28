@@ -234,7 +234,7 @@ describe("database test", async () => {
       const updatedEService: EService = {
         ...mockEService,
         attributes: undefined,
-        descriptors: [updatedDescriptor],
+        descriptors: [expectedDescriptor],
       };
       const payload: MovedAttributesFromEserviceToDescriptorsV1 = {
         eservice: toEServiceV1(updatedEService),
