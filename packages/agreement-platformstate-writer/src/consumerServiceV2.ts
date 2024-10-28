@@ -16,13 +16,13 @@ import { match } from "ts-pattern";
 import {
   agreementStateToItemState,
   deleteAgreementEntry,
-  isAgreementTheLatest as isLatestAgreement,
   readAgreementEntry,
   readCatalogEntry,
   updateAgreementStateInPlatformStatesEntry,
   updateAgreementStateOnTokenStates,
   updateAgreementStateAndDescriptorInfoOnTokenStates,
   writeAgreementEntry,
+  isLatestAgreement,
 } from "./utils.js";
 
 export async function handleMessageV2(

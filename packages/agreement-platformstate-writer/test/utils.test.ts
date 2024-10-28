@@ -48,7 +48,7 @@ import {
   agreementStateToItemState,
   updateAgreementStateOnTokenStates,
   updateAgreementStateAndDescriptorInfoOnTokenStates,
-  isAgreementTheLatest,
+  isLatestAgreement,
 } from "../src/utils.js";
 import { config } from "./utils.js";
 
@@ -610,7 +610,7 @@ describe("utils", async () => {
       await writeAgreementEntry(agreementEntry2, dynamoDBClient);
 
       expect(
-        await isAgreementTheLatest(
+        await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreementId1,
           dynamoDBClient
@@ -618,7 +618,7 @@ describe("utils", async () => {
       ).toEqual(true);
 
       expect(
-        await isAgreementTheLatest(
+        await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreementId2,
           dynamoDBClient
@@ -637,7 +637,7 @@ describe("utils", async () => {
       });
 
       expect(
-        await isAgreementTheLatest(
+        await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreementId1,
           dynamoDBClient
