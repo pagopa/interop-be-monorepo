@@ -6,10 +6,10 @@ import {
 import {
   Key,
   ProducerKeychain,
+  ProducerKeychainId,
   TenantId,
   UserId,
   generateId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -27,7 +27,7 @@ describe("getProducerKeychainKeys", async () => {
   const mockProducerKeychain: ProducerKeychain = {
     ...getMockProducerKeychain(),
     keys: [mockKey],
-    producerId: unsafeBrandId(producerId),
+    producerId,
   };
 
   it("should get the keys in the specified client", async () => {
@@ -112,32 +112,30 @@ describe("getProducerKeychainKeys", async () => {
   });
   it("should throw producerKeychainNotFound if the producer keychain with the specified Id doesn't exist", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
-    const producerKeychainId = generateId();
+    const producerKeychainId: ProducerKeychainId = generateId();
     await expect(
       authorizationService.getProducerKeychainKeys({
-        producerKeychainId: unsafeBrandId(producerKeychainId),
+        producerKeychainId,
         userIds: [],
         organizationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(
-      producerKeychainNotFound(unsafeBrandId(producerKeychainId))
-    );
+    ).rejects.toThrowError(producerKeychainNotFound(producerKeychainId));
   });
   it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
-    const organizationId = generateId();
+    const organizationId: TenantId = generateId();
     await expect(
       authorizationService.getProducerKeychainKeys({
         producerKeychainId: mockProducerKeychain.id,
         userIds: [],
-        organizationId: unsafeBrandId(organizationId),
+        organizationId,
         logger: genericLogger,
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnProducerKeychain(
-        unsafeBrandId(organizationId),
-        unsafeBrandId(mockProducerKeychain.id)
+        organizationId,
+        mockProducerKeychain.id
       )
     );
   });
