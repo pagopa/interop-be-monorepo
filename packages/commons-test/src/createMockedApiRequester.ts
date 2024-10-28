@@ -76,14 +76,14 @@ export function createMockedApiRequester<
       const payload = {
         iss: "dev.interop.pagopa.it",
         aud: "dev.interop.pagopa.it/ui",
-        uid: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
+        uid: authData.userId,
         nbf: Math.floor(Date.now() / 1000),
-        name: "Ivan",
+        name: "Mario",
         exp: Math.floor(Date.now() / 1000) + 3600,
         iat: Math.floor(Date.now() / 1000),
-        family_name: "Diana",
+        family_name: "Rossi",
         jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
-        email: "i.diana@psp.it",
+        email: "Mario.rossi@psp.it",
         ...authData,
         organization: {
           id: authData.selfcareId,

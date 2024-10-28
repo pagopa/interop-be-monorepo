@@ -54,12 +54,6 @@ describe("getClientKeys", async () => {
     };
     await addOneClient(clientWithKeyUser);
 
-    // const keys = await authorizationService.getClientKeys({
-    //   clientId: mockClient.id,
-    //   userIds: [keyUserId1, keyUserId2, keyUserId3],
-    //   organizationId: unsafeBrandId(consumerId),
-    //   logger: genericLogger,
-    // });
     const keys = await mockClientRouterRequest.get({
       path: "/clients/:clientId/keys",
       pathParams: { clientId: mockClient.id },
