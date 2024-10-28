@@ -463,7 +463,7 @@ export const getMockClientAssertion = async (props?: {
     iss: clientId,
     sub: clientId,
     aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
-    exp: threeHourLater.getTime() / 1000,
+    exp: Math.floor(threeHourLater.getTime() / 1000),
     jti: generateId(),
     iat: new Date().getTime() / 1000,
   };

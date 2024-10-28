@@ -107,9 +107,9 @@ export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
     keyId: kid,
     purposeVersionId,
     jwtId: generateId(),
-    issuedAt: new Date().getTime() / 1000,
+    issuedAt: Math.floor(new Date().getTime() / 1000),
     issuer: "interop jwt issuer",
-    expirationTime: new Date().getTime() / 1000,
+    expirationTime: Math.floor(new Date().getTime() / 1000),
     organizationId: consumerId,
     notBefore: 0,
     clientAssertion: {
@@ -118,9 +118,9 @@ export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
       algorithm: "RS256",
       keyId: kid,
       jwtId: clientAssertionJti,
-      issuedAt: new Date().getTime() / 1000,
+      issuedAt: Math.floor(new Date().getTime() / 1000),
       issuer: consumerId,
-      expirationTime: new Date().getTime() / 1000,
+      expirationTime: Math.floor(new Date().getTime() / 1000),
     },
   };
 };
