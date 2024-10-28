@@ -111,8 +111,8 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
     vi.useRealTimers();
   });
 
-  describe("all", () => {
-    it("wrong states for all collections", async () => {
+  describe("all collections", () => {
+    it("should detect differences for all collections", async () => {
       // catalog
       const descriptor1: Descriptor = {
         ...getMockDescriptor(),
@@ -262,8 +262,8 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
     });
   });
 
-  describe("purpose", () => {
-    it("same states", async () => {
+  describe("purposes", () => {
+    it("should detect no differences", async () => {
       const purpose1 = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
       ]);
@@ -329,7 +329,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
     });
 
-    it("wrong states", async () => {
+    it("should detect differences for wrong purpose states", async () => {
       const purpose1 = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
       ]);
@@ -432,7 +432,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       );
     });
 
-    it("missing platform-states entry should not pass if purpose is not archived", async () => {
+    it("should detect differences when the platform-states entry is missing and the purpose is not archived", async () => {
       const purpose = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
       ]);
@@ -452,7 +452,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       expect(purposeDifferences).toEqual(expectedPurposeDifferences);
     });
 
-    it("missing platform-states entry should pass if purpose is archived", async () => {
+    it("should not detect differences when the platform-states entry is missing and the purpose is archived", async () => {
       const purpose = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.archived),
       ]);
@@ -488,7 +488,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
     });
 
-    it("read model purpose missing", async () => {
+    it("should detect differences when the read model purpose is missing", async () => {
       const purpose = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
       ]);
@@ -540,8 +540,8 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
     });
   });
 
-  describe("agreement", () => {
-    it("same states", async () => {
+  describe("agreements", () => {
+    it("should detect no differences", async () => {
       const agreement1: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -648,7 +648,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
     });
 
-    it("wrong states", async () => {
+    it("should detect differences for wrong agreement states", async () => {
       const agreement1: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -765,7 +765,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       );
     });
 
-    it("missing platform-states entry should not pass if agreement is not archived", async () => {
+    it("should detect differences when the platform-states entry is missing and the agreement is not archived", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -792,7 +792,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       expect(agreementDifferences).toEqual(expectedAgreementDifferences);
     });
 
-    it("missing platform-states entry should pass if agreement is archived", async () => {
+    it("should not detect differences when the platform-states entry is missing and the agreement is archived", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.archived,
@@ -815,7 +815,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
     });
 
-    it("read model agreement missing", async () => {
+    it("should detect differences when the read model agreement is missing", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -890,8 +890,8 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
     });
   });
 
-  describe("catalog", () => {
-    it("same states", async () => {
+  describe("eservices", () => {
+    it("should detect no differences", async () => {
       const descriptor1: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
@@ -974,7 +974,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       expect(catalogDifferences).toHaveLength(expectedDifferencesLength);
     });
 
-    it("wrong states", async () => {
+    it("should detect differences for wrong eservice states", async () => {
       const descriptor1: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
@@ -1072,7 +1072,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       );
     });
 
-    it("missing platform-states entry should not pass if purpose is not archived", async () => {
+    it("should detect differences when the platform-states entry is missing and the descriptor is not archived", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
@@ -1098,7 +1098,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       expect(catalogDifferences).toEqual(expectedCatalogDifferences);
     });
 
-    it("missing platform-states entry should pass if purpose is archived", async () => {
+    it("should not detect differences when the platform-states entry is missing and the descriptor is archived", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.archived,
@@ -1141,7 +1141,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       expect(catalogDifferences).toHaveLength(expectedDifferencesLength);
     });
 
-    it("read model eservice missing", async () => {
+    it("should detect differences when the read model eservice is missing", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
@@ -1203,8 +1203,8 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
     });
   });
 
-  describe("client", () => {
-    it("same states", async () => {
+  describe("clients", () => {
+    it("should detect no differences", async () => {
       const purpose1 = getMockPurpose();
       const client1: Client = {
         ...getMockClient(),
@@ -1297,7 +1297,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
     });
 
-    it("wrong states", async () => {
+    it("should detect differences for wrong client states", async () => {
       const purpose1 = getMockPurpose();
       const client1: Client = {
         ...getMockClient(),
@@ -1386,7 +1386,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       );
     });
 
-    it("wrong clientPurposeIds", async () => {
+    it("should detect differences when a client has wrong purpose ids", async () => {
       const purpose1 = getMockPurpose();
       const client1: Client = {
         ...getMockClient(),
@@ -1475,7 +1475,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       );
     });
 
-    it("missing platform-states entry", async () => {
+    it("should detect differences when the platform-states entry is missing", async () => {
       const purpose = getMockPurpose();
       const client: Client = {
         ...getMockClient(),
@@ -1501,7 +1501,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       );
     });
 
-    it("missing token-generation-states entry", async () => {
+    it("should detect differences when the token-generation-states entry is missing", async () => {
       const purpose1 = getMockPurpose();
       const client1: Client = {
         ...getMockClient(),
@@ -1544,7 +1544,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       );
     });
 
-    it("read model client missing", async () => {
+    it("should detect differences when the read model client is missing", async () => {
       const purpose = getMockPurpose();
       const client: Client = {
         ...getMockClient(),
