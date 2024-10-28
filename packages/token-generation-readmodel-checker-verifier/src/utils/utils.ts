@@ -1,5 +1,3 @@
-// TODO: remove no-console
-/* eslint-disable no-console */
 import { ReadModelRepository, Logger } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -496,22 +494,12 @@ export function countPurposeDifferences(
   differences.forEach(([platformPurpose, tokenPurpose, readModelPurpose]) => {
     if (!readModelPurpose) {
       if (platformPurpose) {
-        console.warn(
-          `Read model purpose not found for id: ${
-            extractIdFromPlatformStatesPK(platformPurpose.PK).id
-          }`
-        );
         logger.error(
           `Read model purpose not found for id: ${
             extractIdFromPlatformStatesPK(platformPurpose.PK).id
           }`
         );
       } else if (tokenPurpose?.[0].GSIPK_purposeId) {
-        console.warn(
-          `Read model purpose not found for id: ${
-            extractIdsFromTokenGenerationStatesPK(tokenPurpose[0].PK).purposeId
-          }`
-        );
         logger.error(
           `Read model purpose not found for id: ${
             extractIdsFromTokenGenerationStatesPK(tokenPurpose[0].PK).purposeId
@@ -525,12 +513,6 @@ export function countPurposeDifferences(
       differencesCount++;
     } else if (readModelPurpose) {
       logger.error(
-        `Purpose states are not equal:
-  platform-states entry: ${JSON.stringify(platformPurpose)}
-  token-generation-states entries: ${JSON.stringify(tokenPurpose)}
-  purpose read-model: ${JSON.stringify(readModelPurpose)}`
-      );
-      console.warn(
         `Purpose states are not equal:
   platform-states entry: ${JSON.stringify(platformPurpose)}
   token-generation-states entries: ${JSON.stringify(tokenPurpose)}
@@ -733,20 +715,12 @@ export function countAgreementDifferences(
     ([platformAgreement, tokenAgreement, readModelAgreement]) => {
       if (!readModelAgreement) {
         if (platformAgreement) {
-          console.warn(
-            `Read model agreement not found for id: ${
-              extractIdFromPlatformStatesPK(platformAgreement.PK).id
-            }`
-          );
           logger.error(
             `Read model agreement not found for id: ${
               extractIdFromPlatformStatesPK(platformAgreement.PK).id
             }`
           );
         } else if (tokenAgreement?.[0].agreementId) {
-          console.warn(
-            `Read model agreement not found for id: ${tokenAgreement[0].agreementId}`
-          );
           logger.error(
             `Read model agreement not found for id: ${tokenAgreement[0].agreementId}`
           );
@@ -758,12 +732,6 @@ export function countAgreementDifferences(
         differencesCount++;
       } else if (readModelAgreement) {
         logger.error(
-          `Agreement states are not equal:
-    platform-states entry: ${JSON.stringify(platformAgreement)}
-    token-generation-states entries: ${JSON.stringify(tokenAgreement)}
-    agreement read-model: ${JSON.stringify(readModelAgreement)}`
-        );
-        console.warn(
           `Agreement states are not equal:
     platform-states entry: ${JSON.stringify(platformAgreement)}
     token-generation-states entries: ${JSON.stringify(tokenAgreement)}
@@ -1020,20 +988,8 @@ export function countCatalogDifferences(
             extractIdFromPlatformStatesPK(platformCatalog.PK).id
           }`
         );
-        console.warn(
-          `Read model eservice not found for ${
-            extractIdFromPlatformStatesPK(platformCatalog.PK).id
-          }`
-        );
       } else if (tokenCatalog?.[0].GSIPK_eserviceId_descriptorId) {
         logger.error(
-          `Read model eservice not found for ${
-            extractIdsFromGSIPKEServiceIdDescriptorId(
-              tokenCatalog[0].GSIPK_eserviceId_descriptorId
-            )?.eserviceId
-          }`
-        );
-        console.warn(
           `Read model eservice not found for ${
             extractIdsFromGSIPKEServiceIdDescriptorId(
               tokenCatalog[0].GSIPK_eserviceId_descriptorId
@@ -1048,12 +1004,6 @@ export function countCatalogDifferences(
       differencesCount++;
     } else if (readModelEService) {
       logger.error(
-        `Catalog states are not equal:
-  platform-states entry: ${JSON.stringify(platformCatalog)}
-  token-generation-states entries: ${JSON.stringify(tokenCatalog)}
-  purpose read-model: ${JSON.stringify(readModelEService)}`
-      );
-      console.warn(
         `Catalog states are not equal:
   platform-states entry: ${JSON.stringify(platformCatalog)}
   token-generation-states entries: ${JSON.stringify(tokenCatalog)}
@@ -1170,7 +1120,7 @@ function validateClientTokenGenerationStates({
   status: boolean;
   data: PartialTokenStatesClientEntry[] | undefined;
 } {
-  // TODO: wrong
+  // TODO: is this correct?
   if (!tokenEntries || tokenEntries.length === 0) {
     return {
       status: true,
@@ -1252,18 +1202,8 @@ export function countClientDifferences(
             extractIdFromPlatformStatesPK(platformClient.PK).id
           }`
         );
-        console.warn(
-          `Read model client not found for ${
-            extractIdFromPlatformStatesPK(platformClient.PK).id
-          }`
-        );
       } else if (tokenClient && tokenClient.length > 0) {
         logger.error(
-          `Read model client not found for ${
-            extractIdsFromTokenGenerationStatesPK(tokenClient[0].PK).clientId
-          }`
-        );
-        console.warn(
           `Read model client not found for ${
             extractIdsFromTokenGenerationStatesPK(tokenClient[0].PK).clientId
           }`
@@ -1276,12 +1216,6 @@ export function countClientDifferences(
       differencesCount++;
     } else if (readModelClient) {
       logger.error(
-        `Client states are not equal.
-        platform-states entry: ${JSON.stringify(platformClient)}
-        token-generation-states entries: ${JSON.stringify(tokenClient)}
-        purpose read-model: ${JSON.stringify(readModelClient)}`
-      );
-      console.warn(
         `Client states are not equal.
         platform-states entry: ${JSON.stringify(platformClient)}
         token-generation-states entries: ${JSON.stringify(tokenClient)}
