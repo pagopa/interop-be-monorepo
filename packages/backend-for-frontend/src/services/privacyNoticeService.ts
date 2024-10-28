@@ -134,17 +134,10 @@ export function privacyNoticeServiceBuilder(
         `Retrieving privacy notice content for consentType ${consentType}`
       );
 
+      const basePath = `${config.privacyNoticesPath}/latest/it`;
       const path = match(consentType)
-        .with(
-          "PP",
-          () =>
-            `${config.privacyNoticesPath}/latest/it/${config.privacyNoticesPPFileName}`
-        )
-        .with(
-          "TOS",
-          () =>
-            `${config.privacyNoticesPath}/latest/it/${config.privacyNoticesTOSFileName}`
-        )
+        .with("PP", () => `${basePath}/${config.privacyNoticesPPFileName}`)
+        .with("TOS", () => `${basePath}/${config.privacyNoticesTOSFileName}`)
         .exhaustive();
       const bytes = await fileManager.get(
         config.privacyNoticesContainer,
