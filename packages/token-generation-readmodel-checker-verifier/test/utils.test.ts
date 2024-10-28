@@ -1093,12 +1093,12 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
     it("no need for pagination", async () => {
       const tokenEntriesLength = 2;
 
-      const tokenStateEntry1 = getMockTokenStatesClientPurposeEntry();
-      await writeTokenStateEntry(tokenStateEntry1, dynamoDBClient);
+      const tokenStatesEntry1 = getMockTokenStatesClientPurposeEntry();
+      await writeTokenStateEntry(tokenStatesEntry1, dynamoDBClient);
 
-      const tokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+      const tokenStatesEntry2: TokenGenerationStatesClientPurposeEntry =
         getMockTokenStatesClientPurposeEntry();
-      await writeTokenStateEntry(tokenStateEntry2, dynamoDBClient);
+      await writeTokenStateEntry(tokenStatesEntry2, dynamoDBClient);
 
       vi.spyOn(dynamoDBClient, "send");
       const tokenEntries =
@@ -1107,7 +1107,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       expect(dynamoDBClient.send).toHaveBeenCalledTimes(1);
       expect(tokenEntries).toHaveLength(tokenEntriesLength);
       expect(tokenEntries).toEqual(
-        expect.arrayContaining([tokenStateEntry1, tokenStateEntry2])
+        expect.arrayContaining([tokenStatesEntry1, tokenStatesEntry2])
       );
     });
 
@@ -1117,18 +1117,18 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       const writtenEntries: TokenGenerationStatesClientPurposeEntry[] = [];
       // eslint-disable-next-line functional/no-let
       for (let i = 0; i < tokenEntriesLength; i++) {
-        const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
+        const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
           kid: `kid ${Math.random()}`,
           purposeId: generateId(),
         });
-        const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+        const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+          ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
           publicKey: crypto.randomBytes(100000).toString("hex"),
         };
-        await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+        await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
         // eslint-disable-next-line functional/immutable-data
-        writtenEntries.push(tokenStateEntry);
+        writtenEntries.push(tokenStatesEntry);
       }
       vi.spyOn(dynamoDBClient, "send");
       const tokenEntries =
