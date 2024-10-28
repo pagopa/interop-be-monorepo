@@ -380,11 +380,6 @@ function validatePurposePlatformStates({
   status: boolean;
   data: PartialPlatformStatesPurposeEntry | undefined;
 } {
-  // no yes archived -> yes
-  // no yes not archived -> no
-  // yes yes archived -> no
-  // yes yes not archived -> yes check
-
   const isArchived = lastPurposeVersion.state === purposeVersionState.archived;
   const status = !platformPurposeEntry
     ? isArchived
