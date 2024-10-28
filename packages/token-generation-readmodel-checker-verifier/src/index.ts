@@ -1,5 +1,3 @@
-// TODO: remove no-console
-/* eslint-disable no-console */
 /**
  * This script is used to compare the data of the token generation readmodel with readmodel.
  * The comparison is done by comparing the data from the read models with a deep comparison, and if any differences are found,
@@ -22,13 +20,14 @@ async function main(): Promise<void> {
     loggerInstance
   );
 
-  console.log("Differences count: ", differencesCount);
+  loggerInstance.info(`Differences count: ${differencesCount}`);
 
+  // TODO: is exit code needed here?
   if (differencesCount > 0) {
     process.exit(1);
   }
 
-  console.info("No differences found");
+  loggerInstance.info("No differences found");
 }
 
 await main();
