@@ -9,7 +9,9 @@ import {
 import { describe, it, expect } from "vitest";
 import { getMockProducerKeychain } from "pagopa-interop-commons-test";
 import { producerKeychainNotFound } from "../src/model/domain/errors.js";
+import { producerKeychainToApiProducerKeychain } from "../src/model/domain/apiConverter.js";
 import { addOneProducerKeychain, authorizationService } from "./utils.js";
+import { mockProducerKeyChainRouterRequest } from "./supertestSetup.js";
 
 describe("getProducerKeychainById", async () => {
   const organizationId: TenantId = generateId();
@@ -42,13 +44,19 @@ describe("getProducerKeychainById", async () => {
 
     await addOneProducerKeychain(expectedProducerKeychainWithoutUser);
 
-    const { producerKeychain } =
-      await authorizationService.getProducerKeychainById({
+    const producerKeychain = await mockProducerKeyChainRouterRequest.get({
+      path: "/producerKeychains/:producerKeychainId",
+      pathParams: {
         producerKeychainId: expectedProducerKeychainWithoutUser.id,
-        organizationId,
-        logger: genericLogger,
-      });
-    expect(producerKeychain).toEqual(expectedProducerKeychainWithoutUser);
+      },
+    });
+
+    expect(producerKeychain).toEqual(
+      producerKeychainToApiProducerKeychain(
+        expectedProducerKeychainWithoutUser,
+        { showUsers: false }
+      )
+    );
   });
   it("should throw producerKeychainNotFound if the producerKeychain with the specified Id doesn't exist", async () => {
     await addOneProducerKeychain(getMockProducerKeychain());
