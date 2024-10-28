@@ -450,6 +450,7 @@ export function catalogServiceBuilder(
         descriptors: [],
         createdAt: creationDate,
         riskAnalysis: [],
+        isSignalHubEnabled: seed.isSignalHubEnabled,
       };
 
       const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -574,6 +575,7 @@ export function catalogServiceBuilder(
               serverUrls: [],
             }))
           : eservice.data.descriptors,
+        isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
       };
 
       const event = toCreateEventEServiceUpdated(

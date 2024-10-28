@@ -73,7 +73,7 @@ describe("publish descriptor", () => {
     await addOneEService(eservice);
     await catalogService.publishDescriptor(eservice.id, descriptor.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -135,7 +135,7 @@ describe("publish descriptor", () => {
 
     await catalogService.publishDescriptor(eservice.id, descriptor.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -188,7 +188,7 @@ describe("publish descriptor", () => {
     await addOneEService(eservice);
     await catalogService.publishDescriptor(eservice.id, descriptor2.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -259,7 +259,7 @@ describe("publish descriptor", () => {
     await addOneAgreement(agreement);
     await catalogService.publishDescriptor(eservice.id, descriptor2.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -302,7 +302,7 @@ describe("publish descriptor", () => {
     await expect(
       catalogService.publishDescriptor(mockEService.id, mockDescriptor.id, {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -318,7 +318,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, mockDescriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -340,7 +340,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -389,7 +389,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -412,7 +412,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -435,7 +435,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -458,7 +458,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -481,7 +481,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -506,7 +506,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -538,7 +538,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -574,7 +574,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -621,7 +621,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -646,7 +646,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })

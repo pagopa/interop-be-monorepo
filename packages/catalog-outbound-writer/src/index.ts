@@ -6,7 +6,12 @@ import {
   encodeOutboundEServiceEvent,
   EServiceEvent as EServiceOutboundEvent,
 } from "@pagopa/interop-outbound-models";
-import { EServiceEvent } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  EServiceEvent,
+  generateId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { config } from "./config/config.js";
 import { toOutboundEventV1 } from "./converters/toOutboundEventV1.js";
 import { toOutboundEventV2 } from "./converters/toOutboundEventV2.js";
@@ -24,7 +29,9 @@ async function processMessage({
     eventType: msg.type,
     eventVersion: msg.event_version,
     streamId: msg.stream_id,
-    correlationId: msg.correlation_id,
+    correlationId: msg.correlation_id
+      ? unsafeBrandId<CorrelationId>(msg.correlation_id)
+      : generateId<CorrelationId>(),
   });
 
   const outboundEvent: EServiceOutboundEvent | undefined = match(msg)

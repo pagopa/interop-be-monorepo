@@ -13,13 +13,12 @@ post {
 headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Accept: application/json
 }
 
 body:json {
   {
       "name": "{{randomName}}",
-      "description": "this is a test again",
+      "description": "this is a test",
       "technology": "REST",
       "mode": "DELIVER",
       "descriptor": {
@@ -33,7 +32,7 @@ body:json {
 }
 
 vars:post-response {
-  eServiceId: res.body.id
+  eserviceId: res.body.id
   descriptorId: res.body.descriptors[0].id
 }
 

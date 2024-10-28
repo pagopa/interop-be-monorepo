@@ -1,0 +1,20 @@
+meta {
+  name: Delete an agreement- This operation is valid only for agreements in DRAFT or MISSING_CERTIFIED_ATTRIBUTES
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{host-bff}}/agreements/:agreementId
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: d0148264-81a0-42f9-8d33-574b9eb6ef02
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

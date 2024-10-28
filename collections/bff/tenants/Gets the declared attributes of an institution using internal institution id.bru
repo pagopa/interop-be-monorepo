@@ -1,0 +1,26 @@
+meta {
+  name: Gets the declared attributes of an institution using internal institution id
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/tenants/:tenantId/attributes/declared
+  body: none
+  auth: none
+}
+
+params:path {
+  tenantId: 69e2865e-65ab-4e48-a638-2037a9ee2ee7
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Gets declared attributes for institution using internal institution id
+}

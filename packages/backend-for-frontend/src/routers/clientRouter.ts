@@ -54,6 +54,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           "Error retrieving clients"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -74,6 +75,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -91,6 +93,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error deleting client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -112,6 +115,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error removing purpose ${req.params.purposeId} from client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -134,6 +138,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving keys of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -155,29 +160,32 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error deleting key ${req.params.keyId} of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
     })
 
-    .post("/clients/:clientId/users/:userId", async (req, res) => {
+    .post("/clients/:clientId/users", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
-
       try {
-        const createdUser = await clientService.addUserToClient(
-          req.params.userId,
+        await clientService.addUsersToClient(
+          req.body.userIds,
           req.params.clientId,
           ctx
         );
 
-        return res.status(200).send(bffApi.CreatedResource.parse(createdUser));
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx.logger,
-          `Error adding user ${req.params.userId} to client ${req.params.clientId}`
+          ctx.correlationId,
+          `Error adding users ${req.body.userIds.join(",")} to client ${
+            req.params.clientId
+          }`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -199,6 +207,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error removing user ${req.params.userId} from client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -221,6 +230,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error adding purpose to client ${req.body.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -243,6 +253,7 @@ const clientRouter = (
           error,
           getClientUsersErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving users of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -260,6 +271,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating keys for client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -275,12 +287,13 @@ const clientRouter = (
           ctx
         );
 
-        return res.status(200).send(bffApi.PublicKeys.parse({ keys }));
+        return res.status(200).send(bffApi.PublicKeys.parse(keys));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving keys of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -302,6 +315,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving key ${req.params.keyId} for client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -320,6 +334,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating consumer client with name ${req.body.name}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -338,6 +353,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating api client with name ${req.body.name}`
         );
         return res.status(errorRes.status).send(errorRes);

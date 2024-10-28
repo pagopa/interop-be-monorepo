@@ -1,0 +1,31 @@
+meta {
+  name: Add a consumer Document to an Agreement
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/agreements/:agreementId/consumer-documents
+  body: multipartForm
+  auth: none
+}
+
+params:path {
+  agreementId: 22db6870-5d5a-4ded-b0f6-8eff866e09d3
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+  Content-Type: multipart/form-data
+}
+
+body:multipart-form {
+  name: testone 2
+  prettyName: testone 2
+  doc: @file(/Users/ecamel/Downloads/Backend for Frontend Micro Service.postman_collection.json)
+}
+
+docs {
+  Add a consumer Document to an Agreement
+}
