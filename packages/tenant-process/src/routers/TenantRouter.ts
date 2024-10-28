@@ -487,7 +487,8 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             assignTenantDelegatedProducerFeatureErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }

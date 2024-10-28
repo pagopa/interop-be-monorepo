@@ -19,6 +19,7 @@ import {
   operationForbidden,
   tenantAttributeType,
   tenantKind,
+  SCP,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {

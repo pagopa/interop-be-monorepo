@@ -418,6 +418,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error while assigning delegated producer feature to ${tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);

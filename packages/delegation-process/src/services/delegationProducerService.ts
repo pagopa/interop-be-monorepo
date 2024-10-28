@@ -6,6 +6,7 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
+  CorrelationId,
   Delegation,
   DelegationId,
   delegationEventToBinaryDataV2,
@@ -17,7 +18,6 @@ import {
   TenantId,
   unsafeBrandId,
   WithMetadata,
-  CorrelationId,
 } from "pagopa-interop-models";
 import { delegationNotFound, tenantNotFound } from "../model/domain/errors.js";
 import {
