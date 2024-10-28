@@ -228,7 +228,7 @@ export class InteropTokenGenerator {
       sub,
       iat: currentTimestamp,
       nbf: currentTimestamp,
-      exp: currentTimestamp + tokenDurationInSeconds * 1000,
+      exp: currentTimestamp + tokenDurationInSeconds,
       purposeId,
     };
 
