@@ -197,7 +197,9 @@ export async function compareTokenGenerationReadModel(
   dynamoDBClient: DynamoDBClient,
   loggerInstance: Logger
 ): Promise<number> {
-  loggerInstance.info("Program started.\n");
+  loggerInstance.info(
+    "Token generation read model and read model comparison started.\n"
+  );
   loggerInstance.info("> Connecting to database...");
   const readModel = ReadModelRepository.init(config);
   loggerInstance.info("> Connected to database!\n");
