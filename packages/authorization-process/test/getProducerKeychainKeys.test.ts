@@ -1,10 +1,12 @@
 import {
+  getMockAuthData,
   getMockKey,
   getMockProducerKeychain,
 } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   Key,
   ProducerKeychain,
+  TenantId,
   UserId,
   generateId,
   unsafeBrandId,
@@ -15,10 +17,12 @@ import {
   producerKeychainNotFound,
   organizationNotAllowedOnProducerKeychain,
 } from "../src/model/domain/errors.js";
+import { keyToApiKey } from "../src/model/domain/apiConverter.js";
 import { addOneProducerKeychain, authorizationService } from "./utils.js";
+import { mockProducerKeyChainRouterRequest } from "./supertestSetup.js";
 
 describe("getProducerKeychainKeys", async () => {
-  const producerId = generateId();
+  const producerId: TenantId = generateId();
   const mockKey = getMockKey();
   const mockProducerKeychain: ProducerKeychain = {
     ...getMockProducerKeychain(),
@@ -50,13 +54,22 @@ describe("getProducerKeychainKeys", async () => {
     };
     await addOneProducerKeychain(producerKeychainWithKeyUser);
 
-    const keys = await authorizationService.getProducerKeychainKeys({
-      producerKeychainId: mockProducerKeychain.id,
-      userIds: [keyUserId1, keyUserId2, keyUserId3],
-      organizationId: unsafeBrandId(producerId),
-      logger: genericLogger,
+    const keys = await mockProducerKeyChainRouterRequest.get({
+      path: "/producerKeychains/:producerKeychainId/keys",
+      pathParams: {
+        producerKeychainId: mockProducerKeychain.id,
+      },
+      queryParams: { userIds: [keyUserId1, keyUserId2, keyUserId3] },
+      authData: getMockAuthData(producerId),
     });
-    expect(keys).toEqual([keyWithUser1, keyWithUser2, keyWithUser3]);
+
+    expect(keys).toEqual({
+      keys: [
+        keyToApiKey(keyWithUser1),
+        keyToApiKey(keyWithUser2),
+        keyToApiKey(keyWithUser3),
+      ],
+    });
   });
   it("should get the keys of the specified producer keychain, but only limited to the keys belonging to specific users", async () => {
     const keyUserId1: UserId = generateId();
@@ -84,13 +97,18 @@ describe("getProducerKeychainKeys", async () => {
     };
     await addOneProducerKeychain(producerKeychainWithKeyUser);
 
-    const keys = await authorizationService.getProducerKeychainKeys({
-      producerKeychainId: producerKeychainWithKeyUser.id,
-      userIds: [keyUserId1],
-      organizationId: unsafeBrandId(producerId),
-      logger: genericLogger,
+    const keys = await mockProducerKeyChainRouterRequest.get({
+      path: "/producerKeychains/:producerKeychainId/keys",
+      pathParams: {
+        producerKeychainId: producerKeychainWithKeyUser.id,
+      },
+      queryParams: { userIds: [keyUserId1] },
+      authData: getMockAuthData(producerId),
     });
-    expect(keys).toEqual([keyWithUser1]);
+
+    expect(keys).toEqual({
+      keys: [keyToApiKey(keyWithUser1)],
+    });
   });
   it("should throw producerKeychainNotFound if the producer keychain with the specified Id doesn't exist", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
