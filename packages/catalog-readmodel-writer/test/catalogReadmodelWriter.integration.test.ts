@@ -227,7 +227,7 @@ describe("database test", async () => {
         descriptors: [descriptor],
       };
       await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-      const updatedDescriptor = {
+      const expectedDescriptor = {
         ...descriptor,
         attributes,
       };

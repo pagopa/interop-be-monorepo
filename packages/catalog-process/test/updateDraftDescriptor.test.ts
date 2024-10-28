@@ -364,7 +364,7 @@ describe("update draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       dailyCallsTotal: 200,
     };
@@ -402,7 +402,7 @@ describe("update draft descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       dailyCallsTotal: 200,
     };

@@ -54,7 +54,7 @@ describe("activate descriptor", () => {
       logger: genericLogger,
     });
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       state: descriptorState.published,
     };
@@ -108,7 +108,7 @@ describe("activate descriptor", () => {
       logger: genericLogger,
     });
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       state: descriptorState.published,
     };
