@@ -14,6 +14,7 @@ import {
   operationForbidden,
   Delegation,
   delegationState,
+  generateId,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import {
@@ -83,7 +84,7 @@ describe("delete Document", () => {
         document.id,
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -162,7 +163,7 @@ describe("delete Document", () => {
       interfaceDocument.id,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -248,7 +249,7 @@ describe("delete Document", () => {
       interfaceDocument.id,
       {
         authData: getMockAuthData(delegation.delegateId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -309,7 +310,7 @@ describe("delete Document", () => {
         mockDocument.id,
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -330,7 +331,7 @@ describe("delete Document", () => {
         mockDocument.id,
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -355,7 +356,7 @@ describe("delete Document", () => {
         mockDocument.id,
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -387,7 +388,7 @@ describe("delete Document", () => {
         mockDocument.id,
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -408,7 +409,7 @@ describe("delete Document", () => {
         mockDocument.id,
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -440,7 +441,7 @@ describe("delete Document", () => {
           mockDocument.id,
           {
             authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
+            correlationId: generateId(),
             serviceName: "",
             logger: genericLogger,
           }
@@ -467,7 +468,7 @@ describe("delete Document", () => {
         mockDocument.id,
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

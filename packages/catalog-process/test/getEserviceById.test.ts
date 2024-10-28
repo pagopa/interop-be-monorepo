@@ -73,7 +73,7 @@ describe("get eservice by id", () => {
     const result = await catalogService.getEServiceById(eservice1.id, {
       authData,
       logger: genericLogger,
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
     });
     expect(result).toEqual(eservice1);
@@ -86,7 +86,7 @@ describe("get eservice by id", () => {
       catalogService.getEServiceById(notExistingId, {
         authData: getMockAuthData(),
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       })
     ).rejects.toThrowError(eServiceNotFound(notExistingId));
@@ -106,7 +106,7 @@ describe("get eservice by id", () => {
       catalogService.getEServiceById(eservice.id, {
         authData: getMockAuthData(),
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       })
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
@@ -129,7 +129,7 @@ describe("get eservice by id", () => {
       catalogService.getEServiceById(eservice.id, {
         authData,
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       })
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
@@ -144,7 +144,7 @@ describe("get eservice by id", () => {
       catalogService.getEServiceById(eservice.id, {
         authData: getMockAuthData(),
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       })
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
@@ -167,7 +167,7 @@ describe("get eservice by id", () => {
       catalogService.getEServiceById(eservice.id, {
         authData,
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       })
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
@@ -195,7 +195,7 @@ describe("get eservice by id", () => {
     const result = await catalogService.getEServiceById(eservice.id, {
       authData,
       logger: genericLogger,
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
     });
     expect(result.descriptors).toEqual([descriptorB]);
@@ -223,7 +223,7 @@ describe("get eservice by id", () => {
     const result = await catalogService.getEServiceById(eservice.id, {
       authData,
       logger: genericLogger,
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
     });
     expect(result.descriptors).toEqual([descriptorB]);

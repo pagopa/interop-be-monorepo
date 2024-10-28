@@ -1,4 +1,4 @@
-import { genericInternalError } from "pagopa-interop-models";
+import { CorrelationId, genericInternalError } from "pagopa-interop-models";
 import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 
@@ -9,7 +9,7 @@ export interface Event {
 
 export type CreateEvent<T extends Event> = {
   readonly streamId: string;
-  readonly correlationId: string;
+  readonly correlationId: CorrelationId;
   readonly version: number;
   readonly event: T;
 };

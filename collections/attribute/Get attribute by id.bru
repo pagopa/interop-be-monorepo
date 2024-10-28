@@ -1,0 +1,25 @@
+meta {
+  name: Get attribute by id
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-attribute}}/attributes/:attributeId
+  body: json
+  auth: none
+}
+
+params:path {
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  attributeOrigin: res.body.origin
+  attributeCode: res.body.code
+}

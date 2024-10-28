@@ -1,0 +1,20 @@
+meta {
+  name: Delete Agreement
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{host-agreement}}/agreements/:agreementid
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementid: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

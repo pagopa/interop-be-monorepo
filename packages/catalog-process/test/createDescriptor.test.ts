@@ -82,7 +82,7 @@ describe("create descriptor", async () => {
       descriptorSeed,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -175,7 +175,7 @@ describe("create descriptor", async () => {
       descriptorSeed,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -395,7 +395,7 @@ describe("create descriptor", async () => {
         buildCreateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -411,7 +411,7 @@ describe("create descriptor", async () => {
         buildCreateDescriptorSeed(getMockDescriptor()),
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -459,7 +459,7 @@ describe("create descriptor", async () => {
     expect(
       catalogService.createDescriptor(eservice.id, descriptorSeed, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -482,7 +482,7 @@ describe("create descriptor", async () => {
         buildCreateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -536,7 +536,7 @@ describe("create descriptor", async () => {
     expect(
       catalogService.createDescriptor(eservice.id, descriptorSeed, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })

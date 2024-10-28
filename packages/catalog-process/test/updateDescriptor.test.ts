@@ -13,6 +13,7 @@ import {
   operationForbidden,
   Delegation,
   delegationState,
+  generateId,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
@@ -80,7 +81,7 @@ describe("update descriptor", () => {
         updatedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -151,7 +152,7 @@ describe("update descriptor", () => {
         updatedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(delegation.delegateId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -186,7 +187,7 @@ describe("update descriptor", () => {
         updatedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -215,7 +216,7 @@ describe("update descriptor", () => {
         updatedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -250,7 +251,7 @@ describe("update descriptor", () => {
         updatedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -286,7 +287,7 @@ describe("update descriptor", () => {
         updatedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -320,7 +321,7 @@ describe("update descriptor", () => {
         updatedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -359,7 +360,7 @@ describe("update descriptor", () => {
         updatedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -393,7 +394,7 @@ describe("update descriptor", () => {
         updatedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

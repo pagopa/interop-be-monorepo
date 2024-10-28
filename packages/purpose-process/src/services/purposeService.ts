@@ -40,6 +40,7 @@ import {
   PurposeDocumentEServiceInfo,
   RiskAnalysisId,
   RiskAnalysis,
+  CorrelationId,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -285,7 +286,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
@@ -330,7 +331,7 @@ export function purposeServiceBuilder(
       versionId: PurposeVersionId;
       rejectionReason: string;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
@@ -380,7 +381,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       purposeUpdateContent: purposeApi.PurposeUpdateContent;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Updating Purpose ${purposeId}`);
@@ -406,7 +407,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Updating Reverse Purpose ${purposeId}`);
@@ -430,7 +431,7 @@ export function purposeServiceBuilder(
     }: {
       purposeId: PurposeId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Deleting Purpose ${purposeId}`);
@@ -467,7 +468,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<PurposeVersion> {
       logger.info(`Archiving Version ${versionId} in Purpose ${purposeId}`);
@@ -517,7 +518,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<PurposeVersion> {
       logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
@@ -638,7 +639,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       seed: purposeApi.PurposeVersionSeed;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<PurposeVersion> {
       logger.info(`Creating Version for Purpose ${purposeId}`);
@@ -777,7 +778,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<PurposeVersion> {
       logger.info(`Activating Version ${versionId} in Purpose ${purposeId}`);
@@ -993,7 +994,7 @@ export function purposeServiceBuilder(
     async createPurpose(
       purposeSeed: purposeApi.PurposeSeed,
       organizationId: TenantId,
-      correlationId: string,
+      correlationId: CorrelationId,
       logger: Logger
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(
@@ -1051,7 +1052,7 @@ export function purposeServiceBuilder(
     async createReversePurpose(
       organizationId: TenantId,
       seed: purposeApi.EServicePurposeSeed,
-      correlationId: string,
+      correlationId: CorrelationId,
       logger: Logger
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(
@@ -1135,7 +1136,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       organizationId: TenantId;
       seed: purposeApi.PurposeCloneSeed;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Cloning Purpose ${purposeId}`);
@@ -1403,7 +1404,7 @@ const performUpdatePurpose = async (
       },
   organizationId: TenantId,
   readModelService: ReadModelService,
-  correlationId: string,
+  correlationId: CorrelationId,
   repository: {
     createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
   }
@@ -1563,7 +1564,7 @@ const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
 function changePurposeVersionToWaitForApprovalFromDraftLogic(
   purpose: WithMetadata<Purpose>,
   purposeVersion: PurposeVersion,
-  correlationId: string
+  correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
@@ -1592,7 +1593,7 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
 function activatePurposeVersionFromOverQuotaSuspendedLogic(
   purpose: WithMetadata<Purpose>,
   purposeVersion: PurposeVersion,
-  correlationId: string
+  correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
@@ -1645,7 +1646,7 @@ async function activatePurposeLogic({
   readModelService: ReadModelService;
   fileManager: FileManager;
   pdfGenerator: PDFGenerator;
-  correlationId: string;
+  correlationId: CorrelationId;
   logger: Logger;
 }): Promise<{
   event: CreateEvent<PurposeEvent>;
@@ -1701,7 +1702,7 @@ function activatePurposeVersionFromSuspendedLogic(
   purpose: WithMetadata<Purpose>,
   purposeVersion: PurposeVersion,
   purposeOwnership: Ownership,
-  correlationId: string
+  correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;

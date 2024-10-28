@@ -158,7 +158,7 @@ export function producerKeychainServiceBuilder(
     async getProducerKeys(
       producerKeychainId: string,
       userIds: string[],
-      { logger, headers, authData }: WithLogger<BffAppContext>
+      { logger, headers, authData, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.PublicKeys> {
       logger.info(`Retrieve keys of producer keychain ${producerKeychainId}`);
 
@@ -178,13 +178,7 @@ export function producerKeychainServiceBuilder(
 
       const decoratedKeys = await Promise.all(
         keys.map((k) =>
-          decorateKey(
-            selfcareUsersClient,
-            k,
-            selfcareId,
-            users,
-            headers["X-Correlation-Id"]
-          )
+          decorateKey(selfcareUsersClient, k, selfcareId, users, correlationId)
         )
       );
 
@@ -193,7 +187,7 @@ export function producerKeychainServiceBuilder(
     async getProducerKeyById(
       producerKeychainId: string,
       keyId: string,
-      { logger, headers, authData }: WithLogger<BffAppContext>
+      { logger, headers, authData, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.PublicKey> {
       logger.info(
         `Retrieve key ${keyId} for producer keychain ${producerKeychainId}`
@@ -217,7 +211,7 @@ export function producerKeychainServiceBuilder(
         key,
         selfcareId,
         users,
-        headers["X-Correlation-Id"]
+        correlationId
       );
     },
     async deleteProducerKeyById(
@@ -239,7 +233,7 @@ export function producerKeychainServiceBuilder(
     },
     async getProducerKeychainUsers(
       producerKeychainId: string,
-      { logger, headers, authData }: WithLogger<BffAppContext>
+      { logger, headers, authData, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactUsers> {
       logger.info(
         `Retrieving users for producer keychain ${producerKeychainId}`
@@ -259,32 +253,31 @@ export function producerKeychainServiceBuilder(
             selfcareUsersClient,
             id,
             selfcareId,
-            headers["X-Correlation-Id"]
+            correlationId
           ),
           id
         )
       );
       return Promise.all(users);
     },
-    async addProducerKeychainUser(
-      userId: string,
+    async addProducerKeychainUsers(
+      userIds: string[],
       producerKeychainId: string,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
+    ): Promise<void> {
       logger.info(
-        `Add user ${userId} to producer keychain ${producerKeychainId}`
+        `Add user ${userIds.join(
+          ","
+        )} to producer keychain ${producerKeychainId}`
       );
 
-      const { id } =
-        await authorizationClient.producerKeychain.addProducerKeychainUser(
-          undefined,
-          {
-            params: { producerKeychainId, userId },
-            headers,
-          }
-        );
-
-      return { id };
+      await authorizationClient.producerKeychain.addProducerKeychainUsers(
+        { userIds },
+        {
+          params: { producerKeychainId },
+          headers,
+        }
+      );
     },
     async removeProducerKeychainUser(
       producerKeychainId: string,

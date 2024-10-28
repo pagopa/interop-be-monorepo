@@ -1,0 +1,32 @@
+meta {
+  name: Clone Purpose
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/purposes/:purposeId/clone
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: be3505b7-98a5-4788-84de-7e4cad878f63
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "eserviceId": "d0b75bf4-6dfb-44bb-9f12-a298bbc5d37e"
+  }
+}
+
+docs {
+  clone purpose
+}

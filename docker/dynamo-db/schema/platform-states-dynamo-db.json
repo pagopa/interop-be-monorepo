@@ -1,0 +1,24 @@
+{
+  "TableName": "platform-states",
+  "AttributeDefinitions": [
+    { "AttributeName": "PK", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_consumerId_eserviceId", "AttributeType": "S" },
+    { "AttributeName": "GSISK_agreementTimestamp", "AttributeType": "S" }
+  ],
+  "KeySchema": [{ "AttributeName": "PK", "KeyType": "HASH" }],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "Agreement",
+      "KeySchema": [
+        { "AttributeName": "GSIPK_consumerId_eserviceId", "KeyType": "HASH" },
+        { "AttributeName": "GSISK_agreementTimestamp", "KeyType": "RANGE" }
+      ],
+      "Projection": { "ProjectionType": "ALL" }
+    }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 10,
+    "WriteCapacityUnits": 5
+  },
+  "BillingMode": "PAY_PER_REQUEST"
+}

@@ -1,0 +1,23 @@
+meta {
+  name: get EService risk analysis
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/eservices/:eServiceId/riskAnalysis/:riskAnalysisId
+  body: none
+  auth: none
+}
+
+params:path {
+  eServiceId: 26f433e1-2c3c-4022-a14e-3c300baefc51
+  riskAnalysisId: 3efbe02a-8f7e-4f55-b31b-ed17786fac93
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+

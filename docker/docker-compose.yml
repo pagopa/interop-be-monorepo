@@ -1,6 +1,10 @@
+# Docker Compose for local development environment
+
 version: "3"
 name: pagopa-interop
 services:
+
+  # Event Store Postgres DB
   event-store:
     volumes:
       - ./event-store-init.sql:/docker-entrypoint-initdb.d/01-init.sql
@@ -13,9 +17,11 @@ services:
       POSTGRES_PASSWORD: root
     command: -c 'max_connections=512' -c 'wal_level=logical'
 
+  # Zookeeper for Kafka
   zookeeper:
     image: quay.io/debezium/zookeeper:2.3
 
+  # Kafka server
   kafka:
     image: quay.io/debezium/kafka:2.3
     ports:
@@ -32,6 +38,7 @@ services:
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
+  # Debezium to stream event store changes to kafka
   connect:
     image: quay.io/debezium/connect:2.3
     ports:
@@ -46,6 +53,7 @@ services:
     depends_on:
       - kafka
 
+  # Mongo DB readmodel
   readmodel:
     image: mongo:4.0
     ports:
@@ -54,7 +62,44 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
-  # Mongo Express is a web-based MongoDB admin interface, included for convenience
+  # Dynamo DB readmodel for token generation and privacy notices
+  dynamodb-local:
+    command: "-jar DynamoDBLocal.jar -inMemory -sharedDb"
+    image: amazon/dynamodb-local:2.5.2
+    ports:
+      - 8085:8000
+    volumes:
+      - ./dynamo-db-data:/data
+    working_dir: /home/dynamodblocal
+
+  # Web GUI for dynamodb
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin:4.6.1
+    depends_on:
+      - dynamodb-local
+    restart: always
+    ports:
+      - "8001:8001"
+    environment:
+      - DYNAMO_ENDPOINT=http://dynamodb-local:8000
+      - AWS_REGION=eu-south-1
+
+  # dynamodb migrations and data seed
+  dynamodb-migrations:
+    image: amazon/aws-cli:2.17.44
+    working_dir: /home/dynamodblocal
+    volumes:
+      - ./dynamo-db:/home/dynamodblocal
+    depends_on:
+      - dynamodb-local
+    environment:
+      - AWS_ACCESS_KEY_ID=local
+      - AWS_SECRET_ACCESS_KEY=local
+      - AWS_REGION=eu-south-1
+      - TABLES=privacy-notice,privacy-notice-acceptances,platform-states,token-generation-states
+    entrypoint: ./dynamo-migrations.sh
+
+  # Web GUI for mongo
   mongo-express:
     image: mongo-express:1.0.2-20
     ports:
@@ -69,7 +114,7 @@ services:
       - readmodel
     restart: always
 
-  # PGAdmin is a web-based PostgreSQL admin interface, included for convenience
+  # Web GUI for PostgreSQL
   pg-admin:
     image: dpage/pgadmin4:2024-04-01-1
     ports:
@@ -92,6 +137,8 @@ services:
       chmod 600 /var/lib/pgadmin/storage/root_example.com/pgpass;
       /entrypoint.sh
       "
+
+  # Web GUI for kafka
   kafka-ui:
     container_name: kafka-ui
     image: provectuslabs/kafka-ui:53a6553765a806eda9905c43bfcfe09da6812035
@@ -121,8 +168,9 @@ services:
       - ./minio-data:/data
     restart: always
 
+  # Seed data for MinIO
   minio-seed:
-    image: minio/mc
+    image: minio/mc:RELEASE.2024-02-09T22-18-24Z
     depends_on:
       - minio
     entrypoint: >
@@ -131,6 +179,7 @@ services:
         mc ready minio;
         echo 'MinIO is ready. Seeding data...';
         mc cp --recursive data/ minio/interop-local-bucket/;
+        mc mb minio/interop-datalake-bucket || true;
       "
     volumes:
       - ./minio-seed:/data
@@ -171,50 +220,13 @@ services:
     volumes:
       - ./local-kms-seed/jwks.json:/usr/share/nginx/html/jwks.json
 
+  # Mock for AWS SES
   ses-mock:
     image: node:20
     ports:
       - 8005:8005
     command: "/bin/bash -c 'npm install -g aws-ses-v2-local; aws-ses-v2-local --port=8005 --host=0.0.0.0'"
 
-  # dynamodb-local is a local DynamoDB-compatible database, to replace AWS DynamoDB in local development
-  dynamodb-local:
-    image: amazon/dynamodb-local:2.5.2
-    ports:
-      - 7001:8000
-    volumes:
-      - ./dynamo-db-data:/data
-    working_dir: /home/dynamodblocal
-    command: ["-jar", "DynamoDBLocal.jar", "-inMemory", "-sharedDb"]
-
-  # migration for dynamodb with privacy-notice table
-  migration-dynamodb:
-    image: amazon/aws-cli:2.17.44
-    container_name: migration-dynamodb
-    working_dir: /home/dynamodblocal
-    volumes:
-      - ./dynamo-db:/home/dynamodblocal
-    depends_on:
-      - dynamodb-local
-    environment:
-      - AWS_ACCESS_KEY_ID=local
-      - AWS_SECRET_ACCESS_KEY=local
-      - AWS_REGION=eu-west-1
-      - TABLES=privacy-notice,privacy-notice-acceptances
-    entrypoint: ./dynamo-migrations.sh
-
-  # GUI for DynamoDB Local
-  dynamodb-console:
-    image: aaronshaf/dynamodb-admin:4.6.1
-    container_name: dynamodb-admin
-    depends_on:
-      - dynamodb-local
-    restart: always
-    ports:
-      - "8001:8001"
-    environment:
-      - DYNAMO_ENDPOINT=http://dynamodb-local:8000
-      - AWS_REGION=eu-west-1
   # Redis local cache database used by the RateLimiter
   redis:
     image: "redis:7.2.5-alpine3.20"

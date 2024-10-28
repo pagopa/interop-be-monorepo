@@ -1,23 +1,22 @@
 meta {
   name: Delete Eservice
   type: http
-  seq: 22
+  seq: 21
 }
 
 delete {
-  url: {{host-catalog}}/eservices/:eServiceId
+  url: {{host-catalog}}/eservices/:eserviceId
   body: json
   auth: none
 }
 
 params:path {
-  eServiceId: {{eServiceId}}
+  eserviceId: {{eserviceId}}
 }
 
 headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Accept: application/json
 }
 
 body:json {
@@ -34,10 +33,4 @@ body:json {
           "agreementApprovalPolicy": "MANUAL"
       }
   }
-}
-
-script:pre-request {
-  const random = Math.round(Math.random() * 100)
-  
-  bru.setVar("name",`test name ${random}`)
 }

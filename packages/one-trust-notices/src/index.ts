@@ -1,7 +1,9 @@
-/* eslint-disable no-console */
-
-import { randomUUID } from "crypto";
-import { initFileManager, logger } from "pagopa-interop-commons";
+import {
+  initFileManager,
+  logger,
+  withExecutionTime,
+} from "pagopa-interop-commons";
+import { CorrelationId, generateId } from "../../models/dist/brandedIds.js";
 import { html2json } from "./services/html2json.js";
 import { OneTrustNoticeDBSchema } from "./models/index.js";
 
@@ -11,7 +13,6 @@ import {
   getNoticeContent,
   getVersionedNoticeBucketPath,
   remapOneTrustNoticeVersionToDynamoDBSchemaUpdateObject,
-  withExecutionTime,
 } from "./utils/utils.js";
 import { resolveError } from "./utils/errors.js";
 import { ONE_TRUST_NOTICES } from "./utils/consts.js";
@@ -20,7 +21,7 @@ import { DynamoDbTableClient } from "./services/storage.js";
 
 const loggerInstance = logger({
   serviceName: "one-trust-notices",
-  correlationId: randomUUID(),
+  correlationId: generateId<CorrelationId>(),
 });
 const fileManager = initFileManager(config);
 
@@ -142,4 +143,4 @@ async function main(): Promise<void> {
   loggerInstance.info("Done!.");
 }
 
-await withExecutionTime(main);
+await withExecutionTime(main, loggerInstance);

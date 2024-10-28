@@ -5,8 +5,8 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { TenantId } from "pagopa-interop-models";
-import { toDescriptorWithOnlyAttributes } from "../api/catalogApiConverter.js";
-import { toTenantWithOnlyAttributes } from "../api/tenantApiConverter.js";
+import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
+import { tenantAttributesFromApi } from "../api/tenantApiConverter.js";
 import {
   invalidEServiceRequester,
   notValidDescriptor,
@@ -73,8 +73,8 @@ export function hasCertifiedAttributes(
   return (
     descriptor !== undefined &&
     certifiedAttributesSatisfied(
-      toDescriptorWithOnlyAttributes(descriptor),
-      toTenantWithOnlyAttributes(requesterTenant)
+      descriptorAttributesFromApi(descriptor.attributes),
+      tenantAttributesFromApi(requesterTenant.attributes)
     )
   );
 }

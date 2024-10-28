@@ -1,0 +1,20 @@
+meta {
+  name: Delete tenant
+  type: http
+  seq: 11
+}
+
+delete {
+  url: {{host-tenant}}/maintenance/tenants/:tenantId
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

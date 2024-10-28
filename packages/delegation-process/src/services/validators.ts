@@ -1,4 +1,5 @@
 import {
+  Delegation,
   DelegationKind,
   DelegationState,
   delegationState,
@@ -9,9 +10,13 @@ import {
 } from "pagopa-interop-models";
 import {
   delegationAlreadyExists,
+  delegationNotRevokable,
   delegatorAndDelegateSameIdError,
+  delegatorNotAllowToRevoke,
   eserviceNotFound,
+  incorrectState,
   invalidExternalOriginError,
+  operationRestrictedToDelegate,
   tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../model/domain/errors.js";
@@ -21,6 +26,11 @@ import { ReadModelService } from "./readModelService.js";
 export const delegationNotActivableStates: DelegationState[] = [
   delegationState.rejected,
   delegationState.revoked,
+];
+
+export const activeDelegationStates: DelegationState[] = [
+  delegationState.waitingForApproval,
+  delegationState.active,
 ];
 
 export const assertEserviceExists = async (
@@ -72,6 +82,19 @@ export const assertTenantExists = async (
   }
 };
 
+export const assertDelegationIsRevokable = (
+  delegation: Delegation,
+  expectedDelegatorId: TenantId
+): void => {
+  if (delegation.delegatorId !== expectedDelegatorId) {
+    throw delegatorNotAllowToRevoke(delegation);
+  }
+
+  if (!activeDelegationStates.includes(delegation.state)) {
+    throw delegationNotRevokable(delegation);
+  }
+};
+
 export const assertDelegationNotExists = async (
   delegator: Tenant,
   delegate: Tenant,
@@ -82,7 +105,7 @@ export const assertDelegationNotExists = async (
   const delegatorId = delegator.id;
   const delegateId = delegate.id;
 
-  const delegation = await readModelService.findDelegation({
+  const delegations = await readModelService.findDelegations({
     delegatorId,
     delegateId,
     eserviceId,
@@ -90,13 +113,34 @@ export const assertDelegationNotExists = async (
     states: [delegationState.active, delegationState.waitingForApproval],
   });
 
-  if (delegation) {
+  if (delegations.length > 0) {
     throw delegationAlreadyExists(
       delegatorId,
       delegateId,
       eserviceId,
-      delegation.kind,
-      delegation.id
+      delegationKind
+    );
+  }
+};
+
+export const assertIsDelegate = (
+  delegation: Delegation,
+  delegateId: TenantId
+): void => {
+  if (delegation.delegateId !== delegateId) {
+    throw operationRestrictedToDelegate(delegateId, delegation.id);
+  }
+};
+
+export const assertIsState = (
+  state: DelegationState,
+  delegation: Delegation
+): void => {
+  if (delegation.state !== state) {
+    throw incorrectState(
+      delegation.id,
+      delegation.state,
+      delegationState.waitingForApproval
     );
   }
 };

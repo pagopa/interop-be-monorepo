@@ -97,12 +97,17 @@ const agreementRouter = (
           req.body,
           ctx
         );
-        return res.status(200).send(agreementToApiAgreement(agreement));
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           submitAgreementErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -121,12 +126,17 @@ const agreementRouter = (
           ctx
         );
 
-        return res.status(200).send(agreementToApiAgreement(agreement));
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           activateAgreementErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -148,12 +158,17 @@ const agreementRouter = (
 
         return res
           .status(200)
-          .send(agreementDocumentToApiAgreementDocument(document));
+          .send(
+            agreementApi.Document.parse(
+              agreementDocumentToApiAgreementDocument(document)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           addConsumerDocumentErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -174,12 +189,17 @@ const agreementRouter = (
         );
         return res
           .status(200)
-          .send(agreementDocumentToApiAgreementDocument(document));
+          .send(
+            agreementApi.Document.parse(
+              agreementDocumentToApiAgreementDocument(document)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           getConsumerDocumentErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -203,7 +223,8 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           removeConsumerDocumentErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -221,12 +242,17 @@ const agreementRouter = (
           unsafeBrandId(req.params.agreementId),
           ctx
         );
-        return res.status(200).send(agreementToApiAgreement(agreement));
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           suspendAgreementErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -245,12 +271,17 @@ const agreementRouter = (
           req.body.reason,
           ctx
         );
-        return res.status(200).send(agreementToApiAgreement(agreement));
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           rejectAgreementErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -268,12 +299,17 @@ const agreementRouter = (
           unsafeBrandId(req.params.agreementId),
           ctx
         );
-        return res.status(200).send(agreementToApiAgreement(agreement));
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           archiveAgreementErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -288,12 +324,17 @@ const agreementRouter = (
 
       try {
         const agreement = await agreementService.createAgreement(req.body, ctx);
-        return res.status(200).send(agreementToApiAgreement(agreement));
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           createAgreementErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -331,12 +372,19 @@ const agreementRouter = (
           ctx.logger
         );
 
-        return res.status(200).send({
-          results: agreements.results.map(agreementToApiAgreement),
-          totalCount: agreements.totalCount,
-        });
+        return res.status(200).send(
+          agreementApi.Agreements.parse({
+            results: agreements.results.map(agreementToApiAgreement),
+            totalCount: agreements.totalCount,
+          })
+        );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          () => 500,
+          ctx.logger,
+          ctx.correlationId
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     }
@@ -361,12 +409,19 @@ const agreementRouter = (
           ctx.logger
         );
 
-        return res.status(200).send({
-          results: producers.results,
-          totalCount: producers.totalCount,
-        });
+        return res.status(200).send(
+          agreementApi.CompactOrganizations.parse({
+            results: producers.results,
+            totalCount: producers.totalCount,
+          })
+        );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          () => 500,
+          ctx.logger,
+          ctx.correlationId
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     }
@@ -391,12 +446,19 @@ const agreementRouter = (
           ctx.logger
         );
 
-        return res.status(200).send({
-          results: consumers.results,
-          totalCount: consumers.totalCount,
-        });
+        return res.status(200).send(
+          agreementApi.CompactOrganizations.parse({
+            results: consumers.results,
+            totalCount: consumers.totalCount,
+          })
+        );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          () => 500,
+          ctx.logger,
+          ctx.correlationId
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     }
@@ -420,12 +482,17 @@ const agreementRouter = (
           unsafeBrandId(req.params.agreementId),
           ctx.logger
         );
-        return res.status(200).send(agreementToApiAgreement(agreement));
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           getAgreementErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -448,7 +515,8 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           deleteAgreementErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -468,12 +536,17 @@ const agreementRouter = (
           ctx
         );
 
-        return res.status(200).send(agreementToApiAgreement(agreement));
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           updateAgreementErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -492,12 +565,17 @@ const agreementRouter = (
           ctx
         );
 
-        return res.status(200).send(agreementToApiAgreement(agreement));
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           upgradeAgreementErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -516,12 +594,17 @@ const agreementRouter = (
           ctx
         );
 
-        return res.status(200).send(agreementToApiAgreement(agreement));
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           cloneAgreementErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -546,7 +629,8 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           computeAgreementsStateErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -579,12 +663,19 @@ const agreementRouter = (
           ctx.logger
         );
 
-        return res.status(200).send({
-          results: eservices.results,
-          totalCount: eservices.totalCount,
-        });
+        return res.status(200).send(
+          agreementApi.CompactEServices.parse({
+            results: eservices.results,
+            totalCount: eservices.totalCount,
+          })
+        );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          () => 500,
+          ctx.logger,
+          ctx.correlationId
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     }

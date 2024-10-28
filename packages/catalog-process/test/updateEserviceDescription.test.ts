@@ -13,6 +13,7 @@ import {
   EServiceDescriptionUpdatedV2,
   Delegation,
   delegationState,
+  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -48,7 +49,7 @@ describe("update eService description", () => {
       updatedDescription,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -98,7 +99,7 @@ describe("update eService description", () => {
       updatedDescription,
       {
         authData: getMockAuthData(delegation.delegateId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -133,7 +134,7 @@ describe("update eService description", () => {
         "eservice new description",
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -151,7 +152,7 @@ describe("update eService description", () => {
         "eservice new description",
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -175,7 +176,7 @@ describe("update eService description", () => {
         "eservice new description",
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -192,7 +193,7 @@ describe("update eService description", () => {
         "eservice new description",
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -218,7 +219,7 @@ describe("update eService description", () => {
           "eservice new description",
           {
             authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
+            correlationId: generateId(),
             serviceName: "",
             logger: genericLogger,
           }

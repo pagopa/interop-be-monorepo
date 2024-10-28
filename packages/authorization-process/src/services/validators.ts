@@ -2,6 +2,7 @@ import { userRoles } from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
+  CorrelationId,
   EService,
   ProducerKeychain,
   ProducerKeychainId,
@@ -34,7 +35,7 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   consumerId: TenantId;
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   userIdToCheck: UserId;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): Promise<void> => {
   const users =
     await selfcareV2InstitutionClient.getInstitutionProductUsersUsingGET({

@@ -1,0 +1,26 @@
+meta {
+  name: Update Agreement
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/update
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "consumerNotes": "Updated notes"
+  }
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Add tenant mail
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{host-tenant}}/tenants/:tenantId/mails
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "address": "test@test.com",
+    "kind": "CONTACT_EMAIL"
+  }
+}
