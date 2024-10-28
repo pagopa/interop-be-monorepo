@@ -101,8 +101,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.4-b
-        version: 1.0.4-b
+        specifier: 1.0.6-b
+        version: 1.0.6-b
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -956,8 +956,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.4-b
-        version: 1.0.4-b
+        specifier: 1.0.6-b
+        version: 1.0.6-b
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -1609,6 +1609,149 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/delegation-process:
+    dependencies:
+      '@zodios/core':
+        specifier: 10.9.6
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
+      '@zodios/express':
+        specifier: 10.6.1
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      express:
+        specifier: 4.19.2
+        version: 4.19.2
+      mongodb:
+        specifier: 6.7.0
+        version: 6.7.0
+      openapi-zod-client:
+        specifier: 1.18.1
+        version: 1.18.1
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      uuid:
+        specifier: 10.0.0
+        version: 10.0.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@anatine/zod-mock':
+        specifier: 3.13.4
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8)
+      '@faker-js/faker':
+        specifier: 8.4.1
+        version: 8.4.1
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(typescript@5.4.5)
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      '@types/express':
+        specifier: 4.17.21
+        version: 4.17.21
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      '@types/uuid':
+        specifier: 9.0.8
+        version: 9.0.8
+      date-fns:
+        specifier: 3.6.0
+        version: 3.6.0
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pg-promise:
+        specifier: 11.8.0
+        version: 11.8.0
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/delegation-readmodel-writer:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      uuid:
+        specifier: 10.0.0
+        version: 10.0.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      '@types/uuid':
+        specifier: 9.0.8
+        version: 9.0.8
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
@@ -2331,8 +2474,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.4-b
-        version: 1.0.4-b
+        specifier: 1.0.6-b
+        version: 1.0.6-b
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2657,8 +2800,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.4-b
-        version: 1.0.4-b
+        specifier: 1.0.6-b
+        version: 1.0.6-b
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -6599,8 +6742,8 @@ packages:
       - typescript
     dev: true
 
-  /@pagopa/interop-outbound-models@1.0.4-b:
-    resolution: {integrity: sha512-c1kxjIBCU0gqV2s3bLIdor+fIfvGLZgML2Y26dTdY3ppoXOhJBVTWKVBu5mq8nmZvZj0KnmK7tjeD6NUJjlywg==}
+  /@pagopa/interop-outbound-models@1.0.6-b:
+    resolution: {integrity: sha512-yxGueush6nX1XqU4/WHueJwNcZ56XCNDkz44RPPXLWCJSucLrw9gKO9Mc3kUA/ocGd0mIsLYOCnuRpr42Pw7Iw==}
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
@@ -8336,6 +8479,18 @@ packages:
       axios: 1.7.4
       zod: 3.23.8
 
+  /@zodios/express@10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8):
+    resolution: {integrity: sha512-FNgOq8mvwvWP5B2howMKGm6EPp6i/0XFAsQnX5Ov3MLbanzD1oE4WJtBkTL3cmJYvD0nyykbWSeHOh51bCmhUA==}
+    peerDependencies:
+      '@zodios/core': '>=10.4.4 <11.0.0'
+      express: 4.x
+      zod: ^3.x
+    dependencies:
+      '@zodios/core': 10.9.6(axios@1.7.4)(zod@3.23.8)
+      express: 4.19.2
+      zod: 3.23.8
+    dev: false
+
   /@zodios/express@10.6.1(@zodios/core@10.9.6)(express@4.20.0)(zod@3.23.8):
     resolution: {integrity: sha512-FNgOq8mvwvWP5B2howMKGm6EPp6i/0XFAsQnX5Ov3MLbanzD1oE4WJtBkTL3cmJYvD0nyykbWSeHOh51bCmhUA==}
     peerDependencies:
@@ -8762,6 +8917,26 @@ packages:
       inherits: 2.0.4
       readable-stream: 3.6.2
     dev: true
+
+  /body-parser@1.20.2:
+    resolution: {integrity: sha512-ml9pReCu3M61kGlqoTm2umSXTlRTuGTx0bfYj+uIUKKYycG5NtSbeetV3faSU6R7ajOPw0g/J1PvK4qNy7s5bA==}
+    engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
+    dependencies:
+      bytes: 3.1.2
+      content-type: 1.0.5
+      debug: 2.6.9
+      depd: 2.0.0
+      destroy: 1.2.0
+      http-errors: 2.0.0
+      iconv-lite: 0.4.24
+      on-finished: 2.4.1
+      qs: 6.11.0
+      raw-body: 2.5.2
+      type-is: 1.6.18
+      unpipe: 1.0.0
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
 
   /body-parser@1.20.3:
     resolution: {integrity: sha512-7rAxByjUMqQ3/bHJy7D6OGXvx/MMc4IqBn/X0fcM1QUcAItpZrBEYhWGem+tzXH90c+G01ypMcYJBO9Y30203g==}
@@ -10014,6 +10189,45 @@ packages:
       strip-final-newline: 3.0.0
     dev: true
 
+  /express@4.19.2:
+    resolution: {integrity: sha512-5T6nhjsT+EOMzuck8JjBHARTHfMht0POzlA60WV2pMD3gyXw2LZnZ+ueGdNxG+0calOJcWKbpFcuzLZ91YWq9Q==}
+    engines: {node: '>= 0.10.0'}
+    dependencies:
+      accepts: 1.3.8
+      array-flatten: 1.1.1
+      body-parser: 1.20.2
+      content-disposition: 0.5.4
+      content-type: 1.0.5
+      cookie: 0.6.0
+      cookie-signature: 1.0.6
+      debug: 2.6.9
+      depd: 2.0.0
+      encodeurl: 1.0.2
+      escape-html: 1.0.3
+      etag: 1.8.1
+      finalhandler: 1.2.0
+      fresh: 0.5.2
+      http-errors: 2.0.0
+      merge-descriptors: 1.0.1
+      methods: 1.1.2
+      on-finished: 2.4.1
+      parseurl: 1.3.3
+      path-to-regexp: 0.1.7
+      proxy-addr: 2.0.7
+      qs: 6.11.0
+      range-parser: 1.2.1
+      safe-buffer: 5.2.1
+      send: 0.18.0
+      serve-static: 1.15.0
+      setprototypeof: 1.2.0
+      statuses: 2.0.1
+      type-is: 1.6.18
+      utils-merge: 1.0.1
+      vary: 1.1.2
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
+
   /express@4.20.0:
     resolution: {integrity: sha512-pLdae7I6QqShF5PnNTCVn4hI91Dx0Grkn2+IAsMTgMIKuQVte2dN9PeGSSAME2FR8anOhVA62QDIUaWVfEXVLw==}
     engines: {node: '>= 0.10.0'}
@@ -11150,6 +11364,10 @@ packages:
     engines: {node: '>=16.10'}
     dev: true
 
+  /merge-descriptors@1.0.1:
+    resolution: {integrity: sha512-cCi6g3/Zr1iqQi6ySbseM1Xvooa98N0w31jzUYrXPX2xqObmFGHJ0tQ5u74H3mVh7wLouTseZyYIq39g8cNp1w==}
+    dev: false
+
   /merge-descriptors@1.0.3:
     resolution: {integrity: sha512-gaNvAS7TZ897/rVaZ0nMtAyxNyi/pdbjbAwUpFQpN70GqnVfOiXpeUUMKRBmzXaSQ8DdTX4/0ms62r2K+hE6mQ==}
     dev: false
@@ -11676,6 +11894,10 @@ packages:
 
   /path-to-regexp@0.1.10:
     resolution: {integrity: sha512-7lf7qcQidTku0Gu3YDPc8DJ1q7OOucfa/BSsIwjuh56VU7katFvuM8hULfkwB3Fns/rsVF7PwPKVw1sl5KQS9w==}
+    dev: false
+
+  /path-to-regexp@0.1.7:
+    resolution: {integrity: sha512-5DFkuoqlv1uYQKxy8omFBeJPQcdoE07Kv2sferDCrAq1ohOU+MSDswDIbnx3YAM60qIOnYa53wBhXW0EbMonrQ==}
     dev: false
 
   /path-to-regexp@6.3.0:
@@ -12247,6 +12469,18 @@ packages:
       on-finished: 2.4.1
       range-parser: 1.2.1
       statuses: 2.0.1
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
+
+  /serve-static@1.15.0:
+    resolution: {integrity: sha512-XGuRDNjXUijsUL0vl6nSD7cwURuzEgglbOaFuZM9g3kwDXOWVTck0jLzjPzGD+TazWbboZYu52/9/XPdUgne9g==}
+    engines: {node: '>= 0.8.0'}
+    dependencies:
+      encodeurl: 1.0.2
+      escape-html: 1.0.3
+      parseurl: 1.3.3
+      send: 0.18.0
     transitivePeerDependencies:
       - supports-color
     dev: false
