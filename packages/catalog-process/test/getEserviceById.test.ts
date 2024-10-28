@@ -258,7 +258,7 @@ describe("get eservice by id", () => {
     const result = await catalogService.getEServiceById(eservice.id, {
       authData,
       logger: genericLogger,
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
     });
     expect(result.descriptors).toEqual([descriptorA, descriptorB]);

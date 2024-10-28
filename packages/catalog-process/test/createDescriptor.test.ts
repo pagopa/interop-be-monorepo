@@ -301,7 +301,7 @@ describe("create descriptor", async () => {
       descriptorSeed,
       {
         authData: getMockAuthData(delegation.delegateId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -514,7 +514,7 @@ describe("create descriptor", async () => {
         buildCreateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

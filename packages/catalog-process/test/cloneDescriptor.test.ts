@@ -334,7 +334,7 @@ describe("clone descriptor", () => {
     expect(
       catalogService.cloneDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(delegation.delegateId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })

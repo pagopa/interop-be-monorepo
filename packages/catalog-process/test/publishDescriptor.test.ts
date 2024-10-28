@@ -368,7 +368,7 @@ describe("publish descriptor", () => {
     expect(
       catalogService.publishDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })

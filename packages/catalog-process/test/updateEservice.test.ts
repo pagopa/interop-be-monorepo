@@ -278,7 +278,7 @@ describe("update eService", () => {
       },
       {
         authData: getMockAuthData(delegation.delegateId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -416,7 +416,7 @@ describe("update eService", () => {
         },
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

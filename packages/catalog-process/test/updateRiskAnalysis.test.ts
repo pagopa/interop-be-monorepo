@@ -232,7 +232,7 @@ describe("update risk analysis", () => {
       riskAnalysisUpdatedSeed,
       {
         authData: getMockAuthData(delegation.delegateId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -349,7 +349,7 @@ describe("update risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

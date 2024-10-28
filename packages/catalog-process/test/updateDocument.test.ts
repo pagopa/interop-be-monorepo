@@ -139,7 +139,7 @@ describe("update Document", () => {
         { prettyName: "updated prettyName" },
         {
           authData: getMockAuthData(delegation.delegateId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -253,7 +253,7 @@ describe("update Document", () => {
         { prettyName: "updated prettyName" },
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
