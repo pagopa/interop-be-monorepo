@@ -25,6 +25,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
+  eserviceWithActiveOrPendingDelegation,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -80,7 +81,7 @@ export async function assertNoExistingDelegationInActiveOrPendingState(
   });
 
   if (delegation) {
-    throw operationForbidden;
+    throw eserviceWithActiveOrPendingDelegation(eserviceId, delegation.id);
   }
 }
 
