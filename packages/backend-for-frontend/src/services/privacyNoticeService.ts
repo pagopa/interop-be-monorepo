@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { FileManager, Logger } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
+import { FileManager, Logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
+import { config } from "../config/config.js";
 import {
-  privacyNoticeNotFoundInConfiguration,
   privacyNoticeNotFound,
+  privacyNoticeNotFoundInConfiguration,
   privacyNoticeVersionIsNotTheLatest,
 } from "../model/errors.js";
-import { config } from "../config/config.js";
 import {
   UserPrivacyNotice,
   UserPrivacyNoticeConsentType,
@@ -134,19 +134,18 @@ export function privacyNoticeServiceBuilder(
         `Retrieving privacy notice content for consentType ${consentType}`
       );
 
-      const privacyNoticeId = retrievePrivacyNoticeId(
-        consentType,
-        consentTypeMap
-      );
-
-      const latest = await retrieveLatestPrivacyNoticeVersion(
-        consentType,
-        privacyNoticeId,
-        privacyNoticeStorage,
-        logger
-      );
-
-      const path = `${config.privacyNoticesPath}/${privacyNoticeId}/${latest.privacyNoticeVersion.versionId}/it/${config.privacyNoticesFileName}`;
+      const path = match(consentType)
+        .with(
+          "PP",
+          () =>
+            `${config.privacyNoticesPath}/latest/it/${config.privacyNoticesPPFileName}`
+        )
+        .with(
+          "TOS",
+          () =>
+            `${config.privacyNoticesPath}/latest/it/${config.privacyNoticesTOSFileName}`
+        )
+        .exhaustive();
       const bytes = await fileManager.get(
         config.privacyNoticesContainer,
         path,
