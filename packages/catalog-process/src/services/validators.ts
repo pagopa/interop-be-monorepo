@@ -56,6 +56,9 @@ export function assertRequesterIsProducer(
   producerId: TenantId,
   authData: AuthData
 ): void {
+  if (authData.userRoles.includes("internal")) {
+    return;
+  }
   if (producerId !== authData.organizationId) {
     throw operationForbidden;
   }
