@@ -25,6 +25,25 @@ export function toCreateEventProducerDelegation(
   };
 }
 
+export function toRevokeEventProducerDelegation(
+  delegation: Delegation,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<DelegationEventV2> {
+  return {
+    streamId: delegation.id,
+    version,
+    event: {
+      type: "DelegationRevoked",
+      event_version: 2,
+      data: {
+        delegation: toDelegationV2(delegation),
+      },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventApproveDelegation(
   delegation: WithMetadata<Delegation>,
   correlationId: CorrelationId

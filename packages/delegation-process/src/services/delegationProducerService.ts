@@ -8,23 +8,27 @@ import {
 import {
   CorrelationId,
   Delegation,
+  DelegationId,
   delegationEventToBinaryDataV2,
   delegationKind,
+  delegationState,
   EServiceId,
   generateId,
   Tenant,
+  TenantId,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { DelegationId, TenantId, delegationState } from "pagopa-interop-models";
 import { delegationNotFound, tenantNotFound } from "../model/domain/errors.js";
 import {
-  toCreateEventApproveDelegation,
   toCreateEventProducerDelegation,
+  toRevokeEventProducerDelegation,
+  toCreateEventApproveDelegation,
   toCreateEventRejectDelegation,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
+  assertDelegationIsRevokable,
   assertDelegationNotExists,
   assertDelegatorIsIPA,
   assertDelegatorIsNotDelegate,
@@ -47,7 +51,7 @@ export function delegationProducerServiceBuilder(
     return tenant;
   };
 
-  const getDelegationById = async (
+  const retrieveDelegationById = async (
     delegationId: DelegationId
   ): Promise<WithMetadata<Delegation>> => {
     const delegation = await readModelService.getDelegationById(delegationId);
@@ -111,12 +115,48 @@ export function delegationProducerServiceBuilder(
 
       return delegation;
     },
+    async revokeDelegation(
+      delegationId: DelegationId,
+      { authData, logger, correlationId }: WithLogger<AppContext>
+    ): Promise<Delegation> {
+      const delegatorId = unsafeBrandId<TenantId>(authData.organizationId);
+      logger.info(
+        `Revoking delegation:${delegationId} by producer:${delegatorId}`
+      );
+
+      const currentDelegation = await retrieveDelegationById(delegationId);
+      assertDelegationIsRevokable(currentDelegation.data, delegatorId);
+
+      const now = new Date();
+      const revokedDelegation = {
+        ...currentDelegation.data,
+        state: delegationState.revoked,
+        revokedAt: now,
+        stamps: {
+          ...currentDelegation.data.stamps,
+          revocation: {
+            who: delegatorId,
+            when: now,
+          },
+        },
+      };
+
+      await repository.createEvent(
+        toRevokeEventProducerDelegation(
+          revokedDelegation,
+          currentDelegation.metadata.version,
+          correlationId
+        )
+      );
+
+      return revokedDelegation;
+    },
     async approveProducerDelegation(
       delegateId: TenantId,
       delegationId: DelegationId,
       correlationId: CorrelationId
     ): Promise<void> {
-      const { data: delegation, metadata } = await getDelegationById(
+      const { data: delegation, metadata } = await retrieveDelegationById(
         delegationId
       );
 
@@ -151,7 +191,7 @@ export function delegationProducerServiceBuilder(
       correlationId: CorrelationId,
       rejectionReason: string
     ): Promise<void> {
-      const { data: delegation, metadata } = await getDelegationById(
+      const { data: delegation, metadata } = await retrieveDelegationById(
         delegationId
       );
 

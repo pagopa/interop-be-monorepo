@@ -11,6 +11,7 @@ const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_FORBIDDEN,
+  HTTP_STATUS_UNAUTHORIZED,
 } = constants;
 
 export const getDelegationByIdsrrorMapper = (
@@ -40,11 +41,19 @@ export const getDelegationErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const approveDelegationErrorMapper = (
+export const revokeDelegationErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("delegationNotRevokable", () => HTTP_STATUS_FORBIDDEN)
+    .with("operationNotAllowOnDelegation", () => HTTP_STATUS_UNAUTHORIZED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const approveDelegationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
     .with("operationRestrictedToDelegate", () => HTTP_STATUS_FORBIDDEN)
     .with("incorrectState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

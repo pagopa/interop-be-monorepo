@@ -9,7 +9,6 @@ import {
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
-  CorrelationId,
   Delegation,
   DelegationId,
   delegationKind,
@@ -30,13 +29,15 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 
-import { delegationNotActivableStates } from "../src/services/validators.js";
+import {
+  activeDelegationStates,
+  delegationNotActivableStates,
+} from "../src/services/validators.js";
 import {
   addOneDelegation,
   addOneEservice,
   addOneTenant,
   delegationProducerService,
-  getRandomValidDelegationStatus,
   readLastDelegationEvent,
 } from "./utils.js";
 
@@ -119,7 +120,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: generateId<CorrelationId>(),
+          correlationId: generateId(),
           serviceName: "DelegationServiceTest",
         }
       );
@@ -195,7 +196,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: generateId<CorrelationId>(),
+          correlationId: generateId(),
           serviceName: "DelegationServiceTest",
         }
       );
@@ -221,65 +222,98 @@ describe("create delegation", () => {
     vi.useRealTimers();
   });
 
-  it("should throw an delegationAlreadyExists error when Delegation for eservice producer already exists with for same delegator, delegate and eserivce ", async () => {
-    const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
-    const delegator = {
-      ...getMockTenant(delegatorId),
-      externalId: {
-        origin: "IPA",
-        value: "anythings",
-      },
-    };
-
-    const delegate = {
-      ...getMockTenant(),
-      features: [
-        {
-          type: "DelegatedProducer" as const,
-          availabilityTimestamp: new Date(),
+  it.each(activeDelegationStates)(
+    "should throw an delegationAlreadyExists error when Delegation for eservice producer already exists with for same delegator, delegate and eserivce ",
+    async (validDelegationState) => {
+      const delegatorId = generateId<TenantId>();
+      const authData = getRandomAuthData(delegatorId);
+      const delegator = {
+        ...getMockTenant(delegatorId),
+        externalId: {
+          origin: "IPA",
+          value: "anythings",
         },
-      ],
-    };
-    const eservice = getMockEService();
-    const delegation = {
-      ...getMockDelegationProducer({
-        id: generateId<DelegationId>(),
-        delegatorId,
-        delegateId: delegate.id,
-        eserviceId: eservice.id,
-      }),
-      state: getRandomValidDelegationStatus(),
-    };
+      };
 
-    await addOneTenant(delegate);
-    await addOneTenant(delegator);
-    await addOneEservice(eservice);
-    await addOneDelegation(delegation);
-
-    await expect(
-      delegationProducerService.createProducerDelegation(
-        {
+      const delegate = {
+        ...getMockTenant(),
+        features: [
+          {
+            type: "DelegatedProducer" as const,
+            availabilityTimestamp: new Date(),
+          },
+        ],
+      };
+      const eservice = getMockEService();
+      const existentValidDelegation = {
+        ...getMockDelegationProducer({
+          id: generateId<DelegationId>(),
+          delegatorId,
           delegateId: delegate.id,
           eserviceId: eservice.id,
-        },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId<CorrelationId>(),
-          serviceName: "DelegationServiceTest",
-        }
-      )
-    ).rejects.toThrowError(
-      delegationAlreadyExists(
-        delegatorId,
-        delegate.id,
-        delegation.eserviceId,
-        delegationKind.delegatedProducer,
-        delegation.id
-      )
-    );
-  });
+        }),
+        state: validDelegationState,
+      };
+
+      await addOneTenant(delegate);
+      await addOneTenant(delegator);
+      await addOneEservice(eservice);
+      // Add existent valid delegation for the same delegator, delegate and eservice
+      await addOneDelegation(existentValidDelegation);
+      // Add existent invalid delegation for the same delegator, delegate and eservice
+      await addOneDelegation({
+        ...existentValidDelegation,
+        id: generateId<DelegationId>(),
+        state: validDelegationState,
+      });
+
+      // Add another generic delegation
+      await addOneDelegation(getMockDelegationProducer());
+
+      // Add another delegation with same delegator
+      await addOneDelegation(
+        getMockDelegationProducer({
+          delegatorId,
+        })
+      );
+
+      // Add another delegation with same delegate
+      await addOneDelegation(
+        getMockDelegationProducer({
+          delegateId: delegate.id,
+        })
+      );
+
+      // Add another delegation for the same eservice
+      await addOneDelegation(
+        getMockDelegationProducer({
+          eserviceId: eservice.id,
+        })
+      );
+
+      await expect(
+        delegationProducerService.createProducerDelegation(
+          {
+            delegateId: delegate.id,
+            eserviceId: eservice.id,
+          },
+          {
+            authData,
+            logger: genericLogger,
+            correlationId: generateId(),
+            serviceName: "DelegationServiceTest",
+          }
+        )
+      ).rejects.toThrowError(
+        delegationAlreadyExists(
+          delegatorId,
+          delegate.id,
+          existentValidDelegation.eserviceId,
+          delegationKind.delegatedProducer
+        )
+      );
+    }
+  );
 
   it("should throw an tenantNotFound error if delegated tenant not exists", async () => {
     const delegatorId = generateId<TenantId>();
@@ -299,7 +333,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: generateId<CorrelationId>(),
+          correlationId: generateId(),
           serviceName: "DelegationServiceTest",
         }
       )
@@ -332,7 +366,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: generateId<CorrelationId>(),
+          correlationId: generateId(),
           serviceName: "DelegationServiceTest",
         }
       )
@@ -352,7 +386,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: generateId<CorrelationId>(),
+          correlationId: generateId(),
           serviceName: "DelegationServiceTest",
         }
       )
@@ -392,7 +426,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: generateId<CorrelationId>(),
+          correlationId: generateId(),
           serviceName: "DelegationServiceTest",
         }
       )
@@ -441,7 +475,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: generateId<CorrelationId>(),
+          correlationId: generateId(),
           serviceName: "DelegationServiceTest",
         }
       )
@@ -473,7 +507,7 @@ describe("create delegation", () => {
         {
           authData,
           logger: genericLogger,
-          correlationId: generateId<CorrelationId>(),
+          correlationId: generateId(),
           serviceName: "DelegationServiceTest",
         }
       )
