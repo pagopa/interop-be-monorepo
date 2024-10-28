@@ -32,6 +32,15 @@ describe("getProducerKeychainUsers", async () => {
       organizationId,
       logger: genericLogger,
     });
+
+    const users = await mockClientRouterRequest.get({
+      path: "/clients/:clientId/users",
+      pathParams: { clientId: mockClient.id },
+      authData: getMockAuthData(organizationId),
+    });
+
+
+
     expect(users).toEqual([userId1, userId2]);
   });
   it("should throw producerKeychainNotFound if the producer keychain with the specified Id doesn't exist", async () => {

@@ -7,13 +7,12 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
-  getRandomAuthData,
   getMockProducerKeychain,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
-import { AuthData, genericLogger, userRoles } from "pagopa-interop-commons";
+import { AuthData, userRoles } from "pagopa-interop-commons";
 import { producerKeychainToApiProducerKeychain } from "../src/model/domain/apiConverter.js";
-import { addOneProducerKeychain, authorizationService } from "./utils.js";
+import { addOneProducerKeychain } from "./utils.js";
 import { mockProducerKeyChainRouterRequest } from "./supertestSetup.js";
 
 describe("getProducerKeychains", async () => {
@@ -138,65 +137,75 @@ describe("getProducerKeychains", async () => {
     };
     await addOneProducerKeychain(mockProducerKeychain9);
 
-    const result = await authorizationService.getProducerKeychains({
-      filters: {
-        name: "",
+    const result = await mockProducerKeyChainRouterRequest.get({
+      path: "/producerKeychains",
+      queryParams: {
         userIds: [userId5, userId6],
         producerId,
         eserviceId: undefined,
+        offset: 0,
+        limit: 50,
       },
-      authData: {
-        ...getRandomAuthData(producerId),
-        userRoles: [userRoles.INTERNAL_ROLE],
-        userId: generateId(),
-      },
-      offset: 0,
-      limit: 50,
-      logger: genericLogger,
+      authData: getMockAuthData(producerId),
     });
 
     expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([mockProducerKeychain9]);
+    expect(result.results).toEqual([
+      producerKeychainToApiProducerKeychain(mockProducerKeychain9, {
+        showUsers: true,
+      }),
+    ]);
   });
   it("should get the producer keychains if they exist (parameters: producerId)", async () => {
     await addOneProducerKeychain(mockProducerKeychain1);
     await addOneProducerKeychain(mockProducerKeychain2);
-    const result = await authorizationService.getProducerKeychains({
-      filters: {
+
+    const result = await mockProducerKeyChainRouterRequest.get({
+      path: "/producerKeychains",
+      queryParams: {
         userIds: [],
         producerId,
         eserviceId: undefined,
+        offset: 0,
+        limit: 50,
       },
-      authData: getRandomAuthData(producerId),
-      offset: 0,
-      limit: 50,
-      logger: genericLogger,
+      authData: getMockAuthData(producerId),
     });
+
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([
-      mockProducerKeychain1,
-      mockProducerKeychain2,
+      producerKeychainToApiProducerKeychain(mockProducerKeychain1, {
+        showUsers: false,
+      }),
+      producerKeychainToApiProducerKeychain(mockProducerKeychain2, {
+        showUsers: false,
+      }),
     ]);
   });
   it("should get the producer keychains if they exist (parameters: eserviceId)", async () => {
     await addOneProducerKeychain(mockProducerKeychain5);
     await addOneProducerKeychain(mockProducerKeychain6);
 
-    const result = await authorizationService.getProducerKeychains({
-      filters: {
+    const result = await mockProducerKeyChainRouterRequest.get({
+      path: "/producerKeychains",
+      queryParams: {
         userIds: [],
         producerId,
         eserviceId,
+        offset: 0,
+        limit: 50,
       },
-      authData: getRandomAuthData(producerId),
-      offset: 0,
-      limit: 50,
-      logger: genericLogger,
+      authData: getMockAuthData(producerId),
     });
+
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([
-      mockProducerKeychain5,
-      mockProducerKeychain6,
+      producerKeychainToApiProducerKeychain(mockProducerKeychain5, {
+        showUsers: false,
+      }),
+      producerKeychainToApiProducerKeychain(mockProducerKeychain6, {
+        showUsers: false,
+      }),
     ]);
   });
   it("should get the producer keychains if they exist (pagination: offset)", async () => {
@@ -217,20 +226,25 @@ describe("getProducerKeychains", async () => {
     await addOneProducerKeychain(mockProducerKeychainForOffset1);
     await addOneProducerKeychain(mockProducerKeychainForOffset2);
 
-    const result = await authorizationService.getProducerKeychains({
-      filters: {
+    const result = await mockProducerKeyChainRouterRequest.get({
+      path: "/producerKeychains",
+      queryParams: {
         userIds: [userId1, userId2, userId3, userId4],
         producerId,
         eserviceId: undefined,
+        offset: 2,
+        limit: 50,
       },
-      authData: getRandomAuthData(producerId),
-      offset: 2,
-      limit: 50,
-      logger: genericLogger,
+      authData: getMockAuthData(producerId),
     });
+
     expect(result.results).toEqual([
-      mockProducerKeychainForOffset1,
-      mockProducerKeychainForOffset2,
+      producerKeychainToApiProducerKeychain(mockProducerKeychainForOffset1, {
+        showUsers: true,
+      }),
+      producerKeychainToApiProducerKeychain(mockProducerKeychainForOffset2, {
+        showUsers: true,
+      }),
     ]);
   });
   it("should get the producer keychains if they exist (pagination: limit)", async () => {
@@ -250,35 +264,42 @@ describe("getProducerKeychains", async () => {
     await addOneProducerKeychain(mockProducerKeychainForLimit1);
     await addOneProducerKeychain(mockProducerKeychainForLimit2);
 
-    const result = await authorizationService.getProducerKeychains({
-      filters: {
+    const result = await mockProducerKeyChainRouterRequest.get({
+      path: "/producerKeychains",
+      queryParams: {
         userIds: [userId1, userId2, userId3, userId4],
         producerId,
         eserviceId: undefined,
+        offset: 0,
+        limit: 2,
       },
-      authData: getRandomAuthData(producerId),
-      offset: 0,
-      limit: 2,
-      logger: genericLogger,
+      authData: getMockAuthData(producerId),
     });
+
     expect(result.results).toEqual([
-      mockProducerKeychain3,
-      mockProducerKeychain4,
+      producerKeychainToApiProducerKeychain(mockProducerKeychain3, {
+        showUsers: true,
+      }),
+      producerKeychainToApiProducerKeychain(mockProducerKeychain4, {
+        showUsers: true,
+      }),
     ]);
   });
   it("should not get the producer keychains if they don't exist", async () => {
     await addOneProducerKeychain(mockProducerKeychain1);
-    const result = await authorizationService.getProducerKeychains({
-      filters: {
+
+    const result = await mockProducerKeyChainRouterRequest.get({
+      path: "/producerKeychains",
+      queryParams: {
         userIds: [],
         producerId: generateId(),
         eserviceId: undefined,
+        offset: 0,
+        limit: 50,
       },
-      authData: getRandomAuthData(producerId),
-      offset: 0,
-      limit: 50,
-      logger: genericLogger,
+      authData: getMockAuthData(producerId),
     });
+
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
   });
@@ -299,22 +320,40 @@ describe("getProducerKeychains", async () => {
     await addOneProducerKeychain(completeProducerKeychain1);
     await addOneProducerKeychain(completeProducerKeychain2);
 
-    const result = await authorizationService.getProducerKeychains({
-      filters: {
+    // const result = await authorizationService.getProducerKeychains({
+    //   filters: {
+    //     name: "Test producer keychain",
+    //     userIds: [userId1, userId2],
+    //     producerId,
+    //     eserviceId,
+    //   },
+    //   authData: getRandomAuthData(producerId),
+    //   offset: 0,
+    //   limit: 50,
+    //   logger: genericLogger,
+    // });
+
+    const result = await mockProducerKeyChainRouterRequest.get({
+      path: "/producerKeychains",
+      queryParams: {
         name: "Test producer keychain",
         userIds: [userId1, userId2],
         producerId,
         eserviceId,
+        offset: 0,
+        limit: 50,
       },
-      authData: getRandomAuthData(producerId),
-      offset: 0,
-      limit: 50,
-      logger: genericLogger,
+      authData: getMockAuthData(producerId),
     });
+
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([
-      completeProducerKeychain1,
-      completeProducerKeychain2,
+      producerKeychainToApiProducerKeychain(completeProducerKeychain1, {
+        showUsers: true,
+      }),
+      producerKeychainToApiProducerKeychain(completeProducerKeychain2, {
+        showUsers: true,
+      }),
     ]);
   });
 });
