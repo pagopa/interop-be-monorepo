@@ -118,7 +118,7 @@ describe("getClients", async () => {
       clientToApiClient(mockClient7, { showUsers: true }),
     ]);
   });
-  it.only("should get the clients if they exist (parameters: userIds taken from the filter)", async () => {
+  it("should get the clients if they exist (parameters: userIds taken from the filter)", async () => {
     const userId5: UserId = generateId();
     const userId6: UserId = generateId();
 

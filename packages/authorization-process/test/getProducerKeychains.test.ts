@@ -320,19 +320,6 @@ describe("getProducerKeychains", async () => {
     await addOneProducerKeychain(completeProducerKeychain1);
     await addOneProducerKeychain(completeProducerKeychain2);
 
-    // const result = await authorizationService.getProducerKeychains({
-    //   filters: {
-    //     name: "Test producer keychain",
-    //     userIds: [userId1, userId2],
-    //     producerId,
-    //     eserviceId,
-    //   },
-    //   authData: getRandomAuthData(producerId),
-    //   offset: 0,
-    //   limit: 50,
-    //   logger: genericLogger,
-    // });
-
     const result = await mockProducerKeyChainRouterRequest.get({
       path: "/producerKeychains",
       queryParams: {

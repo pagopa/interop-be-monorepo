@@ -7,7 +7,10 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { getMockProducerKeychain } from "pagopa-interop-commons-test";
+import {
+  getMockAuthData,
+  getMockProducerKeychain,
+} from "pagopa-interop-commons-test";
 import { producerKeychainNotFound } from "../src/model/domain/errors.js";
 import { producerKeychainToApiProducerKeychain } from "../src/model/domain/apiConverter.js";
 import { addOneProducerKeychain, authorizationService } from "./utils.js";
@@ -27,13 +30,18 @@ describe("getProducerKeychainById", async () => {
     };
     await addOneProducerKeychain(expectedProducerKeychain);
 
-    const { producerKeychain } =
-      await authorizationService.getProducerKeychainById({
+    const producerKeychain = await mockProducerKeyChainRouterRequest.get({
+      path: "/producerKeychains/:producerKeychainId",
+      pathParams: {
         producerKeychainId: expectedProducerKeychain.id,
-        organizationId,
-        logger: genericLogger,
-      });
-    expect(producerKeychain).toEqual(expectedProducerKeychain);
+      },
+      authData: getMockAuthData(organizationId),
+    });
+    expect(producerKeychain).toEqual(
+      producerKeychainToApiProducerKeychain(expectedProducerKeychain, {
+        showUsers: true,
+      })
+    );
   });
   it("should get from the readModel the producer keychain with the specified Id without users", async () => {
     const expectedProducerKeychainWithoutUser: ProducerKeychain = {
@@ -49,6 +57,7 @@ describe("getProducerKeychainById", async () => {
       pathParams: {
         producerKeychainId: expectedProducerKeychainWithoutUser.id,
       },
+      authData: getMockAuthData(organizationId),
     });
 
     expect(producerKeychain).toEqual(
