@@ -28,4 +28,4 @@ async function processMessage({ batch }: EachBatchPayload): Promise<void> {
   );
 }
 
-await runBatchConsumer(config, [config.s3Bucket], processMessage);
+await runBatchConsumer(config, [config.tokenAuditingTopic], processMessage);
