@@ -126,7 +126,7 @@ describe("activatePurposeVersion", () => {
     vi.useRealTimers();
   });
 
-  it.only("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
+  it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
@@ -174,7 +174,7 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.purpose).toEqual(expectedPurpose);
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
   });
 
   it("should write on event-store for the activation of a purpose version in suspended from consumer state", async () => {
@@ -196,22 +196,22 @@ describe("activatePurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
-    // const purposeVersion = await purposeService.activatePurposeVersion({
-    //   purposeId: mockPurpose.id,
-    //   versionId: mockPurposeVersion.id,
-    //   organizationId: mockConsumer.id,
-    //   correlationId: generateId(),
-    //   logger: genericLogger,
-    // });
-
-    const purposeVersion = await mockPurposeRouterRequest.post({
-      path: "/purposes/:purposeId/versions/:versionId/activate",
-      pathParams: {
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-      },
-      authData: getMockAuthData(mockConsumer.id),
+    const purposeVersion = await purposeService.activatePurposeVersion({
+      purposeId: mockPurpose.id,
+      versionId: mockPurposeVersion.id,
+      organizationId: mockConsumer.id,
+      correlationId: generateId(),
+      logger: genericLogger,
     });
+
+    // const purposeVersion = await mockPurposeRouterRequest.post({
+    //   path: "/purposes/:purposeId/versions/:versionId/activate",
+    //   pathParams: {
+    //     purposeId: mockPurpose.id,
+    //     versionId: mockPurposeVersion.id,
+    //   },
+    //   authData: getMockAuthData(mockConsumer.id),
+    // });
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
