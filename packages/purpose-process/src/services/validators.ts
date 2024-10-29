@@ -23,6 +23,8 @@ import {
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
+  organizationIsNotTheProducer,
+  organizationNotAllowed,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
@@ -248,3 +250,56 @@ export async function isOverQuota(
     allPurposesRequestsSum + dailyCalls <= maxDailyCallsTotal
   );
 }
+
+export const assertRequesterIsAllowedInPurpose = async ({
+  eserviceId,
+  organizationId,
+  producerId,
+  consumerId,
+  readModelService,
+}: {
+  eserviceId: EServiceId;
+  organizationId: TenantId;
+  producerId: TenantId;
+  consumerId: TenantId;
+  readModelService: ReadModelService;
+}): Promise<void> => {
+  if (organizationId === producerId || organizationId === consumerId) {
+    return;
+  }
+
+  const activeDelegation = await readModelService.getActiveDelegation(
+    eserviceId
+  );
+
+  if (activeDelegation && organizationId === activeDelegation.delegateId) {
+    return;
+  }
+
+  throw organizationNotAllowed(organizationId);
+};
+
+export const assertRequesterIsProducer = async ({
+  eserviceId,
+  organizationId,
+  producerId,
+  readModelService,
+}: {
+  eserviceId: EServiceId;
+  organizationId: TenantId;
+  producerId: TenantId;
+  readModelService: ReadModelService;
+}): Promise<void> => {
+  const activeDelegation = await readModelService.getActiveDelegation(
+    eserviceId
+  );
+
+  if (
+    (activeDelegation && organizationId === activeDelegation.delegateId) ||
+    (!activeDelegation && organizationId === producerId)
+  ) {
+    return;
+  }
+
+  throw organizationIsNotTheProducer(organizationId);
+};
