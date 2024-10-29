@@ -780,7 +780,8 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             approveDelegatedEServiceDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
           return res.status(errorRes.status).send(errorRes);
         }

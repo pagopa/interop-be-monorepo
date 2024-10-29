@@ -760,6 +760,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error approving eService ${req.params.eServiceId} version ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);

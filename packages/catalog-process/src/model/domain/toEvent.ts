@@ -484,7 +484,7 @@ export const toCreateEventEServiceDescriptorDelegateSubmitted = (
   version: number,
   descriptorId: DescriptorId,
   eservice: EService,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
   version,
@@ -503,7 +503,7 @@ export const toCreateEventEServiceDescriptorDelegatorApproved = (
   version: number,
   descriptorId: DescriptorId,
   eservice: EService,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
   version,
