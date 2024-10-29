@@ -484,4 +484,33 @@ describe("getPurposes", async () => {
       { ...mockPurpose9, riskAnalysisForm: undefined },
     ]);
   });
+  it("should get the correct purpose if the producersIds param is passed but the caller has no e-service", async () => {
+    await purposes.deleteMany({});
+    await eservices.deleteMany({});
+
+    await writeInReadmodel(toReadModelEService(mockEService4), eservices);
+
+    const mockPurpose8: Purpose = {
+      ...getMockPurpose(),
+      title: "purpose 8",
+      riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+      eserviceId: mockEService4.id,
+    };
+    await addOnePurpose(mockPurpose8);
+
+    const result = await purposeService.getPurposes(
+      producerId1,
+      {
+        eservicesIds: [],
+        consumersIds: [],
+        producersIds: [producerId1],
+        states: [],
+        excludeDraft: false,
+      },
+      { offset: 0, limit: 50 },
+      genericLogger
+    );
+    expect(result.totalCount).toBe(0);
+    expect(result.results).toEqual([]);
+  });
 });

@@ -8,5 +8,5 @@ services=local
 kms=
   endpoint_url=http://localhost:4566
 
-dynamodb= 
-  endpoint_url=http://localhost:7001
+dynamodb=
+  endpoint_url=http://localhost:8085

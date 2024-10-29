@@ -1,0 +1,26 @@
+meta {
+  name: delete Purpose
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{host-bff}}/purposes/:purposeId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: f756dfca-5217-4de1-ad10-60d2cee9ff9f
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Deletes a specific purpose if there are no version and just a draft version or a waiting for approval version
+}

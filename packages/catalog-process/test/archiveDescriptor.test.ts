@@ -14,6 +14,7 @@ import {
   operationForbidden,
   delegationState,
   Delegation,
+  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -48,7 +49,7 @@ describe("archive descriptor", () => {
     await addOneEService(eservice);
     await catalogService.archiveDescriptor(eservice.id, descriptor.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -63,7 +64,7 @@ describe("archive descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       state: descriptorState.archived,
       archivedAt: new Date(
@@ -73,7 +74,7 @@ describe("archive descriptor", () => {
 
     const expectedEService = toEServiceV2({
       ...eservice,
-      descriptors: [updatedDescriptor],
+      descriptors: [expectedDescriptor],
     });
     expect(writtenPayload.eservice).toEqual(expectedEService);
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
@@ -104,7 +105,7 @@ describe("archive descriptor", () => {
 
     await catalogService.archiveDescriptor(eservice.id, descriptor.id, {
       authData: getMockAuthData(delegate.organizationId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -119,7 +120,7 @@ describe("archive descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       state: descriptorState.archived,
       archivedAt: new Date(
@@ -129,7 +130,7 @@ describe("archive descriptor", () => {
 
     const expectedEService = toEServiceV2({
       ...eservice,
-      descriptors: [updatedDescriptor],
+      descriptors: [expectedDescriptor],
     });
     expect(writtenPayload.eservice).toEqual(expectedEService);
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
@@ -139,7 +140,7 @@ describe("archive descriptor", () => {
     expect(
       catalogService.archiveDescriptor(mockEService.id, mockDescriptor.id, {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -156,7 +157,7 @@ describe("archive descriptor", () => {
     expect(
       catalogService.archiveDescriptor(eservice.id, mockDescriptor.id, {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -178,7 +179,7 @@ describe("archive descriptor", () => {
     expect(
       catalogService.archiveDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -206,7 +207,7 @@ describe("archive descriptor", () => {
     expect(
       catalogService.archiveDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })

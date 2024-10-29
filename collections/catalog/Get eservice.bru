@@ -1,7 +1,7 @@
 meta {
   name: Get eservice
   type: http
-  seq: 2
+  seq: 4
 }
 
 get {
@@ -11,19 +11,15 @@ get {
 }
 
 params:path {
-  eserviceId: {{eServiceId}}
+  eserviceId: {{eserviceId}}
 }
 
 headers {
-  Content-Type: application/json
-  Accept: */*
-  Accept-Encoding: gzip, deflate, br
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Content-Type: application/json
-  ~Connection: keep-alive
 }
 
 vars:post-response {
-  riskAnalysisId: res.body.riskAnalysis[0].id
+  riskAnalysisId: res.body.riskAnalysis.at(-1).id
+  descriptorId: res.body.descriptors.at(-1).id
 }

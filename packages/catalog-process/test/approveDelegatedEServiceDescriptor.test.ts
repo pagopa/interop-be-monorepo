@@ -64,7 +64,7 @@ describe("publish descriptor", () => {
       descriptor.id,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -121,7 +121,7 @@ describe("publish descriptor", () => {
       descriptor2.id,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -196,7 +196,7 @@ describe("publish descriptor", () => {
       descriptor2.id,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -242,7 +242,7 @@ describe("publish descriptor", () => {
         mockDescriptor.id,
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -262,7 +262,7 @@ describe("publish descriptor", () => {
         mockDescriptor.id,
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -288,7 +288,7 @@ describe("publish descriptor", () => {
         descriptor.id,
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -320,7 +320,7 @@ describe("publish descriptor", () => {
         descriptor.id,
         {
           authData: getMockAuthData(delegation.delegateId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -351,7 +351,7 @@ describe("publish descriptor", () => {
           descriptor.id,
           {
             authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
+            correlationId: generateId(),
             serviceName: "",
             logger: genericLogger,
           }

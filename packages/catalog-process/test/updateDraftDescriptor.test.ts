@@ -61,7 +61,7 @@ describe("update draft descriptor", () => {
     };
     await addOneAttribute(attribute);
 
-    const updatedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
       ...buildUpdateDescriptorSeed(descriptor),
       dailyCallsTotal: 200,
       attributes: {
@@ -92,10 +92,10 @@ describe("update draft descriptor", () => {
     await catalogService.updateDraftDescriptor(
       eservice.id,
       descriptor.id,
-      updatedDescriptorSeed,
+      expectedDescriptorSeed,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -139,7 +139,7 @@ describe("update draft descriptor", () => {
     };
     await addOneAttribute(attribute);
 
-    const updatedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
       ...buildUpdateDescriptorSeed(descriptor),
       dailyCallsTotal: 200,
       attributes: {
@@ -170,10 +170,10 @@ describe("update draft descriptor", () => {
     await catalogService.updateDraftDescriptor(
       eservice.id,
       descriptor.id,
-      updatedDescriptorSeed,
+      expectedDescriptorSeed,
       {
         authData: getMockAuthData(delegation.delegateId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -205,7 +205,7 @@ describe("update draft descriptor", () => {
         buildUpdateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -227,7 +227,7 @@ describe("update draft descriptor", () => {
         buildUpdateDescriptorSeed(mockDescriptor),
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -256,7 +256,7 @@ describe("update draft descriptor", () => {
         buildUpdateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -285,7 +285,7 @@ describe("update draft descriptor", () => {
         buildUpdateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -314,7 +314,7 @@ describe("update draft descriptor", () => {
         buildUpdateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -343,7 +343,7 @@ describe("update draft descriptor", () => {
         buildUpdateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -364,7 +364,7 @@ describe("update draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       dailyCallsTotal: 200,
     };
@@ -372,10 +372,10 @@ describe("update draft descriptor", () => {
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        buildUpdateDescriptorSeed(updatedDescriptor),
+        buildUpdateDescriptorSeed(expectedDescriptor),
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -402,7 +402,7 @@ describe("update draft descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       dailyCallsTotal: 200,
     };
@@ -410,10 +410,10 @@ describe("update draft descriptor", () => {
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        buildUpdateDescriptorSeed(updatedDescriptor),
+        buildUpdateDescriptorSeed(expectedDescriptor),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -432,7 +432,7 @@ describe("update draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptor: Descriptor = {
+    const expectedDescriptor: Descriptor = {
       ...descriptor,
       dailyCallsPerConsumer: 100,
       dailyCallsTotal: 50,
@@ -441,10 +441,10 @@ describe("update draft descriptor", () => {
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        buildUpdateDescriptorSeed(updatedDescriptor),
+        buildUpdateDescriptorSeed(expectedDescriptor),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -507,7 +507,7 @@ describe("update draft descriptor", () => {
         descriptorSeed,
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

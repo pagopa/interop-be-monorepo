@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   getMockValidRiskAnalysis,
   writeInReadmodel,
+  toEServiceV1,
+  toDocumentV1,
+  toDescriptorV1,
 } from "pagopa-interop-commons-test";
 import {
   AttributeId,
@@ -55,11 +58,6 @@ import {
 import { format } from "date-fns";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import {
-  toEServiceV1,
-  toDocumentV1,
-  toDescriptorV1,
-} from "./protobufConverterToV1.js";
 import { eservices } from "./utils.js";
 
 describe("database test", async () => {
@@ -229,14 +227,14 @@ describe("database test", async () => {
         descriptors: [descriptor],
       };
       await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-      const updatedDescriptor = {
+      const expectedDescriptor = {
         ...descriptor,
         attributes,
       };
       const updatedEService: EService = {
         ...mockEService,
         attributes: undefined,
-        descriptors: [updatedDescriptor],
+        descriptors: [expectedDescriptor],
       };
       const payload: MovedAttributesFromEserviceToDescriptorsV1 = {
         eservice: toEServiceV1(updatedEService),

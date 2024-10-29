@@ -1,0 +1,25 @@
+meta {
+  name: Tenants
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-tenant}}/tenants?offset=0&limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 50
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  tenantId: res.body.results[0].id
+}

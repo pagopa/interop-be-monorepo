@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/immutable-data */
 import { fail } from "assert";
-import { randomUUID } from "crypto";
 import {
   formatDateyyyyMMddHHmmss,
   genericLogger,
@@ -185,7 +184,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -213,7 +212,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -247,7 +246,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -286,7 +285,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -322,7 +321,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -365,7 +364,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -406,7 +405,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -455,7 +454,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -504,7 +503,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -575,7 +574,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -634,7 +633,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -684,7 +683,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -732,7 +731,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -788,7 +787,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -845,7 +844,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -901,7 +900,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -958,7 +957,7 @@ describe("submit agreement", () => {
         { consumerNotes: "This is a test" },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -1051,7 +1050,7 @@ describe("submit agreement", () => {
         },
         {
           authData,
-          correlationId: randomUUID(),
+          correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
         }
@@ -1175,7 +1174,7 @@ describe("submit agreement", () => {
       },
       {
         authData,
-        correlationId: randomUUID(),
+        correlationId: generateId(),
         serviceName: "AgreementServiceTest",
         logger: genericLogger,
       }
@@ -1367,7 +1366,7 @@ describe("submit agreement", () => {
       },
       {
         authData,
-        correlationId: randomUUID(),
+        correlationId: generateId(),
         serviceName: "AgreementServiceTest",
         logger: genericLogger,
       }
@@ -1572,7 +1571,7 @@ describe("submit agreement", () => {
       },
       {
         authData,
-        correlationId: randomUUID(),
+        correlationId: generateId(),
         serviceName: "AgreementServiceTest",
         logger: genericLogger,
       }
@@ -1785,7 +1784,7 @@ describe("submit agreement", () => {
       },
       {
         authData,
-        correlationId: randomUUID(),
+        correlationId: generateId(),
         serviceName: "AgreementServiceTest",
         logger: genericLogger,
       }
@@ -1974,7 +1973,7 @@ describe("submit agreement", () => {
       },
       {
         authData,
-        correlationId: randomUUID(),
+        correlationId: generateId(),
         serviceName: "AgreementServiceTest",
         logger: genericLogger,
       }
@@ -2126,7 +2125,7 @@ describe("submit agreement", () => {
       },
       {
         authData,
-        correlationId: randomUUID(),
+        correlationId: generateId(),
         serviceName: "AgreementServiceTest",
         logger: genericLogger,
       }

@@ -1,0 +1,19 @@
+meta {
+  name: Get JWK
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-api-gw}}/keys/:kid
+  body: none
+  auth: none
+}
+
+params:path {
+  kid: {{keyId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

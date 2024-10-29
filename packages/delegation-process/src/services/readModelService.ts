@@ -1,5 +1,5 @@
+import { Filter, WithId } from "mongodb";
 import {
-  DelegationCollection,
   EServiceCollection,
   ReadModelFilter,
   ReadModelRepository,
@@ -7,24 +7,22 @@ import {
 import {
   Delegation,
   DelegationId,
+  DelegationKind,
+  DelegationState,
   EService,
   EServiceId,
   EServiceReadModel,
-  DelegationKind,
-  DelegationReadModel,
-  DelegationState,
-  TenantId,
-  WithMetadata,
   genericInternalError,
   Tenant,
+  TenantId,
+  WithMetadata,
 } from "pagopa-interop-models";
-import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 import { GetDelegationsFilters } from "../model/domain/models.js";
 
 const toReadModelFilter = (
   filters: GetDelegationsFilters
-): Filter<WithId<WithMetadata<DelegationReadModel>>> => {
+): ReadModelFilter<Delegation> => {
   const { delegateId, delegatorId, eserviceId, delegationKind, states } =
     filters;
 
@@ -102,16 +100,19 @@ export function readModelServiceBuilder(
         };
       }
     },
-    async getDelegation(
-      delegations: DelegationCollection,
-      filter: Filter<WithId<WithMetadata<DelegationReadModel>>>
-    ): Promise<Delegation | undefined> {
-      const data = await delegations.findOne(filter, {
-        projection: { data: true, metadata: true },
-      });
+    async getDelegationById(
+      id: DelegationId
+    ): Promise<WithMetadata<Delegation> | undefined> {
+      const data = await delegations.findOne(
+        { "data.id": id },
+        {
+          projection: { data: true, metadata: true },
+        }
+      );
       if (!data) {
         return undefined;
       }
+
       const result = Delegation.safeParse(data.data);
       if (!result.success) {
         throw genericInternalError(
@@ -120,15 +121,32 @@ export function readModelServiceBuilder(
           )} - data ${JSON.stringify(data)} `
         );
       }
-      return result.data;
+      return data;
     },
-    async getDelegationById(id: DelegationId): Promise<Delegation | undefined> {
-      return this.getDelegation(delegations, { "data.id": id });
-    },
-    async findDelegation(
+    async findDelegations(
       filters: GetDelegationsFilters
-    ): Promise<Delegation | undefined> {
-      return this.getDelegation(delegations, toReadModelFilter(filters));
+    ): Promise<Delegation[]> {
+      const results = await delegations
+        .aggregate([{ $match: toReadModelFilter(filters) }], {
+          allowDiskUse: true,
+        })
+        .toArray();
+
+      if (!results) {
+        return [];
+      }
+
+      return results.map((res) => {
+        const result = Delegation.safeParse(res.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse delegation item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(res)} `
+          );
+        }
+        return result.data;
+      });
     },
     async getEServiceById(
       id: EServiceId

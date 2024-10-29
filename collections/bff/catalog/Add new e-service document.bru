@@ -1,0 +1,30 @@
+meta {
+  name: Add new e-service document
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/eservices/:eServiceId/descriptors/:descriptorId/documents
+  body: multipartForm
+  auth: none
+}
+
+params:path {
+  eServiceId: 26f433e1-2c3c-4022-a14e-3c300baefc51
+  descriptorId: abafb202-4f61-42bf-be2f-4efa5d4d0bc4
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: multipart/form-data
+}
+
+
+
+body:multipart-form {
+  kind: INTERFACE
+  prettyName: asdasd
+  doc: @file(/Users/ecamel/Downloads/Interfaccia.yaml)
+}

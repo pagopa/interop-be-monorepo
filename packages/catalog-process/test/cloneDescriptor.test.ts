@@ -128,7 +128,7 @@ describe("clone descriptor", () => {
       descriptor.id,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -242,7 +242,7 @@ describe("clone descriptor", () => {
     await expect(
       catalogService.cloneDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -278,7 +278,7 @@ describe("clone descriptor", () => {
     expect(
       catalogService.cloneDescriptor(eservice1.id, descriptor.id, {
         authData: getMockAuthData(eservice1.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -288,7 +288,7 @@ describe("clone descriptor", () => {
     expect(
       catalogService.cloneDescriptor(mockEService.id, mockDescriptor.id, {
         authData: getMockAuthData(),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -307,7 +307,7 @@ describe("clone descriptor", () => {
     expect(
       catalogService.cloneDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -334,7 +334,7 @@ describe("clone descriptor", () => {
     expect(
       catalogService.cloneDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(delegation.delegateId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -349,7 +349,7 @@ describe("clone descriptor", () => {
     expect(
       catalogService.cloneDescriptor(mockEService.id, mockDescriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
