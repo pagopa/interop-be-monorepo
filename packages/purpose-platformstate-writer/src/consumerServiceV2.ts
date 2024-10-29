@@ -96,30 +96,41 @@ export async function handleMessageV2(
           msg.data.versionId
         );
 
-        if (
-          !existingPurposeEntry ||
-          existingPurposeEntry.version > msg.version
-        ) {
-          // Stops processing if the message is older than the purpose entry or if it doesn't exist
-          return Promise.resolve();
+        if (existingPurposeEntry) {
+          if (existingPurposeEntry.version > msg.version) {
+            // Stops processing if the message is older than the purpose entry
+            return Promise.resolve();
+          } else {
+            // platform-states
+            await updatePurposeDataInPlatformStatesEntry({
+              dynamoDBClient,
+              primaryKey,
+              purposeState,
+              purposeVersionId,
+              version: msg.version,
+            });
+          }
         } else {
           // platform-states
-          await updatePurposeDataInPlatformStatesEntry({
-            dynamoDBClient,
-            primaryKey,
-            purposeState,
+          const purposeEntry: PlatformStatesPurposeEntry = {
+            PK: primaryKey,
+            state: purposeState,
             purposeVersionId,
+            purposeEserviceId: purpose.eserviceId,
+            purposeConsumerId: purpose.consumerId,
             version: msg.version,
-          });
-
-          // token-generation-states
-          await updatePurposeDataInTokenEntries({
-            dynamoDBClient,
-            purposeId: purpose.id,
-            purposeState,
-            purposeVersionId,
-          });
+            updatedAt: new Date().toISOString(),
+          };
+          await writePlatformPurposeEntry(dynamoDBClient, purposeEntry);
         }
+
+        // token-generation-states
+        await updatePurposeDataInTokenEntries({
+          dynamoDBClient,
+          purposeId: purpose.id,
+          purposeState,
+          purposeVersionId,
+        });
       }
     )
     .with({ type: "PurposeArchived" }, async (msg) => {
