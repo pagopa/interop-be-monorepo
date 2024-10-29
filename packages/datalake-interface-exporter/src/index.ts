@@ -34,17 +34,11 @@ async function processMessage(payload: EachMessagePayload): Promise<void> {
   });
 
   await match(decodedMsg)
-    .with(
-      {
-        event_version: 1,
-      },
-      (msg) => exportInterfaceV1(msg, payload, fileManager, loggerInstance)
+    .with({ event_version: 1 }, (msg) =>
+      exportInterfaceV1(msg, payload, fileManager, loggerInstance)
     )
-    .with(
-      {
-        event_version: 2,
-      },
-      (msg) => exportInterfaceV2(msg, payload, fileManager, loggerInstance)
+    .with({ event_version: 2 }, (msg) =>
+      exportInterfaceV2(msg, payload, fileManager, loggerInstance)
     )
     .exhaustive();
 }
