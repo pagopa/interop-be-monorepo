@@ -211,7 +211,7 @@ describe("publish descriptor", () => {
 
     await catalogService.publishDescriptor(eservice.id, descriptor.id, {
       authData: getMockAuthData(delegate.id),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
