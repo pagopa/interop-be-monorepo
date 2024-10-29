@@ -13,6 +13,8 @@ import {
   writeInReadmodel,
   readLastEventByStreamId,
   decodeProtobufPayload,
+  getMockDelegationProducer,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -36,6 +38,8 @@ import {
   toReadModelAgreement,
   PurposeVersionActivatedV2,
   toReadModelTenant,
+  Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -56,6 +60,7 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   agreements,
+  delegations,
   eservices,
   postgresDB,
   purposeService,
@@ -682,7 +687,7 @@ describe("activatePurposeVersion", () => {
     }
   );
 
-  it("should throw organizationNotAllowed if the caller is neither the producer or the consumer of the purpose", async () => {
+  it("should throw organizationNotAllowed if the caller is neither the producer or the consumer of the purpose, nor the delegate", async () => {
     const anotherTenant: Tenant = { ...getMockTenant(), kind: "PA" };
 
     await addOnePurpose(mockPurpose);
@@ -702,6 +707,67 @@ describe("activatePurposeVersion", () => {
       });
     }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
   });
+
+  it("should throw organizationNotAllowed if the caller is the producer but the purpose e-service has an active delegation", async () => {
+    await addOnePurpose(mockPurpose);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+
+    const delegate = getMockAuthData();
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      eserviceId: mockEService.id,
+      delegateId: delegate.organizationId,
+      state: delegationState.active,
+    };
+
+    await writeInReadmodel(delegation, delegations);
+
+    expect(async () => {
+      await purposeService.activatePurposeVersion({
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+        organizationId: mockProducer.id,
+        correlationId: generateId(),
+        logger: genericLogger,
+      });
+    }).rejects.toThrowError(organizationNotAllowed(mockProducer.id));
+  });
+
+  it.each(
+    Object.values(delegationState).filter((s) => s !== delegationState.active)
+  )(
+    "should throw organizationNotAllowed if the caller is the purpose e-service delegate but the delegation is in %s state",
+    async (delegationState) => {
+      await addOnePurpose(mockPurpose);
+      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+      await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+      await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+
+      const delegate = getMockAuthData();
+      const delegation: Delegation = {
+        ...getMockDelegationProducer(),
+        eserviceId: mockEService.id,
+        delegateId: delegate.organizationId,
+        state: delegationState,
+      };
+
+      await writeInReadmodel(delegation, delegations);
+
+      expect(async () => {
+        await purposeService.activatePurposeVersion({
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+          organizationId: delegate.organizationId,
+          correlationId: generateId(),
+          logger: genericLogger,
+        });
+      }).rejects.toThrowError(organizationNotAllowed(delegate.organizationId));
+    }
+  );
 
   it("should throw missingRiskAnalysis if the purpose is in draft and has no risk analysis", async () => {
     const purposeVersion: PurposeVersion = {

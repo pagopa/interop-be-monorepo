@@ -46,6 +46,7 @@ export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
 export const attributes = readModelRepository.attributes;
 export const purposes = readModelRepository.purposes;
+export const delegations = readModelRepository.delegations;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
