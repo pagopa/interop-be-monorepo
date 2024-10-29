@@ -34,6 +34,7 @@
     "start:one-trust-notices": "turbo start --filter pagopa-interop-one-trust-notices",
     "start:datalake-data-export": "turbo start --filter pagopa-interop-datalake-data-export",
     "start:authorization-server": "turbo start --filter pagopa-interop-authorization-server",
+    "start:token-generation-readmodel-checker-verifier": "turbo start --filter pagopa-interop-token-generation-readmodel-checker-verifier",
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",
