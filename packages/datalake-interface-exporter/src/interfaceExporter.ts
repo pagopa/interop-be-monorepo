@@ -22,9 +22,24 @@ export async function exportInterface(
     );
   }
 
-  await fileManager.get(
+  const interfaceFile = await fileManager.get(
     config.eserviceDocumentsS3Bucket,
     latestDescriptor.interface.path,
     logger
+  );
+
+  await fileManager.storeBytes(
+    {
+      bucket: config.datalakeInterfacesExportS3Bucket,
+      path: eserviceId,
+      resourceId: latestDescriptor.id,
+      name: latestDescriptor.interface.name,
+      content: Buffer.from(interfaceFile),
+    },
+    logger
+  );
+
+  logger.info(
+    `Interface ${latestDescriptor.interface.name} for Eservice ${eserviceId} and Descriptor ${latestDescriptor.id} copied to ${config.datalakeInterfacesExportS3Bucket}/${eserviceId}/${latestDescriptor.id}/${latestDescriptor.interface.name}`
   );
 }
