@@ -5,9 +5,10 @@ import {
   delegationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { DelegationId } from "pagopa-interop-models";
 import {
+  DelegationsQueryParams,
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
 } from "../api/delegationApiConverter.js";
@@ -61,6 +62,24 @@ async function enhanceDelegation<
   });
 
   return toApiConverter(delegation, delegator, delegate, eservice);
+}
+
+export async function getAllDelegations(
+  delegationProcessClient: DelegationProcessClient,
+  headers: BffAppContext["headers"],
+  queryParams: DelegationsQueryParams
+): Promise<delegationApi.Delegation[]> {
+  return await getAllFromPaginated<delegationApi.Delegation>(
+    async (offset, limit) =>
+      await delegationProcessClient.delegation.getDelegations({
+        headers,
+        queries: {
+          ...queryParams,
+          offset,
+          limit,
+        },
+      })
+  );
 }
 
 export function delegationServiceBuilder(
