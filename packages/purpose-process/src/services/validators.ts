@@ -251,7 +251,7 @@ export async function isOverQuota(
   );
 }
 
-export const assertRequesterIsAllowedInPurpose = async ({
+export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async ({
   eserviceId,
   organizationId,
   producerId,

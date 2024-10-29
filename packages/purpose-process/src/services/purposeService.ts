@@ -105,7 +105,7 @@ import {
   validateRiskAnalysisOrThrow,
   assertPurposeTitleIsNotDuplicated,
   isOverQuota,
-  assertRequesterIsAllowedInPurpose,
+  assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
   assertRequesterIsProducer,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
@@ -270,7 +270,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      await assertRequesterIsAllowedInPurpose({
+      await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument({
         eserviceId: eservice.id,
         organizationId,
         producerId: eservice.producerId,
