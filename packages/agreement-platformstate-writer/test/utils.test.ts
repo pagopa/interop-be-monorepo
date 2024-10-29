@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
+import crypto from "crypto";
 import {
   ConditionalCheckFailedException,
   DynamoDBClient,
@@ -309,13 +310,13 @@ describe("utils", async () => {
       );
     });
 
-    it.skip("should return entries if they exist (with pagination)", async () => {
+    it("should return entries if they exist (with pagination)", async () => {
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: generateId(),
         eserviceId: generateId(),
       });
 
-      const tokenEntriesLength = 2000;
+      const tokenEntriesLength = 10;
 
       const writtenEntries = [];
       // eslint-disable-next-line functional/no-let
@@ -330,6 +331,7 @@ describe("utils", async () => {
           descriptorState: itemState.inactive,
           descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
           GSIPK_consumerId_eserviceId,
+          publicKey: crypto.randomBytes(100000).toString("hex"),
         };
         await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
         // eslint-disable-next-line functional/immutable-data
