@@ -169,7 +169,7 @@ export function clientServiceBuilder(
     async getClientKeys(
       clientId: string,
       userIds: string[],
-      { logger, headers, authData }: WithLogger<BffAppContext>
+      { logger, headers, authData, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.PublicKeys> {
       logger.info(`Retrieve keys of client ${clientId}`);
 
@@ -192,7 +192,7 @@ export function clientServiceBuilder(
             k,
             authData.selfcareId,
             users,
-            headers["X-Correlation-Id"]
+            correlationId
           )
         )
       );
@@ -216,7 +216,7 @@ export function clientServiceBuilder(
     async getClientUsers(
       clientId: string,
       selfcareId: string,
-      { logger, headers }: WithLogger<BffAppContext>
+      { logger, headers, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactUsers> {
       logger.info(`Retrieving users for client ${clientId}`);
 
@@ -231,7 +231,7 @@ export function clientServiceBuilder(
             selfcareUsersClient,
             id,
             selfcareId,
-            headers["X-Correlation-Id"]
+            correlationId
           ),
           id
         )
@@ -243,7 +243,7 @@ export function clientServiceBuilder(
       clientId: string,
       keyId: string,
       selfcareId: string,
-      { logger, headers }: WithLogger<BffAppContext>
+      { logger, headers, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.PublicKey> {
       logger.info(`Retrieve key ${keyId} for client ${clientId}`);
 
@@ -263,7 +263,7 @@ export function clientServiceBuilder(
         key,
         selfcareId,
         users,
-        headers["X-Correlation-Id"]
+        correlationId
       );
     },
 

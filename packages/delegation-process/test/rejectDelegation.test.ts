@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   DelegationId,
   DelegationRejectedV2,
+  generateId,
   toDelegationV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -41,7 +42,7 @@ describe("reject delegation", () => {
     await delegationProducerService.rejectProducerDelegation(
       delegate.id,
       delegation.id,
-      unsafeBrandId("9999"),
+      generateId(),
       rejectionReason
     );
 
@@ -73,7 +74,7 @@ describe("reject delegation", () => {
       delegationProducerService.rejectProducerDelegation(
         delegateId,
         nonExistentDelegationId,
-        unsafeBrandId("9999"),
+        generateId(),
         ""
       )
     ).rejects.toThrow(delegationNotFound(nonExistentDelegationId));
@@ -92,7 +93,7 @@ describe("reject delegation", () => {
       delegationProducerService.rejectProducerDelegation(
         wrongDelegate.id,
         delegation.id,
-        unsafeBrandId("9999"),
+        generateId(),
         ""
       )
     ).rejects.toThrow(
@@ -112,7 +113,7 @@ describe("reject delegation", () => {
       delegationProducerService.rejectProducerDelegation(
         delegate.id,
         delegation.id,
-        unsafeBrandId("9999"),
+        generateId(),
         ""
       )
     ).rejects.toThrow(

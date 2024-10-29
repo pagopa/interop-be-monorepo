@@ -1,19 +1,17 @@
 /* eslint-disable functional/no-let */
 import {
-  randomArrayItem,
   ReadEvent,
+  readEventByStreamIdAndVersion,
   readLastEventByStreamId,
   setupTestContainersVitest,
   StoredEvent,
   writeInEventstore,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Delegation,
   DelegationEvent,
   DelegationId,
-  DelegationState,
-  delegationState,
   EService,
   Tenant,
   toDelegationV2,
@@ -30,14 +28,6 @@ import { PDFDocument } from "pdf-lib";
 import { delegationProducerServiceBuilder } from "../src/services/delegationProducerService.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
-import { delegationNotActivableStates } from "../src/services/validators.js";
-
-export const getRandomValidDelegationStatus = (): DelegationState =>
-  randomArrayItem(
-    Object.values(delegationState).filter(
-      (s) => !delegationNotActivableStates.includes(s)
-    )
-  );
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
@@ -79,19 +69,21 @@ export const delegationProducerService = delegationProducerServiceBuilder(
 
 export const delegationService = delegationServiceBuilder(readModelService);
 
-export const writeDelegationInEventstore = async (
+export const writeSubmitDelegationInEventstore = async (
   delegation: Delegation
 ): Promise<void> => {
-  const delegationEvent: DelegationEvent = {
+  const createProducerDelegationEvent: DelegationEvent = {
     type: "DelegationSubmitted",
     event_version: 2,
-    data: { delegation: toDelegationV2(delegation) },
+    data: {
+      delegation: toDelegationV2(delegation),
+    },
   };
+
   const eventToWrite: StoredEvent<DelegationEvent> = {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    stream_id: delegationEvent.data.delegation!.id,
+    stream_id: delegation.id,
     version: 0,
-    event: delegationEvent,
+    event: createProducerDelegationEvent,
   };
 
   await writeInEventstore(eventToWrite, "delegation", postgresDB);
@@ -102,11 +94,22 @@ export const readLastDelegationEvent = async (
 ): Promise<ReadEvent<DelegationEvent>> =>
   await readLastEventByStreamId(delegationId, "delegation", postgresDB);
 
+export const readDelegationEventByVersion = async (
+  delegationId: DelegationId,
+  version: number
+): Promise<ReadEvent<DelegationEvent>> =>
+  await readEventByStreamIdAndVersion(
+    delegationId,
+    version,
+    "delegation",
+    postgresDB
+  );
+
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
+  await writeSubmitDelegationInEventstore(delegation);
   await writeInReadmodel(delegation, delegations);
-  await writeDelegationInEventstore(delegation);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
