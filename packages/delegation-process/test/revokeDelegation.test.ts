@@ -164,7 +164,7 @@ describe("revoke delegation", () => {
       },
     };
 
-    expect(actualDelegation).toMatchObject(expectedDelegation);
+    expect(actualDelegation).toEqual(expectedDelegation);
 
     const lastDelegationEvent = await readDelegationEventByVersion(
       actualDelegation.id,

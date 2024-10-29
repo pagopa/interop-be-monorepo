@@ -46,6 +46,7 @@ export const revokeDelegationErrorMapper = (
 ): number =>
   match(error.code)
     .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("delegationNotRevokable", () => HTTP_STATUS_FORBIDDEN)
     .with("operationNotAllowOnDelegation", () => HTTP_STATUS_UNAUTHORIZED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
