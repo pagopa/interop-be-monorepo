@@ -46,7 +46,7 @@ async function processMessage(payload: EachMessagePayload): Promise<void> {
       },
       (msg) => exportInterfaceV2(msg, payload, fileManager, loggerInstance)
     )
-    .otherwise(() => undefined);
+    .exhaustive();
 }
 
 await runConsumer(config, [config.catalogTopic], processMessage);
