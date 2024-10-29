@@ -237,8 +237,9 @@ export const retrieveKey = async (
           entry.clientKind === clientKindTokenStates.consumer &&
           entry.PK.startsWith(clientKidPurposePrefix),
         () => {
+          // TODO: remove as
           const clientKidPurposeEntry =
-            tokenGenerationEntry.data satisfies TokenGenerationStatesClientPurposeEntry;
+            tokenGenerationEntry.data as TokenGenerationStatesClientPurposeEntry;
           if (
             !clientKidPurposeEntry.GSIPK_purposeId ||
             !clientKidPurposeEntry.purposeState ||
@@ -260,7 +261,7 @@ export const retrieveKey = async (
             consumerId: clientKidPurposeEntry.consumerId,
             publicKey: clientKidPurposeEntry.publicKey,
             algorithm: "RS256" /* TODO pass this as a parameter? */,
-            clientKind: clientKindTokenStates.consumer, // TODO this doesn't work with clientKidPurposeEntry.clientKind, but it should be already validated in the "when"
+            clientKind: clientKindTokenStates.consumer, // TODO this doesn't work with clientKidPurpose Entry.clientKind, but it should be already validated in the "when"
             purposeState: {
               state: clientKidPurposeEntry.purposeState,
               versionId: clientKidPurposeEntry.purposeVersionId,
