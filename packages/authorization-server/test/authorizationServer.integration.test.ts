@@ -368,7 +368,7 @@ describe("authorization server tests", () => {
     });
   });
 
-  it("should throw tokenSigningFailed - consumer key", async () => {
+  it("should throw error during token signing - consumer key", async () => {
     const uuid = generateId();
     const uuidSpy = vi.spyOn(uuidv4, "v4");
     uuidSpy.mockReturnValue(uuid);
