@@ -39,9 +39,7 @@ const redisRateLimiter = await initRedisRateLimiter({
 const producer = await initProducer(config, config.tokenAuditingTopic);
 const fileManager = initFileManager(config);
 
-// TODO Enable logging once error handling is completed
-// const server: FastifyInstance = Fastify({ logger: { level: 'error' } })
-const fastifyServer: FastifyInstance = Fastify();
+const fastifyServer: FastifyInstance = Fastify({ logger: { level: "error" } });
 await fastifyServer.register(fastifyFormbody);
 
 const tokenGenerator = new InteropTokenGenerator({
