@@ -270,7 +270,6 @@ export const retrieveKey = async (
             agreementState: {
               state: clientKidPurposeEntry.agreementState,
             },
-            // TODO: make function for this split
             eServiceId: unsafeBrandId<EServiceId>(
               clientKidPurposeEntry.GSIPK_eserviceId_descriptorId.split("#")[0]
             ),
@@ -376,7 +375,6 @@ export const publishAudit = async ({
         typeof clientAssertion.payload.aud === "string"
           ? clientAssertion.payload.aud
           : clientAssertion.payload.aud.join(","),
-      // TODO: double check if the toMillis function is needed
       expirationTime: clientAssertion.payload.exp,
       issuedAt: clientAssertion.payload.iat,
       issuer: clientAssertion.payload.iss,
