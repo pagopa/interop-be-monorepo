@@ -12,9 +12,9 @@ export async function handleMessages(
   fileManager: FileManager,
   logger: Logger
 ): Promise<void> {
-  const fileContent =
-    messages.map((auditingEntry) => JSON.stringify(auditingEntry)).join("\n") +
-    "\n";
+  const fileContent = messages
+    .map((auditingEntry) => JSON.stringify(auditingEntry))
+    .join("\n");
 
   const date = new Date();
   const ymdDate = formatDateyyyyMMdd(date);

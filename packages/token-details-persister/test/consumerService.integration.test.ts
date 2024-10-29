@@ -44,7 +44,7 @@ describe("consumerService", () => {
     expect(fileList).toHaveLength(1);
     expect(fileList).toMatchObject([expectedFilePathWithFileName]);
 
-    const expectedFileContent = JSON.stringify(auditMessages[0]) + "\n";
+    const expectedFileContent = JSON.stringify(auditMessages[0]);
 
     const fileContent = await fileManager.get(
       config.s3Bucket,
@@ -84,10 +84,9 @@ describe("consumerService", () => {
     expect(fileList).toHaveLength(1);
     expect(fileList).toMatchObject([expectedFilePathWithFileName]);
 
-    const expectedFileContent =
-      auditMessages
-        .map((auditingEntry) => JSON.stringify(auditingEntry))
-        .join("\n") + "\n";
+    const expectedFileContent = auditMessages
+      .map((auditingEntry) => JSON.stringify(auditingEntry))
+      .join("\n");
 
     const fileContent = await fileManager.get(
       config.s3Bucket,
