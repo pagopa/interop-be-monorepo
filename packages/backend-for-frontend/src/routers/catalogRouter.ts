@@ -784,6 +784,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error rejecting eService ${req.params.eServiceId} version ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);

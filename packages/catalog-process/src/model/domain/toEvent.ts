@@ -522,7 +522,7 @@ export const toCreateEventEServiceDescriptorDelegatorRejected = (
   version: number,
   descriptorId: DescriptorId,
   eservice: EService,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
   version,
