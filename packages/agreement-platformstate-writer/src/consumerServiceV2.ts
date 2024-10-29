@@ -56,6 +56,11 @@ export async function handleMessageV2(
           );
         }
       } else {
+        if (!agreement.stamps.activation) {
+          throw genericInternalError(
+            "An activated agreement should have activation stamp"
+          );
+        }
         const agreementEntry: PlatformStatesAgreementEntry = {
           PK: primaryKey,
           state: agreementStateToItemState(agreement.state),
@@ -63,8 +68,7 @@ export async function handleMessageV2(
           updatedAt: new Date().toISOString(),
           GSIPK_consumerId_eserviceId,
           GSISK_agreementTimestamp:
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            agreement.stamps.activation!.when.toISOString(),
+            agreement.stamps.activation.when.toISOString(),
           agreementDescriptorId: agreement.descriptorId,
         };
 
@@ -180,6 +184,11 @@ export async function handleMessageV2(
           );
         }
       } else {
+        if (!agreement.stamps.activation) {
+          throw genericInternalError(
+            "An activated agreement should have activation stamp"
+          );
+        }
         const newAgreementEntry: PlatformStatesAgreementEntry = {
           PK: primaryKey,
           state: agreementStateToItemState(agreement.state),
@@ -187,8 +196,7 @@ export async function handleMessageV2(
           updatedAt: new Date().toISOString(),
           GSIPK_consumerId_eserviceId,
           GSISK_agreementTimestamp:
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            agreement.stamps.activation!.when.toISOString(),
+            agreement.stamps.activation.when.toISOString(),
           agreementDescriptorId: agreement.descriptorId,
         };
 
