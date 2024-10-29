@@ -33,7 +33,8 @@ async function enhanceDelegation<
     delegation: delegationApi.Delegation,
     delegator: tenantApi.Tenant,
     delegate: tenantApi.Tenant,
-    eservice: catalogApi.EService
+    eservice: catalogApi.EService,
+    producer: tenantApi.Tenant
   ) => T
 ): Promise<T> {
   const delegation: delegationApi.Delegation =
@@ -61,7 +62,14 @@ async function enhanceDelegation<
     headers,
   });
 
-  return toApiConverter(delegation, delegator, delegate, eservice);
+  // NOTE if delegation kind is DELEGATED_PRODUCER it is the same delegator tenant
+  // in other case DELEGATED_CONSUMER it can be a differer
+  const producer = await tenantClient.tenant.getTenant({
+    params: { id: eservice.producerId },
+    headers,
+  });
+
+  return toApiConverter(delegation, delegator, delegate, eservice, producer);
 }
 
 export async function getAllDelegations(

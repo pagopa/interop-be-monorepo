@@ -46,7 +46,8 @@ export function toBffDelegationApiDelegation(
   delegation: delegationApi.Delegation,
   delegator: tenantApi.Tenant,
   delegate: tenantApi.Tenant,
-  eservice: catalogApi.EService
+  eservice: catalogApi.EService,
+  producer: tenantApi.Tenant
 ): bffApi.Delegation {
   return {
     id: delegation.id,
@@ -54,6 +55,8 @@ export function toBffDelegationApiDelegation(
       id: eservice.id,
       name: eservice.name,
       description: eservice.description,
+      producerId: eservice.producerId,
+      producerName: producer.name,
     },
     delegate: {
       id: delegate.id,
