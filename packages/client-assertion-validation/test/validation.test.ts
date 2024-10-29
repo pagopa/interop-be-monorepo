@@ -14,6 +14,7 @@ import {
   generateKeySet,
   getMockClientAssertion,
 } from "pagopa-interop-commons-test";
+import { dateToSeconds } from "pagopa-interop-commons";
 import {
   validateClientKindAndPlatformState,
   validateRequestParameters,
@@ -492,8 +493,8 @@ describe("validation test", async () => {
 
       const { jws, publicKeyEncodedPem } = await getMockClientAssertion({
         standardClaimsOverride: {
-          iat: Math.floor(new Date().getTime() / 1000),
-          exp: Math.floor(threeHourLater.getTime() / 1000),
+          iat: dateToSeconds(new Date()),
+          exp: dateToSeconds(threeHourLater),
         },
       });
       const mockKey = {
@@ -531,8 +532,8 @@ describe("validation test", async () => {
           alg: notAllowedAlg,
         },
         standardClaimsOverride: {
-          iat: Math.floor(new Date().getTime() / 1000),
-          exp: Math.floor(threeHourLater.getTime() / 1000),
+          iat: dateToSeconds(new Date()),
+          exp: dateToSeconds(threeHourLater),
         },
       });
       const mockKey: Key = {
@@ -555,8 +556,8 @@ describe("validation test", async () => {
 
       const { jws, publicKeyEncodedPem } = await getMockClientAssertion({
         standardClaimsOverride: {
-          iat: Math.floor(sixHoursAgo.getTime() / 1000),
-          exp: Math.floor(threeHourAgo.getTime() / 1000),
+          iat: dateToSeconds(sixHoursAgo),
+          exp: dateToSeconds(threeHourAgo),
         },
       });
 
@@ -652,9 +653,9 @@ describe("validation test", async () => {
 
       const { jws, publicKeyEncodedPem } = await getMockClientAssertion({
         standardClaimsOverride: {
-          iat: Math.floor(threeHoursAgo.getTime() / 1000),
-          exp: Math.floor(sixHoursLater.getTime() / 1000),
-          nbf: Math.floor(threeHoursLater.getTime() / 1000),
+          iat: dateToSeconds(threeHoursAgo),
+          exp: dateToSeconds(sixHoursLater),
+          nbf: dateToSeconds(threeHoursLater),
         },
       });
       const mockKey = {
