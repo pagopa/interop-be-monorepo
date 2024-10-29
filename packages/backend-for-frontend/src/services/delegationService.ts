@@ -38,6 +38,7 @@ async function enhanceDelegation<
   const delegation: delegationApi.Delegation =
     await delegationClient.delegation.getDelegation({
       params: { delegationId },
+      headers,
     });
 
   if (!delegation) {
@@ -113,6 +114,7 @@ export function delegationServiceBuilder(
             delegationStates: states,
             kind,
           },
+          headers,
         });
 
       const delegationEnanched = await Promise.all(
