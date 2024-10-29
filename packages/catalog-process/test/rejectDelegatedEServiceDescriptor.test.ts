@@ -14,6 +14,7 @@ import {
   delegationState,
   DescriptorRejectionReason,
   EServiceDescriptorDelegatorRejectedV2,
+  generateId,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import {
@@ -65,7 +66,7 @@ describe("reject descriptor", () => {
       { rejectionReason: newRejectionReason.rejectionReason },
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -106,7 +107,7 @@ describe("reject descriptor", () => {
         { rejectionReason: "test" },
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -127,7 +128,7 @@ describe("reject descriptor", () => {
         { rejectionReason: "test" },
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -155,7 +156,7 @@ describe("reject descriptor", () => {
         { rejectionReason: "test" },
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -189,7 +190,7 @@ describe("reject descriptor", () => {
         { rejectionReason: "test" },
         {
           authData: getMockAuthData(delegation.delegateId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -222,7 +223,7 @@ describe("reject descriptor", () => {
           { rejectionReason: "test" },
           {
             authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
+            correlationId: generateId(),
             serviceName: "",
             logger: genericLogger,
           }

@@ -50,7 +50,7 @@ describe("delete risk analysis", () => {
 
     await catalogService.deleteRiskAnalysis(eservice.id, riskAnalysis.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -97,7 +97,7 @@ describe("delete risk analysis", () => {
 
     await catalogService.deleteRiskAnalysis(eservice.id, riskAnalysis.id, {
       authData: getMockAuthData(delegation.delegateId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -137,7 +137,7 @@ describe("delete risk analysis", () => {
 
     await catalogService.deleteRiskAnalysis(eservice.id, riskAnalysis.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -172,7 +172,7 @@ describe("delete risk analysis", () => {
         generateId<RiskAnalysisId>(),
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -192,7 +192,7 @@ describe("delete risk analysis", () => {
     expect(
       catalogService.deleteRiskAnalysis(eservice.id, riskAnalysisId, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -221,7 +221,7 @@ describe("delete risk analysis", () => {
         generateId<RiskAnalysisId>(),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -250,7 +250,7 @@ describe("delete risk analysis", () => {
         generateId<RiskAnalysisId>(),
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -285,7 +285,7 @@ describe("delete risk analysis", () => {
         generateId<RiskAnalysisId>(),
         {
           authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

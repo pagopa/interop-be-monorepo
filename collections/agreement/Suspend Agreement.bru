@@ -1,0 +1,20 @@
+meta {
+  name: Suspend Agreement
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/suspend
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

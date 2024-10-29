@@ -1225,6 +1225,8 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         descriptor:
           $ref: "#/components/schemas/DescriptorSeedForEServiceCreation"
+        isSignalHubEnabled:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -1246,6 +1248,8 @@ components:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
     DescriptorSeedForEServiceCreation:
       required:
         - audience
@@ -1552,6 +1556,8 @@ components:
             $ref: "#/components/schemas/EServiceRiskAnalysis"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
     EServiceMode:
       type: string
       description: Risk Analysis Mode

@@ -1,0 +1,30 @@
+meta {
+  name: Get Clients
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-authorization}}/clients?offset=0&limit=10&consumerId={{tenantId}}
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  consumerId: {{tenantId}}
+  ~userIds: {{userId1}}
+  ~purposeId: 
+  ~kind: CONSUMER
+  ~name: 
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  clientId: res.body.results.at(-1).id
+}

@@ -1,0 +1,26 @@
+meta {
+  name: Add Producer Keychain Users
+  type: http
+  seq: 24
+}
+
+post {
+  url: {{host-authorization}}/producerKeychains/:producerKeychainId/users
+  body: json
+  auth: none
+}
+
+params:path {
+  producerKeychainId: {{producerKeychainId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "userIds": ["{{userId1}}"]
+  }
+}

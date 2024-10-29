@@ -320,6 +320,7 @@ export function catalogServiceBuilder(
         riskAnalysis: eservice.riskAnalysis.map(
           toBffCatalogApiEserviceRiskAnalysis
         ),
+        isSignalHubEnabled: eservice.isSignalHubEnabled,
       };
     },
     updateEServiceDescription: async (
@@ -1118,6 +1119,7 @@ export function catalogServiceBuilder(
           agreementApprovalPolicy:
             importedEservice.descriptor.agreementApprovalPolicy,
         },
+        isSignalHubEnabled: importedEservice.isSignalHubEnabled,
       };
 
       const pollEServiceById = createPollingByCondition(() =>

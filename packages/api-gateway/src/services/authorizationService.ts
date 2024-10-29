@@ -12,7 +12,8 @@ import {
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayClient } from "../api/authorizationApiConverter.js";
-import { keyNotFound } from "../models/errors.js";
+import { clientNotFound, keyNotFound } from "../models/errors.js";
+import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import { readModelServiceBuilder } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -33,12 +34,18 @@ export function authorizationServiceBuilder(
     ): Promise<apiGatewayApi.Client> => {
       logger.info(`Retrieving Client ${clientId}`);
 
-      const client = await authorizationProcessClient.client.getClient({
-        headers,
-        params: {
-          clientId,
-        },
-      });
+      const client = await authorizationProcessClient.client
+        .getClient({
+          headers,
+          params: {
+            clientId,
+          },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            404: clientNotFound(clientId),
+          });
+        });
 
       const isAllowed = await isAllowedToGetClient(
         purposeProcessClient,

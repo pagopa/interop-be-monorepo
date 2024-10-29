@@ -34,4 +34,5 @@ export const riskAnalysisFormRules: Record<
   PA: [getFormRules("pa1"), getFormRules("pa2"), getFormRules("pa3")],
   PRIVATE: [getFormRules("private1"), getFormRules("private2")],
   GSP: [getFormRules("private1"), getFormRules("private2")],
+  SCP: [getFormRules("private1"), getFormRules("private2")],
 };

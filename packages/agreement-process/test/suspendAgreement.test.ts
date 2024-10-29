@@ -123,7 +123,7 @@ describe("suspend agreement", () => {
       {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -246,7 +246,7 @@ describe("suspend agreement", () => {
       {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -337,7 +337,7 @@ describe("suspend agreement", () => {
       {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -409,7 +409,7 @@ describe("suspend agreement", () => {
       agreementService.suspendAgreement(agreementId, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(agreementNotFound(agreementId));
@@ -423,7 +423,7 @@ describe("suspend agreement", () => {
       agreementService.suspendAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
@@ -444,7 +444,7 @@ describe("suspend agreement", () => {
       agreementService.suspendAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
@@ -464,7 +464,7 @@ describe("suspend agreement", () => {
       agreementService.suspendAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
@@ -495,7 +495,7 @@ describe("suspend agreement", () => {
       agreementService.suspendAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
@@ -523,7 +523,7 @@ describe("suspend agreement", () => {
       agreementService.suspendAgreement(agreement.id, {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(

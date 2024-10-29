@@ -3,6 +3,7 @@ import { fail } from "assert";
 import { genericLogger } from "pagopa-interop-commons";
 import { getMockAuthData } from "pagopa-interop-commons-test/index.js";
 import {
+  CorrelationId,
   generateId,
   protobufDecoder,
   Tenant,
@@ -27,7 +28,7 @@ import {
 } from "./utils.js";
 
 describe("updateVerifiedAttributeExtensionDate", async () => {
-  const correlationId = generateId();
+  const correlationId: CorrelationId = generateId();
   const expirationDate = new Date(
     currentDate.setDate(currentDate.getDate() + 1)
   );
@@ -104,7 +105,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
     expect(returnedTenant).toEqual(updatedTenant);
   });
   it("should throw tenantNotFound when tenant doesn't exist", async () => {
-    const correlationId = generateId();
+    const correlationId: CorrelationId = generateId();
     expect(
       tenantService.updateVerifiedAttributeExtensionDate(
         tenant.id,
@@ -142,7 +143,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
       (a) => a.id
     )[0];
     await addOneTenant(updatedTenantWithoutExpirationDate);
-    const correlationId = generateId();
+    const correlationId: CorrelationId = generateId();
     expect(
       tenantService.updateVerifiedAttributeExtensionDate(
         updatedTenantWithoutExpirationDate.id,
@@ -166,7 +167,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
   it("should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
     const mockTenant: Tenant = { ...getMockTenant(), attributes: [] };
     await addOneTenant(mockTenant);
-    const correlationId = generateId();
+    const correlationId: CorrelationId = generateId();
     expect(
       tenantService.updateVerifiedAttributeExtensionDate(
         mockTenant.id,
@@ -186,7 +187,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
   it("should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
     await addOneTenant(tenant);
     const verifierId = generateId();
-    const correlationId = generateId();
+    const correlationId: CorrelationId = generateId();
     expect(
       tenantService.updateVerifiedAttributeExtensionDate(
         tenant.id,

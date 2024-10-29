@@ -1,19 +1,11 @@
 meta {
   name: Status
   type: http
-  seq: 3
+  seq: 24
 }
 
 get {
   url: {{host-catalog}}/status
   body: none
   auth: none
-}
-
-headers {
-  Cache-Control: no-cache
-  Accept: */*
-  Accept-Encoding: gzip, deflate, br
-  Connection: keep-alive
-  X-Correlation-Id: {{correlation-id}}
 }
