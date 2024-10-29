@@ -64,7 +64,7 @@ describe("archive descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       state: descriptorState.archived,
       archivedAt: new Date(
@@ -74,7 +74,7 @@ describe("archive descriptor", () => {
 
     const expectedEService = toEServiceV2({
       ...eservice,
-      descriptors: [updatedDescriptor],
+      descriptors: [expectedDescriptor],
     });
     expect(writtenPayload.eservice).toEqual(expectedEService);
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
@@ -120,7 +120,7 @@ describe("archive descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       state: descriptorState.archived,
       archivedAt: new Date(
@@ -130,7 +130,7 @@ describe("archive descriptor", () => {
 
     const expectedEService = toEServiceV2({
       ...eservice,
-      descriptors: [updatedDescriptor],
+      descriptors: [expectedDescriptor],
     });
     expect(writtenPayload.eservice).toEqual(expectedEService);
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);

@@ -99,7 +99,7 @@ import {
   assertHasNoDraftDescriptor,
   assertRiskAnalysisIsValidForPublication,
   assertRequesterIsProducer,
-  assertNoValidDelegationAssociated,
+  assertNoExistingDelegationInActiveOrPendingState,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -599,7 +599,10 @@ export function catalogServiceBuilder(
       assertRequesterIsProducer(eservice.data.producerId, authData);
       assertIsDraftEservice(eservice.data);
 
-      await assertNoValidDelegationAssociated(eserviceId, readModelService);
+      await assertNoExistingDelegationInActiveOrPendingState(
+        eserviceId,
+        readModelService
+      );
 
       if (eservice.data.descriptors.length === 0) {
         const eserviceDeletionEvent = toCreateEventEServiceDeleted(
@@ -1368,7 +1371,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
-      await assertNoValidDelegationAssociated(
+      await assertNoExistingDelegationInActiveOrPendingState(
         eservice.data.id,
         readModelService
       );
@@ -1804,7 +1807,7 @@ async function isUserAllowedToSeeDraft(
     states: [delegationState.active],
   });
 
-  return Boolean(activeDelegation);
+  return activeDelegation !== undefined;
 }
 
 async function applyVisibilityToEService(

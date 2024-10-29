@@ -54,7 +54,7 @@ describe("activate descriptor", () => {
       logger: genericLogger,
     });
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       state: descriptorState.published,
     };
@@ -71,7 +71,7 @@ describe("activate descriptor", () => {
 
     const expectedEservice = toEServiceV2({
       ...eservice,
-      descriptors: [updatedDescriptor],
+      descriptors: [expectedDescriptor],
     });
     expect(writtenPayload.eservice).toEqual(expectedEservice);
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
@@ -108,7 +108,7 @@ describe("activate descriptor", () => {
       logger: genericLogger,
     });
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       state: descriptorState.published,
     };
@@ -125,7 +125,7 @@ describe("activate descriptor", () => {
 
     const expectedEservice = toEServiceV2({
       ...eservice,
-      descriptors: [updatedDescriptor],
+      descriptors: [expectedDescriptor],
     });
     expect(writtenPayload.eservice).toEqual(expectedEservice);
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);

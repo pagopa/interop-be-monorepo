@@ -57,7 +57,7 @@ describe("update descriptor", () => {
       };
       await addOneEService(eservice);
 
-      const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+      const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
         {
           voucherLifespan: 1000,
           dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
@@ -78,7 +78,7 @@ describe("update descriptor", () => {
       const returnedEService = await catalogService.updateDescriptor(
         eservice.id,
         descriptor.id,
-        updatedDescriptorQuotasSeed,
+        expectedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(eservice.producerId),
           correlationId: generateId(),
@@ -128,7 +128,7 @@ describe("update descriptor", () => {
       await addOneEService(eservice);
       await addOneDelegation(delegation);
 
-      const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+      const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
         {
           voucherLifespan: 1000,
           dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
@@ -149,7 +149,7 @@ describe("update descriptor", () => {
       const returnedEService = await catalogService.updateDescriptor(
         eservice.id,
         descriptor.id,
-        updatedDescriptorQuotasSeed,
+        expectedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(delegation.delegateId),
           correlationId: generateId(),
@@ -174,7 +174,7 @@ describe("update descriptor", () => {
   );
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+    const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
       {
         voucherLifespan: 1000,
         dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
@@ -184,7 +184,7 @@ describe("update descriptor", () => {
       catalogService.updateDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        updatedDescriptorQuotasSeed,
+        expectedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(mockEService.producerId),
           correlationId: generateId(),
@@ -202,7 +202,7 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+    const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
       {
         voucherLifespan: 1000,
         dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
@@ -213,7 +213,7 @@ describe("update descriptor", () => {
       catalogService.updateDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        updatedDescriptorQuotasSeed,
+        expectedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(mockEService.producerId),
           correlationId: generateId(),
@@ -277,7 +277,7 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+    const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
       {
         voucherLifespan: 1000,
         dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
@@ -287,7 +287,7 @@ describe("update descriptor", () => {
       catalogService.updateDescriptor(
         eservice.id,
         descriptor.id,
-        updatedDescriptorQuotasSeed,
+        expectedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(),
           correlationId: generateId(),
@@ -316,7 +316,7 @@ describe("update descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+    const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
       {
         voucherLifespan: 1000,
         dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
@@ -326,7 +326,7 @@ describe("update descriptor", () => {
       catalogService.updateDescriptor(
         eservice.id,
         descriptor.id,
-        updatedDescriptorQuotasSeed,
+        expectedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(eservice.producerId),
           correlationId: generateId(),
@@ -350,7 +350,7 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+    const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
       {
         voucherLifespan: 1000,
         dailyCallsPerConsumer: descriptor.dailyCallsTotal + 11,
@@ -360,7 +360,7 @@ describe("update descriptor", () => {
       catalogService.updateDescriptor(
         eservice.id,
         descriptor.id,
-        updatedDescriptorQuotasSeed,
+        expectedDescriptorQuotasSeed,
         {
           authData: getMockAuthData(eservice.producerId),
           correlationId: generateId(),
