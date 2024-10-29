@@ -21,6 +21,7 @@ import { expect, describe, it, vi } from "vitest";
 import {
   eServiceNotFound,
   eserviceNotInDraftState,
+  eserviceWithActiveOrPendingDelegation,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -212,7 +213,7 @@ describe("delete eservice", () => {
   });
 
   it.each([delegationState.active, delegationState.waitingForApproval])(
-    "should throw operationForbidden if the eservice is associated with a delegation with state %s",
+    "should throw eserviceWithActiveOrPendingDelegation if the eservice is associated with a delegation with state %s",
     async (delegationState) => {
       const delegation: Delegation = {
         ...getMockDelegationProducer(),
@@ -229,12 +230,14 @@ describe("delete eservice", () => {
           serviceName: "",
           logger: genericLogger,
         })
-      ).rejects.toThrowError(operationForbidden);
+      ).rejects.toThrowError(
+        eserviceWithActiveOrPendingDelegation(mockEService.id, delegation.id)
+      );
     }
   );
 
   it.each([delegationState.revoked, delegationState.rejected])(
-    "should not throw operationForbidden if the eservice is associated with a delegation with state %s",
+    "should not throw eserviceWithActiveOrPendingDelegation if the eservice is associated with a delegation with state %s",
     async (delegationState) => {
       const delegation: Delegation = {
         ...getMockDelegationProducer(),
@@ -251,7 +254,9 @@ describe("delete eservice", () => {
           serviceName: "",
           logger: genericLogger,
         })
-      ).resolves.not.toThrowError(operationForbidden);
+      ).resolves.not.toThrowError(
+        eserviceWithActiveOrPendingDelegation(mockEService.id, delegation.id)
+      );
     }
   );
 
