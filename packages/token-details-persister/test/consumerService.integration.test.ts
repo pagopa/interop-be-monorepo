@@ -112,7 +112,7 @@ describe("consumerService", () => {
 
     expect(
       handleMessages(auditMessages, fileManager, genericLogger)
-    ).rejects.toThrowError("Write operation failed");
+    ).rejects.toThrowError("Write operation failed - generic error");
   });
 });
 

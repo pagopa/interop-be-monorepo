@@ -33,6 +33,7 @@ export async function handleMessages(
       logger
     );
   } catch (error) {
-    throw Error("Write operation failed");
+    const message = error instanceof Error ? error.message : "generic error";
+    throw Error(`Write operation failed - ${message}`);
   }
 }
