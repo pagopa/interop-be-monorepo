@@ -2,21 +2,27 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
+  authorizationMiddleware,
   ExpressContext,
+  fromAppContext,
+  initDB,
   ReadModelRepository,
   userRoles,
   ZodiosContext,
-  fromAppContext,
   zodiosValidationErrorToApiProblem,
-  authorizationMiddleware,
-  initDB,
 } from "pagopa-interop-commons";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
-import { delegationProducerServiceBuilder } from "../services/delegationProducerService.js";
 import { delegationToApiDelegation } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { createProducerDelegationErrorMapper } from "../utilites/errorMappers.js";
+import { delegationProducerServiceBuilder } from "../services/delegationProducerService.js";
+import {
+  createProducerDelegationErrorMapper,
+  revokeDelegationErrorMapper,
+  approveDelegationErrorMapper,
+  rejectDelegationErrorMapper,
+} from "../utilites/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -68,22 +74,88 @@ const delegationProducerRouter = (
           const errorRes = makeApiProblem(
             error,
             createProducerDelegationErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
 
           return res.status(errorRes.status).send(errorRes);
         }
       }
     )
-    .post("/producer/delegations/:delegationId/approve", async (_req, res) =>
-      res.status(501).send()
+    .delete(
+      "/producer/delegations/:delegationId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const { delegationId } = req.params;
+          await delegationProducerService.revokeDelegation(
+            unsafeBrandId(delegationId),
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeDelegationErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
-    .post("/producer/delegations/:delegationId/reject", async (_req, res) =>
-      res.status(501).send()
-    )
-    .delete("/producer/delegations/:delegationId", async (_req, res) =>
-      res.status(501).send()
-    );
+    .post("/producer/delegations/:delegationId/approve", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      const { delegationId } = req.params;
+
+      try {
+        await delegationProducerService.approveProducerDelegation(
+          ctx.authData.organizationId,
+          unsafeBrandId(delegationId),
+          ctx.correlationId
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          approveDelegationErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/producer/delegations/:delegationId/reject", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      const { delegationId } = req.params;
+      const { rejectionReason } = req.body;
+
+      try {
+        await delegationProducerService.rejectProducerDelegation(
+          ctx.authData.organizationId,
+          unsafeBrandId(delegationId),
+          ctx.correlationId,
+          rejectionReason
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          rejectDelegationErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return delegationRouter;
 };

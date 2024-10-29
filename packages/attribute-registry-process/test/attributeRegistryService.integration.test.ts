@@ -14,6 +14,7 @@ import {
   AttributeAddedV1,
   Tenant,
   attributeKind,
+  generateId,
   toAttributeV1,
 } from "pagopa-interop-models";
 import {
@@ -45,7 +46,7 @@ describe("database test", () => {
             },
             {
               authData: getMockAuthData(),
-              correlationId: "",
+              correlationId: generateId(),
               logger: genericLogger,
               serviceName: "",
             }
@@ -93,7 +94,7 @@ describe("database test", () => {
                 },
               },
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
@@ -113,7 +114,7 @@ describe("database test", () => {
             },
             {
               authData: getMockAuthData(),
-              correlationId: "",
+              correlationId: generateId(),
               logger: genericLogger,
               serviceName: "",
             }
@@ -132,7 +133,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           );
@@ -179,7 +180,7 @@ describe("database test", () => {
                 },
               },
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
@@ -200,7 +201,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
@@ -231,7 +232,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(tenant.id),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           );
@@ -291,7 +292,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(tenant.id),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
@@ -310,7 +311,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(mockTenant.id),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
@@ -328,7 +329,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(mockTenant.id),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )
@@ -360,7 +361,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           );
@@ -420,7 +421,7 @@ describe("database test", () => {
             {
               authData: getMockAuthData(),
               logger: genericLogger,
-              correlationId: "",
+              correlationId: generateId(),
               serviceName: "",
             }
           )

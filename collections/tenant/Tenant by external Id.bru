@@ -1,0 +1,21 @@
+meta {
+  name: Tenant by external Id
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{host-tenant}}/tenants/origin/:origin/code/:code
+  body: none
+  auth: none
+}
+
+params:path {
+  origin: IPA
+  code: 123456
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

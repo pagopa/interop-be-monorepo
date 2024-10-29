@@ -27,6 +27,7 @@ import {
   tenantAttributeType,
   unsafeBrandId,
   AgreementDocument,
+  CorrelationId,
 } from "pagopa-interop-models";
 import {
   selfcareV2ClientApi,
@@ -51,7 +52,7 @@ const retrieveUser = async (
   selfcareV2Client: SelfcareV2UsersClient,
   selfcareId: SelfcareId,
   id: UserId,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<selfcareV2ClientApi.UserResponse> => {
   const user = await selfcareV2Client.getUserInfoUsingGET({
     queries: { institutionId: selfcareId },
@@ -147,7 +148,7 @@ const getSubmissionInfo = async (
   selfcareV2Client: SelfcareV2UsersClient,
   consumer: Tenant,
   agreement: Agreement,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<[string, Date]> => {
   const submission = agreement.stamps.submission;
   if (!submission) {
@@ -181,7 +182,7 @@ const getActivationInfo = async (
   producer: Tenant,
   consumer: Tenant,
   agreement: Agreement,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<[string, Date]> => {
   const activation = agreement.stamps.activation;
   if (!activation) {
@@ -240,7 +241,7 @@ const getPdfPayload = async (
   producer: Tenant,
   readModelService: ReadModelService,
   selfcareV2Client: SelfcareV2UsersClient,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<AgreementContractPDFPayload> => {
   const getTenantText = (name: string, origin: string, value: string): string =>
     origin === "IPA" ? `"${name} (codice IPA: ${value})` : name;
@@ -366,7 +367,7 @@ export const contractBuilder = (
   selfcareV2Client: SelfcareV2UsersClient,
   config: AgreementProcessConfig,
   logger: Logger,
-  correlationId: string
+  correlationId: CorrelationId
 ) => {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);

@@ -12,6 +12,7 @@ import {
   Document,
   Delegation,
   delegationState,
+  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -67,7 +68,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -141,7 +142,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(delegation.delegateId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -191,7 +192,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -216,7 +217,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -241,7 +242,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -273,7 +274,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -293,7 +294,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -327,7 +328,7 @@ describe("upload Document", () => {
           buildInterfaceSeed(),
           {
             authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
+            correlationId: generateId(),
             serviceName: "",
             logger: genericLogger,
           }
@@ -353,7 +354,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -386,7 +387,7 @@ describe("upload Document", () => {
         },
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

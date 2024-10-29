@@ -73,7 +73,7 @@ describe("get eservice by id", () => {
     const result = await catalogService.getEServiceById(eservice1.id, {
       authData,
       logger: genericLogger,
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
     });
     expect(result).toEqual(eservice1);
@@ -86,7 +86,7 @@ describe("get eservice by id", () => {
       catalogService.getEServiceById(notExistingId, {
         authData: getMockAuthData(),
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       })
     ).rejects.toThrowError(eServiceNotFound(notExistingId));
@@ -108,7 +108,7 @@ describe("get eservice by id", () => {
         catalogService.getEServiceById(eservice.id, {
           authData: getMockAuthData(),
           logger: genericLogger,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
         })
       ).rejects.toThrowError(eServiceNotFound(eservice.id));
@@ -134,7 +134,7 @@ describe("get eservice by id", () => {
         catalogService.getEServiceById(eservice.id, {
           authData,
           logger: genericLogger,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
         })
       ).rejects.toThrowError(eServiceNotFound(eservice.id));
@@ -150,7 +150,7 @@ describe("get eservice by id", () => {
       catalogService.getEServiceById(eservice.id, {
         authData: getMockAuthData(),
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       })
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
@@ -173,7 +173,7 @@ describe("get eservice by id", () => {
       catalogService.getEServiceById(eservice.id, {
         authData,
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       })
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
@@ -203,7 +203,7 @@ describe("get eservice by id", () => {
       const result = await catalogService.getEServiceById(eservice.id, {
         authData,
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       });
       expect(result.descriptors).toEqual([descriptorB]);
@@ -234,7 +234,7 @@ describe("get eservice by id", () => {
       const result = await catalogService.getEServiceById(eservice.id, {
         authData,
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       });
       expect(result.descriptors).toEqual([descriptorB]);
@@ -272,10 +272,101 @@ describe("get eservice by id", () => {
       const result = await catalogService.getEServiceById(eservice.id, {
         authData,
         logger: genericLogger,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
       });
       expect(result.descriptors).toEqual([descriptorA, descriptorB]);
     }
   );
+  it("should filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is not the producer)", async () => {
+    const descriptorA: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const descriptorB: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptorA, descriptorB],
+    };
+    const authData: AuthData = {
+      ...getMockAuthData(),
+      userRoles: [userRoles.ADMIN_ROLE],
+    };
+    await addOneEService(eservice);
+    const result = await catalogService.getEServiceById(eservice.id, {
+      authData,
+      logger: genericLogger,
+      correlationId: generateId(),
+      serviceName: "",
+    });
+    expect(result.descriptors).toEqual([descriptorB]);
+  });
+  it("should filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is the producer but not admin nor api, nor support)", async () => {
+    const descriptorA: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const descriptorB: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptorA, descriptorB],
+    };
+    const authData: AuthData = {
+      ...getMockAuthData(eservice.producerId),
+      userRoles: [userRoles.SECURITY_ROLE],
+    };
+    await addOneEService(eservice);
+    const result = await catalogService.getEServiceById(eservice.id, {
+      authData,
+      logger: genericLogger,
+      correlationId: generateId(),
+      serviceName: "",
+    });
+    expect(result.descriptors).toEqual([descriptorB]);
+  });
+  it("should not filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is delegate)", async () => {
+    const descriptorA: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const descriptorB: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptorA, descriptorB],
+    };
+    const authData: AuthData = {
+      ...getMockAuthData(),
+      userRoles: [userRoles.ADMIN_ROLE],
+    };
+    const delegation: Delegation = {
+      ...getMockDelegationProducer(),
+      state: delegationState.active,
+      eserviceId: eservice.id,
+      delegateId: authData.organizationId,
+    };
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+    const result = await catalogService.getEServiceById(eservice.id, {
+      authData,
+      logger: genericLogger,
+      correlationId: generateId(),
+      serviceName: "",
+    });
+    expect(result.descriptors).toEqual([descriptorA, descriptorB]);
+  });
 });

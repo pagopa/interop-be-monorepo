@@ -63,6 +63,7 @@ const agreementRouter = (
           error,
           getAgreementsErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           "Error retrieving agreements"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -80,6 +81,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating agreement for EService ${req.body.eserviceId} and Descriptor ${req.body.descriptorId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -109,6 +111,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving eservices from agreement filtered by eservice name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -137,6 +140,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving eservices from agreement filtered by eservice name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -162,6 +166,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving producers from agreement filtered by producer name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -187,6 +192,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving consumers from agreement filtered by consumer name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -207,6 +213,7 @@ const agreementRouter = (
           error,
           getAgreementByIdErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -224,6 +231,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error deleting agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -246,6 +254,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error adding consumer document to agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -266,6 +275,7 @@ const agreementRouter = (
           error,
           activateAgreementErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error activating agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -286,6 +296,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error cloning agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -310,6 +321,7 @@ const agreementRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error downloading consumer document ${req.params.documentId} for agreement ${req.params.agreementId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -335,6 +347,7 @@ const agreementRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error deleting consumer document ${req.params.documentId} for agreement ${req.params.agreementId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -357,6 +370,7 @@ const agreementRouter = (
           error,
           getAgreementContractErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error downloading contract for agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -378,6 +392,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error submitting agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -398,6 +413,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error suspending agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -419,6 +435,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error rejecting agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -436,6 +453,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error archiving agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -457,6 +475,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error updating agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -477,6 +496,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error upgrading agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);

@@ -19,6 +19,7 @@ import {
   operationForbidden,
   tenantAttributeType,
   tenantKind,
+  SCP,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -141,6 +142,7 @@ export function getTenantKind(
       () => tenantKind.GSP
     )
     .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => tenantKind.PA)
+    .with(SCP, () => tenantKind.SCP)
     .otherwise(() => tenantKind.PRIVATE);
 }
 

@@ -63,7 +63,7 @@ describe("delete draft descriptor", () => {
       descriptorToDelete.id,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -176,7 +176,7 @@ describe("delete draft descriptor", () => {
       descriptorToDelete.id,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -245,7 +245,7 @@ describe("delete draft descriptor", () => {
       draftDescriptor.id,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -320,7 +320,7 @@ describe("delete draft descriptor", () => {
       draftDescriptor.id,
       {
         authData: getMockAuthData(delegation.delegateId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -393,7 +393,7 @@ describe("delete draft descriptor", () => {
     await expect(
       catalogService.deleteDraftDescriptor(eservice.id, descriptorToDelete.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -412,7 +412,7 @@ describe("delete draft descriptor", () => {
     expect(
       catalogService.deleteDraftDescriptor(mockEService.id, mockDescriptorId, {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -429,7 +429,7 @@ describe("delete draft descriptor", () => {
     expect(
       catalogService.deleteDraftDescriptor(eservice.id, descriptorIdToDelete, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -455,7 +455,7 @@ describe("delete draft descriptor", () => {
     expect(
       catalogService.deleteDraftDescriptor(eservice.id, descriptorToDelete.id, {
         authData: getMockAuthData(),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -486,7 +486,7 @@ describe("delete draft descriptor", () => {
     expect(
       catalogService.deleteDraftDescriptor(eservice.id, descriptorToDelete.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -509,7 +509,7 @@ describe("delete draft descriptor", () => {
       expect(
         catalogService.deleteDraftDescriptor(eservice.id, descriptor.id, {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         })
@@ -541,7 +541,7 @@ describe("delete draft descriptor", () => {
           descriptorToDelete.id,
           {
             authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
+            correlationId: generateId(),
             serviceName: "",
             logger: genericLogger,
           }

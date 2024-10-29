@@ -1,14 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { FileManager, Logger } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
+import { FileManager, Logger } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
+import { config } from "../config/config.js";
 import {
-  privacyNoticeNotFoundInConfiguration,
   privacyNoticeNotFound,
+  privacyNoticeNotFoundInConfiguration,
   privacyNoticeVersionIsNotTheLatest,
 } from "../model/errors.js";
-import { config } from "../config/config.js";
-import { UserPrivacyNotice } from "../model/types.js";
+import {
+  UserPrivacyNotice,
+  UserPrivacyNoticeConsentType,
+  UserPrivacyNoticeConsentTypePP,
+  UserPrivacyNoticeConsentTypeTOS,
+} from "../model/types.js";
 import { PrivacyNoticeStorage } from "./privacyNoticeStorage.js";
 
 export function privacyNoticeServiceBuilder(
@@ -100,6 +106,11 @@ export function privacyNoticeServiceBuilder(
         return;
       }
 
+      const kind: UserPrivacyNoticeConsentType = match(consentType)
+        .with("PP", (): UserPrivacyNoticeConsentTypePP => ({ PP: "PP" }))
+        .with("TOS", (): UserPrivacyNoticeConsentTypeTOS => ({ TOS: "TOS" }))
+        .exhaustive();
+
       const privacyNotice: UserPrivacyNotice = {
         pnIdWithUserId: `${privacyNoticeId}#${userId}`,
         privacyNoticeId,
@@ -109,7 +120,7 @@ export function privacyNoticeServiceBuilder(
         version: {
           version: latest.privacyNoticeVersion.version,
           versionId: seed.latestVersionId,
-          kind: consentType,
+          kind,
         },
       };
       await privacyNoticeStorage.put(privacyNotice, logger);
@@ -123,19 +134,11 @@ export function privacyNoticeServiceBuilder(
         `Retrieving privacy notice content for consentType ${consentType}`
       );
 
-      const privacyNoticeId = retrievePrivacyNoticeId(
-        consentType,
-        consentTypeMap
-      );
-
-      const latest = await retrieveLatestPrivacyNoticeVersion(
-        consentType,
-        privacyNoticeId,
-        privacyNoticeStorage,
-        logger
-      );
-
-      const path = `${config.privacyNoticesPath}/${latest.privacyNoticeVersion.versionId}/it/${config.privacyNoticesFileName}`;
+      const basePath = `${config.privacyNoticesPath}/latest/it`;
+      const path = match(consentType)
+        .with("PP", () => `${basePath}/${config.privacyNoticesPPFileName}`)
+        .with("TOS", () => `${basePath}/${config.privacyNoticesTOSFileName}`)
+        .exhaustive();
       const bytes = await fileManager.get(
         config.privacyNoticesContainer,
         path,

@@ -115,5 +115,6 @@ export const EService = z.object({
   createdAt: z.coerce.date(),
   riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
+  isSignalHubEnabled: z.boolean().optional(),
 });
 export type EService = z.infer<typeof EService>;

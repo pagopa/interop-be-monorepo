@@ -25,6 +25,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
+  eserviceWithActiveOrPendingDelegation,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -38,16 +39,22 @@ export async function assertRequesterIsDelegateOrProducer(
     return;
   }
 
+  // Search for active delegation
   const delegation = await readModelService.getLatestDelegation({
     eserviceId,
     states: [delegationState.active],
   });
 
+  // If an active delegation exists, check if the requester is the delegate
   if (delegation) {
-    if (authData.organizationId !== delegation.delegateId) {
+    const isRequesterDelegate =
+      authData.organizationId === delegation.delegateId;
+
+    if (!isRequesterDelegate) {
       throw operationForbidden;
     }
   } else {
+    // If no active delegation exists, ensure the requester is the producer
     assertRequesterIsProducer(producerId, authData);
   }
 }
@@ -56,12 +63,15 @@ export function assertRequesterIsProducer(
   producerId: TenantId,
   authData: AuthData
 ): void {
+  if (authData.userRoles.includes("internal")) {
+    return;
+  }
   if (producerId !== authData.organizationId) {
     throw operationForbidden;
   }
 }
 
-export async function assertNoValidDelegationAssociated(
+export async function assertNoExistingDelegationInActiveOrPendingState(
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<void> {
@@ -71,7 +81,7 @@ export async function assertNoValidDelegationAssociated(
   });
 
   if (delegation) {
-    throw operationForbidden;
+    throw eserviceWithActiveOrPendingDelegation(eserviceId, delegation.id);
   }
 }
 

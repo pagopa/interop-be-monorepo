@@ -13,6 +13,7 @@ import {
   operationForbidden,
   Delegation,
   delegationState,
+  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -48,12 +49,12 @@ describe("activate descriptor", () => {
     await addOneEService(eservice);
     await catalogService.activateDescriptor(eservice.id, descriptor.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       state: descriptorState.published,
     };
@@ -70,7 +71,7 @@ describe("activate descriptor", () => {
 
     const expectedEservice = toEServiceV2({
       ...eservice,
-      descriptors: [updatedDescriptor],
+      descriptors: [expectedDescriptor],
     });
     expect(writtenPayload.eservice).toEqual(expectedEservice);
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
@@ -102,12 +103,12 @@ describe("activate descriptor", () => {
 
     await catalogService.activateDescriptor(eservice.id, descriptor.id, {
       authData: delegate,
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       state: descriptorState.published,
     };
@@ -124,7 +125,7 @@ describe("activate descriptor", () => {
 
     const expectedEservice = toEServiceV2({
       ...eservice,
-      descriptors: [updatedDescriptor],
+      descriptors: [expectedDescriptor],
     });
     expect(writtenPayload.eservice).toEqual(expectedEservice);
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
@@ -134,7 +135,7 @@ describe("activate descriptor", () => {
     expect(
       catalogService.activateDescriptor(mockEService.id, mockDescriptor.id, {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -151,7 +152,7 @@ describe("activate descriptor", () => {
     expect(
       catalogService.activateDescriptor(eservice.id, mockDescriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -174,7 +175,7 @@ describe("activate descriptor", () => {
     expect(
       catalogService.activateDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -203,7 +204,7 @@ describe("activate descriptor", () => {
     expect(
       catalogService.activateDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -231,7 +232,7 @@ describe("activate descriptor", () => {
       expect(
         catalogService.activateDescriptor(mockEService.id, mockDescriptor.id, {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         })

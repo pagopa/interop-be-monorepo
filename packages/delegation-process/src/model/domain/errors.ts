@@ -1,8 +1,10 @@
 import {
   ApiError,
+  Delegation,
   EServiceId,
   makeApiProblemBuilder,
   TenantId,
+  DelegationState,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -13,6 +15,10 @@ export const errorCodes = {
   invalidDelegatorAndDelegateIds: "0005",
   invalidExternalOriginId: "0006",
   tenantNotAllowedToDelegation: "0007",
+  delegationNotRevokable: "0008",
+  operationNotAllowOnDelegation: "0009",
+  operationRestrictedToDelegate: "0010",
+  incorrectState: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -31,11 +37,10 @@ export function delegationAlreadyExists(
   delgatorId: string,
   delegeteId: string,
   eserviceId: string,
-  delegationKind: string,
-  delegationId: string
+  delegationKind: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegation type ${delegationKind} already exists with id ${delegationId} for delegator ${delgatorId} and delegate ${delegeteId} for EService ${eserviceId}`,
+    detail: `Delegation type ${delegationKind} already exists for delegator ${delgatorId} and delegate ${delegeteId} for EService ${eserviceId}`,
     code: "delegationAlreadyExists",
     title: "Delegation already exists",
   });
@@ -82,5 +87,48 @@ export function tenantNotAllowedToDelegation(
     detail: `Tenant ${tenantId} not allowed to delegation`,
     code: "tenantNotAllowedToDelegation",
     title: "Tenant not allowed to delegation",
+  });
+}
+
+export function delegationNotRevokable(
+  delegation: Delegation
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegation.id} is not revokable. State: ${delegation.state}`,
+    code: "delegationNotRevokable",
+    title: "Delegation not revokable",
+  });
+}
+
+export function delegatorNotAllowToRevoke(
+  delegation: Delegation
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester ${delegation.id} is not delegator for the current delegation with id ${delegation.id}`,
+    code: "operationNotAllowOnDelegation",
+    title: "Requester and delegator are differents",
+  });
+}
+
+export function operationRestrictedToDelegate(
+  tenantId: string,
+  delegationId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not a delegate for delegation ${delegationId}`,
+    code: "operationRestrictedToDelegate",
+    title: "Operation restricted to delegate",
+  });
+}
+
+export function incorrectState(
+  delegationId: string,
+  actualState: DelegationState,
+  expectedState: DelegationState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} is in state ${actualState} but expected ${expectedState}`,
+    code: "incorrectState",
+    title: "Incorrect state",
   });
 }

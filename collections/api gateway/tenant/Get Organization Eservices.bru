@@ -1,0 +1,25 @@
+meta {
+  name: Get Organization Eservices
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-api-gw}}/organizations/origin/:origin/externalId/:externalId/eservices?attributeCode={{attributeCode}}&attributeOrigin={{attributeOrigin}}
+  body: none
+  auth: none
+}
+
+params:query {
+  attributeCode: {{attributeCode}}
+  attributeOrigin: {{attributeOrigin}}
+}
+
+params:path {
+  origin: {{tenantOrigin}}
+  externalId: {{tenantExternalId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

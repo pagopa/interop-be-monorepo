@@ -1,5 +1,6 @@
 import { apiGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { isDefined, WithLogger } from "pagopa-interop-commons";
+import { operationForbidden } from "pagopa-interop-models";
 import {
   toApiGatewayOrganization,
   toM2MTenantSeed,
@@ -10,6 +11,15 @@ import {
   CatalogProcessClient,
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
+import { clientStatusCodeToError } from "../clients/catchClientError.js";
+import {
+  attributeByCodeNotFound,
+  attributeByOriginNotFound,
+  certifiedAttributeAlreadyAssigned,
+  tenantAttributeNotFound,
+  tenantByOriginNotFound,
+  tenantNotFound,
+} from "../models/errors.js";
 import { enhanceEservice, getAllEservices } from "./catalogService.js";
 
 export async function getOrganization(
@@ -60,7 +70,11 @@ export function tenantServiceBuilder(
         attributeProcessClient,
         headers,
         tenantId
-      );
+      ).catch((res) => {
+        throw clientStatusCodeToError(res, {
+          404: tenantNotFound(tenantId),
+        });
+      });
     },
     getOrganizationEservices: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
@@ -76,21 +90,32 @@ export function tenantServiceBuilder(
         `Retrieving Organization EServices for origin ${origin} externalId ${externalId} attributeOrigin ${attributeOrigin} attributeCode ${attributeCode}`
       );
 
-      const tenant = await tenantProcessClient.tenant.getTenantByExternalId({
-        headers,
-        params: {
-          origin,
-          code: externalId,
-        },
-      });
+      const tenant = await tenantProcessClient.tenant
+        .getTenantByExternalId({
+          headers,
+          params: {
+            origin,
+            code: externalId,
+          },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            404: tenantByOriginNotFound(origin, externalId),
+          });
+        });
 
-      const attribute =
-        await attributeProcessClient.getAttributeByOriginAndCode({
+      const attribute = await attributeProcessClient
+        .getAttributeByOriginAndCode({
           headers,
           params: {
             origin: attributeOrigin,
             code: attributeCode,
           },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            404: attributeByOriginNotFound(attributeOrigin, attributeCode),
+          });
         });
 
       const allEservices = await getAllEservices(
@@ -109,7 +134,8 @@ export function tenantServiceBuilder(
             tenantProcessClient,
             attributeProcessClient,
             headers,
-            eservice
+            eservice,
+            logger
           )
         )
       );
@@ -128,14 +154,22 @@ export function tenantServiceBuilder(
         `Revoking attribute ${attributeCode} of tenant (${origin},${externalId})`
       );
 
-      await tenantProcessClient.m2m.m2mRevokeAttribute(undefined, {
-        headers,
-        params: {
-          origin,
-          externalId,
-          code: attributeCode,
-        },
-      });
+      await tenantProcessClient.m2m
+        .m2mRevokeAttribute(undefined, {
+          headers,
+          params: {
+            origin,
+            externalId,
+            code: attributeCode,
+          },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            403: operationForbidden,
+            404: tenantByOriginNotFound(origin, externalId),
+            400: tenantAttributeNotFound(origin, externalId, attributeCode),
+          });
+        });
     },
     upsertTenant: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
@@ -151,9 +185,35 @@ export function tenantServiceBuilder(
       );
 
       const tenantSeed = toM2MTenantSeed(origin, externalId, attributeCode);
-      await tenantProcessClient.m2m.m2mUpsertTenant(tenantSeed, {
-        headers,
-      });
+
+      const tenant: tenantApi.Tenant | undefined =
+        await tenantProcessClient.tenant
+          .getTenantByExternalId({
+            headers,
+            params: {
+              origin,
+              code: externalId,
+            },
+          })
+          .catch(() => undefined);
+      await tenantProcessClient.m2m
+        .m2mUpsertTenant(tenantSeed, {
+          headers,
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            403: operationForbidden,
+            404:
+              tenant === undefined
+                ? tenantByOriginNotFound(origin, externalId)
+                : attributeByCodeNotFound(attributeCode),
+            409: certifiedAttributeAlreadyAssigned(
+              origin,
+              externalId,
+              attributeCode
+            ),
+          });
+        });
     },
   };
 }
