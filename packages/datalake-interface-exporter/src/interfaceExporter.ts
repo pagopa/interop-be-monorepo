@@ -40,6 +40,6 @@ export async function exportInterface(
   );
 
   logger.info(
-    `Interface ${latestDescriptor.interface.name} for Eservice ${eserviceId} and Descriptor ${latestDescriptor.id} copied to ${config.datalakeInterfacesExportS3Bucket}/${eserviceId}/${latestDescriptor.id}/${latestDescriptor.interface.name}`
+    `Interface ${latestDescriptor.interface.name} for Eservice ${eserviceId} and Descriptor ${latestDescriptor.id} exported successfully`
   );
 }
