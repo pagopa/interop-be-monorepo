@@ -347,7 +347,7 @@ describe("publish descriptor", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it.only("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
