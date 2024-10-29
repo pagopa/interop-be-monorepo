@@ -96,4 +96,20 @@ describe("interfaceExporter", () => {
       `${mockEserviceId2}/${mockDescriptor2.id}/${mockDocument2.name}`
     );
   });
+
+  it("should fail if descriptor does not have an interface", async () => {
+    const mockEserviceId = generateId<EServiceId>();
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      interface: undefined,
+    };
+    await expect(
+      exportInterface(
+        mockEserviceId,
+        mockDescriptor,
+        fileManager,
+        genericLogger
+      )
+    ).rejects.toThrow();
+  });
 });
