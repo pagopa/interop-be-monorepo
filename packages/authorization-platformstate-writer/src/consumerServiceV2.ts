@@ -441,24 +441,21 @@ export async function handleMessageV2(
             clientId: client.id,
             purposeId: unsafeBrandId(msg.data.purposeId),
           });
-          if (client.purposes.length > 0) {
-            // platform-states
-            await cleanClientPurposeIdsInPlatformStatesEntry(
-              pk,
-              msg.version,
-              dynamoDBClient
-            );
 
-            // token-generation-states
+          // platform-states
+          await cleanClientPurposeIdsInPlatformStatesEntry(
+            pk,
+            msg.version,
+            dynamoDBClient
+          );
+
+          // token-generation-states
+          if (client.purposes.length > 0) {
             await deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable(
               GSIPK_clientId_purposeId,
               dynamoDBClient
             );
           } else {
-            // platform-states
-            await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
-
-            // token-generation-states
             await convertEntriesToClientKidInTokenGenerationStates(
               GSIPK_clientId_purposeId,
               dynamoDBClient
