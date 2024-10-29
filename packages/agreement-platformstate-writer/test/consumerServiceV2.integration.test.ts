@@ -17,6 +17,8 @@ import {
   AgreementArchivedByConsumerV2,
   AgreementArchivedByUpgradeV2,
   AgreementEventEnvelope,
+  AgreementSuspendedByConsumerV2,
+  AgreementSuspendedByPlatformV2,
   AgreementSuspendedByProducerV2,
   AgreementUnsuspendedByProducerV2,
   AgreementUpgradedV2,
@@ -514,7 +516,7 @@ describe("integration tests V2 events", async () => {
       );
     });
   });
-  describe("AgreementSuspendedByProducer, AgreementSuspendedByConsumer, AgreementSuspendedByPlatform", async () => {
+  describe("AgreementSuspendedByProducer", async () => {
     it("should do no operation if the entry doesn't exist", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -723,6 +725,636 @@ describe("integration tests V2 events", async () => {
         stream_id: latestAgreement.id,
         version: 1,
         type: "AgreementSuspendedByProducer",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      const previousAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+        previousAgreement.id
+      );
+      const latestAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+        latestAgreement.id
+      );
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      });
+
+      const previousAgreementStateEntry: PlatformStatesAgreementEntry = {
+        ...getMockAgreementEntry(previousAgreementEntryPrimaryKey),
+        state: itemState.active,
+        GSIPK_consumerId_eserviceId,
+        GSISK_agreementTimestamp:
+          previousAgreement.stamps.activation!.when.toISOString(),
+      };
+
+      const latestAgreementStateEntry: PlatformStatesAgreementEntry = {
+        ...getMockAgreementEntry(latestAgreementEntryPrimaryKey),
+        state: itemState.active,
+        GSIPK_consumerId_eserviceId,
+        GSISK_agreementTimestamp:
+          latestAgreement.stamps.activation!.when.toISOString(),
+      };
+
+      await writeAgreementEntry(previousAgreementStateEntry, dynamoDBClient);
+      await writeAgreementEntry(latestAgreementStateEntry, dynamoDBClient);
+
+      // token-generation-states
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          agreementId: latestAgreement.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          agreementId: latestAgreement.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
+      await sleep(1000, mockDate);
+      await handleMessageV2(message, dynamoDBClient);
+
+      const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
+        ...latestAgreementStateEntry,
+        state: itemState.inactive,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const retrievedEntry = await readAgreementEntry(
+        latestAgreementEntryPrimaryKey,
+        dynamoDBClient
+      );
+      expect(retrievedEntry).toEqual(expectedAgreementStateEntry);
+
+      // token-generation-states
+      const retrievedTokenStateEntries =
+        await readTokenStateEntriesByConsumerIdEserviceId(
+          GSIPK_consumerId_eserviceId,
+          dynamoDBClient
+        );
+      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry1,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry2,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+
+      expect(retrievedTokenStateEntries).toHaveLength(2);
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenStateEntry2,
+          expectedTokenStateEntry1,
+        ])
+      );
+    });
+  });
+  describe("AgreementSuspendedByConsumer", async () => {
+    it("should do no operation if the entry doesn't exist", async () => {
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.suspended,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+      const payload: AgreementSuspendedByConsumerV2 = {
+        agreement: toAgreementV2(agreement),
+      };
+      const message: AgreementEventEnvelope = {
+        sequence_num: 1,
+        stream_id: agreement.id,
+        version: 1,
+        type: "AgreementSuspendedByConsumer",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      const agreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+        agreement.id
+      );
+
+      await sleep(1000, mockDate);
+      await handleMessageV2(message, dynamoDBClient);
+
+      const retrievedAgreementEntry = await readAgreementEntry(
+        agreementEntryPrimaryKey,
+        dynamoDBClient
+      );
+
+      expect(retrievedAgreementEntry).toBeUndefined();
+    });
+    it("should update the entry (agreement is not the latest -> no operation on token states)", async () => {
+      const sixHoursAgo = new Date();
+      sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+
+      const consumerId = generateId<TenantId>();
+      const eserviceId = generateId<EServiceId>();
+
+      const previousAgreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId,
+        state: agreementState.suspended,
+        stamps: {
+          activation: {
+            when: sixHoursAgo,
+            who: generateId(),
+          },
+        },
+      };
+      const latestAgreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId,
+        state: agreementState.suspended,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+      const payload: AgreementSuspendedByConsumerV2 = {
+        agreement: toAgreementV2(previousAgreement),
+      };
+      const message: AgreementEventEnvelope = {
+        sequence_num: 1,
+        stream_id: previousAgreement.id,
+        version: 1,
+        type: "AgreementSuspendedByConsumer",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      const previousAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+        previousAgreement.id
+      );
+      const latestAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+        latestAgreement.id
+      );
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      });
+
+      const previousAgreementStateEntry: PlatformStatesAgreementEntry = {
+        ...getMockAgreementEntry(previousAgreementEntryPrimaryKey),
+        state: itemState.active,
+        GSIPK_consumerId_eserviceId,
+        GSISK_agreementTimestamp:
+          previousAgreement.stamps.activation!.when.toISOString(),
+      };
+
+      const latestAgreementStateEntry: PlatformStatesAgreementEntry = {
+        ...getMockAgreementEntry(latestAgreementEntryPrimaryKey),
+        state: itemState.active,
+        GSIPK_consumerId_eserviceId,
+        GSISK_agreementTimestamp:
+          latestAgreement.stamps.activation!.when.toISOString(),
+      };
+
+      await writeAgreementEntry(previousAgreementStateEntry, dynamoDBClient);
+      await writeAgreementEntry(latestAgreementStateEntry, dynamoDBClient);
+
+      // token-generation-states
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          agreementId: previousAgreement.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          agreementId: previousAgreement.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
+      await sleep(1000, mockDate);
+      await handleMessageV2(message, dynamoDBClient);
+
+      const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
+        ...previousAgreementStateEntry,
+        state: itemState.inactive,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const retrievedEntry = await readAgreementEntry(
+        previousAgreementEntryPrimaryKey,
+        dynamoDBClient
+      );
+      expect(retrievedEntry).toEqual(expectedAgreementStateEntry);
+
+      // token-generation-states
+      const retrievedTokenStateEntries =
+        await readTokenStateEntriesByConsumerIdEserviceId(
+          GSIPK_consumerId_eserviceId,
+          dynamoDBClient
+        );
+
+      expect(retrievedTokenStateEntries).toHaveLength(2);
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          previousTokenStateEntry2,
+          previousTokenStateEntry1,
+        ])
+      );
+    });
+    it("should update the entry (agreement is the latest -> update in token states)", async () => {
+      const sixHoursAgo = new Date();
+      sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+
+      const consumerId = generateId<TenantId>();
+      const eserviceId = generateId<EServiceId>();
+
+      const previousAgreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId,
+        state: agreementState.suspended,
+        stamps: {
+          activation: {
+            when: sixHoursAgo,
+            who: generateId(),
+          },
+        },
+      };
+      const latestAgreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId,
+        state: agreementState.suspended,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+      const payload: AgreementSuspendedByConsumerV2 = {
+        agreement: toAgreementV2(latestAgreement),
+      };
+      const message: AgreementEventEnvelope = {
+        sequence_num: 1,
+        stream_id: latestAgreement.id,
+        version: 1,
+        type: "AgreementSuspendedByConsumer",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      const previousAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+        previousAgreement.id
+      );
+      const latestAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+        latestAgreement.id
+      );
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      });
+
+      const previousAgreementStateEntry: PlatformStatesAgreementEntry = {
+        ...getMockAgreementEntry(previousAgreementEntryPrimaryKey),
+        state: itemState.active,
+        GSIPK_consumerId_eserviceId,
+        GSISK_agreementTimestamp:
+          previousAgreement.stamps.activation!.when.toISOString(),
+      };
+
+      const latestAgreementStateEntry: PlatformStatesAgreementEntry = {
+        ...getMockAgreementEntry(latestAgreementEntryPrimaryKey),
+        state: itemState.active,
+        GSIPK_consumerId_eserviceId,
+        GSISK_agreementTimestamp:
+          latestAgreement.stamps.activation!.when.toISOString(),
+      };
+
+      await writeAgreementEntry(previousAgreementStateEntry, dynamoDBClient);
+      await writeAgreementEntry(latestAgreementStateEntry, dynamoDBClient);
+
+      // token-generation-states
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          agreementId: latestAgreement.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          agreementId: latestAgreement.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
+      await sleep(1000, mockDate);
+      await handleMessageV2(message, dynamoDBClient);
+
+      const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
+        ...latestAgreementStateEntry,
+        state: itemState.inactive,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const retrievedEntry = await readAgreementEntry(
+        latestAgreementEntryPrimaryKey,
+        dynamoDBClient
+      );
+      expect(retrievedEntry).toEqual(expectedAgreementStateEntry);
+
+      // token-generation-states
+      const retrievedTokenStateEntries =
+        await readTokenStateEntriesByConsumerIdEserviceId(
+          GSIPK_consumerId_eserviceId,
+          dynamoDBClient
+        );
+      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry1,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry2,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+
+      expect(retrievedTokenStateEntries).toHaveLength(2);
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenStateEntry2,
+          expectedTokenStateEntry1,
+        ])
+      );
+    });
+  });
+  describe("AgreementSuspendedByPlatform", async () => {
+    it("should do no operation if the entry doesn't exist", async () => {
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.suspended,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+      const payload: AgreementSuspendedByPlatformV2 = {
+        agreement: toAgreementV2(agreement),
+      };
+      const message: AgreementEventEnvelope = {
+        sequence_num: 1,
+        stream_id: agreement.id,
+        version: 1,
+        type: "AgreementSuspendedByPlatform",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      const agreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+        agreement.id
+      );
+
+      await sleep(1000, mockDate);
+      await handleMessageV2(message, dynamoDBClient);
+
+      const retrievedAgreementEntry = await readAgreementEntry(
+        agreementEntryPrimaryKey,
+        dynamoDBClient
+      );
+
+      expect(retrievedAgreementEntry).toBeUndefined();
+    });
+    it("should update the entry (agreement is not the latest -> no operation on token states)", async () => {
+      const sixHoursAgo = new Date();
+      sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+
+      const consumerId = generateId<TenantId>();
+      const eserviceId = generateId<EServiceId>();
+
+      const previousAgreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId,
+        state: agreementState.suspended,
+        stamps: {
+          activation: {
+            when: sixHoursAgo,
+            who: generateId(),
+          },
+        },
+      };
+      const latestAgreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId,
+        state: agreementState.suspended,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+      const payload: AgreementSuspendedByPlatformV2 = {
+        agreement: toAgreementV2(previousAgreement),
+      };
+      const message: AgreementEventEnvelope = {
+        sequence_num: 1,
+        stream_id: previousAgreement.id,
+        version: 1,
+        type: "AgreementSuspendedByPlatform",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      const previousAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+        previousAgreement.id
+      );
+      const latestAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+        latestAgreement.id
+      );
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      });
+
+      const previousAgreementStateEntry: PlatformStatesAgreementEntry = {
+        ...getMockAgreementEntry(previousAgreementEntryPrimaryKey),
+        state: itemState.active,
+        GSIPK_consumerId_eserviceId,
+        GSISK_agreementTimestamp:
+          previousAgreement.stamps.activation!.when.toISOString(),
+      };
+
+      const latestAgreementStateEntry: PlatformStatesAgreementEntry = {
+        ...getMockAgreementEntry(latestAgreementEntryPrimaryKey),
+        state: itemState.active,
+        GSIPK_consumerId_eserviceId,
+        GSISK_agreementTimestamp:
+          latestAgreement.stamps.activation!.when.toISOString(),
+      };
+
+      await writeAgreementEntry(previousAgreementStateEntry, dynamoDBClient);
+      await writeAgreementEntry(latestAgreementStateEntry, dynamoDBClient);
+
+      // token-generation-states
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          agreementId: previousAgreement.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          agreementId: previousAgreement.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
+      await sleep(1000, mockDate);
+      await handleMessageV2(message, dynamoDBClient);
+
+      const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
+        ...previousAgreementStateEntry,
+        state: itemState.inactive,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const retrievedEntry = await readAgreementEntry(
+        previousAgreementEntryPrimaryKey,
+        dynamoDBClient
+      );
+      expect(retrievedEntry).toEqual(expectedAgreementStateEntry);
+
+      // token-generation-states
+      const retrievedTokenStateEntries =
+        await readTokenStateEntriesByConsumerIdEserviceId(
+          GSIPK_consumerId_eserviceId,
+          dynamoDBClient
+        );
+
+      expect(retrievedTokenStateEntries).toHaveLength(2);
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          previousTokenStateEntry2,
+          previousTokenStateEntry1,
+        ])
+      );
+    });
+    it("should update the entry (agreement is the latest -> update in token states)", async () => {
+      const sixHoursAgo = new Date();
+      sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+
+      const consumerId = generateId<TenantId>();
+      const eserviceId = generateId<EServiceId>();
+
+      const previousAgreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId,
+        state: agreementState.suspended,
+        stamps: {
+          activation: {
+            when: sixHoursAgo,
+            who: generateId(),
+          },
+        },
+      };
+      const latestAgreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId,
+        state: agreementState.suspended,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+      const payload: AgreementSuspendedByPlatformV2 = {
+        agreement: toAgreementV2(latestAgreement),
+      };
+      const message: AgreementEventEnvelope = {
+        sequence_num: 1,
+        stream_id: latestAgreement.id,
+        version: 1,
+        type: "AgreementSuspendedByPlatform",
         event_version: 2,
         data: payload,
         log_date: new Date(),
