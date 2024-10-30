@@ -306,8 +306,11 @@ export function readModelServiceBuilder(
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
+      const { producerId, ...filtersWithoutProducerId } = filters;
+      const producerIds = Array.isArray(producerId) ? producerId : [producerId];
+
       const aggregationPipeline = [
-        getAgreementsFilters(filters),
+        getAgreementsFilters(filtersWithoutProducerId),
         {
           $lookup: {
             from: "eservices",
@@ -319,6 +322,47 @@ export function readModelServiceBuilder(
         {
           $unwind: "$eservices",
         },
+        ...(producerIds.length > 0
+          ? [
+              {
+                $lookup: {
+                  from: "delegations",
+                  localField: "data.eserviceId",
+                  foreignField: "data.eserviceId",
+                  as: "delegations",
+                },
+              },
+              {
+                $unwind: {
+                  path: "$delegations",
+                  preserveNullAndEmptyArrays: true,
+                },
+              },
+              {
+                $match: {
+                  $or: [
+                    {
+                      $and: [
+                        {
+                          "delegations.data.state": agreementState.active,
+                        },
+                        {
+                          "delegations.data.delegateId": {
+                            $in: producerIds,
+                          },
+                        },
+                      ],
+                    },
+                    {
+                      "data.producerId": {
+                        $in: producerIds,
+                      },
+                    },
+                  ],
+                },
+              },
+            ]
+          : []),
         ...(filters.showOnlyUpgradeable
           ? [
               {
@@ -509,30 +553,84 @@ export function readModelServiceBuilder(
         ...(filters.consumerIds.length === 0
           ? undefined
           : { "data.consumerId": { $in: filters.consumerIds } }),
-        ...(filters.producerIds.length === 0
-          ? undefined
-          : { "data.producerId": { $in: filters.producerIds } }),
         ...(filters.agreeementStates.length === 0
           ? undefined
           : { "data.state": { $in: filters.agreeementStates } }),
       };
 
-      const agreementEservicesIds = await agreements.distinct(
-        "data.eserviceId",
-        agreementFilter
-      );
-
       const aggregationPipeline = [
+        ...(filters.producerIds.length > 0
+          ? [
+              {
+                $lookup: {
+                  from: "delegations",
+                  localField: "data.eserviceId",
+                  foreignField: "data.eserviceId",
+                  as: "delegations",
+                },
+              },
+              {
+                $unwind: {
+                  path: "$delegations",
+                  preserveNullAndEmptyArrays: true,
+                },
+              },
+              {
+                $match: {
+                  $or: [
+                    {
+                      $and: [
+                        {
+                          "delegations.data.state": "Active",
+                        },
+                        {
+                          "delegations.data.delegateId": {
+                            $in: filters.producerIds,
+                          },
+                        },
+                      ],
+                    },
+                    {
+                      "data.producerId": {
+                        $in: filters.producerIds,
+                      },
+                    },
+                  ],
+                },
+              },
+            ]
+          : []),
+        {
+          $match: agreementFilter,
+        },
+        {
+          $group: {
+            _id: "$data.eserviceId",
+          },
+        },
+        {
+          $lookup: {
+            from: "eservices",
+            localField: "_id",
+            foreignField: "data.id",
+            as: "eservices",
+          },
+        },
+        {
+          $unwind: "$eservices",
+        },
         {
           $match: {
-            ...{ "data.id": { $in: agreementEservicesIds } },
-            ...makeRegexFilter("data.name", filters.eserviceName),
+            ...makeRegexFilter("eservices.data.name", filters.eserviceName),
           },
         },
         {
           $project: {
-            data: { id: "$data.id", name: "$data.name" },
-            lowerName: { $toLower: "$data.name" },
+            data: {
+              id: "$eservices.data.id",
+              name: "$eservices.data.name",
+            },
+            lowerName: { $toLower: "$eservices.data.name" },
           },
         },
         {
@@ -540,9 +638,17 @@ export function readModelServiceBuilder(
         },
       ];
 
-      const data = await eservices
+      const data = await agreements
         .aggregate(
-          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          [
+            ...aggregationPipeline,
+            {
+              $skip: offset,
+            },
+            {
+              $limit: limit,
+            },
+          ],
           { allowDiskUse: true }
         )
         .toArray();
@@ -561,7 +667,7 @@ export function readModelServiceBuilder(
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
-          eservices,
+          agreements,
           aggregationPipeline
         ),
       };
