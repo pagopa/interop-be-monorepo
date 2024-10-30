@@ -293,7 +293,7 @@ async function searchTenantsByName(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function getDelegateAgreementsFilters(producerIds: TenantId[] | undefined) {
-  return producerIds
+  return producerIds && producerIds.length > 0
     ? [
         {
           $lookup: {
