@@ -294,7 +294,7 @@ describe("unit tests", () => {
 
       const expectedFileContent = JSON.stringify(mockAuditMessage) + "\n";
 
-      const decodedFileContent = new TextDecoder().decode(fileContent);
+      const decodedFileContent = Buffer.from(fileContent);
       expect(decodedFileContent).toEqual(expectedFileContent);
     });
 

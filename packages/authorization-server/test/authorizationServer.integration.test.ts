@@ -584,7 +584,7 @@ describe("authorization server tests", () => {
       genericLogger
     );
 
-    const decodedFileContent = new TextDecoder().decode(fileContent);
+    const decodedFileContent = Buffer.from(fileContent).toString();
     const parsedDecodedFileContent = JSON.parse(decodedFileContent);
 
     const expectedMessageBody: GeneratedTokenAuditDetails = {
