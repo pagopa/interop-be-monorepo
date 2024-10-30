@@ -2875,7 +2875,7 @@ describe("integration tests V2 events", async () => {
   });
 
   describe("AgreementArchivedByConsumer", () => {
-    it("agreement is the latest (includes operation on token states)", async () => {
+    it("should delete the entry if it exists (agreement is the latest -> includes operation on token states)", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
 
@@ -3010,7 +3010,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
-    it("agreement is not the latest (no operation on token states)", async () => {
+    it("should delete the entry (agreement is not the latest -> no operation on token states)", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
 
