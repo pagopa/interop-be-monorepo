@@ -52,12 +52,12 @@ import { config } from "./config/config.js";
 export const deleteEntriesFromTokenStatesByKid = async (
   GSIPK_kid: GSIPKKid,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesGenericEntry[]> => {
+): Promise<void> => {
   const runPaginatedQuery = async (
     GSIPK_kid: GSIPKKid,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesGenericEntry[]> => {
+  ): Promise<void> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Kid",
@@ -95,22 +95,17 @@ export const deleteEntriesFromTokenStatesByKid = async (
         );
       }
 
-      if (!data.LastEvaluatedKey) {
-        return tokenStateEntries.data;
-      } else {
-        return [
-          ...tokenStateEntries.data,
-          ...(await runPaginatedQuery(
-            GSIPK_kid,
-            dynamoDBClient,
-            data.LastEvaluatedKey
-          )),
-        ];
+      if (data.LastEvaluatedKey) {
+        await runPaginatedQuery(
+          GSIPK_kid,
+          dynamoDBClient,
+          data.LastEvaluatedKey
+        );
       }
     }
   };
 
-  return await runPaginatedQuery(GSIPK_kid, dynamoDBClient, undefined);
+  await runPaginatedQuery(GSIPK_kid, dynamoDBClient, undefined);
 };
 
 export const deleteClientEntryFromPlatformStates = async (
@@ -130,12 +125,12 @@ export const deleteClientEntryFromPlatformStates = async (
 export const deleteEntriesFromTokenStatesByClient = async (
   GSIPK_client: ClientId,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesGenericEntry[]> => {
+): Promise<void> => {
   const runPaginatedQuery = async (
     GSIPK_client: ClientId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesGenericEntry[]> => {
+  ): Promise<void> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Client",
@@ -174,22 +169,17 @@ export const deleteEntriesFromTokenStatesByClient = async (
         );
       }
 
-      if (!data.LastEvaluatedKey) {
-        return tokenStateEntries.data;
-      } else {
-        return [
-          ...tokenStateEntries.data,
-          ...(await runPaginatedQuery(
-            GSIPK_client,
-            dynamoDBClient,
-            data.LastEvaluatedKey
-          )),
-        ];
+      if (data.LastEvaluatedKey) {
+        await runPaginatedQuery(
+          GSIPK_client,
+          dynamoDBClient,
+          data.LastEvaluatedKey
+        );
       }
     }
   };
 
-  return await runPaginatedQuery(GSIPK_client, dynamoDBClient, undefined);
+  await runPaginatedQuery(GSIPK_client, dynamoDBClient, undefined);
 };
 
 export const deleteClientEntryFromTokenGenerationStatesTable = async (
@@ -290,7 +280,7 @@ export const deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable =
       GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
       dynamoDBClient: DynamoDBClient,
       exclusiveStartKey?: Record<string, AttributeValue>
-    ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+    ): Promise<void> => {
       const res = await readTokenStateEntriesByGSIPKClientPurpose(
         GSIPK_clientId_purposeId,
         dynamoDBClient,
@@ -304,17 +294,12 @@ export const deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable =
         );
       }
 
-      if (!res.lastEvaluatedKey) {
-        return res.tokenStateEntries;
-      } else {
-        return [
-          ...res.tokenStateEntries,
-          ...(await runPaginatedQuery(
-            GSIPK_clientId_purposeId,
-            dynamoDBClient,
-            res.lastEvaluatedKey
-          )),
-        ];
+      if (res.lastEvaluatedKey) {
+        await runPaginatedQuery(
+          GSIPK_clientId_purposeId,
+          dynamoDBClient,
+          res.lastEvaluatedKey
+        );
       }
     };
     await runPaginatedQuery(GSIPK_clientId_purposeId, dynamoDBClient);
@@ -343,7 +328,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
           kid: entry.GSIPK_kid,
         }),
         consumerId: entry.consumerId,
-        clientKind: entry.clientKind, // TODO does it become api?
+        clientKind: entry.clientKind,
         publicKey: entry.publicKey,
         GSIPK_clientId: entry.GSIPK_clientId,
         GSIPK_kid: entry.GSIPK_kid,
