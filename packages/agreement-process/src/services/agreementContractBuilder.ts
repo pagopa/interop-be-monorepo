@@ -238,11 +238,14 @@ const getActivationInfo = async (
 };
 
 async function retrieveHTMLTemplate(
-  templateName: "verifiedAttributeTemplate"
+  templateName:
+    | "verifiedAttributeTemplate"
+    | "certifiedAttributeTemplate"
+    | "declaredAttributeTemplate"
 ): Promise<string> {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
-  const templatePath = `/resources/templates/documents/${templateName}.html`;
+  const templatePath = `/resources/templates/contract/${templateName}.hbs`;
 
   try {
     const htmlTemplateBuffer = await fs.readFile(
@@ -269,19 +272,26 @@ const getPdfPayload = async (
   const verifiedAttributeTemplate = await retrieveHTMLTemplate(
     "verifiedAttributeTemplate"
   );
+  const certifiedAttributeTemplate = await retrieveHTMLTemplate(
+    "certifiedAttributeTemplate"
+  );
+  const declaredAttributeTemplate = await retrieveHTMLTemplate(
+    "declaredAttributeTemplate"
+  );
 
   const getTenantText = (name: string, origin: string, value: string): string =>
-    origin === "IPA" ? `"${name} (codice IPA: ${value})` : name;
+    origin === "IPA" ? `${name} (codice IPA: ${value})` : name;
 
   const getCertifiedAttributeHtml = (
     certifiedAttributes: Array<[Attribute, CertifiedTenantAttribute]>
   ): string =>
     certifiedAttributes
       .map((attTuple: [Attribute, CertifiedTenantAttribute]) =>
-        templateService.compileHtml(verifiedAttributeTemplate, {
+        templateService.compileHtml(certifiedAttributeTemplate, {
           assignmentDate: dateAtRomeZone(attTuple[1].assignmentTimestamp),
           assignmentTime: timeAtRomeZone(attTuple[1].assignmentTimestamp),
           attributeName: attTuple[0].name,
+          attributeId: attTuple[0].id,
         })
       )
       .join("");
@@ -291,10 +301,11 @@ const getPdfPayload = async (
   ): string =>
     declaredAttributes
       .map((attTuple: [Attribute, DeclaredTenantAttribute]) =>
-        templateService.compileHtml(verifiedAttributeTemplate, {
+        templateService.compileHtml(declaredAttributeTemplate, {
           assignmentDate: dateAtRomeZone(attTuple[1].assignmentTimestamp),
           assignmentTime: timeAtRomeZone(attTuple[1].assignmentTimestamp),
           attributeName: attTuple[0].name,
+          attributeId: attTuple[0].id,
         })
       )
       .join("");
@@ -308,10 +319,12 @@ const getPdfPayload = async (
           assignmentDate: dateAtRomeZone(attTuple[1].assignmentTimestamp),
           assignmentTime: timeAtRomeZone(attTuple[1].assignmentTimestamp),
           attributeName: attTuple[0].name,
-          verificationDate: dateAtRomeZone(attTuple[1].assignmentTimestamp),
+          attributeId: attTuple[0].id,
+          expirationDate: undefined,
+          // ^^ TODO where to get the expiration date?
         })
       )
-      .join();
+      .join("");
 
   const today = new Date();
   const producerText = getTenantText(
@@ -387,7 +400,7 @@ export const contractBuilder = (
       const templateFilePath = path.resolve(
         dirname,
         "..",
-        "resources/templates/documents",
+        "resources/templates/contract",
         "agreementContractTemplate.html"
       );
 
