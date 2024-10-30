@@ -204,7 +204,7 @@ export async function handleMessageV2(
       }
 
       const updateLatestAgreementOnTokenStates = async (
-        catalogEntry: PlatformStatesCatalogEntry
+        catalogEntry: PlatformStatesCatalogEntry | undefined
       ): Promise<void> => {
         if (
           await isLatestAgreement(
@@ -235,10 +235,6 @@ export async function handleMessageV2(
         pkCatalogEntry,
         dynamoDBClient
       );
-      if (!catalogEntry) {
-        // TODO double-check
-        throw genericInternalError("Catalog entry not found");
-      }
 
       await updateLatestAgreementOnTokenStates(catalogEntry);
 
@@ -246,11 +242,11 @@ export async function handleMessageV2(
         pkCatalogEntry,
         dynamoDBClient
       );
-      if (!updatedCatalogEntry) {
-        // TODO double-check
-        throw genericInternalError("Catalog entry not found");
-      }
-      if (updatedCatalogEntry.state !== catalogEntry.state) {
+
+      if (
+        updatedCatalogEntry &&
+        (!catalogEntry || updatedCatalogEntry.state !== catalogEntry.state)
+      ) {
         await updateLatestAgreementOnTokenStates(updatedCatalogEntry);
       }
     })
