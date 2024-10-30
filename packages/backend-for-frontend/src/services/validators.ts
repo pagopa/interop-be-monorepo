@@ -57,6 +57,7 @@ export async function assertNotDelegatedEservice(
     {
       kind: toDelegationKind(delegationKind.delegatedConsumer),
       delegatorIds: [delegatorId],
+      eserviceIds: [eserviceid],
       delegationStates: [
         toDelegationState(delegationState.active),
         toDelegationState(delegationState.waitingForApproval),
@@ -64,7 +65,7 @@ export async function assertNotDelegatedEservice(
     }
   );
 
-  if (delegations.findIndex((d) => d.eserviceId === eserviceid) >= 0) {
+  if (delegations.length > 0) {
     throw delegatedEserviceNotExportable(delegatorId);
   }
 }
