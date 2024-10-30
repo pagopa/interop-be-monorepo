@@ -63,7 +63,7 @@ describe("consumerService", () => {
       genericLogger
     );
 
-    const decodedFileContent = new TextDecoder().decode(fileContent);
+    const decodedFileContent = Buffer.from(fileContent).toString();
 
     expect(decodedFileContent).toMatchObject(expectedFileContent);
   });
@@ -115,7 +115,7 @@ describe("consumerService", () => {
       genericLogger
     );
 
-    const decodedFileContent = new TextDecoder().decode(fileContent);
+    const decodedFileContent = Buffer.from(fileContent).toString();
 
     expect(decodedFileContent).toMatchObject(expectedFileContent);
   });
