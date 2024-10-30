@@ -352,10 +352,10 @@ export function readModelServiceBuilder(
       offset: number
     ): Promise<ListResult<Agreement>> {
       const { producerId, ...filtersWithoutProducerId } = filters;
-      const producerIds = Array.isArray(producerId)
-        ? producerId
-        : producerId
-        ? [producerId]
+      const producerIds = producerId
+        ? Array.isArray(producerId)
+          ? producerId
+          : [producerId]
         : [];
 
       const aggregationPipeline = [
