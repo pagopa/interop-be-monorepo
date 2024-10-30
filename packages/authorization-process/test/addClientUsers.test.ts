@@ -2,6 +2,7 @@
 
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockClient,
   getRandomAuthData,
 } from "pagopa-interop-commons-test";
@@ -14,7 +15,7 @@ import {
   toClientV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { AuthData, genericLogger } from "pagopa-interop-commons";
+import { AuthData, genericLogger, userRoles } from "pagopa-interop-commons";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import {
   clientNotFound,
@@ -28,16 +29,10 @@ import {
   readLastAuthorizationEvent,
   selfcareV2Client,
 } from "./utils.js";
-
-function mockSelfcareV2ClientCall(
-  value: Awaited<
-    ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
-  >
-): void {
-  selfcareV2Client.getInstitutionProductUsersUsingGET = vi.fn(
-    async () => value
-  );
-}
+import {
+  mockClientRouterRequest,
+  mockSelfcareV2ClientCall,
+} from "./supertestSetup.js";
 
 const mockSelfCareUsers: selfcareV2ClientApi.UserResource = {
   id: generateId(),
@@ -48,7 +43,7 @@ const mockSelfCareUsers: selfcareV2ClientApi.UserResource = {
 };
 
 describe("addClientUsers", () => {
-  it("should write on event-store when adding users to a client", async () => {
+  it.only("should write on event-store when adding users to a client", async () => {
     const consumerId: TenantId = generateId();
     const userIds: UserId[] = [generateId()];
     const usersToAdd: UserId[] = [generateId(), generateId()];
@@ -63,25 +58,25 @@ describe("addClientUsers", () => {
 
     await addOneClient(mockClient);
 
-    await authorizationService.addClientUsers(
-      {
-        clientId: mockClient.id,
-        userIds: usersToAdd,
-        authData: getRandomAuthData(consumerId),
-      },
-      generateId(),
-      genericLogger
-    );
-
-    // await mockClientRouterRequest.post({
-    //   path: "/clients/:clientId/users",
-    //   body: { userIds: usersToAdd },
-    //   pathParams: { clientId: mockClient.id },
-    //   authData: {
-    //     ...getMockAuthData(consumerId),
-    //     userRoles: [userRoles.ADMIN_ROLE],
+    // await authorizationService.addClientUsers(
+    //   {
+    //     clientId: mockClient.id,
+    //     userIds: usersToAdd,
+    //     authData: getRandomAuthData(consumerId),
     //   },
-    // });
+    //   generateId(),
+    //   genericLogger
+    // );
+
+    await mockClientRouterRequest.post({
+      path: "/clients/:clientId/users",
+      body: { userIds: usersToAdd },
+      pathParams: { clientId: mockClient.id },
+      authData: {
+        ...getMockAuthData(consumerId),
+        userRoles: [userRoles.ADMIN_ROLE],
+      },
+    });
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
