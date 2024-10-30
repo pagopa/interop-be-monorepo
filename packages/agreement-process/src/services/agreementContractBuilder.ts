@@ -1,10 +1,12 @@
 /* eslint-disable max-params */
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs/promises";
 import {
   FileManager,
   Logger,
   PDFGenerator,
+  buildHTMLTemplateService,
   dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
   timeAtRomeZone,
@@ -28,6 +30,7 @@ import {
   unsafeBrandId,
   AgreementDocument,
   CorrelationId,
+  genericInternalError,
 } from "pagopa-interop-models";
 import {
   selfcareV2ClientApi,
@@ -234,6 +237,25 @@ const getActivationInfo = async (
   throw agreementMissingUserInfo(activation.who);
 };
 
+async function retrieveHTMLTemplate(
+  templateName: "verifiedAttributeTemplate"
+): Promise<string> {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `/resources/templates/documents/${templateName}.html`;
+
+  try {
+    const htmlTemplateBuffer = await fs.readFile(
+      `${dirname}/..${templatePath}`
+    );
+    return htmlTemplateBuffer.toString();
+  } catch {
+    throw genericInternalError(
+      `Unable to retrieve html template ${templateName}`
+    );
+  }
+}
+
 const getPdfPayload = async (
   agreement: Agreement,
   eservice: EService,
@@ -243,6 +265,11 @@ const getPdfPayload = async (
   selfcareV2Client: SelfcareV2UsersClient,
   correlationId: CorrelationId
 ): Promise<AgreementContractPDFPayload> => {
+  const templateService = buildHTMLTemplateService();
+  const verifiedAttributeTemplate = await retrieveHTMLTemplate(
+    "verifiedAttributeTemplate"
+  );
+
   const getTenantText = (name: string, origin: string, value: string): string =>
     origin === "IPA" ? `"${name} (codice IPA: ${value})` : name;
 
@@ -250,17 +277,12 @@ const getPdfPayload = async (
     certifiedAttributes: Array<[Attribute, CertifiedTenantAttribute]>
   ): string =>
     certifiedAttributes
-      .map(
-        (attTuple: [Attribute, CertifiedTenantAttribute]) => `
-        <div>
-          In data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
-          )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,l’Infrastruttura ha registrato il possesso da parte del Fruitore del seguente attributo <strong>${
-          attTuple[0].name
-        }</strong> certificato,necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-        </div>`
+      .map((attTuple: [Attribute, CertifiedTenantAttribute]) =>
+        templateService.compileHtml(verifiedAttributeTemplate, {
+          assignmentDate: dateAtRomeZone(attTuple[1].assignmentTimestamp),
+          assignmentTime: timeAtRomeZone(attTuple[1].assignmentTimestamp),
+          attributeName: attTuple[0].name,
+        })
       )
       .join("");
 
@@ -268,20 +290,12 @@ const getPdfPayload = async (
     declaredAttributes: Array<[Attribute, DeclaredTenantAttribute]>
   ): string =>
     declaredAttributes
-      .map(
-        (attTuple: [Attribute, DeclaredTenantAttribute]) => `
-      <div>
-         In data <strong>${dateAtRomeZone(
-           attTuple[1].assignmentTimestamp
-         )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,
-         l’Infrastruttura ha registrato la dichiarazione del Fruitore di possedere il seguente attributo <strong>${
-           attTuple[0].name
-         }</strong> dichiarato
-         ed avente il seguente periodo di validità ________,
-         necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-      </div>`
+      .map((attTuple: [Attribute, DeclaredTenantAttribute]) =>
+        templateService.compileHtml(verifiedAttributeTemplate, {
+          assignmentDate: dateAtRomeZone(attTuple[1].assignmentTimestamp),
+          assignmentTime: timeAtRomeZone(attTuple[1].assignmentTimestamp),
+          attributeName: attTuple[0].name,
+        })
       )
       .join("");
 
@@ -289,22 +303,13 @@ const getPdfPayload = async (
     verifiedAttributes: Array<[Attribute, VerifiedTenantAttribute]>
   ): string =>
     verifiedAttributes
-      .map(
-        (attTuple: [Attribute, VerifiedTenantAttribute]) => `
-        <div>
-          In data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
-          )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,
-          l’Infrastruttura ha registrato la dichiarazione del Fruitore di possedere il seguente attributo <strong>${
-            attTuple[0].name
-          }</strong>,
-          verificata dall’aderente ________ OPPURE dall’Erogatore stesso in data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
-          )}</strong>,
-          necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-        </div>`
+      .map((attTuple: [Attribute, VerifiedTenantAttribute]) =>
+        templateService.compileHtml(verifiedAttributeTemplate, {
+          assignmentDate: dateAtRomeZone(attTuple[1].assignmentTimestamp),
+          assignmentTime: timeAtRomeZone(attTuple[1].assignmentTimestamp),
+          attributeName: attTuple[0].name,
+          verificationDate: dateAtRomeZone(attTuple[1].assignmentTimestamp),
+        })
       )
       .join();
 
