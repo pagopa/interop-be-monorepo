@@ -69,7 +69,7 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("AgreementActivated", () => {
-    it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+    it("should do no operation if the existing table entry is more recent", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -158,7 +158,7 @@ describe("integration tests V1 events", async () => {
         ])
       );
     });
-    it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
+    it("should update the entry if the incoming version is more recent than existing table entry", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -1034,7 +1034,7 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("AgreementUpdated (suspended by producer)", async () => {
-    it("should not throw error if the entry doesn't exist", async () => {
+    it("should do no operation if the entry doesn't exist", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.suspended,
@@ -1350,7 +1350,7 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("AgreementUpdated (unsuspended by producer)", async () => {
-    it("should not throw error if the entry doesn't exist", async () => {
+    it("should do no operation if the entry doesn't exist", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
