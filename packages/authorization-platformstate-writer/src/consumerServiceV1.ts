@@ -461,27 +461,23 @@ export async function handleMessageV1(
             purposeId: unsafeBrandId(msg.data.purposeId),
           });
 
-          if (updatedPurposeIds.length > 0) {
-            // platform-states
-            await setClientPurposeIdsInPlatformStatesEntry(
-              {
-                primaryKey: pk,
-                version: msg.version,
-                clientPurposeIds: updatedPurposeIds,
-              },
-              dynamoDBClient
-            );
+          // platform-states
+          await setClientPurposeIdsInPlatformStatesEntry(
+            {
+              primaryKey: pk,
+              version: msg.version,
+              clientPurposeIds: updatedPurposeIds,
+            },
+            dynamoDBClient
+          );
 
-            // token-generation-states
+          // token-generation-states
+          if (updatedPurposeIds.length > 0) {
             await deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable(
               GSIPK_clientId_purposeId,
               dynamoDBClient
             );
           } else {
-            // platform-states
-            await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
-
-            // token-generation-states
             await convertEntriesToClientKidInTokenGenerationStates(
               GSIPK_clientId_purposeId,
               dynamoDBClient
