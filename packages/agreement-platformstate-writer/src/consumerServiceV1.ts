@@ -22,8 +22,8 @@ import {
   writeAgreementEntry,
   readCatalogEntry,
   updateAgreementStateAndDescriptorInfoOnTokenStates,
-  isAgreementTheLatest,
   deleteAgreementEntry,
+  isLatestAgreement,
 } from "./utils.js";
 
 export async function handleMessageV1(
@@ -216,7 +216,7 @@ const handleActivationOrSuspension = async (
   });
 
   if (
-    await isAgreementTheLatest(
+    await isLatestAgreement(
       GSIPK_consumerId_eserviceId,
       agreement.id,
       dynamoDBClient
@@ -244,7 +244,7 @@ const handleArchiving = async (
   });
 
   if (
-    await isAgreementTheLatest(
+    await isLatestAgreement(
       GSIPK_consumerId_eserviceId,
       agreement.id,
       dynamoDBClient
@@ -316,7 +316,7 @@ const handleUpgrade = async (
     catalogEntry: PlatformStatesCatalogEntry
   ): Promise<void> => {
     if (
-      await isAgreementTheLatest(
+      await isLatestAgreement(
         GSIPK_consumerId_eserviceId,
         agreement.id,
         dynamoDBClient
