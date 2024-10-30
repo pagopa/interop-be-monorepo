@@ -158,14 +158,6 @@ export async function handleMessageV2(
         eserviceId: agreement.eserviceId,
         descriptorId: agreement.descriptorId,
       });
-      const catalogEntry = await readCatalogEntry(
-        pkCatalogEntry,
-        dynamoDBClient
-      );
-      if (!catalogEntry) {
-        // TODO double-check
-        throw genericInternalError("Catalog entry not found");
-      }
 
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: agreement.consumerId,
@@ -230,6 +222,15 @@ export async function handleMessageV2(
           });
         }
       };
+
+      const catalogEntry = await readCatalogEntry(
+        pkCatalogEntry,
+        dynamoDBClient
+      );
+      if (!catalogEntry) {
+        // TODO double-check
+        throw genericInternalError("Catalog entry not found");
+      }
 
       await updateLatestAgreementOnTokenStates(catalogEntry);
 
