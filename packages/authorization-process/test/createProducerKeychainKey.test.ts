@@ -99,7 +99,7 @@ describe("createProducerKeychainKey", () => {
     producerId,
   };
 
-  it.only("should create the keys and add them to the producer keychain", async () => {
+  it("should create the keys and add them to the producer keychain", async () => {
     mockSelfcareV2ClientCall({
       value: [mockSelfCareUsers],
       mockedFor: "Router",
