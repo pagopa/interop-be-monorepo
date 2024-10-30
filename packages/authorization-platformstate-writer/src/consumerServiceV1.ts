@@ -80,11 +80,7 @@ export async function handleMessageV1(
       const clientId = unsafeBrandId<ClientId>(msg.data.clientId);
       const key = parseKey(keyV1, msg.type);
       const kid = key.kid;
-
       const pem = key.encodedPem;
-      if (!pem) {
-        throw missingKafkaMessageDataError("key", msg.type);
-      }
 
       const pk = makePlatformStatesClientPK(clientId);
       const clientEntry = await readClientEntry(pk, dynamoDBClient);
