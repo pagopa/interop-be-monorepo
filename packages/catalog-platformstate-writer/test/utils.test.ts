@@ -49,7 +49,7 @@ describe("utils tests", async () => {
   }
   const dynamoDBClient = new DynamoDBClient({
     credentials: { accessKeyId: "key", secretAccessKey: "secret" },
-    region: "eu-central-1",
+    region: "eu-south-1",
     endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
