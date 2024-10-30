@@ -10,44 +10,59 @@ describe("get delegations", () => {
     await addOneDelegation(delegation1);
     await addOneDelegation(delegation2);
 
-    const res1 = await delegationService.getDelegations(
-      [],
-      [],
-      ["Active"],
-      "DelegatedProducer",
-      0,
-      50
-    );
+    const res1 = await delegationService.getDelegations({
+      delegateIds: [],
+      delegatorIds: [],
+      delegationStates: ["Active"],
+      eserviceIds: [],
+      kind: "DelegatedProducer",
+      offset: 0,
+      limit: 50,
+    });
     expect(res1).toEqual([delegation1]);
 
-    const res2 = await delegationService.getDelegations(
-      [delegation2.delegateId],
-      [],
-      [],
-      "DelegatedProducer",
-      0,
-      50
-    );
+    const res2 = await delegationService.getDelegations({
+      delegateIds: [delegation2.delegateId],
+      delegatorIds: [],
+      delegationStates: [],
+      eserviceIds: [],
+      kind: "DelegatedProducer",
+      offset: 0,
+      limit: 50,
+    });
     expect(res2).toEqual([delegation2]);
 
-    const res3 = await delegationService.getDelegations(
-      [],
-      [],
-      ["Revoked"],
-      "DelegatedProducer",
-      0,
-      50
-    );
+    const res3 = await delegationService.getDelegations({
+      delegateIds: [],
+      delegatorIds: [],
+      delegationStates: ["Revoked"],
+      eserviceIds: [],
+      kind: "DelegatedProducer",
+      offset: 0,
+      limit: 50,
+    });
     expect(res3).toEqual([]);
 
-    const res4 = await delegationService.getDelegations(
-      [],
-      [],
-      ["Active"],
-      undefined,
-      0,
-      50
-    );
+    const res4 = await delegationService.getDelegations({
+      delegateIds: [],
+      delegatorIds: [],
+      delegationStates: ["Active"],
+      eserviceIds: [],
+      kind: undefined,
+      offset: 0,
+      limit: 50,
+    });
     expect(res4).toEqual([delegation1]);
+
+    const res5 = await delegationService.getDelegations({
+      delegateIds: [],
+      delegatorIds: [],
+      delegationStates: ["Active"],
+      eserviceIds: [delegation1.eserviceId],
+      kind: "DelegatedProducer",
+      offset: 0,
+      limit: 50,
+    });
+    expect(res5).toEqual([delegation1]);
   });
 });
