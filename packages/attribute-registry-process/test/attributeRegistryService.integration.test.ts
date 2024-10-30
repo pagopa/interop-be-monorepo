@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { randomUUID } from "crypto";
 import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
@@ -7,7 +8,6 @@ import {
   getMockAuthData,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
 import {
   Attribute,
   AttributeAddedV1,
@@ -214,7 +214,7 @@ describe("database test", () => {
           features: [
             {
               type: "PersistentCertifier",
-              certifierId: uuidv4(),
+              certifierId: randomUUID(),
             },
           ],
         };
@@ -274,7 +274,7 @@ describe("database test", () => {
           features: [
             {
               type: "PersistentCertifier",
-              certifierId: uuidv4(),
+              certifierId: randomUUID(),
             },
           ],
         };
@@ -342,7 +342,7 @@ describe("database test", () => {
           features: [
             {
               type: "PersistentCertifier",
-              certifierId: uuidv4(),
+              certifierId: randomUUID(),
             },
           ],
         };
@@ -402,7 +402,7 @@ describe("database test", () => {
           features: [
             {
               type: "PersistentCertifier",
-              certifierId: uuidv4(),
+              certifierId: randomUUID(),
             },
           ],
         };
