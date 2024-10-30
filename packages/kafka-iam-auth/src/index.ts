@@ -334,7 +334,8 @@ const initBatchConsumer = async (
         return Promise.resolve(false);
       },
     },
-    minBytes: config.minBytesKafkaBatch,
+    minBytes:
+      config.averageKafkaMessageSizeInBytes * config.messagesToReadPerBatch,
     maxWaitTimeInMs: config.maxWaitKafkaBatch,
   });
 
