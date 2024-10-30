@@ -4,17 +4,16 @@ import {
   formatTimehhmmss,
   Logger,
 } from "pagopa-interop-commons";
-import { GeneratedTokenAuditDetails, generateId } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
+import { KafkaMessage } from "kafkajs";
 import { config } from "./config/config.js";
 
 export async function handleMessages(
-  messages: GeneratedTokenAuditDetails[],
+  messages: KafkaMessage[],
   fileManager: FileManager,
   logger: Logger
 ): Promise<void> {
-  const fileContent = messages
-    .map((auditingEntry) => JSON.stringify(auditingEntry))
-    .join("\n");
+  const fileContent = messages.map((message) => message.value).join("\n");
 
   const date = new Date();
   const ymdDate = formatDateyyyyMMdd(date);
