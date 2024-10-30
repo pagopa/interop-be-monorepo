@@ -292,6 +292,51 @@ async function searchTenantsByName(
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function getDelegateAgreementsFilters(producerIds: TenantId[] | undefined) {
+  return producerIds
+    ? [
+        {
+          $lookup: {
+            from: "delegations",
+            localField: "data.eserviceId",
+            foreignField: "data.eserviceId",
+            as: "delegations",
+          },
+        },
+        {
+          $unwind: {
+            path: "$delegations",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $match: {
+            $or: [
+              {
+                $and: [
+                  {
+                    "delegations.data.state": agreementState.active,
+                  },
+                  {
+                    "delegations.data.delegateId": {
+                      $in: producerIds,
+                    },
+                  },
+                ],
+              },
+              {
+                "data.producerId": {
+                  $in: producerIds,
+                },
+              },
+            ],
+          },
+        },
+      ]
+    : [];
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
@@ -307,7 +352,11 @@ export function readModelServiceBuilder(
       offset: number
     ): Promise<ListResult<Agreement>> {
       const { producerId, ...filtersWithoutProducerId } = filters;
-      const producerIds = Array.isArray(producerId) ? producerId : [producerId];
+      const producerIds = Array.isArray(producerId)
+        ? producerId
+        : producerId
+        ? [producerId]
+        : [];
 
       const aggregationPipeline = [
         getAgreementsFilters(filtersWithoutProducerId),
@@ -322,47 +371,7 @@ export function readModelServiceBuilder(
         {
           $unwind: "$eservices",
         },
-        ...(producerIds.length > 0
-          ? [
-              {
-                $lookup: {
-                  from: "delegations",
-                  localField: "data.eserviceId",
-                  foreignField: "data.eserviceId",
-                  as: "delegations",
-                },
-              },
-              {
-                $unwind: {
-                  path: "$delegations",
-                  preserveNullAndEmptyArrays: true,
-                },
-              },
-              {
-                $match: {
-                  $or: [
-                    {
-                      $and: [
-                        {
-                          "delegations.data.state": agreementState.active,
-                        },
-                        {
-                          "delegations.data.delegateId": {
-                            $in: producerIds,
-                          },
-                        },
-                      ],
-                    },
-                    {
-                      "data.producerId": {
-                        $in: producerIds,
-                      },
-                    },
-                  ],
-                },
-              },
-            ]
-          : []),
+        ...getDelegateAgreementsFilters(producerIds),
         ...(filters.showOnlyUpgradeable
           ? [
               {
@@ -559,47 +568,7 @@ export function readModelServiceBuilder(
       };
 
       const aggregationPipeline = [
-        ...(filters.producerIds.length > 0
-          ? [
-              {
-                $lookup: {
-                  from: "delegations",
-                  localField: "data.eserviceId",
-                  foreignField: "data.eserviceId",
-                  as: "delegations",
-                },
-              },
-              {
-                $unwind: {
-                  path: "$delegations",
-                  preserveNullAndEmptyArrays: true,
-                },
-              },
-              {
-                $match: {
-                  $or: [
-                    {
-                      $and: [
-                        {
-                          "delegations.data.state": "Active",
-                        },
-                        {
-                          "delegations.data.delegateId": {
-                            $in: filters.producerIds,
-                          },
-                        },
-                      ],
-                    },
-                    {
-                      "data.producerId": {
-                        $in: filters.producerIds,
-                      },
-                    },
-                  ],
-                },
-              },
-            ]
-          : []),
+        ...getDelegateAgreementsFilters(filters.producerIds),
         {
           $match: agreementFilter,
         },
