@@ -75,28 +75,36 @@ export async function handleMessageV2(
         await writeAgreementEntry(agreementEntry, dynamoDBClient);
       }
 
-      const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: agreement.eserviceId,
-        descriptorId: agreement.descriptorId,
-      });
-      const catalogEntry = await readCatalogEntry(
-        pkCatalogEntry,
-        dynamoDBClient
-      );
+      if (
+        await isLatestAgreement(
+          GSIPK_consumerId_eserviceId,
+          agreement.id,
+          dynamoDBClient
+        )
+      ) {
+        const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: agreement.eserviceId,
+          descriptorId: agreement.descriptorId,
+        });
+        const catalogEntry = await readCatalogEntry(
+          pkCatalogEntry,
+          dynamoDBClient
+        );
 
-      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-        eserviceId: agreement.eserviceId,
-        descriptorId: agreement.descriptorId,
-      });
+        const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: agreement.eserviceId,
+          descriptorId: agreement.descriptorId,
+        });
 
-      // token-generation-states
-      await updateAgreementStateAndDescriptorInfoOnTokenStates({
-        GSIPK_consumerId_eserviceId,
-        agreementState: agreement.state,
-        dynamoDBClient,
-        GSIPK_eserviceId_descriptorId,
-        catalogEntry,
-      });
+        // token-generation-states
+        await updateAgreementStateAndDescriptorInfoOnTokenStates({
+          GSIPK_consumerId_eserviceId,
+          agreementState: agreement.state,
+          dynamoDBClient,
+          GSIPK_eserviceId_descriptorId,
+          catalogEntry,
+        });
+      }
     })
     .with(
       { type: "AgreementUnsuspendedByProducer" },
