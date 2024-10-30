@@ -1,12 +1,10 @@
 /* eslint-disable max-params */
 import path from "path";
 import { fileURLToPath } from "url";
-import fs from "fs/promises";
 import {
   FileManager,
   Logger,
   PDFGenerator,
-  buildHTMLTemplateService,
   dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
   timeAtRomeZone,
@@ -30,7 +28,6 @@ import {
   unsafeBrandId,
   AgreementDocument,
   CorrelationId,
-  genericInternalError,
 } from "pagopa-interop-models";
 import {
   selfcareV2ClientApi,
@@ -80,23 +77,37 @@ const createAgreementDocumentName = (
     documentCreatedAt
   )}_agreement_contract.pdf`;
 
-const getAttributeInvolved = async (
+const getAttributesData = async (
   consumer: Tenant,
   agreement: Agreement,
   readModelService: ReadModelService
 ): Promise<{
-  certified: Array<[Attribute, CertifiedTenantAttribute]>;
-  declared: Array<[Attribute, DeclaredTenantAttribute]>;
-  verified: Array<[Attribute, VerifiedTenantAttribute]>;
+  certified: Array<{
+    attribute: Attribute;
+    tenantAttribute: CertifiedTenantAttribute;
+  }>;
+  declared: Array<{
+    attribute: Attribute;
+    tenantAttribute: DeclaredTenantAttribute;
+  }>;
+  verified: Array<{
+    attribute: Attribute;
+    tenantAttribute: VerifiedTenantAttribute;
+  }>;
 }> => {
-  const getAgreementAttributeByType = async <
+  const getAttributesDataByType = async <
     T extends
       | CertifiedTenantAttribute
       | DeclaredTenantAttribute
       | VerifiedTenantAttribute
   >(
     type: TenantAttributeType
-  ): Promise<Array<[Attribute, T]>> => {
+  ): Promise<
+    Array<{
+      attribute: Attribute;
+      tenantAttribute: T;
+    }>
+  > => {
     const seedAttributes = match(type)
       .with(
         tenantAttributeType.CERTIFIED,
@@ -125,18 +136,21 @@ const getAttributeInvolved = async (
         if (!attribute) {
           throw attributeNotFound(tenantAttribute.id);
         }
-        return [attribute, tenantAttribute as unknown as T];
+        return {
+          attribute,
+          tenantAttribute: tenantAttribute as T,
+        };
       })
     );
   };
 
-  const certified = await getAgreementAttributeByType<CertifiedTenantAttribute>(
+  const certified = await getAttributesDataByType<CertifiedTenantAttribute>(
     tenantAttributeType.CERTIFIED
   );
-  const declared = await getAgreementAttributeByType<DeclaredTenantAttribute>(
+  const declared = await getAttributesDataByType<DeclaredTenantAttribute>(
     tenantAttributeType.DECLARED
   );
-  const verified = await getAgreementAttributeByType<VerifiedTenantAttribute>(
+  const verified = await getAttributesDataByType<VerifiedTenantAttribute>(
     tenantAttributeType.VERIFIED
   );
 
@@ -237,28 +251,6 @@ const getActivationInfo = async (
   throw agreementMissingUserInfo(activation.who);
 };
 
-async function retrieveHTMLTemplate(
-  templateName:
-    | "verifiedAttributeTemplate"
-    | "certifiedAttributeTemplate"
-    | "declaredAttributeTemplate"
-): Promise<string> {
-  const filename = fileURLToPath(import.meta.url);
-  const dirname = path.dirname(filename);
-  const templatePath = `/resources/templates/contract/${templateName}.hbs`;
-
-  try {
-    const htmlTemplateBuffer = await fs.readFile(
-      `${dirname}/..${templatePath}`
-    );
-    return htmlTemplateBuffer.toString();
-  } catch {
-    throw genericInternalError(
-      `Unable to retrieve html template ${templateName}`
-    );
-  }
-}
-
 const getPdfPayload = async (
   agreement: Agreement,
   eservice: EService,
@@ -268,63 +260,8 @@ const getPdfPayload = async (
   selfcareV2Client: SelfcareV2UsersClient,
   correlationId: CorrelationId
 ): Promise<AgreementContractPDFPayload> => {
-  const templateService = buildHTMLTemplateService();
-  const verifiedAttributeTemplate = await retrieveHTMLTemplate(
-    "verifiedAttributeTemplate"
-  );
-  const certifiedAttributeTemplate = await retrieveHTMLTemplate(
-    "certifiedAttributeTemplate"
-  );
-  const declaredAttributeTemplate = await retrieveHTMLTemplate(
-    "declaredAttributeTemplate"
-  );
-
   const getTenantText = (name: string, origin: string, value: string): string =>
     origin === "IPA" ? `${name} (codice IPA: ${value})` : name;
-
-  const getCertifiedAttributeHtml = (
-    certifiedAttributes: Array<[Attribute, CertifiedTenantAttribute]>
-  ): string =>
-    certifiedAttributes
-      .map((attTuple: [Attribute, CertifiedTenantAttribute]) =>
-        templateService.compileHtml(certifiedAttributeTemplate, {
-          assignmentDate: dateAtRomeZone(attTuple[1].assignmentTimestamp),
-          assignmentTime: timeAtRomeZone(attTuple[1].assignmentTimestamp),
-          attributeName: attTuple[0].name,
-          attributeId: attTuple[0].id,
-        })
-      )
-      .join("");
-
-  const getDeclaredAttributeHtml = (
-    declaredAttributes: Array<[Attribute, DeclaredTenantAttribute]>
-  ): string =>
-    declaredAttributes
-      .map((attTuple: [Attribute, DeclaredTenantAttribute]) =>
-        templateService.compileHtml(declaredAttributeTemplate, {
-          assignmentDate: dateAtRomeZone(attTuple[1].assignmentTimestamp),
-          assignmentTime: timeAtRomeZone(attTuple[1].assignmentTimestamp),
-          attributeName: attTuple[0].name,
-          attributeId: attTuple[0].id,
-        })
-      )
-      .join("");
-
-  const getVerifiedAttributeHtml = (
-    verifiedAttributes: Array<[Attribute, VerifiedTenantAttribute]>
-  ): string =>
-    verifiedAttributes
-      .map((attTuple: [Attribute, VerifiedTenantAttribute]) =>
-        templateService.compileHtml(verifiedAttributeTemplate, {
-          assignmentDate: dateAtRomeZone(attTuple[1].assignmentTimestamp),
-          assignmentTime: timeAtRomeZone(attTuple[1].assignmentTimestamp),
-          attributeName: attTuple[0].name,
-          attributeId: attTuple[0].id,
-          expirationDate: undefined,
-          // ^^ TODO where to get the expiration date?
-        })
-      )
-      .join("");
 
   const today = new Date();
   const producerText = getTenantText(
@@ -352,7 +289,7 @@ const getPdfPayload = async (
     correlationId
   );
 
-  const { certified, declared, verified } = await getAttributeInvolved(
+  const { certified, declared, verified } = await getAttributesData(
     consumer,
     agreement,
     readModelService
@@ -371,9 +308,27 @@ const getPdfPayload = async (
     eServiceName: eservice.name,
     producerText,
     consumerText,
-    certifiedAttributes: getCertifiedAttributeHtml(certified),
-    declaredAttributes: getDeclaredAttributeHtml(declared),
-    verifiedAttributes: getVerifiedAttributeHtml(verified),
+    certifiedAttributes: certified.map(({ attribute, tenantAttribute }) => ({
+      assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+      assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+      attributeName: attribute.name,
+      attributeId: attribute.id,
+    })),
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    declaredAttributes: declared.map(({ attribute, tenantAttribute }) => ({
+      assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+      assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+      attributeName: attribute.name,
+      attributeId: attribute.id,
+    })),
+    verifiedAttributes: verified.map(({ attribute, tenantAttribute }) => ({
+      assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+      assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+      attributeName: attribute.name,
+      attributeId: attribute.id,
+      expirationDate: undefined,
+      // ^^ TODO where to get the expiration date?
+    })),
   };
 };
 
@@ -389,6 +344,12 @@ export const contractBuilder = (
 ) => {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
+  const templateFilePath = path.resolve(
+    dirname,
+    "..",
+    "resources/templates/documents",
+    "agreementContractTemplate.html"
+  );
 
   return {
     createContract: async (
@@ -397,13 +358,6 @@ export const contractBuilder = (
       consumer: Tenant,
       producer: Tenant
     ): Promise<AgreementDocument> => {
-      const templateFilePath = path.resolve(
-        dirname,
-        "..",
-        "resources/templates/contract",
-        "agreementContractTemplate.html"
-      );
-
       const pdfPayload = await getPdfPayload(
         agreement,
         eservice,
