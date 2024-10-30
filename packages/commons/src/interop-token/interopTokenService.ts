@@ -9,6 +9,7 @@ import {
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
 import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
+import { dateToSeconds } from "../utils/date.js";
 import {
   CustomClaims,
   GENERATED_INTEROP_TOKEN_M2M_ROLE,
@@ -45,7 +46,7 @@ export class InteropTokenGenerator {
   }
 
   public async generateInternalToken(): Promise<InteropToken> {
-    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const currentTimestamp = dateToSeconds(new Date());
 
     if (
       !this.config.kid ||
@@ -101,7 +102,7 @@ export class InteropTokenGenerator {
       throw Error("SessionTokenGenerationConfig not provided or incomplete");
     }
 
-    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const currentTimestamp = dateToSeconds(new Date());
 
     const header: InteropJwtHeader = {
       alg: JWT_HEADER_ALG,

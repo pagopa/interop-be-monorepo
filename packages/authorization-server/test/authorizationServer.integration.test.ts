@@ -71,18 +71,6 @@ describe("authorization server tests", () => {
     await deleteDynamoDBTables(dynamoDBClient);
     vi.restoreAllMocks();
   });
-  // const mockDate = new Date();
-
-  // beforeAll(() => {
-  //   vi.useFakeTimers();
-  //   vi.setSystemTime(mockDate);
-  // });
-  // afterAll(() => {
-  //   vi.useRealTimers();
-  // });
-
-  // TODO: tests
-  // unexpectedTokenGenerationError
 
   it("should throw clientAssertionRequestValidationFailed", async () => {
     const { jws } = await getMockClientAssertion();
@@ -380,7 +368,7 @@ describe("authorization server tests", () => {
     });
   });
 
-  it("should throw tokenSigningFailed - consumer key", async () => {
+  it("should throw error during token signing - consumer key", async () => {
     const uuid = generateId();
     const uuidSpy = vi.spyOn(uuidv4, "v4");
     uuidSpy.mockReturnValue(uuid);
@@ -635,10 +623,6 @@ describe("authorization server tests", () => {
       rateInterval: config.rateLimiterRateInterval,
       remainingRequests: config.rateLimiterMaxRequests - 1,
     });
-    // const generatedToken = response.token as InteropJwtHeader;
-    // console.log(generatedToken);
-    // const expectedTokenHeader: InteropJwtHeader = {};
-    // expect(generatedToken.header).toEqual(expectedTokenHeader);
   });
 
   it("should succeed - consumer key - kafka audit succeeded", async () => {
@@ -713,9 +697,6 @@ describe("authorization server tests", () => {
       rateInterval: config.rateLimiterRateInterval,
       remainingRequests: config.rateLimiterMaxRequests - 1,
     });
-
-    // const date = new Date();
-    // const ymdDate = formatDateyyyyMMdd(date);
 
     const fileList = await fileManager.listFiles(
       config.s3Bucket,
