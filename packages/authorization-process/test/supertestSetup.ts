@@ -11,13 +11,24 @@ import {
 import { postgresDB, selfcareV2Client } from "./utils.js";
 
 const mockGetInstitutionProductUsersUsingGET = vi.fn();
-
-export function mockSelfcareV2ClientCall(
+export function mockSelfcareV2ClientCall({
+  value,
+  mockedFor,
+}: {
   value: Awaited<
     ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
-  >
-): void {
-  mockGetInstitutionProductUsersUsingGET.mockImplementation(async () => value);
+  >;
+  mockedFor: "Router" | "Service";
+}): void {
+  if (mockedFor === "Router") {
+    mockGetInstitutionProductUsersUsingGET.mockImplementation(
+      async () => value
+    );
+  } else {
+    selfcareV2Client.getInstitutionProductUsersUsingGET = vi.fn(
+      async () => value
+    );
+  }
 }
 
 vi.doMock("pagopa-interop-api-clients", async (importActual) => {

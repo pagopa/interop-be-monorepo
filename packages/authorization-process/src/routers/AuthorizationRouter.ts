@@ -413,7 +413,7 @@ const authorizationRouter = (
         try {
           const { client } = await authorizationService.createKeys({
             clientId: unsafeBrandId(req.params.clientId),
-            authData: req.ctx.authData,
+            authData: ctx.authData,
             keysSeeds: req.body,
             correlationId: req.ctx.correlationId,
             logger: ctx.logger,
