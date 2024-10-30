@@ -83,8 +83,14 @@ export function toBffDelegationApiCompactDelegation(
   return {
     id: delegation.id,
     eserviceName: eservice.name,
-    delegatedName: delegate.name,
-    delegatorName: delegator.name,
+    delegate: {
+      name: delegate.name,
+      id: delegate.id,
+    },
+    delegator: {
+      name: delegator.name,
+      id: delegator.id,
+    },
     state: delegation.state,
     kind: delegation.kind,
   };
