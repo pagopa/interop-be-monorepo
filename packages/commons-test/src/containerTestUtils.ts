@@ -85,7 +85,7 @@ export const minioContainer = (config: S3Config): GenericContainer =>
     .withEnvironment({
       MINIO_ROOT_USER: "testawskey",
       MINIO_ROOT_PASSWORD: "testawssecret",
-      MINIO_SITE_REGION: "eu-central-1",
+      MINIO_SITE_REGION: "eu-south-1",
     })
     .withEntrypoint(["sh", "-c"])
     .withCommand([
