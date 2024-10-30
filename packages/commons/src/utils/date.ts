@@ -28,3 +28,7 @@ export function dateAtRomeZone(date: Date): string {
 export function timeAtRomeZone(date: Date): string {
   return formatInTimeZone(date, "Europe/Rome", "HH:mm:ss");
 }
+
+export function dateToSeconds(date: Date): number {
+  return Math.floor(date.getTime() / 1000);
+}

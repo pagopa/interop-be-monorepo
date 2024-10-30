@@ -26,6 +26,7 @@ import {
   TokenGenerationStatesGenericEntry,
   unsafeBrandId,
   GeneratedTokenAuditDetails,
+  GSIPKEServiceIdDescriptorId,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -270,17 +271,14 @@ export const retrieveKey = async (
             agreementState: {
               state: clientKidPurposeEntry.agreementState,
             },
-            // TODO: make function for this split
-            eServiceId: unsafeBrandId<EServiceId>(
-              clientKidPurposeEntry.GSIPK_eserviceId_descriptorId.split("#")[0]
-            ),
+            eServiceId: deconstructGSIPK_eserviceId_descriptorId(
+              clientKidPurposeEntry.GSIPK_eserviceId_descriptorId
+            ).eserviceId,
             eServiceState: {
               state: clientKidPurposeEntry.descriptorState,
-              descriptorId: unsafeBrandId<DescriptorId>(
-                clientKidPurposeEntry.GSIPK_eserviceId_descriptorId.split(
-                  "#"
-                )[1]
-              ),
+              descriptorId: deconstructGSIPK_eserviceId_descriptorId(
+                clientKidPurposeEntry.GSIPK_eserviceId_descriptorId
+              ).descriptorId,
               audience: clientKidPurposeEntry.descriptorAudience,
               voucherLifespan: clientKidPurposeEntry.descriptorVoucherLifespan,
             },
@@ -376,7 +374,6 @@ export const publishAudit = async ({
         typeof clientAssertion.payload.aud === "string"
           ? clientAssertion.payload.aud
           : clientAssertion.payload.aud.join(","),
-      // TODO: double check if the toMillis function is needed
       expirationTime: clientAssertion.payload.exp,
       issuedAt: clientAssertion.payload.iat,
       issuer: clientAssertion.payload.iss,
@@ -431,4 +428,32 @@ export const fallbackAudit = async (
   } catch {
     throw fallbackAuditFailed(messageBody.jwtId);
   }
+};
+
+const deconstructGSIPK_eserviceId_descriptorId = (
+  gsi: GSIPKEServiceIdDescriptorId
+): { eserviceId: EServiceId; descriptorId: DescriptorId } => {
+  const substrings = gsi.split("#");
+  const eserviceId = substrings[0];
+  const descriptorId = substrings[1];
+  const parsedEserviceId = EServiceId.safeParse(eserviceId);
+
+  if (!parsedEserviceId.success) {
+    throw genericInternalError(
+      `Unable to parse extract eserviceId from GSIPKEServiceIdDescriptorId: ${GSIPKEServiceIdDescriptorId}`
+    );
+  }
+
+  const parsedDescriptorId = DescriptorId.safeParse(descriptorId);
+
+  if (!parsedDescriptorId.success) {
+    throw genericInternalError(
+      `Unable to parse extract descriptorId from GSIPKEServiceIdDescriptorId: ${GSIPKEServiceIdDescriptorId}`
+    );
+  }
+
+  return {
+    eserviceId: parsedEserviceId.data,
+    descriptorId: parsedDescriptorId.data,
+  };
 };

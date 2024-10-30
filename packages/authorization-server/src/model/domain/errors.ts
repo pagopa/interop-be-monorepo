@@ -13,14 +13,13 @@ export const errorCodes = {
   clientAssertionSignatureValidationFailed: "0003",
   kafkaAuditingFailed: "0004",
   fallbackAuditFailed: "0005",
-  // tokenSigningFailed: "0006",
-  tokenGenerationStatesEntryNotFound: "0007",
-  keyRetrievalFailed: "0008",
-  invalidTokenClientKidPurposeEntry: "0009",
-  keyTypeMismatch: "0010",
-  unexpectedTokenGenerationStatesEntry: "0011",
-  unexpectedTokenGenerationError: "0012",
-  platformStateValidationFailed: "0013",
+  tokenGenerationStatesEntryNotFound: "0006",
+  keyRetrievalFailed: "0007",
+  invalidTokenClientKidPurposeEntry: "0008",
+  keyTypeMismatch: "0009",
+  unexpectedTokenGenerationStatesEntry: "0010",
+  unexpectedTokenGenerationError: "0011",
+  platformStateValidationFailed: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -75,16 +74,6 @@ export function fallbackAuditFailed(jti: string): ApiError<ErrorCodes> {
     title: "Fallback audit failed",
   });
 }
-
-// export function tokenSigningFailed(
-//   serializedToken: string
-// ): ApiError<ErrorCodes> {
-//   return new ApiError({
-//     detail: `Token signing failed for token: ${serializedToken}`,
-//     code: "tokenSigningFailed",
-//     title: "Token signing failed",
-//   });
-// }
 
 export function tokenGenerationStatesEntryNotFound(
   pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
