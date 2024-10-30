@@ -1025,8 +1025,7 @@ describe("integration tests V2 events", async () => {
     });
 
     it("should insert platform-states entry and insert token-generation-states client-kid entry if the client does not contain purposes", async () => {
-      const previousPlatformEntryVersion = 1;
-      const messageVersion = 2;
+      const messageVersion = 1;
 
       const oldKey = getMockKey();
       const addedKey = getMockKey();
@@ -1051,15 +1050,6 @@ describe("integration tests V2 events", async () => {
 
       // platform-states
       const platformClientPK = makePlatformStatesClientPK(client.id);
-      const previousPlatformClientEntry: PlatformStatesClientEntry = {
-        PK: platformClientPK,
-        version: previousPlatformEntryVersion,
-        state: itemState.active,
-        updatedAt: new Date().toISOString(),
-        clientPurposesIds: [],
-        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
-        clientConsumerId: client.consumerId,
-      };
       expect(
         await readClientEntry(platformClientPK, dynamoDBClient)
       ).toBeUndefined();
@@ -1085,10 +1075,13 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
       const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
-        ...previousPlatformClientEntry,
-        clientPurposesIds: [],
+        PK: platformClientPK,
         version: messageVersion,
+        state: itemState.active,
         updatedAt: new Date().toISOString(),
+        clientPurposesIds: [],
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
       };
       expect(retrievedPlatformClientEntry).toEqual(expectedPlatformStatesEntry);
 
