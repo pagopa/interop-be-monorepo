@@ -1,12 +1,4 @@
-import {
-  ApiError,
-  ClientId,
-  DescriptorId,
-  ItemState,
-  PurposeId,
-  PurposeVersionId,
-  TenantId,
-} from "pagopa-interop-models";
+import { ApiError, ClientId, PurposeId, TenantId } from "pagopa-interop-models";
 import { z } from "zod";
 import { ErrorCodes } from "./errors.js";
 
