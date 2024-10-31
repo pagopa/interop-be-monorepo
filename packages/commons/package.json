@@ -42,7 +42,6 @@
     "rate-limiter-flexible": "5.0.3",
     "redis": "4.6.15",
     "ts-pattern": "5.2.0",
-    "uuid": "10.0.0",
     "winston": "3.13.0",
     "zod": "3.23.8",
     "zod-validation-error": "3.3.0"
@@ -52,7 +51,6 @@
     "@types/jsonwebtoken": "9.0.6",
     "@types/node": "20.14.6",
     "@types/nodemailer": "6.4.15",
-    "@types/uuid": "9.0.8",
     "cpx2": "7.0.1",
     "eslint": "8.57.0",
     "prettier": "2.8.8",
