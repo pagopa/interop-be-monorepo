@@ -20,12 +20,8 @@ import {
   PurposeId,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
-  unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  ApiKey,
-  ConsumerKey,
-} from "pagopa-interop-client-assertion-validation";
+import {} from "pagopa-interop-client-assertion-validation";
 import { genericLogger } from "pagopa-interop-commons";
 import { fallbackAudit, retrieveKey } from "../src/services/tokenService.js";
 import {
@@ -159,36 +155,7 @@ describe("unit tests", () => {
       await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
       const key = await retrieveKey(dynamoDBClient, tokenClientKidPurposePK);
 
-      const expectedKey: ConsumerKey = {
-        kid: tokenClientPurposeEntry.GSIPK_kid,
-        purposeId: tokenClientPurposeEntry.GSIPK_purposeId!,
-        clientId,
-        consumerId: tokenClientPurposeEntry.consumerId,
-        publicKey: tokenClientPurposeEntry.publicKey,
-        algorithm: "RS256",
-        clientKind: clientKindTokenStates.consumer,
-        purposeState: {
-          state: tokenClientPurposeEntry.purposeState!,
-          versionId: tokenClientPurposeEntry.purposeVersionId!,
-        },
-        agreementId: tokenClientPurposeEntry.agreementId!,
-        agreementState: {
-          state: tokenClientPurposeEntry.agreementState!,
-        },
-        eServiceId: unsafeBrandId(
-          tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
-        ),
-        eServiceState: {
-          state: tokenClientPurposeEntry.descriptorState!,
-          descriptorId: unsafeBrandId(
-            tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
-          ),
-          audience: tokenClientPurposeEntry.descriptorAudience!,
-          voucherLifespan: tokenClientPurposeEntry.descriptorVoucherLifespan!,
-        },
-      };
-
-      expect(key).toEqual(expectedKey);
+      expect(key).toEqual(tokenClientPurposeEntry);
     });
 
     it("should throw keyTypeMismatch - clientKid entry with consumer key", async () => {
@@ -255,16 +222,7 @@ describe("unit tests", () => {
       await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
       const key = await retrieveKey(dynamoDBClient, tokenClientKidPK);
 
-      const expectedKey: ApiKey = {
-        kid: tokenClientEntry.GSIPK_kid,
-        clientId,
-        consumerId: tokenClientEntry.consumerId,
-        publicKey: tokenClientEntry.publicKey,
-        algorithm: "RS256",
-        clientKind: clientKindTokenStates.api,
-      };
-
-      expect(key).toEqual(expectedKey);
+      expect(key).toEqual(tokenClientEntry);
     });
   });
 
