@@ -6,11 +6,12 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import { DelegationId } from "pagopa-interop-models";
+import { DelegationId, delegationKind } from "pagopa-interop-models";
 import {
   DelegationsQueryParams,
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
+  toDelegationKind,
 } from "../api/delegationApiConverter.js";
 import {
   CatalogProcessClient,
@@ -62,12 +63,15 @@ async function enhanceDelegation<
     headers,
   });
 
-  // NOTE if delegation kind is DELEGATED_PRODUCER it is the same delegator tenant
-  // in other case DELEGATED_CONSUMER it can be a differer
-  const producer = await tenantClient.tenant.getTenant({
-    params: { id: eservice.producerId },
-    headers,
-  });
+  // NOTE: If the delegation kind is DELEGATED_PRODUCER, the producer is the same as the delegator tenant.
+  // In the case of DELEGATED_CONSUMER, the producer can be different.
+  const producer =
+    delegation.kind === toDelegationKind(delegationKind.delegatedProducer)
+      ? await tenantClient.tenant.getTenant({
+          params: { id: eservice.producerId },
+          headers,
+        })
+      : delegator;
 
   return toApiConverter(delegation, delegator, delegate, eservice, producer);
 }
