@@ -321,16 +321,56 @@ const getPdfPayload = async (
       attributeName: attribute.name,
       attributeId: attribute.id,
     })),
-    verifiedAttributes: verified.map(({ attribute, tenantAttribute }) => ({
-      assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
-      assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
-      attributeName: attribute.name,
-      attributeId: attribute.id,
-      expirationDate: undefined,
-      // ^^ TODO where to get the expiration date?
-    })),
+    verifiedAttributes: verified.map(({ attribute, tenantAttribute }) => {
+      const expirationDate = getVerifiedAttributeExpirationDate(
+        tenantAttribute,
+        producer.id
+      );
+      return {
+        assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+        assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+        attributeName: attribute.name,
+        attributeId: attribute.id,
+        expirationDate: expirationDate
+          ? dateAtRomeZone(expirationDate)
+          : undefined,
+      };
+    }),
   };
 };
+
+function getVerifiedAttributeExpirationDate(
+  tenantAttribute: VerifiedTenantAttribute,
+  producerId: TenantId
+): Date | undefined {
+  // TODO verify if this logic is correct.
+  // Also, we should fix the logic of filterVerifiedAttributes accordingly
+  // otherwise we don't have the right attributes in the agreement
+  if (!tenantAttribute.verifiedBy) {
+    return undefined;
+  }
+
+  const activeVerifications = tenantAttribute.verifiedBy.filter(
+    (verification) =>
+      tenantAttribute.revokedBy.find(
+        (revocation) => revocation.id === verification.id
+      ) === undefined
+  );
+
+  const activeProducerVerification = activeVerifications
+    .filter((verification) => verification.id === producerId)
+    .sort(
+      (a, b) =>
+        new Date(a.verificationDate).getTime() -
+        new Date(b.verificationDate).getTime()
+    )
+    .at(-1);
+
+  return (
+    activeProducerVerification?.extensionDate ??
+    activeProducerVerification?.expirationDate
+  );
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const contractBuilder = (
