@@ -3,11 +3,11 @@ import {
   ClientId,
   itemState,
   PurposeId,
+  TokenGenerationStatesClientPurposeEntry,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   ClientAssertionDigest,
-  ConsumerKey,
   FailedValidation,
   ValidationResult,
   SuccessfulValidation,
@@ -190,20 +190,16 @@ export const validateDigest = (
 };
 
 export const validatePlatformState = (
-  key: ConsumerKey
-): ValidationResult<ConsumerKey> => {
+  key: TokenGenerationStatesClientPurposeEntry
+): ValidationResult<TokenGenerationStatesClientPurposeEntry> => {
   const agreementError =
-    key.agreementState.state !== itemState.active
-      ? inactiveAgreement()
-      : undefined;
+    key.agreementState !== itemState.active ? inactiveAgreement() : undefined;
 
   const descriptorError =
-    key.eServiceState.state !== itemState.active
-      ? inactiveEService()
-      : undefined;
+    key.descriptorState !== itemState.active ? inactiveEService() : undefined;
 
   const purposeError =
-    key.purposeState.state !== itemState.active ? inactivePurpose() : undefined;
+    key.purposeState !== itemState.active ? inactivePurpose() : undefined;
 
   if (!agreementError && !descriptorError && !purposeError) {
     return successfulValidation(key);
