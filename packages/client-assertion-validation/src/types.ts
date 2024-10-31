@@ -49,29 +49,6 @@ export const ClientAssertion = z
   .strict();
 export type ClientAssertion = z.infer<typeof ClientAssertion>;
 
-const ComponentState = z.object({
-  state: ItemState,
-});
-
-export type ComponentState = z.infer<typeof ComponentState>;
-
-const AgreementComponentState = ComponentState;
-export type AgreementComponentState = z.infer<typeof AgreementComponentState>;
-
-const EServiceComponentState = ComponentState.extend({
-  descriptorId: DescriptorId,
-  audience: z.array(z.string()),
-  voucherLifespan: z.number(),
-});
-
-export type EServiceComponentState = z.infer<typeof EServiceComponentState>;
-
-const PurposeComponentState = ComponentState.extend({
-  versionId: PurposeVersionId,
-});
-
-export type PurposeComponentState = z.infer<typeof PurposeComponentState>;
-
 export const Base64Encoded = z.string().base64().min(1);
 
 export const Key = z

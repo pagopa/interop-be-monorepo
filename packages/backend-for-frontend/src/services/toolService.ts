@@ -3,9 +3,7 @@
 import { isAxiosError } from "axios";
 import {
   ClientAssertion,
-  EServiceComponentState,
   FailedValidation,
-  PurposeComponentState,
   SuccessfulValidation,
   validateClientKindAndPlatformState,
   validateRequestParameters,
@@ -26,7 +24,6 @@ import {
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
   PurposeId,
-  PurposeVersionId,
   TenantId,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
@@ -354,9 +351,9 @@ async function retrieveKeyAndEservice(
           clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
           purposeId,
         }),
-        agreementState: agreementStateToComponentState(agreement.state),
-        purposeState: purposeToComponentState(purpose).state,
-        descriptorState: descriptorToComponentState(descriptor).state,
+        agreementState: agreementStateToItemState(agreement.state),
+        purposeState: purposeToItemState(purpose),
+        descriptorState: descriptorStateToItemState(descriptor.state),
         descriptorAudience: descriptor.audience,
         descriptorVoucherLifespan: descriptor.voucherLifespan,
         updatedAt: new Date().toISOString(), // TODO
@@ -411,9 +408,7 @@ async function retrieveDescriptor(
   return descriptor;
 }
 
-function purposeToComponentState(
-  purpose: purposeApi.Purpose
-): PurposeComponentState {
+function purposeToItemState(purpose: purposeApi.Purpose): ItemState {
   const purposeVersion = [...purpose.versions]
     .sort(
       (a, b) =>
@@ -430,13 +425,9 @@ function purposeToComponentState(
     throw missingActivePurposeVersion(purpose.id);
   }
 
-  return {
-    state:
-      purposeVersion.state === purposeApi.PurposeVersionState.Enum.ACTIVE
-        ? ItemState.Enum.ACTIVE
-        : ItemState.Enum.INACTIVE,
-    versionId: unsafeBrandId<PurposeVersionId>(purposeVersion.id),
-  };
+  return purposeVersion.state === purposeApi.PurposeVersionState.Enum.ACTIVE
+    ? ItemState.Enum.ACTIVE
+    : ItemState.Enum.INACTIVE;
 }
 
 function toTokenValidationEService(
@@ -451,25 +442,20 @@ function toTokenValidationEService(
   };
 }
 
-const agreementStateToComponentState = (
+const agreementStateToItemState = (
   state: agreementApi.AgreementState
 ): ItemState =>
   state === agreementApi.AgreementState.Values.ACTIVE
     ? ItemState.Enum.ACTIVE
     : ItemState.Enum.INACTIVE;
 
-const descriptorToComponentState = (
-  descriptor: catalogApi.EServiceDescriptor
-): EServiceComponentState => ({
-  state:
-    descriptor.state === catalogApi.EServiceDescriptorState.Enum.PUBLISHED ||
-    descriptor.state === catalogApi.EServiceDescriptorState.Enum.DEPRECATED
-      ? ItemState.Enum.ACTIVE
-      : ItemState.Enum.INACTIVE,
-  descriptorId: unsafeBrandId<DescriptorId>(descriptor.id),
-  audience: descriptor.audience,
-  voucherLifespan: descriptor.voucherLifespan,
-});
+const descriptorStateToItemState = (
+  descriptorState: catalogApi.EServiceDescriptorState
+): ItemState =>
+  descriptorState === catalogApi.EServiceDescriptorState.Enum.PUBLISHED ||
+  descriptorState === catalogApi.EServiceDescriptorState.Enum.DEPRECATED
+    ? ItemState.Enum.ACTIVE
+    : ItemState.Enum.INACTIVE;
 
 function apiErrorsToValidationFailures<T extends string>(
   errors: Array<ApiError<T>> | undefined
