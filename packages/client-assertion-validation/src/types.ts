@@ -1,10 +1,7 @@
 import {
-  AgreementId,
   ApiError,
   ClientId,
-  clientKindTokenStates,
   DescriptorId,
-  EServiceId,
   ItemState,
   PurposeId,
   PurposeVersionId,
@@ -87,23 +84,6 @@ export const Key = z
   })
   .strict();
 export type Key = z.infer<typeof Key>;
-
-export const ConsumerKey = Key.extend({
-  clientKind: z.literal(clientKindTokenStates.consumer),
-  purposeId: PurposeId,
-  // TODO: can we rename the type to purposeDetails or something similar (avoid misleading "state" term)?
-  purposeState: PurposeComponentState,
-  agreementId: AgreementId,
-  agreementState: AgreementComponentState,
-  eServiceId: EServiceId,
-  eServiceState: EServiceComponentState,
-}).strict();
-export type ConsumerKey = z.infer<typeof ConsumerKey>;
-
-export const ApiKey = Key.extend({
-  clientKind: z.literal(clientKindTokenStates.api),
-}).strict();
-export type ApiKey = z.infer<typeof ApiKey>;
 
 export type ValidationResult<T> =
   | SuccessfulValidation<T>
