@@ -29,3 +29,15 @@ const { default: app } = await import("../src/app.js");
 
 export const mockTenantAttributeRouterRequest =
   createMockedApiRequester<typeof tenantApi.tenantAttributeEndpoints>(app);
+
+export const mockTenantRouterRequest =
+  createMockedApiRequester<typeof tenantApi.tenantEndpoints>(app);
+
+export const mockSelfcareTenantRouterRequest =
+  createMockedApiRequester<typeof tenantApi.selfcareEndpoints>(app);
+
+export const mockInternalTenantRouterRequest =
+  createMockedApiRequester<typeof tenantApi.internalEndpoints>(app);
+
+export const mockM2MTenantRouterRequest =
+  createMockedApiRequester<typeof tenantApi.m2mEndpoints>(app);
