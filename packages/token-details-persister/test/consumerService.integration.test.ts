@@ -63,7 +63,7 @@ describe("consumerService", () => {
       genericLogger
     );
 
-    const decodedFileContent = Buffer.from(fileContent).toString();
+    const decodedFileContent = Buffer.from(fileContent).toString("utf8");
 
     expect(decodedFileContent).toMatchObject(expectedFileContent);
   });
@@ -115,7 +115,7 @@ describe("consumerService", () => {
       genericLogger
     );
 
-    const decodedFileContent = Buffer.from(fileContent).toString();
+    const decodedFileContent = Buffer.from(fileContent).toString("utf8");
 
     expect(decodedFileContent).toMatchObject(expectedFileContent);
   });
