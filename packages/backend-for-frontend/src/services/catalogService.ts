@@ -59,7 +59,7 @@ import {
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import {
-  assertNotDelegatedEservice as assertEserviceNotDelegated,
+  assertNotDelegatedEservice,
   assertRequesterIsProducer,
 } from "./validators.js";
 
@@ -982,7 +982,7 @@ export function catalogServiceBuilder(
       });
 
       assertRequesterIsProducer(requesterId, eservice);
-      await assertEserviceNotDelegated(
+      await assertNotDelegatedEservice(
         delegationProcessClient,
         headers,
         requesterId,
