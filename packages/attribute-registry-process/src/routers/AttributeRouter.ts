@@ -333,7 +333,7 @@ const attributeRouter = (
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
+        console.log("SONO NEL ROUTER");
         try {
           const attribute =
             await attributeRegistryService.createInternalCertifiedAttribute(

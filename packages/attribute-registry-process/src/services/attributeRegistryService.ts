@@ -264,6 +264,8 @@ export function attributeRegistryServiceBuilder(
         `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`
       );
 
+      console.log("SONO NEL SERVICE");
+
       const attributeWithSameNameAndCode =
         await readModelService.getAttributeByCodeAndName(
           apiInternalCertifiedAttributeSeed.code,
@@ -292,6 +294,10 @@ export function attributeRegistryServiceBuilder(
         correlationId
       );
       await repository.createEvent(event);
+
+      console.log("HO CREATO L'EVENTO");
+
+      console.log("STO TORNANDO", newInternalCertifiedAttribute);
 
       return newInternalCertifiedAttribute;
     },
