@@ -4,13 +4,14 @@ import {
   getMockAuthData,
   decodeProtobufPayload,
   getMockAttribute,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   AttributeAddedV1,
   Attribute,
   attributeKind,
   toAttributeV1,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
@@ -18,29 +19,33 @@ import {
   attributeDuplicate,
 } from "../src/model/domain/errors.js";
 import {
+  toApiAttribute,
+  toAttribute,
+} from "../src/model/domain/apiConverter.js";
+import {
   attributeRegistryService,
   readLastAttributeEvent,
   addOneAttribute,
 } from "./utils.js";
+import { mockAttributeRegistryRouterRequest } from "./supertestSetup.js";
 
 describe("verified attribute creation", () => {
   const mockAttribute = getMockAttribute();
   it("should write on event-store for the creation of a verified attribute", async () => {
-    const attribute = await attributeRegistryService.createVerifiedAttribute(
-      {
+    const attribute = await mockAttributeRegistryRouterRequest.post({
+      path: "/verifiedAttributes",
+      body: {
         name: mockAttribute.name,
         description: mockAttribute.description,
       },
-      {
-        authData: getMockAuthData(),
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      }
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(attribute).toBeDefined();
 
-    const writtenEvent = await readLastAttributeEvent(attribute.id);
+    const writtenEvent = await readLastAttributeEvent(
+      unsafeBrandId(attribute.id)
+    );
     expect(writtenEvent).toMatchObject({
       stream_id: attribute.id,
       version: "0",
@@ -55,13 +60,16 @@ describe("verified attribute creation", () => {
 
     const expectedAttribute: Attribute = {
       ...mockAttribute,
-      id: attribute.id,
+      id: unsafeBrandId(attribute.id),
       kind: attributeKind.verified,
       creationTime: new Date(writtenPayload.attribute!.creationTime),
     };
 
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(expectedAttribute));
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+    expect(writtenPayload.attribute).toEqual(
+      toAttributeV1(toAttribute(attribute))
+    );
+
+    expect(attribute).toEqual(toApiAttribute(expectedAttribute));
   });
   it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
     expect(

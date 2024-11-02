@@ -7,9 +7,11 @@ import {
   attributeKind,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
+import { getMockAttribute, getMockAuthData } from "pagopa-interop-commons-test";
 import { attributeNotFound } from "../src/model/domain/errors.js";
+import { toApiAttribute } from "../src/model/domain/apiConverter.js";
 import { addOneAttribute, attributeRegistryService } from "./utils.js";
+import { mockAttributeRegistryRouterRequest } from "./supertestSetup.js";
 
 describe("getAttributeById", async () => {
   const mockAttribute = getMockAttribute();
@@ -24,11 +26,13 @@ describe("getAttributeById", async () => {
   };
   await addOneAttribute(attribute1);
   it("should get the attribute if it exists", async () => {
-    const attribute = await attributeRegistryService.getAttributeById(
-      attribute1.id,
-      genericLogger
-    );
-    expect(attribute?.data).toEqual(attribute1);
+    const attribute = await mockAttributeRegistryRouterRequest.get({
+      path: "/attributes/:attributeId",
+      pathParams: { attributeId: attribute1.id },
+      authData: getMockAuthData(),
+    });
+
+    expect(attribute).toEqual(toApiAttribute(attribute1));
   });
   it("should throw attributeNotFound if the attribute doesn't exist", async () => {
     const id = generateId<AttributeId>();

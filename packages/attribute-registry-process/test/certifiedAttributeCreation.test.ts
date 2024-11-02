@@ -6,7 +6,7 @@ import {
   decodeProtobufPayload,
   getMockAttribute,
   getMockTenant,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Tenant,
   generateId,
@@ -14,6 +14,7 @@ import {
   Attribute,
   attributeKind,
   toAttributeV1,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
@@ -22,11 +23,16 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
+  toApiAttribute,
+  toAttribute,
+} from "../src/model/domain/apiConverter.js";
+import {
   addOneTenant,
   attributeRegistryService,
   readLastAttributeEvent,
   addOneAttribute,
 } from "./utils.js";
+import { mockAttributeRegistryRouterRequest } from "./supertestSetup.js";
 
 describe("certified attribute creation", () => {
   const mockAttribute = getMockAttribute();
@@ -44,22 +50,21 @@ describe("certified attribute creation", () => {
 
     await addOneTenant(tenant);
 
-    const attribute = await attributeRegistryService.createCertifiedAttribute(
-      {
+    const attribute = await mockAttributeRegistryRouterRequest.post({
+      path: "/certifiedAttributes",
+      body: {
         name: mockAttribute.name,
         code: "code",
         description: mockAttribute.description,
       },
-      {
-        authData: getMockAuthData(tenant.id),
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      }
-    );
+      authData: getMockAuthData(tenant.id),
+    });
+
     expect(attribute).toBeDefined();
 
-    const writtenEvent = await readLastAttributeEvent(attribute.id);
+    const writtenEvent = await readLastAttributeEvent(
+      unsafeBrandId(attribute.id)
+    );
     expect(writtenEvent).toMatchObject({
       stream_id: attribute.id,
       version: "0",
@@ -74,14 +79,17 @@ describe("certified attribute creation", () => {
 
     const expectedAttribute: Attribute = {
       ...mockAttribute,
-      id: attribute.id,
+      id: unsafeBrandId(attribute.id),
       code: "code",
       kind: attributeKind.certified,
       creationTime: new Date(writtenPayload.attribute!.creationTime),
       origin: tenant.features[0].certifierId,
     };
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(expectedAttribute));
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+    expect(writtenPayload.attribute).toEqual(
+      toAttributeV1(toAttribute(attribute))
+    );
+
+    expect(attribute).toEqual(toApiAttribute(expectedAttribute));
   });
   it("should throw attributeDuplicate if an attribute with the same name and code already exists", async () => {
     const attribute = {

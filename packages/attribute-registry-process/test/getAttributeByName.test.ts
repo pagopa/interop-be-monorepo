@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
-import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
+import { getMockAttribute, getMockAuthData } from "pagopa-interop-commons-test";
 import { Attribute, generateId, attributeKind } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { attributeNotFound } from "../src/model/domain/errors.js";
+import { toApiAttribute } from "../src/model/domain/apiConverter.js";
 import { addOneAttribute, attributeRegistryService } from "./utils.js";
+import { mockAttributeRegistryRouterRequest } from "./supertestSetup.js";
 
 describe("getAttributeByName", async () => {
   const mockAttribute = getMockAttribute();
@@ -19,11 +21,12 @@ describe("getAttributeByName", async () => {
   };
   await addOneAttribute(attribute1);
   it("should get the attribute if it exists", async () => {
-    const attribute = await attributeRegistryService.getAttributeByName(
-      attribute1.name,
-      genericLogger
-    );
-    expect(attribute?.data).toEqual(attribute1);
+    const attribute = await mockAttributeRegistryRouterRequest.get({
+      path: "/attributes/name/:name",
+      pathParams: { name: attribute1.name },
+      authData: getMockAuthData(),
+    });
+    expect(attribute).toEqual(toApiAttribute(attribute1));
   });
   it("should throw attributeNotFound if the attribute doesn't exist", async () => {
     const name = "not-existing";
