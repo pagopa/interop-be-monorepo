@@ -19,6 +19,10 @@ import {
 import { describe, it, expect } from "vitest";
 import { attributeDuplicate } from "../src/model/domain/errors.js";
 import {
+  toApiAttribute,
+  toAttribute,
+} from "../src/model/domain/apiConverter.js";
+import {
   addOneTenant,
   attributeRegistryService,
   readLastAttributeEvent,
@@ -29,7 +33,7 @@ import { mockAttributeRegistryRouterRequest } from "./supertestSetup.js";
 describe("certified attribute internal creation", () => {
   const mockAttribute = getMockAttribute();
   const mockTenant = getMockTenant();
-  it.only("should write on event-store for the internal creation of a certified attribute", async () => {
+  it("should write on event-store for the internal creation of a certified attribute", async () => {
     const tenant: Tenant = {
       ...mockTenant,
       features: [
@@ -46,22 +50,6 @@ describe("certified attribute internal creation", () => {
     };
 
     await addOneTenant(tenant);
-
-    // const attribute =
-    //   await attributeRegistryService.createInternalCertifiedAttribute(
-    //     {
-    //       name: mockAttribute.name,
-    //       code: "code",
-    //       origin: tenant.features[0].certifierId,
-    //       description: mockAttribute.description,
-    //     },
-    //     {
-    //       authData: getMockAuthData(),
-    //       logger: genericLogger,
-    //       correlationId: generateId(),
-    //       serviceName: "",
-    //     }
-    //   );
 
     const attribute = await mockAttributeRegistryRouterRequest.post({
       path: "/internal/certifiedAttributes",
@@ -98,8 +86,12 @@ describe("certified attribute internal creation", () => {
       creationTime: new Date(writtenPayload.attribute!.creationTime),
       origin: tenant.features[0].certifierId,
     };
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(expectedAttribute));
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+
+    expect(writtenPayload.attribute).toEqual(
+      toAttributeV1(toAttribute(attribute))
+    );
+
+    expect(attribute).toEqual(toApiAttribute(expectedAttribute));
   });
   it("should throw attributeDuplicate if an attribute with the same name and code already exists", async () => {
     const attribute = {
