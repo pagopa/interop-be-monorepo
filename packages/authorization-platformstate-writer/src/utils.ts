@@ -14,6 +14,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import {
   AgreementId,
+  Client,
   ClientId,
   clientKind,
   ClientKind,
@@ -24,6 +25,7 @@ import {
   GSIPKConsumerIdEServiceId,
   GSIPKKid,
   makeGSIPKConsumerIdEServiceId,
+  makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
   makePlatformStatesPurposePK,
   makeTokenGenerationStatesClientKidPK,
@@ -768,9 +770,9 @@ export const retrievePlatformStatesByPurpose = async (
   purposeId: PurposeId,
   dynamoDBClient: DynamoDBClient
 ): Promise<{
-  purposeEntry: PlatformStatesPurposeEntry;
-  agreementEntry: PlatformStatesAgreementEntry;
-  catalogEntry: PlatformStatesCatalogEntry;
+  purposeEntry?: PlatformStatesPurposeEntry;
+  agreementEntry?: PlatformStatesAgreementEntry;
+  catalogEntry?: PlatformStatesCatalogEntry;
 }> => {
   const purposePK = makePlatformStatesPurposePK(purposeId);
   const purposeEntry = await readPlatformPurposeEntry(
@@ -778,9 +780,10 @@ export const retrievePlatformStatesByPurpose = async (
     dynamoDBClient
   );
 
-  // TODO: should this throw an error?
   if (!purposeEntry) {
-    throw genericInternalError("TODO throw this error?");
+    return {
+      purposeEntry: undefined,
+    };
   }
 
   const agreementGSI = makeGSIPKConsumerIdEServiceId({
@@ -795,7 +798,10 @@ export const retrievePlatformStatesByPurpose = async (
     );
 
   if (!agreementEntry) {
-    throw genericInternalError("TODO throw this error?");
+    return {
+      purposeEntry,
+      agreementEntry: undefined,
+    };
   }
 
   const catalogPK = makePlatformStatesEServiceDescriptorPK({
@@ -805,7 +811,11 @@ export const retrievePlatformStatesByPurpose = async (
   const catalogEntry = await readCatalogEntry(catalogPK, dynamoDBClient);
 
   if (!catalogEntry) {
-    throw genericInternalError("TODO throw this error?");
+    return {
+      purposeEntry,
+      agreementEntry,
+      catalogEntry: undefined,
+    };
   }
   return {
     purposeEntry,
@@ -882,4 +892,298 @@ export const upsertTokenClientKidEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
+};
+
+export const updateTokenDataSecondRetrieval = async ({
+  dynamoDBClient,
+  entry,
+  client,
+  purposeEntry,
+  agreementEntry,
+  catalogEntry,
+}: {
+  dynamoDBClient: DynamoDBClient;
+  entry: TokenGenerationStatesClientPurposeEntry;
+  client: Client;
+  purposeEntry?: PlatformStatesPurposeEntry;
+  agreementEntry?: PlatformStatesAgreementEntry;
+  catalogEntry?: PlatformStatesCatalogEntry;
+}): Promise<void> => {
+  const setIfChanged = <
+    K extends keyof TokenGenerationStatesClientPurposeEntry
+  >(
+    key: K,
+    newValue: TokenGenerationStatesClientPurposeEntry[K]
+  ): Partial<TokenGenerationStatesClientPurposeEntry> => {
+    const oldValue = entry[key];
+
+    if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+      return !oldValue.every((value) => newValue.includes(value))
+        ? { [key]: newValue }
+        : {};
+    }
+
+    return oldValue !== newValue ? { [key]: newValue } : {};
+  };
+  const updatedFields: Partial<TokenGenerationStatesClientPurposeEntry> = {
+    ...(purposeEntry
+      ? {
+          ...setIfChanged(
+            "GSIPK_consumerId_eserviceId",
+            makeGSIPKConsumerIdEServiceId({
+              consumerId: client.consumerId,
+              eserviceId: purposeEntry.purposeEserviceId,
+            })
+          ),
+          ...setIfChanged("purposeVersionId", purposeEntry.purposeVersionId),
+          ...setIfChanged("purposeState", purposeEntry.state),
+        }
+      : {}),
+    ...(purposeEntry && agreementEntry
+      ? {
+          ...setIfChanged(
+            "GSIPK_eserviceId_descriptorId",
+            makeGSIPKEServiceIdDescriptorId({
+              eserviceId: purposeEntry.purposeEserviceId,
+              descriptorId: agreementEntry.agreementDescriptorId,
+            })
+          ),
+          ...setIfChanged("agreementState", agreementEntry.state),
+        }
+      : {}),
+    ...(catalogEntry
+      ? {
+          ...setIfChanged(
+            "descriptorAudience",
+            catalogEntry.descriptorAudience
+          ),
+          ...setIfChanged(
+            "descriptorVoucherLifespan",
+            catalogEntry.descriptorVoucherLifespan
+          ),
+          ...setIfChanged("descriptorState", catalogEntry.state),
+        }
+      : {}),
+  };
+
+  if (Object.keys(updatedFields).length > 0) {
+    // const preparation = [
+    //   updatedFields.GSIPK_clientId !== undefined
+    //     ? {
+    //         attributeValue: {
+    //           ":GSIPK_clientId": { S: updatedFields.GSIPK_clientId },
+    //         },
+    //         updateString: "GSIPK_clientId = :GSIPK_clientId",
+    //       }
+    //     : undefined,
+    //   updatedFields.GSIPK_clientId_purposeId !== undefined
+    //     ? {
+    //         attributeValue: {
+    //           ":GSIPK_clientId_purposeId": {
+    //             S: updatedFields.GSIPK_clientId_purposeId,
+    //           },
+    //         },
+    //         updateString:
+    //           "GSIPK_clientId_purposeId = :GSIPK_clientId_purposeId",
+    //       }
+    //     : undefined,
+    //   updatedFields.GSIPK_consumerId_eserviceId !== undefined
+    //     ? {
+    //         attributeValue: {
+    //           ":GSIPK_consumerId_eserviceId": {
+    //             S: updatedFields.GSIPK_consumerId_eserviceId,
+    //           },
+    //         },
+    //         updateString:
+    //           "GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId",
+    //       }
+    //     : undefined,
+    //   updatedFields.GSIPK_eserviceId_descriptorId !== undefined
+    //     ? {
+    //         attributeValue: {
+    //           ":GSIPK_eserviceId_descriptorId": {
+    //             S: updatedFields.GSIPK_eserviceId_descriptorId,
+    //           },
+    //         },
+    //         updateString:
+    //           "GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId",
+    //       }
+    //     : undefined,
+    //   updatedFields.GSIPK_kid !== undefined
+    //     ? {
+    //         attributeValue: { ":GSIPK_kid": { S: updatedFields.GSIPK_kid } },
+    //         updateString: "GSIPK_kid = :GSIPK_kid",
+    //       }
+    //     : undefined,
+    //   updatedFields.GSIPK_purposeId !== undefined
+    //     ? {
+    //         attributeValue: {
+    //           ":GSIPK_purposeId": { S: updatedFields.GSIPK_purposeId },
+    //         },
+    //         updateString: "GSIPK_purposeId = :GSIPK_purposeId",
+    //       }
+    //     : undefined,
+    //   updatedFields.agreementId !== undefined
+    //     ? {
+    //         attributeValue: {
+    //           ":agreementId": { S: updatedFields.agreementId },
+    //         },
+    //         updateString: "agreementId = :agreementId",
+    //       }
+    //     : undefined,
+    //   updatedFields.agreementState !== undefined
+    //     ? {
+    //         attributeValue: {
+    //           ":agreementState": { S: updatedFields.agreementState },
+    //         },
+    //         updateString: "agreementState = :agreementState",
+    //       }
+    //     : undefined,
+    //   updatedFields.consumerId !== undefined
+    //     ? {
+    //         attributeValue: { ":consumerId": { S: updatedFields.consumerId } },
+    //         updateString: "consumerId = :consumerId",
+    //       }
+    //     : undefined,
+    //   updatedFields.descriptorAudience !== undefined
+    //     ? {
+    //         attributeValue: {
+    //           ":descriptorAudience": {
+    //             L: updatedFields.descriptorAudience.map((audience) => ({
+    //               S: audience,
+    //             })),
+    //           },
+    //         },
+    //         updateString: "descriptorAudience = :descriptorAudience",
+    //       }
+    //     : undefined,
+    //   updatedFields.descriptorState !== undefined
+    //     ? {
+    //         attributeValue: {
+    //           ":descriptorState": { S: updatedFields.descriptorState },
+    //         },
+    //         updateString: "descriptorState = :descriptorState",
+    //       }
+    //     : undefined,
+    //   updatedFields.descriptorVoucherLifespan !== undefined
+    //     ? {
+    //         attributeValue: {
+    //           ":descriptorVoucherLifespan": {
+    //             N: updatedFields.descriptorVoucherLifespan.toString(),
+    //           },
+    //         },
+    //         updateString:
+    //           "descriptorVoucherLifespan = :descriptorVoucherLifespan",
+    //       }
+    //     : undefined,
+    //   updatedFields.purposeState !== undefined
+    //     ? {
+    //         attributeValue: {
+    //           ":purposeState": { S: updatedFields.purposeState },
+    //         },
+    //         updateString: "purposeState = :purposeState",
+    //       }
+    //     : undefined,
+    //   updatedFields.purposeVersionId !== undefined
+    //     ? {
+    //         attributeValue: {
+    //           ":purposeVersionId": { S: updatedFields.purposeVersionId },
+    //         },
+    //         updateString: "purposeVersionId = :purposeVersionId",
+    //       }
+    //     : undefined,
+    // ].filter((item) => item !== undefined);
+
+    // const updateExpression =
+    //   "SET updatedAt = :newUpdateAt, " +
+    //   preparation.map((item) => item.updateString).join(", ");
+
+    const { expressionAttributeValues, updateExpression } =
+      generateUpdateItemInputData(updatedFields);
+
+    const input: UpdateItemInput = {
+      ConditionExpression: "attribute_exists(PK)",
+      Key: {
+        PK: {
+          S: entry.PK,
+        },
+      },
+      // ExpressionAttributeValues: {
+      //   ...preparation.reduce(
+      //     (acc, item) => ({ ...acc, ...item.attributeValue }),
+      //     {}
+      //   ),
+      //   ":newUpdateAt": { S: new Date().toISOString() },
+      // },
+      ExpressionAttributeValues: expressionAttributeValues,
+      UpdateExpression: updateExpression,
+      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+      ReturnValues: "NONE",
+    };
+    const command = new UpdateItemCommand(input);
+    await dynamoDBClient.send(command);
+  }
+};
+
+const convertValueToAttributeValue = (
+  value: string | number | boolean | Array<string | number | boolean>
+): AttributeValue => {
+  if (typeof value === "string") {
+    return { S: value };
+  } else if (typeof value === "number") {
+    return { N: value.toString() };
+  } else if (typeof value === "boolean") {
+    return { BOOL: value };
+  } else if (Array.isArray(value)) {
+    return { L: value.map((item) => convertValueToAttributeValue(item)) };
+  } else {
+    throw genericInternalError(
+      `Unsupported DynamoDB type ${typeof value} while converting to AttributeValue`
+    );
+  }
+};
+
+const convertToExpressionAttributeValues = (
+  updatedFields: Partial<TokenGenerationStatesClientPurposeEntry>
+): Record<string, AttributeValue> => {
+  const expressionAttributeValues = Object.keys(updatedFields).reduce(
+    (acc, key) => {
+      const value = updatedFields[key as keyof typeof updatedFields];
+      if (value !== undefined) {
+        const dynamoKey = `:${key}`;
+        return {
+          ...acc,
+          [dynamoKey]: convertValueToAttributeValue(value),
+        };
+      }
+      return acc;
+    },
+    {}
+  );
+
+  return {
+    ...expressionAttributeValues,
+    ":newUpdateAt": { S: new Date().toISOString() },
+  };
+};
+
+const generateUpdateItemInputData = (
+  updatedFields: Partial<TokenGenerationStatesClientPurposeEntry>
+): {
+  updateExpression: string;
+  expressionAttributeValues: Record<string, AttributeValue>;
+} => {
+  const expressionAttributeValues =
+    convertToExpressionAttributeValues(updatedFields);
+
+  const updateExpressionTmp = Object.keys(updatedFields)
+    .map((key) => `${key} = :${key}`)
+    .join(", ");
+
+  const updateExpression = `SET updatedAt = :newUpdateAt, ${updateExpressionTmp}`;
+
+  return {
+    updateExpression,
+    expressionAttributeValues,
+  };
 };
