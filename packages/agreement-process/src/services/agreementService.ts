@@ -765,15 +765,11 @@ export function agreementServiceBuilder(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
       );
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      const delegation = await retrieveDelegationByDelegateId(
-        authData.organizationId,
-        readModelService
-      );
 
-      assertRequesterIsConsumerOrProducerOrDelegate(
+      await assertRequesterIsConsumerOrProducerOrDelegate(
         agreement.data,
-        delegation?.data,
-        authData
+        authData,
+        readModelService
       );
 
       return retrieveAgreementDocument(agreement.data, documentId);

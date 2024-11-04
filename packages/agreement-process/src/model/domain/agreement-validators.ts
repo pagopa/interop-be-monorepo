@@ -157,18 +157,21 @@ export const assertRequesterIsConsumerOrProducer = (
   }
 };
 
-export const assertRequesterIsConsumerOrProducerOrDelegate = (
+export const assertRequesterIsConsumerOrProducerOrDelegate = async (
   agreement: Agreement,
-  delegation: Delegation | undefined,
-  authData: AuthData
-): void => {
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<void> => {
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
     try {
       assertRequesterIsProducer(agreement, authData);
     } catch (error) {
-      assertRequesterIsDelegate(delegation, authData);
+      const delegation = await readModelService.getDelegationByDelegateId(
+        authData.organizationId
+      );
+      assertRequesterIsDelegate(delegation?.data, authData);
     }
   }
 };
