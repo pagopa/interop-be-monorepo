@@ -47,13 +47,9 @@ export const dynamoDBClient = new DynamoDBClient({
 export const mockProducer = {
   send: vi.fn(),
 };
-
-vi.mock("@aws-sdk/client-kms", () => ({
-  KMSClient: vi.fn().mockImplementation(() => ({
-    send: vi.fn(),
-  })),
-}));
-export const mockKMSClient = new KMSClient({});
+export const mockKMSClient = {
+  send: vi.fn(),
+};
 
 const tokenGenerator = new InteropTokenGenerator(
   {
