@@ -165,7 +165,7 @@ export function tokenServiceBuilder({
           const parsedKey = key as TokenGenerationStatesClientPurposeEntry;
 
           if (!parsedKey.descriptorAudience || !parsedKey.GSIPK_purposeId) {
-            throw genericInternalError("TODO");
+            throw invalidTokenClientKidPurposeEntry();
           }
           const token = await tokenGenerator.generateInteropConsumerToken({
             sub: jwt.payload.sub,
@@ -326,7 +326,7 @@ export const publishAudit = async ({
     !key.GSIPK_purposeId ||
     !key.purposeVersionId
   ) {
-    throw genericInternalError("TODO");
+    throw invalidTokenClientKidPurposeEntry();
   }
   const messageBody: GeneratedTokenAuditDetails = {
     jwtId: generatedToken.payload.jti,
