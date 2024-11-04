@@ -330,7 +330,7 @@ export const publishAudit = async ({
       key.GSIPK_eserviceId_descriptorId!
     ).descriptorId,
     purposeId: key.GSIPK_purposeId!,
-    purposeVersionId: unsafeBrandId(key.purposeState!),
+    purposeVersionId: unsafeBrandId(key.purposeVersionId!),
     algorithm: generatedToken.header.alg,
     keyId: generatedToken.header.kid,
     audience: generatedToken.payload.aud.join(","),
