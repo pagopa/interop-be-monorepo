@@ -2,7 +2,6 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   AuthorizationEventEnvelopeV2,
   Client,
-  clientKindTokenStates,
   ClientV2,
   fromClientV2,
   genericInternalError,
@@ -15,14 +14,10 @@ import {
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
   missingKafkaMessageDataError,
-  PlatformStatesAgreementEntry,
-  PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
-  PlatformStatesPurposeEntry,
   PurposeId,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
-  TokenGenerationStatesGenericEntry,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -44,6 +39,7 @@ import {
   upsertTokenClientKidEntry,
   upsertTokenStateClientPurposeEntry,
   updateTokenDataSecondRetrieval,
+  createTokenClientPurposeEntry,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -287,22 +283,23 @@ export async function handleMessageV2(
                 parsedTokenClientPurposeEntry.data.PK
               );
               if (!seenKids.has(kid)) {
-                const newClientPurposeEntry = createTokenClientPurposeEntry({
-                  tokenEntry: parsedTokenClientPurposeEntry.data,
-                  kid,
-                  client,
-                  purposeId,
-                  purposeEntry,
-                  agreementEntry,
-                  catalogEntry,
-                });
+                const newTokenClientPurposeEntry =
+                  createTokenClientPurposeEntry({
+                    tokenEntry: parsedTokenClientPurposeEntry.data,
+                    kid,
+                    client,
+                    purposeId,
+                    purposeEntry,
+                    agreementEntry,
+                    catalogEntry,
+                  });
 
                 await upsertTokenStateClientPurposeEntry(
-                  newClientPurposeEntry,
+                  newTokenClientPurposeEntry,
                   dynamoDBClient
                 );
                 seenKids.add(kid);
-                return newClientPurposeEntry;
+                return newTokenClientPurposeEntry;
               }
             }
 
@@ -409,71 +406,4 @@ const parseClient = (
   }
 
   return fromClientV2(clientV2);
-};
-
-const createTokenClientPurposeEntry = ({
-  tokenEntry: baseEntry,
-  kid,
-  client,
-  purposeId,
-  purposeEntry,
-  agreementEntry,
-  catalogEntry,
-}: {
-  tokenEntry: TokenGenerationStatesGenericEntry;
-  kid: string;
-  client: Client;
-  purposeId: PurposeId;
-  purposeEntry?: PlatformStatesPurposeEntry;
-  agreementEntry?: PlatformStatesAgreementEntry;
-  catalogEntry?: PlatformStatesCatalogEntry;
-}): TokenGenerationStatesClientPurposeEntry => {
-  const pk = makeTokenGenerationStatesClientKidPurposePK({
-    clientId: client.id,
-    kid,
-    purposeId,
-  });
-  const isTokenClientPurposeEntry =
-    TokenGenerationStatesClientPurposeEntry.safeParse(baseEntry).success;
-
-  return {
-    PK: pk,
-    consumerId: baseEntry.consumerId,
-    updatedAt: new Date().toISOString(),
-    clientKind: isTokenClientPurposeEntry
-      ? baseEntry.clientKind
-      : clientKindTokenStates.consumer,
-    publicKey: baseEntry.publicKey,
-    GSIPK_clientId: baseEntry.GSIPK_clientId,
-    GSIPK_kid: isTokenClientPurposeEntry
-      ? baseEntry.GSIPK_kid
-      : makeGSIPKKid(kid),
-    GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-      clientId: client.id,
-      purposeId,
-    }),
-    GSIPK_purposeId: purposeId,
-    ...(purposeEntry && {
-      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-        consumerId: client.consumerId,
-        eserviceId: purposeEntry.purposeEserviceId,
-      }),
-      purposeState: purposeEntry.state,
-      purposeVersionId: purposeEntry.purposeVersionId,
-    }),
-    ...(purposeEntry &&
-      agreementEntry && {
-        agreementId: extractAgreementIdFromAgreementPK(agreementEntry.PK),
-        agreementState: agreementEntry.state,
-        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-          eserviceId: purposeEntry.purposeEserviceId,
-          descriptorId: agreementEntry.agreementDescriptorId,
-        }),
-      }),
-    ...(catalogEntry && {
-      descriptorState: catalogEntry.state,
-      descriptorAudience: catalogEntry.descriptorAudience,
-      descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
-    }),
-  };
 };

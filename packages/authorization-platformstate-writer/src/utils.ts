@@ -24,11 +24,14 @@ import {
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
   GSIPKKid,
+  makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
+  makeGSIPKKid,
   makePlatformStatesEServiceDescriptorPK,
   makePlatformStatesPurposePK,
   makeTokenGenerationStatesClientKidPK,
+  makeTokenGenerationStatesClientKidPurposePK,
   PlatformStatesAgreementEntry,
   PlatformStatesAgreementPK,
   PlatformStatesCatalogEntry,
@@ -1047,5 +1050,72 @@ const generateUpdateItemInputData = (
   return {
     updateExpression,
     expressionAttributeValues,
+  };
+};
+
+export const createTokenClientPurposeEntry = ({
+  tokenEntry: baseEntry,
+  kid,
+  client,
+  purposeId,
+  purposeEntry,
+  agreementEntry,
+  catalogEntry,
+}: {
+  tokenEntry: TokenGenerationStatesGenericEntry;
+  kid: string;
+  client: Client;
+  purposeId: PurposeId;
+  purposeEntry?: PlatformStatesPurposeEntry;
+  agreementEntry?: PlatformStatesAgreementEntry;
+  catalogEntry?: PlatformStatesCatalogEntry;
+}): TokenGenerationStatesClientPurposeEntry => {
+  const pk = makeTokenGenerationStatesClientKidPurposePK({
+    clientId: client.id,
+    kid,
+    purposeId,
+  });
+  const isTokenClientPurposeEntry =
+    TokenGenerationStatesClientPurposeEntry.safeParse(baseEntry).success;
+
+  return {
+    PK: pk,
+    consumerId: baseEntry.consumerId,
+    updatedAt: new Date().toISOString(),
+    clientKind: isTokenClientPurposeEntry
+      ? baseEntry.clientKind
+      : clientKindTokenStates.consumer,
+    publicKey: baseEntry.publicKey,
+    GSIPK_clientId: baseEntry.GSIPK_clientId,
+    GSIPK_kid: isTokenClientPurposeEntry
+      ? baseEntry.GSIPK_kid
+      : makeGSIPKKid(kid),
+    GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      clientId: client.id,
+      purposeId,
+    }),
+    GSIPK_purposeId: purposeId,
+    ...(purposeEntry && {
+      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+        consumerId: client.consumerId,
+        eserviceId: purposeEntry.purposeEserviceId,
+      }),
+      purposeState: purposeEntry.state,
+      purposeVersionId: purposeEntry.purposeVersionId,
+    }),
+    ...(purposeEntry &&
+      agreementEntry && {
+        agreementId: extractAgreementIdFromAgreementPK(agreementEntry.PK),
+        agreementState: agreementEntry.state,
+        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+          eserviceId: purposeEntry.purposeEserviceId,
+          descriptorId: agreementEntry.agreementDescriptorId,
+        }),
+      }),
+    ...(catalogEntry && {
+      descriptorState: catalogEntry.state,
+      descriptorAudience: catalogEntry.descriptorAudience,
+      descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
+    }),
   };
 };
