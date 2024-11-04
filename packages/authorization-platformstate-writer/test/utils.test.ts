@@ -5,27 +5,39 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   getMockAgreementEntry,
+  getMockKey,
   getMockPlatformStatesClientEntry,
+  getMockPurposeVersion,
   getMockTokenStatesClientEntry,
   getMockTokenStatesClientPurposeEntry,
+  getMockPurpose,
+  getMockClient,
   readAllPlatformStateItems,
   readAllTokenStateItems,
   writeCatalogEntry,
   writePlatformAgreementEntry,
   writePlatformPurposeEntry,
   writeTokenStateEntry,
+  getMockAgreement,
+  getMockDescriptor,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   AgreementId,
+  Client,
   ClientId,
   clientKindTokenStates,
   DescriptorId,
+  EService,
   EServiceId,
   generateId,
   GSIPKKid,
   itemState,
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
+  makeGSIPKEServiceIdDescriptorId,
+  makeGSIPKKid,
   makePlatformStatesAgreementPK,
   makePlatformStatesClientPK,
   makePlatformStatesEServiceDescriptorPK,
@@ -36,7 +48,9 @@ import {
   PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
   PlatformStatesPurposeEntry,
+  Purpose,
   PurposeId,
+  purposeVersionState,
   TenantId,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
@@ -67,6 +81,7 @@ import {
   readClientEntry,
   readPlatformAgreementEntryByGSIPKConsumerIdEServiceId,
   retrievePlatformStatesByPurpose,
+  updateTokenDataForSecondRetrieval,
   upsertPlatformClientEntry,
   upsertTokenClientKidEntry,
   upsertTokenStateClientPurposeEntry,
@@ -341,7 +356,7 @@ describe("utils", () => {
       expect(result).toEqual([clientEntry]);
     });
 
-    it("shoould throw error if the entry already exists", async () => {
+    it("should throw error if the entry already exists", async () => {
       const clientEntry = getMockTokenStatesClientEntry();
       await writeTokenStateClientEntry(clientEntry, dynamoDBClient);
 
@@ -649,5 +664,116 @@ describe("utils", () => {
       .safeParse([clientKidPurposeEntryWithUndefined]);
 
     expect(entries3.data![0]).toEqual(clientKidPurposeEntryWithUndefined);
+  });
+
+  it("updateTokenDataForSecondRetrieval", async () => {
+    const consumerId = generateId<TenantId>();
+    const descriptor = getMockDescriptor();
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      consumerId,
+      eserviceId: eservice.id,
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+    };
+    const key = getMockKey();
+    const client: Client = {
+      ...getMockClient(),
+      consumerId,
+      keys: [key],
+      purposes: [purpose.id],
+    };
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      eserviceId: eservice.id,
+      descriptorId: descriptor.id,
+    };
+
+    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
+      {
+        clientId: client.id,
+        kid: key.kid,
+        purposeId: purpose.id,
+      }
+    );
+    const tokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry = {
+      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      consumerId,
+      GSIPK_clientId: client.id,
+      GSIPK_kid: makeGSIPKKid(key.kid),
+      GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+        clientId: client.id,
+        purposeId: purpose.id,
+      }),
+      GSIPK_purposeId: purpose.id,
+      purposeVersionId: purpose.versions[0].id,
+      descriptorAudience: descriptor.audience,
+      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId: eservice.id,
+      }),
+      GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      }),
+    };
+    await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
+
+    const platformPurposeEntry: PlatformStatesPurposeEntry = {
+      PK: makePlatformStatesPurposePK(purpose.id),
+      version: 1,
+      state: itemState.inactive,
+      updatedAt: new Date().toISOString(),
+      purposeVersionId: purpose.versions[0].id,
+      purposeEserviceId: eservice.id,
+      purposeConsumerId: consumerId,
+    };
+
+    const platformAgreementEntry: PlatformStatesAgreementEntry = {
+      PK: makePlatformStatesAgreementPK(agreement.id),
+      version: 1,
+      state: itemState.inactive,
+      updatedAt: new Date().toISOString(),
+      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId: eservice.id,
+      }),
+      GSISK_agreementTimestamp: new Date().toISOString(),
+      agreementDescriptorId: agreement.descriptorId,
+    };
+
+    const platformCatalogEntry: PlatformStatesCatalogEntry = {
+      PK: makePlatformStatesEServiceDescriptorPK({
+        eserviceId: purpose.eserviceId,
+        descriptorId: descriptor.id,
+      }),
+      state: itemState.inactive,
+      descriptorAudience: ["pagopa.it"],
+      descriptorVoucherLifespan: descriptor.voucherLifespan,
+      version: 2,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await updateTokenDataForSecondRetrieval({
+      dynamoDBClient,
+      entry: tokenClientPurposeEntry,
+      purposeEntry: platformPurposeEntry,
+      agreementEntry: platformAgreementEntry,
+      catalogEntry: platformCatalogEntry,
+    });
+
+    const retrievedTokenEntries = await readAllTokenStateItems(dynamoDBClient);
+    const expectedTokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry =
+      {
+        ...tokenClientPurposeEntry,
+        purposeState: itemState.inactive,
+        agreementState: itemState.inactive,
+        descriptorState: itemState.inactive,
+      };
+    expect(retrievedTokenEntries).toHaveLength(1);
+    expect(retrievedTokenEntries[0]).toEqual(expectedTokenClientPurposeEntry);
   });
 });
