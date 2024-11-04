@@ -39,10 +39,9 @@ export class InteropTokenGenerator {
   constructor(
     private config: Partial<AuthorizationServerTokenGenerationConfig> &
       Partial<TokenGenerationConfig> &
-      Partial<SessionTokenGenerationConfig>,
-    kmsClient?: KMSClient
+      Partial<SessionTokenGenerationConfig>
   ) {
-    this.kmsClient = kmsClient || new KMSClient();
+    this.kmsClient = new KMSClient();
   }
 
   public async generateInternalToken(): Promise<InteropToken> {
