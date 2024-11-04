@@ -1,7 +1,5 @@
 import {
-  ApiKey,
   ClientAssertion,
-  ConsumerKey,
   validateClientKindAndPlatformState,
   validateRequestParameters,
   verifyClientAssertion,
@@ -132,7 +130,11 @@ export function tokenServiceBuilder({
       const key = await retrieveKey(dynamoDBClient, pk);
 
       const { errors: clientAssertionSignatureErrors } =
-        await verifyClientAssertionSignature(request.client_assertion, key);
+        await verifyClientAssertionSignature(
+          request.client_assertion,
+          key,
+          jwt.header.alg
+        );
 
       if (clientAssertionSignatureErrors) {
         throw clientAssertionSignatureValidationFailed(
@@ -159,28 +161,36 @@ export function tokenServiceBuilder({
 
       // TODO: match otherwise doesn't work somehow
       if (key.clientKind === clientKindTokenStates.consumer) {
-        const token = await tokenGenerator.generateInteropConsumerToken({
-          sub: jwt.payload.sub,
-          audience: key.eServiceState.audience,
-          purposeId: key.purposeId,
-          tokenDurationInSeconds: 10,
-        });
+        if (key.PK.startsWith(clientKidPurposePrefix)) {
+          const parsedKey = key as TokenGenerationStatesClientPurposeEntry;
 
-        await publishAudit({
-          producer,
-          generatedToken: token,
-          key,
-          clientAssertion: jwt,
-          correlationId,
-          fileManager,
-          logger,
-        });
+          if (!parsedKey.descriptorAudience || !parsedKey.GSIPK_purposeId) {
+            throw invalidTokenClientKidPurposeEntry();
+          }
+          const token = await tokenGenerator.generateInteropConsumerToken({
+            sub: jwt.payload.sub,
+            audience: parsedKey.descriptorAudience,
+            purposeId: parsedKey.GSIPK_purposeId,
+            tokenDurationInSeconds: 10,
+          });
 
-        return {
-          limitReached: false,
-          token,
-          rateLimiterStatus,
-        };
+          await publishAudit({
+            producer,
+            generatedToken: token,
+            key: parsedKey,
+            clientAssertion: jwt,
+            correlationId,
+            fileManager,
+            logger,
+          });
+
+          return {
+            limitReached: false,
+            token,
+            rateLimiterStatus,
+          };
+        }
+        throw invalidTokenClientKidPurposeEntry();
       } else if (key.clientKind === clientKindTokenStates.api) {
         const token = await tokenGenerator.generateInteropApiToken({
           sub: jwt.payload.sub,
@@ -204,7 +214,9 @@ export type TokenService = ReturnType<typeof tokenServiceBuilder>;
 export const retrieveKey = async (
   dynamoDBClient: DynamoDBClient,
   pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
-): Promise<ConsumerKey | ApiKey> => {
+): Promise<
+  TokenGenerationStatesClientEntry | TokenGenerationStatesClientPurposeEntry
+> => {
   const input: GetItemInput = {
     Key: {
       PK: { S: pk },
@@ -255,35 +267,7 @@ export const retrieveKey = async (
             throw invalidTokenClientKidPurposeEntry();
           }
 
-          const key: ConsumerKey = {
-            kid: clientKidPurposeEntry.GSIPK_kid,
-            purposeId: clientKidPurposeEntry.GSIPK_purposeId,
-            clientId: clientKidPurposeEntry.GSIPK_clientId,
-            consumerId: clientKidPurposeEntry.consumerId,
-            publicKey: clientKidPurposeEntry.publicKey,
-            algorithm: "RS256" /* TODO pass this as a parameter? */,
-            clientKind: clientKindTokenStates.consumer, // TODO this doesn't work with clientKidPurpose Entry.clientKind, but it should be already validated in the "when"
-            purposeState: {
-              state: clientKidPurposeEntry.purposeState,
-              versionId: clientKidPurposeEntry.purposeVersionId,
-            },
-            agreementId: clientKidPurposeEntry.agreementId,
-            agreementState: {
-              state: clientKidPurposeEntry.agreementState,
-            },
-            eServiceId: deconstructGSIPK_eserviceId_descriptorId(
-              clientKidPurposeEntry.GSIPK_eserviceId_descriptorId
-            ).eserviceId,
-            eServiceState: {
-              state: clientKidPurposeEntry.descriptorState,
-              descriptorId: deconstructGSIPK_eserviceId_descriptorId(
-                clientKidPurposeEntry.GSIPK_eserviceId_descriptorId
-              ).descriptorId,
-              audience: clientKidPurposeEntry.descriptorAudience,
-              voucherLifespan: clientKidPurposeEntry.descriptorVoucherLifespan,
-            },
-          };
-          return key;
+          return clientKidPurposeEntry;
         }
       )
       .when(
@@ -306,20 +290,7 @@ export const retrieveKey = async (
         (entry) =>
           entry.clientKind === clientKindTokenStates.api &&
           entry.PK.startsWith(clientKidPrefix),
-        () => {
-          const clientKidEntry =
-            tokenGenerationEntry.data as TokenGenerationStatesClientEntry;
-
-          const key: ApiKey = {
-            kid: clientKidEntry.GSIPK_kid,
-            clientId: clientKidEntry.GSIPK_clientId,
-            consumerId: clientKidEntry.consumerId,
-            publicKey: clientKidEntry.publicKey,
-            algorithm: "RS256", // TODO pass this as a parameter?,
-            clientKind: clientKindTokenStates.api, // TODO this doesn't work with clientKidEntry.clientKind, but it should be already validated in the "when"
-          };
-          return key;
-        }
+        () => tokenGenerationEntry.data as TokenGenerationStatesClientEntry
       )
       .otherwise(() => {
         throw unexpectedTokenGenerationStatesEntry();
@@ -343,12 +314,20 @@ export const publishAudit = async ({
 }: {
   producer: Awaited<ReturnType<typeof initProducer>>;
   generatedToken: InteropConsumerToken | InteropApiToken;
-  key: ConsumerKey;
+  key: TokenGenerationStatesClientPurposeEntry;
   clientAssertion: ClientAssertion;
   correlationId: string;
   fileManager: FileManager;
   logger: Logger;
 }): Promise<void> => {
+  if (
+    !key.agreementId ||
+    !key.GSIPK_eserviceId_descriptorId ||
+    !key.GSIPK_purposeId ||
+    !key.purposeVersionId
+  ) {
+    throw invalidTokenClientKidPurposeEntry();
+  }
   const messageBody: GeneratedTokenAuditDetails = {
     jwtId: generatedToken.payload.jti,
     correlationId,
@@ -356,10 +335,14 @@ export const publishAudit = async ({
     clientId: clientAssertion.payload.sub,
     organizationId: key.consumerId,
     agreementId: key.agreementId,
-    eserviceId: key.eServiceId,
-    descriptorId: unsafeBrandId(key.eServiceState.descriptorId),
-    purposeId: key.purposeId,
-    purposeVersionId: unsafeBrandId(key.purposeState.versionId),
+    eserviceId: deconstructGSIPK_eserviceId_descriptorId(
+      key.GSIPK_eserviceId_descriptorId
+    ).eserviceId,
+    descriptorId: deconstructGSIPK_eserviceId_descriptorId(
+      key.GSIPK_eserviceId_descriptorId
+    ).descriptorId,
+    purposeId: key.GSIPK_purposeId,
+    purposeVersionId: unsafeBrandId(key.purposeVersionId),
     algorithm: generatedToken.header.alg,
     keyId: generatedToken.header.kid,
     audience: generatedToken.payload.aud.join(","),
