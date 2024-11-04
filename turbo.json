@@ -24,7 +24,7 @@
       "outputs": ["dist"]
     },
     "check": {
-      "dependsOn": ["generate-model", "generate-protobuf", "^build"],
+      "dependsOn": ["generate-model", "generate-protobuf", "^build", "^check"],
       "outputs": ["dist"]
     },
     "generate-model": {
@@ -39,7 +39,7 @@
       "dependsOn": ["build"]
     },
     "lint": {
-      "dependsOn": ["build"],
+      "dependsOn": ["build", "^lint"],
       "outputs": ["dist"]
     },
     "lint:autofix": {
