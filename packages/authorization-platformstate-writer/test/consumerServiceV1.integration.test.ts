@@ -61,6 +61,7 @@ import {
   Purpose,
   PurposeId,
   purposeVersionState,
+  TenantId,
   toClientV1,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
@@ -372,20 +373,21 @@ describe("integration tests V1 events", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
+      const consumerId = generateId<TenantId>();
       const purpose1: Purpose = {
         ...getMockPurpose(),
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
-        consumerId: purpose1.consumerId,
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const oldKey = getMockKey();
       const addedKey = getMockKey();
       const client: Client = {
         ...getMockClient(),
-        consumerId: purpose1.consumerId,
+        consumerId,
         keys: [oldKey, addedKey],
         purposes: [purpose1.id, purpose2.id],
       };
@@ -652,20 +654,22 @@ describe("integration tests V1 events", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
+      const consumerId = generateId<TenantId>();
       const purpose1: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
-        consumerId: purpose1.consumerId,
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const oldKey = getMockKey();
       const addedKey = getMockKey();
       const client: Client = {
         ...getMockClient(),
-        consumerId: purpose1.consumerId,
+        consumerId,
         keys: [oldKey, addedKey],
         purposes: [purpose1.id, purpose2.id],
       };
@@ -1629,12 +1633,15 @@ describe("integration tests V1 events", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
+      const consumerId = generateId<TenantId>();
       const purpose: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const client: Client = {
         ...getMockClient(),
+        consumerId,
         purposes: [purpose.id],
       };
 
@@ -1825,17 +1832,21 @@ describe("integration tests V1 events", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
+      const consumerId = generateId<TenantId>();
       const purpose1: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
 
       const client: Client = {
         ...getMockClient(),
+        consumerId,
         purposes: [purpose1.id, purpose2.id],
       };
 
@@ -2092,17 +2103,21 @@ describe("integration tests V1 events", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
+      const consumerId = generateId<TenantId>();
       const purpose1: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
 
       const client: Client = {
         ...getMockClient(),
+        consumerId,
         purposes: [purpose1.id, purpose2.id],
       };
 
