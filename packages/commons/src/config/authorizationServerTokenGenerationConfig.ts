@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const AuthorizationServerTokenGenerationConfig = z
   .object({
-    GENERATED_INTEROP_TOKEN_ALGORITHM: z.string(),
+    GENERATED_INTEROP_TOKEN_ALGORITHM: z.literal("RS256"),
     GENERATED_INTEROP_TOKEN_KID: z.string(),
     GENERATED_INTEROP_TOKEN_ISSUER: z.string(),
     GENERATED_INTEROP_TOKEN_M2M_AUDIENCE: z.string(),

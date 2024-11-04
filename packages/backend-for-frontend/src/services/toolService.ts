@@ -2,7 +2,6 @@
 
 import { isAxiosError } from "axios";
 import {
-  ClientAssertion,
   FailedValidation,
   SuccessfulValidation,
   validateClientKindAndPlatformState,
@@ -13,6 +12,7 @@ import {
 import {
   AgreementId,
   ApiError,
+  ClientAssertion,
   ClientId,
   DescriptorId,
   EServiceId,

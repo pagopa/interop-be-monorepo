@@ -5,9 +5,9 @@ import {
   PurposeId,
   TokenGenerationStatesClientPurposeEntry,
   unsafeBrandId,
+  ClientAssertionDigest,
 } from "pagopa-interop-models";
 import {
-  ClientAssertionDigest,
   FailedValidation,
   ValidationResult,
   SuccessfulValidation,

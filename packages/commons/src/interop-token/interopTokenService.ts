@@ -5,6 +5,7 @@ import {
   generateId,
   PurposeId,
   TenantId,
+  ClientAssertionDigest,
 } from "pagopa-interop-models";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
@@ -39,10 +40,9 @@ export class InteropTokenGenerator {
   constructor(
     private config: Partial<AuthorizationServerTokenGenerationConfig> &
       Partial<TokenGenerationConfig> &
-      Partial<SessionTokenGenerationConfig>,
-    kmsClient?: KMSClient
+      Partial<SessionTokenGenerationConfig>
   ) {
-    this.kmsClient = kmsClient || new KMSClient();
+    this.kmsClient = new KMSClient();
   }
 
   public async generateInternalToken(): Promise<InteropToken> {
@@ -196,11 +196,13 @@ export class InteropTokenGenerator {
     audience,
     purposeId,
     tokenDurationInSeconds,
+    digest,
   }: {
     sub: ClientId;
     audience: string[];
     purposeId: PurposeId;
     tokenDurationInSeconds: number;
+    digest: ClientAssertionDigest;
   }): Promise<InteropConsumerToken> {
     if (
       !this.config.generatedInteropTokenAlgorithm ||
@@ -231,6 +233,7 @@ export class InteropTokenGenerator {
       nbf: currentTimestamp,
       exp: currentTimestamp + tokenDurationInSeconds,
       purposeId,
+      digest,
     };
 
     const serializedToken = await this.createAndSignToken({
