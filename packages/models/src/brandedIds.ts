@@ -104,6 +104,7 @@ export type GSIPKConsumerIdEServiceId = z.infer<
 export const clientKidPurposePrefix = "CLIENTKIDPURPOSE#";
 export const TokenGenerationStatesClientKidPurposePK = z
   .string()
+  .refine((pk) => pk.startsWith(clientKidPurposePrefix))
   .brand(`${clientKidPurposePrefix}clientId#kid#purposeId`);
 export type TokenGenerationStatesClientKidPurposePK = z.infer<
   typeof TokenGenerationStatesClientKidPurposePK
@@ -112,6 +113,7 @@ export type TokenGenerationStatesClientKidPurposePK = z.infer<
 export const clientKidPrefix = "CLIENTKID#";
 export const TokenGenerationStatesClientKidPK = z
   .string()
+  .refine((pk) => pk.startsWith(clientKidPrefix))
   .brand(`${clientKidPrefix}clientId#kid`);
 export type TokenGenerationStatesClientKidPK = z.infer<
   typeof TokenGenerationStatesClientKidPK
