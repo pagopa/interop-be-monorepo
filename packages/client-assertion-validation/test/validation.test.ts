@@ -697,20 +697,6 @@ describe("validation test", async () => {
       const mockKey: TokenGenerationStatesClientPurposeEntry = {
         ...getMockTokenStatesClientPurposeEntry(),
       };
-      // const mockKey: ConsumerKey = {
-      //   ...getMockConsumerKey(),
-      //   agreementState: { state: itemState.active },
-      //   eServiceState: {
-      //     state: itemState.active,
-      //     descriptorId: generateId<DescriptorId>(),
-      //     audience: ["test.interop.pagopa.it"],
-      //     voucherLifespan: 60,
-      //   },
-      //   purposeState: {
-      //     state: itemState.active,
-      //     versionId: generateId<PurposeVersionId>(),
-      //   },
-      // };
       validatePlatformState(mockKey);
       const { errors } = validatePlatformState(mockKey);
       expect(errors).toBeUndefined();

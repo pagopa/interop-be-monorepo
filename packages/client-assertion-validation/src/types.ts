@@ -1,4 +1,4 @@
-import { ApiError, ClientId, PurposeId, TenantId } from "pagopa-interop-models";
+import { ApiError, ClientId, PurposeId } from "pagopa-interop-models";
 import { z } from "zod";
 import { ErrorCodes } from "./errors.js";
 
@@ -42,17 +42,6 @@ export const ClientAssertion = z
 export type ClientAssertion = z.infer<typeof ClientAssertion>;
 
 export const Base64Encoded = z.string().base64().min(1);
-
-export const Key = z
-  .object({
-    clientId: ClientId,
-    consumerId: TenantId,
-    kid: z.string(),
-    publicKey: Base64Encoded,
-    algorithm: z.string(),
-  })
-  .strict();
-export type Key = z.infer<typeof Key>;
 
 export type ValidationResult<T> =
   | SuccessfulValidation<T>
