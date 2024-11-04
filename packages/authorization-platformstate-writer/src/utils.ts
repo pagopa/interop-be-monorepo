@@ -906,17 +906,15 @@ export const upsertTokenClientKidEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const updateTokenDataSecondRetrieval = async ({
+export const updateTokenDataForSecondRetrieval = async ({
   dynamoDBClient,
   entry,
-  client,
   purposeEntry,
   agreementEntry,
   catalogEntry,
 }: {
   dynamoDBClient: DynamoDBClient;
   entry: TokenGenerationStatesClientPurposeEntry;
-  client: Client;
   purposeEntry?: PlatformStatesPurposeEntry;
   agreementEntry?: PlatformStatesAgreementEntry;
   catalogEntry?: PlatformStatesCatalogEntry;
@@ -943,7 +941,7 @@ export const updateTokenDataSecondRetrieval = async ({
           ...setIfChanged(
             "GSIPK_consumerId_eserviceId",
             makeGSIPKConsumerIdEServiceId({
-              consumerId: client.consumerId,
+              consumerId: purposeEntry.purposeConsumerId,
               eserviceId: purposeEntry.purposeEserviceId,
             })
           ),

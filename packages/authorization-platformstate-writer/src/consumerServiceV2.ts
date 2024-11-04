@@ -38,7 +38,7 @@ import {
   upsertTokenClientKidEntry,
   upsertTokenStateClientPurposeEntry,
   setClientPurposeIdsInPlatformStatesEntry,
-  updateTokenDataSecondRetrieval,
+  updateTokenDataForSecondRetrieval,
   createTokenClientPurposeEntry,
 } from "./utils.js";
 
@@ -161,10 +161,9 @@ export async function handleMessageV2(
             );
 
             const addedClientKidPurposeEntry = addedEntries[index];
-            await updateTokenDataSecondRetrieval({
+            await updateTokenDataForSecondRetrieval({
               dynamoDBClient,
               entry: addedClientKidPurposeEntry,
-              client,
               purposeEntry: purposeEntry2,
               agreementEntry: agreementEntry2,
               catalogEntry: catalogEntry2,
@@ -319,10 +318,9 @@ export async function handleMessageV2(
               dynamoDBClient
             );
 
-            await updateTokenDataSecondRetrieval({
+            await updateTokenDataForSecondRetrieval({
               dynamoDBClient,
               entry,
-              client,
               purposeEntry: purposeEntry2,
               agreementEntry: agreementEntry2,
               catalogEntry: catalogEntry2,
