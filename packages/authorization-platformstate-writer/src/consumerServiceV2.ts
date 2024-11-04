@@ -259,7 +259,8 @@ export async function handleMessageV2(
               const newTokenClientPurposeEntry = createTokenClientPurposeEntry({
                 tokenEntry: parsedTokenClientEntry.data,
                 kid: extractKidFromTokenEntryPK(parsedTokenClientEntry.data.PK),
-                client,
+                clientId: client.id,
+                consumerId: client.consumerId,
                 purposeId,
                 purposeEntry,
                 agreementEntry,
@@ -286,7 +287,8 @@ export async function handleMessageV2(
                   createTokenClientPurposeEntry({
                     tokenEntry: parsedTokenClientPurposeEntry.data,
                     kid,
-                    client,
+                    clientId: client.id,
+                    consumerId: client.consumerId,
                     purposeId,
                     purposeEntry,
                     agreementEntry,
