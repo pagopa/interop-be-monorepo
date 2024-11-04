@@ -163,10 +163,14 @@ export function tokenServiceBuilder({
       if (key.clientKind === clientKindTokenStates.consumer) {
         if (key.PK.startsWith(clientKidPurposePrefix)) {
           const parsedKey = key as TokenGenerationStatesClientPurposeEntry;
+
+          if (!parsedKey.descriptorAudience || !parsedKey.GSIPK_purposeId) {
+            throw genericInternalError("TODO");
+          }
           const token = await tokenGenerator.generateInteropConsumerToken({
             sub: jwt.payload.sub,
-            audience: parsedKey.descriptorAudience!,
-            purposeId: parsedKey.GSIPK_purposeId!,
+            audience: parsedKey.descriptorAudience,
+            purposeId: parsedKey.GSIPK_purposeId,
             tokenDurationInSeconds: 10,
           });
 
@@ -316,21 +320,29 @@ export const publishAudit = async ({
   fileManager: FileManager;
   logger: Logger;
 }): Promise<void> => {
+  if (
+    !key.agreementId ||
+    !key.GSIPK_eserviceId_descriptorId ||
+    !key.GSIPK_purposeId ||
+    !key.purposeVersionId
+  ) {
+    throw genericInternalError("TODO");
+  }
   const messageBody: GeneratedTokenAuditDetails = {
     jwtId: generatedToken.payload.jti,
     correlationId,
     issuedAt: generatedToken.payload.iat,
     clientId: clientAssertion.payload.sub,
     organizationId: key.consumerId,
-    agreementId: key.agreementId!,
+    agreementId: key.agreementId,
     eserviceId: deconstructGSIPK_eserviceId_descriptorId(
-      key.GSIPK_eserviceId_descriptorId!
+      key.GSIPK_eserviceId_descriptorId
     ).eserviceId,
     descriptorId: deconstructGSIPK_eserviceId_descriptorId(
-      key.GSIPK_eserviceId_descriptorId!
+      key.GSIPK_eserviceId_descriptorId
     ).descriptorId,
-    purposeId: key.GSIPK_purposeId!,
-    purposeVersionId: unsafeBrandId(key.purposeVersionId!),
+    purposeId: key.GSIPK_purposeId,
+    purposeVersionId: unsafeBrandId(key.purposeVersionId),
     algorithm: generatedToken.header.alg,
     keyId: generatedToken.header.kid,
     audience: generatedToken.payload.aud.join(","),
