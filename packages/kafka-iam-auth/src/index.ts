@@ -275,14 +275,7 @@ const initCustomConsumer = async ({
         return Promise.resolve(false);
       },
     },
-    ...(batchConfigParseResult.success
-      ? {
-          minBytes:
-            batchConfigParseResult.data.averageKafkaMessageSizeInBytes *
-            batchConfigParseResult.data.messagesToReadPerBatch,
-          maxWaitTimeInMs: batchConfigParseResult.data.maxWaitKafkaBatch,
-        }
-      : {}),
+    ...batchConfig,
   });
 
   if (config.resetConsumerOffsets) {
