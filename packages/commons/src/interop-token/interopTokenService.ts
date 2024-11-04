@@ -233,7 +233,7 @@ export class InteropTokenGenerator {
       nbf: currentTimestamp,
       exp: currentTimestamp + tokenDurationInSeconds * 1000,
       purposeId,
-      ...digest,
+      digest,
     };
 
     const serializedToken = await this.createAndSignToken({
