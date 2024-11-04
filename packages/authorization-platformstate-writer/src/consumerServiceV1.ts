@@ -72,7 +72,6 @@ export async function handleMessageV1(
         await upsertPlatformClientEntry(updatedClientEntry, dynamoDBClient);
       }
     })
-    // eslint-disable-next-line sonarjs/cognitive-complexity
     .with({ type: "KeysAdded" }, async (msg) => {
       const keyV1 = msg.data.keys[0].value;
 
@@ -231,7 +230,6 @@ export async function handleMessageV1(
         await deleteEntriesFromTokenStatesByKid(GSIPK_kid, dynamoDBClient);
       }
     })
-    // eslint-disable-next-line sonarjs/cognitive-complexity
     .with({ type: "ClientPurposeAdded" }, async (msg) => {
       const clientId = unsafeBrandId<ClientId>(msg.data.clientId);
       const unparsedPurposeId = msg.data.statesChain?.purpose?.purposeId;
