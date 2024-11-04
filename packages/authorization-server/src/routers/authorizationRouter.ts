@@ -80,8 +80,10 @@ fastifyServer.post(
         loggerInstance
       );
 
+      const headers = rateLimiterHeadersFromStatus(res.rateLimiterStatus);
+      await reply.headers(headers);
+
       if (res.limitReached) {
-        const headers = rateLimiterHeadersFromStatus(res.rateLimiterStatus);
         const errorRes = makeApiProblem(
           tooManyRequestsError(res.rateLimitedTenantId),
           authorizationServerErrorMapper,
@@ -89,7 +91,7 @@ fastifyServer.post(
           correlationId
         );
 
-        return reply.status(errorRes.status).headers(headers).send(errorRes);
+        return reply.status(errorRes.status).send(errorRes);
       }
 
       return reply.status(200).send({

@@ -1,24 +1,10 @@
 import crypto from "crypto";
-import {
-  ClientId,
-  clientKindTokenStates,
-  DescriptorId,
-  generateId,
-  itemState,
-  PurposeId,
-  PurposeVersionId,
-  TenantId,
-} from "pagopa-interop-models";
+import { ClientId, generateId, TenantId } from "pagopa-interop-models";
 import {
   generateKeySet,
   getMockClientAssertion,
 } from "pagopa-interop-commons-test";
-import {
-  ApiKey,
-  ClientAssertionValidationRequest,
-  ConsumerKey,
-  Key,
-} from ".././src/types.js";
+import { ClientAssertionValidationRequest, Key } from ".././src/types.js";
 import {
   EXPECTED_CLIENT_ASSERTION_TYPE,
   EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE,
@@ -32,30 +18,6 @@ export const getMockTokenKey = (): Key => ({
   kid: "kid",
   publicKey: generateKeySet().publicKeyEncodedPem,
   algorithm: "RS256",
-});
-
-export const getMockConsumerKey = (): ConsumerKey => ({
-  ...getMockTokenKey(),
-  purposeId: generateId<PurposeId>(),
-  clientKind: clientKindTokenStates.consumer,
-  purposeState: {
-    state: itemState.active,
-    versionId: generateId<PurposeVersionId>(),
-  },
-  agreementId: generateId(),
-  agreementState: { state: itemState.active },
-  eServiceId: generateId(),
-  eServiceState: {
-    state: itemState.active,
-    descriptorId: generateId<DescriptorId>(),
-    audience: ["test.interop.pagopa.it"],
-    voucherLifespan: 60,
-  },
-});
-
-export const getMockApiKey = (): ApiKey => ({
-  ...getMockTokenKey(),
-  clientKind: clientKindTokenStates.api,
 });
 
 export const getMockAccessTokenRequest =
