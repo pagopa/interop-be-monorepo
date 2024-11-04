@@ -189,11 +189,11 @@ export const verifyClientAssertionSignature = async (
   key:
     | TokenGenerationStatesClientPurposeEntry
     | TokenGenerationStatesClientEntry,
-  algorithm: string
+  clientAssertionAlgorithm: string
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
-    if (algorithm !== ALLOWED_ALGORITHM) {
-      return failedValidation([algorithmNotAllowed(algorithm)]);
+    if (clientAssertionAlgorithm !== ALLOWED_ALGORITHM) {
+      return failedValidation([algorithmNotAllowed(clientAssertionAlgorithm)]);
     }
 
     if (!Base64Encoded.safeParse(key.publicKey).success) {
@@ -216,7 +216,7 @@ export const verifyClientAssertionSignature = async (
     const publicKey = createPublicKey(key.publicKey);
 
     const result = await jose.jwtVerify(clientAssertionJws, publicKey, {
-      algorithms: [algorithm],
+      algorithms: [clientAssertionAlgorithm],
     });
 
     return successfulValidation(result.payload);
