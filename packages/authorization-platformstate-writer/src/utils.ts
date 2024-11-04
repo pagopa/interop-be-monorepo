@@ -14,7 +14,6 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import {
   AgreementId,
-  Client,
   ClientId,
   clientKind,
   ClientKind,
@@ -41,6 +40,7 @@ import {
   PlatformStatesPurposeEntry,
   PlatformStatesPurposePK,
   PurposeId,
+  TenantId,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
@@ -1063,7 +1063,8 @@ const generateUpdateItemInputData = (
 export const createTokenClientPurposeEntry = ({
   tokenEntry: baseEntry,
   kid,
-  client,
+  clientId,
+  consumerId,
   purposeId,
   purposeEntry,
   agreementEntry,
@@ -1071,14 +1072,15 @@ export const createTokenClientPurposeEntry = ({
 }: {
   tokenEntry: TokenGenerationStatesGenericEntry;
   kid: string;
-  client: Client;
+  clientId: ClientId;
+  consumerId: TenantId;
   purposeId: PurposeId;
   purposeEntry?: PlatformStatesPurposeEntry;
   agreementEntry?: PlatformStatesAgreementEntry;
   catalogEntry?: PlatformStatesCatalogEntry;
 }): TokenGenerationStatesClientPurposeEntry => {
   const pk = makeTokenGenerationStatesClientKidPurposePK({
-    clientId: client.id,
+    clientId,
     kid,
     purposeId,
   });
@@ -1098,13 +1100,13 @@ export const createTokenClientPurposeEntry = ({
       ? baseEntry.GSIPK_kid
       : makeGSIPKKid(kid),
     GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-      clientId: client.id,
+      clientId,
       purposeId,
     }),
     GSIPK_purposeId: purposeId,
     ...(purposeEntry && {
       GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-        consumerId: client.consumerId,
+        consumerId,
         eserviceId: purposeEntry.purposeEserviceId,
       }),
       purposeState: purposeEntry.state,
