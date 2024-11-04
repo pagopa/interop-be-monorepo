@@ -1,6 +1,7 @@
 import { generateAuthToken } from "aws-msk-iam-sasl-signer-js";
 import {
   Consumer,
+  ConsumerRunConfig,
   EachBatchPayload,
   EachMessagePayload,
   Kafka,
@@ -19,10 +20,7 @@ import {
   KafkaProducerConfig,
   KafkaBatchConsumerConfig,
 } from "pagopa-interop-commons";
-import {
-  genericInternalError,
-  kafkaMessageProcessError,
-} from "pagopa-interop-models";
+import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
 const errorTypes = ["unhandledRejection", "uncaughtException"];
@@ -252,21 +250,19 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
 const initCustomConsumer = async ({
   config,
   topics,
-  consumerHandler,
-  consumerHandlerBatch,
+  consumerRunConfig,
+  batchConfig,
 }: {
-  config: KafkaConsumerConfig | KafkaBatchConsumerConfig;
+  config: KafkaConsumerConfig;
   topics: string[];
-  consumerHandler?: (payload: EachMessagePayload) => Promise<void>;
-  consumerHandlerBatch?: (payload: EachBatchPayload) => Promise<void>;
+  consumerRunConfig: (consumer: Consumer) => ConsumerRunConfig;
+  batchConfig?: { minBytes: number; maxWaitTimeInMs: number };
 }): Promise<Consumer> => {
   genericLogger.debug(
     `Consumer connecting to topics ${JSON.stringify(topics)}`
   );
 
   const kafka = initKafka(config);
-
-  const batchConfigParseResult = KafkaBatchConsumerConfig.safeParse(config);
 
   const consumer = kafka.consumer({
     groupId: config.kafkaGroupId,
@@ -311,45 +307,7 @@ const initCustomConsumer = async ({
 
   genericLogger.info(`Consumer subscribed topic ${topics}`);
 
-  if (batchConfigParseResult.success && consumerHandlerBatch) {
-    await consumer.run({
-      autoCommit: false,
-      eachBatch: async (payload: EachBatchPayload) => {
-        try {
-          await consumerHandlerBatch(payload);
-          await kafkaCommitBatchOffsets(consumer, payload);
-        } catch (e) {
-          throw kafkaMessageProcessError(
-            payload.batch.topic,
-            payload.batch.partition,
-            payload.batch.lastOffset.toString(),
-            e
-          );
-        }
-      },
-    });
-  } else {
-    if (!consumerHandler) {
-      throw genericInternalError("Invalid consumer handler");
-    }
-    await consumer.run({
-      autoCommit: false,
-      eachMessage: async (payload: EachMessagePayload) => {
-        try {
-          await consumerHandler(payload);
-          await kafkaCommitMessageOffsets(consumer, payload);
-        } catch (e) {
-          throw kafkaMessageProcessError(
-            payload.topic,
-            payload.partition,
-            payload.message.offset,
-            e
-          );
-        }
-      },
-    });
-  }
-
+  await consumer.run(consumerRunConfig(consumer));
   return consumer;
 };
 
@@ -421,7 +379,23 @@ export const runConsumer = async (
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
 ): Promise<void> => {
   try {
-    await initCustomConsumer({ config, topics, consumerHandler });
+    const consumerRunConfig = (consumer: Consumer): ConsumerRunConfig => ({
+      autoCommit: false,
+      eachMessage: async (payload: EachMessagePayload): Promise<void> => {
+        try {
+          await consumerHandler(payload);
+          await kafkaCommitMessageOffsets(consumer, payload);
+        } catch (e) {
+          throw kafkaMessageProcessError(
+            payload.topic,
+            payload.partition,
+            payload.message.offset,
+            e
+          );
+        }
+      },
+    });
+    await initCustomConsumer({ config, topics, consumerRunConfig });
   } catch (e) {
     genericLogger.error(
       `Generic error occurs during consumer initialization: ${e}`
@@ -436,10 +410,31 @@ export const runBatchConsumer = async (
   consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>
 ): Promise<void> => {
   try {
+    const consumerRunConfig = (consumer: Consumer): ConsumerRunConfig => ({
+      autoCommit: false,
+      eachBatch: async (payload: EachBatchPayload): Promise<void> => {
+        try {
+          await consumerHandlerBatch(payload);
+          await kafkaCommitBatchOffsets(consumer, payload);
+        } catch (e) {
+          throw kafkaMessageProcessError(
+            payload.batch.topic,
+            payload.batch.partition,
+            payload.batch.lastOffset.toString(),
+            e
+          );
+        }
+      },
+    });
     await initCustomConsumer({
       config,
       topics,
-      consumerHandlerBatch,
+      consumerRunConfig,
+      batchConfig: {
+        minBytes:
+          config.averageKafkaMessageSizeInBytes * config.messagesToReadPerBatch,
+        maxWaitTimeInMs: config.maxWaitKafkaBatch,
+      },
     });
   } catch (e) {
     genericLogger.error(
