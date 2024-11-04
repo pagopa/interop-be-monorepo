@@ -4,6 +4,9 @@ import {
   clientKindTokenStates,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
+  ClientAssertion,
+  ClientAssertionHeader,
+  ClientAssertionPayload,
 } from "pagopa-interop-models";
 import * as jose from "jose";
 import {
@@ -35,9 +38,6 @@ import {
 } from "./utils.js";
 import {
   Base64Encoded,
-  ClientAssertion,
-  ClientAssertionHeader,
-  ClientAssertionPayload,
   ClientAssertionValidationRequest,
   ValidationResult,
 } from "./types.js";
