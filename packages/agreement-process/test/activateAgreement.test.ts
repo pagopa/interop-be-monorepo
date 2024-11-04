@@ -13,6 +13,7 @@ import {
   getMockAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
+  getMockDelegationProducer,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
@@ -43,6 +44,7 @@ import {
   UserId,
   VerifiedTenantAttribute,
   agreementState,
+  delegationState,
   descriptorState,
   fromAgreementV2,
   generateId,
@@ -73,6 +75,7 @@ import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneAttribute,
+  addOneDelegation,
   addOneEService,
   addOneTenant,
   agreementService,
@@ -1450,6 +1453,67 @@ describe("activate agreement", () => {
       const authData = getRandomAuthData();
       const agreement: Agreement = getMockAgreement();
       await addOneAgreement(agreement);
+      await expect(
+        agreementService.activateAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
+
+    it("should throw an operationNotAllowed error when the requester is the Producer but it is not the delegate", async () => {
+      const authData = getRandomAuthData();
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.pending,
+        producerId: authData.organizationId,
+      };
+      const delegation = getMockDelegationProducer({
+        eserviceId: agreement.eserviceId,
+        state: delegationState.active,
+      });
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+      await expect(
+        agreementService.activateAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
+
+    it("should succed when the requester is the Delegate", async () => {
+      const producer = getMockTenant();
+      const consumer = getMockTenant();
+      const authData = getRandomAuthData();
+      const esevice = {
+        ...getMockEService(),
+        producerId: producer.id,
+        consumerId: consumer.id,
+        descriptors: [getMockDescriptorPublished()],
+      };
+      const agreement: Agreement = {
+        ...getMockAgreement(esevice.id),
+        state: agreementState.pending,
+        descriptorId: esevice.descriptors[0].id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+      };
+      const delegation = getMockDelegationProducer({
+        eserviceId: agreement.eserviceId,
+        delegateId: authData.organizationId,
+        state: delegationState.active,
+      });
+
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      await addOneEService(esevice);
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
       await expect(
         agreementService.activateAgreement(agreement.id, {
           authData,

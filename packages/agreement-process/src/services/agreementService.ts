@@ -88,6 +88,7 @@ import {
   assertActivableState,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
+  assertRequesterCanActivate,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsConsumerOrProducerOrDelegate,
@@ -179,6 +180,12 @@ export const retrieveDelegationByDelegateId = async (
   readModelService: ReadModelService
 ): Promise<WithMetadata<Delegation> | undefined> =>
   await readModelService.getDelegationByDelegateId(delegateId);
+
+export const retrieveActiveDelegationByEserviceId = async (
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<WithMetadata<Delegation> | undefined> =>
+  await readModelService.getActiveDelegationByEserviceId(eserviceId);
 
 const retrieveDescriptor = (
   descriptorId: DescriptorId,
@@ -956,8 +963,13 @@ export function agreementServiceBuilder(
       );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
+      const delegation = await retrieveActiveDelegationByEserviceId(
+        agreement.data.eserviceId,
+        readModelService
+      );
 
-      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+      assertRequesterCanActivate(agreement.data, delegation?.data, authData);
+
       verifyConsumerDoesNotActivatePending(agreement.data, authData);
       assertActivableState(agreement.data);
 

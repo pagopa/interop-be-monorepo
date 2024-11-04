@@ -188,6 +188,22 @@ export const assertRequesterIsDelegate = (
   }
 };
 
+export const assertRequesterCanActivate = (
+  agreement: Agreement,
+  delegation: Delegation | undefined,
+  authData: AuthData
+): void => {
+  try {
+    assertRequesterIsConsumer(agreement, authData);
+  } catch (e) {
+    if (delegation && delegation.state === agreementState.active) {
+      assertRequesterIsDelegate(delegation, authData);
+    } else {
+      assertRequesterIsProducer(agreement, authData);
+    }
+  }
+};
+
 export const assertSubmittableState = (
   state: AgreementState,
   agreementId: AgreementId
