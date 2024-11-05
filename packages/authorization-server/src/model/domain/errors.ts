@@ -112,9 +112,11 @@ export function keyTypeMismatch(
   });
 }
 
-export function unexpectedTokenGenerationStatesEntry(): ApiError<ErrorCodes> {
+export function unexpectedTokenGenerationStatesEntry(
+  pk: TokenGenerationStatesClientKidPK | TokenGenerationStatesClientKidPurposePK
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Unexpected token-generation-states entry",
+    detail: `Unexpected token-generation-states entry, primary key: ${pk}`,
     code: "unexpectedTokenGenerationStatesEntry",
     title: "Unexpected token-generation-states entry",
   });

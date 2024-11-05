@@ -287,7 +287,9 @@ export const retrieveKey = async (
         () => tokenGenerationEntry.data as TokenGenerationStatesClientEntry
       )
       .otherwise(() => {
-        throw unexpectedTokenGenerationStatesEntry();
+        throw unexpectedTokenGenerationStatesEntry(
+          tokenGenerationEntry.data.PK
+        );
       });
   }
   // } catch (error) {
