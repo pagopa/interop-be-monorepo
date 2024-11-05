@@ -60,7 +60,7 @@ export function createActivationUpdateAgreementSeed({
   suspendedByConsumer: boolean | undefined;
   suspendedByProducer: boolean | undefined;
   suspendedByPlatform: boolean | undefined;
-  delegateId?: Tenant["id"] | undefined;
+  delegateId?: TenantId | undefined;
 }): UpdateAgreementSeed {
   const stamp = createStamp(authData.userId, delegateId);
 
