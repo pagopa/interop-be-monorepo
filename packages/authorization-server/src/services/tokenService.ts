@@ -367,7 +367,6 @@ export const publishAudit = async ({
     const res = await producer.send({
       messages: [
         {
-          // TODO: is this key correct?
           key: generatedToken.payload.jti,
           value: JSON.stringify(messageBody) + "\n",
         },
