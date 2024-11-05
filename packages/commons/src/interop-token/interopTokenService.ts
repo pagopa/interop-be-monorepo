@@ -202,7 +202,7 @@ export class InteropTokenGenerator {
     audience: string[];
     purposeId: PurposeId;
     tokenDurationInSeconds: number;
-    digest?: ClientAssertionDigest;
+    digest: ClientAssertionDigest | undefined;
   }): Promise<InteropConsumerToken> {
     if (
       !this.config.generatedInteropTokenKid ||

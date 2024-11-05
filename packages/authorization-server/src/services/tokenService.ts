@@ -168,6 +168,7 @@ export function tokenServiceBuilder({
               audience: parsedKey.descriptorAudience,
               purposeId: parsedKey.GSIPK_purposeId,
               tokenDurationInSeconds: 10,
+              digest: jwt.payload.digest,
             });
 
             await publishAudit({
