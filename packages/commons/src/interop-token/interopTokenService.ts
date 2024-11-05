@@ -144,7 +144,6 @@ export class InteropTokenGenerator {
     consumerId: TenantId;
   }): Promise<InteropApiToken> {
     if (
-      !this.config.generatedInteropTokenAlgorithm ||
       !this.config.generatedInteropTokenKid ||
       !this.config.generatedInteropTokenIssuer ||
       !this.config.generatedInteropTokenM2MAudience ||
@@ -158,7 +157,7 @@ export class InteropTokenGenerator {
     const currentTimestamp = Date.now();
 
     const header: InteropJwtHeader = {
-      alg: this.config.generatedInteropTokenAlgorithm,
+      alg: "RS256",
       use: "sig",
       typ: "at+jwt",
       kid: this.config.generatedInteropTokenKid,
@@ -205,7 +204,6 @@ export class InteropTokenGenerator {
     digest: ClientAssertionDigest;
   }): Promise<InteropConsumerToken> {
     if (
-      !this.config.generatedInteropTokenAlgorithm ||
       !this.config.generatedInteropTokenKid ||
       !this.config.generatedInteropTokenIssuer ||
       !this.config.generatedInteropTokenM2MAudience
@@ -218,7 +216,7 @@ export class InteropTokenGenerator {
     const currentTimestamp = Date.now();
 
     const header: InteropJwtHeader = {
-      alg: this.config.generatedInteropTokenAlgorithm,
+      alg: "RS256",
       use: "sig",
       typ: "at+jwt",
       kid: this.config.generatedInteropTokenKid,
