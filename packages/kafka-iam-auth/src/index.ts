@@ -426,7 +426,7 @@ export const runBatchConsumer = async (
       batchConfig: {
         minBytes:
           config.averageKafkaMessageSizeInBytes * config.messagesToReadPerBatch,
-        maxWaitTimeInMs: config.maxWaitKafkaBatch,
+        maxWaitTimeInMs: config.maxWaitKafkaBatchMillis,
       },
     });
   } catch (e) {

@@ -25,12 +25,12 @@ export const KafkaBatchConsumerConfig = KafkaConsumerConfig.and(
     .object({
       AVERAGE_KAFKA_MESSAGE_SIZE_IN_BYTES: z.coerce.number(),
       MESSAGES_TO_READ_PER_BATCH: z.coerce.number(),
-      MAX_WAIT_KAFKA_BATCH: z.coerce.number(),
+      MAX_WAIT_KAFKA_BATCH_MILLIS: z.coerce.number(),
     })
     .transform((c) => ({
       averageKafkaMessageSizeInBytes: c.AVERAGE_KAFKA_MESSAGE_SIZE_IN_BYTES,
       messagesToReadPerBatch: c.MESSAGES_TO_READ_PER_BATCH,
-      maxWaitKafkaBatch: c.MAX_WAIT_KAFKA_BATCH,
+      maxWaitKafkaBatchMillis: c.MAX_WAIT_KAFKA_BATCH_MILLIS,
     }))
 );
 export type KafkaBatchConsumerConfig = z.infer<typeof KafkaBatchConsumerConfig>;
