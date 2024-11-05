@@ -11,6 +11,9 @@ importers:
       '@tsconfig/node-lts':
         specifier: 20.1.3
         version: 20.1.3
+      '@tsconfig/strictest':
+        specifier: 2.0.5
+        version: 2.0.5
       turbo:
         specifier: 2.0.4
         version: 2.0.4
@@ -48,9 +51,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       axios:
         specifier: 1.7.4
         version: 1.7.4
@@ -66,15 +66,12 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
@@ -143,9 +140,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -155,15 +149,12 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
@@ -210,9 +201,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -228,9 +216,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
@@ -270,9 +255,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -292,9 +274,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
@@ -316,9 +295,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -368,9 +347,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -380,15 +356,12 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
@@ -413,9 +386,6 @@ importers:
       ssh2-sftp-client:
         specifier: ^9.1.0
         version: 9.1.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -429,9 +399,6 @@ importers:
       '@types/ssh2-sftp-client':
         specifier: 9.0.4
         version: 9.0.4
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -441,9 +408,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -505,9 +472,9 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -560,9 +527,9 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -611,9 +578,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -636,9 +600,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -648,9 +609,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -703,9 +664,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -770,18 +731,15 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -824,9 +782,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -837,9 +792,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       openapi-zod-client:
         specifier: 1.18.1
         version: 1.18.1
@@ -849,9 +801,9 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -915,9 +867,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       yaml:
         specifier: 2.4.5
         version: 2.4.5
@@ -943,9 +892,6 @@ importers:
       '@types/qs':
         specifier: 6.9.15
         version: 6.9.15
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -955,9 +901,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1010,9 +956,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1022,15 +965,12 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
@@ -1077,9 +1017,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -1089,15 +1026,15 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
@@ -1137,9 +1074,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -1162,9 +1096,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -1180,9 +1111,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1226,9 +1157,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -1241,15 +1169,12 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
@@ -1320,9 +1245,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -1333,9 +1255,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1345,9 +1264,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1426,9 +1345,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       winston:
         specifier: 3.13.0
         version: 3.13.0
@@ -1451,9 +1367,6 @@ importers:
       '@types/nodemailer':
         specifier: 6.4.15
         version: 6.4.15
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
@@ -1496,9 +1409,6 @@ importers:
       '@types/jsonwebtoken':
         specifier: 9.0.6
         version: 9.0.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.7.4)(zod@3.23.8)
@@ -1532,9 +1442,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
@@ -1565,9 +1472,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -1578,15 +1482,12 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1608,9 +1509,6 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -1621,18 +1519,15 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1715,9 +1610,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -1728,9 +1620,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       openapi-zod-client:
         specifier: 1.18.1
         version: 1.18.1
@@ -1740,9 +1629,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1801,9 +1690,9 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1840,9 +1729,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -1859,9 +1745,6 @@ importers:
       '@types/ssh2-sftp-client':
         specifier: 9.0.4
         version: 9.0.4
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1871,9 +1754,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1932,9 +1815,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -1945,9 +1825,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1957,9 +1834,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1981,15 +1858,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -2042,9 +1913,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -2055,9 +1923,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
@@ -2073,9 +1938,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -2122,9 +1987,9 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.4.9)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -2162,9 +2027,6 @@ importers:
       '@types/nodemailer':
         specifier: 6.4.9
         version: 6.4.9
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2174,15 +2036,12 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
@@ -2210,9 +2069,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -2223,18 +2079,15 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -2265,9 +2118,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -2278,9 +2128,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2290,9 +2137,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -2323,9 +2170,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -2336,9 +2180,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2348,9 +2189,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -2403,9 +2244,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2415,15 +2253,12 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
@@ -2470,9 +2305,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -2482,15 +2314,12 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
@@ -2564,9 +2393,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -2597,9 +2426,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -2610,9 +2436,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2622,9 +2445,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -2658,9 +2481,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -2671,15 +2491,12 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -2732,9 +2549,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2744,24 +2558,18 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
   packages/tenant-process:
     dependencies:
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.7.4)(zod@3.23.8)
@@ -2795,9 +2603,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -2823,9 +2628,9 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -2875,9 +2680,9 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -3699,9 +3504,21 @@ packages:
     cpu: [ppc64]
     os: [aix]
 
+  '@esbuild/aix-ppc64@0.23.1':
+    resolution: {integrity: sha512-6VhYk1diRqrhBAqpJEdjASR/+WVRtfjpqKuNw11cLiaWpAT/Uu+nokB+UJnevzy/P9C/ty6AOe0dwueMrGh/iQ==}
+    engines: {node: '>=18'}
+    cpu: [ppc64]
+    os: [aix]
+
   '@esbuild/android-arm64@0.21.5':
     resolution: {integrity: sha512-c0uX9VAUBQ7dTDCjq+wdyGLowMdtR/GoC2U5IYk/7D1H1JYC0qseD7+11iMP2mRLN9RcCMRcjC4YMclCzGwS/A==}
     engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [android]
+
+  '@esbuild/android-arm64@0.23.1':
+    resolution: {integrity: sha512-xw50ipykXcLstLeWH7WRdQuysJqejuAGPd30vd1i5zSyKK3WE+ijzHmLKxdiCMtH1pHz78rOg0BKSYOSB/2Khw==}
+    engines: {node: '>=18'}
     cpu: [arm64]
     os: [android]
 
@@ -3711,9 +3528,21 @@ packages:
     cpu: [arm]
     os: [android]
 
+  '@esbuild/android-arm@0.23.1':
+    resolution: {integrity: sha512-uz6/tEy2IFm9RYOyvKl88zdzZfwEfKZmnX9Cj1BHjeSGNuGLuMD1kR8y5bteYmwqKm1tj8m4cb/aKEorr6fHWQ==}
+    engines: {node: '>=18'}
+    cpu: [arm]
+    os: [android]
+
   '@esbuild/android-x64@0.21.5':
     resolution: {integrity: sha512-D7aPRUUNHRBwHxzxRvp856rjUHRFW1SdQATKXH2hqA0kAZb1hKmi02OpYRacl0TxIGz/ZmXWlbZgjwWYaCakTA==}
     engines: {node: '>=12'}
+    cpu: [x64]
+    os: [android]
+
+  '@esbuild/android-x64@0.23.1':
+    resolution: {integrity: sha512-nlN9B69St9BwUoB+jkyU090bru8L0NA3yFvAd7k8dNsVH8bi9a8cUAUSEcEEgTp2z3dbEDGJGfP6VUnkQnlReg==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [android]
 
@@ -3723,9 +3552,21 @@ packages:
     cpu: [arm64]
     os: [darwin]
 
+  '@esbuild/darwin-arm64@0.23.1':
+    resolution: {integrity: sha512-YsS2e3Wtgnw7Wq53XXBLcV6JhRsEq8hkfg91ESVadIrzr9wO6jJDMZnCQbHm1Guc5t/CdDiFSSfWP58FNuvT3Q==}
+    engines: {node: '>=18'}
+    cpu: [arm64]
+    os: [darwin]
+
   '@esbuild/darwin-x64@0.21.5':
     resolution: {integrity: sha512-se/JjF8NlmKVG4kNIuyWMV/22ZaerB+qaSi5MdrXtd6R08kvs2qCN4C09miupktDitvh8jRFflwGFBQcxZRjbw==}
     engines: {node: '>=12'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@esbuild/darwin-x64@0.23.1':
+    resolution: {integrity: sha512-aClqdgTDVPSEGgoCS8QDG37Gu8yc9lTHNAQlsztQ6ENetKEO//b8y31MMu2ZaPbn4kVsIABzVLXYLhCGekGDqw==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [darwin]
 
@@ -3735,9 +3576,21 @@ packages:
     cpu: [arm64]
     os: [freebsd]
 
+  '@esbuild/freebsd-arm64@0.23.1':
+    resolution: {integrity: sha512-h1k6yS8/pN/NHlMl5+v4XPfikhJulk4G+tKGFIOwURBSFzE8bixw1ebjluLOjfwtLqY0kewfjLSrO6tN2MgIhA==}
+    engines: {node: '>=18'}
+    cpu: [arm64]
+    os: [freebsd]
+
   '@esbuild/freebsd-x64@0.21.5':
     resolution: {integrity: sha512-J95kNBj1zkbMXtHVH29bBriQygMXqoVQOQYA+ISs0/2l3T9/kj42ow2mpqerRBxDJnmkUDCaQT/dfNXWX/ZZCQ==}
     engines: {node: '>=12'}
+    cpu: [x64]
+    os: [freebsd]
+
+  '@esbuild/freebsd-x64@0.23.1':
+    resolution: {integrity: sha512-lK1eJeyk1ZX8UklqFd/3A60UuZ/6UVfGT2LuGo3Wp4/z7eRTRYY+0xOu2kpClP+vMTi9wKOfXi2vjUpO1Ro76g==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [freebsd]
 
@@ -3747,9 +3600,21 @@ packages:
     cpu: [arm64]
     os: [linux]
 
+  '@esbuild/linux-arm64@0.23.1':
+    resolution: {integrity: sha512-/93bf2yxencYDnItMYV/v116zff6UyTjo4EtEQjUBeGiVpMmffDNUyD9UN2zV+V3LRV3/on4xdZ26NKzn6754g==}
+    engines: {node: '>=18'}
+    cpu: [arm64]
+    os: [linux]
+
   '@esbuild/linux-arm@0.21.5':
     resolution: {integrity: sha512-bPb5AHZtbeNGjCKVZ9UGqGwo8EUu4cLq68E95A53KlxAPRmUyYv2D6F0uUI65XisGOL1hBP5mTronbgo+0bFcA==}
     engines: {node: '>=12'}
+    cpu: [arm]
+    os: [linux]
+
+  '@esbuild/linux-arm@0.23.1':
+    resolution: {integrity: sha512-CXXkzgn+dXAPs3WBwE+Kvnrf4WECwBdfjfeYHpMeVxWE0EceB6vhWGShs6wi0IYEqMSIzdOF1XjQ/Mkm5d7ZdQ==}
+    engines: {node: '>=18'}
     cpu: [arm]
     os: [linux]
 
@@ -3759,9 +3624,21 @@ packages:
     cpu: [ia32]
     os: [linux]
 
+  '@esbuild/linux-ia32@0.23.1':
+    resolution: {integrity: sha512-VTN4EuOHwXEkXzX5nTvVY4s7E/Krz7COC8xkftbbKRYAl96vPiUssGkeMELQMOnLOJ8k3BY1+ZY52tttZnHcXQ==}
+    engines: {node: '>=18'}
+    cpu: [ia32]
+    os: [linux]
+
   '@esbuild/linux-loong64@0.21.5':
     resolution: {integrity: sha512-uHf1BmMG8qEvzdrzAqg2SIG/02+4/DHB6a9Kbya0XDvwDEKCoC8ZRWI5JJvNdUjtciBGFQ5PuBlpEOXQj+JQSg==}
     engines: {node: '>=12'}
+    cpu: [loong64]
+    os: [linux]
+
+  '@esbuild/linux-loong64@0.23.1':
+    resolution: {integrity: sha512-Vx09LzEoBa5zDnieH8LSMRToj7ir/Jeq0Gu6qJ/1GcBq9GkfoEAoXvLiW1U9J1qE/Y/Oyaq33w5p2ZWrNNHNEw==}
+    engines: {node: '>=18'}
     cpu: [loong64]
     os: [linux]
 
@@ -3771,9 +3648,21 @@ packages:
     cpu: [mips64el]
     os: [linux]
 
+  '@esbuild/linux-mips64el@0.23.1':
+    resolution: {integrity: sha512-nrFzzMQ7W4WRLNUOU5dlWAqa6yVeI0P78WKGUo7lg2HShq/yx+UYkeNSE0SSfSure0SqgnsxPvmAUu/vu0E+3Q==}
+    engines: {node: '>=18'}
+    cpu: [mips64el]
+    os: [linux]
+
   '@esbuild/linux-ppc64@0.21.5':
     resolution: {integrity: sha512-1hHV/Z4OEfMwpLO8rp7CvlhBDnjsC3CttJXIhBi+5Aj5r+MBvy4egg7wCbe//hSsT+RvDAG7s81tAvpL2XAE4w==}
     engines: {node: '>=12'}
+    cpu: [ppc64]
+    os: [linux]
+
+  '@esbuild/linux-ppc64@0.23.1':
+    resolution: {integrity: sha512-dKN8fgVqd0vUIjxuJI6P/9SSSe/mB9rvA98CSH2sJnlZ/OCZWO1DJvxj8jvKTfYUdGfcq2dDxoKaC6bHuTlgcw==}
+    engines: {node: '>=18'}
     cpu: [ppc64]
     os: [linux]
 
@@ -3783,9 +3672,21 @@ packages:
     cpu: [riscv64]
     os: [linux]
 
+  '@esbuild/linux-riscv64@0.23.1':
+    resolution: {integrity: sha512-5AV4Pzp80fhHL83JM6LoA6pTQVWgB1HovMBsLQ9OZWLDqVY8MVobBXNSmAJi//Csh6tcY7e7Lny2Hg1tElMjIA==}
+    engines: {node: '>=18'}
+    cpu: [riscv64]
+    os: [linux]
+
   '@esbuild/linux-s390x@0.21.5':
     resolution: {integrity: sha512-zus5sxzqBJD3eXxwvjN1yQkRepANgxE9lgOW2qLnmr8ikMTphkjgXu1HR01K4FJg8h1kEEDAqDcZQtbrRnB41A==}
     engines: {node: '>=12'}
+    cpu: [s390x]
+    os: [linux]
+
+  '@esbuild/linux-s390x@0.23.1':
+    resolution: {integrity: sha512-9ygs73tuFCe6f6m/Tb+9LtYxWR4c9yg7zjt2cYkjDbDpV/xVn+68cQxMXCjUpYwEkze2RcU/rMnfIXNRFmSoDw==}
+    engines: {node: '>=18'}
     cpu: [s390x]
     os: [linux]
 
@@ -3795,15 +3696,39 @@ packages:
     cpu: [x64]
     os: [linux]
 
+  '@esbuild/linux-x64@0.23.1':
+    resolution: {integrity: sha512-EV6+ovTsEXCPAp58g2dD68LxoP/wK5pRvgy0J/HxPGB009omFPv3Yet0HiaqvrIrgPTBuC6wCH1LTOY91EO5hQ==}
+    engines: {node: '>=18'}
+    cpu: [x64]
+    os: [linux]
+
   '@esbuild/netbsd-x64@0.21.5':
     resolution: {integrity: sha512-Woi2MXzXjMULccIwMnLciyZH4nCIMpWQAs049KEeMvOcNADVxo0UBIQPfSmxB3CWKedngg7sWZdLvLczpe0tLg==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [netbsd]
 
+  '@esbuild/netbsd-x64@0.23.1':
+    resolution: {integrity: sha512-aevEkCNu7KlPRpYLjwmdcuNz6bDFiE7Z8XC4CPqExjTvrHugh28QzUXVOZtiYghciKUacNktqxdpymplil1beA==}
+    engines: {node: '>=18'}
+    cpu: [x64]
+    os: [netbsd]
+
+  '@esbuild/openbsd-arm64@0.23.1':
+    resolution: {integrity: sha512-3x37szhLexNA4bXhLrCC/LImN/YtWis6WXr1VESlfVtVeoFJBRINPJ3f0a/6LV8zpikqoUg4hyXw0sFBt5Cr+Q==}
+    engines: {node: '>=18'}
+    cpu: [arm64]
+    os: [openbsd]
+
   '@esbuild/openbsd-x64@0.21.5':
     resolution: {integrity: sha512-HLNNw99xsvx12lFBUwoT8EVCsSvRNDVxNpjZ7bPn947b8gJPzeHWyNVhFsaerc0n3TsbOINvRP2byTZ5LKezow==}
     engines: {node: '>=12'}
+    cpu: [x64]
+    os: [openbsd]
+
+  '@esbuild/openbsd-x64@0.23.1':
+    resolution: {integrity: sha512-aY2gMmKmPhxfU+0EdnN+XNtGbjfQgwZj43k8G3fyrDM/UdZww6xrWxmDkuz2eCZchqVeABjV5BpildOrUbBTqA==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [openbsd]
 
@@ -3813,9 +3738,21 @@ packages:
     cpu: [x64]
     os: [sunos]
 
+  '@esbuild/sunos-x64@0.23.1':
+    resolution: {integrity: sha512-RBRT2gqEl0IKQABT4XTj78tpk9v7ehp+mazn2HbUeZl1YMdaGAQqhapjGTCe7uw7y0frDi4gS0uHzhvpFuI1sA==}
+    engines: {node: '>=18'}
+    cpu: [x64]
+    os: [sunos]
+
   '@esbuild/win32-arm64@0.21.5':
     resolution: {integrity: sha512-Z0gOTd75VvXqyq7nsl93zwahcTROgqvuAcYDUr+vOv8uHhNSKROyU961kgtCD1e95IqPKSQKH7tBTslnS3tA8A==}
     engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@esbuild/win32-arm64@0.23.1':
+    resolution: {integrity: sha512-4O+gPR5rEBe2FpKOVyiJ7wNDPA8nGzDuJ6gN4okSA1gEOYZ67N8JPk58tkWtdtPeLz7lBnY6I5L3jdsr3S+A6A==}
+    engines: {node: '>=18'}
     cpu: [arm64]
     os: [win32]
 
@@ -3825,9 +3762,21 @@ packages:
     cpu: [ia32]
     os: [win32]
 
+  '@esbuild/win32-ia32@0.23.1':
+    resolution: {integrity: sha512-BcaL0Vn6QwCwre3Y717nVHZbAa4UBEigzFm6VdsVdT/MbZ38xoj1X9HPkZhbmaBGUD1W8vxAfffbDe8bA6AKnQ==}
+    engines: {node: '>=18'}
+    cpu: [ia32]
+    os: [win32]
+
   '@esbuild/win32-x64@0.21.5':
     resolution: {integrity: sha512-tQd/1efJuzPC6rCFwEvLtci/xNFcTZknmXs98FYDfGE4wP9ClFV98nyKrzJKVPMhdDnjzLhdUyMX4PsQAPjwIw==}
     engines: {node: '>=12'}
+    cpu: [x64]
+    os: [win32]
+
+  '@esbuild/win32-x64@0.23.1':
+    resolution: {integrity: sha512-BHpFFeslkWrXWyUPnbKm+xYYVYruCinGcftSBaa8zoF9hZO4BcSCFUvHVTtzpIY6YzUnYtuEhZ+C9iEXjxnasg==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
 
@@ -4544,6 +4493,9 @@ packages:
   '@tsconfig/node16@1.0.4':
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
 
+  '@tsconfig/strictest@2.0.5':
+    resolution: {integrity: sha512-ec4tjL2Rr0pkZ5hww65c+EEPYwxOi4Ryv+0MtjeaSQRJyq322Q27eOQiFbuNgw2hpL4hB1/W/HBGk3VKS43osg==}
+
   '@types/adm-zip@0.5.5':
     resolution: {integrity: sha512-YCGstVMjc4LTY5uK9/obvxBya93axZOVOyf2GSUulADzmLhYE45u2nAssCs/fWBs1Ifq5Vat75JTPwd5XZoPJw==}
 
@@ -4657,9 +4609,6 @@ packages:
 
   '@types/triple-beam@1.3.5':
     resolution: {integrity: sha512-6WaYesThRMCl19iryMYP7/x2OVgCtbIVflDGFpWnb9irXI3UjYE4AzmYuiUKY1AJstGijoY+MgUszMgRxIYTYw==}
-
-  '@types/uuid@9.0.8':
-    resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
 
   '@types/webidl-conversions@7.0.3':
     resolution: {integrity: sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==}
@@ -5444,6 +5393,11 @@ packages:
     engines: {node: '>=12'}
     hasBin: true
 
+  esbuild@0.23.1:
+    resolution: {integrity: sha512-VVNz/9Sa0bs5SELtn3f7qhJCDPCF5oMEl5cO9/SSinpE9hbPVvxbd572HH5AKiP7WD8INO53GgfDDhRjkylHEg==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   escalade@3.1.2:
     resolution: {integrity: sha512-ErCHMCae19vR8vQGe50xIsVomy19rg6gFu3+r3jkEO46suLMWBksvVyoGgQV+jOfl84ZSOSlmv6Gxa89PmTGmA==}
     engines: {node: '>=6'}
@@ -5795,6 +5749,9 @@ packages:
   get-symbol-description@1.0.2:
     resolution: {integrity: sha512-g0QYk1dZBxGwk+Ngc+ltRH2IBp2f7zBkBMBJZCDerh6EhlhSR6+9irMCuT/09zD6qkarHUSn529sK/yL4S27mg==}
     engines: {node: '>= 0.4'}
+
+  get-tsconfig@4.8.1:
+    resolution: {integrity: sha512-k9PN+cFBmaLWtVz29SkUoqU5O0slLuHJXt/2P+tMVFT+phsSGXGkp9t3rQIqdz0e+06EHNGs3oM6ZX1s2zHxRg==}
 
   get-uri@6.0.3:
     resolution: {integrity: sha512-BzUrJBS9EcUb4cFol8r4W3v1cPsSyajLSthNkz5BxbpDcHN5tIrM10E2eNvfnvBn3DaT3DUgx0OpsBKkaOpanw==}
@@ -6864,6 +6821,9 @@ packages:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==}
     engines: {node: '>=4'}
 
+  resolve-pkg-maps@1.0.0:
+    resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
+
   resolve@1.22.8:
     resolution: {integrity: sha512-oKWePCxqpd6FlLvGV1VU0x7bkPmmCNolxzjMf4NczoDnQcIWrAF+cPtZn5i6n+RfD2d9i0tzpKnG6Yk168yIyw==}
     hasBin: true
@@ -7259,6 +7219,11 @@ packages:
     peerDependencies:
       typescript: '>=2.8.0 || >= 3.2.0-dev || >= 3.3.0-dev || >= 3.4.0-dev || >= 3.5.0-dev || >= 3.6.0-dev || >= 3.6.0-beta || >= 3.7.0-dev || >= 3.7.0-beta'
 
+  tsx@4.19.1:
+    resolution: {integrity: sha512-0flMz1lh74BR4wOvBjuh9olbnwqCPc35OOlfyzHba0Dc+QNUeWX/Gq2YTbnwcWPO3BMd8fkzRVrHcsR+a7z7rA==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+
   turbo-darwin-64@2.0.4:
     resolution: {integrity: sha512-x9mvmh4wudBstML8Z8IOmokLWglIhSfhQwnh2gBCSqabgVBKYvzl8Y+i+UCNPxheCGTgtsPepTcIaKBIyFIcvw==}
     cpu: [x64]
@@ -7397,10 +7362,6 @@ packages:
   utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
-
-  uuid@10.0.0:
-    resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
-    hasBin: true
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
@@ -10203,70 +10164,142 @@ snapshots:
   '@esbuild/aix-ppc64@0.21.5':
     optional: true
 
+  '@esbuild/aix-ppc64@0.23.1':
+    optional: true
+
   '@esbuild/android-arm64@0.21.5':
+    optional: true
+
+  '@esbuild/android-arm64@0.23.1':
     optional: true
 
   '@esbuild/android-arm@0.21.5':
     optional: true
 
+  '@esbuild/android-arm@0.23.1':
+    optional: true
+
   '@esbuild/android-x64@0.21.5':
+    optional: true
+
+  '@esbuild/android-x64@0.23.1':
     optional: true
 
   '@esbuild/darwin-arm64@0.21.5':
     optional: true
 
+  '@esbuild/darwin-arm64@0.23.1':
+    optional: true
+
   '@esbuild/darwin-x64@0.21.5':
+    optional: true
+
+  '@esbuild/darwin-x64@0.23.1':
     optional: true
 
   '@esbuild/freebsd-arm64@0.21.5':
     optional: true
 
+  '@esbuild/freebsd-arm64@0.23.1':
+    optional: true
+
   '@esbuild/freebsd-x64@0.21.5':
+    optional: true
+
+  '@esbuild/freebsd-x64@0.23.1':
     optional: true
 
   '@esbuild/linux-arm64@0.21.5':
     optional: true
 
+  '@esbuild/linux-arm64@0.23.1':
+    optional: true
+
   '@esbuild/linux-arm@0.21.5':
+    optional: true
+
+  '@esbuild/linux-arm@0.23.1':
     optional: true
 
   '@esbuild/linux-ia32@0.21.5':
     optional: true
 
+  '@esbuild/linux-ia32@0.23.1':
+    optional: true
+
   '@esbuild/linux-loong64@0.21.5':
+    optional: true
+
+  '@esbuild/linux-loong64@0.23.1':
     optional: true
 
   '@esbuild/linux-mips64el@0.21.5':
     optional: true
 
+  '@esbuild/linux-mips64el@0.23.1':
+    optional: true
+
   '@esbuild/linux-ppc64@0.21.5':
+    optional: true
+
+  '@esbuild/linux-ppc64@0.23.1':
     optional: true
 
   '@esbuild/linux-riscv64@0.21.5':
     optional: true
 
+  '@esbuild/linux-riscv64@0.23.1':
+    optional: true
+
   '@esbuild/linux-s390x@0.21.5':
+    optional: true
+
+  '@esbuild/linux-s390x@0.23.1':
     optional: true
 
   '@esbuild/linux-x64@0.21.5':
     optional: true
 
+  '@esbuild/linux-x64@0.23.1':
+    optional: true
+
   '@esbuild/netbsd-x64@0.21.5':
+    optional: true
+
+  '@esbuild/netbsd-x64@0.23.1':
+    optional: true
+
+  '@esbuild/openbsd-arm64@0.23.1':
     optional: true
 
   '@esbuild/openbsd-x64@0.21.5':
     optional: true
 
+  '@esbuild/openbsd-x64@0.23.1':
+    optional: true
+
   '@esbuild/sunos-x64@0.21.5':
+    optional: true
+
+  '@esbuild/sunos-x64@0.23.1':
     optional: true
 
   '@esbuild/win32-arm64@0.21.5':
     optional: true
 
+  '@esbuild/win32-arm64@0.23.1':
+    optional: true
+
   '@esbuild/win32-ia32@0.21.5':
     optional: true
 
+  '@esbuild/win32-ia32@0.23.1':
+    optional: true
+
   '@esbuild/win32-x64@0.21.5':
+    optional: true
+
+  '@esbuild/win32-x64@0.23.1':
     optional: true
 
   '@eslint-community/eslint-utils@4.4.0(eslint@8.57.0)':
@@ -11310,6 +11343,8 @@ snapshots:
 
   '@tsconfig/node16@1.0.4': {}
 
+  '@tsconfig/strictest@2.0.5': {}
+
   '@types/adm-zip@0.5.5':
     dependencies:
       '@types/node': 20.14.6
@@ -11445,8 +11480,6 @@ snapshots:
       '@types/node': 18.19.39
 
   '@types/triple-beam@1.3.5': {}
-
-  '@types/uuid@9.0.8': {}
 
   '@types/webidl-conversions@7.0.3': {}
 
@@ -12413,6 +12446,33 @@ snapshots:
       '@esbuild/win32-ia32': 0.21.5
       '@esbuild/win32-x64': 0.21.5
 
+  esbuild@0.23.1:
+    optionalDependencies:
+      '@esbuild/aix-ppc64': 0.23.1
+      '@esbuild/android-arm': 0.23.1
+      '@esbuild/android-arm64': 0.23.1
+      '@esbuild/android-x64': 0.23.1
+      '@esbuild/darwin-arm64': 0.23.1
+      '@esbuild/darwin-x64': 0.23.1
+      '@esbuild/freebsd-arm64': 0.23.1
+      '@esbuild/freebsd-x64': 0.23.1
+      '@esbuild/linux-arm': 0.23.1
+      '@esbuild/linux-arm64': 0.23.1
+      '@esbuild/linux-ia32': 0.23.1
+      '@esbuild/linux-loong64': 0.23.1
+      '@esbuild/linux-mips64el': 0.23.1
+      '@esbuild/linux-ppc64': 0.23.1
+      '@esbuild/linux-riscv64': 0.23.1
+      '@esbuild/linux-s390x': 0.23.1
+      '@esbuild/linux-x64': 0.23.1
+      '@esbuild/netbsd-x64': 0.23.1
+      '@esbuild/openbsd-arm64': 0.23.1
+      '@esbuild/openbsd-x64': 0.23.1
+      '@esbuild/sunos-x64': 0.23.1
+      '@esbuild/win32-arm64': 0.23.1
+      '@esbuild/win32-ia32': 0.23.1
+      '@esbuild/win32-x64': 0.23.1
+
   escalade@3.1.2: {}
 
   escape-html@1.0.3: {}
@@ -12862,6 +12922,10 @@ snapshots:
       call-bind: 1.0.7
       es-errors: 1.3.0
       get-intrinsic: 1.2.4
+
+  get-tsconfig@4.8.1:
+    dependencies:
+      resolve-pkg-maps: 1.0.0
 
   get-uri@6.0.3:
     dependencies:
@@ -13940,6 +14004,8 @@ snapshots:
 
   resolve-from@4.0.0: {}
 
+  resolve-pkg-maps@1.0.0: {}
+
   resolve@1.22.8:
     dependencies:
       is-core-module: 2.14.0
@@ -14402,24 +14468,6 @@ snapshots:
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
 
-  ts-node@10.9.2(@types/node@20.4.9)(typescript@5.4.5):
-    dependencies:
-      '@cspotcode/source-map-support': 0.8.1
-      '@tsconfig/node10': 1.0.11
-      '@tsconfig/node12': 1.0.11
-      '@tsconfig/node14': 1.0.3
-      '@tsconfig/node16': 1.0.4
-      '@types/node': 20.4.9
-      acorn: 8.12.1
-      acorn-walk: 8.3.3
-      arg: 4.1.3
-      create-require: 1.1.1
-      diff: 4.0.2
-      make-error: 1.3.6
-      typescript: 5.4.5
-      v8-compile-cache-lib: 3.0.1
-      yn: 3.1.1
-
   ts-pattern@5.2.0: {}
 
   ts-toolbelt@9.6.0: {}
@@ -14448,6 +14496,13 @@ snapshots:
     dependencies:
       tslib: 1.14.1
       typescript: 5.4.5
+
+  tsx@4.19.1:
+    dependencies:
+      esbuild: 0.23.1
+      get-tsconfig: 4.8.1
+    optionalDependencies:
+      fsevents: 2.3.3
 
   turbo-darwin-64@2.0.4:
     optional: true
@@ -14573,8 +14628,6 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   utils-merge@1.0.1: {}
-
-  uuid@10.0.0: {}
 
   uuid@9.0.1: {}
 
