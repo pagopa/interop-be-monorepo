@@ -9,6 +9,7 @@ import {
   Descriptor,
   EService,
   Tenant,
+  TenantId,
   UserId,
   agreementState,
   genericError,
@@ -47,6 +48,7 @@ export function createActivationUpdateAgreementSeed({
   suspendedByConsumer,
   suspendedByProducer,
   suspendedByPlatform,
+  delegateId,
 }: {
   isFirstActivation: boolean;
   newState: AgreementState;
@@ -58,8 +60,9 @@ export function createActivationUpdateAgreementSeed({
   suspendedByConsumer: boolean | undefined;
   suspendedByProducer: boolean | undefined;
   suspendedByPlatform: boolean | undefined;
+  delegateId?: Tenant["id"] | undefined;
 }): UpdateAgreementSeed {
-  const stamp = createStamp(authData.userId);
+  const stamp = createStamp(authData.userId, delegateId);
 
   return isFirstActivation
     ? {
@@ -113,7 +116,8 @@ export async function createActivationEvent(
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
   authData: AuthData,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  delegateId?: Tenant["id"]
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (isFirstActivation) {
     // Pending >>> Active
@@ -150,14 +154,21 @@ export async function createActivationEvent(
       we also create the corresponding suspension/unsuspension by platform event.
     */
 
-    return match([authData.organizationId, updatedAgreement.state])
-      .with([updatedAgreement.producerId, agreementState.active], () => [
-        toCreateEventAgreementUnsuspendedByProducer(
-          updatedAgreement,
-          agreementEventStoreVersion,
-          correlationId
-        ),
-      ])
+    return match<[TenantId | undefined, AgreementState]>([
+      authData.organizationId,
+      updatedAgreement.state,
+    ])
+      .with(
+        [updatedAgreement.producerId, agreementState.active],
+        [delegateId, agreementState.active],
+        () => [
+          toCreateEventAgreementUnsuspendedByProducer(
+            updatedAgreement,
+            agreementEventStoreVersion,
+            correlationId
+          ),
+        ]
+      )
       .with([updatedAgreement.producerId, agreementState.suspended], () => [
         toCreateEventAgreementUnsuspendedByProducer(
           {

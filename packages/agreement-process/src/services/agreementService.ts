@@ -968,7 +968,9 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      assertRequesterCanActivate(agreement.data, delegation?.data, authData);
+      const delegateId = delegation?.data.delegateId;
+
+      assertRequesterCanActivate(agreement.data, delegateId, authData);
 
       verifyConsumerDoesNotActivatePending(agreement.data, authData);
       assertActivableState(agreement.data);
@@ -1061,6 +1063,7 @@ export function agreementServiceBuilder(
           suspendedByConsumer,
           suspendedByProducer,
           suspendedByPlatform,
+          delegateId,
         });
 
       const updatedAgreementWithoutContract: Agreement = {
@@ -1088,7 +1091,8 @@ export function agreementServiceBuilder(
         suspendedByPlatformChanged,
         agreement.metadata.version,
         authData,
-        correlationId
+        correlationId,
+        delegateId
       );
 
       const archiveEvents = await archiveRelatedToAgreements(

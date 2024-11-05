@@ -171,33 +171,30 @@ export const assertRequesterIsConsumerOrProducerOrDelegate = async (
       const delegation = await readModelService.getDelegationByDelegateId(
         authData.organizationId
       );
-      assertRequesterIsDelegate(delegation?.data, authData);
+      assertRequesterIsDelegate(delegation?.data.delegateId, authData);
     }
   }
 };
 
 export const assertRequesterIsDelegate = (
-  delegation: Delegation | undefined,
+  delegateId: TenantId | undefined,
   authData: AuthData
 ): void => {
-  if (!delegation) {
-    throw operationNotAllowed(authData.organizationId);
-  }
-  if (authData.organizationId !== delegation.delegateId) {
+  if (authData.organizationId !== delegateId) {
     throw operationNotAllowed(authData.organizationId);
   }
 };
 
 export const assertRequesterCanActivate = (
   agreement: Agreement,
-  delegation: Delegation | undefined,
+  delegateIdActiveDelegation: TenantId | undefined,
   authData: AuthData
 ): void => {
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (e) {
-    if (delegation && delegation.state === agreementState.active) {
-      assertRequesterIsDelegate(delegation, authData);
+    if (delegateIdActiveDelegation) {
+      assertRequesterIsDelegate(delegateIdActiveDelegation, authData);
     } else {
       assertRequesterIsProducer(agreement, authData);
     }

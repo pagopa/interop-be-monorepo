@@ -330,8 +330,9 @@ describe("activate agreement", () => {
 
       const contractDocumentId = actualAgreementActivated.contract!.id;
       const contractCreatedAt = actualAgreementActivated.contract!.createdAt;
-      const contractDocumentName = `${consumer.id}_${producer.id
-        }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
+      const contractDocumentName = `${consumer.id}_${
+        producer.id
+      }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
 
       const expectedContract = {
         id: contractDocumentId,
@@ -494,24 +495,24 @@ describe("activate agreement", () => {
       };
 
       const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute =
-      {
-        ...getMockVerifiedTenantAttribute(),
-        verifiedBy: [
-          { id: generateId<TenantId>(), verificationDate: new Date() },
-        ],
-      };
+        {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            { id: generateId<TenantId>(), verificationDate: new Date() },
+          ],
+        };
 
       const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
-      {
-        ...getMockVerifiedTenantAttribute(),
-        verifiedBy: [
-          {
-            id: producer.id,
-            verificationDate: new Date(),
-            extensionDate: new Date(),
-          },
-        ],
-      };
+        {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            {
+              id: producer.id,
+              verificationDate: new Date(),
+              extensionDate: new Date(),
+            },
+          ],
+        };
 
       const consumerInvalidAttribute: TenantAttribute = randomArrayItem([
         revokedTenantCertifiedAttribute,
@@ -596,7 +597,7 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
-    it("should succed when the requester is the Delegate", async () => {
+    it("should succed when the requester is the Delegate and first activation", async () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
       const authData = getRandomAuthData();
@@ -650,8 +651,65 @@ describe("activate agreement", () => {
           activation: {
             who: authData.userId,
             when: expect.any(Date),
+            delegateId: delegation.delegateId,
           },
         },
+      };
+
+      expect(actualAgreement).toEqual(expectedAgreement);
+    });
+
+    it("should succed when the requester is the Delegate and from Suspended", async () => {
+      const producer = getMockTenant();
+      const consumer = getMockTenant();
+      const authData = getRandomAuthData();
+      const esevice = {
+        ...getMockEService(),
+        producerId: producer.id,
+        consumerId: consumer.id,
+        descriptors: [getMockDescriptorPublished()],
+      };
+      const agreement: Agreement = {
+        ...getMockAgreement(esevice.id),
+        state: agreementState.suspended,
+        descriptorId: esevice.descriptors[0].id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+        suspendedAt: new Date(),
+        suspendedByConsumer: false,
+        suspendedByProducer: false,
+        suspendedByPlatform: false,
+      };
+      const delegation = getMockDelegationProducer({
+        eserviceId: agreement.eserviceId,
+        delegateId: authData.organizationId,
+        state: delegationState.active,
+      });
+
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      await addOneEService(esevice);
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+
+      const actualAgreement = await agreementService.activateAgreement(
+        agreement.id,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+
+      const expectedAgreement = {
+        ...agreement,
+        state: agreementState.active,
+        contract: actualAgreement.contract,
+        certifiedAttributes: actualAgreement.certifiedAttributes,
+        declaredAttributes: actualAgreement.declaredAttributes,
+        verifiedAttributes: actualAgreement.verifiedAttributes,
+        suspendedAt: undefined,
       };
 
       expect(actualAgreement).toEqual(expectedAgreement);
@@ -748,15 +806,15 @@ describe("activate agreement", () => {
             ...mockAgreement.stamps,
             suspensionByProducer: suspendedByProducer
               ? {
-                who: authData.userId,
-                when: new Date(),
-              }
+                  who: authData.userId,
+                  when: new Date(),
+                }
               : undefined,
             suspensionByConsumer: suspendedByConsumer
               ? {
-                who: authData.userId,
-                when: new Date(),
-              }
+                  who: authData.userId,
+                  when: new Date(),
+                }
               : undefined,
           },
 
@@ -884,15 +942,15 @@ describe("activate agreement", () => {
           ...mockAgreement.stamps,
           suspensionByProducer: suspendedByProducer
             ? {
-              who: authData.userId,
-              when: new Date(),
-            }
+                who: authData.userId,
+                when: new Date(),
+              }
             : undefined,
           suspensionByConsumer: suspendedByConsumer
             ? {
-              who: authData.userId,
-              when: new Date(),
-            }
+                who: authData.userId,
+                when: new Date(),
+              }
             : undefined,
         },
 
@@ -1054,15 +1112,15 @@ describe("activate agreement", () => {
             ...getMockAgreement().stamps,
             suspensionByProducer: suspendedByProducer
               ? {
-                who: authData.userId,
-                when: new Date(),
-              }
+                  who: authData.userId,
+                  when: new Date(),
+                }
               : undefined,
             suspensionByConsumer: suspendedByConsumer
               ? {
-                who: authData.userId,
-                when: new Date(),
-              }
+                  who: authData.userId,
+                  when: new Date(),
+                }
               : undefined,
           },
           // Adding some random attributes to check that they are not modified by the Unsuspension
@@ -1258,24 +1316,24 @@ describe("activate agreement", () => {
         };
 
         const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute =
-        {
-          ...getMockVerifiedTenantAttribute(),
-          verifiedBy: [
-            { id: generateId<TenantId>(), verificationDate: new Date() },
-          ],
-        };
+          {
+            ...getMockVerifiedTenantAttribute(),
+            verifiedBy: [
+              { id: generateId<TenantId>(), verificationDate: new Date() },
+            ],
+          };
 
         const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
-        {
-          ...getMockVerifiedTenantAttribute(),
-          verifiedBy: [
-            {
-              id: producer.id,
-              verificationDate: new Date(),
-              extensionDate: new Date(),
-            },
-          ],
-        };
+          {
+            ...getMockVerifiedTenantAttribute(),
+            verifiedBy: [
+              {
+                id: producer.id,
+                verificationDate: new Date(),
+                extensionDate: new Date(),
+              },
+            ],
+          };
 
         const consumerInvalidAttribute: TenantAttribute = randomArrayItem([
           revokedTenantCertifiedAttribute,
@@ -1333,15 +1391,15 @@ describe("activate agreement", () => {
             ...getMockAgreement().stamps,
             suspensionByProducer: suspendedByProducer
               ? {
-                who: authData.userId,
-                when: new Date(),
-              }
+                  who: authData.userId,
+                  when: new Date(),
+                }
               : undefined,
             suspensionByConsumer: suspendedByConsumer
               ? {
-                who: authData.userId,
-                when: new Date(),
-              }
+                  who: authData.userId,
+                  when: new Date(),
+                }
               : undefined,
           },
           // Adding some random attributes to check that they are not modified by the Unsuspension
@@ -1545,7 +1603,6 @@ describe("activate agreement", () => {
         })
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
-
 
     it.each(
       Object.values(agreementState).filter(
