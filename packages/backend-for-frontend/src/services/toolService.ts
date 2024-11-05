@@ -276,7 +276,7 @@ async function retrieveKeyAndEservice(
           publicKey: encodedPem,
           GSIPK_clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
           consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
-          updatedAt: new Date().toISOString(), // TODO
+          updatedAt: new Date().toISOString(),
         },
       },
     };
@@ -356,7 +356,7 @@ async function retrieveKeyAndEservice(
         descriptorState: descriptorStateToItemState(descriptor.state),
         descriptorAudience: descriptor.audience,
         descriptorVoucherLifespan: descriptor.voucherLifespan,
-        updatedAt: new Date().toISOString(), // TODO
+        updatedAt: new Date().toISOString(),
       },
       eservice,
       descriptor,
