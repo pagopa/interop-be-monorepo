@@ -49,6 +49,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { addDays } from "date-fns";
 import {
   agreementActivableStates,
   agreementActivationAllowedDescriptorStates,
@@ -231,7 +232,7 @@ describe("activate agreement", () => {
           {
             id: producer.id,
             verificationDate: new Date(),
-            extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+            extensionDate: addDays(new Date(), 30),
           },
         ],
       };
@@ -392,7 +393,7 @@ describe("activate agreement", () => {
           {
             id: producer.id,
             verificationDate: new Date(),
-            extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+            extensionDate: addDays(new Date(), 30),
           },
         ],
       };
@@ -630,7 +631,7 @@ describe("activate agreement", () => {
             {
               id: producer.id,
               verificationDate: new Date(),
-              extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+              extensionDate: addDays(new Date(), 30),
             },
           ],
         };
@@ -937,7 +938,7 @@ describe("activate agreement", () => {
             {
               id: producer.id,
               verificationDate: new Date(),
-              extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+              extensionDate: addDays(new Date(), 30),
             },
           ],
         };

@@ -25,6 +25,7 @@
     "@types/node": "20.14.6",
     "@types/uuid": "9.0.8",
     "cpx2": "7.0.1",
+    "date-fns": "3.6.0",
     "openapi-zod-client": "1.18.1",
     "pagopa-interop-commons-test": "workspace:*",
     "pg-promise": "11.8.0",
