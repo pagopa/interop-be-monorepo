@@ -6,11 +6,12 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import { DelegationId } from "pagopa-interop-models";
+import { DelegationId, delegationKind } from "pagopa-interop-models";
 import {
   DelegationsQueryParams,
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
+  toDelegationKind,
 } from "../api/delegationApiConverter.js";
 import {
   CatalogProcessClient,
@@ -24,18 +25,58 @@ import { BffAppContext, Headers } from "../utilities/context.js";
 async function enhanceDelegation<
   T extends bffApi.Delegation | bffApi.CompactDelegation
 >(
-  delegationClient: DelegationProcessClient,
   tenantClient: TenantProcessClient,
   catalogClient: CatalogProcessClient,
-  delegationId: string,
+  delegation: delegationApi.Delegation,
   headers: Headers,
   toApiConverter: (
     delegation: delegationApi.Delegation,
     delegator: tenantApi.Tenant,
     delegate: tenantApi.Tenant,
-    eservice: catalogApi.EService
-  ) => T
+    eservice: catalogApi.EService,
+    producer: tenantApi.Tenant
+  ) => T,
+  cachedTenants: Map<string, tenantApi.Tenant> = new Map()
 ): Promise<T> {
+  const delegator = await getTenantById(
+    tenantClient,
+    headers,
+    delegation.delegatorId,
+    cachedTenants
+  );
+
+  const delegate = await getTenantById(
+    tenantClient,
+    headers,
+    delegation.delegateId,
+    cachedTenants
+  );
+
+  const eservice: catalogApi.EService = await catalogClient.getEServiceById({
+    params: { eServiceId: delegation.eserviceId },
+    headers,
+  });
+
+  // NOTE: If the delegation kind is DELEGATED_PRODUCER, the producer is the same as the delegator tenant.
+  // In the case of DELEGATED_CONSUMER, the producer can be different.
+  const producer =
+    delegation.kind === toDelegationKind(delegationKind.delegatedProducer)
+      ? await getTenantById(
+          tenantClient,
+          headers,
+          eservice.producerId,
+          cachedTenants
+        )
+      : delegator;
+
+  return toApiConverter(delegation, delegator, delegate, eservice, producer);
+}
+
+export async function getDelegation(
+  delegationClient: DelegationProcessClient,
+  headers: BffAppContext["headers"],
+  delegationId: DelegationId
+): Promise<delegationApi.Delegation> {
   const delegation: delegationApi.Delegation =
     await delegationClient.delegation.getDelegation({
       params: { delegationId },
@@ -45,23 +86,48 @@ async function enhanceDelegation<
   if (!delegation) {
     throw delegationNotFound(delegationId);
   }
+  return delegation;
+}
 
-  const delegator: tenantApi.Tenant = await tenantClient.tenant.getTenant({
-    params: { id: delegation.delegatorId },
-    headers,
-  });
+export async function getTenantsFromDelegation(
+  tenantClient: TenantProcessClient,
+  delegations: delegationApi.Delegation[],
+  headers: BffAppContext["headers"]
+): Promise<Map<string, tenantApi.Tenant>> {
+  const tenantIds = delegations.reduce((acc, delegation) => {
+    acc.add(delegation.delegateId);
+    acc.add(delegation.delegatorId);
+    return acc;
+  }, new Set<string>());
 
-  const delegate: tenantApi.Tenant = await tenantClient.tenant.getTenant({
-    params: { id: delegation.delegateId },
-    headers,
-  });
+  const tenants = await Promise.all(
+    Array.from(tenantIds).map((tenantId) =>
+      tenantClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      })
+    )
+  );
 
-  const eservice: catalogApi.EService = await catalogClient.getEServiceById({
-    params: { eServiceId: delegation.eserviceId },
-    headers,
-  });
+  return tenants.reduce((acc, tenant) => {
+    acc.set(tenant.id, tenant);
+    return acc;
+  }, new Map<string, tenantApi.Tenant>());
+}
 
-  return toApiConverter(delegation, delegator, delegate, eservice);
+export async function getTenantById(
+  tenantClient: TenantProcessClient,
+  headers: BffAppContext["headers"],
+  tenantId: string,
+  tenantMap: Map<string, tenantApi.Tenant> = new Map()
+): Promise<tenantApi.Tenant> {
+  return (
+    tenantMap.get(tenantId) ??
+    (await tenantClient.tenant.getTenant({
+      params: { id: tenantId },
+      headers,
+    }))
+  );
 }
 
 export async function getAllDelegations(
@@ -94,11 +160,16 @@ export function delegationServiceBuilder(
     ): Promise<bffApi.Delegation> {
       logger.info(`Retrieving delegation with id ${delegationId}`);
 
-      return enhanceDelegation<bffApi.Delegation>(
+      const delegation = await getDelegation(
         delegationClients,
+        headers,
+        delegationId
+      );
+
+      return enhanceDelegation<bffApi.Delegation>(
         tenantClient,
         catalogClient,
-        delegationId,
+        delegation,
         headers,
         toBffDelegationApiDelegation
       );
@@ -123,28 +194,33 @@ export function delegationServiceBuilder(
     ): Promise<bffApi.CompactDelegations> {
       logger.info("Retrieving all delegations");
 
-      const delegationsResults =
-        await delegationClients.delegation.getDelegations({
-          queries: {
-            limit,
-            offset,
-            delegatorIds,
-            delegateIds: delegatedIds,
-            delegationStates: states,
-            kind,
-          },
-          headers,
-        });
+      const delegations = await delegationClients.delegation.getDelegations({
+        queries: {
+          limit,
+          offset,
+          delegatorIds,
+          delegateIds: delegatedIds,
+          delegationStates: states,
+          kind,
+        },
+        headers,
+      });
+
+      const involvedTenants = await getTenantsFromDelegation(
+        tenantClient,
+        delegations.results,
+        headers
+      );
 
       const delegationEnanched = await Promise.all(
-        delegationsResults.results.map((delegation) =>
+        delegations.results.map((delegation) =>
           enhanceDelegation<bffApi.CompactDelegation>(
-            delegationClients,
             tenantClient,
             catalogClient,
-            delegation.id,
+            delegation,
             headers,
-            toBffDelegationApiCompactDelegation
+            toBffDelegationApiCompactDelegation,
+            involvedTenants
           )
         )
       );
@@ -154,7 +230,7 @@ export function delegationServiceBuilder(
         pagination: {
           limit,
           offset,
-          totalCount: delegationsResults.totalCount,
+          totalCount: delegations.totalCount,
         },
       };
     },
