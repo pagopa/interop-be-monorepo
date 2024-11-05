@@ -42,7 +42,9 @@ describe("delete Document", () => {
   const mockDocument = getMockDocument();
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state !== descriptorState.archived
+      (state) =>
+        state !== descriptorState.archived &&
+        state !== descriptorState.waitingForApproval
     )
   )(
     "should write on event-store for the deletion of a document, and delete the file from the bucket, for %s descriptor",
@@ -420,7 +422,9 @@ describe("delete Document", () => {
   });
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state === descriptorState.archived
+      (state) =>
+        state === descriptorState.archived ||
+        state === descriptorState.waitingForApproval
     )
   )(
     "should throw notValidDescriptor if the descriptor is in s% state",
