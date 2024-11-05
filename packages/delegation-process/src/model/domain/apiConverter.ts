@@ -30,8 +30,11 @@ export const delegationToApiDelegation = (
   revokedAt: delegation.revokedAt ? delegation.revokedAt.toJSON() : undefined,
   state: delegationStateToApiDelegationState(delegation.state),
   kind: delegationKindToApiDelegationKind(delegation.kind),
-  contract: delegation.contract
-    ? delegationContractToApiDelegationContract(delegation.contract)
+  activationContract: delegation.activationContract
+    ? delegationContractToApiDelegationContract(delegation.activationContract)
+    : undefined,
+  revocationContract: delegation.revocationContract
+    ? delegationContractToApiDelegationContract(delegation.revocationContract)
     : undefined,
   stamps: delegationStampsToApiDelegationStamps(delegation.stamps),
 });

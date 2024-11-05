@@ -158,20 +158,21 @@ export function delegationProducerServiceBuilder(
         logger
       );
 
-      const contract = await contractBuilderInstance.createRevocationContract(
-        currentDelegation.data,
-        delegator,
-        delegate,
-        eservice,
-        pdfGenerator
-      );
+      const revocationContract =
+        await contractBuilderInstance.createRevocationContract(
+          currentDelegation.data,
+          delegator,
+          delegate,
+          eservice,
+          pdfGenerator
+        );
 
       const now = new Date();
       const revokedDelegation = {
         ...currentDelegation.data,
         state: delegationState.revoked,
         revokedAt: now,
-        contract,
+        revocationContract,
         stamps: {
           ...currentDelegation.data.stamps,
           revocation: {
@@ -216,13 +217,14 @@ export function delegationProducerServiceBuilder(
         logger
       );
 
-      const contract = await contractBuilderInstance.createActivationContract(
-        delegation,
-        delegator,
-        delegate,
-        eservice,
-        pdfGenerator
-      );
+      const activationContract =
+        await contractBuilderInstance.createActivationContract(
+          delegation,
+          delegator,
+          delegate,
+          eservice,
+          pdfGenerator
+        );
 
       const now = new Date();
 
@@ -233,7 +235,7 @@ export function delegationProducerServiceBuilder(
               ...delegation,
               state: delegationState.active,
               approvedAt: now,
-              contract,
+              activationContract,
               stamps: {
                 ...delegation.stamps,
                 activation: {

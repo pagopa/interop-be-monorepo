@@ -16,7 +16,8 @@ message DelegationV2 {
   DelegationStateV2 state = 11;
   DelegationKindV2 kind = 12;
   DelegationStampsV2 stamps = 13;  
-  optional DelegationContractDocumentV2 contract = 14;
+  optional DelegationContractDocumentV2 activationContract = 14;
+  optional DelegationContractDocumentV2 revocationContract = 15;
 }
 
 message DelegationContractDocumentV2 {

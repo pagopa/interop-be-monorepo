@@ -12,7 +12,6 @@ import {
   Delegation,
   DelegationContractDocument,
   DelegationContractId,
-  DelegationId,
   EService,
   generateId,
   Tenant,
@@ -24,11 +23,10 @@ const DELEGATION_ACTIVATION_CONTRACT_PRETTY_NAME = "Delega";
 const DELEGATION_REVOCATION_CONTRACT_PRETTY_NAME = "Revoca della delega";
 
 const createDelegationDocumentName = (
-  delegationId: DelegationId,
   documentCreatedAt: Date,
   documentType: "activation" | "revocation"
 ): string =>
-  `${delegationId}_${formatDateyyyyMMddHHmmss(
+  `${formatDateyyyyMMddHHmmss(
     documentCreatedAt
   )}_delegation_${documentType}_contract.pdf`;
 
@@ -83,7 +81,6 @@ export const contractBuilder = (
       const documentId = generateId<DelegationContractId>();
       const documentCreatedAt = new Date();
       const documentName = createDelegationDocumentName(
-        delegation.id,
         documentCreatedAt,
         "activation"
       );
@@ -91,7 +88,7 @@ export const contractBuilder = (
       const documentPath = await fileManager.storeBytes(
         {
           bucket: config.s3Bucket,
-          path: config.delegationDocumentPath,
+          path: `${config.delegationDocumentPath}/${delegation.id}`,
           resourceId: documentId,
           name: documentName,
           content: pdfBuffer,
@@ -100,7 +97,7 @@ export const contractBuilder = (
       );
 
       return {
-        id: generateId(),
+        id: documentId,
         name: documentName,
         prettyName: DELEGATION_ACTIVATION_CONTRACT_PRETTY_NAME,
         contentType: CONTENT_TYPE_PDF,
@@ -144,7 +141,6 @@ export const contractBuilder = (
       const documentId = generateId<DelegationContractId>();
       const documentCreatedAt = new Date();
       const documentName = createDelegationDocumentName(
-        delegation.id,
         documentCreatedAt,
         "revocation"
       );
@@ -152,7 +148,7 @@ export const contractBuilder = (
       const documentPath = await fileManager.storeBytes(
         {
           bucket: config.s3Bucket,
-          path: config.delegationDocumentPath,
+          path: `${config.delegationDocumentPath}/${delegation.id}`,
           resourceId: documentId,
           name: documentName,
           content: pdfBuffer,
@@ -161,7 +157,7 @@ export const contractBuilder = (
       );
 
       return {
-        id: generateId(),
+        id: documentId,
         name: documentName,
         prettyName: DELEGATION_REVOCATION_CONTRACT_PRETTY_NAME,
         contentType: CONTENT_TYPE_PDF,

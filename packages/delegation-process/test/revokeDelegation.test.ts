@@ -2,6 +2,8 @@ import { fail } from "assert";
 import {
   decodeProtobufPayload,
   getMockDelegationProducer,
+  getMockEService,
+  getMockTenant,
   getRandomAuthData,
 } from "pagopa-interop-commons-test";
 import {
@@ -12,17 +14,27 @@ import {
   generateId,
   TenantId,
   fromDelegationV2,
+  EServiceId,
+  unsafeBrandId,
+  DelegationContractId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  formatDateyyyyMMddHHmmss,
+  genericLogger,
+} from "pagopa-interop-commons";
 import {
   delegationNotFound,
   delegationNotRevokable,
   delegatorNotAllowToRevoke,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
 import {
   addOneDelegation,
+  addOneEservice,
+  addOneTenant,
   delegationProducerService,
+  fileManager,
   readDelegationEventByVersion,
 } from "./utils.js";
 
@@ -103,6 +115,7 @@ describe("revoke delegation", () => {
 
   it("should revoke a delegation if it exists", async () => {
     const currentExecutionTime = new Date();
+    const eserviceId = generateId<EServiceId>();
     const delegatorId = generateId<TenantId>();
     const delegateId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
@@ -113,11 +126,16 @@ describe("revoke delegation", () => {
     const delegationActivationDate = new Date();
     delegationActivationDate.setMonth(currentExecutionTime.getMonth() - 1);
 
-    const existentDelegation = {
+    await addOneTenant(getMockTenant(delegateId));
+    await addOneTenant(getMockTenant(delegatorId));
+    await addOneEservice(getMockEService(eserviceId));
+
+    const existentDelegation: Delegation = {
       ...getMockDelegationProducer({
         delegatorId,
         delegateId,
       }),
+      eserviceId,
       approvedAt: delegationActivationDate,
       submittedAt: delegationCreationDate,
       stamps: {
@@ -144,6 +162,14 @@ describe("revoke delegation", () => {
       }
     );
 
+    const expectedContractFilePath = (
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    )[0];
+
+    const documentId = unsafeBrandId<DelegationContractId>(
+      expectedContractFilePath.split("/")[2]
+    );
+
     const expectedDelegation: Delegation = {
       ...existentDelegation,
       state: delegationState.revoked,
@@ -161,6 +187,16 @@ describe("revoke delegation", () => {
           who: delegatorId,
           when: currentExecutionTime,
         },
+      },
+      revocationContract: {
+        id: documentId,
+        contentType: "application/pdf",
+        createdAt: currentExecutionTime,
+        name: `${formatDateyyyyMMddHHmmss(
+          currentExecutionTime
+        )}_delegation_revocation_contract.pdf`,
+        path: expectedContractFilePath,
+        prettyName: "Revoca della delega",
       },
     };
 

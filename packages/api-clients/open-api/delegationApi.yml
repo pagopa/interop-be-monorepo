@@ -376,7 +376,9 @@ components:
           $ref: "#/components/schemas/DelegationState"
         kind:
           $ref: "#/components/schemas/DelegationKind"
-        contract:
+        activationContract:
+          $ref: "#/components/schemas/DelegationContractDocument"
+        revocationContract:
           $ref: "#/components/schemas/DelegationContractDocument"
         stamps:
           $ref: "#/components/schemas/DelegationStamps"
