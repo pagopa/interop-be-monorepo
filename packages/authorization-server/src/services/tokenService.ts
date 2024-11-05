@@ -403,7 +403,7 @@ export const fallbackAudit = async (
     );
     logger.info("auditing succeeded through fallback");
   } catch {
-    throw fallbackAuditFailed(messageBody.jwtId);
+    throw fallbackAuditFailed(messageBody.clientId);
   }
 };
 

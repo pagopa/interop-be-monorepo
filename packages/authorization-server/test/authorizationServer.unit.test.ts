@@ -266,7 +266,7 @@ describe("unit tests", () => {
 
       expect(
         fallbackAudit(mockAuditMessage, fileManager, genericLogger)
-      ).rejects.toThrowError(fallbackAuditFailed(mockAuditMessage.jwtId));
+      ).rejects.toThrowError(fallbackAuditFailed(mockAuditMessage.clientId));
     });
   });
 });

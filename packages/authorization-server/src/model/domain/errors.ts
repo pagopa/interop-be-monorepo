@@ -64,9 +64,9 @@ export function kafkaAuditingFailed(): ApiError<ErrorCodes> {
   });
 }
 
-export function fallbackAuditFailed(jti: string): ApiError<ErrorCodes> {
+export function fallbackAuditFailed(clientId: ClientId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Fallback audit failed. Jti: ${jti}`,
+    detail: `Fallback audit failed for client ${clientId}`,
     code: "fallbackAuditFailed",
     title: "Fallback audit failed",
   });

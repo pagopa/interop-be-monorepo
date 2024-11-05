@@ -501,7 +501,7 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(fallbackAuditFailed(uuid));
+    ).rejects.toThrowError(fallbackAuditFailed(clientId));
   });
 
   it("should succeed - consumer key - kafka audit failed and fallback audit succeeded", async () => {
