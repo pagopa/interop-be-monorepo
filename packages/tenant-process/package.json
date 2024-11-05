@@ -30,7 +30,6 @@
     "vitest": "1.6.0"
   },
   "dependencies": {
-    "@types/uuid": "9.0.8",
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
     "axios": "1.7.4",
@@ -42,7 +41,6 @@
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
     "ts-pattern": "5.2.0",
-    "uuid": "10.0.0",
     "zod": "3.23.8"
   }
 }

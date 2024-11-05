@@ -25,7 +25,6 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.6",
-    "@types/uuid": "9.0.8",
     "cpx2": "7.0.1",
     "axios": "1.7.4",
     "pagopa-interop-commons-test": "workspace:*",
@@ -33,7 +32,6 @@
     "testcontainers": "10.9.0",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
-    "uuid": "10.0.0",
     "vitest": "1.6.0"
   },
   "dependencies": {
