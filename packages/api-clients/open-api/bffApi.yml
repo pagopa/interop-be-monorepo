@@ -15239,12 +15239,15 @@ components:
           type: string
         state:
           $ref: "#/components/schemas/DelegationState"
+        kind:
+          $ref: "#/components/schemas/DelegationKind"
       required:
         - id
         - eservice
         - delegate
         - delegator
         - state
+        - kind
     CompactDelegation:
       type: object
       additionalProperties: false
@@ -15260,12 +15263,15 @@ components:
           type: string
         state:
           $ref: "#/components/schemas/DelegationState"
+        kind:
+          $ref: "#/components/schemas/DelegationKind"
       required:
         - id
         - eserviceName
         - delegatedName
         - delegatorName
         - state
+        - kind
     CompactDelegations:
       type: object
       additionalProperties: false
