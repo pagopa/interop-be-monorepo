@@ -250,7 +250,7 @@ describe("unit tests", () => {
         genericLogger
       );
 
-      const expectedFileContent = JSON.stringify(mockAuditMessage) + "\n";
+      const expectedFileContent = JSON.stringify(mockAuditMessage);
 
       const decodedFileContent = new TextDecoder().decode(fileContent);
       expect(decodedFileContent).toEqual(expectedFileContent);

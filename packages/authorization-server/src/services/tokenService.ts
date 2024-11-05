@@ -368,7 +368,7 @@ export const publishAudit = async ({
       messages: [
         {
           key: generatedToken.payload.jti,
-          value: JSON.stringify(messageBody) + "\n",
+          value: JSON.stringify(messageBody),
         },
       ],
     });
@@ -399,7 +399,7 @@ export const fallbackAudit = async (
         bucket: config.s3Bucket,
         path: filePath,
         name: fileName,
-        content: Buffer.from(JSON.stringify(messageBody) + "\n"),
+        content: Buffer.from(JSON.stringify(messageBody)),
       },
       logger
     );
