@@ -158,7 +158,9 @@ describe("authorization server tests", () => {
     await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(invalidTokenClientKidPurposeEntry());
+    ).rejects.toThrowError(
+      invalidTokenClientKidPurposeEntry(tokenClientPurposeEntry.PK)
+    );
   });
 
   it("should throw keyTypeMismatch - clientKid entry with consumer kind", async () => {

@@ -132,7 +132,9 @@ describe("unit tests", () => {
       await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPurposePK)
-      ).rejects.toThrowError(invalidTokenClientKidPurposeEntry());
+      ).rejects.toThrowError(
+        invalidTokenClientKidPurposeEntry(tokenClientPurposeEntry.PK)
+      );
     });
 
     it("should succeed - clientKidPurpose entry - consumer key", async () => {

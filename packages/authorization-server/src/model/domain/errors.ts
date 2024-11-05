@@ -1,4 +1,3 @@
-import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   ApiError,
   ClientId,
@@ -90,10 +89,11 @@ export function keyRetrievalFailed(): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidTokenClientKidPurposeEntry(): ApiError<ErrorCodes> {
+export function invalidTokenClientKidPurposeEntry(
+  pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail:
-      "Missing data in client-kid-purpose entry from token-generation-states table",
+    detail: `Missing data in client-kid-purpose entry from token-generation-states table. Primary key: ${pk}`,
     code: "invalidTokenClientKidPurposeEntry",
     title: "Invalid token client-kid-purpose entry",
   });

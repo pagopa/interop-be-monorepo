@@ -159,7 +159,7 @@ export function tokenServiceBuilder({
             const parsedKey = key as TokenGenerationStatesClientPurposeEntry;
 
             if (!parsedKey.descriptorAudience || !parsedKey.GSIPK_purposeId) {
-              throw invalidTokenClientKidPurposeEntry();
+              throw invalidTokenClientKidPurposeEntry(parsedKey.PK);
             }
             const token = await tokenGenerator.generateInteropConsumerToken({
               sub: jwt.payload.sub,
@@ -184,7 +184,7 @@ export function tokenServiceBuilder({
               rateLimiterStatus,
             };
           }
-          throw invalidTokenClientKidPurposeEntry();
+          throw invalidTokenClientKidPurposeEntry(key.PK);
         })
         .with(clientKindTokenStates.api, async () => {
           const token = await tokenGenerator.generateInteropApiToken({
@@ -258,7 +258,7 @@ export const retrieveKey = async (
             !clientKidPurposeEntry.descriptorAudience ||
             !clientKidPurposeEntry.descriptorVoucherLifespan
           ) {
-            throw invalidTokenClientKidPurposeEntry();
+            throw invalidTokenClientKidPurposeEntry(clientKidPurposeEntry.PK);
           }
 
           return clientKidPurposeEntry;
@@ -320,7 +320,7 @@ export const publishAudit = async ({
     !key.GSIPK_purposeId ||
     !key.purposeVersionId
   ) {
-    throw invalidTokenClientKidPurposeEntry();
+    throw invalidTokenClientKidPurposeEntry(key.PK);
   }
   const messageBody: GeneratedTokenAuditDetails = {
     jwtId: generatedToken.payload.jti,
