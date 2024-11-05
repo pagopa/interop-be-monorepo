@@ -963,12 +963,12 @@ export function agreementServiceBuilder(
       );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      const delegation = await retrieveActiveDelegationByEserviceId(
+      const activeDelegation = await retrieveActiveDelegationByEserviceId(
         agreement.data.eserviceId,
         readModelService
       );
 
-      const delegateId = delegation?.data.delegateId;
+      const delegateId = activeDelegation?.data.delegateId;
 
       assertRequesterCanActivate(agreement.data, delegateId, authData);
 
