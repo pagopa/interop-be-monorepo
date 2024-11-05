@@ -201,7 +201,7 @@ export class InteropTokenGenerator {
     audience: string[];
     purposeId: PurposeId;
     tokenDurationInSeconds: number;
-    digest: ClientAssertionDigest;
+    digest?: ClientAssertionDigest;
   }): Promise<InteropConsumerToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -231,7 +231,7 @@ export class InteropTokenGenerator {
       nbf: currentTimestamp,
       exp: currentTimestamp + tokenDurationInSeconds * 1000,
       purposeId,
-      digest,
+      ...(digest ? { digest } : {}),
     };
 
     const serializedToken = await this.createAndSignToken({
