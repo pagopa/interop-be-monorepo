@@ -98,7 +98,6 @@ paths:
               format: uuid
             default: []
           explode: false
-
       responses:
         "200":
           description: Delegation retrieved
