@@ -27,6 +27,9 @@ import {
   EServiceReadModel,
   TenantReadModel,
   genericInternalError,
+  Delegation,
+  DelegationState,
+  delegationState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -99,6 +102,7 @@ export function readModelServiceBuilder(
   const agreements = readModelRepository.agreements;
   const attributes = readModelRepository.attributes;
   const tenants = readModelRepository.tenants;
+  const delegations = readModelRepository.delegations;
 
   return {
     async getEServices(
@@ -147,10 +151,32 @@ export function readModelServiceBuilder(
           "data.id": { $in: ids },
         });
 
-      const producersIdsFilter: ReadModelFilter<EService> =
-        ReadModelRepository.arrayToFilter(producersIds, {
-          "data.producerId": { $in: producersIds },
-        });
+      const producersIdsFilter = ReadModelRepository.arrayToFilter(
+        producersIds,
+        {
+          $or: [
+            { "data.producerId": { $in: producersIds } },
+            {
+              "delegation.data.delegateId": { $in: producersIds },
+              "delegation.data.state": { $eq: delegationState.active },
+            },
+          ],
+        }
+      );
+
+      const delegationLookup =
+        producersIds.length > 0
+          ? [
+              {
+                $lookup: {
+                  from: "delegations",
+                  localField: "data.id",
+                  foreignField: "data.eserviceId",
+                  as: "delegation",
+                },
+              },
+            ]
+          : [];
 
       const descriptorsStateFilter: ReadModelFilter<EService> =
         ReadModelRepository.arrayToFilter(states, {
@@ -201,7 +227,12 @@ export function readModelServiceBuilder(
                   { "data.producerId": { $ne: authData.organizationId } },
                   { "data.descriptors": { $size: 1 } },
                   {
-                    "data.descriptors.state": { $eq: descriptorState.draft },
+                    "data.descriptors.state": {
+                      $in: [
+                        descriptorState.draft,
+                        descriptorState.waitingForApproval,
+                      ],
+                    },
                   },
                 ],
               },
@@ -214,7 +245,12 @@ export function readModelServiceBuilder(
                 $and: [
                   { "data.descriptors": { $size: 1 } },
                   {
-                    "data.descriptors.state": { $eq: descriptorState.draft },
+                    "data.descriptors.state": {
+                      $in: [
+                        descriptorState.draft,
+                        descriptorState.waitingForApproval,
+                      ],
+                    },
                   },
                 ],
               },
@@ -226,6 +262,7 @@ export function readModelServiceBuilder(
         : {};
 
       const aggregationPipeline = [
+        ...delegationLookup,
         {
           $match: {
             ...nameFilter,
@@ -497,6 +534,43 @@ export function readModelServiceBuilder(
 
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return getTenant(tenants, { "data.id": id });
+    },
+
+    async getLatestDelegation({
+      eserviceId,
+      states,
+      delegateId,
+    }: {
+      eserviceId: EServiceId;
+      states: DelegationState[];
+      delegateId?: TenantId;
+    }): Promise<Delegation | undefined> {
+      const data = await delegations.findOne(
+        {
+          "data.eserviceId": eserviceId,
+          ...(states.length > 0 ? { "data.state": { $in: states } } : {}),
+          ...(delegateId ? { "data.delegateId": delegateId } : {}),
+        },
+        {
+          projection: { data: true },
+          sort: { "data.createdAt": -1 },
+        }
+      );
+
+      if (!data) {
+        return undefined;
+      }
+      const result = Delegation.safeParse(data.data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse delegation item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
     },
   };
 }
