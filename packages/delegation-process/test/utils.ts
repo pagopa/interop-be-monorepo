@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 import {
   ReadEvent,
   readEventByStreamIdAndVersion,
@@ -17,15 +18,22 @@ import {
   toReadModelEService,
   toReadModelTenant,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
+import { afterAll, afterEach, inject, vi } from "vitest";
+import {
+  initPDFGenerator,
+  launchPuppeteerBrowser,
+} from "pagopa-interop-commons";
+import puppeteer, { Browser } from "puppeteer";
+import { PDFDocument } from "pdf-lib";
 import { delegationProducerServiceBuilder } from "../src/services/delegationProducerService.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
-export const { cleanup, readModelRepository, postgresDB } =
+export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
     inject("readModelConfig"),
-    inject("eventStoreConfig")
+    inject("eventStoreConfig"),
+    inject("fileManagerConfig")
   );
 afterEach(cleanup);
 
@@ -35,9 +43,28 @@ export const tenants = readModelRepository.tenants;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
+const testBrowserInstance: Browser = await launchPuppeteerBrowser({
+  pipe: true,
+});
+const closeTestBrowserInstance = async (): Promise<void> =>
+  await testBrowserInstance.close();
+
+afterAll(closeTestBrowserInstance);
+afterAll(() => {
+  vi.useRealTimers();
+});
+
+vi.spyOn(puppeteer, "launch").mockImplementation(
+  async () => testBrowserInstance
+);
+
+export const pdfGenerator = await initPDFGenerator();
+
 export const delegationProducerService = delegationProducerServiceBuilder(
   postgresDB,
-  readModelService
+  readModelService,
+  pdfGenerator,
+  fileManager
 );
 
 export const delegationService = delegationServiceBuilder(readModelService);
@@ -90,4 +117,21 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 };
 export const addOneEservice = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+};
+
+export const flushPDFMetadata = async (
+  byteArray: Uint8Array,
+  currentExecutionTime: Date
+): Promise<Uint8Array> => {
+  const pdfModified = await PDFDocument.load(byteArray);
+  // Remove metadata properties
+  pdfModified.setTitle("");
+  pdfModified.setAuthor("");
+  pdfModified.setSubject("");
+  pdfModified.setKeywords([]);
+  pdfModified.setProducer("");
+  pdfModified.setCreator("");
+  pdfModified.setCreationDate(currentExecutionTime);
+  pdfModified.setModificationDate(currentExecutionTime);
+  return await pdfModified.save();
 };

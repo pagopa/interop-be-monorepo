@@ -19,6 +19,7 @@ export const errorCodes = {
   operationNotAllowOnDelegation: "0009",
   operationRestrictedToDelegate: "0010",
   incorrectState: "0011",
+  differentEserviceProducer: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -34,13 +35,12 @@ export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
 }
 
 export function delegationAlreadyExists(
-  delgatorId: string,
-  delegeteId: string,
+  delegatorId: string,
   eserviceId: string,
   delegationKind: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegation type ${delegationKind} already exists for delegator ${delgatorId} and delegate ${delegeteId} for EService ${eserviceId}`,
+    detail: `Delegation type ${delegationKind} already exists for EService ${eserviceId} by delegator ${delegatorId}`,
     code: "delegationAlreadyExists",
     title: "Delegation already exists",
   });
@@ -130,5 +130,15 @@ export function incorrectState(
     detail: `Delegation ${delegationId} is in state ${actualState} but expected ${expectedState}`,
     code: "incorrectState",
     title: "Incorrect state",
+  });
+}
+
+export function differentEServiceProducer(
+  requesterId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Eservice producer if different from requester with id ${requesterId}`,
+    code: "differentEserviceProducer",
+    title: "Operation not allowed",
   });
 }

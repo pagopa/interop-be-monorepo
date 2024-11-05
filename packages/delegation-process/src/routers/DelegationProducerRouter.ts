@@ -2,14 +2,16 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
-  authorizationMiddleware,
   ExpressContext,
   fromAppContext,
-  initDB,
   ReadModelRepository,
   userRoles,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
+  authorizationMiddleware,
+  initDB,
+  PDFGenerator,
+  FileManager,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -31,7 +33,9 @@ const readModelService = readModelServiceBuilder(
 const { ADMIN_ROLE } = userRoles;
 
 const delegationProducerRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  pdfGenerator: PDFGenerator,
+  fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const delegationRouter = ctx.router(delegationApi.producerApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -47,7 +51,9 @@ const delegationProducerRouter = (
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     }),
-    readModelService
+    readModelService,
+    pdfGenerator,
+    fileManager
   );
 
   delegationRouter
@@ -116,7 +122,8 @@ const delegationProducerRouter = (
         await delegationProducerService.approveProducerDelegation(
           ctx.authData.organizationId,
           unsafeBrandId(delegationId),
-          ctx.correlationId
+          ctx.correlationId,
+          ctx.logger
         );
 
         return res.status(204).send();
