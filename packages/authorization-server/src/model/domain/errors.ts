@@ -1,6 +1,7 @@
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   ApiError,
+  ClientId,
   ClientKindTokenStates,
   makeApiProblemBuilder,
   TokenGenerationStatesClientKidPK,
@@ -26,12 +27,10 @@ export type ErrorCodes = keyof typeof errorCodes;
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function clientAssertionRequestValidationFailed(
-  request: authorizationServerApi.AccessTokenRequest
+  clientId?: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion request validation failed for request: ${JSON.stringify(
-      request
-    )}`,
+    detail: `Client assertion request validation failed for request by client ${clientId}`,
     code: "clientAssertionRequestValidationFailed",
     title: "Client assertion request validation failed",
   });

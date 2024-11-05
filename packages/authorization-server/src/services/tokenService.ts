@@ -46,7 +46,6 @@ import {
   RateLimiterStatus,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
-import { boolean } from "zod";
 import { config } from "../config/config.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -102,7 +101,7 @@ export function tokenServiceBuilder({
       });
 
       if (parametersErrors) {
-        throw clientAssertionRequestValidationFailed(request);
+        throw clientAssertionRequestValidationFailed(request.client_id);
       }
 
       const { data: jwt, errors: clientAssertionErrors } =

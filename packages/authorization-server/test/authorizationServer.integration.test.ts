@@ -84,7 +84,7 @@ describe("authorization server tests", () => {
     };
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(clientAssertionRequestValidationFailed(request));
+    ).rejects.toThrowError(clientAssertionRequestValidationFailed(clientId));
   });
 
   it("should throw clientAssertionValidationFailed", async () => {
