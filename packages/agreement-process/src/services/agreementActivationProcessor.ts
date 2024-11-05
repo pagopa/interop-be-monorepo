@@ -117,7 +117,7 @@ export async function createActivationEvent(
   agreementEventStoreVersion: number,
   authData: AuthData,
   correlationId: CorrelationId,
-  delegateId?: Tenant["id"]
+  delegateId?: TenantId
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (isFirstActivation) {
     // Pending >>> Active
