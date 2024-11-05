@@ -353,11 +353,7 @@ export const publishAudit = async ({
     issuer: generatedToken.payload.iss,
     clientAssertion: {
       algorithm: clientAssertion.header.alg,
-      // TODO: improve typeof
-      audience:
-        typeof clientAssertion.payload.aud === "string"
-          ? clientAssertion.payload.aud
-          : clientAssertion.payload.aud.join(","),
+      audience: [clientAssertion.payload.aud].flat().join(","),
       expirationTime: clientAssertion.payload.exp,
       issuedAt: clientAssertion.payload.iat,
       issuer: clientAssertion.payload.iss,

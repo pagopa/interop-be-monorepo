@@ -604,12 +604,7 @@ describe("authorization server tests", () => {
       issuer: config.generatedInteropTokenIssuer,
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
-        // TODO: improve typeof
-        audience: !clientAssertion.payload.aud
-          ? ""
-          : typeof clientAssertion.payload.aud === "string"
-          ? clientAssertion.payload.aud
-          : clientAssertion.payload.aud.join(","),
+        audience: [clientAssertion.payload.aud].flat().join(","),
         expirationTime: clientAssertion.payload.exp!,
         issuedAt: clientAssertion.payload.iat!,
         issuer: clientAssertion.payload.iss!,
@@ -739,12 +734,7 @@ describe("authorization server tests", () => {
       issuer: config.generatedInteropTokenIssuer,
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
-        // TODO: improve typeof
-        audience: !clientAssertion.payload.aud
-          ? ""
-          : typeof clientAssertion.payload.aud === "string"
-          ? clientAssertion.payload.aud
-          : clientAssertion.payload.aud.join(","),
+        audience: [clientAssertion.payload.aud].flat().join(","),
         expirationTime: clientAssertion.payload.exp!,
         issuedAt: clientAssertion.payload.iat!,
         issuer: clientAssertion.payload.iss!,
