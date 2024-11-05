@@ -57,7 +57,6 @@ const tokenGenerator = new InteropTokenGenerator(
     generatedInteropTokenIssuer: "test",
     generatedInteropTokenM2MAudience: "M2Maudience",
     generatedInteropTokenM2MDurationSeconds: 300,
-    generatedInteropTokenAlgorithm: "RS256",
   },
   mockKMSClient as unknown as KMSClient
 );

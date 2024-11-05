@@ -1,5 +1,4 @@
 import {
-  ClientAssertion,
   validateClientKindAndPlatformState,
   validateRequestParameters,
   verifyClientAssertion,
@@ -25,6 +24,7 @@ import {
   unsafeBrandId,
   GeneratedTokenAuditDetails,
   GSIPKEServiceIdDescriptorId,
+  ClientAssertion,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
