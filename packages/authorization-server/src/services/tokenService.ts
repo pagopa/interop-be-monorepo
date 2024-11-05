@@ -46,6 +46,7 @@ import {
   RateLimiterStatus,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
+import { boolean } from "zod";
 import { config } from "../config/config.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -56,7 +57,6 @@ import {
   kafkaAuditingFailed,
   tokenGenerationStatesEntryNotFound,
   keyTypeMismatch,
-  unexpectedTokenGenerationError,
   unexpectedTokenGenerationStatesEntry,
   platformStateValidationFailed,
 } from "../model/domain/errors.js";
@@ -159,52 +159,52 @@ export function tokenServiceBuilder({
         };
       }
 
-      // TODO: match otherwise doesn't work somehow
-      if (key.clientKind === clientKindTokenStates.consumer) {
-        if (key.PK.startsWith(clientKidPurposePrefix)) {
-          const parsedKey = key as TokenGenerationStatesClientPurposeEntry;
+      return await match(key.clientKind)
+        .with(clientKindTokenStates.consumer, async () => {
+          if (key.PK.startsWith(clientKidPurposePrefix)) {
+            const parsedKey = key as TokenGenerationStatesClientPurposeEntry;
 
-          if (!parsedKey.descriptorAudience || !parsedKey.GSIPK_purposeId) {
-            throw invalidTokenClientKidPurposeEntry();
+            if (!parsedKey.descriptorAudience || !parsedKey.GSIPK_purposeId) {
+              throw invalidTokenClientKidPurposeEntry();
+            }
+            const token = await tokenGenerator.generateInteropConsumerToken({
+              sub: jwt.payload.sub,
+              audience: parsedKey.descriptorAudience,
+              purposeId: parsedKey.GSIPK_purposeId,
+              tokenDurationInSeconds: 10,
+            });
+
+            await publishAudit({
+              producer,
+              generatedToken: token,
+              key: parsedKey,
+              clientAssertion: jwt,
+              correlationId,
+              fileManager,
+              logger,
+            });
+
+            return {
+              limitReached: false as const,
+              token,
+              rateLimiterStatus,
+            };
           }
-          const token = await tokenGenerator.generateInteropConsumerToken({
+          throw invalidTokenClientKidPurposeEntry();
+        })
+        .with(clientKindTokenStates.api, async () => {
+          const token = await tokenGenerator.generateInteropApiToken({
             sub: jwt.payload.sub,
-            audience: parsedKey.descriptorAudience,
-            purposeId: parsedKey.GSIPK_purposeId,
-            tokenDurationInSeconds: 10,
-          });
-
-          await publishAudit({
-            producer,
-            generatedToken: token,
-            key: parsedKey,
-            clientAssertion: jwt,
-            correlationId,
-            fileManager,
-            logger,
+            consumerId: key.consumerId,
           });
 
           return {
-            limitReached: false,
+            limitReached: false as const,
             token,
             rateLimiterStatus,
           };
-        }
-        throw invalidTokenClientKidPurposeEntry();
-      } else if (key.clientKind === clientKindTokenStates.api) {
-        const token = await tokenGenerator.generateInteropApiToken({
-          sub: jwt.payload.sub,
-          consumerId: key.consumerId,
-        });
-
-        return {
-          limitReached: false,
-          token,
-          rateLimiterStatus,
-        };
-      } else {
-        throw unexpectedTokenGenerationError();
-      }
+        })
+        .exhaustive();
     },
   };
 }
