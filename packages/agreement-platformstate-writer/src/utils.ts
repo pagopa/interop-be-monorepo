@@ -520,7 +520,7 @@ export const readCatalogEntry = async (
   }
 };
 
-export const isAgreementTheLatest = async (
+export const isLatestAgreement = async (
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
   agreementId: AgreementId,
   dynamoDBClient: DynamoDBClient

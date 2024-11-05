@@ -12,6 +12,7 @@ import {
   ProducerKeychainKeyAddedV2,
   invalidKey,
   toProducerKeychainV2,
+  Client,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -21,6 +22,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockClient,
   getMockKey,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test/index.js";
@@ -38,6 +40,7 @@ import {
   tooManyKeysPerProducerKeychain,
 } from "../src/model/domain/errors.js";
 import {
+  addOneClient,
   addOneProducerKeychain,
   authorizationService,
   postgresDB,
@@ -332,6 +335,33 @@ describe("createProducerKeychainKey", () => {
     };
     await addOneProducerKeychain(producerKeychain);
     await addOneProducerKeychain(producerKeychainWithDuplicateKey);
+
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
+    expect(
+      authorizationService.createProducerKeychainKey({
+        producerKeychainId: producerKeychain.id,
+        authData: mockAuthData,
+        keySeed,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(keyAlreadyExists(key.kid));
+  });
+  it("should throw keyAlreadyExists if the kid already exists in a client", async () => {
+    const key: Key = {
+      ...getMockKey(),
+      kid: calculateKid(createJWK(keySeed.key)),
+    };
+
+    const producerKeychain: ProducerKeychain = {
+      ...mockProducerKeychain,
+      id: generateId(),
+    };
+
+    const clientWithDuplicateKey: Client = { ...getMockClient(), keys: [key] };
+    await addOneProducerKeychain(producerKeychain);
+    await addOneClient(clientWithDuplicateKey);
 
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
