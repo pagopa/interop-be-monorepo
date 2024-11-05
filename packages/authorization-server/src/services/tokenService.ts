@@ -108,10 +108,7 @@ export function tokenServiceBuilder({
         verifyClientAssertion(request.client_assertion, request.client_id);
 
       if (clientAssertionErrors) {
-        throw clientAssertionValidationFailed(
-          request.client_assertion,
-          request.client_id
-        );
+        throw clientAssertionValidationFailed(request.client_id);
       }
 
       const clientId = jwt.payload.sub;

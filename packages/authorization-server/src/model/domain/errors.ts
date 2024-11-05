@@ -27,7 +27,7 @@ export type ErrorCodes = keyof typeof errorCodes;
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function clientAssertionRequestValidationFailed(
-  clientId?: string
+  clientId: string | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Client assertion request validation failed for request by client ${clientId}`,
@@ -37,11 +37,10 @@ export function clientAssertionRequestValidationFailed(
 }
 
 export function clientAssertionValidationFailed(
-  clientAssertion: string,
   clientId: string | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion validation failed for clientAssertion: ${clientAssertion}, clientId: ${clientId}`,
+    detail: `Client assertion validation failed for clientId: ${clientId}`,
     code: "clientAssertionValidationFailed",
     title: "Client assertion validation failed",
   });
