@@ -27,8 +27,7 @@ const serviceName = "authorization-server";
 
 const dynamoDBClient = new DynamoDBClient({});
 const redisRateLimiter = await initRedisRateLimiter({
-  // TODO add limiter group
-  limiterGroup: "TODO",
+  limiterGroup: "AUTHSERVER",
   maxRequests: config.rateLimiterMaxRequests,
   rateInterval: config.rateLimiterRateInterval,
   burstPercentage: config.rateLimiterBurstPercentage,
