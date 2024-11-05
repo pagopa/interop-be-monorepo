@@ -1,3 +1,4 @@
+/* eslint-disable fp/no-delete */
 import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
 import {
