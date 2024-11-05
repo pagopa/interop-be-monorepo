@@ -37,6 +37,7 @@ import {
   unsafeBrandId,
   CompactTenant,
   CorrelationId,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   declaredAttributesSatisfied,
@@ -89,6 +90,7 @@ import {
   assertExpectedState,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
+  assertRequesterIsConsumerOrProducerOrDelegate,
   assertRequesterIsProducer,
   assertSubmittableState,
   failOnActivationFailure,
@@ -171,6 +173,12 @@ export const retrieveTenant = async (
   }
   return tenant;
 };
+
+export const retrieveDelegationByDelegateId = async (
+  delegateId: TenantId,
+  readModelService: ReadModelService
+): Promise<WithMetadata<Delegation> | undefined> =>
+  await readModelService.getDelegationByDelegateId(delegateId);
 
 const retrieveDescriptor = (
   descriptorId: DescriptorId,
@@ -757,7 +765,12 @@ export function agreementServiceBuilder(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
       );
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+
+      await assertRequesterIsConsumerOrProducerOrDelegate(
+        agreement.data,
+        authData,
+        readModelService
+      );
 
       return retrieveAgreementDocument(agreement.data, documentId);
     },
