@@ -343,28 +343,15 @@ function getVerifiedAttributeExpirationDate(
   tenantAttribute: VerifiedTenantAttribute,
   producerId: TenantId
 ): Date | undefined {
-  // TODO verify if this logic is correct.
-  // Also, we should fix the logic of filterVerifiedAttributes accordingly
-  // otherwise we don't have the right attributes in the agreement
-  if (!tenantAttribute.verifiedBy) {
-    return undefined;
-  }
-
-  const activeVerifications = tenantAttribute.verifiedBy.filter(
-    (verification) =>
-      tenantAttribute.revokedBy.find(
-        (revocation) => revocation.id === verification.id
-      ) === undefined
-  );
-
-  const activeProducerVerification = activeVerifications
+  const activeProducerVerification = tenantAttribute.verifiedBy
     .filter((verification) => verification.id === producerId)
-    .sort(
-      (a, b) =>
-        new Date(a.verificationDate).getTime() -
-        new Date(b.verificationDate).getTime()
-    )
-    .at(-1);
+    .sort((a, b) => a.verificationDate.getTime() - b.verificationDate.getTime())
+    .find(
+      (verification) =>
+        !tenantAttribute.revokedBy.find(
+          (revocation) => revocation.id === verification.id
+        )
+    );
 
   return (
     activeProducerVerification?.extensionDate ??

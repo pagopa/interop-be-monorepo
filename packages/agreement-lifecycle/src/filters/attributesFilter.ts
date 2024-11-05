@@ -19,7 +19,17 @@ export const filterVerifiedAttributes = (
       att.verifiedBy.find(
         (v) =>
           v.id === producerId &&
-          (!v.extensionDate || v.extensionDate > new Date())
+          !att.revokedBy.find((revocation) => revocation.id === v.id) &&
+          ((!v.extensionDate && !v.expirationDate) ||
+            (v.extensionDate &&
+              v.expirationDate &&
+              v.extensionDate > new Date() &&
+              v.expirationDate > new Date()) ||
+            (v.extensionDate
+              ? v.extensionDate > new Date()
+              : v.expirationDate
+              ? v.expirationDate > new Date()
+              : false))
       )
   ) as VerifiedTenantAttribute[];
 
