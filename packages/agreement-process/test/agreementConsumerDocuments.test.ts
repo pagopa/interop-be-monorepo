@@ -4,6 +4,8 @@ import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockDelegationProducer,
+  getMockEService,
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
@@ -32,6 +34,8 @@ import {
 import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
+  addOneDelegation,
+  addOneEService,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -71,6 +75,37 @@ describe("agreement consumer document", () => {
       );
 
       expect(result).toEqual(agreement1.consumerDocuments[0]);
+    });
+
+    it("should succed when the requester is the delegate", async () => {
+      const eservice = getMockEService();
+      const agreement = {
+        ...getMockAgreement(eservice.id),
+        consumerDocuments: [generateMock(AgreementDocument)],
+      };
+      const delegation = getMockDelegationProducer({
+        delegateId: eservice.producerId,
+        eserviceId: eservice.id,
+        state: "Active",
+      });
+
+      await addOneEService(eservice);
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+
+      const authData = getRandomAuthData(eservice.producerId);
+      const result = await agreementService.getAgreementConsumerDocument(
+        agreement.id,
+        agreement.consumerDocuments[0].id,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+
+      expect(result).toEqual(agreement.consumerDocuments[0]);
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {

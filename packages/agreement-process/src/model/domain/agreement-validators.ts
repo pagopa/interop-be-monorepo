@@ -14,6 +14,7 @@ import {
   EServiceId,
   unsafeBrandId,
   TenantId,
+  Delegation,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
@@ -153,6 +154,37 @@ export const assertRequesterIsConsumerOrProducer = (
     assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
     assertRequesterIsProducer(agreement, authData);
+  }
+};
+
+export const assertRequesterIsConsumerOrProducerOrDelegate = async (
+  agreement: Agreement,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<void> => {
+  try {
+    assertRequesterIsConsumer(agreement, authData);
+  } catch (error) {
+    try {
+      assertRequesterIsProducer(agreement, authData);
+    } catch (error) {
+      const delegation = await readModelService.getDelegationByDelegateId(
+        authData.organizationId
+      );
+      assertRequesterIsDelegate(delegation?.data, authData);
+    }
+  }
+};
+
+export const assertRequesterIsDelegate = (
+  delegation: Delegation | undefined,
+  authData: AuthData
+): void => {
+  if (!delegation) {
+    throw operationNotAllowed(authData.organizationId);
+  }
+  if (authData.organizationId !== delegation.delegateId) {
+    throw operationNotAllowed(authData.organizationId);
   }
 };
 
