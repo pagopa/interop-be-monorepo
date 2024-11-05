@@ -64,7 +64,7 @@ export async function assertNotDelegatedEservice(
     }
   );
 
-  if (delegations.findIndex((d) => d.eserviceId === eserviceid) >= 0) {
+  if (delegations.some((d) => d.eserviceId === eserviceid)) {
     throw delegatedEserviceNotExportable(delegatorId);
   }
 }
