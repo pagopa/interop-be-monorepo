@@ -200,6 +200,8 @@ export const assertRequesterCanActivate = (
   }
 };
 
+export const assertRequesterCanSuspend = assertRequesterCanActivate;
+
 export const assertSubmittableState = (
   state: AgreementState,
   agreementId: AgreementId

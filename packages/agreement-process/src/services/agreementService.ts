@@ -89,8 +89,8 @@ import {
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
   assertRequesterCanActivate,
+  assertRequesterCanSuspend,
   assertRequesterIsConsumer,
-  assertRequesterIsConsumerOrProducer,
   assertRequesterIsConsumerOrProducerOrDelegate,
   assertRequesterIsProducer,
   assertSubmittableState,
@@ -788,8 +788,14 @@ export function agreementServiceBuilder(
       logger.info(`Suspending agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
+      const activeDelegation = await retrieveActiveDelegationByEserviceId(
+        agreement.data.eserviceId,
+        readModelService
+      );
 
-      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+      const delegateId = activeDelegation?.data.delegateId;
+
+      assertRequesterCanSuspend(agreement.data, delegateId, authData);
 
       assertExpectedState(
         agreementId,
@@ -817,6 +823,7 @@ export function agreementServiceBuilder(
         authData,
         descriptor,
         consumer,
+        delegateId,
       });
 
       await repository.createEvent(

@@ -32,11 +32,13 @@ export function createSuspensionUpdatedAgreement({
   authData,
   descriptor,
   consumer,
+  delegateId,
 }: {
   agreement: Agreement;
   authData: AuthData;
   descriptor: Descriptor;
   consumer: Tenant;
+  delegateId: TenantId | undefined;
 }): Agreement {
   /* nextAttributesState VS targetDestinationState
   -- targetDestinationState is the state where the caller wants to go (suspended, in this case)
@@ -67,7 +69,7 @@ export function createSuspensionUpdatedAgreement({
     agreement.suspendedByPlatform
   );
 
-  const stamp = createStamp(authData.userId);
+  const stamp = createStamp(authData.userId, delegateId);
 
   const suspensionByProducerStamp = suspendedByProducerStamp(
     agreement,
@@ -105,18 +107,20 @@ export function createAgreementSuspendedEvent(
   organizationId: TenantId,
   correlationId: CorrelationId,
   updatedAgreement: Agreement,
-  agreement: WithMetadata<Agreement>
+  agreement: WithMetadata<Agreement>,
+  delegateId?: TenantId | undefined
 ): CreateEvent<AgreementEventV2> {
   const isProducer = organizationId === agreement.data.producerId;
   const isConsumer = organizationId === agreement.data.consumerId;
+  const isDelegate = delegateId === organizationId;
 
-  if (!isProducer && !isConsumer) {
+  if (!isProducer && !isConsumer && !isDelegate) {
     throw genericError(
-      "Agreement can only be suspended by the consumer or producer."
+      "Agreement can only be suspended by the consumer or producer/delegate."
     );
   }
 
-  return isProducer
+  return isProducer || isDelegate
     ? toCreateEventAgreementSuspendedByProducer(
         updatedAgreement,
         agreement.metadata.version,
