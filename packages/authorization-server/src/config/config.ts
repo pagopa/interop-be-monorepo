@@ -2,7 +2,6 @@ import {
   CommonHTTPServiceConfig,
   FileManagerConfig,
   KafkaProducerConfig,
-  PlatformStateWriterConfig,
   RedisRateLimiterConfig,
   S3Config,
   AuthorizationServerTokenGenerationConfig,
@@ -15,7 +14,6 @@ const AuthorizationServerConfig = CommonHTTPServiceConfig.and(
   .and(KafkaProducerConfig)
   .and(FileManagerConfig)
   .and(S3Config)
-  .and(PlatformStateWriterConfig)
   .and(
     z
       .object({
