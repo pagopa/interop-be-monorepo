@@ -210,8 +210,6 @@ export function tokenServiceBuilder({
   };
 }
 
-export type TokenService = ReturnType<typeof tokenServiceBuilder>;
-
 export const retrieveKey = async (
   dynamoDBClient: DynamoDBClient,
   pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
