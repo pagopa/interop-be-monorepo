@@ -3,9 +3,11 @@ import { fail } from "assert";
 import { describe, expect, it } from "vitest";
 import {
   ClientId,
+  clientKindTokenStates,
   generateId,
   itemState,
   PurposeId,
+  TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import * as jsonwebtoken from "jsonwebtoken";
@@ -53,6 +55,7 @@ import {
   clientAssertionInvalidClaims,
   invalidAudienceFormat,
   unexpectedClientAssertionSignatureVerificationError,
+  missingPlatformStates,
 } from "../src/errors.js";
 import { ClientAssertionValidationRequest } from "../src/types.js";
 import { getMockAccessTokenRequest, value64chars } from "./utils.js";
@@ -762,7 +765,7 @@ describe("validation test", async () => {
   });
 
   describe("validateClientKindAndPlatformState", async () => {
-    it("success (consumerKey with consumer client kind; valid platform states)", async () => {
+    it("success (clientKidPurpose entry with consumer client kind; valid platform states)", async () => {
       const mockConsumerKey = getMockTokenStatesClientPurposeEntry();
       const { data: mockClientAssertion } = verifyClientAssertion(
         (
@@ -807,8 +810,11 @@ describe("validation test", async () => {
       expect(errors![0]).toEqual(inactiveEService());
     });
 
-    it("success (apiKey with api client kind)", async () => {
-      const mockApiKey = getMockTokenStatesClientEntry();
+    it("success (clientEntry with api client kind)", async () => {
+      const mockApiKey: TokenGenerationStatesClientEntry = {
+        ...getMockTokenStatesClientEntry(),
+        clientKind: clientKindTokenStates.api,
+      };
       const { data: mockClientAssertion } = verifyClientAssertion(
         (await getMockClientAssertion()).jws,
         undefined
@@ -821,6 +827,27 @@ describe("validation test", async () => {
         mockClientAssertion
       );
       expect(errors).toBeUndefined();
+    });
+
+    it("missingPlatformStates (clientEntry with consumer client kind)", async () => {
+      const mockApiKey: TokenGenerationStatesClientEntry = {
+        ...getMockTokenStatesClientEntry(),
+        clientKind: clientKindTokenStates.consumer,
+      };
+      const { data: mockClientAssertion } = verifyClientAssertion(
+        (await getMockClientAssertion()).jws,
+        undefined
+      );
+      if (!mockClientAssertion) {
+        fail();
+      }
+      const { errors } = validateClientKindAndPlatformState(
+        mockApiKey,
+        mockClientAssertion
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(missingPlatformStates());
     });
 
     it("purposeIdNotProvided for Client Kind Consumer", async () => {
