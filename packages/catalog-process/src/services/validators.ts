@@ -13,6 +13,8 @@ import {
   Tenant,
   TenantKind,
   Descriptor,
+  EServiceId,
+  delegationState,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
@@ -23,17 +25,63 @@ import {
   draftDescriptorAlreadyExists,
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
+  eserviceWithActiveOrPendingDelegation,
 } from "../model/domain/errors.js";
+import { ReadModelService } from "./readModelService.js";
 
-export function assertRequesterAllowed(
+export async function assertRequesterIsDelegateOrProducer(
+  producerId: TenantId,
+  eserviceId: EServiceId,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<void> {
+  if (authData.userRoles.includes("internal")) {
+    return;
+  }
+
+  // Search for active delegation
+  const delegation = await readModelService.getLatestDelegation({
+    eserviceId,
+    states: [delegationState.active],
+  });
+
+  // If an active delegation exists, check if the requester is the delegate
+  if (delegation) {
+    const isRequesterDelegate =
+      authData.organizationId === delegation.delegateId;
+
+    if (!isRequesterDelegate) {
+      throw operationForbidden;
+    }
+  } else {
+    // If no active delegation exists, ensure the requester is the producer
+    assertRequesterIsProducer(producerId, authData);
+  }
+}
+
+export function assertRequesterIsProducer(
   producerId: TenantId,
   authData: AuthData
 ): void {
-  if (
-    !authData.userRoles.includes("internal") &&
-    producerId !== authData.organizationId
-  ) {
+  if (authData.userRoles.includes("internal")) {
+    return;
+  }
+  if (producerId !== authData.organizationId) {
     throw operationForbidden;
+  }
+}
+
+export async function assertNoExistingDelegationInActiveOrPendingState(
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<void> {
+  const delegation = await readModelService.getLatestDelegation({
+    eserviceId,
+    states: [delegationState.active, delegationState.waitingForApproval],
+  });
+
+  if (delegation) {
+    throw eserviceWithActiveOrPendingDelegation(eserviceId, delegation.id);
   }
 }
 
@@ -59,7 +107,9 @@ export function assertTenantKindExists(
 
 export function assertHasNoDraftDescriptor(eservice: EService): void {
   const hasDraftDescriptor = eservice.descriptors.some(
-    (d: Descriptor) => d.state === descriptorState.draft
+    (d: Descriptor) =>
+      d.state === descriptorState.draft ||
+      d.state === descriptorState.waitingForApproval
   );
   if (hasDraftDescriptor) {
     throw draftDescriptorAlreadyExists(eservice.id);

@@ -1213,5 +1213,34 @@ export function catalogServiceBuilder(
         descriptorId: eservice.descriptors[0].id,
       };
     },
+    approveDelegatedEServiceDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: EServiceId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(`Approving e-service ${eServiceId} version ${descriptorId}`);
+      await catalogProcessClient.approveDelegatedEServiceDescriptor(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+    rejectDelegatedEServiceDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: EServiceId,
+      body: catalogApi.RejectDelegatedEServiceDescriptorSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(`Rejecting e-service ${eServiceId} version ${descriptorId}`);
+      await catalogProcessClient.rejectDelegatedEServiceDescriptor(body, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
   };
 }
