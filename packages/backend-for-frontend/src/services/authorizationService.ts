@@ -16,7 +16,7 @@ import {
   USER_ROLES,
   WithLogger,
   decodeJwtToken,
-  getJwksClients,
+  buildJwksClients,
   userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
@@ -52,10 +52,9 @@ export function authorizationServiceBuilder(
   interopTokenGenerator: InteropTokenGenerator,
   tenantProcessClient: PagoPAInteropBeClients["tenantProcessClient"],
   allowList: string[],
-  rateLimiter: RateLimiter
+  rateLimiter: RateLimiter,
+  jwksClients: ReturnType<typeof buildJwksClients>
 ) {
-  const jwksClients = getJwksClients(config);
-
   const readJwt = async (
     identityToken: string,
     logger: Logger
