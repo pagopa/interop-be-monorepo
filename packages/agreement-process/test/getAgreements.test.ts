@@ -545,7 +545,7 @@ describe("get agreements", () => {
   });
 
   it("should get agreements for a delegated eservice with filters: producerId", async () => {
-    const agreements1 = await agreementService.getAgreements(
+    const agreements = await agreementService.getAgreements(
       {
         producerId: eservice4.producerId,
       },
@@ -553,7 +553,7 @@ describe("get agreements", () => {
       0,
       genericLogger
     );
-    expect(agreements1).toEqual({
+    expect(agreements).toEqual({
       totalCount: 3,
       results: expect.arrayContaining([agreement5, agreement6, agreement7]),
     });
