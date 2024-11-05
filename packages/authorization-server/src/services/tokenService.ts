@@ -160,14 +160,18 @@ export function tokenServiceBuilder({
           if (key.PK.startsWith(clientKidPurposePrefix)) {
             const parsedKey = key as TokenGenerationStatesClientPurposeEntry;
 
-            if (!parsedKey.descriptorAudience || !parsedKey.GSIPK_purposeId) {
+            if (
+              !parsedKey.descriptorAudience ||
+              !parsedKey.GSIPK_purposeId ||
+              !parsedKey.descriptorVoucherLifespan
+            ) {
               throw invalidTokenClientKidPurposeEntry(parsedKey.PK);
             }
             const token = await tokenGenerator.generateInteropConsumerToken({
               sub: jwt.payload.sub,
               audience: parsedKey.descriptorAudience,
               purposeId: parsedKey.GSIPK_purposeId,
-              tokenDurationInSeconds: 10,
+              tokenDurationInSeconds: parsedKey.descriptorVoucherLifespan,
               digest: jwt.payload.digest,
             });
 
