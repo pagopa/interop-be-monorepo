@@ -14,7 +14,6 @@ import {
   EServiceId,
   unsafeBrandId,
   TenantId,
-  Delegation,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
