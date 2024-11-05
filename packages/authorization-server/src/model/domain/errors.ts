@@ -122,9 +122,11 @@ export function unexpectedTokenGenerationStatesEntry(
   });
 }
 
-export function platformStateValidationFailed(): ApiError<ErrorCodes> {
+export function platformStateValidationFailed(
+  details: string[]
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Platform state validation failed",
+    detail: `Platform state validation failed - reasons: ${details}`,
     code: "platformStateValidationFailed",
     title: "Platform state validation failed",
   });

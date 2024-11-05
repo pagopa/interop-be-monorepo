@@ -45,6 +45,7 @@ import {
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
+import { inactiveEService } from "../../client-assertion-validation/dist/errors.js";
 import {
   configTokenGenerationStates,
   dynamoDBClient,
@@ -303,7 +304,9 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(platformStateValidationFailed());
+    ).rejects.toThrowError(
+      platformStateValidationFailed([inactiveEService().detail])
+    );
   });
 
   it("should block the request because of the rate limiter", async () => {

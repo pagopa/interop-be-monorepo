@@ -139,7 +139,9 @@ export function tokenServiceBuilder({
       const { errors: platformStateErrors } =
         validateClientKindAndPlatformState(key, jwt);
       if (platformStateErrors) {
-        throw platformStateValidationFailed();
+        throw platformStateValidationFailed(
+          platformStateErrors.map((error) => error.detail)
+        );
       }
 
       const { limitReached, ...rateLimiterStatus } =
