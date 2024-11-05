@@ -37,6 +37,7 @@ import {
   eserviceMode,
   delegationState,
   operationForbidden,
+  DescriptorRejectionReason,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -56,6 +57,7 @@ import {
   toCreateEventEServiceDescriptorArchived,
   toCreateEventEServiceDescriptorDelegateSubmitted,
   toCreateEventEServiceDescriptorDelegatorApproved,
+  toCreateEventEServiceDescriptorDelegatorRejected,
   toCreateEventEServiceDescriptorPublished,
   toCreateEventEServiceDescriptorQuotasUpdated,
   toCreateEventEServiceDescriptorSuspended,
@@ -92,6 +94,7 @@ import {
   eserviceWithoutValidDescriptors,
   audienceCannotBeEmpty,
 } from "../model/domain/errors.js";
+import { RejectDelegatedEServiceDescriptorSeed } from "../../../api-clients/dist/catalogApi.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertRequesterIsDelegateOrProducer,
@@ -1781,6 +1784,53 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(
         toCreateEventEServiceDescriptorDelegatorApproved(
+          eservice.metadata.version,
+          descriptor.id,
+          updatedEService,
+          correlationId
+        )
+      );
+    },
+    async rejectDelegatedEServiceDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      body: RejectDelegatedEServiceDescriptorSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(`Rejecting EService ${eserviceId} version ${descriptorId}`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.waitingForApproval) {
+        throw notValidDescriptor(descriptor.id, descriptor.state.toString());
+      }
+
+      const newRejectionReason: DescriptorRejectionReason = {
+        rejectionReason: body.rejectionReason,
+        rejectedAt: new Date(),
+      };
+
+      const updatedDescriptor = updateDescriptorState(
+        {
+          ...descriptor,
+          rejectionReasons: [
+            ...(descriptor.rejectionReasons ?? []),
+            newRejectionReason,
+          ],
+        },
+        descriptorState.draft
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptorDelegatorRejected(
           eservice.metadata.version,
           descriptor.id,
           updatedEService,
