@@ -100,11 +100,13 @@ export function invalidTokenClientKidPurposeEntry(
 }
 
 export function keyTypeMismatch(
-  prefix: string,
+  pk:
+    | TokenGenerationStatesClientKidPurposePK
+    | TokenGenerationStatesClientKidPK,
   clientKind: ClientKindTokenStates
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Token-generation entry with prefix ${prefix} can't have client kind: ${clientKind}`,
+    detail: `Token-generation entry ${pk} can't have client kind: ${clientKind}`,
     code: "keyTypeMismatch",
     title: "Key type mismatch",
   });

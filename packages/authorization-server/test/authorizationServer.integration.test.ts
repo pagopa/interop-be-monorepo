@@ -16,8 +16,6 @@ import {
 import {
   AgreementId,
   ClientId,
-  clientKidPrefix,
-  clientKidPurposePrefix,
   clientKindTokenStates,
   EServiceId,
   GeneratedTokenAuditDetails,
@@ -190,7 +188,7 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      keyTypeMismatch(clientKidPrefix, clientKindTokenStates.consumer)
+      keyTypeMismatch(tokenClientKidEntry.PK, clientKindTokenStates.consumer)
     );
   });
 
@@ -228,7 +226,7 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      keyTypeMismatch(clientKidPurposePrefix, clientKindTokenStates.api)
+      keyTypeMismatch(tokenClientKidPurposeEntry.PK, clientKindTokenStates.api)
     );
   });
 

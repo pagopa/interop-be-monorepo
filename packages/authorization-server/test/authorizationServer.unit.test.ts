@@ -11,8 +11,6 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ClientId,
-  clientKidPrefix,
-  clientKidPurposePrefix,
   clientKindTokenStates,
   generateId,
   makeTokenGenerationStatesClientKidPK,
@@ -178,7 +176,7 @@ describe("unit tests", () => {
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPK)
       ).rejects.toThrowError(
-        keyTypeMismatch(clientKidPrefix, clientKindTokenStates.consumer)
+        keyTypeMismatch(tokenClientEntry.PK, clientKindTokenStates.consumer)
       );
     });
 
@@ -203,7 +201,7 @@ describe("unit tests", () => {
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPurposePK)
       ).rejects.toThrowError(
-        keyTypeMismatch(clientKidPurposePrefix, clientKindTokenStates.api)
+        keyTypeMismatch(tokenClientPurposeEntry.PK, clientKindTokenStates.api)
       );
     });
 

@@ -269,7 +269,7 @@ export const retrieveKey = async (
           entry.clientKind === clientKindTokenStates.consumer &&
           entry.PK.startsWith(clientKidPrefix),
         (entry) => {
-          throw keyTypeMismatch(clientKidPrefix, entry.clientKind);
+          throw keyTypeMismatch(entry.PK, entry.clientKind);
         }
       )
       .when(
@@ -277,7 +277,7 @@ export const retrieveKey = async (
           entry.clientKind === clientKindTokenStates.api &&
           entry.PK.startsWith(clientKidPurposePrefix),
         (entry) => {
-          throw keyTypeMismatch(clientKidPurposePrefix, entry.clientKind);
+          throw keyTypeMismatch(entry.PK, entry.clientKind);
         }
       )
       .when(
