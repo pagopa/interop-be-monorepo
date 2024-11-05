@@ -35,7 +35,7 @@ export type InteropJwtCommonPayload = {
 export type InteropJwtConsumerPayload = InteropJwtCommonPayload & {
   sub: string;
   [PURPOSE_ID_CLAIM]: string;
-  digest: ClientAssertionDigest;
+  digest?: ClientAssertionDigest;
 };
 
 export type InteropJwtApiPayload = InteropJwtCommonPayload & {
