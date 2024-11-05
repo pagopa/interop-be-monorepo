@@ -183,16 +183,6 @@ function extractIdsFromGSIPKConsumerIdEServiceId(
   };
 }
 
-function getIdentificationKey<T extends { PK: string } | { id: string }>(
-  obj: T
-): string {
-  if ("PK" in obj) {
-    return unsafeBrandId(obj.PK.split("#")[1]);
-  } else {
-    return obj.id;
-  }
-}
-
 export async function compareTokenGenerationReadModel(
   dynamoDBClient: DynamoDBClient,
   loggerInstance: Logger
@@ -455,9 +445,9 @@ function validatePurposeTokenGenerationStates({
 }
 
 export function zipPurposeDataById(
-  dataA: PlatformStatesPurposeEntry[],
-  dataB: TokenGenerationStatesClientPurposeEntry[],
-  dataC: Purpose[]
+  platformStates: PlatformStatesPurposeEntry[],
+  tokenStates: TokenGenerationStatesClientPurposeEntry[],
+  purposes: Purpose[]
 ): Array<
   [
     PlatformStatesPurposeEntry | undefined,
@@ -466,19 +456,25 @@ export function zipPurposeDataById(
   ]
 > {
   const allIds = new Set([
-    ...dataA.map((d) => getIdentificationKey(d)),
-    ...dataB.map((d) => extractIdsFromTokenGenerationStatesPK(d.PK).purposeId),
-    ...dataC.map((d) => getIdentificationKey(d)),
+    ...platformStates.map(
+      (platformEntry) => extractIdFromPlatformStatesPK(platformEntry.PK).id
+    ),
+    ...tokenStates.map(
+      (tokenEntry) =>
+        extractIdsFromTokenGenerationStatesPK(tokenEntry.PK).purposeId
+    ),
+    ...purposes.map((purpose) => purpose.id),
   ]);
   return Array.from(allIds).map((id) => [
-    dataA.find(
-      (d: PlatformStatesPurposeEntry) => getIdentificationKey(d) === id
+    platformStates.find(
+      (platformEntry: PlatformStatesPurposeEntry) =>
+        extractIdFromPlatformStatesPK(platformEntry.PK).id === id
     ),
-    dataB.filter(
-      (d: TokenGenerationStatesClientPurposeEntry) =>
-        extractIdsFromTokenGenerationStatesPK(d.PK).purposeId === id
+    tokenStates.filter(
+      (tokenEntry: TokenGenerationStatesClientPurposeEntry) =>
+        extractIdsFromTokenGenerationStatesPK(tokenEntry.PK).purposeId === id
     ),
-    dataC.find((d: Purpose) => getIdentificationKey(d) === id),
+    purposes.find((purpose: Purpose) => purpose.id === id),
   ]);
 }
 
@@ -676,9 +672,9 @@ function validateAgreementTokenGenerationStates({
 }
 
 export function zipAgreementDataById(
-  dataA: PlatformStatesAgreementEntry[],
-  dataB: TokenGenerationStatesClientPurposeEntry[],
-  dataC: Agreement[]
+  platformStates: PlatformStatesAgreementEntry[],
+  tokenStates: TokenGenerationStatesClientPurposeEntry[],
+  agreements: Agreement[]
 ): Array<
   [
     PlatformStatesAgreementEntry | undefined,
@@ -687,18 +683,22 @@ export function zipAgreementDataById(
   ]
 > {
   const allIds = new Set([
-    ...dataA.map((d) => getIdentificationKey(d)),
-    ...dataB.map((d) => d.agreementId),
-    ...dataC.map((d) => getIdentificationKey(d)),
+    ...platformStates.map(
+      (platformEntry) => extractIdFromPlatformStatesPK(platformEntry.PK).id
+    ),
+    ...tokenStates.map((tokenEntry) => tokenEntry.agreementId),
+    ...agreements.map((agreement) => agreement.id),
   ]);
   return Array.from(allIds).map((id) => [
-    dataA.find(
-      (d: PlatformStatesAgreementEntry) => getIdentificationKey(d) === id
+    platformStates.find(
+      (platformEntry: PlatformStatesAgreementEntry) =>
+        extractIdFromPlatformStatesPK(platformEntry.PK).id === id
     ),
-    dataB.filter(
-      (d: TokenGenerationStatesClientPurposeEntry) => d.agreementId === id
+    tokenStates.filter(
+      (tokenEntry: TokenGenerationStatesClientPurposeEntry) =>
+        tokenEntry.agreementId === id
     ),
-    dataC.find((d: Agreement) => getIdentificationKey(d) === id),
+    agreements.find((agreement: Agreement) => agreement.id === id),
   ]);
 }
 
@@ -926,9 +926,9 @@ function validateCatalogTokenGenerationStates({
 }
 
 export function zipEServiceDataById(
-  dataA: PlatformStatesCatalogEntry[],
-  dataB: TokenGenerationStatesClientPurposeEntry[],
-  dataC: EService[]
+  platformStates: PlatformStatesCatalogEntry[],
+  tokenStates: TokenGenerationStatesClientPurposeEntry[],
+  eservices: EService[]
 ): Array<
   [
     PlatformStatesCatalogEntry | undefined,
@@ -937,37 +937,41 @@ export function zipEServiceDataById(
   ]
 > {
   const allIds = new Set([
-    ...dataA.map((d) => getIdentificationKey(d)),
-    ...dataB.flatMap((d) =>
-      d.GSIPK_eserviceId_descriptorId
+    ...platformStates.map(
+      (platformEntry) => extractIdFromPlatformStatesPK(platformEntry.PK).id
+    ),
+    ...tokenStates.flatMap((tokenEntry) =>
+      tokenEntry.GSIPK_eserviceId_descriptorId
         ? [
             extractIdsFromGSIPKEServiceIdDescriptorId(
-              d.GSIPK_eserviceId_descriptorId
+              tokenEntry.GSIPK_eserviceId_descriptorId
             )?.eserviceId,
           ]
-        : d.GSIPK_consumerId_eserviceId
+        : tokenEntry.GSIPK_consumerId_eserviceId
         ? [
             extractIdsFromGSIPKConsumerIdEServiceId(
-              d.GSIPK_consumerId_eserviceId
+              tokenEntry.GSIPK_consumerId_eserviceId
             )?.eserviceId,
           ]
         : []
     ),
-    ...dataC.map((d) => getIdentificationKey(d)),
+    ...eservices.map((eservice) => eservice.id),
   ]);
   return Array.from(allIds).map((id) => [
-    dataA.find(
-      (d: PlatformStatesCatalogEntry) => getIdentificationKey(d) === id
+    platformStates.find(
+      (platformEntry: PlatformStatesCatalogEntry) =>
+        extractIdFromPlatformStatesPK(platformEntry.PK).id === id
     ),
-    dataB.filter(
-      (d: TokenGenerationStatesClientPurposeEntry) =>
+    tokenStates.filter(
+      (tokenEntry: TokenGenerationStatesClientPurposeEntry) =>
         extractIdsFromGSIPKEServiceIdDescriptorId(
-          d.GSIPK_eserviceId_descriptorId
+          tokenEntry.GSIPK_eserviceId_descriptorId
         )?.eserviceId === id ||
-        extractIdsFromGSIPKConsumerIdEServiceId(d.GSIPK_consumerId_eserviceId)
-          ?.eserviceId === id
+        extractIdsFromGSIPKConsumerIdEServiceId(
+          tokenEntry.GSIPK_consumerId_eserviceId
+        )?.eserviceId === id
     ),
-    dataC.find((d: EService) => getIdentificationKey(d) === id),
+    eservices.find((eservice: EService) => eservice.id === id),
   ]);
 }
 
@@ -1162,9 +1166,9 @@ function validateClientTokenGenerationStates({
 }
 
 export function zipClientDataById(
-  dataA: PlatformStatesClientEntry[],
-  dataB: TokenGenerationStatesGenericEntry[],
-  dataC: Client[]
+  platformStates: PlatformStatesClientEntry[],
+  tokenStates: TokenGenerationStatesGenericEntry[],
+  clients: Client[]
 ): Array<
   [
     PlatformStatesClientEntry | undefined,
@@ -1172,17 +1176,26 @@ export function zipClientDataById(
     Client | undefined
   ]
 > {
-  const allIds = new Set(
-    [...dataA, ...dataB, ...dataC].map((d) => getIdentificationKey(d))
-  );
+  const allIds = new Set([
+    ...platformStates.map(
+      (platformEntry) => extractIdFromPlatformStatesPK(platformEntry.PK).id
+    ),
+    ...tokenStates.map(
+      (tokenEntry) =>
+        extractIdsFromTokenGenerationStatesPK(tokenEntry.PK).clientId
+    ),
+    ...clients.map((client) => client.id),
+  ]);
   return Array.from(allIds).map((id) => [
-    dataA.find(
-      (d: PlatformStatesClientEntry) => getIdentificationKey(d) === id
+    platformStates.find(
+      (platformEntry: PlatformStatesClientEntry) =>
+        extractIdFromPlatformStatesPK(platformEntry.PK).id === id
     ),
-    dataB.filter(
-      (d: TokenGenerationStatesGenericEntry) => getIdentificationKey(d) === id
+    tokenStates.filter(
+      (tokenEntry: TokenGenerationStatesGenericEntry) =>
+        extractIdsFromTokenGenerationStatesPK(tokenEntry.PK).clientId === id
     ),
-    dataC.find((d: Client) => getIdentificationKey(d) === id),
+    clients.find((client: Client) => client.id === id),
   ]);
 }
 
