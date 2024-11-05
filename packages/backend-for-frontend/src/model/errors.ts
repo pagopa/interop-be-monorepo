@@ -49,6 +49,8 @@ export const errorCodes = {
   organizationNotAllowed: "0040",
   cannotGetKeyWithClient: "0041",
   clientAssertionPublicKeyNotFound: "0042",
+  eserviceDelegated: "0043",
+  delegationWithEserviceIdFound: "0044",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -424,5 +426,15 @@ export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
     detail: `Delegation ${delegationId} not found`,
     code: "delegationNotFound",
     title: "Delegation not found",
+  });
+}
+
+export function delegatedEserviceNotExportable(
+  delegatorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Impossibile to export Eservice with a valid delegation for producer ${delegatorId}`,
+    code: "delegationWithEserviceIdFound",
+    title: "EService delegated",
   });
 }
