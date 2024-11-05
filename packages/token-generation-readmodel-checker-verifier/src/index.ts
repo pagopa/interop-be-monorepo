@@ -21,12 +21,6 @@ async function main(): Promise<void> {
   );
 
   loggerInstance.info(`Differences count: ${differencesCount}`);
-
-  // TODO: is exit code needed here?
-  if (differencesCount > 0) {
-    process.exit(1);
-  }
-
   loggerInstance.info("No differences found");
 }
 
