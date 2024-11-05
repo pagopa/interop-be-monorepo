@@ -264,7 +264,7 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      clientAssertionSignatureValidationFailed(request.client_assertion)
+      clientAssertionSignatureValidationFailed(request.client_id)
     );
   });
 

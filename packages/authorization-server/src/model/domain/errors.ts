@@ -47,10 +47,10 @@ export function clientAssertionValidationFailed(
 }
 
 export function clientAssertionSignatureValidationFailed(
-  clientAssertion: string
+  clientId: string | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion signature validation failed for clientAssertion: ${clientAssertion}`,
+    detail: `Client assertion signature validation failed for client ${clientId}`,
     code: "clientAssertionSignatureValidationFailed",
     title: "Client assertion signature validation failed",
   });
