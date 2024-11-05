@@ -55,6 +55,7 @@ import {
   clientAssertionInvalidClaims,
   algorithmNotAllowed,
   clientAssertionSignatureVerificationError,
+  missingPlatformStates,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -268,6 +269,6 @@ export const validateClientKindAndPlatformState = (
         }
         return failedValidation([platformStateErrors, purposeIdError]);
       }
-      return successfulValidation(jwt);
+      return failedValidation([missingPlatformStates()]);
     })
     .exhaustive();

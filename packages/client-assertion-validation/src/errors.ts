@@ -36,6 +36,7 @@ export const errorCodes = {
   invalidKidFormat: "0033",
   clientAssertionInvalidClaims: "0034",
   invalidSignature: "0035",
+  missingPlatformStates: "0036",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -334,5 +335,13 @@ export function invalidSignature(): ApiError<ErrorCodes> {
     detail: "Client assertion signature is invalid",
     code: "invalidSignature",
     title: "Invalid signature",
+  });
+}
+
+export function missingPlatformStates(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Platform states not available for the entry",
+    code: "missingPlatformStates",
+    title: "Missing platform states",
   });
 }
