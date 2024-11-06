@@ -5,21 +5,19 @@ import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
 
-const {
-  HTTP_STATUS_INTERNAL_SERVER_ERROR,
-  HTTP_STATUS_NOT_FOUND,
-  HTTP_STATUS_TOO_MANY_REQUESTS,
-  HTTP_STATUS_BAD_REQUEST,
-} = constants;
+const { HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_BAD_REQUEST } =
+  constants;
 
 export const authorizationServerErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tokenGenerationStatesEntryNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
     .with(
+      "tokenGenerationStatesEntryNotFound",
       "clientAssertionRequestValidationFailed",
+      "clientAssertionSignatureValidationFailed",
+      "clientAssertionValidationFailed",
+      "platformStateValidationFailed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -18,7 +18,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
-import { InteropTokenGenerator } from "pagopa-interop-commons";
+import { dateToSeconds, InteropTokenGenerator } from "pagopa-interop-commons";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
 
 export const configTokenGenerationStates = inject(
@@ -57,7 +57,6 @@ const tokenGenerator = new InteropTokenGenerator(
     generatedInteropTokenIssuer: "test",
     generatedInteropTokenM2MAudience: "M2Maudience",
     generatedInteropTokenM2MDurationSeconds: 300,
-    generatedInteropTokenAlgorithm: "RS256",
   },
   mockKMSClient as unknown as KMSClient
 );
@@ -107,9 +106,9 @@ export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
     keyId: kid,
     purposeVersionId,
     jwtId: generateId(),
-    issuedAt: Math.floor(new Date().getTime() / 1000),
+    issuedAt: dateToSeconds(new Date()),
     issuer: "interop jwt issuer",
-    expirationTime: Math.floor(new Date().getTime() / 1000),
+    expirationTime: dateToSeconds(new Date()),
     organizationId: consumerId,
     notBefore: 0,
     clientAssertion: {
@@ -118,9 +117,9 @@ export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
       algorithm: "RS256",
       keyId: kid,
       jwtId: clientAssertionJti,
-      issuedAt: Math.floor(new Date().getTime() / 1000),
+      issuedAt: dateToSeconds(new Date()),
       issuer: consumerId,
-      expirationTime: Math.floor(new Date().getTime() / 1000),
+      expirationTime: dateToSeconds(new Date()),
     },
   };
 };

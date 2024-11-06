@@ -1,6 +1,7 @@
 import { generateAuthToken } from "aws-msk-iam-sasl-signer-js";
 import {
   Consumer,
+  ConsumerRunConfig,
   EachBatchPayload,
   EachMessagePayload,
   Kafka,
@@ -121,15 +122,6 @@ const kafkaCommitBatchOffsets = async (
   await consumer.commitOffsets([
     { topic, partition, offset: (Number(lastOffset) + 1).toString() },
   ]);
-
-  // alternatively
-  // await consumer.commitOffsets(
-  //   payload.batch.messages.map((message) => ({
-  //     topic,
-  //     partition,
-  //     offset: (Number(message.offset) + 1).toString(),
-  //   }))
-  // );
 
   genericLogger.debug(
     `Topic message offset ${Number(lastOffset) + 1} committed`
@@ -255,11 +247,17 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
   });
 };
 
-const initConsumer = async (
-  config: KafkaConsumerConfig,
-  topics: string[],
-  consumerHandler: (payload: EachMessagePayload) => Promise<void>
-): Promise<Consumer> => {
+const initCustomConsumer = async ({
+  config,
+  topics,
+  consumerRunConfig,
+  batchConfig,
+}: {
+  config: KafkaConsumerConfig;
+  topics: string[];
+  consumerRunConfig: (consumer: Consumer) => ConsumerRunConfig;
+  batchConfig?: { minBytes: number; maxWaitTimeInMs: number };
+}): Promise<Consumer> => {
   genericLogger.debug(
     `Consumer connecting to topics ${JSON.stringify(topics)}`
   );
@@ -277,6 +275,7 @@ const initConsumer = async (
         return Promise.resolve(false);
       },
     },
+    ...batchConfig,
   });
 
   if (config.resetConsumerOffsets) {
@@ -301,91 +300,7 @@ const initConsumer = async (
 
   genericLogger.info(`Consumer subscribed topic ${topics}`);
 
-  await consumer.run({
-    autoCommit: false,
-    eachMessage: async (payload: EachMessagePayload) => {
-      try {
-        await consumerHandler(payload);
-        await kafkaCommitMessageOffsets(consumer, payload);
-      } catch (e) {
-        throw kafkaMessageProcessError(
-          payload.topic,
-          payload.partition,
-          payload.message.offset,
-          e
-        );
-      }
-    },
-  });
-
-  return consumer;
-};
-
-const initBatchConsumer = async (
-  config: KafkaBatchConsumerConfig,
-  topics: string[],
-  consumerHandler: (payload: EachBatchPayload) => Promise<void>
-): Promise<Consumer> => {
-  genericLogger.debug(
-    `Consumer connecting to topics ${JSON.stringify(topics)}`
-  );
-
-  const kafka = initKafka(config);
-
-  const consumer = kafka.consumer({
-    groupId: config.kafkaGroupId,
-    retry: {
-      initialRetryTime: 100,
-      maxRetryTime: 3000,
-      retries: 3,
-      restartOnFailure: (error) => {
-        genericLogger.error(`Error during restart service: ${error.message}`);
-        return Promise.resolve(false);
-      },
-    },
-    minBytes: config.minBytesKafkaBatch,
-    maxWaitTimeInMs: config.maxWaitKafkaBatch,
-  });
-
-  if (config.resetConsumerOffsets) {
-    await resetPartitionsOffsets(topics, kafka, consumer);
-  }
-
-  consumerKafkaEventsListener(consumer);
-  errorEventsListener(consumer);
-
-  await consumer.connect();
-  genericLogger.debug("Consumer connected");
-
-  const topicExists = await validateTopicMetadata(kafka, topics);
-  if (!topicExists) {
-    processExit();
-  }
-
-  await consumer.subscribe({
-    topics,
-    fromBeginning: config.topicStartingOffset === "earliest",
-  });
-
-  genericLogger.info(`Consumer subscribed topic ${topics}`);
-
-  await consumer.run({
-    autoCommit: false,
-    eachBatch: async (payload: EachBatchPayload) => {
-      try {
-        await consumerHandler(payload);
-        await kafkaCommitBatchOffsets(consumer, payload);
-      } catch (e) {
-        throw kafkaMessageProcessError(
-          payload.batch.topic,
-          payload.batch.partition,
-          payload.batch.lastOffset.toString(),
-          e
-        );
-      }
-    },
-  });
-
+  await consumer.run(consumerRunConfig(consumer));
   return consumer;
 };
 
@@ -457,7 +372,23 @@ export const runConsumer = async (
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
 ): Promise<void> => {
   try {
-    await initConsumer(config, topics, consumerHandler);
+    const consumerRunConfig = (consumer: Consumer): ConsumerRunConfig => ({
+      autoCommit: false,
+      eachMessage: async (payload: EachMessagePayload): Promise<void> => {
+        try {
+          await consumerHandler(payload);
+          await kafkaCommitMessageOffsets(consumer, payload);
+        } catch (e) {
+          throw kafkaMessageProcessError(
+            payload.topic,
+            payload.partition,
+            payload.message.offset,
+            e
+          );
+        }
+      },
+    });
+    await initCustomConsumer({ config, topics, consumerRunConfig });
   } catch (e) {
     genericLogger.error(
       `Generic error occurs during consumer initialization: ${e}`
@@ -469,10 +400,35 @@ export const runConsumer = async (
 export const runBatchConsumer = async (
   config: KafkaBatchConsumerConfig,
   topics: string[],
-  consumerHandler: (messagePayload: EachBatchPayload) => Promise<void>
+  consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>
 ): Promise<void> => {
   try {
-    await initBatchConsumer(config, topics, consumerHandler);
+    const consumerRunConfig = (consumer: Consumer): ConsumerRunConfig => ({
+      autoCommit: false,
+      eachBatch: async (payload: EachBatchPayload): Promise<void> => {
+        try {
+          await consumerHandlerBatch(payload);
+          await kafkaCommitBatchOffsets(consumer, payload);
+        } catch (e) {
+          throw kafkaMessageProcessError(
+            payload.batch.topic,
+            payload.batch.partition,
+            payload.batch.lastOffset.toString(),
+            e
+          );
+        }
+      },
+    });
+    await initCustomConsumer({
+      config,
+      topics,
+      consumerRunConfig,
+      batchConfig: {
+        minBytes:
+          config.averageKafkaMessageSizeInBytes * config.messagesToReadPerBatch,
+        maxWaitTimeInMs: config.maxWaitKafkaBatchMillis,
+      },
+    });
   } catch (e) {
     genericLogger.error(
       `Generic error occurs during consumer initialization: ${e}`

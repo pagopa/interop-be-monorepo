@@ -16,13 +16,13 @@ import { match } from "ts-pattern";
 import {
   agreementStateToItemState,
   deleteAgreementEntry,
-  isAgreementTheLatest as isLatestAgreement,
   readAgreementEntry,
   readCatalogEntry,
   updateAgreementStateInPlatformStatesEntry,
   updateAgreementStateOnTokenStates,
   updateAgreementStateAndDescriptorInfoOnTokenStates,
   writeAgreementEntry,
+  isLatestAgreement,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -56,6 +56,11 @@ export async function handleMessageV2(
           );
         }
       } else {
+        if (!agreement.stamps.activation) {
+          throw genericInternalError(
+            "An activated agreement should have activation stamp"
+          );
+        }
         const agreementEntry: PlatformStatesAgreementEntry = {
           PK: primaryKey,
           state: agreementStateToItemState(agreement.state),
@@ -63,36 +68,43 @@ export async function handleMessageV2(
           updatedAt: new Date().toISOString(),
           GSIPK_consumerId_eserviceId,
           GSISK_agreementTimestamp:
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            agreement.stamps.activation!.when.toISOString(),
+            agreement.stamps.activation.when.toISOString(),
           agreementDescriptorId: agreement.descriptorId,
         };
 
         await writeAgreementEntry(agreementEntry, dynamoDBClient);
       }
 
-      const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: agreement.eserviceId,
-        descriptorId: agreement.descriptorId,
-      });
-      const catalogEntry = await readCatalogEntry(
-        pkCatalogEntry,
-        dynamoDBClient
-      );
+      if (
+        await isLatestAgreement(
+          GSIPK_consumerId_eserviceId,
+          agreement.id,
+          dynamoDBClient
+        )
+      ) {
+        const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: agreement.eserviceId,
+          descriptorId: agreement.descriptorId,
+        });
+        const catalogEntry = await readCatalogEntry(
+          pkCatalogEntry,
+          dynamoDBClient
+        );
 
-      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-        eserviceId: agreement.eserviceId,
-        descriptorId: agreement.descriptorId,
-      });
+        const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: agreement.eserviceId,
+          descriptorId: agreement.descriptorId,
+        });
 
-      // token-generation-states
-      await updateAgreementStateAndDescriptorInfoOnTokenStates({
-        GSIPK_consumerId_eserviceId,
-        agreementState: agreement.state,
-        dynamoDBClient,
-        GSIPK_eserviceId_descriptorId,
-        catalogEntry,
-      });
+        // token-generation-states
+        await updateAgreementStateAndDescriptorInfoOnTokenStates({
+          GSIPK_consumerId_eserviceId,
+          agreementState: agreement.state,
+          dynamoDBClient,
+          GSIPK_eserviceId_descriptorId,
+          catalogEntry,
+        });
+      }
     })
     .with(
       { type: "AgreementUnsuspendedByProducer" },
@@ -154,14 +166,6 @@ export async function handleMessageV2(
         eserviceId: agreement.eserviceId,
         descriptorId: agreement.descriptorId,
       });
-      const catalogEntry = await readCatalogEntry(
-        pkCatalogEntry,
-        dynamoDBClient
-      );
-      if (!catalogEntry) {
-        // TODO double-check
-        throw genericInternalError("Catalog entry not found");
-      }
 
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: agreement.consumerId,
@@ -180,6 +184,11 @@ export async function handleMessageV2(
           );
         }
       } else {
+        if (!agreement.stamps.activation) {
+          throw genericInternalError(
+            "An activated agreement should have activation stamp"
+          );
+        }
         const newAgreementEntry: PlatformStatesAgreementEntry = {
           PK: primaryKey,
           state: agreementStateToItemState(agreement.state),
@@ -187,8 +196,7 @@ export async function handleMessageV2(
           updatedAt: new Date().toISOString(),
           GSIPK_consumerId_eserviceId,
           GSISK_agreementTimestamp:
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            agreement.stamps.activation!.when.toISOString(),
+            agreement.stamps.activation.when.toISOString(),
           agreementDescriptorId: agreement.descriptorId,
         };
 
@@ -196,7 +204,7 @@ export async function handleMessageV2(
       }
 
       const updateLatestAgreementOnTokenStates = async (
-        catalogEntry: PlatformStatesCatalogEntry
+        catalogEntry: PlatformStatesCatalogEntry | undefined
       ): Promise<void> => {
         if (
           await isLatestAgreement(
@@ -223,17 +231,22 @@ export async function handleMessageV2(
         }
       };
 
+      const catalogEntry = await readCatalogEntry(
+        pkCatalogEntry,
+        dynamoDBClient
+      );
+
       await updateLatestAgreementOnTokenStates(catalogEntry);
 
       const updatedCatalogEntry = await readCatalogEntry(
         pkCatalogEntry,
         dynamoDBClient
       );
-      if (!updatedCatalogEntry) {
-        // TODO double-check
-        throw genericInternalError("Catalog entry not found");
-      }
-      if (updatedCatalogEntry.state !== catalogEntry.state) {
+
+      if (
+        updatedCatalogEntry &&
+        (!catalogEntry || updatedCatalogEntry.state !== catalogEntry.state)
+      ) {
         await updateLatestAgreementOnTokenStates(updatedCatalogEntry);
       }
     })
