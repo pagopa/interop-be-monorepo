@@ -69,72 +69,71 @@ import { mockPurposeRouterRequest } from "./supertestSetup.js";
 describe("activatePurposeVersion", () => {
 
 
-  const mockConsumer: Tenant = {
-    ...getMockTenant(),
-    kind: "PA",
-  };
+  let mockConsumer: Tenant;
+  let mockProducer: Tenant;
+  let mockEService: EService;
+  let mockAgreement: Agreement;
+  let mockPurpose: Purpose;
+  let mockPurposeVersion: PurposeVersion;
+  let mockEServiceDescriptor: Descriptor;
 
-  const mockProducer: Tenant = {
-    ...getMockTenant(),
-    kind: "PA",
-  };
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
 
-  const mockEServiceDescriptor: Descriptor = {
-    ...getMockDescriptorPublished(),
-    dailyCallsPerConsumer: 20,
-  };
+    mockConsumer = {
+      ...getMockTenant(),
+      kind: "PA",
+    };
 
-  const mockEService: EService = {
-    ...getMockEService(),
-    producerId: mockProducer.id,
-    descriptors: [mockEServiceDescriptor],
-  };
+    mockProducer = {
+      ...getMockTenant(),
+      kind: "PA",
+    };
 
-  const mockAgreement: Agreement = {
-    ...getMockAgreement(),
-    eserviceId: mockEService.id,
-    consumerId: mockConsumer.id,
-    descriptorId: mockEService.descriptors[0].id,
-    state: agreementState.active,
-  };
+    mockEServiceDescriptor = {
+      ...getMockDescriptorPublished(),
+      dailyCallsPerConsumer: 20,
+    };
 
-  const mockPurposeVersion: PurposeVersion = {
-    ...getMockPurposeVersion(),
-    state: purposeVersionState.waitingForApproval,
-  };
+    mockEService = {
+      ...getMockEService(),
+      producerId: mockProducer.id,
+      descriptors: [mockEServiceDescriptor],
+    };
 
-  const mockPurpose: Purpose = {
-    ...getMockPurpose(),
-    riskAnalysisForm: getMockValidRiskAnalysisForm("PA"),
-    consumerId: mockAgreement.consumerId,
-    eserviceId: mockEService.id,
-    versions: [mockPurposeVersion],
-  };
+    mockAgreement = {
+      ...getMockAgreement(),
+      eserviceId: mockEService.id,
+      consumerId: mockConsumer.id,
+      descriptorId: mockEService.descriptors[0].id,
+      state: agreementState.active,
+    };
 
-  // beforeAll(() => {
-  //   vi.useFakeTimers();
-  //   vi.setSystemTime(new Date());
+    mockPurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.waitingForApproval,
+    };
 
-  // });
+    mockPurpose = {
+      ...getMockPurpose(),
+      riskAnalysisForm: getMockValidRiskAnalysisForm("PA"),
+      consumerId: mockAgreement.consumerId,
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+    };
+  });
 
-  // afterAll(() => {
-  //   vi.useRealTimers();
-  // });
+  afterAll(() => {
+    vi.useRealTimers();
+  });
 
-  it.only("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
+  it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
-
-    // const purposeVersion = await purposeService.activatePurposeVersion({
-    //   purposeId: mockPurpose.id,
-    //   versionId: mockPurposeVersion.id,
-    //   organizationId: mockProducer.id,
-    //   correlationId: generateId(),
-    //   logger: genericLogger,
-    // });
 
     const purposeVersion = await mockPurposeRouterRequest.post({
       path: "/purposes/:purposeId/versions/:versionId/activate",
@@ -190,14 +189,6 @@ describe("activatePurposeVersion", () => {
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
-
-    // const purposeVersion = await purposeService.activatePurposeVersion({
-    //   purposeId: mockPurpose.id,
-    //   versionId: mockPurposeVersion.id,
-    //   organizationId: mockConsumer.id,
-    //   correlationId: generateId(),
-    //   logger: genericLogger,
-    // });
 
     const purposeVersion = await mockPurposeRouterRequest.post({
       path: "/purposes/:purposeId/versions/:versionId/activate",
@@ -256,14 +247,6 @@ describe("activatePurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
-    // const purposeVersion = await purposeService.activatePurposeVersion({
-    //   purposeId: mockPurpose.id,
-    //   versionId: mockPurposeVersion.id,
-    //   organizationId: mockProducer.id,
-    //   correlationId: generateId(),
-    //   logger: genericLogger,
-    // });
-
     const purposeVersion = await mockPurposeRouterRequest.post({
       path: "/purposes/:purposeId/versions/:versionId/activate",
       pathParams: {
@@ -321,14 +304,6 @@ describe("activatePurposeVersion", () => {
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
-
-    // const purposeVersion = await purposeService.activatePurposeVersion({
-    //   purposeId: mockPurpose.id,
-    //   versionId: mockPurposeVersion.id,
-    //   organizationId: mockConsumer.id,
-    //   correlationId: generateId(),
-    //   logger: genericLogger,
-    // });
 
     const purposeVersion = await mockPurposeRouterRequest.post({
       path: "/purposes/:purposeId/versions/:versionId/activate",
@@ -391,13 +366,6 @@ describe("activatePurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
-    // const purposeVersion = await purposeService.activatePurposeVersion({
-    //   purposeId: mockPurpose.id,
-    //   versionId: mockPurposeVersion.id,
-    //   organizationId: mockConsumer.id,
-    //   correlationId: generateId(),
-    //   logger: genericLogger,
-    // });
 
     const purposeVersion = await mockPurposeRouterRequest.post({
       path: "/purposes/:purposeId/versions/:versionId/activate",
@@ -455,13 +423,6 @@ describe("activatePurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
-    // const purposeVersion = await purposeService.activatePurposeVersion({
-    //   purposeId: mockPurpose.id,
-    //   versionId: mockPurposeVersion.id,
-    //   organizationId: mockConsumer.id,
-    //   correlationId: generateId(),
-    //   logger: genericLogger,
-    // });
 
     const purposeVersion = await mockPurposeRouterRequest.post({
       path: "/purposes/:purposeId/versions/:versionId/activate",
@@ -514,14 +475,6 @@ describe("activatePurposeVersion", () => {
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
-
-    // const purposeVersion = await purposeService.activatePurposeVersion({
-    //   purposeId: mockPurpose.id,
-    //   versionId: mockPurposeVersion.id,
-    //   organizationId: mockConsumer.id,
-    //   correlationId: generateId(),
-    //   logger: genericLogger,
-    // });
 
     const purposeVersion = await mockPurposeRouterRequest.post({
       path: "/purposes/:purposeId/versions/:versionId/activate",
@@ -583,7 +536,7 @@ describe("activatePurposeVersion", () => {
     }).rejects.toThrowError(organizationIsNotTheProducer(mockConsumer.id));
   });
 
-  it("should organizationIsNotTheConsumer if the caller is the producer trying to activate a draft purpose version", async () => {
+  it("should throw organizationIsNotTheConsumer if the caller is the producer trying to activate a draft purpose version", async () => {
     const purposeVersion: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,

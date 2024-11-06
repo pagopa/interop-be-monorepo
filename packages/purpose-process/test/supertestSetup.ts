@@ -4,14 +4,15 @@ import {
 } from "pagopa-interop-commons-test";
 import { inject, vi } from "vitest";
 import { purposeApi } from "pagopa-interop-api-clients";
-import { DB } from "pagopa-interop-commons";
-import { postgresDB } from "./utils.js";
+import { DB, FileManager } from "pagopa-interop-commons";
+import { fileManager, postgresDB } from "./utils.js";
 
 vi.mock("pagopa-interop-commons", async (importActual) => {
   const actual = await importActual<typeof import("pagopa-interop-commons")>();
   return {
     ...actual,
     initDB: (): DB => postgresDB,
+    initFileManager: (): FileManager => fileManager,
     authenticationMiddleware: mockAuthenticationMiddleware,
   };
 });
