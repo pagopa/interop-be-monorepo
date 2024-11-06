@@ -16,7 +16,7 @@ const AnacCertifiedAttributesImporterConfig = LoggerConfig.and(
     z
       .object({
         TENANT_PROCESS_URL: APIEndpoint,
-        RECORDS_PROCESS_BATCH_SIZE: z.number(),
+        RECORDS_PROCESS_BATCH_SIZE: z.coerce.number(),
         ANAC_TENANT_ID: z.string(),
       })
       .transform((c) => ({
