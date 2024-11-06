@@ -29,7 +29,9 @@ export class SftpClient {
 
     logger.info(`Loading file ${fileName}`);
 
-    const file = await sftpClient.get(this.config.folderPath + fileName);
+    const file = await sftpClient.get(
+      [this.config.folderPath, fileName].join("/")
+    );
 
     await sftpClient.end();
 
