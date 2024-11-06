@@ -14,11 +14,10 @@ export const errorCodes = {
   kafkaAuditingFailed: "0004",
   fallbackAuditFailed: "0005",
   tokenGenerationStatesEntryNotFound: "0006",
-  keyRetrievalFailed: "0007",
-  invalidTokenClientKidPurposeEntry: "0008",
-  keyTypeMismatch: "0009",
-  unexpectedTokenGenerationStatesEntry: "0010",
-  platformStateValidationFailed: "0011",
+  invalidTokenClientKidPurposeEntry: "0007",
+  keyTypeMismatch: "0008",
+  unexpectedTokenGenerationStatesEntry: "0009",
+  platformStateValidationFailed: "0010",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -78,14 +77,6 @@ export function tokenGenerationStatesEntryNotFound(
     detail: `Entry with PK ${pk} not found in token-generation-states table`,
     code: "tokenGenerationStatesEntryNotFound",
     title: "token-generation-states entry not found",
-  });
-}
-
-export function keyRetrievalFailed(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: "Key retrieval failed",
-    code: "keyRetrievalFailed",
-    title: "Key retrieval failed",
   });
 }
 

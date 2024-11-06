@@ -223,8 +223,6 @@ export const retrieveKey = async (
     TableName: config.tokenGenerationStatesTable,
   };
 
-  // try {
-  // TODO should we use try/catch in every dynamoDB query?
   const command = new GetItemCommand(input);
   const data: GetItemCommandOutput = await dynamoDBClient.send(command);
 
@@ -297,11 +295,6 @@ export const retrieveKey = async (
         );
       });
   }
-  // } catch (error) {
-  //   // error handling.
-  //   // TODO Handle both dynamodb errors and throw error for empty public key
-  //   throw keyRetrievalFailed();
-  // }
 };
 
 export const publishAudit = async ({
