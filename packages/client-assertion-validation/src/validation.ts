@@ -4,6 +4,9 @@ import {
   clientKindTokenStates,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
+  ClientAssertion,
+  ClientAssertionHeader,
+  ClientAssertionPayload,
 } from "pagopa-interop-models";
 import * as jose from "jose";
 import {
@@ -35,9 +38,6 @@ import {
 } from "./utils.js";
 import {
   Base64Encoded,
-  ClientAssertion,
-  ClientAssertionHeader,
-  ClientAssertionPayload,
   ClientAssertionValidationRequest,
   ValidationResult,
 } from "./types.js";
@@ -55,6 +55,7 @@ import {
   clientAssertionInvalidClaims,
   algorithmNotAllowed,
   clientAssertionSignatureVerificationError,
+  missingPlatformStates,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -189,11 +190,11 @@ export const verifyClientAssertionSignature = async (
   key:
     | TokenGenerationStatesClientPurposeEntry
     | TokenGenerationStatesClientEntry,
-  algorithm: string
+  clientAssertionAlgorithm: string
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
-    if (algorithm !== ALLOWED_ALGORITHM) {
-      return failedValidation([algorithmNotAllowed(algorithm)]);
+    if (clientAssertionAlgorithm !== ALLOWED_ALGORITHM) {
+      return failedValidation([algorithmNotAllowed(clientAssertionAlgorithm)]);
     }
 
     if (!Base64Encoded.safeParse(key.publicKey).success) {
@@ -216,7 +217,7 @@ export const verifyClientAssertionSignature = async (
     const publicKey = createPublicKey(key.publicKey);
 
     const result = await jose.jwtVerify(clientAssertionJws, publicKey, {
-      algorithms: [algorithm],
+      algorithms: [clientAssertionAlgorithm],
     });
 
     return successfulValidation(result.payload);
@@ -268,6 +269,6 @@ export const validateClientKindAndPlatformState = (
         }
         return failedValidation([platformStateErrors, purposeIdError]);
       }
-      return successfulValidation(jwt);
+      return failedValidation([missingPlatformStates()]);
     })
     .exhaustive();

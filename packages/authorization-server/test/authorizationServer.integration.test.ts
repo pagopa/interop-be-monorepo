@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import crypto from "crypto";
 import { fail } from "assert";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -16,8 +17,6 @@ import {
 import {
   AgreementId,
   ClientId,
-  clientKidPrefix,
-  clientKidPurposePrefix,
   clientKindTokenStates,
   EServiceId,
   GeneratedTokenAuditDetails,
@@ -35,7 +34,6 @@ import {
 } from "pagopa-interop-models";
 import { formatDateyyyyMMdd, genericLogger } from "pagopa-interop-commons";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
-import * as uuidv4 from "uuid";
 import { config } from "../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -47,6 +45,7 @@ import {
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
+import { inactiveEService } from "../../client-assertion-validation/dist/errors.js";
 import {
   configTokenGenerationStates,
   dynamoDBClient,
@@ -84,7 +83,7 @@ describe("authorization server tests", () => {
     };
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(clientAssertionRequestValidationFailed(request));
+    ).rejects.toThrowError(clientAssertionRequestValidationFailed(clientId));
   });
 
   it("should throw clientAssertionValidationFailed", async () => {
@@ -100,7 +99,7 @@ describe("authorization server tests", () => {
     };
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(clientAssertionValidationFailed(jws, clientId));
+    ).rejects.toThrowError(clientAssertionValidationFailed(clientId));
   });
 
   it("should throw tokenGenerationStatesEntryNotFound", async () => {
@@ -158,7 +157,9 @@ describe("authorization server tests", () => {
     await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(invalidTokenClientKidPurposeEntry());
+    ).rejects.toThrowError(
+      invalidTokenClientKidPurposeEntry(tokenClientPurposeEntry.PK)
+    );
   });
 
   it("should throw keyTypeMismatch - clientKid entry with consumer kind", async () => {
@@ -188,7 +189,7 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      keyTypeMismatch(clientKidPrefix, clientKindTokenStates.consumer)
+      keyTypeMismatch(tokenClientKidEntry.PK, clientKindTokenStates.consumer)
     );
   });
 
@@ -226,7 +227,7 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      keyTypeMismatch(clientKidPurposePrefix, clientKindTokenStates.api)
+      keyTypeMismatch(tokenClientKidPurposeEntry.PK, clientKindTokenStates.api)
     );
   });
 
@@ -264,7 +265,7 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      clientAssertionSignatureValidationFailed(request.client_assertion)
+      clientAssertionSignatureValidationFailed(request.client_id)
     );
   });
 
@@ -303,7 +304,9 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(platformStateValidationFailed());
+    ).rejects.toThrowError(
+      platformStateValidationFailed([inactiveEService().detail])
+    );
   });
 
   it("should block the request because of the rate limiter", async () => {
@@ -369,8 +372,8 @@ describe("authorization server tests", () => {
   });
 
   it("should throw error during token signing - consumer key", async () => {
-    const uuid = generateId();
-    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    const uuid = crypto.randomUUID();
+    const uuidSpy = vi.spyOn(crypto, "randomUUID");
     uuidSpy.mockReturnValue(uuid);
 
     mockKMSClient.send.mockImplementationOnce(() =>
@@ -417,8 +420,8 @@ describe("authorization server tests", () => {
   });
 
   it("should throw tokenSigningFailed - api key", async () => {
-    const uuid = generateId();
-    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    const uuid = crypto.randomUUID();
+    const uuidSpy = vi.spyOn(crypto, "randomUUID");
     uuidSpy.mockReturnValue(uuid);
 
     mockKMSClient.send.mockImplementationOnce(() =>
@@ -459,8 +462,8 @@ describe("authorization server tests", () => {
   });
 
   it("should throw fallbackAuditFailed - consumer key - kafka audit failed and fallback audit failed", async () => {
-    const uuid = generateId();
-    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    const uuid = crypto.randomUUID();
+    const uuidSpy = vi.spyOn(crypto, "randomUUID");
     uuidSpy.mockReturnValue(uuid);
 
     mockProducer.send.mockImplementationOnce(async () => Promise.reject());
@@ -501,7 +504,7 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(fallbackAuditFailed(uuid));
+    ).rejects.toThrowError(fallbackAuditFailed(clientId));
   });
 
   it("should succeed - consumer key - kafka audit failed and fallback audit succeeded", async () => {
@@ -544,13 +547,14 @@ describe("authorization server tests", () => {
     );
     expect(fileListBeforeAudit).toHaveLength(0);
 
-    const uuid = generateId();
-    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    const uuid = crypto.randomUUID();
+    const uuidSpy = vi.spyOn(crypto, "randomUUID");
     uuidSpy.mockReturnValue(uuid);
 
+    const correlationId = generateId();
     const response = await tokenService.generateToken(
       request,
-      generateId(),
+      correlationId,
       genericLogger
     );
 
@@ -577,7 +581,7 @@ describe("authorization server tests", () => {
 
     const expectedMessageBody: GeneratedTokenAuditDetails = {
       jwtId: generateId(),
-      correlationId: generateId(),
+      correlationId,
       issuedAt: parsedDecodedFileContent.issuedAt,
       clientId,
       organizationId: tokenClientKidPurposeEntry.consumerId,
@@ -601,12 +605,7 @@ describe("authorization server tests", () => {
       issuer: config.generatedInteropTokenIssuer,
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
-        // TODO: improve typeof
-        audience: !clientAssertion.payload.aud
-          ? ""
-          : typeof clientAssertion.payload.aud === "string"
-          ? clientAssertion.payload.aud
-          : clientAssertion.payload.aud.join(","),
+        audience: [clientAssertion.payload.aud].flat().join(","),
         expirationTime: clientAssertion.payload.exp!,
         issuedAt: clientAssertion.payload.iat!,
         issuer: clientAssertion.payload.iss!,
@@ -678,13 +677,14 @@ describe("authorization server tests", () => {
       client_id: clientId,
     };
 
-    const uuid = generateId();
-    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    const uuid = crypto.randomUUID();
+    const uuidSpy = vi.spyOn(crypto, "randomUUID");
     uuidSpy.mockReturnValue(uuid);
 
+    const correlationId = generateId();
     const result = await tokenService.generateToken(
       request,
-      generateId(),
+      correlationId,
       genericLogger
     );
 
@@ -712,7 +712,7 @@ describe("authorization server tests", () => {
 
     const expectedMessageBody: GeneratedTokenAuditDetails = {
       jwtId: generateId(),
-      correlationId: generateId(),
+      correlationId,
       issuedAt: parsedAuditSent.issuedAt,
       clientId,
       organizationId: tokenClientPurposeEntry.consumerId,
@@ -736,12 +736,7 @@ describe("authorization server tests", () => {
       issuer: config.generatedInteropTokenIssuer,
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
-        // TODO: improve typeof
-        audience: !clientAssertion.payload.aud
-          ? ""
-          : typeof clientAssertion.payload.aud === "string"
-          ? clientAssertion.payload.aud
-          : clientAssertion.payload.aud.join(","),
+        audience: [clientAssertion.payload.aud].flat().join(","),
         expirationTime: clientAssertion.payload.exp!,
         issuedAt: clientAssertion.payload.iat!,
         issuer: clientAssertion.payload.iss!,

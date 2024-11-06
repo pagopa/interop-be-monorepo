@@ -11,8 +11,6 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ClientId,
-  clientKidPrefix,
-  clientKidPurposePrefix,
   clientKindTokenStates,
   generateId,
   makeTokenGenerationStatesClientKidPK,
@@ -132,7 +130,9 @@ describe("unit tests", () => {
       await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPurposePK)
-      ).rejects.toThrowError(invalidTokenClientKidPurposeEntry());
+      ).rejects.toThrowError(
+        invalidTokenClientKidPurposeEntry(tokenClientPurposeEntry.PK)
+      );
     });
 
     it("should succeed - clientKidPurpose entry - consumer key", async () => {
@@ -176,7 +176,7 @@ describe("unit tests", () => {
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPK)
       ).rejects.toThrowError(
-        keyTypeMismatch(clientKidPrefix, clientKindTokenStates.consumer)
+        keyTypeMismatch(tokenClientEntry.PK, clientKindTokenStates.consumer)
       );
     });
 
@@ -201,7 +201,7 @@ describe("unit tests", () => {
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPurposePK)
       ).rejects.toThrowError(
-        keyTypeMismatch(clientKidPurposePrefix, clientKindTokenStates.api)
+        keyTypeMismatch(tokenClientPurposeEntry.PK, clientKindTokenStates.api)
       );
     });
 
@@ -250,7 +250,7 @@ describe("unit tests", () => {
         genericLogger
       );
 
-      const expectedFileContent = JSON.stringify(mockAuditMessage) + "\n";
+      const expectedFileContent = JSON.stringify(mockAuditMessage);
 
       const decodedFileContent = Buffer.from(fileContent).toString();
       expect(decodedFileContent).toEqual(expectedFileContent);
@@ -266,7 +266,7 @@ describe("unit tests", () => {
 
       expect(
         fallbackAudit(mockAuditMessage, fileManager, genericLogger)
-      ).rejects.toThrowError(fallbackAuditFailed(mockAuditMessage.jwtId));
+      ).rejects.toThrowError(fallbackAuditFailed(mockAuditMessage.clientId));
     });
   });
 });

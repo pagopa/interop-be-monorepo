@@ -5,6 +5,7 @@ import {
   generateId,
   PurposeId,
   TenantId,
+  ClientAssertionDigest,
 } from "pagopa-interop-models";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
@@ -144,7 +145,6 @@ export class InteropTokenGenerator {
     consumerId: TenantId;
   }): Promise<InteropApiToken> {
     if (
-      !this.config.generatedInteropTokenAlgorithm ||
       !this.config.generatedInteropTokenKid ||
       !this.config.generatedInteropTokenIssuer ||
       !this.config.generatedInteropTokenM2MAudience ||
@@ -158,7 +158,7 @@ export class InteropTokenGenerator {
     const currentTimestamp = Date.now();
 
     const header: InteropJwtHeader = {
-      alg: this.config.generatedInteropTokenAlgorithm,
+      alg: "RS256",
       use: "sig",
       typ: "at+jwt",
       kid: this.config.generatedInteropTokenKid,
@@ -196,14 +196,15 @@ export class InteropTokenGenerator {
     audience,
     purposeId,
     tokenDurationInSeconds,
+    digest,
   }: {
     sub: ClientId;
     audience: string[];
     purposeId: PurposeId;
     tokenDurationInSeconds: number;
+    digest: ClientAssertionDigest | undefined;
   }): Promise<InteropConsumerToken> {
     if (
-      !this.config.generatedInteropTokenAlgorithm ||
       !this.config.generatedInteropTokenKid ||
       !this.config.generatedInteropTokenIssuer ||
       !this.config.generatedInteropTokenM2MAudience
@@ -216,7 +217,7 @@ export class InteropTokenGenerator {
     const currentTimestamp = Date.now();
 
     const header: InteropJwtHeader = {
-      alg: this.config.generatedInteropTokenAlgorithm,
+      alg: "RS256",
       use: "sig",
       typ: "at+jwt",
       kid: this.config.generatedInteropTokenKid,
@@ -231,6 +232,7 @@ export class InteropTokenGenerator {
       nbf: currentTimestamp,
       exp: currentTimestamp + tokenDurationInSeconds,
       purposeId,
+      ...(digest ? { digest } : {}),
     };
 
     const serializedToken = await this.createAndSignToken({
