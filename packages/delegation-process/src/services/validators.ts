@@ -13,6 +13,7 @@ import {
   delegationNotRevokable,
   delegatorAndDelegateSameIdError,
   delegatorNotAllowToRevoke,
+  differentEServiceProducer,
   eserviceNotFound,
   incorrectState,
   invalidExternalOriginError,
@@ -34,12 +35,17 @@ export const activeDelegationStates: DelegationState[] = [
 ];
 
 export const assertEserviceExists = async (
+  delegatorId: TenantId,
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<void> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
     throw eserviceNotFound(eserviceId);
+  }
+
+  if (eservice.data.producerId !== delegatorId) {
+    throw differentEServiceProducer(delegatorId);
   }
 };
 
@@ -97,29 +103,21 @@ export const assertDelegationIsRevokable = (
 
 export const assertDelegationNotExists = async (
   delegator: Tenant,
-  delegate: Tenant,
   eserviceId: EServiceId,
   delegationKind: DelegationKind,
   readModelService: ReadModelService
 ): Promise<void> => {
   const delegatorId = delegator.id;
-  const delegateId = delegate.id;
 
   const delegations = await readModelService.findDelegations({
     delegatorId,
-    delegateId,
     eserviceId,
     delegationKind,
     states: [delegationState.active, delegationState.waitingForApproval],
   });
 
   if (delegations.length > 0) {
-    throw delegationAlreadyExists(
-      delegatorId,
-      delegateId,
-      eserviceId,
-      delegationKind
-    );
+    throw delegationAlreadyExists(delegatorId, eserviceId, delegationKind);
   }
 };
 

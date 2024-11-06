@@ -50,7 +50,7 @@ export const errorCodes = {
   cannotGetKeyWithClient: "0041",
   clientAssertionPublicKeyNotFound: "0042",
   eserviceDelegated: "0043",
-  delegationWithEserviceIdFound: "0044",
+  delegatedEserviceNotExportable: "0044",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -434,7 +434,7 @@ export function delegatedEserviceNotExportable(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Impossibile to export Eservice with a valid delegation for producer ${delegatorId}`,
-    code: "delegationWithEserviceIdFound",
-    title: "EService delegated",
+    code: "delegatedEserviceNotExportable",
+    title: "Delegated Eservice is not exportable",
   });
 }
