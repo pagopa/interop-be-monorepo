@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import crypto from "crypto";
 import { z } from "zod";
 
 export const CorrelationId = z.string().brand("CorrelationId");
@@ -167,7 +167,7 @@ type IDS =
 // it infers the type of the ID based on how is used the result
 // the 'as' is used to cast the uuid string to the inferred type
 export function generateId<T extends IDS>(): T {
-  return randomUUID() as T;
+  return crypto.randomUUID() as T;
 }
 
 // This function is used to get a branded ID from a string
