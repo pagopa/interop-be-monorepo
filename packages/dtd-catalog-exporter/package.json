@@ -11,8 +11,8 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "check": "tsc --project tsconfig.check.json",
-    "start:migrate": "node --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
-    "start:verify": "node --loader ts-node/esm -r 'dotenv-flow/config' ./src/read-models-migration-check.ts",
+    "start:migrate": "tsx -r 'dotenv-flow/config' ./src/index.ts",
+    "start:verify": "tsx -r 'dotenv-flow/config' ./src/read-models-migration-check.ts",
     "build": "tsc"
   },
   "keywords": [],
@@ -31,7 +31,7 @@
     "@types/node": "20.14.6",
     "eslint": "8.57.0",
     "prettier": "2.8.8",
-    "ts-node": "10.9.2",
+    "tsx": "4.19.1",
     "typescript": "5.4.5",
     "vitest": "1.6.0"
   }
