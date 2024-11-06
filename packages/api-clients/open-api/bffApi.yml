@@ -15214,9 +15214,16 @@ components:
           type: string
         description:
           type: string
+        producerId: 
+          type: string
+          format: uuid
+        producerName:
+          type: string
       required:
         - id
         - name
+        - producerId
+        - producerName
     Delegation:
       type: object
       additionalProperties: false
@@ -15241,12 +15248,15 @@ components:
           type: string
         state:
           $ref: "#/components/schemas/DelegationState"
+        kind:
+          $ref: "#/components/schemas/DelegationKind"
       required:
         - id
         - eservice
         - delegate
         - delegator
         - state
+        - kind
     CompactDelegation:
       type: object
       additionalProperties: false
@@ -15256,18 +15266,21 @@ components:
           format: uuid
         eserviceName:
           type: string
-        delegatedName:
-          type: string
-        delegatorName:
-          type: string
+        delegate:
+          $ref: "#/components/schemas/DelegationTenant"
+        delegator:
+          $ref: "#/components/schemas/DelegationTenant"
         state:
           $ref: "#/components/schemas/DelegationState"
+        kind:
+          $ref: "#/components/schemas/DelegationKind"
       required:
         - id
         - eserviceName
         - delegatedName
         - delegatorName
         - state
+        - kind
     CompactDelegations:
       type: object
       additionalProperties: false

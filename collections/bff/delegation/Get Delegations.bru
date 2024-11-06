@@ -1,0 +1,32 @@
+meta {
+  name: List delegations
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/delegations?offset=0&limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 50
+  ~kind: DELEGATED_PRODUCER
+  ~states: WAITING_FOR_APPROVAL
+  ~delegatorIds: 
+  ~delegatedIds: 
+  ~kind: DELEGATED_PRODUCER
+}
+
+headers {
+  Cache-Control: no-cache
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
