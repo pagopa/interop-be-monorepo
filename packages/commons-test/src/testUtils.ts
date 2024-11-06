@@ -377,12 +377,14 @@ export const getMockDelegationProducer = ({
   delegateId = generateId<TenantId>(),
   eserviceId = generateId<EServiceId>(),
   state = "WaitingForApproval",
+  contract = undefined,
 }: {
   id?: DelegationId;
   delegatorId?: TenantId;
   delegateId?: TenantId;
   eserviceId?: EServiceId;
   state?: DelegationState;
+  contract?: DelegationContractDocument;
 } = {}): Delegation => {
   const creationTime = new Date();
 
@@ -394,6 +396,7 @@ export const getMockDelegationProducer = ({
     createdAt: creationTime,
     submittedAt: creationTime,
     state,
+    contract,
     kind: delegationKind.delegatedProducer,
     stamps: {
       submission: {

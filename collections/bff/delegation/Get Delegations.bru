@@ -1,11 +1,11 @@
 meta {
-  name: List producer delegations
+  name: List delegations
   type: http
   seq: 1
 }
 
 get {
-  url: {{host-delegation}}/delegations?offset=0&limit=50
+  url: {{host-bff}}/delegations?offset=0&limit=50
   body: none
   auth: none
 }
@@ -14,10 +14,10 @@ params:query {
   offset: 0
   limit: 50
   ~kind: DELEGATED_PRODUCER
-  ~delegationStates: WAITING_FOR_APPROVAL
+  ~states: WAITING_FOR_APPROVAL
   ~delegatorIds: 
-  ~delegateIds: 
-  ~eserviceIds: 
+  ~delegatedIds: 
+  ~eserviceIds:
 }
 
 headers {

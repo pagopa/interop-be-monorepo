@@ -36,6 +36,7 @@ const catalogRouter = (
     tenantProcessClient,
     agreementProcessClient,
     attributeProcessClient,
+    delegationProcessClient,
   }: PagoPAInteropBeClients,
   fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -48,6 +49,7 @@ const catalogRouter = (
     tenantProcessClient,
     agreementProcessClient,
     attributeProcessClient,
+    delegationProcessClient,
     fileManager,
     config
   );
