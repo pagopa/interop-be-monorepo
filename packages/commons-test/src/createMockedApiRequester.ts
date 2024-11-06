@@ -119,8 +119,12 @@ export function createMockedApiRequester<
       return new Promise<Response>((resolve, reject) => {
         request.end((err, res) => {
           if (err) {
+            console.log("ERROR")
             reject(err);
           }
+          console.log("Body ", res.body)
+          console.log("Text ", res.text)
+
           resolve(res.body);
         });
       });

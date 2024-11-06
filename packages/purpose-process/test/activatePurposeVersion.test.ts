@@ -67,66 +67,61 @@ import { addOnePurpose } from "./utils.js";
 import { mockPurposeRouterRequest } from "./supertestSetup.js";
 
 describe("activatePurposeVersion", () => {
-  let mockConsumer: Tenant;
-  let mockProducer: Tenant;
-  let mockEService: EService;
-  let mockAgreement: Agreement;
-  let mockPurpose: Purpose;
-  let mockPurposeVersion: PurposeVersion;
-  let mockEServiceDescriptor: Descriptor;
 
-  beforeAll(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
 
-    mockConsumer = {
-      ...getMockTenant(),
-      kind: "PA",
-    };
+  const mockConsumer: Tenant = {
+    ...getMockTenant(),
+    kind: "PA",
+  };
 
-    mockProducer = {
-      ...getMockTenant(),
-      kind: "PA",
-    };
+  const mockProducer: Tenant = {
+    ...getMockTenant(),
+    kind: "PA",
+  };
 
-    mockEServiceDescriptor = {
-      ...getMockDescriptorPublished(),
-      dailyCallsPerConsumer: 20,
-    };
+  const mockEServiceDescriptor: Descriptor = {
+    ...getMockDescriptorPublished(),
+    dailyCallsPerConsumer: 20,
+  };
 
-    mockEService = {
-      ...getMockEService(),
-      producerId: mockProducer.id,
-      descriptors: [mockEServiceDescriptor],
-    };
+  const mockEService: EService = {
+    ...getMockEService(),
+    producerId: mockProducer.id,
+    descriptors: [mockEServiceDescriptor],
+  };
 
-    mockAgreement = {
-      ...getMockAgreement(),
-      eserviceId: mockEService.id,
-      consumerId: mockConsumer.id,
-      descriptorId: mockEService.descriptors[0].id,
-      state: agreementState.active,
-    };
+  const mockAgreement: Agreement = {
+    ...getMockAgreement(),
+    eserviceId: mockEService.id,
+    consumerId: mockConsumer.id,
+    descriptorId: mockEService.descriptors[0].id,
+    state: agreementState.active,
+  };
 
-    mockPurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.waitingForApproval,
-    };
+  const mockPurposeVersion: PurposeVersion = {
+    ...getMockPurposeVersion(),
+    state: purposeVersionState.waitingForApproval,
+  };
 
-    mockPurpose = {
-      ...getMockPurpose(),
-      riskAnalysisForm: getMockValidRiskAnalysisForm("PA"),
-      consumerId: mockAgreement.consumerId,
-      eserviceId: mockEService.id,
-      versions: [mockPurposeVersion],
-    };
-  });
+  const mockPurpose: Purpose = {
+    ...getMockPurpose(),
+    riskAnalysisForm: getMockValidRiskAnalysisForm("PA"),
+    consumerId: mockAgreement.consumerId,
+    eserviceId: mockEService.id,
+    versions: [mockPurposeVersion],
+  };
 
-  afterAll(() => {
-    vi.useRealTimers();
-  });
+  // beforeAll(() => {
+  //   vi.useFakeTimers();
+  //   vi.setSystemTime(new Date());
 
-  it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
+  // });
+
+  // afterAll(() => {
+  //   vi.useRealTimers();
+  // });
+
+  it.only("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
