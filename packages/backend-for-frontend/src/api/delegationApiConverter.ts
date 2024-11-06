@@ -17,6 +17,7 @@ export type DelegationsQueryParams = {
   delegateIds?: string[];
   delegationStates?: delegationApi.DelegationState[];
   kind?: delegationApi.DelegationKind;
+  eserviceIds?: string[];
 };
 
 export function toDelegationState(

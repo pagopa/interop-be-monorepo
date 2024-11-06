@@ -38,8 +38,15 @@ const delegationRouter = (
     .get("/delegations", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        const { limit, offset, states, kind, delegatedIds, delegatorIds } =
-          req.query;
+        const {
+          limit,
+          offset,
+          states,
+          kind,
+          delegatedIds,
+          delegatorIds,
+          eserviceIds,
+        } = req.query;
 
         const delegations = await delegationService.getDelegations(
           {
@@ -48,6 +55,7 @@ const delegationRouter = (
             states,
             delegatorIds,
             delegatedIds,
+            eserviceIds,
             kind,
           },
           ctx

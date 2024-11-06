@@ -183,6 +183,7 @@ export function readModelServiceBuilder(
     async getDelegations({
       delegateIds,
       delegatorIds,
+      eserviceIds,
       delegationStates,
       kind,
       offset,
@@ -190,6 +191,7 @@ export function readModelServiceBuilder(
     }: {
       delegateIds: TenantId[];
       delegatorIds: TenantId[];
+      eserviceIds: EServiceId[];
       delegationStates: DelegationState[];
       kind: DelegationKind | undefined;
       offset: number;
@@ -203,6 +205,9 @@ export function readModelServiceBuilder(
             }),
             ...ReadModelRepository.arrayToFilter(delegatorIds, {
               "data.delegatorId": { $in: delegatorIds },
+            }),
+            ...ReadModelRepository.arrayToFilter(eserviceIds, {
+              "data.eserviceId": { $in: eserviceIds },
             }),
             ...ReadModelRepository.arrayToFilter(delegationStates, {
               "data.state": { $in: delegationStates },

@@ -12080,6 +12080,15 @@ paths:
           schema:
             $ref: "#/components/schemas/DelegationKind"
           description: "The delegation kind to filter by"
+        - in: query
+          name: eserviceIds
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
       responses:
         "200":
           description: Delegations found
