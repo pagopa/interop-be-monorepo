@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import crypto from "crypto";
 import { fail } from "assert";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -33,7 +34,6 @@ import {
 } from "pagopa-interop-models";
 import { formatDateyyyyMMdd, genericLogger } from "pagopa-interop-commons";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
-import * as uuidv4 from "uuid";
 import { config } from "../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -372,8 +372,8 @@ describe("authorization server tests", () => {
   });
 
   it("should throw error during token signing - consumer key", async () => {
-    const uuid = generateId();
-    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    const uuid = crypto.randomUUID();
+    const uuidSpy = vi.spyOn(crypto, "randomUUID");
     uuidSpy.mockReturnValue(uuid);
 
     mockKMSClient.send.mockImplementationOnce(() =>
@@ -420,8 +420,8 @@ describe("authorization server tests", () => {
   });
 
   it("should throw tokenSigningFailed - api key", async () => {
-    const uuid = generateId();
-    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    const uuid = crypto.randomUUID();
+    const uuidSpy = vi.spyOn(crypto, "randomUUID");
     uuidSpy.mockReturnValue(uuid);
 
     mockKMSClient.send.mockImplementationOnce(() =>
@@ -462,8 +462,8 @@ describe("authorization server tests", () => {
   });
 
   it("should throw fallbackAuditFailed - consumer key - kafka audit failed and fallback audit failed", async () => {
-    const uuid = generateId();
-    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    const uuid = crypto.randomUUID();
+    const uuidSpy = vi.spyOn(crypto, "randomUUID");
     uuidSpy.mockReturnValue(uuid);
 
     mockProducer.send.mockImplementationOnce(async () => Promise.reject());
@@ -547,8 +547,8 @@ describe("authorization server tests", () => {
     );
     expect(fileListBeforeAudit).toHaveLength(0);
 
-    const uuid = generateId();
-    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    const uuid = crypto.randomUUID();
+    const uuidSpy = vi.spyOn(crypto, "randomUUID");
     uuidSpy.mockReturnValue(uuid);
 
     const correlationId = generateId();
@@ -677,8 +677,8 @@ describe("authorization server tests", () => {
       client_id: clientId,
     };
 
-    const uuid = generateId();
-    const uuidSpy = vi.spyOn(uuidv4, "v4");
+    const uuid = crypto.randomUUID();
+    const uuidSpy = vi.spyOn(crypto, "randomUUID");
     uuidSpy.mockReturnValue(uuid);
 
     const correlationId = generateId();
