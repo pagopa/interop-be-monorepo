@@ -108,7 +108,7 @@ export function createAgreementSuspendedEvent(
   correlationId: CorrelationId,
   updatedAgreement: Agreement,
   agreement: WithMetadata<Agreement>,
-  delegateId?: TenantId | undefined
+  delegateId: TenantId | undefined
 ): CreateEvent<AgreementEventV2> {
   const isProducer = organizationId === agreement.data.producerId;
   const isConsumer = organizationId === agreement.data.consumerId;

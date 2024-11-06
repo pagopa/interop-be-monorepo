@@ -831,7 +831,8 @@ export function agreementServiceBuilder(
           authData.organizationId,
           correlationId,
           updatedAgreement,
-          agreement
+          agreement,
+          delegateId
         )
       );
 
