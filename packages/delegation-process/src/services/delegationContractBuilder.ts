@@ -53,9 +53,15 @@ export const contractBuilder = (
         "resources/templates",
         "delegationApprovedTemplate.html"
       );
-      const today = new Date();
-      const todayDate = dateAtRomeZone(today);
-      const todayTime = timeAtRomeZone(today);
+      const documentCreatedAt = new Date();
+      const todayDate = dateAtRomeZone(documentCreatedAt);
+      const todayTime = timeAtRomeZone(documentCreatedAt);
+
+      const documentId = generateId<DelegationContractId>();
+      const documentName = createDelegationDocumentName(
+        documentCreatedAt,
+        "activation"
+      );
 
       const submissionDate = dateAtRomeZone(delegation.stamps.submission.when);
       const submissionTime = timeAtRomeZone(delegation.stamps.submission.when);
@@ -78,13 +84,6 @@ export const contractBuilder = (
         activatorId: delegate.id,
       });
 
-      const documentId = generateId<DelegationContractId>();
-      const documentCreatedAt = new Date();
-      const documentName = createDelegationDocumentName(
-        documentCreatedAt,
-        "activation"
-      );
-
       const documentPath = await fileManager.storeBytes(
         {
           bucket: config.s3Bucket,
@@ -102,7 +101,7 @@ export const contractBuilder = (
         prettyName: DELEGATION_ACTIVATION_CONTRACT_PRETTY_NAME,
         contentType: CONTENT_TYPE_PDF,
         path: documentPath,
-        createdAt: today,
+        createdAt: documentCreatedAt,
       };
     },
     createRevocationContract: async (
@@ -118,9 +117,15 @@ export const contractBuilder = (
         "resources/templates",
         "delegationRevokedTemplate.html"
       );
-      const today = new Date();
-      const todayDate = dateAtRomeZone(today);
-      const todayTime = timeAtRomeZone(today);
+      const documentCreatedAt = new Date();
+      const todayDate = dateAtRomeZone(documentCreatedAt);
+      const todayTime = timeAtRomeZone(documentCreatedAt);
+
+      const documentId = generateId<DelegationContractId>();
+      const documentName = createDelegationDocumentName(
+        documentCreatedAt,
+        "revocation"
+      );
 
       const pdfBuffer = await pdfGenerator.generate(templateFilePath, {
         todayDate,
@@ -137,13 +142,6 @@ export const contractBuilder = (
         revocationTime: todayTime,
         activatorId: delegate.id,
       });
-
-      const documentId = generateId<DelegationContractId>();
-      const documentCreatedAt = new Date();
-      const documentName = createDelegationDocumentName(
-        documentCreatedAt,
-        "revocation"
-      );
 
       const documentPath = await fileManager.storeBytes(
         {
@@ -162,7 +160,7 @@ export const contractBuilder = (
         prettyName: DELEGATION_REVOCATION_CONTRACT_PRETTY_NAME,
         contentType: CONTENT_TYPE_PDF,
         path: documentPath,
-        createdAt: today,
+        createdAt: documentCreatedAt,
       };
     },
   };
