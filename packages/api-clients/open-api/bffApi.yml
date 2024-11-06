@@ -15286,8 +15286,8 @@ components:
       required:
         - id
         - eserviceName
-        - delegatedName
-        - delegatorName
+        - delegate
+        - delegator
         - state
         - kind
     CompactDelegations:
