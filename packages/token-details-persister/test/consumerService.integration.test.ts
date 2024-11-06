@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import crypto from "crypto";
 import { GeneratedTokenAuditDetails, generateId } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -6,7 +7,6 @@ import {
   formatTimehhmmss,
   genericLogger,
 } from "pagopa-interop-commons";
-import * as uuidv4 from "uuid";
 import { KafkaMessage } from "kafkajs";
 import { handleMessages } from ".././src/consumerService.js";
 import { config } from "../src/config/config.js";
@@ -16,8 +16,8 @@ describe("consumerService", () => {
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
-    const uuid = generateId();
-    vi.spyOn(uuidv4, "v4").mockReturnValue(uuid);
+    const uuid = crypto.randomUUID();
+    vi.spyOn(crypto, "randomUUID").mockReturnValue(uuid);
   });
   afterAll(() => {
     vi.useRealTimers();
