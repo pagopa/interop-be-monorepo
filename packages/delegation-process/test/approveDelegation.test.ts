@@ -27,6 +27,7 @@ import {
   incorrectState,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
+import { contractBuilder } from "../src/services/delegationContractBuilder.js";
 import {
   addOneDelegation,
   addOneTenant,
@@ -34,6 +35,8 @@ import {
   delegationProducerService,
   fileManager,
   readLastDelegationEvent,
+  pdfGenerator,
+  flushPDFMetadata,
 } from "./utils.js";
 
 describe("approve delegation", () => {
@@ -118,6 +121,34 @@ describe("approve delegation", () => {
       }),
     };
     expect(actualDelegation).toEqual(expectedDelegation);
+
+    const actualContract = await fileManager.get(
+      config.s3Bucket,
+      expectedContractFilePath,
+      genericLogger
+    );
+
+    const { path: expectedContractPath } =
+      await contractBuilder.createActivationContract({
+        delegation,
+        delegator,
+        delegate,
+        eservice,
+        pdfGenerator,
+        fileManager,
+        config,
+        logger: genericLogger,
+      });
+
+    const expectedContract = await fileManager.get(
+      config.s3Bucket,
+      expectedContractPath,
+      genericLogger
+    );
+
+    expect(flushPDFMetadata(actualContract, currentExecutionTime)).toEqual(
+      flushPDFMetadata(expectedContract, currentExecutionTime)
+    );
   });
 
   it("should throw delegationNotFound when delegation doesn't exist", async () => {

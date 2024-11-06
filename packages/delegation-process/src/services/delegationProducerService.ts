@@ -152,20 +152,18 @@ export function delegationProducerServiceBuilder(
         getEserviceById(currentDelegation.data.eserviceId),
       ]);
 
-      const contractBuilderInstance = contractBuilder(
-        fileManager,
-        config,
-        logger
-      );
-
-      const revocationContract =
-        await contractBuilderInstance.createRevocationContract(
-          currentDelegation.data,
+      const revocationContract = await contractBuilder.createRevocationContract(
+        {
+          delegation: currentDelegation.data,
           delegator,
           delegate,
           eservice,
-          pdfGenerator
-        );
+          pdfGenerator,
+          fileManager,
+          config,
+          logger,
+        }
+      );
 
       const now = new Date();
       const revokedDelegation = {
@@ -211,20 +209,18 @@ export function delegationProducerServiceBuilder(
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
-      const contractBuilderInstance = contractBuilder(
-        fileManager,
-        config,
-        logger
-      );
-
-      const activationContract =
-        await contractBuilderInstance.createActivationContract(
+      const activationContract = await contractBuilder.createActivationContract(
+        {
           delegation,
           delegator,
           delegate,
           eservice,
-          pdfGenerator
-        );
+          pdfGenerator,
+          fileManager,
+          config,
+          logger,
+        }
+      );
 
       const now = new Date();
 

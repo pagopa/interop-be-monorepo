@@ -30,138 +30,156 @@ const createDelegationDocumentName = (
     documentCreatedAt
   )}_delegation_${documentType}_contract.pdf`;
 
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const contractBuilder = (
-  fileManager: FileManager,
-  config: DelegationProcessConfig,
-  logger: Logger
-) => {
-  const filename = fileURLToPath(import.meta.url);
-  const dirname = path.dirname(filename);
+export const contractBuilder = {
+  createActivationContract: async ({
+    delegation,
+    delegator,
+    delegate,
+    eservice,
+    pdfGenerator,
+    fileManager,
+    config,
+    logger,
+  }: {
+    delegation: Delegation;
+    delegator: Tenant;
+    delegate: Tenant;
+    eservice: EService;
+    pdfGenerator: PDFGenerator;
+    fileManager: FileManager;
+    config: DelegationProcessConfig;
+    logger: Logger;
+  }): Promise<DelegationContractDocument> => {
+    const templateFilePath = path.resolve(
+      dirname,
+      "..",
+      "resources/templates",
+      "delegationApprovedTemplate.html"
+    );
+    const documentCreatedAt = new Date();
+    const todayDate = dateAtRomeZone(documentCreatedAt);
+    const todayTime = timeAtRomeZone(documentCreatedAt);
 
-  return {
-    createActivationContract: async (
-      delegation: Delegation,
-      delegator: Tenant,
-      delegate: Tenant,
-      eservice: EService,
-      pdfGenerator: PDFGenerator
-    ): Promise<DelegationContractDocument> => {
-      const templateFilePath = path.resolve(
-        dirname,
-        "..",
-        "resources/templates",
-        "delegationApprovedTemplate.html"
-      );
-      const documentCreatedAt = new Date();
-      const todayDate = dateAtRomeZone(documentCreatedAt);
-      const todayTime = timeAtRomeZone(documentCreatedAt);
+    const documentId = generateId<DelegationContractId>();
+    const documentName = createDelegationDocumentName(
+      documentCreatedAt,
+      "activation"
+    );
 
-      const documentId = generateId<DelegationContractId>();
-      const documentName = createDelegationDocumentName(
-        documentCreatedAt,
-        "activation"
-      );
+    const submissionDate = dateAtRomeZone(delegation.stamps.submission.when);
+    const submissionTime = timeAtRomeZone(delegation.stamps.submission.when);
 
-      const submissionDate = dateAtRomeZone(delegation.stamps.submission.when);
-      const submissionTime = timeAtRomeZone(delegation.stamps.submission.when);
+    const pdfBuffer = await pdfGenerator.generate(templateFilePath, {
+      todayDate,
+      todayTime,
+      delegationId: delegation.id,
+      delegatorName: delegator.name,
+      delegatorCode: delegator.externalId.value,
+      delegateName: delegate.name,
+      delegateCode: delegate.externalId.value,
+      submitterId: delegation.stamps.submission.who,
+      eServiceName: eservice.name,
+      eServiceId: eservice.id,
+      submissionDate,
+      submissionTime,
+      activationDate: todayDate,
+      activationTime: todayTime,
+      activatorId: delegate.id,
+    });
 
-      const pdfBuffer = await pdfGenerator.generate(templateFilePath, {
-        todayDate,
-        todayTime,
-        delegationId: delegation.id,
-        delegatorName: delegator.name,
-        delegatorCode: delegator.externalId.value,
-        delegateName: delegate.name,
-        delegateCode: delegate.externalId.value,
-        submitterId: delegation.stamps.submission.who,
-        eServiceName: eservice.name,
-        eServiceId: eservice.id,
-        submissionDate,
-        submissionTime,
-        activationDate: todayDate,
-        activationTime: todayTime,
-        activatorId: delegate.id,
-      });
-
-      const documentPath = await fileManager.storeBytes(
-        {
-          bucket: config.s3Bucket,
-          path: `${config.delegationDocumentPath}/${delegation.id}`,
-          resourceId: documentId,
-          name: documentName,
-          content: pdfBuffer,
-        },
-        logger
-      );
-
-      return {
-        id: documentId,
+    const documentPath = await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: `${config.delegationDocumentPath}/${delegation.id}`,
+        resourceId: documentId,
         name: documentName,
-        prettyName: DELEGATION_ACTIVATION_CONTRACT_PRETTY_NAME,
-        contentType: CONTENT_TYPE_PDF,
-        path: documentPath,
-        createdAt: documentCreatedAt,
-      };
-    },
-    createRevocationContract: async (
-      delegation: Delegation,
-      delegator: Tenant,
-      delegate: Tenant,
-      eservice: EService,
-      pdfGenerator: PDFGenerator
-    ): Promise<DelegationContractDocument> => {
-      const templateFilePath = path.resolve(
-        dirname,
-        "..",
-        "resources/templates",
-        "delegationRevokedTemplate.html"
-      );
-      const documentCreatedAt = new Date();
-      const todayDate = dateAtRomeZone(documentCreatedAt);
-      const todayTime = timeAtRomeZone(documentCreatedAt);
+        content: pdfBuffer,
+      },
+      logger
+    );
 
-      const documentId = generateId<DelegationContractId>();
-      const documentName = createDelegationDocumentName(
-        documentCreatedAt,
-        "revocation"
-      );
+    return {
+      id: documentId,
+      name: documentName,
+      prettyName: DELEGATION_ACTIVATION_CONTRACT_PRETTY_NAME,
+      contentType: CONTENT_TYPE_PDF,
+      path: documentPath,
+      createdAt: documentCreatedAt,
+    };
+  },
+  createRevocationContract: async ({
+    delegation,
+    delegator,
+    delegate,
+    eservice,
+    pdfGenerator,
+    fileManager,
+    config,
+    logger,
+  }: {
+    delegation: Delegation;
+    delegator: Tenant;
+    delegate: Tenant;
+    eservice: EService;
+    pdfGenerator: PDFGenerator;
+    fileManager: FileManager;
+    config: DelegationProcessConfig;
+    logger: Logger;
+  }): Promise<DelegationContractDocument> => {
+    const templateFilePath = path.resolve(
+      dirname,
+      "..",
+      "resources/templates",
+      "delegationRevokedTemplate.html"
+    );
+    const documentCreatedAt = new Date();
+    const todayDate = dateAtRomeZone(documentCreatedAt);
+    const todayTime = timeAtRomeZone(documentCreatedAt);
 
-      const pdfBuffer = await pdfGenerator.generate(templateFilePath, {
-        todayDate,
-        todayTime,
-        delegationId: delegation.id,
-        delegatorName: delegator.name,
-        delegatorCode: delegator.externalId.value,
-        delegateName: delegate.name,
-        delegateCode: delegate.externalId.value,
-        submitterId: delegation.stamps.submission.who,
-        eServiceName: eservice.name,
-        eServiceId: eservice.id,
-        revocationDate: todayDate,
-        revocationTime: todayTime,
-        activatorId: delegate.id,
-      });
+    const documentId = generateId<DelegationContractId>();
+    const documentName = createDelegationDocumentName(
+      documentCreatedAt,
+      "revocation"
+    );
 
-      const documentPath = await fileManager.storeBytes(
-        {
-          bucket: config.s3Bucket,
-          path: `${config.delegationDocumentPath}/${delegation.id}`,
-          resourceId: documentId,
-          name: documentName,
-          content: pdfBuffer,
-        },
-        logger
-      );
+    const pdfBuffer = await pdfGenerator.generate(templateFilePath, {
+      todayDate,
+      todayTime,
+      delegationId: delegation.id,
+      delegatorName: delegator.name,
+      delegatorCode: delegator.externalId.value,
+      delegateName: delegate.name,
+      delegateCode: delegate.externalId.value,
+      submitterId: delegation.stamps.submission.who,
+      eServiceName: eservice.name,
+      eServiceId: eservice.id,
+      revocationDate: todayDate,
+      revocationTime: todayTime,
+      activatorId: delegate.id,
+    });
 
-      return {
-        id: documentId,
+    const documentPath = await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: `${config.delegationDocumentPath}/${delegation.id}`,
+        resourceId: documentId,
         name: documentName,
-        prettyName: DELEGATION_REVOCATION_CONTRACT_PRETTY_NAME,
-        contentType: CONTENT_TYPE_PDF,
-        path: documentPath,
-        createdAt: documentCreatedAt,
-      };
-    },
-  };
+        content: pdfBuffer,
+      },
+      logger
+    );
+
+    return {
+      id: documentId,
+      name: documentName,
+      prettyName: DELEGATION_REVOCATION_CONTRACT_PRETTY_NAME,
+      contentType: CONTENT_TYPE_PDF,
+      path: documentPath,
+      createdAt: documentCreatedAt,
+    };
+  },
 };

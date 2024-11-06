@@ -29,12 +29,15 @@ import {
   delegatorNotAllowToRevoke,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
+import { contractBuilder } from "../src/services/delegationContractBuilder.js";
 import {
   addOneDelegation,
   addOneEservice,
   addOneTenant,
   delegationProducerService,
   fileManager,
+  flushPDFMetadata,
+  pdfGenerator,
   readDelegationEventByVersion,
 } from "./utils.js";
 
@@ -126,9 +129,13 @@ describe("revoke delegation", () => {
     const delegationActivationDate = new Date();
     delegationActivationDate.setMonth(currentExecutionTime.getMonth() - 1);
 
-    await addOneTenant(getMockTenant(delegateId));
-    await addOneTenant(getMockTenant(delegatorId));
-    await addOneEservice(getMockEService(eserviceId));
+    const delegate = getMockTenant(delegateId);
+    const delegator = getMockTenant(delegatorId);
+    const eservice = getMockEService(eserviceId);
+
+    await addOneTenant(delegate);
+    await addOneTenant(delegator);
+    await addOneEservice(eservice);
 
     const existentDelegation: Delegation = {
       ...getMockDelegationProducer({
@@ -201,6 +208,34 @@ describe("revoke delegation", () => {
     };
 
     expect(actualDelegation).toEqual(expectedDelegation);
+
+    const actualContract = await fileManager.get(
+      config.s3Bucket,
+      expectedContractFilePath,
+      genericLogger
+    );
+
+    const { path: expectedContractPath } =
+      await contractBuilder.createActivationContract({
+        delegation: actualDelegation,
+        delegator,
+        delegate,
+        eservice,
+        pdfGenerator,
+        fileManager,
+        config,
+        logger: genericLogger,
+      });
+
+    const expectedContract = await fileManager.get(
+      config.s3Bucket,
+      expectedContractPath,
+      genericLogger
+    );
+
+    expect(flushPDFMetadata(actualContract, currentExecutionTime)).toEqual(
+      flushPDFMetadata(expectedContract, currentExecutionTime)
+    );
 
     const lastDelegationEvent = await readDelegationEventByVersion(
       actualDelegation.id,
