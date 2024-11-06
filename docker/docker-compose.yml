@@ -152,11 +152,9 @@ services:
 
   # MinIO is a local S3-compatible storage, to replace AWS S3 in local development
   minio:
-    image: quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z
-    entrypoint: sh
-    command: >
-      -c 'mkdir -p /data/interop-local-bucket &&
-      /usr/bin/minio server /data --console-address ":9001"'
+    image: minio/minio:RELEASE.2024-02-06T21-36-22Z
+    entrypoint: >
+      /usr/bin/minio server /data --console-address ':9001'
     ports:
       - 9000:9000
       - 9001:9001
@@ -178,8 +176,11 @@ services:
         mc alias set minio http://minio:9000 testawskey testawssecret;
         mc ready minio;
         echo 'MinIO is ready. Seeding data...';
-        mc cp --recursive data/ minio/interop-local-bucket/;
+        mc mb minio/interop-local-bucket || true;
         mc mb minio/interop-datalake-bucket || true;
+        mc mb minio/interop-application-import-export-local || true;
+        mc mb minio/interop-data-lake-interfaces-exports-local-es1 || true;
+        mc cp --recursive data/ minio/;
       "
     volumes:
       - ./minio-seed:/data
