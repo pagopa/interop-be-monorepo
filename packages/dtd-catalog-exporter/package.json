@@ -10,10 +10,9 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "check": "tsc --project tsconfig.check.json",
-    "start:migrate": "tsx -r 'dotenv-flow/config' ./src/index.ts",
-    "start:verify": "tsx -r 'dotenv-flow/config' ./src/read-models-migration-check.ts",
-    "build": "tsc"
+    "start": "tsx -r 'dotenv-flow/config' ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
   "author": "",
