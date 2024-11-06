@@ -593,6 +593,32 @@ export function readModelServiceBuilder(
       }
       return result.data;
     },
+    async getActiveDelegationByEserviceId(
+      eserviceId: EServiceId
+    ): Promise<WithMetadata<Delegation> | undefined> {
+      const data = await delegations.findOne(
+        { "data.eserviceId": eserviceId, "data.state": delegationState.active },
+        { projection: { data: true, metadata: true } }
+      );
+
+      if (!data) {
+        return undefined;
+      }
+      const result = z
+        .object({
+          data: Delegation,
+          metadata: z.object({ version: z.number() }),
+        })
+        .safeParse(data);
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse delegation item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+      return result.data;
+    },
   };
 }
 

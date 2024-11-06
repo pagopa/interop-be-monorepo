@@ -99,7 +99,7 @@ describe("archive agreement", () => {
       toAgreementV2(expectedAgreemenentArchived)
     );
 
-    expect(actualAgreement).toMatchObject(toAgreementV2(returnedAgreement));
+    expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement));
 
     vi.useRealTimers();
   });

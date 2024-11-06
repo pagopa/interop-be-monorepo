@@ -9,8 +9,12 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
-export const createStamp = (userId: UserId): AgreementStamp => ({
+export const createStamp = (
+  userId: UserId,
+  delegateId?: TenantId | undefined
+): AgreementStamp => ({
   who: unsafeBrandId(userId),
+  delegateId,
   when: new Date(),
 });
 

@@ -181,12 +181,10 @@ describe("suspend agreement", () => {
         ...expectedStamps,
       },
     };
-    expect(actualAgreementSuspended).toMatchObject(
+    expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(returnedAgreement)
-    );
+    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
   });
 
   it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
@@ -285,12 +283,10 @@ describe("suspend agreement", () => {
         },
       },
     };
-    expect(actualAgreementSuspended).toMatchObject(
+    expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(returnedAgreement)
-    );
+    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
   });
 
   it("should preserve the suspension flags and the stamps that it does not update", async () => {
@@ -393,12 +389,10 @@ describe("suspend agreement", () => {
         ...expectedStamps,
       },
     };
-    expect(actualAgreementSuspended).toMatchObject(
+    expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(returnedAgreement)
-    );
+    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
