@@ -175,6 +175,18 @@ export const assertRequesterIsConsumerOrProducerOrDelegate = async (
   }
 };
 
+export const assertRequesterIsProducerOrDelegate = (
+  agreement: Agreement,
+  delegateIdActiveDelegation: TenantId | undefined,
+  authData: AuthData
+): void => {
+  if (delegateIdActiveDelegation) {
+    assertRequesterIsDelegate(delegateIdActiveDelegation, authData);
+  } else {
+    assertRequesterIsProducer(agreement, authData);
+  }
+};
+
 export const assertRequesterIsDelegate = (
   delegateId: TenantId | undefined,
   authData: AuthData

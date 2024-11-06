@@ -92,7 +92,7 @@ import {
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsConsumerOrProducerOrDelegate,
-  assertRequesterIsProducer,
+  assertRequesterIsProducerOrDelegate,
   assertSubmittableState,
   failOnActivationFailure,
   matchingCertifiedAttributes,
@@ -893,8 +893,17 @@ export function agreementServiceBuilder(
         agreementId,
         readModelService
       );
+      const activeDelegation = await retrieveActiveDelegationByEserviceId(
+        agreementToBeRejected.data.eserviceId,
+        readModelService
+      );
+      const delegateId = activeDelegation?.data.delegateId;
 
-      assertRequesterIsProducer(agreementToBeRejected.data, authData);
+      assertRequesterIsProducerOrDelegate(
+        agreementToBeRejected.data,
+        delegateId,
+        authData
+      );
 
       assertExpectedState(
         agreementId,
@@ -933,7 +942,7 @@ export function agreementServiceBuilder(
         suspendedByPlatform: undefined,
         stamps: {
           ...agreementToBeRejected.data.stamps,
-          rejection: createStamp(authData.userId),
+          rejection: createStamp(authData.userId, delegateId),
         },
       };
 
