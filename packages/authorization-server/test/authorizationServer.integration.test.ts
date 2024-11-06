@@ -551,9 +551,10 @@ describe("authorization server tests", () => {
     const uuidSpy = vi.spyOn(uuidv4, "v4");
     uuidSpy.mockReturnValue(uuid);
 
+    const correlationId = generateId();
     const response = await tokenService.generateToken(
       request,
-      generateId(),
+      correlationId,
       genericLogger
     );
 
@@ -580,7 +581,7 @@ describe("authorization server tests", () => {
 
     const expectedMessageBody: GeneratedTokenAuditDetails = {
       jwtId: generateId(),
-      correlationId: generateId(),
+      correlationId,
       issuedAt: parsedDecodedFileContent.issuedAt,
       clientId,
       organizationId: tokenClientKidPurposeEntry.consumerId,
@@ -680,9 +681,10 @@ describe("authorization server tests", () => {
     const uuidSpy = vi.spyOn(uuidv4, "v4");
     uuidSpy.mockReturnValue(uuid);
 
+    const correlationId = generateId();
     const result = await tokenService.generateToken(
       request,
-      generateId(),
+      correlationId,
       genericLogger
     );
 
@@ -710,7 +712,7 @@ describe("authorization server tests", () => {
 
     const expectedMessageBody: GeneratedTokenAuditDetails = {
       jwtId: generateId(),
-      correlationId: generateId(),
+      correlationId,
       issuedAt: parsedAuditSent.issuedAt,
       clientId,
       organizationId: tokenClientPurposeEntry.consumerId,
