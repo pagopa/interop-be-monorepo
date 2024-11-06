@@ -398,48 +398,59 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
   });
 
-  it("should succed if the requester is the delegate", async () => {
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [getMockDescriptorPublished()],
-    };
-    const consumer = getMockTenant();
-    const agreement = {
-      ...getMockAgreement(),
-      state: agreementState.active,
-      eserviceId: eservice.id,
-      producerId: eservice.producerId,
-      consumerId: consumer.id,
-      descriptorId: eservice.descriptors[0].id,
-    };
-    const authData = getRandomAuthData();
-    const delegation = getMockDelegationProducer({
-      delegateId: authData.organizationId,
-      eserviceId: eservice.id,
-      state: delegationState.active,
-    });
+  it.each(agreementSuspendableStates)(
+    "should succeed if the requester is the delegate and the agreement is in state %s",
+    async (state) => {
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [getMockDescriptorPublished()],
+      };
+      const consumer = getMockTenant();
+      const agreement = {
+        ...getMockAgreement(),
+        state,
+        eserviceId: eservice.id,
+        producerId: eservice.producerId,
+        consumerId: consumer.id,
+        descriptorId: eservice.descriptors[0].id,
+      };
+      const authData = getRandomAuthData();
+      const delegation = getMockDelegationProducer({
+        delegateId: authData.organizationId,
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      });
 
-    await addOneAgreement(agreement);
-    await addOneEService(eservice);
-    await addOneTenant(consumer);
-    await addOneDelegation(delegation);
+      await addOneAgreement(agreement);
+      await addOneEService(eservice);
+      await addOneTenant(consumer);
+      await addOneDelegation(delegation);
 
-    const expectedAgreement = {
-      ...agreement,
-      state: agreementState.suspended,
-    };
+      const expectedAgreement = {
+        ...agreement,
+        state: agreementState.suspended,
+        stamps: {
+          ...agreement.stamps,
+          suspensionByProducer: {
+            delegateId: authData.organizationId,
+            who: authData.userId,
+            when: new Date(),
+          },
+        },
+      };
 
-    const actualAgreement = await agreementService.suspendAgreement(
-      agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
-    );
-    expect(actualAgreement).toEqual(expectedAgreement);
-  });
+      const actualAgreement = await agreementService.suspendAgreement(
+        agreement.id,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+      expect(actualAgreement).toEqual(expectedAgreement);
+    }
+  );
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
     await addOneAgreement(getMockAgreement());

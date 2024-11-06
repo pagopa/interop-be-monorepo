@@ -75,7 +75,8 @@ export function createSuspensionUpdatedAgreement({
     agreement,
     authData.organizationId,
     agreementState.suspended,
-    stamp
+    stamp,
+    delegateId
   );
 
   const suspensionByConsumerStamp = suspendedByConsumerStamp(
