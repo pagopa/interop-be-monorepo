@@ -597,7 +597,7 @@ export function readModelServiceBuilder(
       eserviceId: EServiceId
     ): Promise<WithMetadata<Delegation> | undefined> {
       const data = await delegations.findOne(
-        { "data.eserviceId": eserviceId, "data.state": agreementState.active },
+        { "data.eserviceId": eserviceId, "data.state": delegationState.active },
         { projection: { data: true, metadata: true } }
       );
 
