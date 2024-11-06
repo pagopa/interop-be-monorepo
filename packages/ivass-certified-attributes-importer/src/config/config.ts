@@ -18,7 +18,7 @@ const IvassCertifiedAttributesImporterConfig = LoggerConfig.and(
         SOURCE_URL: z.string(),
         HISTORY_BUCKET_NAME: z.string(),
         TENANT_PROCESS_URL: APIEndpoint,
-        RECORDS_PROCESS_BATCH_SIZE: z.number(),
+        RECORDS_PROCESS_BATCH_SIZE: z.coerce.number(),
         IVASS_TENANT_ID: z.string(),
       })
       .transform((c) => ({

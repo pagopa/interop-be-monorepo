@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package.json /app/
 COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
+COPY .npmrc /app/
 
 COPY ./packages/token-details-persister/package.json /app/packages/token-details-persister/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json

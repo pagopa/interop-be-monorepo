@@ -11,8 +11,6 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ClientId,
-  clientKidPrefix,
-  clientKidPurposePrefix,
   clientKindTokenStates,
   generateId,
   makeTokenGenerationStatesClientKidPK,
@@ -20,12 +18,8 @@ import {
   PurposeId,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
-  unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  ApiKey,
-  ConsumerKey,
-} from "pagopa-interop-client-assertion-validation";
+import {} from "pagopa-interop-client-assertion-validation";
 import { genericLogger } from "pagopa-interop-commons";
 import { fallbackAudit, retrieveKey } from "../src/services/tokenService.js";
 import {
@@ -136,7 +130,9 @@ describe("unit tests", () => {
       await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPurposePK)
-      ).rejects.toThrowError(invalidTokenClientKidPurposeEntry());
+      ).rejects.toThrowError(
+        invalidTokenClientKidPurposeEntry(tokenClientPurposeEntry.PK)
+      );
     });
 
     it("should succeed - clientKidPurpose entry - consumer key", async () => {
@@ -159,36 +155,7 @@ describe("unit tests", () => {
       await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
       const key = await retrieveKey(dynamoDBClient, tokenClientKidPurposePK);
 
-      const expectedKey: ConsumerKey = {
-        kid: tokenClientPurposeEntry.GSIPK_kid,
-        purposeId: tokenClientPurposeEntry.GSIPK_purposeId!,
-        clientId,
-        consumerId: tokenClientPurposeEntry.consumerId,
-        publicKey: tokenClientPurposeEntry.publicKey,
-        algorithm: "RS256",
-        clientKind: clientKindTokenStates.consumer,
-        purposeState: {
-          state: tokenClientPurposeEntry.purposeState!,
-          versionId: tokenClientPurposeEntry.purposeVersionId!,
-        },
-        agreementId: tokenClientPurposeEntry.agreementId!,
-        agreementState: {
-          state: tokenClientPurposeEntry.agreementState!,
-        },
-        eServiceId: unsafeBrandId(
-          tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
-        ),
-        eServiceState: {
-          state: tokenClientPurposeEntry.descriptorState!,
-          descriptorId: unsafeBrandId(
-            tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
-          ),
-          audience: tokenClientPurposeEntry.descriptorAudience!,
-          voucherLifespan: tokenClientPurposeEntry.descriptorVoucherLifespan!,
-        },
-      };
-
-      expect(key).toEqual(expectedKey);
+      expect(key).toEqual(tokenClientPurposeEntry);
     });
 
     it("should throw keyTypeMismatch - clientKid entry with consumer key", async () => {
@@ -209,7 +176,7 @@ describe("unit tests", () => {
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPK)
       ).rejects.toThrowError(
-        keyTypeMismatch(clientKidPrefix, clientKindTokenStates.consumer)
+        keyTypeMismatch(tokenClientEntry.PK, clientKindTokenStates.consumer)
       );
     });
 
@@ -234,7 +201,7 @@ describe("unit tests", () => {
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPurposePK)
       ).rejects.toThrowError(
-        keyTypeMismatch(clientKidPurposePrefix, clientKindTokenStates.api)
+        keyTypeMismatch(tokenClientPurposeEntry.PK, clientKindTokenStates.api)
       );
     });
 
@@ -255,16 +222,7 @@ describe("unit tests", () => {
       await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
       const key = await retrieveKey(dynamoDBClient, tokenClientKidPK);
 
-      const expectedKey: ApiKey = {
-        kid: tokenClientEntry.GSIPK_kid,
-        clientId,
-        consumerId: tokenClientEntry.consumerId,
-        publicKey: tokenClientEntry.publicKey,
-        algorithm: "RS256",
-        clientKind: clientKindTokenStates.api,
-      };
-
-      expect(key).toEqual(expectedKey);
+      expect(key).toEqual(tokenClientEntry);
     });
   });
 
@@ -292,9 +250,9 @@ describe("unit tests", () => {
         genericLogger
       );
 
-      const expectedFileContent = JSON.stringify(mockAuditMessage) + "\n";
+      const expectedFileContent = JSON.stringify(mockAuditMessage);
 
-      const decodedFileContent = new TextDecoder().decode(fileContent);
+      const decodedFileContent = Buffer.from(fileContent).toString();
       expect(decodedFileContent).toEqual(expectedFileContent);
     });
 
@@ -308,7 +266,7 @@ describe("unit tests", () => {
 
       expect(
         fallbackAudit(mockAuditMessage, fileManager, genericLogger)
-      ).rejects.toThrowError(fallbackAuditFailed(mockAuditMessage.jwtId));
+      ).rejects.toThrowError(fallbackAuditFailed(mockAuditMessage.clientId));
     });
   });
 });

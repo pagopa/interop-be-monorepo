@@ -57,6 +57,7 @@ import {
   Purpose,
   PurposeId,
   purposeVersionState,
+  TenantId,
   toClientV2,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
@@ -159,23 +160,25 @@ describe("integration tests V2 events", async () => {
       expect(retrievedTokenEntries).toEqual([tokenClientEntry]);
     });
 
-    it("should add platform-states entry and insert token-generation-states client-kid-purpose entries", async () => {
+    it("should insert platform-states entry and insert token-generation-states client-kid-purpose entries if the client contains at least one purpose", async () => {
       const messageVersion = 2;
 
+      const consumerId = generateId<TenantId>();
       const purpose1: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
-        consumerId: purpose1.consumerId,
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const oldKey = getMockKey();
       const addedKey = getMockKey();
       const client: Client = {
         ...getMockClient(),
-        consumerId: purpose1.consumerId,
+        consumerId,
         keys: [oldKey, addedKey],
         purposes: [purpose1.id, purpose2.id],
       };
@@ -434,20 +437,22 @@ describe("integration tests V2 events", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
+      const consumerId = generateId<TenantId>();
       const purpose1: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
-        consumerId: purpose1.consumerId,
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const oldKey = getMockKey();
       const addedKey = getMockKey();
       const client: Client = {
         ...getMockClient(),
-        consumerId: purpose1.consumerId,
+        consumerId,
         keys: [oldKey, addedKey],
         purposes: [purpose1.id, purpose2.id],
       };
@@ -710,20 +715,22 @@ describe("integration tests V2 events", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
+      const consumerId = generateId<TenantId>();
       const purpose1: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
-        consumerId: purpose1.consumerId,
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const oldKey = getMockKey();
       const addedKey = getMockKey();
       const client: Client = {
         ...getMockClient(),
-        consumerId: purpose1.consumerId,
+        consumerId,
         keys: [oldKey, addedKey],
         purposes: [purpose1.id, purpose2.id],
       };
@@ -1021,6 +1028,90 @@ describe("integration tests V2 events", async () => {
           expectedTokenClientPurposeEntry1,
           expectedTokenClientPurposeEntry2,
         ])
+      );
+    });
+
+    it("should insert platform-states entry and insert token-generation-states client-kid entry if the client does not contain purposes", async () => {
+      const messageVersion = 1;
+
+      const oldKey = getMockKey();
+      const addedKey = getMockKey();
+      const client: Client = {
+        ...getMockClient(),
+        keys: [oldKey, addedKey],
+      };
+
+      const payload: ClientKeyAddedV2 = {
+        client: toClientV2(client),
+        kid: addedKey.kid,
+      };
+      const message: AuthorizationEventEnvelope = {
+        sequence_num: 1,
+        stream_id: client.id,
+        version: messageVersion,
+        type: "ClientKeyAdded",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      // platform-states
+      const platformClientPK = makePlatformStatesClientPK(client.id);
+      expect(
+        await readClientEntry(platformClientPK, dynamoDBClient)
+      ).toBeUndefined();
+
+      // token-generation-states
+      const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
+        clientId: client.id,
+        kid: oldKey.kid,
+      });
+      const tokenClientEntry: TokenGenerationStatesClientEntry = {
+        ...getMockTokenStatesClientEntry(tokenClientKidPK),
+        consumerId: client.consumerId,
+        GSIPK_clientId: client.id,
+        GSIPK_kid: makeGSIPKKid(oldKey.kid),
+      };
+      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
+
+      await handleMessageV2(message, dynamoDBClient);
+
+      // platform-states
+      const retrievedPlatformClientEntry = await readClientEntry(
+        platformClientPK,
+        dynamoDBClient
+      );
+      const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
+        PK: platformClientPK,
+        version: messageVersion,
+        state: itemState.active,
+        updatedAt: new Date().toISOString(),
+        clientPurposesIds: [],
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+      };
+      expect(retrievedPlatformClientEntry).toEqual(expectedPlatformStatesEntry);
+
+      // token-generation-states
+      const retrievedTokenEntries = await readAllTokenStateItems(
+        dynamoDBClient
+      );
+      const expectedTokenClientEntry: TokenGenerationStatesClientEntry = {
+        PK: makeTokenGenerationStatesClientKidPK({
+          clientId: client.id,
+          kid: addedKey.kid,
+        }),
+        consumerId: client.consumerId,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        publicKey: addedKey.encodedPem,
+        GSIPK_clientId: client.id,
+        GSIPK_kid: makeGSIPKKid(addedKey.kid),
+        updatedAt: new Date().toISOString(),
+      };
+
+      expect(retrievedTokenEntries).toHaveLength(2);
+      expect(retrievedTokenEntries).toEqual(
+        expect.arrayContaining([tokenClientEntry, expectedTokenClientEntry])
       );
     });
 
@@ -1521,7 +1612,7 @@ describe("integration tests V2 events", async () => {
       expect(retrievedTokenEntries).toEqual([tokenClientEntry]);
     });
 
-    it("should update platform-states entry", async () => {
+    it("should update only platform-states entry if there are no keys in the client", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
@@ -1555,15 +1646,13 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
 
         updatedAt: new Date().toISOString(),
-        clientPurposesIds: [],
+        clientPurposesIds: [purposeId],
       };
       await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
 
       // token-generation-states
-      const tokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry =
-        getMockTokenStatesClientPurposeEntry();
-      const tokenClientEntry: TokenGenerationStatesClientEntry =
-        getMockTokenStatesClientEntry();
+      const tokenClientPurposeEntry = getMockTokenStatesClientPurposeEntry();
+      const tokenClientEntry = getMockTokenStatesClientEntry();
       await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
       await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
 
@@ -1597,12 +1686,15 @@ describe("integration tests V2 events", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
+      const consumerId = generateId<TenantId>();
       const purpose: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const client: Client = {
         ...getMockClient(),
+        consumerId,
         purposes: [purpose.id],
       };
 
@@ -1782,21 +1874,24 @@ describe("integration tests V2 events", async () => {
       );
     });
 
-    it("should update platform-states entry and add client-kid-purpose entries to token-generation-states table", async () => {
+    it("should update platform-states entry and insert client-kid-purpose entries to token-generation-states table", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
+      const consumerId = generateId<TenantId>();
       const purpose1: Purpose = {
         ...getMockPurpose(),
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
 
       const client: Client = {
         ...getMockClient(),
+        consumerId,
         purposes: [purpose1.id, purpose2.id],
       };
 
@@ -2046,17 +2141,21 @@ describe("integration tests V2 events", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
+      const consumerId = generateId<TenantId>();
       const purpose1: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
 
       const client: Client = {
         ...getMockClient(),
+        consumerId,
         purposes: [purpose1.id, purpose2.id],
       };
 
@@ -2399,7 +2498,7 @@ describe("integration tests V2 events", async () => {
       expect(retrievedTokenEntries).toEqual([tokenClientEntry]);
     });
 
-    it("should do no operation if the existing table entry doesn't exist", async () => {
+    it("should do no operation if the purpose platform-states entry doesn't exist and the token-generation-states entries aren't associated to the purpose id in the message", async () => {
       const messageVersion = 1;
 
       const purposeId = generateId<PurposeId>();
@@ -2564,100 +2663,6 @@ describe("integration tests V2 events", async () => {
       expect(retrievedTokenEntries).toHaveLength(2);
       expect(retrievedTokenEntries).toEqual(
         expect.arrayContaining([tokenClientEntry, tokenClientPurposeEntry1])
-      );
-    });
-
-    it("should delete platform-states entry and delete token-generation-states entries for that purpose", async () => {
-      const previousPlatformEntryVersion = 1;
-      const messageVersion = 2;
-
-      const purposeId = generateId<PurposeId>();
-      const client: Client = {
-        ...getMockClient(),
-      };
-
-      const payload: ClientPurposeRemovedV2 = {
-        purposeId,
-        client: toClientV2(client),
-      };
-      const message: AuthorizationEventEnvelope = {
-        sequence_num: 1,
-        stream_id: client.id,
-        version: messageVersion,
-        type: "ClientPurposeRemoved",
-        event_version: 2,
-        data: payload,
-        log_date: new Date(),
-      };
-
-      // platform-states
-      const platformClientPK = makePlatformStatesClientPK(client.id);
-      const previousPlatformClientEntry: PlatformStatesClientEntry = {
-        PK: platformClientPK,
-        version: previousPlatformEntryVersion,
-        state: itemState.active,
-        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
-        clientConsumerId: client.consumerId,
-        updatedAt: new Date().toISOString(),
-        clientPurposesIds: [purposeId],
-      };
-      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
-
-      // token-generation-states
-      const mockClientKidPurpose = "mockClientKidPurpose";
-      const tokenClientKidPurposePK =
-        makeTokenGenerationStatesClientKidPurposePK({
-          clientId: client.id,
-          kid: mockClientKidPurpose,
-          purposeId,
-        });
-      const gsiPKClientIdPurposeId = makeGSIPKClientIdPurposeId({
-        clientId: client.id,
-        purposeId,
-      });
-
-      const tokenClientEntry = getMockTokenStatesClientEntry();
-
-      const tokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
-        GSIPK_clientId_purposeId: gsiPKClientIdPurposeId,
-        GSIPK_kid: makeGSIPKKid(mockClientKidPurpose),
-        GSIPK_clientId: client.id,
-        GSIPK_purposeId: purposeId,
-      };
-
-      await writeTokenStateClientEntry(tokenClientEntry, dynamoDBClient);
-      await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
-
-      await handleMessageV2(message, dynamoDBClient);
-
-      // platform-states
-      const retrievedPlatformStatesEntry = await readClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
-      expect(retrievedPlatformStatesEntry).toBeUndefined();
-
-      // token-generation-states
-      const retrievedTokenEntries = await readAllTokenStateItems(
-        dynamoDBClient
-      );
-      const expectedTokenClientEntry: TokenGenerationStatesClientEntry = {
-        PK: makeTokenGenerationStatesClientKidPK({
-          clientId: client.id,
-          kid: mockClientKidPurpose,
-        }),
-        consumerId: tokenClientPurposeEntry.consumerId,
-        updatedAt: new Date().toISOString(),
-        clientKind: tokenClientPurposeEntry.clientKind,
-        publicKey: tokenClientPurposeEntry.publicKey,
-        GSIPK_clientId: tokenClientPurposeEntry.GSIPK_clientId,
-        GSIPK_kid: tokenClientPurposeEntry.GSIPK_kid,
-      };
-
-      expect(retrievedTokenEntries).toHaveLength(2);
-      expect(retrievedTokenEntries).toEqual(
-        expect.arrayContaining([tokenClientEntry, expectedTokenClientEntry])
       );
     });
   });

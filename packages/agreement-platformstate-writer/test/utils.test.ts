@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
+import crypto from "crypto";
 import {
   ConditionalCheckFailedException,
   DynamoDBClient,
@@ -48,7 +49,7 @@ import {
   agreementStateToItemState,
   updateAgreementStateOnTokenStates,
   updateAgreementStateAndDescriptorInfoOnTokenStates,
-  isAgreementTheLatest,
+  isLatestAgreement,
 } from "../src/utils.js";
 import { config } from "./utils.js";
 
@@ -309,13 +310,13 @@ describe("utils", async () => {
       );
     });
 
-    it.skip("should return entries if they exist (with pagination)", async () => {
+    it("should return entries if they exist (with pagination)", async () => {
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: generateId(),
         eserviceId: generateId(),
       });
 
-      const tokenEntriesLength = 2000;
+      const tokenEntriesLength = 10;
 
       const writtenEntries = [];
       // eslint-disable-next-line functional/no-let
@@ -330,6 +331,7 @@ describe("utils", async () => {
           descriptorState: itemState.inactive,
           descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
           GSIPK_consumerId_eserviceId,
+          publicKey: crypto.randomBytes(100000).toString("hex"),
         };
         await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
         // eslint-disable-next-line functional/immutable-data
@@ -610,7 +612,7 @@ describe("utils", async () => {
       await writeAgreementEntry(agreementEntry2, dynamoDBClient);
 
       expect(
-        await isAgreementTheLatest(
+        await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreementId1,
           dynamoDBClient
@@ -618,7 +620,7 @@ describe("utils", async () => {
       ).toEqual(true);
 
       expect(
-        await isAgreementTheLatest(
+        await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreementId2,
           dynamoDBClient
@@ -637,7 +639,7 @@ describe("utils", async () => {
       });
 
       expect(
-        await isAgreementTheLatest(
+        await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreementId1,
           dynamoDBClient

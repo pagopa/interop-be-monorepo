@@ -27,8 +27,7 @@ const serviceName = "authorization-server";
 
 const dynamoDBClient = new DynamoDBClient({});
 const redisRateLimiter = await initRedisRateLimiter({
-  // TODO add limiter group
-  limiterGroup: "TODO",
+  limiterGroup: "AUTHSERVER",
   maxRequests: config.rateLimiterMaxRequests,
   rateInterval: config.rateLimiterRateInterval,
   burstPercentage: config.rateLimiterBurstPercentage,
@@ -39,9 +38,7 @@ const redisRateLimiter = await initRedisRateLimiter({
 const producer = await initProducer(config, config.tokenAuditingTopic);
 const fileManager = initFileManager(config);
 
-// TODO Enable logging once error handling is completed
-// const server: FastifyInstance = Fastify({ logger: { level: 'error' } })
-const fastifyServer: FastifyInstance = Fastify();
+const fastifyServer: FastifyInstance = Fastify({ logger: { level: "error" } });
 await fastifyServer.register(fastifyFormbody);
 
 const tokenGenerator = new InteropTokenGenerator({
@@ -82,8 +79,10 @@ fastifyServer.post(
         loggerInstance
       );
 
+      const headers = rateLimiterHeadersFromStatus(res.rateLimiterStatus);
+      await reply.headers(headers);
+
       if (res.limitReached) {
-        const headers = rateLimiterHeadersFromStatus(res.rateLimiterStatus);
         const errorRes = makeApiProblem(
           tooManyRequestsError(res.rateLimitedTenantId),
           authorizationServerErrorMapper,
@@ -91,7 +90,7 @@ fastifyServer.post(
           correlationId
         );
 
-        return reply.status(errorRes.status).headers(headers).send(errorRes);
+        return reply.status(errorRes.status).send(errorRes);
       }
 
       return reply.status(200).send({

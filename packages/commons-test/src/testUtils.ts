@@ -61,7 +61,7 @@ import {
   makePlatformStatesClientPK,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { AuthData } from "pagopa-interop-commons";
+import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
 
@@ -463,9 +463,9 @@ export const getMockClientAssertion = async (props?: {
     iss: clientId,
     sub: clientId,
     aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
-    exp: Math.floor(threeHourLater.getTime() / 1000),
+    exp: dateToSeconds(threeHourLater),
     jti: generateId(),
-    iat: new Date().getTime() / 1000,
+    iat: dateToSeconds(new Date()),
   };
 
   const actualPayload: jose.JWTPayload = {

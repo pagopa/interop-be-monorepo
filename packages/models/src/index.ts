@@ -59,6 +59,7 @@ export * from "./token-generation-readmodel/platform-states-entry.js";
 export * from "./token-generation-readmodel/token-generation-states-entry.js";
 export * from "./token-generation-readmodel/commons.js";
 export * from "./token-generation-audit/audit.js";
+export * from "./client-assertion/clientAssertionValidation.js";
 
 // Protobuf
 export * from "./protobuf/protobuf.js";

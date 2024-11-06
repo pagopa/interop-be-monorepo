@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import crypto from "crypto";
 import { GeneratedTokenAuditDetails, generateId } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -6,7 +7,7 @@ import {
   formatTimehhmmss,
   genericLogger,
 } from "pagopa-interop-commons";
-import * as uuidv4 from "uuid";
+import { KafkaMessage } from "kafkajs";
 import { handleMessages } from ".././src/consumerService.js";
 import { config } from "../src/config/config.js";
 import { fileManager } from "./utils.js";
@@ -15,21 +16,31 @@ describe("consumerService", () => {
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
-    const uuid = generateId();
-    vi.spyOn(uuidv4, "v4").mockReturnValue(uuid);
+    const uuid = crypto.randomUUID();
+    vi.spyOn(crypto, "randomUUID").mockReturnValue(uuid);
   });
   afterAll(() => {
     vi.useRealTimers();
   });
 
   it("should write one entry on the bucket", async () => {
-    const auditMessages: GeneratedTokenAuditDetails[] = [getMockAuditDetails()];
+    const auditMessage = getMockAuditDetails();
 
+    const kafkaMessages: KafkaMessage[] = [
+      {
+        key: Buffer.from(generateId()),
+        value: Buffer.from(JSON.stringify(auditMessage)),
+        timestamp: new Date().toISOString(),
+        offset: "0",
+        attributes: 1,
+        size: 100,
+      },
+    ];
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toMatchObject([]);
 
-    await handleMessages(auditMessages, fileManager, genericLogger);
+    await handleMessages(kafkaMessages, fileManager, genericLogger);
 
     const date = new Date();
     const ymdDate = formatDateyyyyMMdd(date);
@@ -44,7 +55,7 @@ describe("consumerService", () => {
     expect(fileList).toHaveLength(1);
     expect(fileList).toMatchObject([expectedFilePathWithFileName]);
 
-    const expectedFileContent = JSON.stringify(auditMessages[0]) + "\n";
+    const expectedFileContent = JSON.stringify(auditMessage);
 
     const fileContent = await fileManager.get(
       config.s3Bucket,
@@ -52,8 +63,7 @@ describe("consumerService", () => {
       genericLogger
     );
 
-    const decodedFileContent = new TextDecoder().decode(fileContent);
-
+    const decodedFileContent = Buffer.from(fileContent).toString();
     expect(decodedFileContent).toMatchObject(expectedFileContent);
   });
 
@@ -64,11 +74,21 @@ describe("consumerService", () => {
       getMockAuditDetails(),
     ];
 
+    const kafkaMessages: KafkaMessage[] = auditMessages.map(
+      (auditMessage, index) => ({
+        key: Buffer.from(generateId()),
+        value: Buffer.from(JSON.stringify(auditMessage)),
+        timestamp: new Date().toISOString(),
+        offset: index.toString(),
+        attributes: 1,
+        size: 100,
+      })
+    );
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toMatchObject([]);
 
-    await handleMessages(auditMessages, fileManager, genericLogger);
+    await handleMessages(kafkaMessages, fileManager, genericLogger);
 
     const date = new Date();
     const ymdDate = formatDateyyyyMMdd(date);
@@ -84,10 +104,9 @@ describe("consumerService", () => {
     expect(fileList).toHaveLength(1);
     expect(fileList).toMatchObject([expectedFilePathWithFileName]);
 
-    const expectedFileContent =
-      auditMessages
-        .map((auditingEntry) => JSON.stringify(auditingEntry))
-        .join("\n") + "\n";
+    const expectedFileContent = auditMessages
+      .map((auditingEntry) => JSON.stringify(auditingEntry))
+      .join("\n");
 
     const fileContent = await fileManager.get(
       config.s3Bucket,
@@ -95,13 +114,24 @@ describe("consumerService", () => {
       genericLogger
     );
 
-    const decodedFileContent = new TextDecoder().decode(fileContent);
-
+    const decodedFileContent = Buffer.from(fileContent).toString();
     expect(decodedFileContent).toMatchObject(expectedFileContent);
   });
 
   it("should throw error if write operation fails", async () => {
-    const auditMessages: GeneratedTokenAuditDetails[] = [getMockAuditDetails()];
+    const auditMessage = getMockAuditDetails();
+
+    const kafkaMessages: KafkaMessage[] = [
+      {
+        key: Buffer.from(generateId()),
+        value: Buffer.from(JSON.stringify(auditMessage)),
+        timestamp: new Date().toISOString(),
+        offset: "0",
+        attributes: 1,
+        size: 100,
+      },
+    ];
+
     vi.spyOn(fileManager, "storeBytes").mockRejectedValueOnce(() => {
       throw Error();
     });
@@ -111,8 +141,8 @@ describe("consumerService", () => {
     ).toMatchObject([]);
 
     expect(
-      handleMessages(auditMessages, fileManager, genericLogger)
-    ).rejects.toThrowError("Write operation failed");
+      handleMessages(kafkaMessages, fileManager, genericLogger)
+    ).rejects.toThrowError("Write operation failed - generic error");
   });
 });
 
