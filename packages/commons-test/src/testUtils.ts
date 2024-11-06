@@ -1,3 +1,4 @@
+/* eslint-disable fp/no-delete */
 import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
 import {
@@ -67,6 +68,7 @@ import {
   PlatformStatesClientPK,
   PlatformStatesClientEntry,
   makePlatformStatesClientPK,
+  AgreementStamps,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -221,6 +223,18 @@ export const getMockTenantMail = (
   address: generateMock(z.string().email()),
 });
 
+export const getMockAgreementStamps = (): AgreementStamps => {
+  const stamps = generateMock(AgreementStamps);
+  delete stamps.submission?.delegateId;
+  delete stamps.activation?.delegateId;
+  delete stamps.rejection?.delegateId;
+  delete stamps.suspensionByConsumer?.delegateId;
+  delete stamps.suspensionByProducer?.delegateId;
+  delete stamps.upgrade?.delegateId;
+  delete stamps.archiving?.delegateId;
+  return stamps;
+};
+
 export const getMockAgreement = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   consumerId: TenantId = generateId<TenantId>(),
@@ -230,6 +244,7 @@ export const getMockAgreement = (
   eserviceId,
   consumerId,
   state,
+  stamps: getMockAgreementStamps(),
 });
 
 export const getMockAttribute = (

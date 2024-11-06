@@ -39,6 +39,7 @@ export type AgreementDocument = z.infer<typeof AgreementDocument>;
 
 export const AgreementStamp = z.object({
   who: UserId,
+  delegateId: TenantId.optional(),
   when: z.coerce.date(),
 });
 export type AgreementStamp = z.infer<typeof AgreementStamp>;

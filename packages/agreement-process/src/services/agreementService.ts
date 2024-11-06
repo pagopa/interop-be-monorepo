@@ -88,6 +88,7 @@ import {
   assertActivableState,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
+  assertRequesterCanActivate,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsConsumerOrProducerOrDelegate,
@@ -179,6 +180,12 @@ export const retrieveDelegationByDelegateId = async (
   readModelService: ReadModelService
 ): Promise<WithMetadata<Delegation> | undefined> =>
   await readModelService.getDelegationByDelegateId(delegateId);
+
+export const retrieveActiveDelegationByEserviceId = async (
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<WithMetadata<Delegation> | undefined> =>
+  await readModelService.getActiveDelegationByEserviceId(eserviceId);
 
 const retrieveDescriptor = (
   descriptorId: DescriptorId,
@@ -956,8 +963,15 @@ export function agreementServiceBuilder(
       );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
+      const activeDelegation = await retrieveActiveDelegationByEserviceId(
+        agreement.data.eserviceId,
+        readModelService
+      );
 
-      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+      const delegateId = activeDelegation?.data.delegateId;
+
+      assertRequesterCanActivate(agreement.data, delegateId, authData);
+
       verifyConsumerDoesNotActivatePending(agreement.data, authData);
       assertActivableState(agreement.data);
 
@@ -1049,6 +1063,7 @@ export function agreementServiceBuilder(
           suspendedByConsumer,
           suspendedByProducer,
           suspendedByPlatform,
+          delegateId,
         });
 
       const updatedAgreementWithoutContract: Agreement = {
@@ -1076,7 +1091,8 @@ export function agreementServiceBuilder(
         suspendedByPlatformChanged,
         agreement.metadata.version,
         authData,
-        correlationId
+        correlationId,
+        delegateId
       );
 
       const archiveEvents = await archiveRelatedToAgreements(
