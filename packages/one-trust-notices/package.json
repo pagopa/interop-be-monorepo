@@ -14,14 +14,14 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --watch --loader ts-node/esm ./src/index.ts",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/html2json": "1.0.1",
-    "@types/lodash": "4.14.196",
+    "@types/lodash.isempty": "4.4.9",
     "@types/node": "20.4.9",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
