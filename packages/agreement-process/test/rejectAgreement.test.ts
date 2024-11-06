@@ -6,6 +6,7 @@ import {
   getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
+  getMockDelegationProducer,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
@@ -26,6 +27,7 @@ import {
   TenantId,
   VerifiedTenantAttribute,
   agreementState,
+  delegationState,
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
@@ -41,6 +43,7 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
+  addOneDelegation,
   addOneEService,
   addOneTenant,
   agreementService,
@@ -377,5 +380,88 @@ describe("reject agreement", () => {
     ).rejects.toThrowError(
       descriptorNotFound(eservice.id, agreement.descriptorId)
     );
+  });
+
+  it("should throw operationNotAllowed when the requester is the producer and there is an active delegation", async () => {
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptorPublished()],
+    };
+    const consumer = getMockTenant();
+    const delegate = getMockTenant();
+    const agreement = {
+      ...getMockAgreement(),
+      state: randomArrayItem(agreementRejectableStates),
+      eserviceId: eservice.id,
+      producerId: eservice.producerId,
+      consumerId: consumer.id,
+      descriptorId: eservice.descriptors[0].id,
+    };
+    const authData = getRandomAuthData(agreement.producerId);
+    const delegation = getMockDelegationProducer({
+      delegateId: delegate.id,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneAgreement(agreement);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOneTenant(delegate);
+    await addOneDelegation(delegation);
+
+    await expect(
+      agreementService.rejectAgreement(
+        agreement.id,
+        "Rejected by producer due to test reasons",
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+  });
+
+  it("should throw a operationNotAllowed error when the requester is the delegate but the delegation in not active", async () => {
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptorPublished()],
+    };
+    const consumer = getMockTenant();
+    const agreement = {
+      ...getMockAgreement(),
+      state: randomArrayItem(agreementRejectableStates),
+      eserviceId: eservice.id,
+      producerId: eservice.producerId,
+      consumerId: consumer.id,
+      descriptorId: eservice.descriptors[0].id,
+    };
+    const authData = getRandomAuthData();
+    const delegation = getMockDelegationProducer({
+      delegateId: authData.organizationId,
+      eserviceId: eservice.id,
+      state: delegationState.waitingForApproval,
+    });
+
+    await addOneAgreement(agreement);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOneDelegation(delegation);
+
+    await expect(
+      agreementService.rejectAgreement(
+        agreement.id,
+        "Rejected by producer due to test reasons",
+
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
   });
 });
