@@ -2094,9 +2094,9 @@ importers:
       '@types/html2json':
         specifier: 1.0.1
         version: 1.0.1
-      '@types/lodash':
-        specifier: 4.14.196
-        version: 4.14.196
+      '@types/lodash.isempty':
+        specifier: 4.4.9
+        version: 4.4.9
       '@types/node':
         specifier: 20.4.9
         version: 20.4.9
@@ -4641,11 +4641,14 @@ packages:
   '@types/jsonwebtoken@9.0.6':
     resolution: {integrity: sha512-/5hndP5dCjloafCXns6SZyESp3Ldq7YjH3zwzwczYnjxIT0Fqzk5ROSYVGfFyczIue7IUEj8hkvLbPoLQ18vQw==}
 
+  '@types/lodash.isempty@4.4.9':
+    resolution: {integrity: sha512-DPSFfnT2JmZiAWNWOU8IRZws/Ha6zyGF5m06TydfsY+0dVoQqby2J61Na2QU4YtwiZ+moC6cJS6zWYBJq4wBVw==}
+
   '@types/lodash.isequal@4.5.8':
     resolution: {integrity: sha512-uput6pg4E/tj2LGxCZo9+y27JNyB2OZuuI/T5F+ylVDYuqICLG2/ktjxx0v6GvVntAf8TvEzeQLcV0ffRirXuA==}
 
-  '@types/lodash@4.14.196':
-    resolution: {integrity: sha512-22y3o88f4a94mKljsZcanlNWPzO0uBsBdzLAngf2tp533LzZcQzb6+eZPJ+vCTt+bqF2XnvT9gejTLsAcJAJyQ==}
+  '@types/lodash@4.17.13':
+    resolution: {integrity: sha512-lfx+dftrEZcdBPczf9d0Qv0x+j/rfNCMuC6OcfXmO8gkfeNAY88PgKUbvG56whcN23gc27yenwF6oJZXGFpYxg==}
 
   '@types/lodash@4.17.6':
     resolution: {integrity: sha512-OpXEVoCKSS3lQqjx9GGGOapBeuW5eUboYHRlHP9urXPX25IKZ6AnP5ZRxtVf63iieUbsHxLn8NQ5Nlftc6yzAA==}
@@ -11461,11 +11464,15 @@ snapshots:
     dependencies:
       '@types/node': 20.14.6
 
+  '@types/lodash.isempty@4.4.9':
+    dependencies:
+      '@types/lodash': 4.17.13
+
   '@types/lodash.isequal@4.5.8':
     dependencies:
       '@types/lodash': 4.17.6
 
-  '@types/lodash@4.14.196': {}
+  '@types/lodash@4.17.13': {}
 
   '@types/lodash@4.17.6': {}
 

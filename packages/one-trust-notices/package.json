@@ -21,7 +21,7 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/html2json": "1.0.1",
-    "@types/lodash": "4.14.196",
+    "@types/lodash.isempty": "4.4.9",
     "@types/node": "20.4.9",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
