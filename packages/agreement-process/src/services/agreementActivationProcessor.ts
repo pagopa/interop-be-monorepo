@@ -171,7 +171,7 @@ export async function createActivationEvent(
       )
       .with(
         [updatedAgreement.producerId, agreementState.suspended],
-        [delegateId, agreementState.active],
+        [delegateId, agreementState.suspended],
         () => [
           toCreateEventAgreementUnsuspendedByProducer(
             {
