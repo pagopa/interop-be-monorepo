@@ -5,10 +5,8 @@ import {
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionState,
-  RiskAnalysisId,
   RiskAnalysisMultiAnswer,
   RiskAnalysisSingleAnswer,
-  generateId,
   purposeVersionState,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -241,69 +239,69 @@ export const apiPurposeVersionToPurposeVersion = (
     : undefined,
 });
 
-export const apiSingleAnswersToSingleAnswers = (
-  apiSingleAnswers: Record<string, string[]>
-): RiskAnalysisSingleAnswer[] =>
-  Object.entries(apiSingleAnswers).reduce<RiskAnalysisSingleAnswer[]>((acc, [key, values]) => {
-    values.forEach((value) => {
-      acc.push({
-        id: generateId(),
-        key,
-        value,
-      });
-    });
-    return acc;
-  }, []);
+// export const apiSingleAnswersToSingleAnswers = (
+//   apiSingleAnswers: Record<string, string[]>
+// ): RiskAnalysisSingleAnswer[] =>
+//   Object.entries(apiSingleAnswers).reduce<RiskAnalysisSingleAnswer[]>((acc, [key, values]) => {
+//     values.forEach((value) => {
+//       acc.push({
+//         id: generateId(),
+//         key,
+//         value,
+//       });
+//     });
+//     return acc;
+//   }, []);
 
-export const apiMultiAnswersToMultiAnswers = (
-  apiMultiAnswers: Record<string, string[]>
-): RiskAnalysisMultiAnswer[] =>
-  Object.entries(apiMultiAnswers).reduce<RiskAnalysisMultiAnswer[]>((acc, [key, values]) => {
-    if (values.length === 0) {
-      return acc;
-    }
-    acc.push({
-      id: generateId(),
-      key,
-      values,
-    });
-    return acc;
-  }, []);
+// export const apiMultiAnswersToMultiAnswers = (
+//   apiMultiAnswers: Record<string, string[]>
+// ): RiskAnalysisMultiAnswer[] =>
+//   Object.entries(apiMultiAnswers).reduce<RiskAnalysisMultiAnswer[]>((acc, [key, values]) => {
+//     if (values.length === 0) {
+//       return acc;
+//     }
+//     acc.push({
+//       id: generateId(),
+//       key,
+//       values,
+//     });
+//     return acc;
+//   }, []);
 
 
 
-export const apiRiskAnalysisFormToRiskAnalysisForm = (
-  riskAnalysisForm: purposeApi.RiskAnalysisForm
-): PurposeRiskAnalysisForm => {
-  return {
-    id: generateId(),
-    version: riskAnalysisForm.version,
-    singleAnswers: apiSingleAnswersToSingleAnswers(
-      riskAnalysisForm.answers
-    ),
-    multiAnswers: apiMultiAnswersToMultiAnswers(
-      riskAnalysisForm.answers
-    ),
-    riskAnalysisId: riskAnalysisForm.riskAnalysisId ? unsafeBrandId<RiskAnalysisId>(riskAnalysisForm.riskAnalysisId) : undefined,
-  };
-};
+// export const apiRiskAnalysisFormToRiskAnalysisForm = (
+//   riskAnalysisForm: purposeApi.RiskAnalysisForm
+// ): PurposeRiskAnalysisForm => {
+//   return {
+//     id: generateId(),
+//     version: riskAnalysisForm.version,
+//     singleAnswers: apiSingleAnswersToSingleAnswers(
+//       riskAnalysisForm.answers
+//     ),
+//     multiAnswers: apiMultiAnswersToMultiAnswers(
+//       riskAnalysisForm.answers
+//     ),
+//     riskAnalysisId: riskAnalysisForm.riskAnalysisId ? unsafeBrandId<RiskAnalysisId>(riskAnalysisForm.riskAnalysisId) : undefined,
+//   };
+// };
 
-export const apiPurposeToPurpose = (
-  purpose: purposeApi.Purpose,
-): Purpose => ({
-  id: unsafeBrandId(purpose.id),
-  eserviceId: unsafeBrandId(purpose.eserviceId),
-  consumerId: unsafeBrandId(purpose.consumerId),
-  versions: purpose.versions.map(apiPurposeVersionToPurposeVersion),
-  suspendedByConsumer: purpose.suspendedByConsumer,
-  suspendedByProducer: purpose.suspendedByProducer,
-  title: purpose.title,
-  description: purpose.description,
-  riskAnalysisForm: purpose.riskAnalysisForm
-    ? apiRiskAnalysisFormToRiskAnalysisForm(purpose.riskAnalysisForm)
-    : undefined,
-  createdAt: new Date(purpose.createdAt),
-  updatedAt: purpose.updatedAt ? new Date(purpose.updatedAt) : undefined,
-  isFreeOfCharge: purpose.isFreeOfCharge,
-  freeOfChargeReason: purpose.freeOfChargeReason,
-});
+// export const apiPurposeToPurpose = (
+//   purpose: purposeApi.Purpose,
+// ): Purpose => ({
+//   id: unsafeBrandId(purpose.id),
+//   eserviceId: unsafeBrandId(purpose.eserviceId),
+//   consumerId: unsafeBrandId(purpose.consumerId),
+//   versions: purpose.versions.map(apiPurposeVersionToPurposeVersion),
+//   suspendedByConsumer: purpose.suspendedByConsumer,
+//   suspendedByProducer: purpose.suspendedByProducer,
+//   title: purpose.title,
+//   description: purpose.description,
+//   riskAnalysisForm: purpose.riskAnalysisForm
+//     ? apiRiskAnalysisFormToRiskAnalysisForm(purpose.riskAnalysisForm)
+//     : undefined,
+//   createdAt: new Date(purpose.createdAt),
+//   updatedAt: purpose.updatedAt ? new Date(purpose.updatedAt) : undefined,
+//   isFreeOfCharge: purpose.isFreeOfCharge,
+//   freeOfChargeReason: purpose.freeOfChargeReason,
+// });
