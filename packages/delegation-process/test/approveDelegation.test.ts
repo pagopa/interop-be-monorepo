@@ -206,7 +206,7 @@ describe("approve delegation", () => {
       genericLogger
     );
 
-    const hasActivationContract = contracts.find(
+    const hasActivationContract = contracts.some(
       (contract) =>
         contract.includes("activation") && contract.includes(delegation.id)
     );
