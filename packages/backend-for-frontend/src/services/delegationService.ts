@@ -182,6 +182,7 @@ export function delegationServiceBuilder(
         kind,
         delegatedIds,
         delegatorIds,
+        eserviceIds,
       }: {
         limit: number;
         offset: number;
@@ -189,6 +190,7 @@ export function delegationServiceBuilder(
         kind?: bffApi.DelegationKind;
         delegatedIds?: string[];
         delegatorIds?: string[];
+        eserviceIds?: string[];
       },
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactDelegations> {
@@ -202,6 +204,7 @@ export function delegationServiceBuilder(
           delegateIds: delegatedIds,
           delegationStates: states,
           kind,
+          eserviceIds,
         },
         headers,
       });

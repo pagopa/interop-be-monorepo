@@ -8,7 +8,7 @@ import {
   fromAppContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { TenantId, unsafeBrandId } from "pagopa-interop-models";
+import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
 import {
@@ -41,19 +41,23 @@ const delegationRouter = (
         limit,
         delegateIds,
         delegatorIds,
+        eserviceIds,
         delegationStates,
         kind,
       } = req.query;
 
       try {
-        const delegations = await delegationService.getDelegations(
-          delegateIds.map(unsafeBrandId<TenantId>),
-          delegatorIds.map(unsafeBrandId<TenantId>),
-          delegationStates.map(apiDelegationStateToDelegationState),
-          kind && apiDelegationKindToDelegationKind(kind),
+        const delegations = await delegationService.getDelegations({
+          delegateIds: delegateIds.map(unsafeBrandId<TenantId>),
+          delegatorIds: delegatorIds.map(unsafeBrandId<TenantId>),
+          delegationStates: delegationStates.map(
+            apiDelegationStateToDelegationState
+          ),
+          eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
+          kind: kind && apiDelegationKindToDelegationKind(kind),
           offset,
-          limit
-        );
+          limit,
+        });
 
         return res.status(200).send(
           delegationApi.Delegations.parse({
