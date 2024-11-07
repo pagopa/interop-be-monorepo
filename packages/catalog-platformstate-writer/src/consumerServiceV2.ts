@@ -195,23 +195,27 @@ export async function handleMessageV2(
       if (!catalogEntry || catalogEntry.version > msg.version) {
         return Promise.resolve();
       } else {
-        await updateDescriptorVoucherLifespanInPlatformStateEntry(
-          dynamoDBClient,
-          primaryKey,
-          descriptor.voucherLifespan,
-          msg.version
-        );
+        if (
+          descriptor.voucherLifespan !== catalogEntry.descriptorVoucherLifespan
+        ) {
+          await updateDescriptorVoucherLifespanInPlatformStateEntry(
+            dynamoDBClient,
+            primaryKey,
+            descriptor.voucherLifespan,
+            msg.version
+          );
 
-        // token-generation-states
-        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-          eserviceId: eservice.id,
-          descriptorId: descriptor.id,
-        });
-        await updateDescriptorVoucherLifespanInTokenGenerationStatesTable(
-          eserviceId_descriptorId,
-          descriptor.voucherLifespan,
-          dynamoDBClient
-        );
+          // token-generation-states
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          });
+          await updateDescriptorVoucherLifespanInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptor.voucherLifespan,
+            dynamoDBClient
+          );
+        }
       }
     })
     .with(
