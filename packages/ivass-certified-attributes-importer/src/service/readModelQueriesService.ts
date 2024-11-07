@@ -29,7 +29,7 @@ export class ReadModelQueries {
    */
   public async getIVASSTenants(
     externalId: string[]
-  ): Promise<IvassCompactTenant[]> {
+  ): Promise<IvassReadModelTenant[]> {
     return await this.readModelClient.tenants
       .aggregate([
         {
@@ -48,7 +48,7 @@ export class ReadModelQueries {
 
   public async getTenantsWithAttributes(
     attributeIds: string[]
-  ): Promise<IvassCompactTenant[]> {
+  ): Promise<IvassReadModelTenant[]> {
     return await this.readModelClient.tenants
       .aggregate([
         {
@@ -64,7 +64,7 @@ export class ReadModelQueries {
       .toArray();
   }
 
-  public async getTenantById(tenantId: string): Promise<IvassCompactTenant> {
+  public async getTenantById(tenantId: string): Promise<IvassReadModelTenant> {
     const result = await this.readModelClient.tenants
       .aggregate([
         {

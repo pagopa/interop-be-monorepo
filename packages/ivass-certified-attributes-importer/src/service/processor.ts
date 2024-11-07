@@ -164,7 +164,7 @@ async function getAttributesIdentifiers(
   readModel: ReadModelQueries,
   ivassTenantId: string
 ): Promise<IvassAttributes> {
-  const ivassTenant: IvassCompactTenant = await readModel.getTenantById(
+  const ivassTenant: IvassReadModelTenant = await readModel.getTenantById(
     ivassTenantId
   );
   const certifier = ivassTenant.features.find(
@@ -198,7 +198,7 @@ const isAttributeAssigned = (org: CsvRow, now: number): boolean =>
 async function assignAttribute(
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
-  tenant: IvassCompactTenant,
+  tenant: IvassReadModelTenant,
   attribute: AttributeIdentifiers,
   logger: Logger,
   correlationId: CorrelationId
@@ -225,7 +225,7 @@ async function assignAttribute(
 async function unassignAttribute(
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
-  tenant: IvassCompactTenant,
+  tenant: IvassReadModelTenant,
   attribute: AttributeIdentifiers,
   logger: Logger,
   correlationId: CorrelationId
@@ -250,7 +250,7 @@ async function unassignAttribute(
 }
 
 function tenantContainsAttribute(
-  tenant: IvassCompactTenant,
+  tenant: IvassReadModelTenant,
   attributeId: string
 ): boolean {
   return (
