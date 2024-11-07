@@ -1,4 +1,4 @@
-import fastifyServer from "./routers/authorizationRouter.js";
+import fastifyServer from "./routers/AuthorizationServerRouter.js";
 
 const app = fastifyServer;
 
