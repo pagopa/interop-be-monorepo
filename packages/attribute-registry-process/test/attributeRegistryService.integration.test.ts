@@ -406,6 +406,7 @@ describe("database test", () => {
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
       it("should throw attributeDuplicate if an attribute with the same name and code already exists, case insensitive", async () => {
+        // This test is the same as the previous one, but with a different method
         const attribute = {
           ...mockAttribute,
           name: mockAttribute.name.toUpperCase(),
@@ -427,8 +428,8 @@ describe("database test", () => {
         expect(
           attributeRegistryService.createInternalCertifiedAttribute(
             {
-              name: attribute.name,
-              code: attribute.code,
+              name: attribute.name.toLowerCase(),
+              code: attribute.code.toLowerCase(),
               origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: attribute.description,
             },
