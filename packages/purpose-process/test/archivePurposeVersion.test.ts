@@ -25,13 +25,13 @@ import {
   purposeVersionNotFound,
   notValidVersionState,
 } from "../src/model/domain/errors.js";
+import { apiPurposeVersionToPurposeVersion } from "../src/model/domain/apiConverter.js";
 import {
   addOnePurpose,
   purposeService,
   readLastPurposeEvent,
 } from "./utils.js";
 import { mockPurposeRouterRequest } from "./supertestSetup.js";
-import { apiPurposeVersionToPurposeVersion } from "../src/model/domain/apiConverter.js";
 
 describe("archivePurposeVersion", () => {
   it("should write on event-store for the archiving of a purpose version", async () => {
@@ -88,7 +88,11 @@ describe("archivePurposeVersion", () => {
       writtenPayload.purpose?.versions.find(
         (v) => v.id === returnedPurposeVersion.id
       )
-    ).toEqual(toPurposeVersionV2(apiPurposeVersionToPurposeVersion(returnedPurposeVersion)));
+    ).toEqual(
+      toPurposeVersionV2(
+        apiPurposeVersionToPurposeVersion(returnedPurposeVersion)
+      )
+    );
 
     vi.useRealTimers();
   });
@@ -150,7 +154,11 @@ describe("archivePurposeVersion", () => {
       writtenPayload.purpose?.versions.find(
         (v) => v.id === returnedPurposeVersion.id
       )
-    ).toEqual(toPurposeVersionV2(apiPurposeVersionToPurposeVersion(returnedPurposeVersion)));
+    ).toEqual(
+      toPurposeVersionV2(
+        apiPurposeVersionToPurposeVersion(returnedPurposeVersion)
+      )
+    );
 
     vi.useRealTimers();
   });

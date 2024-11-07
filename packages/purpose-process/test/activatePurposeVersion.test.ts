@@ -67,8 +67,6 @@ import { addOnePurpose } from "./utils.js";
 import { mockPurposeRouterRequest } from "./supertestSetup.js";
 
 describe("activatePurposeVersion", () => {
-
-
   let mockConsumer: Tenant;
   let mockProducer: Tenant;
   let mockEService: EService;
@@ -366,7 +364,6 @@ describe("activatePurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
-
     const purposeVersion = await mockPurposeRouterRequest.post({
       path: "/purposes/:purposeId/versions/:versionId/activate",
       pathParams: {
@@ -422,7 +419,6 @@ describe("activatePurposeVersion", () => {
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
-
 
     const purposeVersion = await mockPurposeRouterRequest.post({
       path: "/purposes/:purposeId/versions/:versionId/activate",
