@@ -11,6 +11,8 @@ import {
   tenantMailKind,
   TenantFeature,
   tenantAttributeType,
+  TenantFeatureType,
+  tenantFeatureType,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -132,4 +134,19 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     onboardedAt: tenant.onboardedAt?.toJSON(),
     subUnitType: tenant.subUnitType,
   };
+}
+
+export function apiTenantFeatureTypeToTenantFeatureType(
+  input: tenantApi.TenantFeatureType
+): TenantFeatureType {
+  return match<tenantApi.TenantFeatureType, TenantFeatureType>(input)
+    .with(
+      tenantApi.TenantFeatureType.Values.DELEGATED_PRODUCER,
+      () => tenantFeatureType.delegatedProducer
+    )
+    .with(
+      tenantApi.TenantFeatureType.Values.PERSISTENT_CERTIFIER,
+      () => tenantFeatureType.persistentCertifier
+    )
+    .exhaustive();
 }

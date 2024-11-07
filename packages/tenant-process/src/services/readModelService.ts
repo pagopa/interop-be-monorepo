@@ -20,13 +20,15 @@ import {
   AgreementState,
   TenantReadModel,
   genericInternalError,
+  TenantFeatureType,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
 
 function listTenantsFilters(
-  name: string | undefined
+  name: string | undefined,
+  features?: TenantFeatureType[]
 ): Filter<{ data: TenantReadModel }> {
   const nameFilter = name
     ? {
@@ -37,6 +39,15 @@ function listTenantsFilters(
       }
     : {};
 
+  const featuresFilter =
+    features && features.length > 0
+      ? {
+          "data.features.type": {
+            $in: features,
+          },
+        }
+      : {};
+
   const withSelfcareIdFilter = {
     "data.selfcareId": {
       $exists: true,
@@ -45,6 +56,7 @@ function listTenantsFilters(
 
   return {
     ...nameFilter,
+    ...featuresFilter,
     ...withSelfcareIdFilter,
   };
 }
@@ -147,16 +159,18 @@ export function readModelServiceBuilder(
 ) {
   const { attributes, eservices, tenants, agreements } = readModelRepository;
   return {
-    async getTenantsByName({
+    async getTenants({
       name,
+      features,
       offset,
       limit,
     }: {
       name: string | undefined;
+      features: TenantFeatureType[];
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const query = listTenantsFilters(name);
+      const query = listTenantsFilters(name, features);
       const aggregationPipeline = [
         { $match: query },
         { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },

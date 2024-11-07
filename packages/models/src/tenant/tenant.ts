@@ -22,14 +22,26 @@ export const ExternalId = z.object({
 
 export type ExternalId = z.infer<typeof ExternalId>;
 
+export const tenantFeatureType = {
+  persistentCertifier: "PersistentCertifier",
+  delegatedProducer: "DelegatedProducer",
+} as const;
+
+export const TenantFeatureType = z.enum([
+  Object.values(tenantFeatureType)[0],
+  ...Object.values(tenantFeatureType).slice(1),
+]);
+
+export type TenantFeatureType = z.infer<typeof TenantFeatureType>;
+
 export const TenantFeatureCertifier = z.object({
-  type: z.literal("PersistentCertifier"),
+  type: z.literal(tenantFeatureType.persistentCertifier),
   certifierId: z.string(),
 });
 export type TenantFeatureCertifier = z.infer<typeof TenantFeatureCertifier>;
 
 export const TenantFeatureDelegatedProducer = z.object({
-  type: z.literal("DelegatedProducer"),
+  type: z.literal(tenantFeatureType.delegatedProducer),
   availabilityTimestamp: z.coerce.date(),
 });
 export type TenantFeatureDelegatedProducer = z.infer<
