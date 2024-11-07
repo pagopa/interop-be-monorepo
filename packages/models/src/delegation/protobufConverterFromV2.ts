@@ -114,8 +114,12 @@ export const fromDelegationV2 = (input: DelegationV2): Delegation => {
     revokedAt: bigIntToDate(input.revokedAt),
     state: fromDelegationStateV2(input.state),
     kind: fromDelegationKindV2(input.kind),
-    contract:
-      input.contract && fromDelegationContractDocumentV2(input.contract),
+    activationContract:
+      input.activationContract &&
+      fromDelegationContractDocumentV2(input.activationContract),
+    revocationContract:
+      input.revocationContract &&
+      fromDelegationContractDocumentV2(input.revocationContract),
     stamps: fromDelegationStampsV2(input.stamps),
   };
 };

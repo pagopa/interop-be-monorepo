@@ -15246,7 +15246,9 @@ components:
           $ref: "#/components/schemas/DelegationTenant"
         delegator:
           $ref: "#/components/schemas/DelegationTenant"
-        contract:
+        activationContract:
+          $ref: "#/components/schemas/Document"
+        revocationContract:
           $ref: "#/components/schemas/Document"
         submittedAt:
           type: string

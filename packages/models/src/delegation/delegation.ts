@@ -68,7 +68,8 @@ export const Delegation = z.object({
   revokedAt: z.coerce.date().optional(),
   state: DelegationState,
   kind: DelegationKind,
-  contract: DelegationContractDocument.optional(),
+  activationContract: DelegationContractDocument.optional(),
+  revocationContract: DelegationContractDocument.optional(),
   stamps: DelegationStamps,
 });
 export type Delegation = z.infer<typeof Delegation>;

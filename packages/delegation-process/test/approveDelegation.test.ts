@@ -8,23 +8,26 @@ import {
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DelegationApprovedV2,
+  DelegationContractId,
   DelegationId,
   EService,
   generateId,
   Tenant,
-  toDelegationContractDocumentV2,
   toDelegationV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { delegationState } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  formatDateyyyyMMddHHmmss,
+  genericLogger,
+} from "pagopa-interop-commons";
 import {
   delegationNotFound,
   operationRestrictedToDelegate,
   incorrectState,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
-import { generatePdfDelegation } from "../src/services/pdfUtils.js";
+import { contractBuilder } from "../src/services/delegationContractBuilder.js";
 import {
   addOneDelegation,
   addOneTenant,
@@ -56,7 +59,7 @@ describe("approve delegation", () => {
     await addOneEservice(eservice);
   });
 
-  it("should approve delegation if validations succed", async () => {
+  it("should approve delegation if validations succeed", async () => {
     const delegationId = generateId<DelegationId>();
 
     const delegation = getMockDelegationProducer({
@@ -65,14 +68,6 @@ describe("approve delegation", () => {
       delegateId: delegate.id,
       delegatorId: delegator.id,
       eserviceId: eservice.id,
-      contract: {
-        id: generateId(),
-        contentType: "application/pdf",
-        createdAt: currentExecutionTime,
-        name: "Delega.pdf",
-        path: `delegation/${delegationId}`,
-        prettyName: "Delega.pdf",
-      },
     });
     await addOneDelegation(delegation);
     const { version } = await readLastDelegationEvent(delegation.id);
@@ -93,9 +88,13 @@ describe("approve delegation", () => {
       payload: event.data,
     });
 
-    if (!actualDelegation?.contract || !delegation.contract) {
-      throw new Error("Contract should be defined");
-    }
+    const expectedContractFilePath = (
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    )[0];
+
+    const documentId = unsafeBrandId<DelegationContractId>(
+      expectedContractFilePath.split("/")[2]
+    );
 
     const expectedDelegation = {
       ...toDelegationV2({
@@ -109,13 +108,47 @@ describe("approve delegation", () => {
             when: currentExecutionTime,
           },
         },
+        activationContract: {
+          id: documentId,
+          contentType: "application/pdf",
+          createdAt: currentExecutionTime,
+          name: `${formatDateyyyyMMddHHmmss(
+            currentExecutionTime
+          )}_delegation_activation_contract.pdf`,
+          path: expectedContractFilePath,
+          prettyName: "Delega",
+        },
       }),
-      contract: {
-        ...toDelegationContractDocumentV2(delegation.contract),
-        id: actualDelegation.contract.id,
-      },
     };
     expect(actualDelegation).toEqual(expectedDelegation);
+
+    const actualContract = await fileManager.get(
+      config.s3Bucket,
+      expectedContractFilePath,
+      genericLogger
+    );
+
+    const { path: expectedContractPath } =
+      await contractBuilder.createActivationContract({
+        delegation,
+        delegator,
+        delegate,
+        eservice,
+        pdfGenerator,
+        fileManager,
+        config,
+        logger: genericLogger,
+      });
+
+    const expectedContract = await fileManager.get(
+      config.s3Bucket,
+      expectedContractPath,
+      genericLogger
+    );
+
+    expect(flushPDFMetadata(actualContract, currentExecutionTime)).toEqual(
+      flushPDFMetadata(expectedContract, currentExecutionTime)
+    );
   });
 
   it("should throw delegationNotFound when delegation doesn't exist", async () => {
@@ -199,25 +232,16 @@ describe("approve delegation", () => {
       genericLogger
     );
 
-    const actualPDF = Buffer.from(
-      await fileManager.get(
-        config.s3Bucket,
-        `${config.delegationDocumentPath}/${delegation.id}`,
-        genericLogger
-      )
+    const contracts = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
     );
 
-    const expectedPDF = await generatePdfDelegation(
-      currentExecutionTime,
-      delegation,
-      delegator,
-      delegate,
-      eservice,
-      pdfGenerator
+    const hasActivationContract = contracts.some(
+      (contract) =>
+        contract.includes("activation") && contract.includes(delegation.id)
     );
 
-    expect(flushPDFMetadata(actualPDF, currentExecutionTime)).toEqual(
-      flushPDFMetadata(expectedPDF, currentExecutionTime)
-    );
+    expect(hasActivationContract).toBeTruthy();
   });
 });

@@ -1,8 +1,6 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
-  initFileManager,
-  initPDFGenerator,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -16,9 +14,6 @@ const serviceName = "delgation-process";
 
 const app = zodiosCtx.app();
 
-const pdfGenerator = await initPDFGenerator();
-const fileManager = initFileManager(config);
-
 // Disable the "X-Powered-By: Express" HTTP header for security reasons.
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
@@ -27,6 +22,6 @@ app.use(healthRouter);
 app.use(authenticationMiddleware(config));
 app.use(loggerMiddleware(serviceName));
 app.use(delegationRouter(zodiosCtx));
-app.use(delegationProducerRouter(zodiosCtx, pdfGenerator, fileManager));
+app.use(delegationProducerRouter(zodiosCtx));
 
 export default app;

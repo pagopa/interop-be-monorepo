@@ -78,6 +78,10 @@ export const toDelegationV2 = (delegation: Delegation): DelegationV2 => ({
   revokedAt: dateToBigInt(delegation.revokedAt),
   stamps: toDelegationStampsV2(delegation.stamps),
   rejectionReason: delegation.rejectionReason,
-  contract:
-    delegation.contract && toDelegationContractDocumentV2(delegation.contract),
+  activationContract:
+    delegation.activationContract &&
+    toDelegationContractDocumentV2(delegation.activationContract),
+  revocationContract:
+    delegation.revocationContract &&
+    toDelegationContractDocumentV2(delegation.revocationContract),
 });

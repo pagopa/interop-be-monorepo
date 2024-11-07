@@ -46,7 +46,7 @@ import {
   assertIsDelegate,
   assertIsState,
 } from "./validators.js";
-import { generatePdfDelegation } from "./pdfUtils.js";
+import { contractBuilder } from "./delegationContractBuilder.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationProducerServiceBuilder(
@@ -146,11 +146,31 @@ export function delegationProducerServiceBuilder(
       const currentDelegation = await retrieveDelegationById(delegationId);
       assertDelegationIsRevokable(currentDelegation.data, delegatorId);
 
+      const [delegator, delegate, eservice] = await Promise.all([
+        getTenantById(currentDelegation.data.delegatorId),
+        getTenantById(currentDelegation.data.delegateId),
+        getEserviceById(currentDelegation.data.eserviceId),
+      ]);
+
+      const revocationContract = await contractBuilder.createRevocationContract(
+        {
+          delegation: currentDelegation.data,
+          delegator,
+          delegate,
+          eservice,
+          pdfGenerator,
+          fileManager,
+          config,
+          logger,
+        }
+      );
+
       const now = new Date();
       const revokedDelegation = {
         ...currentDelegation.data,
         state: delegationState.revoked,
         revokedAt: now,
+        revocationContract,
         stamps: {
           ...currentDelegation.data.stamps,
           revocation: {
@@ -180,33 +200,29 @@ export function delegationProducerServiceBuilder(
         delegationId
       );
 
-      const delegator = await getTenantById(delegation.delegatorId);
-      const delegate = await getTenantById(delegation.delegateId);
-      const eservice = await getEserviceById(delegation.eserviceId);
+      const [delegator, delegate, eservice] = await Promise.all([
+        getTenantById(delegation.delegatorId),
+        getTenantById(delegation.delegateId),
+        getEserviceById(delegation.eserviceId),
+      ]);
 
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
-      const now = new Date();
-
-      const pdfBuffer = await generatePdfDelegation(
-        now,
-        delegation,
-        delegator,
-        delegate,
-        eservice,
-        pdfGenerator
-      );
-
-      const documentPath = await fileManager.storeBytes(
+      const activationContract = await contractBuilder.createActivationContract(
         {
-          bucket: config.s3Bucket,
-          path: config.delegationDocumentPath,
-          name: delegation.id,
-          content: pdfBuffer,
-        },
-        logger
+          delegation,
+          delegator,
+          delegate,
+          eservice,
+          pdfGenerator,
+          fileManager,
+          config,
+          logger,
+        }
       );
+
+      const now = new Date();
 
       await repository.createEvent(
         toCreateEventApproveDelegation(
@@ -215,14 +231,7 @@ export function delegationProducerServiceBuilder(
               ...delegation,
               state: delegationState.active,
               approvedAt: now,
-              contract: {
-                id: generateId(),
-                name: "Delega.pdf",
-                prettyName: "Delega.pdf",
-                contentType: "application/pdf",
-                path: documentPath,
-                createdAt: now,
-              },
+              activationContract,
               stamps: {
                 ...delegation.stamps,
                 activation: {

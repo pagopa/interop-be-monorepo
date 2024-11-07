@@ -10,8 +10,8 @@ import {
   zodiosValidationErrorToApiProblem,
   authorizationMiddleware,
   initDB,
-  PDFGenerator,
-  FileManager,
+  initPDFGenerator,
+  initFileManager,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -30,12 +30,13 @@ const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 
+const pdfGenerator = await initPDFGenerator();
+const fileManager = initFileManager(config);
+
 const { ADMIN_ROLE } = userRoles;
 
 const delegationProducerRouter = (
-  ctx: ZodiosContext,
-  pdfGenerator: PDFGenerator,
-  fileManager: FileManager
+  ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const delegationRouter = ctx.router(delegationApi.producerApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
