@@ -25,6 +25,7 @@ import {
   GeneratedTokenAuditDetails,
   GSIPKEServiceIdDescriptorId,
   ClientAssertion,
+  FullTokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -157,28 +158,21 @@ export function tokenServiceBuilder({
 
       return await match(key.clientKind)
         .with(clientKindTokenStates.consumer, async () => {
-          if (key.PK.startsWith(clientKidPurposePrefix)) {
-            const parsedKey = key as TokenGenerationStatesClientPurposeEntry;
-
-            if (
-              !parsedKey.descriptorAudience ||
-              !parsedKey.GSIPK_purposeId ||
-              !parsedKey.descriptorVoucherLifespan
-            ) {
-              throw invalidTokenClientKidPurposeEntry(parsedKey.PK);
-            }
+          const parsedKey =
+            FullTokenGenerationStatesClientPurposeEntry.safeParse(key);
+          if (parsedKey.success) {
             const token = await tokenGenerator.generateInteropConsumerToken({
               sub: jwt.payload.sub,
-              audience: parsedKey.descriptorAudience,
-              purposeId: parsedKey.GSIPK_purposeId,
-              tokenDurationInSeconds: parsedKey.descriptorVoucherLifespan,
+              audience: parsedKey.data.descriptorAudience,
+              purposeId: parsedKey.data.GSIPK_purposeId,
+              tokenDurationInSeconds: parsedKey.data.descriptorVoucherLifespan,
               digest: jwt.payload.digest,
             });
 
             await publishAudit({
               producer,
               generatedToken: token,
-              key: parsedKey,
+              key: parsedKey.data,
               clientAssertion: jwt,
               correlationId,
               fileManager,
@@ -247,24 +241,17 @@ export const retrieveKey = async (
           entry.clientKind === clientKindTokenStates.consumer &&
           entry.PK.startsWith(clientKidPurposePrefix),
         () => {
-          // TODO: remove as
           const clientKidPurposeEntry =
-            tokenGenerationEntry.data as TokenGenerationStatesClientPurposeEntry;
-          if (
-            !clientKidPurposeEntry.GSIPK_purposeId ||
-            !clientKidPurposeEntry.purposeState ||
-            !clientKidPurposeEntry.purposeVersionId ||
-            !clientKidPurposeEntry.agreementId ||
-            !clientKidPurposeEntry.agreementState ||
-            !clientKidPurposeEntry.GSIPK_eserviceId_descriptorId ||
-            !clientKidPurposeEntry.descriptorState ||
-            !clientKidPurposeEntry.descriptorAudience ||
-            !clientKidPurposeEntry.descriptorVoucherLifespan
-          ) {
-            throw invalidTokenClientKidPurposeEntry(clientKidPurposeEntry.PK);
+            FullTokenGenerationStatesClientPurposeEntry.safeParse(
+              tokenGenerationEntry.data
+            );
+          if (!clientKidPurposeEntry.success) {
+            throw invalidTokenClientKidPurposeEntry(
+              tokenGenerationEntry.data.PK
+            );
           }
 
-          return clientKidPurposeEntry;
+          return clientKidPurposeEntry.data;
         }
       )
       .when(
@@ -314,12 +301,9 @@ export const publishAudit = async ({
   fileManager: FileManager;
   logger: Logger;
 }): Promise<void> => {
-  if (
-    !key.agreementId ||
-    !key.GSIPK_eserviceId_descriptorId ||
-    !key.GSIPK_purposeId ||
-    !key.purposeVersionId
-  ) {
+  const parsedClientKidPurposeEntry =
+    FullTokenGenerationStatesClientPurposeEntry.safeParse(key);
+  if (!parsedClientKidPurposeEntry.success) {
     throw invalidTokenClientKidPurposeEntry(key.PK);
   }
   const messageBody: GeneratedTokenAuditDetails = {
@@ -327,16 +311,18 @@ export const publishAudit = async ({
     correlationId,
     issuedAt: generatedToken.payload.iat,
     clientId: clientAssertion.payload.sub,
-    organizationId: key.consumerId,
-    agreementId: key.agreementId,
+    organizationId: parsedClientKidPurposeEntry.data.consumerId,
+    agreementId: parsedClientKidPurposeEntry.data.agreementId,
     eserviceId: deconstructGSIPK_eserviceId_descriptorId(
-      key.GSIPK_eserviceId_descriptorId
+      parsedClientKidPurposeEntry.data.GSIPK_eserviceId_descriptorId
     ).eserviceId,
     descriptorId: deconstructGSIPK_eserviceId_descriptorId(
-      key.GSIPK_eserviceId_descriptorId
+      parsedClientKidPurposeEntry.data.GSIPK_eserviceId_descriptorId
     ).descriptorId,
-    purposeId: key.GSIPK_purposeId,
-    purposeVersionId: unsafeBrandId(key.purposeVersionId),
+    purposeId: parsedClientKidPurposeEntry.data.GSIPK_purposeId,
+    purposeVersionId: unsafeBrandId(
+      parsedClientKidPurposeEntry.data.purposeVersionId
+    ),
     algorithm: generatedToken.header.alg,
     keyId: generatedToken.header.kid,
     audience: generatedToken.payload.aud.join(","),

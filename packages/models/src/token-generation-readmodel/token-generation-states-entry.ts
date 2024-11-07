@@ -46,6 +46,12 @@ export type TokenGenerationStatesClientPurposeEntry = z.infer<
   typeof TokenGenerationStatesClientPurposeEntry
 >;
 
+export const FullTokenGenerationStatesClientPurposeEntry =
+  TokenGenerationStatesClientPurposeEntry.required();
+export type FullTokenGenerationStatesClientPurposeEntry = z.infer<
+  typeof FullTokenGenerationStatesClientPurposeEntry
+>;
+
 export const TokenGenerationStatesClientEntry =
   TokenGenerationStatesBaseEntry.extend({
     PK: TokenGenerationStatesClientKidPK,
