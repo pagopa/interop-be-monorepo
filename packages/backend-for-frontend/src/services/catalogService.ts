@@ -429,6 +429,7 @@ export function catalogServiceBuilder(
     getProducerEServices: async (
       eserviceName: string | undefined,
       consumersIds: string[],
+      delegated: boolean | undefined,
       offset: number,
       limit: number,
       { headers, authData, logger }: WithLogger<BffAppContext>
@@ -454,6 +455,7 @@ export function catalogServiceBuilder(
             queries: {
               name: eserviceName,
               producersIds: producerId,
+              delegated,
               offset,
               limit,
             },
@@ -479,6 +481,7 @@ export function catalogServiceBuilder(
               name: eserviceName,
               eservicesIds: eserviceIds,
               producersIds: producerId,
+              delegated,
               offset,
               limit,
             },

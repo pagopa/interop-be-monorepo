@@ -341,6 +341,95 @@ describe("get eservices", () => {
       eservice5,
     ]);
   });
+  it("should get the eServices if they exist (parameters: delegated = true)", async () => {
+    const delegatedOrganization1 = generateId<TenantId>();
+    const delegatedOrganization2 = generateId<TenantId>();
+
+    await addOneDelegation({
+      ...getMockDelegationProducer(),
+      eserviceId: eservice4.id,
+      delegateId: delegatedOrganization1,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation({
+      ...getMockDelegationProducer(),
+      eserviceId: eservice5.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.waitingForApproval,
+    });
+
+    await addOneDelegation({
+      ...getMockDelegationProducer(),
+      eserviceId: eservice6.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.rejected,
+    });
+
+    const result = await catalogService.getEServices(
+      getMockAuthData(),
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        delegated: true,
+      },
+      0,
+      50,
+      genericLogger
+    );
+    expect(result.totalCount).toBe(2);
+    expect(result.results).toEqual([eservice4, eservice5]);
+  });
+  it("should get the eServices if they exist (parameters: delegated = false)", async () => {
+    const delegatedOrganization1 = generateId<TenantId>();
+    const delegatedOrganization2 = generateId<TenantId>();
+
+    await addOneDelegation({
+      ...getMockDelegationProducer(),
+      eserviceId: eservice4.id,
+      delegateId: delegatedOrganization1,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation({
+      ...getMockDelegationProducer(),
+      eserviceId: eservice5.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.waitingForApproval,
+    });
+
+    await addOneDelegation({
+      ...getMockDelegationProducer(),
+      eserviceId: eservice6.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.rejected,
+    });
+
+    const result = await catalogService.getEServices(
+      getMockAuthData(),
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        delegated: false,
+      },
+      0,
+      50,
+      genericLogger
+    );
+    expect(result.totalCount).toBe(4);
+    expect(result.results).toEqual([
+      eservice1,
+      eservice2,
+      eservice3,
+      eservice6,
+    ]);
+  });
   it("should get the eServices if they exist (parameters: statestates, name)", async () => {
     const result = await catalogService.getEServices(
       getMockAuthData(organizationId3),
@@ -655,6 +744,42 @@ describe("get eservices", () => {
     expect(result).toEqual({
       totalCount: 2,
       results: [eservice4, eservice5],
+    });
+  });
+
+  it("should get the eServices if they exist (parameters: producersIds, mode, delegated = true)", async () => {
+    await addOneDelegation({
+      ...getMockDelegationProducer(),
+      eserviceId: eservice4.id,
+      delegateId: organizationId3,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation({
+      ...getMockDelegationProducer(),
+      eserviceId: eservice5.id,
+      delegateId: organizationId3,
+      state: delegationState.revoked,
+    });
+
+    const result = await catalogService.getEServices(
+      getMockAuthData(),
+      {
+        eservicesIds: [],
+        producersIds: [organizationId2],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        mode: eserviceMode.deliver,
+        delegated: true,
+      },
+      0,
+      50,
+      genericLogger
+    );
+    expect(result).toEqual({
+      totalCount: 1,
+      results: [eservice4],
     });
   });
 
