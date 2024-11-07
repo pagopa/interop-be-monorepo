@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { randomUUID } from "crypto";
 import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
@@ -8,7 +9,6 @@ import {
   getTenantOneCertifierFeature,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
 import {
   Attribute,
   AttributeAddedV1,
@@ -19,7 +19,8 @@ import {
 } from "pagopa-interop-models";
 import {
   OrganizationIsNotACertifier,
-  attributeDuplicate,
+  attributeDuplicateByName,
+  attributeDuplicateByNameAndCode,
   originNotCompliant,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
@@ -100,16 +101,17 @@ describe("database test", () => {
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
-      it("should throw attributeDuplicate if an attribute with the same name already exists", async () => {
+      it("should throw attributeDuplicate if an attribute with the same name already exists, case insensitive", async () => {
         const attribute = {
           ...mockAttribute,
+          name: mockAttribute.name.toUpperCase(),
           kind: attributeKind.declared,
         };
         await addOneAttribute(attribute);
         expect(
           attributeRegistryService.createDeclaredAttribute(
             {
-              name: attribute.name,
+              name: attribute.name.toLowerCase(),
               description: attribute.description,
             },
             {
@@ -119,7 +121,9 @@ describe("database test", () => {
               serviceName: "",
             }
           )
-        ).rejects.toThrowError(attributeDuplicate(attribute.name));
+        ).rejects.toThrowError(
+          attributeDuplicateByName(attribute.name.toLowerCase())
+        );
       });
     });
     describe("verified attribute creation", () => {
@@ -186,16 +190,17 @@ describe("database test", () => {
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
-      it("should throw attributeDuplicate if an attribute with the same name already exists", async () => {
+      it("should throw attributeDuplicate if an attribute with the same name already exists, case insensitive", async () => {
         const attribute = {
           ...mockAttribute,
+          name: mockAttribute.name.toUpperCase(),
           kind: attributeKind.verified,
         };
         await addOneAttribute(attribute);
         expect(
           attributeRegistryService.createVerifiedAttribute(
             {
-              name: attribute.name,
+              name: attribute.name.toLowerCase(),
               description: attribute.description,
             },
             {
@@ -205,7 +210,9 @@ describe("database test", () => {
               serviceName: "",
             }
           )
-        ).rejects.toThrowError(attributeDuplicate(attribute.name));
+        ).rejects.toThrowError(
+          attributeDuplicateByName(attribute.name.toLowerCase())
+        );
       });
     });
     describe("certified attribute creation", () => {
@@ -215,7 +222,7 @@ describe("database test", () => {
           features: [
             {
               type: "PersistentCertifier",
-              certifierId: uuidv4(),
+              certifierId: randomUUID(),
             },
           ],
         };
@@ -264,10 +271,11 @@ describe("database test", () => {
         );
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
-      it("should throw attributeDuplicate if an attribute with the same name and code already exists", async () => {
+      it("should throw attributeDuplicate if an attribute with the same name and code already exists, case insensitive", async () => {
         const attribute = {
           ...mockAttribute,
-          code: "123456",
+          name: mockAttribute.name.toUpperCase(),
+          code: "123456AB",
         };
 
         const tenant: Tenant = {
@@ -275,7 +283,7 @@ describe("database test", () => {
           features: [
             {
               type: "PersistentCertifier",
-              certifierId: uuidv4(),
+              certifierId: randomUUID(),
             },
           ],
         };
@@ -285,8 +293,8 @@ describe("database test", () => {
         expect(
           attributeRegistryService.createCertifiedAttribute(
             {
-              name: attribute.name,
-              code: attribute.code,
+              name: attribute.name.toLowerCase(),
+              code: attribute.code.toLowerCase(),
               description: attribute.description,
             },
             {
@@ -296,7 +304,12 @@ describe("database test", () => {
               serviceName: "",
             }
           )
-        ).rejects.toThrowError(attributeDuplicate(attribute.name));
+        ).rejects.toThrowError(
+          attributeDuplicateByNameAndCode(
+            attribute.name.toLowerCase(),
+            attribute.code.toLowerCase()
+          )
+        );
       });
       it("should throw OrganizationIsNotACertifier if the organization is not a certifier", async () => {
         await addOneTenant(mockTenant);
@@ -343,7 +356,7 @@ describe("database test", () => {
           features: [
             {
               type: "PersistentCertifier",
-              certifierId: uuidv4(),
+              certifierId: randomUUID(),
             },
           ],
         };
@@ -392,10 +405,11 @@ describe("database test", () => {
         );
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
-      it("should throw attributeDuplicate if an attribute with the same name and code already exists", async () => {
+      it("should throw attributeDuplicate if an attribute with the same name and code already exists, case insensitive", async () => {
         const attribute = {
           ...mockAttribute,
-          code: "123456",
+          name: mockAttribute.name.toUpperCase(),
+          code: "123456AB",
         };
 
         const tenant: Tenant = {
@@ -403,7 +417,7 @@ describe("database test", () => {
           features: [
             {
               type: "PersistentCertifier",
-              certifierId: uuidv4(),
+              certifierId: randomUUID(),
             },
           ],
         };
@@ -425,7 +439,12 @@ describe("database test", () => {
               serviceName: "",
             }
           )
-        ).rejects.toThrowError(attributeDuplicate(attribute.name));
+        ).rejects.toThrowError(
+          attributeDuplicateByNameAndCode(
+            attribute.name.toLowerCase(),
+            attribute.code.toLowerCase()
+          )
+        );
       });
     });
   });

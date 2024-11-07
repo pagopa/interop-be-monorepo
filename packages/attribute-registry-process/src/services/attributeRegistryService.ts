@@ -21,7 +21,8 @@ import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
   OrganizationIsNotACertifier,
-  attributeDuplicate,
+  attributeDuplicateByName,
+  attributeDuplicateByNameAndCode,
   attributeNotFound,
   originNotCompliant,
   tenantNotFound,
@@ -142,7 +143,7 @@ export function attributeRegistryServiceBuilder(
         apiDeclaredAttributeSeed.name
       );
       if (attributeWithSameName) {
-        throw attributeDuplicate(apiDeclaredAttributeSeed.name);
+        throw attributeDuplicateByName(apiDeclaredAttributeSeed.name);
       }
 
       const newDeclaredAttribute: Attribute = {
@@ -183,7 +184,7 @@ export function attributeRegistryServiceBuilder(
         apiVerifiedAttributeSeed.name
       );
       if (attributeWithSameName) {
-        throw attributeDuplicate(apiVerifiedAttributeSeed.name);
+        throw attributeDuplicateByName(apiVerifiedAttributeSeed.name);
       }
 
       const newVerifiedAttribute: Attribute = {
@@ -231,7 +232,10 @@ export function attributeRegistryServiceBuilder(
       ]);
 
       if (attributeWithSameName) {
-        throw attributeDuplicate(apiCertifiedAttributeSeed.name);
+        throw attributeDuplicateByNameAndCode(
+          apiCertifiedAttributeSeed.name,
+          apiCertifiedAttributeSeed.code
+        );
       }
 
       const newCertifiedAttribute: Attribute = {
@@ -271,7 +275,10 @@ export function attributeRegistryServiceBuilder(
           apiInternalCertifiedAttributeSeed.name
         );
       if (attributeWithSameNameAndCode) {
-        throw attributeDuplicate(apiInternalCertifiedAttributeSeed.name);
+        throw attributeDuplicateByNameAndCode(
+          apiInternalCertifiedAttributeSeed.name,
+          apiInternalCertifiedAttributeSeed.code
+        );
       }
 
       const newInternalCertifiedAttribute: Attribute = {

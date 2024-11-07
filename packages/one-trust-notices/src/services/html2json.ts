@@ -2,7 +2,7 @@
 /* eslint-disable fp/no-delete */
 
 import h2j from "html2json";
-import isEmpty from "lodash/isEmpty.js";
+import isEmpty from "lodash.isempty";
 
 export function html2json(html: string): h2j.Node {
   const jsonHtlmNodes = h2j.html2json(html);
