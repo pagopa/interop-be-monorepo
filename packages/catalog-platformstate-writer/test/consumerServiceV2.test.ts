@@ -894,7 +894,7 @@ describe("integration tests V2 events", async () => {
   });
 
   describe("EServiceDescriptorSuspended", () => {
-    it("should do no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+    it("should do no operation if the existing table entry is more recent", async () => {
       const suspendedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it/test1", "pagopa.it/test2"],
@@ -989,7 +989,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
-    it("should update the entry: incoming has version 3; previous entry has version 2", async () => {
+    it("should update the entry if the incoming version is more recent than existing table entry", async () => {
       const suspendedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it/test1", "pagopa.it/test2"],
@@ -1101,7 +1101,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
-    it("should not throw error if entry doesn't exist", async () => {
+    it("should do no operation if entry doesn't exist", async () => {
       const suspendedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it/test1", "pagopa.it/test2"],
@@ -1195,7 +1195,7 @@ describe("integration tests V2 events", async () => {
   });
 
   describe("EServiceDescriptorQuotasUpdated", () => {
-    it("should do no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+    it("should do no operation if the existing version is more recent", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it/test1", "pagopa.it/test2"],
@@ -1303,7 +1303,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
-    it("should update the entry: incoming has version 3; previous entry has version 2", async () => {
+    it("should update the entry if the incoming version is more recent than the existing table entry", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it/test1", "pagopa.it/test2"],
@@ -1428,7 +1428,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
-    it("should not throw error if entry doesn't exist", async () => {
+    it("should do no operation if entry doesn't exist", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it/test1", "pagopa.it/test2"],
