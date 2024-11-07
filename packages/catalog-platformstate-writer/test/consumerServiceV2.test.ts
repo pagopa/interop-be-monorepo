@@ -42,7 +42,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { config, sleep } from "./utils.js";
+import { config } from "./utils.js";
 
 describe("integration tests V2 events", async () => {
   if (!config) {
@@ -139,7 +139,6 @@ describe("integration tests V2 events", async () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       // platform-states
@@ -238,7 +237,6 @@ describe("integration tests V2 events", async () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       // platform-states
@@ -347,7 +345,6 @@ describe("integration tests V2 events", async () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await sleep(1000, mockDate);
       expect(
         handleMessageV2(message, dynamoDBClient)
       ).resolves.not.toThrowError();
@@ -449,7 +446,6 @@ describe("integration tests V2 events", async () => {
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
-      await sleep(1000, mockDate);
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -756,7 +752,6 @@ describe("integration tests V2 events", async () => {
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
-        await sleep(1000, mockDate);
 
         await handleMessageV2(message, dynamoDBClient);
 
@@ -1171,7 +1166,6 @@ describe("integration tests V2 events", async () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await sleep(1000, mockDate);
       expect(
         handleMessageV2(message, dynamoDBClient)
       ).resolves.not.toThrowError();
@@ -1512,7 +1506,6 @@ describe("integration tests V2 events", async () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await sleep(1000, mockDate);
       expect(
         handleMessageV2(message, dynamoDBClient)
       ).resolves.not.toThrowError();
