@@ -12,14 +12,13 @@ import {
   agreementState,
   descriptorState,
   generateId,
-  purposeVersionState,
   tenantKind,
-  toPurposeV2,
   toReadModelEService,
   toReadModelAgreement,
   unsafeBrandId,
   toReadModelTenant,
   TenantId,
+  fromPurposeV2,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, expect, it, vi } from "vitest";
@@ -46,6 +45,7 @@ import {
   agreementNotFound,
   duplicatedPurposeTitle,
 } from "../src/model/domain/errors.js";
+import { purposeToApiPurpose } from "../src/model/domain/apiConverter.js";
 import {
   addOnePurpose,
   agreements,
@@ -57,7 +57,6 @@ import {
   tenants,
 } from "./utils.js";
 import { mockPurposeRouterRequest } from "./supertestSetup.js";
-import { purposeVersionStateToApiPurposeVersionState } from "../src/model/domain/apiConverter.js";
 
 describe("createPurpose", () => {
   const tenant: Tenant = {
@@ -95,7 +94,7 @@ describe("createPurpose", () => {
     freeOfChargeReason: "reason",
     riskAnalysisForm: buildRiskAnalysisFormSeed(mockValidRiskAnalysisForm),
   };
-  it.only("should write on event-store for the creation of a purpose", async () => {
+  it("should write on event-store for the creation of a purpose", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
     await writeInReadmodel(toReadModelTenant(tenant), tenants);
@@ -105,27 +104,24 @@ describe("createPurpose", () => {
     );
     await writeInReadmodel(toReadModelEService(eService1), eservices);
 
-    // const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
-    //   purposeSeed,
-    //   unsafeBrandId(purposeSeed.consumerId),
-    //   generateId(),
-    //   genericLogger
-    // );
-
-    const purpose = await mockPurposeRouterRequest.post({
+    const apiPurpose = await mockPurposeRouterRequest.post({
       path: "/purposes",
       body: { ...purposeSeed },
-      authData: getMockAuthData(unsafeBrandId<TenantId>(purposeSeed.consumerId)),
+      authData: getMockAuthData(
+        unsafeBrandId<TenantId>(purposeSeed.consumerId)
+      ),
     });
 
-    const writtenEvent = await readLastPurposeEvent(purpose.id);
+    const writtenEvent = await readLastPurposeEvent(
+      unsafeBrandId(apiPurpose.id)
+    );
 
     if (!writtenEvent) {
       fail("Update failed: purpose not found in event-store");
     }
 
     expect(writtenEvent).toMatchObject({
-      stream_id: purpose.id,
+      stream_id: apiPurpose.id,
       version: "0",
       type: "PurposeAdded",
       event_version: 2,
@@ -136,29 +132,15 @@ describe("createPurpose", () => {
       payload: writtenEvent.data,
     });
 
-    // const expectedRiskAnalysisForm: RiskAnalysisForm = {
-    //   ...mockValidRiskAnalysisForm,
-    //   id: unsafeBrandId(purpose.riskAnalysisForm!.id),
-    //   singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
-    //     (answer, i) => ({
-    //       ...answer,
-    //       id: purpose.riskAnalysisForm!.singleAnswers[i].id,
-    //     })
-    //   ),
-    //   multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
-    //     ...answer,
-    //     id: purpose.riskAnalysisForm!.multiAnswers[i].id,
-    //   })),
-    // };
-
     const expectedRiskAnalysisForm: purposeApi.RiskAnalysisForm = {
-      ...mockValidRiskAnalysisForm,
-      answers: purpose.riskAnalysisForm!.answers
+      riskAnalysisId: apiPurpose.riskAnalysisForm?.riskAnalysisId,
+      version: purposeSeed.riskAnalysisForm!.version,
+      answers: purposeSeed.riskAnalysisForm!.answers,
     };
 
-    const expectedPurpose: purposeApi.Purpose = {
+    const apiExpectedPurpose: purposeApi.Purpose = {
       title: purposeSeed.title,
-      id: unsafeBrandId(purpose.id),
+      id: unsafeBrandId(apiPurpose.id),
       createdAt: new Date().toISOString(),
       eserviceId: unsafeBrandId(purposeSeed.eserviceId),
       consumerId: unsafeBrandId(purposeSeed.consumerId),
@@ -166,7 +148,7 @@ describe("createPurpose", () => {
       versions: [
         {
           id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
-          state: purposeVersionStateToApiPurposeVersionState(purposeVersionState.draft),
+          state: purposeApi.PurposeVersionState.Values.DRAFT,
           dailyCalls: purposeSeed.dailyCalls,
           createdAt: new Date().toISOString(),
         },
@@ -174,12 +156,14 @@ describe("createPurpose", () => {
       isFreeOfCharge: true,
       freeOfChargeReason: purposeSeed.freeOfChargeReason,
       riskAnalysisForm: expectedRiskAnalysisForm,
-      isRiskAnalysisValid: true
+      isRiskAnalysisValid: true,
     };
 
-    // expect(writtenPayload.purpose).toEqual(expectedPurpose);
-    // expect(writtenPayload.purpose).toEqual(purpose);
-    expect(purpose.isRiskAnalysisValid).toBe(true);
+    expect(apiPurpose).toEqual(apiExpectedPurpose);
+    expect(
+      purposeToApiPurpose(fromPurposeV2(writtenPayload.purpose!), true)
+    ).toEqual(apiPurpose);
+    expect(apiPurpose.isRiskAnalysisValid).toBe(true);
 
     vi.useRealTimers();
   });

@@ -21,6 +21,7 @@ import {
   toReadModelAgreement,
   unsafeBrandId,
   toReadModelTenant,
+  fromPurposeV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -33,6 +34,7 @@ import {
   purposeNotFound,
   tenantKindNotFound,
 } from "../src/model/domain/errors.js";
+import { purposeToApiPurpose } from "../src/model/domain/apiConverter.js";
 import {
   addOnePurpose,
   agreements,
@@ -41,7 +43,6 @@ import {
   tenants,
 } from "./utils.js";
 import { mockPurposeRouterRequest } from "./supertestSetup.js";
-import { apiPurposeToPurpose } from "../src/model/domain/apiConverter.js";
 
 describe("clonePurpose", async () => {
   beforeAll(() => {
@@ -114,7 +115,9 @@ describe("clonePurpose", async () => {
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(apiPurposeToPurpose(purpose)));
+    expect(
+      purposeToApiPurpose(fromPurposeV2(writtenPayload.purpose!), false)
+    ).toEqual(purpose);
     expect(purpose.isRiskAnalysisValid).toBe(false);
   });
   it("should write on event-store for the cloning of a purpose, making sure the title is cut to 60 characters", async () => {
@@ -182,7 +185,9 @@ describe("clonePurpose", async () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(expectedPurpose.title.length).toBe(60);
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(apiPurposeToPurpose(purpose)));
+    expect(
+      purposeToApiPurpose(fromPurposeV2(writtenPayload.purpose!), false)
+    ).toEqual(purpose);
     expect(purpose.isRiskAnalysisValid).toBe(false);
   });
   it("should throw purposeNotFound if the purpose to clone doesn't exist", async () => {
