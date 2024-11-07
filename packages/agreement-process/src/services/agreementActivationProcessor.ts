@@ -169,22 +169,26 @@ export async function createActivationEvent(
           ),
         ]
       )
-      .with([updatedAgreement.producerId, agreementState.suspended], () => [
-        toCreateEventAgreementUnsuspendedByProducer(
-          {
-            ...updatedAgreement,
-            suspendedByPlatform: originalSuspendedByPlatform,
-          },
-          agreementEventStoreVersion,
-          correlationId
-        ),
-        ...maybeCreateSuspensionByPlatformEvents(
-          updatedAgreement,
-          suspendedByPlatformChanged,
-          agreementEventStoreVersion + 1,
-          correlationId
-        ),
-      ])
+      .with(
+        [updatedAgreement.producerId, agreementState.suspended],
+        [delegateId, agreementState.suspended],
+        () => [
+          toCreateEventAgreementUnsuspendedByProducer(
+            {
+              ...updatedAgreement,
+              suspendedByPlatform: originalSuspendedByPlatform,
+            },
+            agreementEventStoreVersion,
+            correlationId
+          ),
+          ...maybeCreateSuspensionByPlatformEvents(
+            updatedAgreement,
+            suspendedByPlatformChanged,
+            agreementEventStoreVersion + 1,
+            correlationId
+          ),
+        ]
+      )
       .with([updatedAgreement.consumerId, agreementState.active], () => [
         toCreateEventAgreementUnsuspendedByConsumer(
           updatedAgreement,
