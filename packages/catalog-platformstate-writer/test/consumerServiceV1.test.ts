@@ -38,7 +38,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { writeTokenStateEntry } from "pagopa-interop-commons-test";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
-import { config, sleep } from "./utils.js";
+import { config } from "./utils.js";
 describe("V1 events", async () => {
   if (!config) {
     fail();
@@ -124,7 +124,6 @@ describe("V1 events", async () => {
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
         await handleMessageV1(message, dynamoDBClient);
-        await sleep(1000, mockDate);
 
         const primaryKey = makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
@@ -244,7 +243,6 @@ describe("V1 events", async () => {
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
         await handleMessageV1(message, dynamoDBClient);
-        await sleep(1000, mockDate);
 
         const retrievedCatalogEntry = await readCatalogEntry(
           primaryKey,
@@ -358,7 +356,6 @@ describe("V1 events", async () => {
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
         await handleMessageV1(message, dynamoDBClient);
-        await sleep(1000, mockDate);
 
         const retrievedCatalogEntry = await readCatalogEntry(
           catalogPrimaryKey,
@@ -458,7 +455,6 @@ describe("V1 events", async () => {
             };
           await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
           await handleMessageV1(message, dynamoDBClient);
-          await sleep(1000, mockDate);
 
           const retrievedEntry = await readCatalogEntry(
             primaryKey,
@@ -574,7 +570,6 @@ describe("V1 events", async () => {
           await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
           await handleMessageV1(message, dynamoDBClient);
-          await sleep(1000, mockDate);
 
           const retrievedEntry = await readCatalogEntry(
             primaryKey,
@@ -716,7 +711,6 @@ describe("V1 events", async () => {
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       await handleMessageV1(message, dynamoDBClient);
-      await sleep(1000, mockDate);
 
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       expect(retrievedEntry).toBeUndefined();
