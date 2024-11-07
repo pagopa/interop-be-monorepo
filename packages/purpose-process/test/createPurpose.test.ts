@@ -104,7 +104,7 @@ describe("createPurpose", () => {
     );
     await writeInReadmodel(toReadModelEService(eService1), eservices);
 
-    const apiPurpose = await mockPurposeRouterRequest.post({
+    const purpose = await mockPurposeRouterRequest.post({
       path: "/purposes",
       body: { ...purposeSeed },
       authData: getMockAuthData(
@@ -112,16 +112,14 @@ describe("createPurpose", () => {
       ),
     });
 
-    const writtenEvent = await readLastPurposeEvent(
-      unsafeBrandId(apiPurpose.id)
-    );
+    const writtenEvent = await readLastPurposeEvent(unsafeBrandId(purpose.id));
 
     if (!writtenEvent) {
       fail("Update failed: purpose not found in event-store");
     }
 
     expect(writtenEvent).toMatchObject({
-      stream_id: apiPurpose.id,
+      stream_id: purpose.id,
       version: "0",
       type: "PurposeAdded",
       event_version: 2,
@@ -133,14 +131,14 @@ describe("createPurpose", () => {
     });
 
     const expectedRiskAnalysisForm: purposeApi.RiskAnalysisForm = {
-      riskAnalysisId: apiPurpose.riskAnalysisForm?.riskAnalysisId,
+      riskAnalysisId: purpose.riskAnalysisForm?.riskAnalysisId,
       version: purposeSeed.riskAnalysisForm!.version,
       answers: purposeSeed.riskAnalysisForm!.answers,
     };
 
     const apiExpectedPurpose: purposeApi.Purpose = {
       title: purposeSeed.title,
-      id: unsafeBrandId(apiPurpose.id),
+      id: unsafeBrandId(purpose.id),
       createdAt: new Date().toISOString(),
       eserviceId: unsafeBrandId(purposeSeed.eserviceId),
       consumerId: unsafeBrandId(purposeSeed.consumerId),
@@ -159,11 +157,11 @@ describe("createPurpose", () => {
       isRiskAnalysisValid: true,
     };
 
-    expect(apiPurpose).toEqual(apiExpectedPurpose);
+    expect(purpose).toEqual(apiExpectedPurpose);
     expect(
       purposeToApiPurpose(fromPurposeV2(writtenPayload.purpose!), true)
-    ).toEqual(apiPurpose);
-    expect(apiPurpose.isRiskAnalysisValid).toBe(true);
+    ).toEqual(purpose);
+    expect(purpose.isRiskAnalysisValid).toBe(true);
 
     vi.useRealTimers();
   });
