@@ -70,7 +70,7 @@ import {
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { z } from "zod";
 import {
-  cleanClientPurposeIdsInPlatformStatesEntry,
+  setClientPurposeIdsInPlatformStatesEntry,
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
   deleteClientEntryFromTokenGenerationStatesTable,
@@ -470,7 +470,7 @@ describe("utils", () => {
     );
   });
 
-  it("cleanClientPurposeIdsInPlatformStatesEntry", async () => {
+  it("setClientPurposeIdsInPlatformStatesEntry", async () => {
     const clientEntry1: PlatformStatesClientEntry = {
       ...getMockPlatformStatesClientEntry(),
       clientPurposesIds: [generateId(), generateId()],
@@ -483,9 +483,12 @@ describe("utils", () => {
     await writeClientEntry(clientEntry1, dynamoDBClient);
     await writeClientEntry(clientEntry2, dynamoDBClient);
 
-    await cleanClientPurposeIdsInPlatformStatesEntry(
-      clientEntry1.PK,
-      clientEntry1.version + 1,
+    await setClientPurposeIdsInPlatformStatesEntry(
+      {
+        primaryKey: clientEntry1.PK,
+        version: clientEntry1.version + 1,
+        clientPurposeIds: [],
+      },
       dynamoDBClient
     );
 
