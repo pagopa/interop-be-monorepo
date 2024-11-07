@@ -1,6 +1,6 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
 import { Attribute } from "pagopa-interop-models";
-import { IvassCompactTenant } from "../model/tenant.js";
+import { IvassReadModelTenant } from "../model/tenant.js";
 
 const projectUnrevokedCertifiedAttributes = {
   _id: 0,
@@ -42,7 +42,7 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => IvassCompactTenant.parse(data))
+      .map(({ data }) => IvassReadModelTenant.parse(data))
       .toArray();
   }
 
@@ -60,7 +60,7 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => IvassCompactTenant.parse(data))
+      .map(({ data }) => IvassReadModelTenant.parse(data))
       .toArray();
   }
 
@@ -76,7 +76,7 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => IvassCompactTenant.parse(data))
+      .map(({ data }) => IvassReadModelTenant.parse(data))
       .toArray();
 
     if (result.length === 0) {

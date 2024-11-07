@@ -10,7 +10,7 @@ import {
 import { IVASS_INSURANCES_ATTRIBUTE_CODE } from "../config/constants.js";
 import { CsvRow, RawCsvRow } from "../model/csvRowModel.js";
 import { InteropContext } from "../model/interopContextModel.js";
-import { IvassCompactTenant } from "../model/tenant.js";
+import { IvassReadModelTenant } from "../model/tenant.js";
 import { ReadModelQueries } from "./readModelQueriesService.js";
 import { TenantProcessService } from "./tenantProcessService.js";
 
