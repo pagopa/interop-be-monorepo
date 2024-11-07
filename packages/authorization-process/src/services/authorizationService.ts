@@ -43,7 +43,6 @@ import {
   clientNotFound,
   descriptorNotFound,
   eserviceNotFound,
-  keyAlreadyExists,
   clientKeyNotFound,
   noAgreementFoundInRequiredState,
   noPurposeVersionsFoundInRequiredState,
@@ -97,6 +96,7 @@ import {
   assertClientKeysCountIsBelowThreshold,
   assertProducerKeychainKeysCountIsBelowThreshold,
   assertOrganizationIsEServiceProducer,
+  assertKeyDoesNotAlreadyExist,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -695,10 +695,9 @@ export function authorizationServiceBuilder(
         use: ApiKeyUseToKeyUse(keySeed.use),
         userId: authData.userId,
       };
-      const duplicateKid = await readModelService.getClientKeyByKid(newKey.kid);
-      if (duplicateKid) {
-        throw keyAlreadyExists(newKey.kid);
-      }
+
+      await assertKeyDoesNotAlreadyExist(newKey.kid, readModelService);
+
       const updatedClient: Client = {
         ...client.data,
         keys: [...client.data.keys, newKey],
@@ -1074,13 +1073,8 @@ export function authorizationServiceBuilder(
         use: ApiKeyUseToKeyUse(keySeed.use),
         userId: authData.userId,
       };
-      const duplicateKid = await readModelService.getProducerKeychainKeyByKid(
-        newKey.kid
-      );
 
-      if (duplicateKid) {
-        throw keyAlreadyExists(newKey.kid);
-      }
+      await assertKeyDoesNotAlreadyExist(newKey.kid, readModelService);
 
       const updatedProducerKeychain: ProducerKeychain = {
         ...producerKeychain.data,

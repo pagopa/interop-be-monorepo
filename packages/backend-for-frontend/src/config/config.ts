@@ -2,10 +2,10 @@ import {
   APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
+  RedisRateLimiterConfig,
   SelfCareConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
-  RedisRateLimiterConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -103,12 +103,14 @@ export const S3PrivacyNoticeConfig = z
   .object({
     PRIVACY_NOTICES_CONTAINER: z.string(),
     PRIVACY_NOTICES_PATH: z.string(),
-    PRIVACY_NOTICES_FILE_NAME: z.string(),
+    PRIVACY_NOTICES_TOS_FILE_NAME: z.string(),
+    PRIVACY_NOTICES_PP_FILE_NAME: z.string(),
   })
   .transform((c) => ({
     privacyNoticesContainer: c.PRIVACY_NOTICES_CONTAINER,
     privacyNoticesPath: c.PRIVACY_NOTICES_PATH,
-    privacyNoticesFileName: c.PRIVACY_NOTICES_FILE_NAME,
+    privacyNoticesTOSFileName: c.PRIVACY_NOTICES_TOS_FILE_NAME,
+    privacyNoticesPPFileName: c.PRIVACY_NOTICES_PP_FILE_NAME,
   }));
 export type S3PrivacyNoticeConfig = z.infer<typeof S3PrivacyNoticeConfig>;
 
