@@ -1,7 +1,7 @@
 /* eslint-disable sonarjs/no-identical-functions */
+import { randomUUID } from "crypto";
 import { Attribute, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { v4 as uuidv4 } from "uuid";
 import { TenantSeed, getAttributesToAssign } from "../src/index.js";
 import { attributes } from "./expectation.js";
 
@@ -44,7 +44,7 @@ describe("GetAttributesToAssign", async () => {
       ...a,
       creationTime: new Date(),
       kind: "Certified",
-      id: unsafeBrandId(uuidv4()),
+      id: unsafeBrandId(randomUUID()),
     }));
 
     const ipaTenants: Tenant[] = [
@@ -116,7 +116,7 @@ describe("GetAttributesToAssign", async () => {
       ...a,
       creationTime: new Date(),
       kind: "Certified",
-      id: unsafeBrandId(uuidv4()),
+      id: unsafeBrandId(randomUUID()),
     }));
 
     const ipaTenants: Tenant[] = [

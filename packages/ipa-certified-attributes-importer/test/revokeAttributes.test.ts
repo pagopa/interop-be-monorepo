@@ -1,8 +1,8 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { randomUUID } from "crypto";
 import { Attribute, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { v4 as uuidv4 } from "uuid";
 import { TenantSeed, getAttributesToRevoke } from "../src/index.js";
 import { agency, aoo, attributes, uo } from "./expectation.js";
 
@@ -29,7 +29,7 @@ describe("GetAttributesToRevoke", async () => {
       ...a,
       creationTime: new Date(),
       kind: "Certified",
-      id: unsafeBrandId(uuidv4()),
+      id: unsafeBrandId(randomUUID()),
     }));
 
     const ipaTenants: Tenant[] = [
@@ -86,7 +86,7 @@ describe("GetAttributesToRevoke", async () => {
       ...a,
       creationTime: new Date(),
       kind: "Certified",
-      id: unsafeBrandId(uuidv4()),
+      id: unsafeBrandId(randomUUID()),
     }));
 
     platformAttributes[0].origin = "NON-IPA";
@@ -151,7 +151,7 @@ describe("GetAttributesToRevoke", async () => {
       ...a,
       creationTime: new Date(),
       kind: "Certified",
-      id: unsafeBrandId(uuidv4()),
+      id: unsafeBrandId(randomUUID()),
     }));
 
     platformAttributes[0].origin = "NON-IPA";

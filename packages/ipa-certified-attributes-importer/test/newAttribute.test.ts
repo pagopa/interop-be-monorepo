@@ -1,6 +1,6 @@
+import { randomUUID } from "crypto";
 import { expect, describe, it } from "vitest";
 import { Attribute, unsafeBrandId } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { TenantSeed, getNewAttributes } from "../src/index.js";
 import { agency, aoo, attributes, uo } from "./expectation.js";
 
@@ -72,7 +72,7 @@ describe("NewAttributes", async () => {
       ...a,
       creationTime: new Date(),
       kind: "Certified",
-      id: unsafeBrandId(uuidv4()),
+      id: unsafeBrandId(randomUUID()),
     }));
 
     const newAttributes = getNewAttributes(
