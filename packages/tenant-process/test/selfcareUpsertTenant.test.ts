@@ -23,6 +23,7 @@ import {
   SCP,
 } from "../src/services/validators.js";
 import { addOneTenant, readLastTenantEvent, tenantService } from "./utils.js";
+import { mockSelfcareTenantRouterRequest } from "./supertestSetup.js";
 
 describe("selfcareUpsertTenant", async () => {
   const mockTenant = getMockTenant();
@@ -50,11 +51,11 @@ describe("selfcareUpsertTenant", async () => {
       onboardedAt: mockTenant.onboardedAt!.toISOString(),
       subUnitType: mockTenant.subUnitType,
     };
-    await tenantService.selfcareUpsertTenant(tenantSeed, {
+
+    await mockSelfcareTenantRouterRequest.post({
+      path: "/selfcare/tenants",
+      body: { ...tenantSeed },
       authData: getMockAuthData(mockTenant.id),
-      correlationId,
-      serviceName: "",
-      logger: genericLogger,
     });
 
     const writtenEvent = await readLastTenantEvent(mockTenant.id);
@@ -91,12 +92,13 @@ describe("selfcareUpsertTenant", async () => {
         onboardedAt: mockTenant.onboardedAt!.toISOString(),
         subUnitType: mockTenant.subUnitType,
       };
-      const id = await tenantService.selfcareUpsertTenant(tenantSeed, {
+
+      const { id } = await mockSelfcareTenantRouterRequest.post({
+        path: "/selfcare/tenants",
+        body: { ...tenantSeed },
         authData: getMockAuthData(),
-        correlationId,
-        serviceName: "",
-        logger: genericLogger,
       });
+
       expect(id).toBeDefined();
       const writtenEvent = await readLastTenantEvent(unsafeBrandId(id));
       if (!writtenEvent) {
