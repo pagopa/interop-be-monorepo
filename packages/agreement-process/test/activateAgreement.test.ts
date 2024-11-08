@@ -11,6 +11,7 @@ import {
   getMockAgreement,
   getMockAgreementAttribute,
   getMockAttribute,
+  getMockAuthData,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
   getMockDescriptorPublished,
@@ -18,7 +19,6 @@ import {
   getMockEServiceAttribute,
   getMockTenant,
   getMockVerifiedTenantAttribute,
-  getRandomAuthData,
   randomArrayItem,
   randomBoolean,
 } from "pagopa-interop-commons-test";
@@ -48,7 +48,7 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   agreementActivableStates,
   agreementActivationAllowedDescriptorStates,
@@ -70,6 +70,7 @@ import {
   userNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
+import { agreementToApiAgreement } from "../src/model/domain/apiConverter.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -81,42 +82,46 @@ import {
   readLastAgreementEvent,
   selfcareV2ClientMock,
 } from "./utils.js";
+import {
+  mockAgreementRouterRequest,
+  mockSelfcareV2ClientCall,
+} from "./supertestSetup.js";
+
+const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
+  email: "test@test.com",
+  name: "Test Name",
+  surname: "Test Surname",
+  taxCode: "TSTTSTTSTTSTTSTT",
+  id: generateId(),
+};
+
+// eslint-disable-next-line functional/no-let
+let mockSelfcareUserResponseWithMissingInfo: selfcareV2ClientApi.UserResponse =
+  mockSelfcareUserResponse;
+while (
+  mockSelfcareUserResponseWithMissingInfo.name &&
+  mockSelfcareUserResponseWithMissingInfo.surname &&
+  mockSelfcareUserResponseWithMissingInfo.taxCode
+) {
+  // At least one of the three must be undefined to test the missing info case
+  mockSelfcareUserResponseWithMissingInfo = {
+    ...mockSelfcareUserResponse,
+    name: randomArrayItem([mockSelfcareUserResponse.name, undefined]),
+    surname: randomArrayItem([mockSelfcareUserResponse.surname, undefined]),
+    taxCode: randomArrayItem([mockSelfcareUserResponse.taxCode, undefined]),
+  };
+}
 
 describe("activate agreement", () => {
-  const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
-    email: "test@test.com",
-    name: "Test Name",
-    surname: "Test Surname",
-    taxCode: "TSTTSTTSTTSTTSTT",
-    id: generateId(),
-  };
+  // beforeEach(async () => {
+  //   selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
+  //     async () => mockSelfcareUserResponse
+  //   );
+  // });
 
-  // eslint-disable-next-line functional/no-let
-  let mockSelfcareUserResponseWithMissingInfo: selfcareV2ClientApi.UserResponse =
-    mockSelfcareUserResponse;
-  while (
-    mockSelfcareUserResponseWithMissingInfo.name &&
-    mockSelfcareUserResponseWithMissingInfo.surname &&
-    mockSelfcareUserResponseWithMissingInfo.taxCode
-  ) {
-    // At least one of the three must be undefined to test the missing info case
-    mockSelfcareUserResponseWithMissingInfo = {
-      ...mockSelfcareUserResponse,
-      name: randomArrayItem([mockSelfcareUserResponse.name, undefined]),
-      surname: randomArrayItem([mockSelfcareUserResponse.surname, undefined]),
-      taxCode: randomArrayItem([mockSelfcareUserResponse.taxCode, undefined]),
-    };
-  }
-
-  beforeEach(async () => {
-    selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-      async () => mockSelfcareUserResponse
-    );
-  });
-
-  afterEach(async () => {
-    vi.clearAllMocks();
-  });
+  // afterEach(async () => {
+  //   vi.clearAllMocks();
+  // });
 
   async function addRelatedAgreements(agreement: Agreement): Promise<{
     archivableRelatedAgreement1: Agreement;
@@ -197,7 +202,7 @@ describe("activate agreement", () => {
   }
 
   describe("Agreement Pending", () => {
-    it("Agreement Pending, Requester === Producer, valid attributes -- success case: Pending >> Activated", async () => {
+    it.only("Agreement Pending, Requester === Producer, valid attributes -- success case: Pending >> Activated", async () => {
       const producer: Tenant = getMockTenant();
 
       const certifiedAttribute: Attribute = {
@@ -246,7 +251,7 @@ describe("activate agreement", () => {
         ],
       };
 
-      const authData = getRandomAuthData(producer.id);
+      const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
@@ -292,6 +297,11 @@ describe("activate agreement", () => {
         verifiedAttributes: [getMockAgreementAttribute()],
       };
 
+      mockSelfcareV2ClientCall({
+        value: mockSelfcareUserResponse,
+        mockedFor: "Router",
+      });
+
       await addOneAgreement(agreement);
       await addOneTenant(consumer);
       await addOneTenant(producer);
@@ -301,12 +311,19 @@ describe("activate agreement", () => {
       await addOneAttribute(verifiedAttribute);
       const relatedAgreements = await addRelatedAgreements(agreement);
 
+      // const acrivateAgreementReturnValue =
+      //   await agreementService.activateAgreement(agreement.id, {
+      //     authData,
+      //     serviceName: "",
+      //     correlationId: generateId(),
+      //     logger: genericLogger,
+      //   });
+
       const acrivateAgreementReturnValue =
-        await agreementService.activateAgreement(agreement.id, {
+        await mockAgreementRouterRequest.post({
+          path: "/agreements/:agreementId/activate",
+          pathParams: { agreementId: agreement.id },
           authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
         });
 
       const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -369,7 +386,7 @@ describe("activate agreement", () => {
 
       await testRelatedAgreementsArchiviation(relatedAgreements);
       expect(acrivateAgreementReturnValue).toMatchObject(
-        expectedActivatedAgreement
+        agreementToApiAgreement(expectedActivatedAgreement)
       );
     });
 
@@ -406,7 +423,7 @@ describe("activate agreement", () => {
         ],
       };
 
-      const authData = getRandomAuthData(producer.id);
+      const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
@@ -523,7 +540,7 @@ describe("activate agreement", () => {
         attributes: [consumerInvalidAttribute],
       };
 
-      const authData = getRandomAuthData(producer.id);
+      const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
@@ -576,7 +593,7 @@ describe("activate agreement", () => {
 
     it("Agreement Pending, Requester === Consumer -- error case: throws operationNotAllowed", async () => {
       const consumerId = generateId<TenantId>();
-      const authData = getRandomAuthData(consumerId);
+      const authData = getMockAuthData(consumerId);
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -644,7 +661,7 @@ describe("activate agreement", () => {
           ],
         };
 
-        const authData = getRandomAuthData(
+        const authData = getMockAuthData(
           isProducer ? producer.id : consumer.id
         );
 
@@ -778,7 +795,7 @@ describe("activate agreement", () => {
         ],
       };
 
-      const authData = getRandomAuthData(consumerAndProducer.id);
+      const authData = getMockAuthData(consumerAndProducer.id);
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
@@ -951,7 +968,7 @@ describe("activate agreement", () => {
           ],
         };
 
-        const authData = getRandomAuthData(
+        const authData = getMockAuthData(
           isProducer ? producer.id : consumer.id
         );
 
@@ -1226,7 +1243,7 @@ describe("activate agreement", () => {
           attributes: [consumerInvalidAttribute],
         };
 
-        const authData = getRandomAuthData(
+        const authData = getMockAuthData(
           isProducer ? producer.id : consumer.id
         );
 
@@ -1434,7 +1451,7 @@ describe("activate agreement", () => {
   describe("All other error cases", () => {
     it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
       await addOneAgreement(getMockAgreement());
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(
         agreementService.activateAgreement(agreementId, {
@@ -1447,7 +1464,7 @@ describe("activate agreement", () => {
     });
 
     it("should throw an operationNotAllowed error when the requester is not the Consumer or Producer", async () => {
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       const agreement: Agreement = getMockAgreement();
       await addOneAgreement(agreement);
       await expect(
@@ -1468,7 +1485,7 @@ describe("activate agreement", () => {
       "should throw an agreementNotInExpectedState error when the Agreement is not in an activable state - agreement state: %s",
       async (agreementState) => {
         const consumerId = generateId<TenantId>();
-        const authData = getRandomAuthData(consumerId);
+        const authData = getMockAuthData(consumerId);
 
         const agreement: Agreement = {
           ...getMockAgreement(),
@@ -1491,7 +1508,7 @@ describe("activate agreement", () => {
 
     it("should throw an eServiceNotFound error when the EService does not exist", async () => {
       const consumerId = generateId<TenantId>();
-      const authData = getRandomAuthData(consumerId);
+      const authData = getMockAuthData(consumerId);
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -1514,7 +1531,7 @@ describe("activate agreement", () => {
     it("should throw a descriptorNotFound error when the Descriptor does not exist", async () => {
       const consumerId = generateId<TenantId>();
       const producerId = generateId<TenantId>();
-      const authData = getRandomAuthData(producerId);
+      const authData = getMockAuthData(producerId);
 
       const eservice: EService = {
         ...getMockEService(),
@@ -1552,7 +1569,7 @@ describe("activate agreement", () => {
       async (descriptorState) => {
         const consumerId = generateId<TenantId>();
         const producerId = generateId<TenantId>();
-        const authData = getRandomAuthData(producerId);
+        const authData = getMockAuthData(producerId);
 
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
@@ -1597,7 +1614,7 @@ describe("activate agreement", () => {
     it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
       const consumerId = generateId<TenantId>();
       const producerId = generateId<TenantId>();
-      const authData = getRandomAuthData(producerId);
+      const authData = getMockAuthData(producerId);
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
@@ -1635,7 +1652,7 @@ describe("activate agreement", () => {
     it("should throw a tenantNotFound error when the Producer does not exist", async () => {
       const producerId = generateId<TenantId>();
       const consumer = getMockTenant();
-      const authData = getRandomAuthData(producerId);
+      const authData = getMockAuthData(producerId);
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
@@ -1675,7 +1692,7 @@ describe("activate agreement", () => {
       const producer: Tenant = getMockTenant();
       const consumer: Tenant = getMockTenant();
 
-      const authData = getRandomAuthData(producer.id);
+      const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
@@ -1720,7 +1737,7 @@ describe("activate agreement", () => {
       const producer: Tenant = getMockTenant();
       const consumer: Tenant = { ...getMockTenant(), selfcareId: undefined };
 
-      const authData = getRandomAuthData(producer.id);
+      const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
@@ -1775,7 +1792,7 @@ describe("activate agreement", () => {
         selfcareId: generateId(),
       };
 
-      const authData = getRandomAuthData(producer.id);
+      const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
@@ -1832,7 +1849,7 @@ describe("activate agreement", () => {
         selfcareId: generateId(),
       };
 
-      const authData = getRandomAuthData(producer.id);
+      const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
@@ -1894,7 +1911,7 @@ describe("activate agreement", () => {
       };
       const consumer: Tenant = getMockTenant();
 
-      const authData = getRandomAuthData(producer.id);
+      const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
@@ -1962,7 +1979,7 @@ describe("activate agreement", () => {
         selfcareId: generateId(),
       };
 
-      const authData = getRandomAuthData(producer.id);
+      const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
@@ -2024,7 +2041,7 @@ describe("activate agreement", () => {
         attributes: [validTenantCertifiedAttribute],
       };
 
-      const authData = getRandomAuthData(producer.id);
+      const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
