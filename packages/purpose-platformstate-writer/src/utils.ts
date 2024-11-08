@@ -35,7 +35,7 @@ import {
   PurposeVersion,
   PurposeVersionId,
   purposeVersionState,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { config } from "./config/config.js";
@@ -134,7 +134,7 @@ export const readTokenEntriesByGSIPKPurposeId = async (
   purposeId: PurposeId,
   exclusiveStartKey?: Record<string, AttributeValue>
 ): Promise<{
-  tokenStateEntries: TokenGenerationStatesClientPurposeEntry[];
+  tokenStateEntries: TokenGenerationStatesConsumerClient[];
   lastEvaluatedKey?: Record<string, AttributeValue>;
 }> => {
   const input: QueryInput = {
@@ -157,7 +157,7 @@ export const readTokenEntriesByGSIPKPurposeId = async (
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
     const tokenStateEntries = z
-      .array(TokenGenerationStatesClientPurposeEntry)
+      .array(TokenGenerationStatesConsumerClient)
       .safeParse(unmarshalledItems);
 
     if (!tokenStateEntries.success) {

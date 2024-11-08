@@ -13,7 +13,7 @@ import {
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
   PurposeId,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import { inject } from "vitest";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
@@ -134,12 +134,12 @@ export const writeCatalogEntry = async (
 export const readAllTokenEntriesByGSIPKPurposeId = async (
   dynamoDBClient: DynamoDBClient,
   purposeId: PurposeId
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
     dynamoDBClient: DynamoDBClient,
     purposeId: PurposeId,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
     const result = await readTokenEntriesByGSIPKPurposeId(
       dynamoDBClient,
       purposeId,

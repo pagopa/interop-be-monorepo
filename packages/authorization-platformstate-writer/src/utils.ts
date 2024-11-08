@@ -41,7 +41,7 @@ import {
   PlatformStatesPurposePK,
   PurposeId,
   TenantId,
-  TokenGenerationStatesClientEntry,
+  TokenGenerationStatesApiClient,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesConsumerClient,
@@ -327,7 +327,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
 
     // convert entries
     for (const entry of res.tokenStateEntries) {
-      const newEntry: TokenGenerationStatesClientEntry = {
+      const newEntry: TokenGenerationStatesApiClient = {
         PK: makeTokenGenerationStatesClientKidPK({
           clientId: entry.GSIPK_clientId,
           kid: entry.GSIPK_kid,
@@ -367,7 +367,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
 };
 
 export const writeTokenStateClientEntry = async (
-  tokenStateEntry: TokenGenerationStatesClientEntry,
+  tokenStateEntry: TokenGenerationStatesApiClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
@@ -873,7 +873,7 @@ export const upsertPlatformClientEntry = async (
 };
 
 export const upsertTokenClientKidEntry = async (
-  entry: TokenGenerationStatesClientEntry,
+  entry: TokenGenerationStatesApiClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {

@@ -54,7 +54,7 @@ import {
   PlatformStatesAgreementPK,
   makeGSIPKKid,
   TokenGenerationStatesClientKidPK,
-  TokenGenerationStatesClientEntry,
+  TokenGenerationStatesApiClient,
   makeTokenGenerationStatesClientKidPK,
   PlatformStatesClientPK,
   PlatformStatesClientEntry,
@@ -405,7 +405,7 @@ export const getMockAgreementEntry = (
 
 export const getMockTokenStatesClientEntry = (
   tokenStateEntryPK?: TokenGenerationStatesClientKidPK
-): TokenGenerationStatesClientEntry => {
+): TokenGenerationStatesApiClient => {
   const clientId = tokenStateEntryPK
     ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
     : generateId<ClientId>();

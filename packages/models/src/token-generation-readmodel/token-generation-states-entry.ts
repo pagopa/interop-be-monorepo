@@ -61,7 +61,7 @@ export const TokenGenerationStatesApiClient =
     PK: TokenGenerationStatesClientKidPK,
     clientKind: z.literal(clientKindTokenStates.api),
   });
-export type TokenGenerationStatesClientEntry = z.infer<
+export type TokenGenerationStatesApiClient = z.infer<
   typeof TokenGenerationStatesApiClient
 >;
 

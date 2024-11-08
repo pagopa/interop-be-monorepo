@@ -20,7 +20,7 @@ import {
   missingKafkaMessageDataError,
   PlatformStatesClientEntry,
   PurposeId,
-  TokenGenerationStatesClientEntry,
+  TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -191,7 +191,7 @@ export async function handleMessageV1(
             })
           );
         } else {
-          const clientKidEntry: TokenGenerationStatesClientEntry = {
+          const clientKidEntry: TokenGenerationStatesApiClient = {
             PK: makeTokenGenerationStatesClientKidPK({
               clientId,
               kid,
@@ -270,7 +270,7 @@ export async function handleMessageV1(
         const addedTokenClientPurposeEntries = await Promise.all(
           tokenClientEntries.map(async (entry) => {
             const parsedTokenClientEntry =
-              TokenGenerationStatesClientEntry.safeParse(entry);
+              TokenGenerationStatesApiClient.safeParse(entry);
             const parsedTokenClientPurposeEntry =
               TokenGenerationStatesConsumerClient.safeParse(entry);
 

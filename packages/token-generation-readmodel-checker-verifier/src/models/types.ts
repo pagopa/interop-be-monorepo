@@ -7,8 +7,8 @@ import {
   PlatformStatesClientEntry,
   PlatformStatesPurposeEntry,
   Purpose,
-  TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesApiClient,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -34,7 +34,7 @@ export type PartialPlatformStatesPurposeEntry = z.infer<
 >;
 
 export const PartialTokenStatesPurposeEntry =
-  TokenGenerationStatesClientPurposeEntry.pick({
+  TokenGenerationStatesConsumerClient.pick({
     PK: true,
     consumerId: true,
     GSIPK_purposeId: true,
@@ -76,7 +76,7 @@ export type PartialPlatformStatesAgreementEntry = z.infer<
 >;
 
 export const PartialTokenStatesAgreementEntry =
-  TokenGenerationStatesClientPurposeEntry.pick({
+  TokenGenerationStatesConsumerClient.pick({
     PK: true,
     consumerId: true,
     agreementId: true,
@@ -115,7 +115,7 @@ export type PartialPlatformStatesCatalogEntry = z.infer<
 >;
 
 export const PartialTokenStatesCatalogEntry =
-  TokenGenerationStatesClientPurposeEntry.pick({
+  TokenGenerationStatesConsumerClient.pick({
     PK: true,
     GSIPK_consumerId_eserviceId: true,
     GSIPK_eserviceId_descriptorId: true,
@@ -155,11 +155,11 @@ export type PartialPlatformStatesClientEntry = z.infer<
 >;
 
 const TokenStatesClientEntryPK = z.union([
-  TokenGenerationStatesClientPurposeEntry.shape.PK,
-  TokenGenerationStatesClientEntry.shape.PK,
+  TokenGenerationStatesConsumerClient.shape.PK,
+  TokenGenerationStatesApiClient.shape.PK,
 ]);
 export const PartialTokenStatesClientEntry =
-  TokenGenerationStatesClientPurposeEntry.pick({
+  TokenGenerationStatesConsumerClient.pick({
     consumerId: true,
     clientKind: true,
     GSIPK_clientId: true,

@@ -40,7 +40,7 @@ import {
   TenantId,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
   TokenGenerationStatesGenericEntry,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -200,15 +200,15 @@ export async function compareTokenGenerationReadModel(
     await tokenGenerationService.readAllPlatformStatesItems();
   const tokenGenerationStatesEntries =
     await tokenGenerationService.readAllTokenGenerationStatesItems();
-  const tokenGenerationStatesClientPurposeEntries: TokenGenerationStatesClientPurposeEntry[] =
+  const tokenGenerationStatesClientPurposeEntries: TokenGenerationStatesConsumerClient[] =
     tokenGenerationStatesEntries
-      .map((e) => TokenGenerationStatesClientPurposeEntry.safeParse(e))
+      .map((e) => TokenGenerationStatesConsumerClient.safeParse(e))
       .filter(
         (
           res
         ): res is {
           success: true;
-          data: TokenGenerationStatesClientPurposeEntry;
+          data: TokenGenerationStatesConsumerClient;
         } => res.success
       )
       .map((res) => res.data);
@@ -293,14 +293,14 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
   readModel,
 }: {
   platformStatesEntries: PlatformStatesPurposeEntry[];
-  tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
+  tokenGenerationStatesEntries: TokenGenerationStatesConsumerClient[];
   readModel: ReadModelRepository;
 }): Promise<PurposeDifferencesResult> {
   const readModelService = readModelServiceBuilder(readModel);
   const [resultsA, resultsB, resultsC] = await Promise.all([
     platformStatesEntries,
     tokenGenerationStatesEntries.filter(
-      (e) => TokenGenerationStatesClientPurposeEntry.safeParse(e).success
+      (e) => TokenGenerationStatesConsumerClient.safeParse(e).success
     ),
     readModelService.getAllReadModelPurposes(),
   ]);
@@ -402,7 +402,7 @@ function validatePurposeTokenGenerationStates({
   purposeState,
   lastPurposeVersion,
 }: {
-  tokenEntries: TokenGenerationStatesClientPurposeEntry[] | undefined;
+  tokenEntries: TokenGenerationStatesConsumerClient[] | undefined;
   purpose: Purpose;
   purposeState: ItemState;
   lastPurposeVersion: PurposeVersion;
@@ -446,12 +446,12 @@ function validatePurposeTokenGenerationStates({
 
 export function zipPurposeDataById(
   platformStates: PlatformStatesPurposeEntry[],
-  tokenStates: TokenGenerationStatesClientPurposeEntry[],
+  tokenStates: TokenGenerationStatesConsumerClient[],
   purposes: Purpose[]
 ): Array<
   [
     PlatformStatesPurposeEntry | undefined,
-    TokenGenerationStatesClientPurposeEntry[],
+    TokenGenerationStatesConsumerClient[],
     Purpose | undefined
   ]
 > {
@@ -471,7 +471,7 @@ export function zipPurposeDataById(
         extractIdFromPlatformStatesPK(platformEntry.PK).id === id
     ),
     tokenStates.filter(
-      (tokenEntry: TokenGenerationStatesClientPurposeEntry) =>
+      (tokenEntry: TokenGenerationStatesConsumerClient) =>
         extractIdsFromTokenGenerationStatesPK(tokenEntry.PK).purposeId === id
     ),
     purposes.find((purpose: Purpose) => purpose.id === id),
@@ -525,7 +525,7 @@ export async function compareReadModelAgreementsWithTokenGenReadModel({
   readModel,
 }: {
   platformStatesEntries: PlatformStatesAgreementEntry[];
-  tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
+  tokenGenerationStatesEntries: TokenGenerationStatesConsumerClient[];
   readModel: ReadModelRepository;
 }): Promise<AgreementDifferencesResult> {
   const readModelService = readModelServiceBuilder(readModel);
@@ -627,7 +627,7 @@ function validateAgreementTokenGenerationStates({
   agreementState,
   agreement,
 }: {
-  tokenEntries: TokenGenerationStatesClientPurposeEntry[];
+  tokenEntries: TokenGenerationStatesConsumerClient[];
   agreementState: ItemState;
   agreement: Agreement;
 }): {
@@ -673,12 +673,12 @@ function validateAgreementTokenGenerationStates({
 
 export function zipAgreementDataById(
   platformStates: PlatformStatesAgreementEntry[],
-  tokenStates: TokenGenerationStatesClientPurposeEntry[],
+  tokenStates: TokenGenerationStatesConsumerClient[],
   agreements: Agreement[]
 ): Array<
   [
     PlatformStatesAgreementEntry | undefined,
-    TokenGenerationStatesClientPurposeEntry[],
+    TokenGenerationStatesConsumerClient[],
     Agreement | undefined
   ]
 > {
@@ -695,7 +695,7 @@ export function zipAgreementDataById(
         extractIdFromPlatformStatesPK(platformEntry.PK).id === id
     ),
     tokenStates.filter(
-      (tokenEntry: TokenGenerationStatesClientPurposeEntry) =>
+      (tokenEntry: TokenGenerationStatesConsumerClient) =>
         tokenEntry.agreementId === id
     ),
     agreements.find((agreement: Agreement) => agreement.id === id),
@@ -749,7 +749,7 @@ export async function compareReadModelEServicesWithTokenGenReadModel({
   readModel,
 }: {
   platformStatesEntries: PlatformStatesCatalogEntry[];
-  tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
+  tokenGenerationStatesEntries: TokenGenerationStatesConsumerClient[];
   readModel: ReadModelRepository;
 }): Promise<CatalogDifferencesResult> {
   const readModelService = readModelServiceBuilder(readModel);
@@ -864,7 +864,7 @@ function validateCatalogTokenGenerationStates({
   eservice,
   descriptor,
 }: {
-  tokenEntries: TokenGenerationStatesClientPurposeEntry[];
+  tokenEntries: TokenGenerationStatesConsumerClient[];
   eservice: EService;
   descriptor: Descriptor;
 }): {
@@ -927,12 +927,12 @@ function validateCatalogTokenGenerationStates({
 
 export function zipEServiceDataById(
   platformStates: PlatformStatesCatalogEntry[],
-  tokenStates: TokenGenerationStatesClientPurposeEntry[],
+  tokenStates: TokenGenerationStatesConsumerClient[],
   eservices: EService[]
 ): Array<
   [
     PlatformStatesCatalogEntry | undefined,
-    TokenGenerationStatesClientPurposeEntry[],
+    TokenGenerationStatesConsumerClient[],
     EService | undefined
   ]
 > {
@@ -963,7 +963,7 @@ export function zipEServiceDataById(
         extractIdFromPlatformStatesPK(platformEntry.PK).id === id
     ),
     tokenStates.filter(
-      (tokenEntry: TokenGenerationStatesClientPurposeEntry) =>
+      (tokenEntry: TokenGenerationStatesConsumerClient) =>
         extractIdsFromGSIPKEServiceIdDescriptorId(
           tokenEntry.GSIPK_eserviceId_descriptorId
         )?.eserviceId === id ||
@@ -1131,7 +1131,7 @@ function validateClientTokenGenerationStates({
   }
 
   const parsedTokenClientPurposeEntry =
-    TokenGenerationStatesClientPurposeEntry.safeParse(tokenEntries[0]);
+    TokenGenerationStatesConsumerClient.safeParse(tokenEntries[0]);
   const foundEntries = tokenEntries.filter(
     (e) =>
       extractIdsFromTokenGenerationStatesPK(e.PK).clientId !== client.id ||

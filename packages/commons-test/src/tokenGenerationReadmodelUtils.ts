@@ -20,13 +20,13 @@ import {
   PlatformStatesPurposeEntry,
   PlatformStatesAgreementEntry,
   TokenGenerationStatesGenericEntry,
-  TokenGenerationStatesClientEntry,
+  TokenGenerationStatesApiClient,
 } from "pagopa-interop-models";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
 
 export const writeTokenStateClientEntry = async (
-  tokenStateEntry: TokenGenerationStatesClientEntry,
+  tokenStateEntry: TokenGenerationStatesApiClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
