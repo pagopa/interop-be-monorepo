@@ -61,7 +61,7 @@ export const writeTokenStateClientEntry = async (
 };
 
 export const writeTokenStateEntry = async (
-  tokenStateEntry: TokenGenerationStatesClientPurposeEntry,
+  tokenStateEntry: TokenGenerationStatesConsumerClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
@@ -239,12 +239,12 @@ export const readAllPlatformStateItems = async (
 export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
     eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
     const input: QueryInput = {
       TableName: "token-generation-states",
       IndexName: "Descriptor",
@@ -301,12 +301,12 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
 export const readTokenStateEntriesByConsumerIdEserviceId = async (
   consumerId_eserviceId: GSIPKConsumerIdEServiceId,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
     consumerId_eserviceId: GSIPKConsumerIdEServiceId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
     const input: QueryInput = {
       TableName: "token-generation-states",
       IndexName: "Agreement",
