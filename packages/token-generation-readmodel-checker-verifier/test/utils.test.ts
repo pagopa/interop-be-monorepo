@@ -43,6 +43,7 @@ import {
   makePlatformStatesClientPK,
   PlatformStatesClientEntry,
   clientKindTokenStates,
+  PurposeVersion,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
@@ -56,6 +57,8 @@ import {
   countCatalogDifferences,
   countClientDifferences,
   countPurposeDifferences,
+  getLastEServiceDescriptor,
+  getLastPurposeVersion,
   zipAgreementDataById,
   zipClientDataById,
   zipEServiceDataById,
@@ -1192,5 +1195,41 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         expect.arrayContaining(writtenEntries)
       );
     });
+  });
+
+  it("getLastPurposeVersion", () => {
+    const date1 = new Date();
+    const date2 = new Date();
+    date2.setDate(date1.getDate() + 1);
+    const purposeVersion1: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      createdAt: date1,
+    };
+    const purposeVersion2: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      createdAt: date2,
+    };
+
+    expect(getLastPurposeVersion([purposeVersion1, purposeVersion2])).toEqual(
+      purposeVersion2
+    );
+  });
+
+  it("getLastEServiceDescriptor", () => {
+    const date1 = new Date();
+    const date2 = new Date();
+    date2.setDate(date1.getDate() + 1);
+    const descriptor1: Descriptor = {
+      ...getMockDescriptor(),
+      createdAt: date1,
+    };
+    const descriptor2: Descriptor = {
+      ...getMockDescriptor(),
+      createdAt: date2,
+    };
+
+    expect(getLastEServiceDescriptor([descriptor1, descriptor2])).toEqual(
+      descriptor2
+    );
   });
 });
