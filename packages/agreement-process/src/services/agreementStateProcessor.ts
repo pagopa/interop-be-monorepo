@@ -42,9 +42,13 @@ const {
 const nextStateFromDraft = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  tenant: Tenant | CompactTenant,
+  delegateId: TenantId | undefined
 ): AgreementState => {
-  if (agreement.consumerId === agreement.producerId) {
+  if (
+    agreement.consumerId === agreement.producerId ||
+    (delegateId && delegateId === agreement.consumerId)
+  ) {
     return active;
   }
   if (!certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
@@ -135,7 +139,7 @@ export const nextStateByAttributesFSM = (
 ): AgreementState =>
   match(agreement.state)
     .with(agreementState.draft, () =>
-      nextStateFromDraft(agreement, descriptor, tenant)
+      nextStateFromDraft(agreement, descriptor, tenant, delegateId)
     )
     .with(agreementState.pending, () =>
       nextStateFromPending(agreement, descriptor, tenant)
