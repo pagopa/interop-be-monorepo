@@ -295,34 +295,27 @@ export const publishAudit = async ({
 }: {
   producer: Awaited<ReturnType<typeof initProducer>>;
   generatedToken: InteropConsumerToken | InteropApiToken;
-  key: TokenGenerationStatesClientPurposeEntry;
+  key: FullTokenGenerationStatesClientPurposeEntry;
   clientAssertion: ClientAssertion;
   correlationId: string;
   fileManager: FileManager;
   logger: Logger;
 }): Promise<void> => {
-  const parsedClientKidPurposeEntry =
-    FullTokenGenerationStatesClientPurposeEntry.safeParse(key);
-  if (!parsedClientKidPurposeEntry.success) {
-    throw invalidTokenClientKidPurposeEntry(key.PK);
-  }
   const messageBody: GeneratedTokenAuditDetails = {
     jwtId: generatedToken.payload.jti,
     correlationId,
     issuedAt: generatedToken.payload.iat,
     clientId: clientAssertion.payload.sub,
-    organizationId: parsedClientKidPurposeEntry.data.consumerId,
-    agreementId: parsedClientKidPurposeEntry.data.agreementId,
+    organizationId: key.consumerId,
+    agreementId: key.agreementId,
     eserviceId: deconstructGSIPK_eserviceId_descriptorId(
-      parsedClientKidPurposeEntry.data.GSIPK_eserviceId_descriptorId
+      key.GSIPK_eserviceId_descriptorId
     ).eserviceId,
     descriptorId: deconstructGSIPK_eserviceId_descriptorId(
-      parsedClientKidPurposeEntry.data.GSIPK_eserviceId_descriptorId
+      key.GSIPK_eserviceId_descriptorId
     ).descriptorId,
-    purposeId: parsedClientKidPurposeEntry.data.GSIPK_purposeId,
-    purposeVersionId: unsafeBrandId(
-      parsedClientKidPurposeEntry.data.purposeVersionId
-    ),
+    purposeId: key.GSIPK_purposeId,
+    purposeVersionId: unsafeBrandId(key.purposeVersionId),
     algorithm: generatedToken.header.alg,
     keyId: generatedToken.header.kid,
     audience: generatedToken.payload.aud.join(","),
