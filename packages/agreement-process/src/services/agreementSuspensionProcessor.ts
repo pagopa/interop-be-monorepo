@@ -48,7 +48,8 @@ export function createSuspensionUpdatedAgreement({
   const nextStateByAttributes = nextStateByAttributesFSM(
     agreement,
     descriptor,
-    consumer
+    consumer,
+    delegateId
   );
 
   const suspendedByConsumer = suspendedByConsumerFlag(
@@ -59,7 +60,8 @@ export function createSuspensionUpdatedAgreement({
   const suspendedByProducer = suspendedByProducerFlag(
     agreement,
     authData.organizationId,
-    targetDestinationState
+    targetDestinationState,
+    delegateId
   );
 
   const newState = agreementStateByFlags(
