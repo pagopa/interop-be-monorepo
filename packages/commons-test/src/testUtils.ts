@@ -422,7 +422,7 @@ export const getMockTokenStatesClientEntry = (
       }),
     updatedAt: new Date().toISOString(),
     consumerId,
-    clientKind: clientKindTokenStates.consumer,
+    clientKind: clientKindTokenStates.api,
     publicKey: "PEM",
     GSIPK_clientId: clientId,
     GSIPK_kid: makeGSIPKKid(kid),
