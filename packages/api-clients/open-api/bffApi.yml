@@ -8463,6 +8463,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: features
+        description: comma separated feature types to filter the teanants with
+        schema:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantFeatureType"
+          default: []
+        explode: false
+      - in: query
         name: limit
         required: true
         schema:
@@ -15019,6 +15028,11 @@ components:
       required:
         - results
         - pagination
+    TenantFeatureType:
+      type: string
+      enum:
+        - PERSISTENT_CERTIFIER
+        - DELEGATED_PRODUCER
     TenantFeature:
       oneOf:
         - type: object

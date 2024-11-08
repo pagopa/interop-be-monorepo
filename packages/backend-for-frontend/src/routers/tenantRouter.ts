@@ -390,6 +390,7 @@ const tenantRouter = (
         try {
           const result = await tenantService.getTenants(
             req.query.name,
+            req.query.features,
             req.query.limit,
             ctx
           );

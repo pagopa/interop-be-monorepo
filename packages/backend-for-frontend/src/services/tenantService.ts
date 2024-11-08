@@ -107,6 +107,7 @@ export function tenantServiceBuilder(
     },
     async getTenants(
       name: string | undefined,
+      features: tenantApi.TenantFeatureType[] | undefined,
       limit: number,
       { logger, headers, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.Tenants> {
@@ -115,6 +116,7 @@ export function tenantServiceBuilder(
       const pagedResults = await tenantProcessClient.tenant.getTenants({
         queries: {
           name,
+          features,
           limit,
           offset,
         },

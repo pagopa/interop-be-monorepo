@@ -1178,6 +1178,7 @@ export function tenantServiceBuilder(
     async getTenants(
       {
         name,
+        features,
         offset,
         limit,
       }: {
@@ -1189,9 +1190,9 @@ export function tenantServiceBuilder(
       logger: Logger
     ): Promise<ListResult<Tenant>> {
       logger.info(
-        `Retrieving Tenants with name = ${name}, limit = ${limit}, offset = ${offset}`
+        `Retrieving Tenants with name = ${name}, features = ${features}, limit = ${limit}, offset = ${offset}`
       );
-      return readModelService.getTenants({ name, offset, limit });
+      return readModelService.getTenants({ name, features, offset, limit });
     },
     async getTenantById(id: TenantId, logger: Logger): Promise<Tenant> {
       logger.info(`Retrieving tenant ${id}`);
