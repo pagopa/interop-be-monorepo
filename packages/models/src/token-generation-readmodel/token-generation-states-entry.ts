@@ -46,16 +46,16 @@ export type TokenGenerationStatesClientPurposeEntry = z.infer<
   typeof TokenGenerationStatesConsumerClient
 >;
 
-export const TokenGenerationStatesClientEntry =
+export const TokenGenerationStatesApiClient =
   TokenGenerationStatesBaseEntry.extend({
     PK: TokenGenerationStatesClientKidPK,
   });
 export type TokenGenerationStatesClientEntry = z.infer<
-  typeof TokenGenerationStatesClientEntry
+  typeof TokenGenerationStatesApiClient
 >;
 
 export const TokenGenerationStatesGenericEntry =
-  TokenGenerationStatesConsumerClient.or(TokenGenerationStatesClientEntry);
+  TokenGenerationStatesConsumerClient.or(TokenGenerationStatesApiClient);
 export type TokenGenerationStatesGenericEntry = z.infer<
   typeof TokenGenerationStatesGenericEntry
 >;
