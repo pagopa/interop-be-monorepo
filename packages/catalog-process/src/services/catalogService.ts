@@ -1321,6 +1321,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       const clonedInterfaceId = generateId<EServiceDocumentId>();
+
       const clonedInterfacePath =
         descriptor.interface !== undefined
           ? await fileManager.copy(
