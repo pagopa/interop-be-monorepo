@@ -327,7 +327,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
 
     // convert entries
     for (const entry of res.tokenStateEntries) {
-      const newEntry: TokenGenerationStatesApiClient = {
+      const newEntry: TokenGenerationStatesConsumerClient = {
         PK: makeTokenGenerationStatesClientKidPK({
           clientId: entry.GSIPK_clientId,
           kid: entry.GSIPK_kid,
@@ -341,7 +341,8 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
       };
 
       // write the new one
-      await writeTokenStateClientEntry(newEntry, dynamoDBClient);
+      // TODO this wasn't an upsert. Maybe make it a write operation
+      await upsertTokenStateClientPurposeEntry(newEntry, dynamoDBClient);
 
       // delete the old one
       await deleteClientEntryFromTokenGenerationStatesTable(
@@ -1082,21 +1083,15 @@ export const createTokenClientPurposeEntry = ({
     kid,
     purposeId,
   });
-  const isTokenClientPurposeEntry =
-    TokenGenerationStatesConsumerClient.safeParse(baseEntry).success;
 
   return {
     PK: pk,
     consumerId: baseEntry.consumerId,
     updatedAt: new Date().toISOString(),
-    clientKind: isTokenClientPurposeEntry
-      ? baseEntry.clientKind
-      : clientKindTokenStates.consumer,
+    clientKind: clientKindTokenStates.consumer,
     publicKey: baseEntry.publicKey,
     GSIPK_clientId: baseEntry.GSIPK_clientId,
-    GSIPK_kid: isTokenClientPurposeEntry
-      ? baseEntry.GSIPK_kid
-      : makeGSIPKKid(kid),
+    GSIPK_kid: makeGSIPKKid(kid),
     GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
       clientId,
       purposeId,
