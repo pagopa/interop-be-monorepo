@@ -2,6 +2,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   AuthorizationEventEnvelopeV2,
   Client,
+  clientKindTokenStates,
   ClientV2,
   fromClientV2,
   genericInternalError,
@@ -16,8 +17,8 @@ import {
   missingKafkaMessageDataError,
   PlatformStatesClientEntry,
   PurposeId,
-  TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesApiClient,
+  TokenGenerationStatesConsumerClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -93,52 +94,49 @@ export async function handleMessageV2(
                 purposeId,
               });
 
-            const clientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
-              {
-                PK: tokenClientKidPurposePK,
-                consumerId: client.consumerId,
-                clientKind: clientKindToTokenGenerationStatesClientKind(
-                  client.kind
-                ),
-                publicKey: pem,
-                updatedAt: new Date().toISOString(),
-                GSIPK_clientId: client.id,
-                GSIPK_kid: makeGSIPKKid(msg.data.kid),
-                GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-                  clientId: client.id,
-                  purposeId,
+            const clientKidPurposeEntry: TokenGenerationStatesConsumerClient = {
+              PK: tokenClientKidPurposePK,
+              consumerId: client.consumerId,
+              clientKind: clientKindTokenStates.consumer,
+              publicKey: pem,
+              updatedAt: new Date().toISOString(),
+              GSIPK_clientId: client.id,
+              GSIPK_kid: makeGSIPKKid(msg.data.kid),
+              GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+                clientId: client.id,
+                purposeId,
+              }),
+              GSIPK_purposeId: purposeId,
+              ...((purposeEntry && {
+                GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+                  consumerId: client.consumerId,
+                  eserviceId: purposeEntry.purposeEserviceId,
                 }),
-                GSIPK_purposeId: purposeId,
-                ...((purposeEntry && {
-                  GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-                    consumerId: client.consumerId,
-                    eserviceId: purposeEntry.purposeEserviceId,
-                  }),
-                  purposeState: purposeEntry.state,
-                  purposeVersionId: purposeEntry.purposeVersionId,
+                purposeState: purposeEntry.state,
+                purposeVersionId: purposeEntry.purposeVersionId,
+              }) ||
+                {}),
+              ...((purposeEntry &&
+                agreementEntry && {
+                  agreementId: extractAgreementIdFromAgreementPK(
+                    agreementEntry.PK
+                  ),
+                  agreementState: agreementEntry.state,
+                  GSIPK_eserviceId_descriptorId:
+                    makeGSIPKEServiceIdDescriptorId({
+                      eserviceId: purposeEntry.purposeEserviceId,
+                      descriptorId: agreementEntry.agreementDescriptorId,
+                    }),
                 }) ||
-                  {}),
-                ...((purposeEntry &&
-                  agreementEntry && {
-                    agreementId: extractAgreementIdFromAgreementPK(
-                      agreementEntry.PK
-                    ),
-                    agreementState: agreementEntry.state,
-                    GSIPK_eserviceId_descriptorId:
-                      makeGSIPKEServiceIdDescriptorId({
-                        eserviceId: purposeEntry.purposeEserviceId,
-                        descriptorId: agreementEntry.agreementDescriptorId,
-                      }),
-                  }) ||
-                  {}),
-                ...((catalogEntry && {
-                  descriptorState: catalogEntry.state,
-                  descriptorAudience: catalogEntry.descriptorAudience,
-                  descriptorVoucherLifespan:
-                    catalogEntry.descriptorVoucherLifespan,
-                }) ||
-                  {}),
-              };
+                {}),
+              ...((catalogEntry && {
+                descriptorState: catalogEntry.state,
+                descriptorAudience: catalogEntry.descriptorAudience,
+                descriptorVoucherLifespan:
+                  catalogEntry.descriptorVoucherLifespan,
+              }) ||
+                {}),
+            };
 
             await upsertTokenStateClientPurposeEntry(
               clientKidPurposeEntry,
@@ -171,13 +169,13 @@ export async function handleMessageV2(
           })
         );
       } else {
-        const clientKidEntry: TokenGenerationStatesClientEntry = {
+        const clientKidEntry: TokenGenerationStatesApiClient = {
           PK: makeTokenGenerationStatesClientKidPK({
             clientId: client.id,
             kid: msg.data.kid,
           }),
           consumerId: client.consumerId,
-          clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+          clientKind: clientKindTokenStates.api,
           publicKey: pem,
           GSIPK_clientId: client.id,
           GSIPK_kid: makeGSIPKKid(msg.data.kid),
@@ -251,9 +249,9 @@ export async function handleMessageV2(
         const addedTokenClientPurposeEntries = await Promise.all(
           tokenClientEntries.map(async (entry) => {
             const parsedTokenClientEntry =
-              TokenGenerationStatesClientEntry.safeParse(entry);
+              TokenGenerationStatesApiClient.safeParse(entry);
             const parsedTokenClientPurposeEntry =
-              TokenGenerationStatesClientPurposeEntry.safeParse(entry);
+              TokenGenerationStatesConsumerClient.safeParse(entry);
 
             if (parsedTokenClientEntry.success) {
               const newTokenClientPurposeEntry = createTokenClientPurposeEntry({

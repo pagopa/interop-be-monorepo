@@ -16,16 +16,16 @@ import {
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
   TenantId,
-  TokenGenerationStatesClientEntry,
+  TokenGenerationStatesApiClient,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
   TokenGenerationStatesGenericEntry,
   unsafeBrandId,
   GeneratedTokenAuditDetails,
   GSIPKEServiceIdDescriptorId,
   ClientAssertion,
-  FullTokenGenerationStatesClientPurposeEntry,
+  FullTokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -159,7 +159,7 @@ export function tokenServiceBuilder({
       return await match(key.clientKind)
         .with(clientKindTokenStates.consumer, async () => {
           const parsedKey =
-            FullTokenGenerationStatesClientPurposeEntry.safeParse(key);
+            FullTokenGenerationStatesConsumerClient.safeParse(key);
           if (parsedKey.success) {
             const token = await tokenGenerator.generateInteropConsumerToken({
               sub: jwt.payload.sub,
@@ -208,7 +208,7 @@ export const retrieveKey = async (
   dynamoDBClient: DynamoDBClient,
   pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
 ): Promise<
-  TokenGenerationStatesClientEntry | TokenGenerationStatesClientPurposeEntry
+  TokenGenerationStatesConsumerClient | TokenGenerationStatesApiClient
 > => {
   const input: GetItemInput = {
     Key: {
@@ -242,7 +242,7 @@ export const retrieveKey = async (
           entry.PK.startsWith(clientKidPurposePrefix),
         () => {
           const clientKidPurposeEntry =
-            FullTokenGenerationStatesClientPurposeEntry.safeParse(
+            FullTokenGenerationStatesConsumerClient.safeParse(
               tokenGenerationEntry.data
             );
           if (!clientKidPurposeEntry.success) {
@@ -274,7 +274,7 @@ export const retrieveKey = async (
         (entry) =>
           entry.clientKind === clientKindTokenStates.api &&
           entry.PK.startsWith(clientKidPrefix),
-        () => tokenGenerationEntry.data as TokenGenerationStatesClientEntry
+        () => tokenGenerationEntry.data as TokenGenerationStatesApiClient
       )
       .otherwise(() => {
         throw unexpectedTokenGenerationStatesEntry(
@@ -295,7 +295,7 @@ export const publishAudit = async ({
 }: {
   producer: Awaited<ReturnType<typeof initProducer>>;
   generatedToken: InteropConsumerToken | InteropApiToken;
-  key: FullTokenGenerationStatesClientPurposeEntry;
+  key: FullTokenGenerationStatesConsumerClient;
   clientAssertion: ClientAssertion;
   correlationId: string;
   fileManager: FileManager;
