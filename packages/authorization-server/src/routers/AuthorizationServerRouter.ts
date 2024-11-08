@@ -17,10 +17,10 @@ import {
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { initProducer } from "kafka-iam-auth";
-import { makeApiProblem } from ".././model/domain/errors.js";
-import { authorizationServerErrorMapper } from ".././utilities/errorMappers.js";
-import { tokenServiceBuilder } from ".././services/tokenService.js";
-import { config } from ".././config/config.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
+import { tokenServiceBuilder } from "../services/tokenService.js";
+import { config } from "../config/config.js";
 import { InteropTokenResponse } from "../model/domain/models.js";
 
 const serviceName = "authorization-server";
