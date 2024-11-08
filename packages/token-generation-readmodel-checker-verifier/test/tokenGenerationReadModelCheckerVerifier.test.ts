@@ -301,13 +301,13 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
 
       // token-generation-states
       const clientId = generateId<ClientId>();
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
+      const tokenStatesEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
         clientId,
         kid: `kid ${Math.random()}`,
         purposeId: purpose1.id,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
+      const tokenStatesEntry1: TokenGenerationStatesClientPurposeEntry = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK1),
         GSIPK_purposeId: purpose1.id,
         purposeState: itemState.active,
         purposeVersionId: purpose1.versions[0].id,
@@ -317,13 +317,31 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
           purposeId: purpose1.id,
         }),
       };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+      await writeTokenStateEntry(tokenStatesEntry1, dynamoDBClient);
+
+      const tokenStatesEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId,
+        kid: `kid ${Math.random()}`,
+        purposeId: purpose2.id,
+      });
+      const tokenStatesEntry2: TokenGenerationStatesClientPurposeEntry = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK2),
+        GSIPK_purposeId: purpose2.id,
+        purposeState: itemState.active,
+        purposeVersionId: purpose2.versions[0].id,
+        consumerId: purpose2.consumerId,
+        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+          clientId,
+          purposeId: purpose2.id,
+        }),
+      };
+      await writeTokenStateEntry(tokenStatesEntry2, dynamoDBClient);
 
       const expectedDifferencesLength = 0;
       const purposeDifferences =
         await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [platformPurposeEntry1, platformPurposeEntry2],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          tokenGenerationStatesEntries: [tokenStatesEntry1, tokenStatesEntry2],
           readModel: readModelRepository,
         });
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
