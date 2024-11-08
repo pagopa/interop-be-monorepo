@@ -381,32 +381,28 @@ const tenantRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get(
-      "/tenants",
+    .get("/tenants", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
-      async (req, res) => {
-        const ctx = fromBffAppContext(req.ctx, req.headers);
-
-        try {
-          const result = await tenantService.getTenants(
-            req.query.name,
-            req.query.features,
-            req.query.limit,
-            ctx
-          );
-          return res.status(200).send(bffApi.Tenants.parse(result));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
-            `Error retrieving tenants`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      try {
+        const result = await tenantService.getTenants(
+          req.query.name,
+          req.query.features,
+          req.query.limit,
+          ctx
+        );
+        return res.status(200).send(bffApi.Tenants.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error retrieving tenants`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .post("/tenants/delegatedProducer", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       const tenantId = ctx.authData.organizationId;
