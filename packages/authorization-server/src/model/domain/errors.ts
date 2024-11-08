@@ -16,8 +16,7 @@ export const errorCodes = {
   tokenGenerationStatesEntryNotFound: "0006",
   invalidTokenClientKidPurposeEntry: "0007",
   keyTypeMismatch: "0008",
-  unexpectedTokenGenerationStatesEntry: "0009",
-  platformStateValidationFailed: "0010",
+  platformStateValidationFailed: "0009",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -100,16 +99,6 @@ export function keyTypeMismatch(
     detail: `Token-generation entry ${pk} can't have client kind: ${clientKind}`,
     code: "keyTypeMismatch",
     title: "Key type mismatch",
-  });
-}
-
-export function unexpectedTokenGenerationStatesEntry(
-  pk: TokenGenerationStatesClientKidPK | TokenGenerationStatesClientKidPurposePK
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Unexpected token-generation-states entry, primary key: ${pk}`,
-    code: "unexpectedTokenGenerationStatesEntry",
-    title: "Unexpected token-generation-states entry",
   });
 }
 

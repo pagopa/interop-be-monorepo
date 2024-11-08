@@ -6,8 +6,6 @@ import {
 } from "pagopa-interop-client-assertion-validation";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
-  clientKidPrefix,
-  clientKidPurposePrefix,
   clientKindTokenStates,
   DescriptorId,
   EServiceId,
@@ -19,7 +17,6 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
-  TokenGenerationStatesConsumerClient,
   TokenGenerationStatesGenericEntry,
   unsafeBrandId,
   GeneratedTokenAuditDetails,
@@ -56,8 +53,6 @@ import {
   invalidTokenClientKidPurposeEntry,
   kafkaAuditingFailed,
   tokenGenerationStatesEntryNotFound,
-  keyTypeMismatch,
-  unexpectedTokenGenerationStatesEntry,
   platformStateValidationFailed,
 } from "../model/domain/errors.js";
 
@@ -208,7 +203,7 @@ export const retrieveKey = async (
   dynamoDBClient: DynamoDBClient,
   pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
 ): Promise<
-  TokenGenerationStatesConsumerClient | TokenGenerationStatesApiClient
+  FullTokenGenerationStatesConsumerClient | TokenGenerationStatesApiClient
 > => {
   const input: GetItemInput = {
     Key: {
@@ -236,51 +231,17 @@ export const retrieveKey = async (
     }
 
     return match(tokenGenerationEntry.data)
-      .when(
-        (entry) =>
-          entry.clientKind === clientKindTokenStates.consumer &&
-          entry.PK.startsWith(clientKidPurposePrefix),
-        () => {
-          const clientKidPurposeEntry =
-            FullTokenGenerationStatesConsumerClient.safeParse(
-              tokenGenerationEntry.data
-            );
-          if (!clientKidPurposeEntry.success) {
-            throw invalidTokenClientKidPurposeEntry(
-              tokenGenerationEntry.data.PK
-            );
-          }
+      .with({ clientKind: clientKindTokenStates.consumer }, (entry) => {
+        const consumerClient =
+          FullTokenGenerationStatesConsumerClient.safeParse(entry);
+        if (!consumerClient.success) {
+          throw invalidTokenClientKidPurposeEntry(entry.PK);
+        }
 
-          return clientKidPurposeEntry.data;
-        }
-      )
-      .when(
-        (entry) =>
-          entry.clientKind === clientKindTokenStates.consumer &&
-          entry.PK.startsWith(clientKidPrefix),
-        (entry) => {
-          throw keyTypeMismatch(entry.PK, entry.clientKind);
-        }
-      )
-      .when(
-        (entry) =>
-          entry.clientKind === clientKindTokenStates.api &&
-          entry.PK.startsWith(clientKidPurposePrefix),
-        (entry) => {
-          throw keyTypeMismatch(entry.PK, entry.clientKind);
-        }
-      )
-      .when(
-        (entry) =>
-          entry.clientKind === clientKindTokenStates.api &&
-          entry.PK.startsWith(clientKidPrefix),
-        () => tokenGenerationEntry.data as TokenGenerationStatesApiClient
-      )
-      .otherwise(() => {
-        throw unexpectedTokenGenerationStatesEntry(
-          tokenGenerationEntry.data.PK
-        );
-      });
+        return consumerClient.data;
+      })
+      .with({ clientKind: clientKindTokenStates.api }, (entry) => entry)
+      .exhaustive();
   }
 };
 
