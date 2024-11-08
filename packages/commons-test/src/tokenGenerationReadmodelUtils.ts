@@ -16,7 +16,7 @@ import {
   GSIPKEServiceIdDescriptorId,
   PlatformStatesCatalogEntry,
   PlatformStatesGenericEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
   PlatformStatesPurposeEntry,
   PlatformStatesAgreementEntry,
   TokenGenerationStatesGenericEntry,
@@ -265,7 +265,7 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+        .array(TokenGenerationStatesConsumerClient)
         .safeParse(unmarshalledItems);
 
       if (!tokenStateEntries.success) {
@@ -327,7 +327,7 @@ export const readTokenStateEntriesByConsumerIdEserviceId = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+        .array(TokenGenerationStatesConsumerClient)
         .safeParse(unmarshalledItems);
 
       if (!tokenStateEntries.success) {

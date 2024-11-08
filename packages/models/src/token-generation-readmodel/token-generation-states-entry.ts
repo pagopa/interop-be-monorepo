@@ -27,7 +27,7 @@ type TokenGenerationStatesBaseEntry = z.infer<
   typeof TokenGenerationStatesBaseEntry
 >;
 
-export const TokenGenerationStatesClientPurposeEntry =
+export const TokenGenerationStatesConsumerClient =
   TokenGenerationStatesBaseEntry.extend({
     PK: TokenGenerationStatesClientKidPurposePK,
     GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId.optional(),
@@ -43,7 +43,7 @@ export const TokenGenerationStatesClientPurposeEntry =
     GSIPK_clientId_purposeId: GSIPKClientIdPurposeId.optional(),
   });
 export type TokenGenerationStatesClientPurposeEntry = z.infer<
-  typeof TokenGenerationStatesClientPurposeEntry
+  typeof TokenGenerationStatesConsumerClient
 >;
 
 export const TokenGenerationStatesClientEntry =
@@ -55,7 +55,7 @@ export type TokenGenerationStatesClientEntry = z.infer<
 >;
 
 export const TokenGenerationStatesGenericEntry =
-  TokenGenerationStatesClientPurposeEntry.or(TokenGenerationStatesClientEntry);
+  TokenGenerationStatesConsumerClient.or(TokenGenerationStatesClientEntry);
 export type TokenGenerationStatesGenericEntry = z.infer<
   typeof TokenGenerationStatesGenericEntry
 >;

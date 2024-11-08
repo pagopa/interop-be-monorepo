@@ -21,7 +21,7 @@ import {
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
   TenantId,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
   agreementState,
   generateId,
   itemState,

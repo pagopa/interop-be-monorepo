@@ -11,7 +11,7 @@ import {
   PlatformStatesAgreementPK,
   PlatformStatesCatalogEntry,
   PlatformStatesEServiceDescriptorPK,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
@@ -359,7 +359,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStates = async ({
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+        .array(TokenGenerationStatesConsumerClient)
         .safeParse(unmarshalledItems);
 
       if (!tokenStateEntries.success) {
@@ -451,7 +451,7 @@ export const updateAgreementStateOnTokenStates = async ({
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+        .array(TokenGenerationStatesConsumerClient)
         .safeParse(unmarshalledItems);
 
       if (!tokenStateEntries.success) {
