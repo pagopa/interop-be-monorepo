@@ -44,7 +44,7 @@ export const TokenGenerationStatesConsumerClient =
     purposeVersionId: PurposeVersionId.optional(),
     GSIPK_clientId_purposeId: GSIPKClientIdPurposeId.optional(),
   });
-export type TokenGenerationStatesClientPurposeEntry = z.infer<
+export type TokenGenerationStatesConsumerClient = z.infer<
   typeof TokenGenerationStatesConsumerClient
 >;
 

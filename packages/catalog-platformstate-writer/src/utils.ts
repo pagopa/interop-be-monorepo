@@ -7,7 +7,7 @@ import {
   ItemState,
   PlatformStatesCatalogEntry,
   PlatformStatesEServiceDescriptorPK,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
@@ -152,12 +152,12 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   descriptorState: ItemState,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
     eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Descriptor",
@@ -178,7 +178,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+        .array(TokenGenerationStatesConsumerClient)
         .safeParse(unmarshalledItems);
 
       if (!tokenStateEntries.success) {
@@ -220,7 +220,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
 const updateDescriptorStateEntriesInTokenGenerationStatesTable = async (
   descriptorState: ItemState,
   dynamoDBClient: DynamoDBClient,
-  entriesToUpdate: TokenGenerationStatesClientPurposeEntry[]
+  entriesToUpdate: TokenGenerationStatesConsumerClient[]
 ): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {

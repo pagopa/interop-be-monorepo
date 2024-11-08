@@ -21,7 +21,7 @@ import {
   PlatformStatesClientEntry,
   PurposeId,
   TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
@@ -115,7 +115,7 @@ export async function handleMessageV1(
                   purposeId,
                 });
 
-              const clientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
+              const clientKidPurposeEntry: TokenGenerationStatesConsumerClient =
                 {
                   PK: tokenClientKidPurposePK,
                   consumerId: platformClientEntry.clientConsumerId,
@@ -272,7 +272,7 @@ export async function handleMessageV1(
             const parsedTokenClientEntry =
               TokenGenerationStatesClientEntry.safeParse(entry);
             const parsedTokenClientPurposeEntry =
-              TokenGenerationStatesClientPurposeEntry.safeParse(entry);
+              TokenGenerationStatesConsumerClient.safeParse(entry);
 
             if (parsedTokenClientEntry.success) {
               const newTokenClientPurposeEntry = createTokenClientPurposeEntry({

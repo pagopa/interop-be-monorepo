@@ -156,7 +156,7 @@ export const updateAgreementStateOnTokenStatesEntries = async ({
   agreementState,
   dynamoDBClient,
 }: {
-  entriesToUpdate: TokenGenerationStatesClientPurposeEntry[];
+  entriesToUpdate: TokenGenerationStatesConsumerClient[];
   agreementState: AgreementState;
   dynamoDBClient: DynamoDBClient;
 }): Promise<void> => {
@@ -195,7 +195,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
     GSIPK_eserviceId_descriptorId,
     catalogEntry,
   }: {
-    entriesToUpdate: TokenGenerationStatesClientPurposeEntry[];
+    entriesToUpdate: TokenGenerationStatesConsumerClient[];
     agreementState: AgreementState;
     dynamoDBClient: DynamoDBClient;
     GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
@@ -333,12 +333,12 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStates = async ({
   dynamoDBClient: DynamoDBClient;
   GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
   catalogEntry: PlatformStatesCatalogEntry | undefined;
-}): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+}): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
     consumerId_eserviceId: GSIPKConsumerIdEServiceId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Agreement",
@@ -425,12 +425,12 @@ export const updateAgreementStateOnTokenStates = async ({
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId;
   agreementState: AgreementState;
   dynamoDBClient: DynamoDBClient;
-}): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+}): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
     consumerId_eserviceId: GSIPKConsumerIdEServiceId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Agreement",

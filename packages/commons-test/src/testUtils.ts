@@ -38,7 +38,7 @@ import {
   itemState,
   ClientId,
   PurposeId,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKClientIdPurposeId,
   makeGSIPKEServiceIdDescriptorId,
@@ -336,7 +336,7 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
 
 export const getMockTokenStatesClientPurposeEntry = (
   tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
-): TokenGenerationStatesClientPurposeEntry => {
+): TokenGenerationStatesConsumerClient => {
   const clientId = tokenStateEntryPK
     ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
     : generateId<ClientId>();

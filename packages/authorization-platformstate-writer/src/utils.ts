@@ -44,7 +44,7 @@ import {
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
   TokenGenerationStatesGenericEntry,
 } from "pagopa-interop-models";
 import { z } from "zod";
@@ -236,7 +236,7 @@ const readTokenStateEntriesByGSIPKClientPurpose = async (
   dynamoDBClient: DynamoDBClient,
   exclusiveStartKey?: Record<string, AttributeValue>
 ): Promise<{
-  tokenStateEntries: TokenGenerationStatesClientPurposeEntry[];
+  tokenStateEntries: TokenGenerationStatesConsumerClient[];
   lastEvaluatedKey: Record<string, AttributeValue> | undefined;
 }> => {
   const input: QueryInput = {
@@ -259,7 +259,7 @@ const readTokenStateEntriesByGSIPKClientPurpose = async (
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
     const tokenStateEntries = z
-      .array(TokenGenerationStatesClientPurposeEntry)
+      .array(TokenGenerationStatesConsumerClient)
       .safeParse(unmarshalledItems);
 
     if (!tokenStateEntries.success) {
@@ -318,7 +318,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
     GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
     const res = await readTokenStateEntriesByGSIPKClientPurpose(
       GSIPK_clientId_purposeId,
       dynamoDBClient,
@@ -498,7 +498,7 @@ export const readPlatformPurposeEntry = async (
 };
 
 export const upsertTokenStateClientPurposeEntry = async (
-  tokenStateEntry: TokenGenerationStatesClientPurposeEntry,
+  tokenStateEntry: TokenGenerationStatesConsumerClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
@@ -914,17 +914,15 @@ export const updateTokenDataForSecondRetrieval = async ({
   catalogEntry,
 }: {
   dynamoDBClient: DynamoDBClient;
-  entry: TokenGenerationStatesClientPurposeEntry;
+  entry: TokenGenerationStatesConsumerClient;
   purposeEntry?: PlatformStatesPurposeEntry;
   agreementEntry?: PlatformStatesAgreementEntry;
   catalogEntry?: PlatformStatesCatalogEntry;
 }): Promise<void> => {
-  const setIfChanged = <
-    K extends keyof TokenGenerationStatesClientPurposeEntry
-  >(
+  const setIfChanged = <K extends keyof TokenGenerationStatesConsumerClient>(
     key: K,
-    newValue: TokenGenerationStatesClientPurposeEntry[K]
-  ): Partial<TokenGenerationStatesClientPurposeEntry> => {
+    newValue: TokenGenerationStatesConsumerClient[K]
+  ): Partial<TokenGenerationStatesConsumerClient> => {
     const oldValue = entry[key];
 
     if (Array.isArray(oldValue) && Array.isArray(newValue)) {
@@ -935,7 +933,7 @@ export const updateTokenDataForSecondRetrieval = async ({
 
     return oldValue !== newValue ? { [key]: newValue } : {};
   };
-  const updatedFields: Partial<TokenGenerationStatesClientPurposeEntry> = {
+  const updatedFields: Partial<TokenGenerationStatesConsumerClient> = {
     ...(purposeEntry
       ? {
           ...setIfChanged(
@@ -1016,7 +1014,7 @@ const convertValueToAttributeValue = (
 };
 
 const convertToExpressionAttributeValues = (
-  updatedFields: Partial<TokenGenerationStatesClientPurposeEntry>
+  updatedFields: Partial<TokenGenerationStatesConsumerClient>
 ): Record<string, AttributeValue> => {
   const expressionAttributeValues = Object.keys(updatedFields).reduce(
     (acc, key) => {
@@ -1040,7 +1038,7 @@ const convertToExpressionAttributeValues = (
 };
 
 const generateUpdateItemInputData = (
-  updatedFields: Partial<TokenGenerationStatesClientPurposeEntry>
+  updatedFields: Partial<TokenGenerationStatesConsumerClient>
 ): {
   updateExpression: string;
   expressionAttributeValues: Record<string, AttributeValue>;
@@ -1078,14 +1076,14 @@ export const createTokenClientPurposeEntry = ({
   purposeEntry?: PlatformStatesPurposeEntry;
   agreementEntry?: PlatformStatesAgreementEntry;
   catalogEntry?: PlatformStatesCatalogEntry;
-}): TokenGenerationStatesClientPurposeEntry => {
+}): TokenGenerationStatesConsumerClient => {
   const pk = makeTokenGenerationStatesClientKidPurposePK({
     clientId,
     kid,
     purposeId,
   });
   const isTokenClientPurposeEntry =
-    TokenGenerationStatesClientPurposeEntry.safeParse(baseEntry).success;
+    TokenGenerationStatesConsumerClient.safeParse(baseEntry).success;
 
   return {
     PK: pk,
