@@ -2,8 +2,8 @@ import { match } from "ts-pattern";
 import {
   clientKidPurposePrefix,
   clientKindTokenStates,
-  TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesApiClient,
+  TokenGenerationStatesConsumerClient,
   ClientAssertion,
   ClientAssertionHeader,
   ClientAssertionPayload,
@@ -187,9 +187,7 @@ export const verifyClientAssertion = (
 
 export const verifyClientAssertionSignature = async (
   clientAssertionJws: string,
-  key:
-    | TokenGenerationStatesClientPurposeEntry
-    | TokenGenerationStatesClientEntry,
+  key: TokenGenerationStatesConsumerClient | TokenGenerationStatesApiClient,
   clientAssertionAlgorithm: string
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
@@ -247,9 +245,7 @@ export const verifyClientAssertionSignature = async (
 };
 
 export const validateClientKindAndPlatformState = (
-  key:
-    | TokenGenerationStatesClientEntry
-    | TokenGenerationStatesClientPurposeEntry,
+  key: TokenGenerationStatesApiClient | TokenGenerationStatesConsumerClient,
   jwt: ClientAssertion
 ): ValidationResult<ClientAssertion> =>
   match(key)
@@ -258,7 +254,7 @@ export const validateClientKindAndPlatformState = (
     )
     .with({ clientKind: clientKindTokenStates.consumer }, (key) => {
       if (key.PK.startsWith(clientKidPurposePrefix)) {
-        const parsed = key as TokenGenerationStatesClientPurposeEntry;
+        const parsed = key as TokenGenerationStatesConsumerClient;
         const { errors: platformStateErrors } = validatePlatformState(parsed);
         const purposeIdError = jwt.payload.purposeId
           ? undefined
