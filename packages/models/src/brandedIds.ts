@@ -74,24 +74,36 @@ export type SelfcareId = z.infer<typeof SelfcareId>;
 export const ProducerKeychainId = z.string().uuid().brand("ProducerKeychainId");
 export type ProducerKeychainId = z.infer<typeof ProducerKeychainId>;
 
+const eserviceDescriptorPrefix = "ESERVICEDESCRIPTOR#";
 export const PlatformStatesEServiceDescriptorPK = z
   .string()
-  .brand(`ESERVICEDESCRIPTOR#eServiceId#descriptorId`);
+  .refine((pk) => pk.startsWith(eserviceDescriptorPrefix))
+  .brand(`${eserviceDescriptorPrefix}eServiceId#descriptorId`);
 export type PlatformStatesEServiceDescriptorPK = z.infer<
   typeof PlatformStatesEServiceDescriptorPK
 >;
 
+const agreementPrefix = "AGREEMENT#";
 export const PlatformStatesAgreementPK = z
   .string()
-  .brand(`AGREEMENT#agreementId`);
+  .refine((pk) => pk.startsWith(agreementPrefix))
+  .brand(`${agreementPrefix}agreementId`);
 export type PlatformStatesAgreementPK = z.infer<
   typeof PlatformStatesAgreementPK
 >;
 
-export const PlatformStatesPurposePK = z.string().brand(`PURPOSE#purposeId`);
+const purposePrefix = "PURPOSE#";
+export const PlatformStatesPurposePK = z
+  .string()
+  .refine((pk) => pk.startsWith(purposePrefix))
+  .brand(`${purposePrefix}purposeId`);
 export type PlatformStatesPurposePK = z.infer<typeof PlatformStatesPurposePK>;
 
-export const PlatformStatesClientPK = z.string().brand(`CLIENT#clientId`);
+const clientPrefix = "CLIENT#";
+export const PlatformStatesClientPK = z
+  .string()
+  .refine((pk) => pk.startsWith(clientPrefix))
+  .brand(`${clientPrefix}clientId`);
 export type PlatformStatesClientPK = z.infer<typeof PlatformStatesClientPK>;
 
 export const GSIPKConsumerIdEServiceId = z
