@@ -334,7 +334,7 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   selfcareId: generateId(),
 });
 
-export const getMockTokenStatesClientPurposeEntry = (
+export const getMockTokenStatesConsumerClient = (
   tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
 ): TokenGenerationStatesConsumerClient => {
   const clientId = tokenStateEntryPK
@@ -385,7 +385,7 @@ export const getMockTokenStatesClientPurposeEntry = (
   };
 };
 
-export const getMockAgreementEntry = (
+export const getMockPlatformStatesAgreementEntry = (
   primaryKey: PlatformStatesAgreementPK,
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId(
     {

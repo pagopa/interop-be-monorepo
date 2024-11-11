@@ -33,7 +33,7 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockDocument,
-  getMockTokenStatesClientPurposeEntry,
+  getMockTokenStatesConsumerClient,
   buildDynamoDBTables,
   deleteDynamoDBTables,
   readTokenStatesEntriesByGSIPKEServiceIdDescriptorId,
@@ -116,7 +116,7 @@ describe("integration tests V2 events", async () => {
         descriptorId: publishedDescriptor.id,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         descriptorState: itemState.inactive,
         descriptorAudience: publishedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -132,7 +132,7 @@ describe("integration tests V2 events", async () => {
         purposeId: generateId(),
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         descriptorState: itemState.inactive,
         descriptorAudience: publishedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -219,7 +219,7 @@ describe("integration tests V2 events", async () => {
         descriptorId: publishedDescriptor.id,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         descriptorState: itemState.inactive,
         descriptorAudience: publishedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -235,7 +235,7 @@ describe("integration tests V2 events", async () => {
         purposeId: generateId(),
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         descriptorState: itemState.inactive,
         descriptorAudience: publishedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -330,7 +330,7 @@ describe("integration tests V2 events", async () => {
         descriptorId: publishedDescriptor.id,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         descriptorState: itemState.inactive,
         descriptorAudience: publishedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -346,7 +346,7 @@ describe("integration tests V2 events", async () => {
         purposeId: generateId(),
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         descriptorState: itemState.inactive,
         descriptorAudience: publishedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -442,7 +442,7 @@ describe("integration tests V2 events", async () => {
         purposeId: generateId(),
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         descriptorState: itemState.active,
         descriptorAudience: archivedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -453,7 +453,7 @@ describe("integration tests V2 events", async () => {
       );
 
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         descriptorState: itemState.active,
         descriptorAudience: archivedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -539,7 +539,7 @@ describe("integration tests V2 events", async () => {
         });
 
         const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
           descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -550,7 +550,7 @@ describe("integration tests V2 events", async () => {
         );
 
         const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
           descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -661,7 +661,7 @@ describe("integration tests V2 events", async () => {
         });
 
         const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
           descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -672,7 +672,7 @@ describe("integration tests V2 events", async () => {
         );
 
         const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
           descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -757,7 +757,7 @@ describe("integration tests V2 events", async () => {
           purposeId: generateId(),
         });
         const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
           descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -768,7 +768,7 @@ describe("integration tests V2 events", async () => {
         );
 
         const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
           descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -860,7 +860,7 @@ describe("integration tests V2 events", async () => {
           purposeId: generateId(),
         });
         const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
           descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -871,7 +871,7 @@ describe("integration tests V2 events", async () => {
         );
 
         const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
           descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -972,7 +972,7 @@ describe("integration tests V2 events", async () => {
         descriptorId: suspendedDescriptor.id,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         descriptorState: itemState.active,
         descriptorAudience: suspendedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -988,7 +988,7 @@ describe("integration tests V2 events", async () => {
         purposeId: generateId(),
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         descriptorState: itemState.active,
         descriptorAudience: suspendedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -1071,7 +1071,7 @@ describe("integration tests V2 events", async () => {
         descriptorId: suspendedDescriptor.id,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         descriptorState: itemState.active,
         descriptorAudience: suspendedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -1087,7 +1087,7 @@ describe("integration tests V2 events", async () => {
         purposeId: generateId(),
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         descriptorState: itemState.active,
         descriptorAudience: suspendedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -1176,7 +1176,7 @@ describe("integration tests V2 events", async () => {
         descriptorId: suspendedDescriptor.id,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         descriptorState: itemState.inactive,
         descriptorAudience: suspendedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -1192,7 +1192,7 @@ describe("integration tests V2 events", async () => {
         purposeId: generateId(),
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         descriptorState: itemState.inactive,
         descriptorAudience: suspendedDescriptor.audience,
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,

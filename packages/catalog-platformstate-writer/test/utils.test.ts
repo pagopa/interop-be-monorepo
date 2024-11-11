@@ -26,7 +26,7 @@ import {
   DynamoDBClient,
 } from "@aws-sdk/client-dynamodb";
 import {
-  getMockTokenStatesClientPurposeEntry,
+  getMockTokenStatesConsumerClient,
   buildDynamoDBTables,
   deleteDynamoDBTables,
   readTokenStatesEntriesByGSIPKEServiceIdDescriptorId,
@@ -262,7 +262,7 @@ describe("utils tests", async () => {
         descriptorId: generateId(),
       });
       const tokenStateEntry: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK),
         descriptorState: itemState.inactive,
         descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -290,7 +290,7 @@ describe("utils tests", async () => {
         );
       expect(previousTokenStateEntries).toEqual([]);
       const tokenStateEntry: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK),
         descriptorState: itemState.inactive,
         descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -330,7 +330,7 @@ describe("utils tests", async () => {
         descriptorId: generateId(),
       });
       const tokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         descriptorState: itemState.inactive,
         descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -343,7 +343,7 @@ describe("utils tests", async () => {
         purposeId: generateId(),
       });
       const tokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         descriptorState: itemState.inactive,
         descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -378,7 +378,7 @@ describe("utils tests", async () => {
           purposeId: generateId(),
         });
         const tokenStateEntry: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+          ...getMockTokenStatesConsumerClient(tokenStateEntryPK),
           descriptorState: itemState.inactive,
           descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -433,7 +433,7 @@ describe("utils tests", async () => {
         descriptorId: generateId(),
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         descriptorState: itemState.inactive,
         descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
@@ -449,7 +449,7 @@ describe("utils tests", async () => {
         purposeId: generateId(),
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         descriptorState: itemState.inactive,
         descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,

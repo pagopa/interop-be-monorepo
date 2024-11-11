@@ -4,7 +4,7 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   getMockTokenStatesClientEntry,
-  getMockTokenStatesClientPurposeEntry,
+  getMockTokenStatesConsumerClient,
   writeTokenStatesApiClient,
   writeTokenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
@@ -71,7 +71,7 @@ describe("unit tests", () => {
         });
 
       const tokenClientPurposeEntry1: TokenGenerationStatesConsumerClient =
-        getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK1);
+        getMockTokenStatesConsumerClient(tokenClientKidPurposePK1);
 
       await writeTokenStatesConsumerClient(
         tokenClientPurposeEntry1,
@@ -125,7 +125,7 @@ describe("unit tests", () => {
         });
 
       const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+        ...getMockTokenStatesConsumerClient(tokenClientKidPurposePK),
         agreementId: undefined,
       };
 
@@ -155,7 +155,7 @@ describe("unit tests", () => {
         });
 
       const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+        ...getMockTokenStatesConsumerClient(tokenClientKidPurposePK),
         clientKind: clientKindTokenStates.consumer,
       };
 

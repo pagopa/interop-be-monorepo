@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
-  getMockTokenStatesClientPurposeEntry,
+  getMockTokenStatesConsumerClient,
   getMockPurpose,
   getMockPurposeVersion,
   getMockTokenStatesClientEntry,
@@ -148,7 +148,7 @@ describe("authorization server tests", () => {
     );
 
     const tokenConsumerClient: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      ...getMockTokenStatesConsumerClient(tokenClientKidPurposePK),
       agreementId: undefined,
     };
 
@@ -218,7 +218,7 @@ describe("authorization server tests", () => {
     );
 
     const tokenClientKidPurposeEntry: TokenGenerationStatesConsumerClient =
-      getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK);
+      getMockTokenStatesConsumerClient(tokenClientKidPurposePK);
 
     await writeTokenStatesConsumerClient(
       tokenClientKidPurposeEntry,
@@ -258,7 +258,7 @@ describe("authorization server tests", () => {
 
     const descriptorState = itemState.inactive;
     const tokenConsumerClient: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      ...getMockTokenStatesConsumerClient(tokenClientKidPurposePK),
       descriptorState,
       publicKey: publicKeyEncodedPem,
     };
@@ -297,7 +297,7 @@ describe("authorization server tests", () => {
     );
 
     const tokenClientKidPurposeEntry: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      ...getMockTokenStatesConsumerClient(tokenClientKidPurposePK),
       publicKey: publicKeyEncodedPem,
     };
 
@@ -369,7 +369,7 @@ describe("authorization server tests", () => {
     );
 
     const tokenClientKidPurposeEntry: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      ...getMockTokenStatesConsumerClient(tokenClientKidPurposePK),
       clientKind: clientKindTokenStates.consumer,
       publicKey: publicKeyEncodedPem,
     };
@@ -462,7 +462,7 @@ describe("authorization server tests", () => {
     );
 
     const tokenClientKidPurposeEntry: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      ...getMockTokenStatesConsumerClient(tokenClientKidPurposePK),
       publicKey: publicKeyEncodedPem,
     };
 
@@ -503,7 +503,7 @@ describe("authorization server tests", () => {
     );
 
     const tokenClientKidPurposeEntry: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      ...getMockTokenStatesConsumerClient(tokenClientKidPurposePK),
       publicKey: publicKeyEncodedPem,
     };
 
@@ -628,7 +628,7 @@ describe("authorization server tests", () => {
       }
     );
     const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      ...getMockTokenStatesConsumerClient(tokenClientKidPurposePK),
       consumerId: purpose.consumerId,
       GSIPK_purposeId: purpose.id,
       purposeState: itemState.active,

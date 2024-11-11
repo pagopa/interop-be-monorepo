@@ -42,7 +42,7 @@ import {
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
-  getMockTokenStatesClientPurposeEntry,
+  getMockTokenStatesConsumerClient,
   toPurposeV1,
 } from "pagopa-interop-commons-test";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
@@ -172,7 +172,7 @@ describe("integration tests for events V1", () => {
         purposeId,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
       };
@@ -187,7 +187,7 @@ describe("integration tests for events V1", () => {
         purposeId,
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         GSIPK_purposeId: purposeId,
         purposeState,
       };
@@ -282,7 +282,7 @@ describe("integration tests for events V1", () => {
       // token-generation-states
       const purposeId = purpose.id;
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(),
+        ...getMockTokenStatesConsumerClient(),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
       };
@@ -292,7 +292,7 @@ describe("integration tests for events V1", () => {
       );
 
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(),
+        ...getMockTokenStatesConsumerClient(),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
       };
@@ -363,7 +363,7 @@ describe("integration tests for events V1", () => {
 
       // token-generation-states
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(),
+        ...getMockTokenStatesConsumerClient(),
         GSIPK_purposeId: purposeId,
         purposeState,
         purposeVersionId: purposeVersions[0].id,
@@ -374,7 +374,7 @@ describe("integration tests for events V1", () => {
       );
 
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(),
+        ...getMockTokenStatesConsumerClient(),
         GSIPK_purposeId: purposeId,
         purposeState,
         purposeVersionId: purposeVersions[0].id,
@@ -491,7 +491,7 @@ describe("integration tests for events V1", () => {
 
       // token-generation-states
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(),
+        ...getMockTokenStatesConsumerClient(),
         GSIPK_purposeId: purposeId,
         purposeState,
         purposeVersionId: purposeVersions[1].id,
@@ -502,7 +502,7 @@ describe("integration tests for events V1", () => {
       );
 
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(),
+        ...getMockTokenStatesConsumerClient(),
         GSIPK_purposeId: purposeId,
         purposeState,
         purposeVersionId: purposeVersions[1].id,
@@ -644,7 +644,7 @@ describe("integration tests for events V1", () => {
         purposeId,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         GSIPK_consumerId_eserviceId: undefined,
@@ -667,7 +667,7 @@ describe("integration tests for events V1", () => {
         purposeId,
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         GSIPK_consumerId_eserviceId: undefined,
@@ -761,7 +761,7 @@ describe("integration tests for events V1", () => {
 
       // token-generation-states
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(),
+        ...getMockTokenStatesConsumerClient(),
         GSIPK_purposeId: purposeId,
         purposeState,
         purposeVersionId: purposeVersions[0].id,
@@ -772,7 +772,7 @@ describe("integration tests for events V1", () => {
       );
 
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(),
+        ...getMockTokenStatesConsumerClient(),
         GSIPK_purposeId: purposeId,
         purposeState,
         purposeVersionId: purposeVersions[0].id,
@@ -861,7 +861,7 @@ describe("integration tests for events V1", () => {
 
       // token-generation-states
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(),
+        ...getMockTokenStatesConsumerClient(),
         GSIPK_purposeId: purposeId,
         purposeState,
         purposeVersionId: purposeVersions[0].id,
@@ -872,7 +872,7 @@ describe("integration tests for events V1", () => {
       );
 
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(),
+        ...getMockTokenStatesConsumerClient(),
         GSIPK_purposeId: purposeId,
         purposeState,
         purposeVersionId: purposeVersions[0].id,
@@ -971,7 +971,7 @@ describe("integration tests for events V1", () => {
         purposeId,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         GSIPK_purposeId: purposeId,
         purposeVersionId: purposeVersions[0].id,
         purposeState,
@@ -987,7 +987,7 @@ describe("integration tests for events V1", () => {
         purposeId,
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         GSIPK_purposeId: purposeId,
         purposeVersionId: purposeVersions[0].id,
         purposeState,
@@ -1085,7 +1085,7 @@ describe("integration tests for events V1", () => {
         purposeId,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         GSIPK_purposeId: purposeId,
         purposeState,
       };
@@ -1100,7 +1100,7 @@ describe("integration tests for events V1", () => {
         purposeId,
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         GSIPK_purposeId: purposeId,
         purposeState,
       };

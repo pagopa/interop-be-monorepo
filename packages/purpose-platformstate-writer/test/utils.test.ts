@@ -39,7 +39,7 @@ import {
   deleteDynamoDBTables,
   getMockPurposeVersion,
   writeTokenStatesConsumerClient,
-  getMockTokenStatesClientPurposeEntry,
+  getMockTokenStatesConsumerClient,
   readAllTokenStatesItems,
   getMockPurpose,
   getMockDescriptor,
@@ -240,7 +240,7 @@ describe("utils tests", async () => {
         purposeId,
       });
       const tokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         purposeVersionId: generateId<PurposeVersionId>(),
@@ -253,7 +253,7 @@ describe("utils tests", async () => {
         purposeId,
       });
       const tokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         purposeVersionId: generateId<PurposeVersionId>(),
@@ -282,7 +282,7 @@ describe("utils tests", async () => {
           purposeId,
         });
         const tokenStateEntry: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+          ...getMockTokenStatesConsumerClient(tokenStateEntryPK),
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
           purposeVersionId: generateId<PurposeVersionId>(),
@@ -320,7 +320,7 @@ describe("utils tests", async () => {
         purposeId,
       });
       const tokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         purposeVersionId: generateId<PurposeVersionId>(),
@@ -333,7 +333,7 @@ describe("utils tests", async () => {
         purposeId,
       });
       const tokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         purposeVersionId: generateId<PurposeVersionId>(),
@@ -362,7 +362,7 @@ describe("utils tests", async () => {
           purposeId,
         });
         const tokenStateEntry: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+          ...getMockTokenStatesConsumerClient(tokenStateEntryPK),
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
           purposeVersionId: generateId<PurposeVersionId>(),
@@ -590,7 +590,7 @@ describe("utils tests", async () => {
         purposeId: purpose.id,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         GSIPK_purposeId: purpose.id,
         purposeState: itemState.inactive,
         purposeVersionId: purpose.versions[0].id,
@@ -606,7 +606,7 @@ describe("utils tests", async () => {
         purposeId: purpose.id,
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         GSIPK_purposeId: purpose.id,
         purposeState: itemState.inactive,
         purposeVersionId: purpose.versions[0].id,
@@ -684,7 +684,7 @@ describe("utils tests", async () => {
         purposeId,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         GSIPK_consumerId_eserviceId: undefined,
@@ -706,7 +706,7 @@ describe("utils tests", async () => {
         purposeId,
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         GSIPK_consumerId_eserviceId: undefined,
@@ -793,7 +793,7 @@ describe("utils tests", async () => {
         purposeId,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         GSIPK_consumerId_eserviceId: undefined,
@@ -811,7 +811,7 @@ describe("utils tests", async () => {
         purposeId,
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         GSIPK_consumerId_eserviceId: undefined,
@@ -910,7 +910,7 @@ describe("utils tests", async () => {
         purposeId,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         GSIPK_eserviceId_descriptorId: undefined,
@@ -929,7 +929,7 @@ describe("utils tests", async () => {
         purposeId,
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         GSIPK_eserviceId_descriptorId: undefined,
@@ -1041,7 +1041,7 @@ describe("utils tests", async () => {
         purposeId,
       });
       const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         GSIPK_consumerId_eserviceId: undefined,
@@ -1063,7 +1063,7 @@ describe("utils tests", async () => {
         purposeId,
       });
       const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         GSIPK_purposeId: purposeId,
         purposeState: itemState.inactive,
         GSIPK_consumerId_eserviceId: undefined,
