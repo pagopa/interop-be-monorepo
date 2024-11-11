@@ -37,6 +37,7 @@ import {
   internalUpsertTenantErrorMapper,
   m2mRevokeCertifiedAttributeErrorMapper,
   m2mUpsertTenantErrorMapper,
+  maintenanceTenantUpdatedErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
@@ -434,6 +435,33 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             maintenanceTenantDeletedErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/maintenance/tenants/:tenantId",
+      authorizationMiddleware([MAINTENANCE_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await tenantService.maintenanceTenantUpdate(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              version: req.body.currentVersion,
+              tenant: req.body.tenant,
+              correlationId: ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceTenantUpdatedErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

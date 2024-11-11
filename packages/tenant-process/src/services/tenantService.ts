@@ -49,6 +49,7 @@ import {
   toCreateEventTenantVerifiedAttributeAssigned,
   toCreateEventMaintenanceTenantPromotedToCertifier,
   toCreateEventTenantVerifiedAttributeRevoked,
+  toCreateEventMaintenanceTenantUpdated,
 } from "../model/domain/toEvent.js";
 import {
   attributeAlreadyRevoked,
@@ -1035,6 +1036,39 @@ export function tenantServiceBuilder(
         toCreateEventMaintenanceTenantDeleted(
           version,
           tenant.data,
+          correlationId
+        )
+      );
+    },
+
+    async maintenanceTenantUpdate(
+      {
+        tenantId,
+        tenantUpdate,
+        version,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        tenantUpdate: tenantApi.MaintenanceTenantUpdate;
+        version: number;
+        correlationId: CorrelationId;
+      },
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Maintenance update Tenant ${tenantId}`);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        ...tenantUpdate,
+        updatedAt: new Date()
+      }
+
+      await repository.createEvent(
+        toCreateEventMaintenanceTenantUpdated(
+          version,
+          updatedTenant,
           correlationId
         )
       );

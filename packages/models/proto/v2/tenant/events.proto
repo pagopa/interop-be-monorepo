@@ -57,6 +57,11 @@ message MaintenanceTenantDeletedV2 {
   TenantV2 tenant = 2;
 }
 
+message MaintenanceTenantUpdatedV2 {
+  string tenantId = 1;
+  TenantV2 tenant = 2;
+}
+
 message TenantMailAddedV2 {
   string mailId = 1;
   TenantV2 tenant = 2;
