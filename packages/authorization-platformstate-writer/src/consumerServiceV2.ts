@@ -30,7 +30,6 @@ import {
   deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable,
   readClientEntry,
   readClientEntriesInTokenGenerationStates,
-  cleanClientPurposeIdsInPlatformStatesEntry,
   deleteClientEntryFromTokenGenerationStatesTable,
   extractKidFromTokenEntryPK,
   extractAgreementIdFromAgreementPK,
@@ -38,6 +37,7 @@ import {
   upsertPlatformClientEntry,
   upsertTokenClientKidEntry,
   upsertTokenStateClientPurposeEntry,
+  setClientPurposeIdsInPlatformStatesEntry,
   updateTokenDataForSecondRetrieval,
   createTokenClientPurposeEntry,
 } from "./utils.js";
@@ -346,9 +346,8 @@ export async function handleMessageV2(
           });
 
           // platform-states
-          await cleanClientPurposeIdsInPlatformStatesEntry(
-            pk,
-            msg.version,
+          await setClientPurposeIdsInPlatformStatesEntry(
+            { primaryKey: pk, version: msg.version, clientPurposeIds: [] },
             dynamoDBClient
           );
 
