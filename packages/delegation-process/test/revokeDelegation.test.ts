@@ -159,15 +159,16 @@ describe("revoke delegation", () => {
 
     await addOneDelegation(existentDelegation);
 
-    const actualDelegation = await delegationProducerService.revokeDelegation(
-      existentDelegation.id,
-      {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "DelegationServiceTest",
-      }
-    );
+    const actualDelegation =
+      await delegationProducerService.revokeProducerDelegation(
+        existentDelegation.id,
+        {
+          authData,
+          logger: genericLogger,
+          correlationId: generateId(),
+          serviceName: "DelegationServiceTest",
+        }
+      );
 
     const expectedContractFilePath = (
       await fileManager.listFiles(config.s3Bucket, genericLogger)
@@ -261,7 +262,7 @@ describe("revoke delegation", () => {
     const authData = getRandomAuthData(delegatorId);
     const delegationId = generateId<DelegationId>();
     await expect(
-      delegationProducerService.revokeDelegation(delegationId, {
+      delegationProducerService.revokeProducerDelegation(delegationId, {
         authData,
         logger: genericLogger,
         correlationId: generateId(),
@@ -306,7 +307,7 @@ describe("revoke delegation", () => {
     await addOneDelegation(existentDelegation);
 
     await expect(
-      delegationProducerService.revokeDelegation(delegationId, {
+      delegationProducerService.revokeProducerDelegation(delegationId, {
         authData,
         logger: genericLogger,
         correlationId: generateId(),
@@ -355,12 +356,15 @@ describe("revoke delegation", () => {
       await addOneDelegation(existentDelegation);
 
       await expect(
-        delegationProducerService.revokeDelegation(existentDelegation.id, {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        })
+        delegationProducerService.revokeProducerDelegation(
+          existentDelegation.id,
+          {
+            authData,
+            logger: genericLogger,
+            correlationId: generateId(),
+            serviceName: "DelegationServiceTest",
+          }
+        )
       ).rejects.toThrow(delegationNotRevokable(existentDelegation));
     }
   );
