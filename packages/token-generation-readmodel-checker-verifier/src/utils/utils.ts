@@ -41,7 +41,7 @@ import {
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesConsumerClient,
-  TokenGenerationStatesGenericEntry,
+  TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -1024,7 +1024,7 @@ export async function compareReadModelClientsWithTokenGenReadModel({
   readModel,
 }: {
   platformStatesEntries: PlatformStatesClientEntry[];
-  tokenGenerationStatesEntries: TokenGenerationStatesGenericEntry[];
+  tokenGenerationStatesEntries: TokenGenerationStatesGenericClient[];
   readModel: ReadModelRepository;
 }): Promise<ClientDifferencesResult> {
   const readModelService = readModelServiceBuilder(readModel);
@@ -1116,7 +1116,7 @@ function validateClientTokenGenerationStates({
   tokenEntries,
   client,
 }: {
-  tokenEntries: TokenGenerationStatesGenericEntry[] | undefined;
+  tokenEntries: TokenGenerationStatesGenericClient[] | undefined;
   client: Client;
 }): {
   status: boolean;
@@ -1156,7 +1156,7 @@ function validateClientTokenGenerationStates({
         ? foundEntries.map((entry) => ({
             PK: entry.PK,
             consumerId: entry.consumerId,
-            clientKind: entry.clientKind,
+            clientKind: clientKindTokenStates.consumer,
             GSIPK_clientId: entry.GSIPK_clientId,
             GSIPK_clientId_purposeId:
               parsedTokenClientPurposeEntry.data?.GSIPK_clientId_purposeId,
@@ -1167,12 +1167,12 @@ function validateClientTokenGenerationStates({
 
 export function zipClientDataById(
   platformStates: PlatformStatesClientEntry[],
-  tokenStates: TokenGenerationStatesGenericEntry[],
+  tokenStates: TokenGenerationStatesGenericClient[],
   clients: Client[]
 ): Array<
   [
     PlatformStatesClientEntry | undefined,
-    TokenGenerationStatesGenericEntry[] | undefined,
+    TokenGenerationStatesGenericClient[] | undefined,
     Client | undefined
   ]
 > {
@@ -1192,7 +1192,7 @@ export function zipClientDataById(
         extractIdFromPlatformStatesPK(platformEntry.PK).id === id
     ),
     tokenStates.filter(
-      (tokenEntry: TokenGenerationStatesGenericEntry) =>
+      (tokenEntry: TokenGenerationStatesGenericClient) =>
         extractIdsFromTokenGenerationStatesPK(tokenEntry.PK).clientId === id
     ),
     clients.find((client: Client) => client.id === id),

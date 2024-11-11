@@ -19,7 +19,7 @@ import {
   TokenGenerationStatesConsumerClient,
   PlatformStatesPurposeEntry,
   PlatformStatesAgreementEntry,
-  TokenGenerationStatesGenericEntry,
+  TokenGenerationStatesGenericClient,
   TokenGenerationStatesApiClient,
 } from "pagopa-interop-models";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
@@ -176,7 +176,7 @@ export const writeTokenStateEntry = async (
 
 export const readAllTokenStateItems = async (
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesGenericEntry[]> => {
+): Promise<TokenGenerationStatesGenericClient[]> => {
   const readInput: ScanInput = {
     TableName: "token-generation-states",
   };
@@ -191,7 +191,7 @@ export const readAllTokenStateItems = async (
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
     const tokenStateEntries = z
-      .array(TokenGenerationStatesGenericEntry)
+      .array(TokenGenerationStatesGenericClient)
       .safeParse(unmarshalledItems);
 
     if (!tokenStateEntries.success) {

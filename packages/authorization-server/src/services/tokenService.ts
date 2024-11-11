@@ -17,7 +17,7 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
-  TokenGenerationStatesGenericEntry,
+  TokenGenerationStatesGenericClient,
   unsafeBrandId,
   GeneratedTokenAuditDetails,
   GSIPKEServiceIdDescriptorId,
@@ -151,38 +151,33 @@ export function tokenServiceBuilder({
         };
       }
 
-      return await match(key.clientKind)
-        .with(clientKindTokenStates.consumer, async () => {
-          const parsedKey =
-            FullTokenGenerationStatesConsumerClient.safeParse(key);
-          if (parsedKey.success) {
-            const token = await tokenGenerator.generateInteropConsumerToken({
-              sub: jwt.payload.sub,
-              audience: parsedKey.data.descriptorAudience,
-              purposeId: parsedKey.data.GSIPK_purposeId,
-              tokenDurationInSeconds: parsedKey.data.descriptorVoucherLifespan,
-              digest: jwt.payload.digest,
-            });
+      return await match(key)
+        .with({ clientKind: clientKindTokenStates.consumer }, async (key) => {
+          const token = await tokenGenerator.generateInteropConsumerToken({
+            sub: jwt.payload.sub,
+            audience: key.descriptorAudience,
+            purposeId: key.GSIPK_purposeId,
+            tokenDurationInSeconds: key.descriptorVoucherLifespan,
+            digest: jwt.payload.digest,
+          });
 
-            await publishAudit({
-              producer,
-              generatedToken: token,
-              key: parsedKey.data,
-              clientAssertion: jwt,
-              correlationId,
-              fileManager,
-              logger,
-            });
+          await publishAudit({
+            producer,
+            generatedToken: token,
+            key,
+            clientAssertion: jwt,
+            correlationId,
+            fileManager,
+            logger,
+          });
 
-            return {
-              limitReached: false as const,
-              token,
-              rateLimiterStatus,
-            };
-          }
-          throw invalidTokenClientKidPurposeEntry(key.PK);
+          return {
+            limitReached: false as const,
+            token,
+            rateLimiterStatus,
+          };
         })
-        .with(clientKindTokenStates.api, async () => {
+        .with({ clientKind: clientKindTokenStates.api }, async (key) => {
           const token = await tokenGenerator.generateInteropApiToken({
             sub: jwt.payload.sub,
             consumerId: key.consumerId,
@@ -220,7 +215,7 @@ export const retrieveKey = async (
   } else {
     const unmarshalled = unmarshall(data.Item);
     const tokenGenerationEntry =
-      TokenGenerationStatesGenericEntry.safeParse(unmarshalled);
+      TokenGenerationStatesGenericClient.safeParse(unmarshalled);
 
     if (!tokenGenerationEntry.success) {
       throw genericInternalError(
@@ -255,7 +250,7 @@ export const publishAudit = async ({
   logger,
 }: {
   producer: Awaited<ReturnType<typeof initProducer>>;
-  generatedToken: InteropConsumerToken | InteropApiToken;
+  generatedToken: InteropConsumerToken;
   key: FullTokenGenerationStatesConsumerClient;
   clientAssertion: ClientAssertion;
   correlationId: string;

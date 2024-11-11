@@ -65,8 +65,8 @@ export type TokenGenerationStatesApiClient = z.infer<
   typeof TokenGenerationStatesApiClient
 >;
 
-export const TokenGenerationStatesGenericEntry =
+export const TokenGenerationStatesGenericClient =
   TokenGenerationStatesConsumerClient.or(TokenGenerationStatesApiClient);
-export type TokenGenerationStatesGenericEntry = z.infer<
-  typeof TokenGenerationStatesGenericEntry
+export type TokenGenerationStatesGenericClient = z.infer<
+  typeof TokenGenerationStatesGenericClient
 >;

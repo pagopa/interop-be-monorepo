@@ -25,7 +25,6 @@ import {
   generateId,
   makeGSIPKClientIdPurposeId,
   makeTokenGenerationStatesClientKidPurposePK,
-  TokenGenerationStatesClientPurposeEntry,
   Purpose,
   Agreement,
   agreementState,

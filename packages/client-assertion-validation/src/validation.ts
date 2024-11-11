@@ -1,11 +1,10 @@
 import { match } from "ts-pattern";
 import {
   clientKindTokenStates,
-  TokenGenerationStatesApiClient,
-  TokenGenerationStatesConsumerClient,
   ClientAssertion,
   ClientAssertionHeader,
   ClientAssertionPayload,
+  TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
 import * as jose from "jose";
 import {
@@ -185,7 +184,7 @@ export const verifyClientAssertion = (
 
 export const verifyClientAssertionSignature = async (
   clientAssertionJws: string,
-  key: TokenGenerationStatesConsumerClient | TokenGenerationStatesApiClient,
+  key: TokenGenerationStatesGenericClient,
   clientAssertionAlgorithm: string
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
@@ -243,7 +242,7 @@ export const verifyClientAssertionSignature = async (
 };
 
 export const validateClientKindAndPlatformState = (
-  key: TokenGenerationStatesApiClient | TokenGenerationStatesConsumerClient,
+  key: TokenGenerationStatesGenericClient,
   jwt: ClientAssertion
 ): ValidationResult<ClientAssertion> =>
   match(key)

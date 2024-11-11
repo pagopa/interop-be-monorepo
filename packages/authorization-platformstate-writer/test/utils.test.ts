@@ -54,7 +54,7 @@ import {
   TenantId,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
-  TokenGenerationStatesGenericEntry,
+  TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -628,12 +628,12 @@ describe("utils", () => {
     });
   });
 
-  it("parsing TokenGenerationStatesGenericEntry", () => {
+  it("parsing TokenGenerationStatesGenericClient", () => {
     const clientKidEntry: TokenGenerationStatesClientEntry = {
       ...getMockTokenStatesClientEntry(),
     };
     const entries1 = z
-      .array(TokenGenerationStatesGenericEntry)
+      .array(TokenGenerationStatesGenericClient)
       .safeParse([clientKidEntry]);
 
     expect(entries1.data![0]).toEqual(clientKidEntry);
@@ -642,7 +642,7 @@ describe("utils", () => {
       ...getMockTokenStatesClientPurposeEntry(),
     };
     const entries2 = z
-      .array(TokenGenerationStatesGenericEntry)
+      .array(TokenGenerationStatesGenericClient)
       .safeParse([clientKidPurposeEntry]);
 
     expect(entries2.data![0]).toEqual(clientKidPurposeEntry);
@@ -663,7 +663,7 @@ describe("utils", () => {
         updatedAt: new Date().toISOString(),
       };
     const entries3 = z
-      .array(TokenGenerationStatesGenericEntry)
+      .array(TokenGenerationStatesGenericClient)
       .safeParse([clientKidPurposeEntryWithUndefined]);
 
     expect(entries3.data![0]).toEqual(clientKidPurposeEntryWithUndefined);

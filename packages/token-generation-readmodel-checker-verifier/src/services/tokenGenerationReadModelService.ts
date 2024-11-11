@@ -1,6 +1,6 @@
 import {
   genericInternalError,
-  TokenGenerationStatesGenericEntry,
+  TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
@@ -66,11 +66,11 @@ export function tokenGenerationReadModelServiceBuilder(
     },
 
     async readAllTokenGenerationStatesItems(): Promise<
-      TokenGenerationStatesGenericEntry[]
+      TokenGenerationStatesGenericClient[]
     > {
       const runPaginatedQuery = async (
         exclusiveStartKey?: Record<string, AttributeValue>
-      ): Promise<TokenGenerationStatesGenericEntry[]> => {
+      ): Promise<TokenGenerationStatesGenericClient[]> => {
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
           ExclusiveStartKey: exclusiveStartKey,
@@ -88,7 +88,7 @@ export function tokenGenerationReadModelServiceBuilder(
           const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
           const tokenStateEntries = z
-            .array(TokenGenerationStatesGenericEntry)
+            .array(TokenGenerationStatesGenericClient)
             .safeParse(unmarshalledItems);
 
           if (!tokenStateEntries.success) {

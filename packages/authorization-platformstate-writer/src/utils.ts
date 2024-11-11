@@ -45,7 +45,7 @@ import {
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesConsumerClient,
-  TokenGenerationStatesGenericEntry,
+  TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
@@ -82,7 +82,7 @@ export const deleteEntriesFromTokenStatesByKid = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenStateEntries = z
-        .array(TokenGenerationStatesGenericEntry)
+        .array(TokenGenerationStatesGenericClient)
         .safeParse(unmarshalledItems);
 
       if (!tokenStateEntries.success) {
@@ -156,7 +156,7 @@ export const deleteEntriesFromTokenStatesByClient = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenStateEntries = z
-        .array(TokenGenerationStatesGenericEntry)
+        .array(TokenGenerationStatesGenericClient)
         .safeParse(unmarshalledItems);
 
       if (!tokenStateEntries.success) {
@@ -188,7 +188,7 @@ export const deleteEntriesFromTokenStatesByClient = async (
 };
 
 export const deleteClientEntryFromTokenGenerationStatesTable = async (
-  entryToDelete: TokenGenerationStatesGenericEntry,
+  entryToDelete: TokenGenerationStatesGenericClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: DeleteItemInput = {
@@ -659,12 +659,12 @@ export const writeClientEntry = async (
 export const readClientEntriesInTokenGenerationStates = async (
   GSIPK_clientId: ClientId,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesGenericEntry[]> => {
+): Promise<TokenGenerationStatesGenericClient[]> => {
   const runPaginatedQuery = async (
     GSIPK_clientId: ClientId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesGenericEntry[]> => {
+  ): Promise<TokenGenerationStatesGenericClient[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Client",
@@ -688,7 +688,7 @@ export const readClientEntriesInTokenGenerationStates = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const clientEntries = z
-        .array(TokenGenerationStatesGenericEntry)
+        .array(TokenGenerationStatesGenericClient)
         .safeParse(unmarshalledItems);
 
       if (!clientEntries.success) {
@@ -1069,7 +1069,7 @@ export const createTokenClientPurposeEntry = ({
   agreementEntry,
   catalogEntry,
 }: {
-  tokenEntry: TokenGenerationStatesGenericEntry;
+  tokenEntry: TokenGenerationStatesGenericClient;
   kid: string;
   clientId: ClientId;
   consumerId: TenantId;
