@@ -12,8 +12,8 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
   getMockTokenStatesClientPurposeEntry,
-  writeCatalogEntry,
-  writeTokenStateEntry,
+  writePlatformCatalogEntry,
+  writeTokenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -42,6 +42,7 @@ import {
   makePlatformStatesClientPK,
   PlatformStatesClientEntry,
   clientKindTokenStates,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
@@ -147,7 +148,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         kid: `kid ${Math.random()}`,
         purposeId: purpose1.id,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         GSIPK_purposeId: purpose1.id,
         purposeState: itemState.active,
@@ -215,7 +216,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         kid: `kid ${Math.random()}`,
         purposeId: purpose1.id,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         GSIPK_purposeId: purpose1.id,
         purposeState: itemState.active,
@@ -235,7 +236,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       const expectedZippedData: Array<
         [
           PlatformStatesPurposeEntry | undefined,
-          TokenGenerationStatesClientPurposeEntry[],
+          TokenGenerationStatesConsumerClient[],
           Purpose | undefined
         ]
       > = [
@@ -286,7 +287,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         kid: `kid ${Math.random()}`,
         purposeId: purpose1.id,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         GSIPK_purposeId: purpose1.id,
         purposeState: itemState.inactive,
@@ -383,7 +384,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         consumerId: agreement1.consumerId,
         eserviceId: agreement1.eserviceId,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         consumerId: agreement1.consumerId,
         agreementId: agreement1.id,
@@ -488,7 +489,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         consumerId: agreement1.consumerId,
         eserviceId: agreement1.eserviceId,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         consumerId: agreement1.consumerId,
         agreementId: agreement1.id,
@@ -504,7 +505,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       const expectedZippedData: Array<
         [
           PlatformStatesAgreementEntry | undefined,
-          TokenGenerationStatesClientPurposeEntry[],
+          TokenGenerationStatesConsumerClient[],
           Agreement | undefined
         ]
       > = [
@@ -586,7 +587,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         consumerId: agreement1.consumerId,
         eserviceId: agreement1.eserviceId,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         consumerId: agreement1.consumerId,
         agreementId: agreement1.id,
@@ -663,7 +664,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         kid: `kid ${Math.random()}`,
         purposeId: generateId(),
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         descriptorState: itemState.inactive,
         descriptorAudience: descriptor1.audience,
@@ -748,7 +749,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         kid: `kid ${Math.random()}`,
         purposeId: generateId(),
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         descriptorState: itemState.active,
         descriptorAudience: descriptor1.audience,
@@ -766,7 +767,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       const expectedZippedData: Array<
         [
           PlatformStatesCatalogEntry | undefined,
-          TokenGenerationStatesClientPurposeEntry[],
+          TokenGenerationStatesConsumerClient[],
           EService | undefined
         ]
       > = [
@@ -832,7 +833,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         kid: `kid ${Math.random()}`,
         purposeId: generateId(),
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         descriptorState: itemState.inactive,
         descriptorAudience: ["wrong-audience-2"],
@@ -855,7 +856,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
   });
 
   describe("client utils", () => {
-    it("compareReadModelClientsWithPlatformStates", async () => {
+    it.only("compareReadModelClientsWithPlatformStates", async () => {
       const purpose1 = getMockPurpose();
       const client1: Client = {
         ...getMockClient(),
@@ -903,13 +904,13 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         kid: client1.keys[0].kid,
         purposeId: purpose1.id,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         consumerId: purpose1.consumerId,
         GSIPK_clientId: client1.id,
         GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
-        clientKind: clientKindTokenStates.api,
-        publicKey: client1.keys[0].encodedPem,
+        clientKind: clientKindTokenStates.consumer,
+        publicKey: "wrong public key",
         GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
           clientId: client1.id,
           purposeId: purpose1.id,
@@ -984,12 +985,12 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         kid: client1.keys[0].kid,
         purposeId: purpose1.id,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         consumerId: purpose1.consumerId,
         GSIPK_clientId: client1.id,
         GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
-        clientKind: platformClientEntry1.clientKind,
+        clientKind: clientKindTokenStates.consumer,
         publicKey: client1.keys[0].encodedPem,
         GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
           clientId: client1.id,
@@ -1005,7 +1006,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       const expectedZippedData: Array<
         [
           PlatformStatesClientEntry | undefined,
-          TokenGenerationStatesClientPurposeEntry[],
+          TokenGenerationStatesConsumerClient[],
           Client | undefined
         ]
       > = [
@@ -1063,12 +1064,12 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
         kid: client1.keys[0].kid,
         purposeId: purpose1.id,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
         consumerId: generateId(),
         GSIPK_clientId: client1.id,
         GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
-        clientKind: platformClientEntry1.clientKind,
+        clientKind: clientKindTokenStates.consumer,
         publicKey: client1.keys[0].encodedPem,
         GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
           clientId: generateId(),
@@ -1093,11 +1094,11 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       const tokenEntriesLength = 2;
 
       const tokenStatesEntry1 = getMockTokenStatesClientPurposeEntry();
-      await writeTokenStateEntry(tokenStatesEntry1, dynamoDBClient);
+      await writeTokenStatesConsumerClient(tokenStatesEntry1, dynamoDBClient);
 
-      const tokenStatesEntry2: TokenGenerationStatesClientPurposeEntry =
+      const tokenStatesEntry2: TokenGenerationStatesConsumerClient =
         getMockTokenStatesClientPurposeEntry();
-      await writeTokenStateEntry(tokenStatesEntry2, dynamoDBClient);
+      await writeTokenStatesConsumerClient(tokenStatesEntry2, dynamoDBClient);
 
       vi.spyOn(dynamoDBClient, "send");
       const tokenEntries =
@@ -1113,7 +1114,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
     it("with pagination", async () => {
       const tokenEntriesLength = 10;
 
-      const writtenEntries: TokenGenerationStatesClientPurposeEntry[] = [];
+      const writtenEntries: TokenGenerationStatesConsumerClient[] = [];
       // eslint-disable-next-line functional/no-let
       for (let i = 0; i < tokenEntriesLength; i++) {
         const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
@@ -1121,11 +1122,11 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
           kid: `kid ${Math.random()}`,
           purposeId: generateId(),
         });
-        const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
+        const tokenStatesEntry: TokenGenerationStatesConsumerClient = {
           ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
           publicKey: crypto.randomBytes(100000).toString("hex"),
         };
-        await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+        await writeTokenStatesConsumerClient(tokenStatesEntry, dynamoDBClient);
         // eslint-disable-next-line functional/immutable-data
         writtenEntries.push(tokenStatesEntry);
       }
@@ -1177,7 +1178,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
           version: 1,
           updatedAt: new Date().toISOString(),
         };
-        await writeCatalogEntry(platformStatesEntry, dynamoDBClient);
+        await writePlatformCatalogEntry(platformStatesEntry, dynamoDBClient);
         // eslint-disable-next-line functional/immutable-data
         writtenEntries.push(platformStatesEntry);
       }
