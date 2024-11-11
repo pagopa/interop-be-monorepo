@@ -4,18 +4,18 @@ package delegation.v2;
 
 import "v2/delegation/delegation.proto";
 
-message DelegationSubmittedV2 {
+message ProducerDelegationSubmittedV2 {
   DelegationV2 delegation = 1;
 }
 
-message DelegationApprovedV2 {
+message ProducerDelegationApprovedV2 {
   DelegationV2 delegation = 1;
 }
 
-message DelegationRejectedV2 {
+message ProducerDelegationRejectedV2 {
   DelegationV2 delegation = 1;
 }
 
-message DelegationRevokedV2 {
+message ProducerDelegationRevokedV2 {
   DelegationV2 delegation = 1;
 }
