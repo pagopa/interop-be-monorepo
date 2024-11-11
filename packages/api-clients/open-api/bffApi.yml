@@ -13535,6 +13535,8 @@ components:
           type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
+        idDelegable:
+          type: boolean
     ClientKind:
       type: string
       enum:
