@@ -26,7 +26,7 @@
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "testcontainers": "10.9.0",
-    "ts-node": "10.9.2",
+    "tsx": "4.19.1",
     "typescript": "5.4.5",
     "vitest": "1.6.0"
   },

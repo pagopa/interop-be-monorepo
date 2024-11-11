@@ -7,7 +7,7 @@ import {
   toDelegationV2,
 } from "pagopa-interop-models";
 
-export function toCreateEventProducerDelegation(
+export function toCreateEventDelegationSubmitted(
   delegation: Delegation,
   correlationId: CorrelationId
 ): CreateEvent<DelegationEventV2> {
@@ -25,7 +25,7 @@ export function toCreateEventProducerDelegation(
   };
 }
 
-export function toRevokeEventProducerDelegation(
+export function toCreateEventDelegationRevoked(
   delegation: Delegation,
   version: number,
   correlationId: CorrelationId
@@ -44,7 +44,7 @@ export function toRevokeEventProducerDelegation(
   };
 }
 
-export function toCreateEventApproveDelegation(
+export function toCreateEventDelegationApproved(
   delegation: WithMetadata<Delegation>,
   correlationId: CorrelationId
 ): CreateEvent<DelegationEventV2> {
@@ -62,7 +62,7 @@ export function toCreateEventApproveDelegation(
   };
 }
 
-export function toCreateEventRejectDelegation(
+export function toCreateEventDelegationRejected(
   delegation: WithMetadata<Delegation>,
   correlationId: CorrelationId
 ): CreateEvent<DelegationEventV2> {
