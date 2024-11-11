@@ -504,7 +504,6 @@ const tenantsRouter = (
           await tenantService.removeTenantDelegatedConsumerFeature({
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
-            authData: ctx.authData,
             logger: ctx.logger,
           });
           return res.status(204).send();
