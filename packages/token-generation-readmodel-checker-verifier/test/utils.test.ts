@@ -856,7 +856,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
   });
 
   describe("client utils", () => {
-    it.only("compareReadModelClientsWithPlatformStates", async () => {
+    it("compareReadModelClientsWithPlatformStates", async () => {
       const purpose1 = getMockPurpose();
       const client1: Client = {
         ...getMockClient(),
