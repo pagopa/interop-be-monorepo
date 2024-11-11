@@ -302,3 +302,20 @@ export const toCreateEventTenantDelegatedProducerFeatureAdded = (
   },
   correlationId,
 });
+
+export const toCreateEventTenantDelegatedProducerFeatureRemoved = (
+  version: number,
+  updatedTenant: Tenant,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantDelegatedProducerFeatureRemoved",
+    event_version: 2,
+    data: {
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
