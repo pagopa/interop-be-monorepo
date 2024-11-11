@@ -26,7 +26,6 @@ import {
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
-  makeGSIPKKid,
   makePlatformStatesEServiceDescriptorPK,
   makePlatformStatesPurposePK,
   makeTokenGenerationStatesClientKidPK,
@@ -40,7 +39,6 @@ import {
   PlatformStatesPurposeEntry,
   PlatformStatesPurposePK,
   PurposeId,
-  TenantId,
   TokenGenerationStatesApiClient,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
@@ -1162,20 +1160,18 @@ const generateUpdateItemInputData = (
   };
 };
 
-export const createTokenClientPurposeEntry = ({
-  tokenEntry: baseEntry,
+export const createTokenStatesConsumerClient = ({
+  tokenStatesClient,
   kid,
   clientId,
-  consumerId,
   purposeId,
   purposeEntry,
   agreementEntry,
   catalogEntry,
 }: {
-  tokenEntry: TokenGenerationStatesGenericClient;
+  tokenStatesClient: TokenGenerationStatesGenericClient;
   kid: string;
   clientId: ClientId;
-  consumerId: TenantId;
   purposeId: PurposeId;
   purposeEntry?: PlatformStatesPurposeEntry;
   agreementEntry?: PlatformStatesAgreementEntry;
@@ -1189,12 +1185,12 @@ export const createTokenClientPurposeEntry = ({
 
   return {
     PK: pk,
-    consumerId: baseEntry.consumerId,
+    consumerId: tokenStatesClient.consumerId,
     updatedAt: new Date().toISOString(),
     clientKind: clientKindTokenStates.consumer,
-    publicKey: baseEntry.publicKey,
-    GSIPK_clientId: baseEntry.GSIPK_clientId,
-    GSIPK_kid: makeGSIPKKid(kid),
+    publicKey: tokenStatesClient.publicKey,
+    GSIPK_clientId: tokenStatesClient.GSIPK_clientId,
+    GSIPK_kid: tokenStatesClient.GSIPK_kid,
     GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
       clientId,
       purposeId,
@@ -1202,7 +1198,7 @@ export const createTokenClientPurposeEntry = ({
     GSIPK_purposeId: purposeId,
     ...(purposeEntry && {
       GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-        consumerId,
+        consumerId: tokenStatesClient.consumerId,
         eserviceId: purposeEntry.purposeEserviceId,
       }),
       purposeState: purposeEntry.state,

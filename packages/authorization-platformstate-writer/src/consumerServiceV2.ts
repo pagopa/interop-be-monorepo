@@ -5,7 +5,6 @@ import {
   clientKindTokenStates,
   ClientV2,
   fromClientV2,
-  genericInternalError,
   itemState,
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
@@ -40,7 +39,7 @@ import {
   upsertTokenStatesConsumerClient,
   setClientPurposeIdsInPlatformStatesEntry,
   updateTokenDataForSecondRetrieval,
-  createTokenClientPurposeEntry,
+  createTokenStatesConsumerClient,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -246,24 +245,23 @@ export async function handleMessageV2(
           await retrievePlatformStatesByPurpose(purposeId, dynamoDBClient);
 
         const seenKids = new Set<string>();
-        const addedTokenClientPurposeEntries = await Promise.all(
-          tokenClientEntries.map(async (entry) => {
-            const parsedTokenClientEntry =
-              TokenGenerationStatesApiClient.safeParse(entry);
-            const parsedTokenClientPurposeEntry =
-              TokenGenerationStatesConsumerClient.safeParse(entry);
+        const addedTokenClientPurposeEntries = await tokenClientEntries.reduce<
+          Promise<TokenGenerationStatesConsumerClient[]>
+        >(async (accPromise, entry) => {
+          const acc = await accPromise;
 
-            if (parsedTokenClientEntry.success) {
-              const newTokenClientPurposeEntry = createTokenClientPurposeEntry({
-                tokenEntry: parsedTokenClientEntry.data,
-                kid: extractKidFromTokenEntryPK(parsedTokenClientEntry.data.PK),
-                clientId: client.id,
-                consumerId: client.consumerId,
-                purposeId,
-                purposeEntry,
-                agreementEntry,
-                catalogEntry,
-              });
+          const addedTokenConsumerClient = await match(entry)
+            .with({ clientKind: clientKindTokenStates.api }, async (entry) => {
+              const newTokenClientPurposeEntry =
+                createTokenStatesConsumerClient({
+                  tokenStatesClient: entry,
+                  kid: extractKidFromTokenEntryPK(entry.PK),
+                  clientId: client.id,
+                  purposeId,
+                  purposeEntry,
+                  agreementEntry,
+                  catalogEntry,
+                });
 
               await upsertTokenStatesConsumerClient(
                 newTokenClientPurposeEntry,
@@ -274,37 +272,39 @@ export async function handleMessageV2(
                 dynamoDBClient
               );
               return newTokenClientPurposeEntry;
-            }
+            })
+            .with(
+              { clientKind: clientKindTokenStates.consumer },
+              async (entry) => {
+                const kid = extractKidFromTokenEntryPK(entry.PK);
+                if (!seenKids.has(kid)) {
+                  const newTokenClientPurposeEntry =
+                    createTokenStatesConsumerClient({
+                      tokenStatesClient: entry,
+                      kid,
+                      clientId: client.id,
+                      purposeId,
+                      purposeEntry,
+                      agreementEntry,
+                      catalogEntry,
+                    });
 
-            if (parsedTokenClientPurposeEntry.success) {
-              const kid = extractKidFromTokenEntryPK(
-                parsedTokenClientPurposeEntry.data.PK
-              );
-              if (!seenKids.has(kid)) {
-                const newTokenClientPurposeEntry =
-                  createTokenClientPurposeEntry({
-                    tokenEntry: parsedTokenClientPurposeEntry.data,
-                    kid,
-                    clientId: client.id,
-                    consumerId: client.consumerId,
-                    purposeId,
-                    purposeEntry,
-                    agreementEntry,
-                    catalogEntry,
-                  });
-
-                await upsertTokenStatesConsumerClient(
-                  newTokenClientPurposeEntry,
-                  dynamoDBClient
-                );
-                seenKids.add(kid);
-                return newTokenClientPurposeEntry;
+                  await upsertTokenStatesConsumerClient(
+                    newTokenClientPurposeEntry,
+                    dynamoDBClient
+                  );
+                  seenKids.add(kid);
+                  return newTokenClientPurposeEntry;
+                }
+                return null;
               }
-            }
+            )
+            .exhaustive();
 
-            throw genericInternalError(`Unable to parse ${entry}`);
-          })
-        );
+          return addedTokenConsumerClient
+            ? [...acc, addedTokenConsumerClient]
+            : acc;
+        }, Promise.resolve([]));
 
         // Second check for updated fields
         await Promise.all(

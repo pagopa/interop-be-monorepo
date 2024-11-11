@@ -29,6 +29,7 @@ import {
   writeTokenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   AuthorizationEventEnvelope,
   Client,
   ClientAddedV1,
@@ -1725,14 +1726,18 @@ describe("integration tests V1 events", async () => {
       };
       await writePlatformPurposeEntry(platformPurposeEntry, dynamoDBClient);
 
-      const agreement = getMockAgreement();
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId: purpose.eserviceId,
+      };
       const platformAgreementEntry: PlatformStatesAgreementEntry = {
         PK: makePlatformStatesAgreementPK(agreement.id),
         version: 1,
         state: itemState.active,
         updatedAt: new Date().toISOString(),
         GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: purpose.consumerId,
+          consumerId,
           eserviceId: purpose.eserviceId,
         }),
         GSISK_agreementTimestamp: new Date().toISOString(),
@@ -1786,11 +1791,13 @@ describe("integration tests V1 events", async () => {
 
       const tokenClientEntry1: TokenGenerationStatesApiClient = {
         ...getMockTokenStatesClientEntry(tokenClientKidPK1),
+        consumerId: client.consumerId,
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(kid1),
       };
       const tokenClientEntry2: TokenGenerationStatesApiClient = {
         ...getMockTokenStatesClientEntry(tokenClientKidPK2),
+        consumerId: client.consumerId,
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(kid2),
       };
