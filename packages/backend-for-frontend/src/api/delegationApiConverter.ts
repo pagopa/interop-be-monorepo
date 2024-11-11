@@ -24,12 +24,15 @@ export function toDelegationState(
   state: DelegationState
 ): bffApi.DelegationState {
   return match(state)
-    .with(delegationState.active, () => "ACTIVE" as const)
-    .with(delegationState.rejected, () => "REJECTED" as const)
-    .with(delegationState.revoked, () => "REVOKED" as const)
+    .with(delegationState.active, () => bffApi.DelegationState.Values.ACTIVE)
+    .with(
+      delegationState.rejected,
+      () => bffApi.DelegationState.Values.REJECTED
+    )
+    .with(delegationState.revoked, () => bffApi.DelegationState.Values.REVOKED)
     .with(
       delegationState.waitingForApproval,
-      () => "WAITING_FOR_APPROVAL" as const
+      () => bffApi.DelegationState.Values.WAITING_FOR_APPROVAL
     )
     .exhaustive();
 }
@@ -38,8 +41,14 @@ export function toDelegationKind(
   kind: DelegationKind
 ): delegationApi.DelegationKind {
   return match(kind)
-    .with(delegationKind.delegatedConsumer, () => "DELEGATED_CONSUMER" as const)
-    .with(delegationKind.delegatedProducer, () => "DELEGATED_PRODUCER" as const)
+    .with(
+      delegationKind.delegatedConsumer,
+      () => bffApi.DelegationKind.Values.DELEGATED_CONSUMER
+    )
+    .with(
+      delegationKind.delegatedProducer,
+      () => bffApi.DelegationKind.Values.DELEGATED_PRODUCER
+    )
     .exhaustive();
 }
 
