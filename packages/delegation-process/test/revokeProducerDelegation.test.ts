@@ -9,7 +9,7 @@ import {
 import {
   Delegation,
   DelegationId,
-  DelegationRevokedV2,
+  ProducerDelegationRevokedV2,
   delegationState,
   generateId,
   TenantId,
@@ -244,7 +244,7 @@ describe("revoke delegation", () => {
     );
 
     const delegationEventPayload = decodeProtobufPayload({
-      messageType: DelegationRevokedV2,
+      messageType: ProducerDelegationRevokedV2,
       payload: lastDelegationEvent.data,
     }).delegation;
     if (!delegationEventPayload) {

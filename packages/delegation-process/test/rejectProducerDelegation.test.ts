@@ -7,7 +7,7 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import {
   DelegationId,
-  DelegationRejectedV2,
+  ProducerDelegationRejectedV2,
   generateId,
   toDelegationV2,
   unsafeBrandId,
@@ -49,7 +49,7 @@ describe("reject delegation", () => {
     const event = await readLastDelegationEvent(delegation.id);
 
     const { delegation: actualDelegation } = decodeProtobufPayload({
-      messageType: DelegationRejectedV2,
+      messageType: ProducerDelegationRejectedV2,
       payload: event.data,
     });
     const expectedDelegation = toDelegationV2({
