@@ -8,9 +8,9 @@ export const allowedOrigins = [
   "IPA",
   "ANAC",
   "IVASS",
-  "*INFOCAMERE-PRV",
-  "*INFOCAMERE-SCP",
-  "*INFOCAMERE-PT",
+  "INFOCAMERE-PRV",
+  "INFOCAMERE-SCP",
+  "INFOCAMERE-PT",
 ];
 
 export const selfcareUpsertTenantMock = (): Promise<tenantApi.ResourceId> =>

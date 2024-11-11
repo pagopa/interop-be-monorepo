@@ -267,7 +267,7 @@ describe("Message processor", () => {
   it.each(["SCP", "PRV", "PT"])(
     "should upsert tenant with institutionType %s correctly",
     async (institutionType) => {
-      const origin = "*INFOCAMERE";
+      const origin = "INFOCAMERE";
 
       const message: EachMessagePayload = {
         ...kafkaMessagePayload,
