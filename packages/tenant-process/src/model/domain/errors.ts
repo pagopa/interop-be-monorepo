@@ -2,6 +2,7 @@ import {
   ApiError,
   AttributeId,
   EServiceId,
+  TenantFeature,
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
@@ -33,7 +34,8 @@ export const errorCodes = {
   certifierWithExistingAttributes: "0024",
   attributeNotFoundInTenant: "0025",
   tenantNotFoundByExternalId: "0026",
-  tenantAlreadyHasDelegatedProducerFeature: "0027",
+  tenantAlreadyHasFeature: "0027",
+  tenantDoesNotHaveFeature: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -294,12 +296,24 @@ export function attributeNotFoundInTenant(
   });
 }
 
-export function tenantAlreadyHasDelegatedProducerFeature(
-  tenantId: TenantId
+export function tenantAlreadyHasFeature(
+  tenantId: TenantId,
+  featureType: TenantFeature["type"]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId} already has delegated producer feature assigned`,
-    code: "tenantAlreadyHasDelegatedProducerFeature",
+    detail: `Tenant ${tenantId} already has ${featureType} feature assigned`,
+    code: "tenantAlreadyHasFeature",
+    title: "Feature already assigned",
+  });
+}
+
+export function tenantDoesNotHaveFeature(
+  tenantId: TenantId,
+  featureType: TenantFeature["type"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} doesn't have ${featureType} feature assigned`,
+    code: "tenantDoesNotHaveFeature",
     title: "Feature already assigned",
   });
 }

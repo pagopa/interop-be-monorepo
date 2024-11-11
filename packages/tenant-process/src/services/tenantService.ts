@@ -52,6 +52,7 @@ import {
   toCreateEventMaintenanceTenantPromotedToCertifier,
   toCreateEventTenantVerifiedAttributeRevoked,
   toCreateEventTenantDelegatedProducerFeatureAdded,
+  toCreateEventTenantDelegatedConsumerFeatureRemoved,
 } from "../model/domain/toEvent.js";
 import {
   attributeAlreadyRevoked,
@@ -84,8 +85,9 @@ import {
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
   assertRequesterIPAOrigin,
-  assertDelegatedProducerFeatureNotAssigned,
   getTenantKind,
+  assertFeatureAssigned,
+  assertFeatureNotAssigned,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -1606,7 +1608,7 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      assertDelegatedProducerFeatureNotAssigned(requesterTenant.data);
+      assertFeatureNotAssigned(requesterTenant.data, "DelegatedProducer");
 
       const updatedTenant: Tenant = {
         ...requesterTenant.data,
@@ -1619,6 +1621,46 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         toCreateEventTenantDelegatedProducerFeatureAdded(
+          requesterTenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+    },
+    async removeTenantDelegatedConsumerFeature({
+      organizationId,
+      correlationId,
+      authData,
+      logger,
+    }: {
+      organizationId: TenantId;
+      correlationId: CorrelationId;
+      authData: AuthData;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing delegated consumer feature to tenant ${organizationId}`
+      );
+
+      assertRequesterIPAOrigin(authData);
+
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      assertFeatureAssigned(requesterTenant.data, "DelegatedConsumer");
+
+      const updatedTenant: Tenant = {
+        ...requesterTenant.data,
+        features: requesterTenant.data.features.filter(
+          (f) => f.type !== "DelegatedConsumer"
+        ),
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantDelegatedConsumerFeatureRemoved(
           requesterTenant.metadata.version,
           updatedTenant,
           correlationId

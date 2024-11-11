@@ -20,6 +20,7 @@ import {
   tenantAttributeType,
   tenantKind,
   SCP,
+  TenantFeature,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -31,7 +32,8 @@ import {
   tenantIsNotACertifier,
   verifiedAttributeSelfVerificationNotAllowed,
   attributeNotFound,
-  tenantAlreadyHasDelegatedProducerFeature,
+  tenantDoesNotHaveFeature,
+  tenantAlreadyHasFeature,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -256,10 +258,27 @@ export function retrieveCertifierId(tenant: Tenant): string {
   return certifierFeature;
 }
 
-export function assertDelegatedProducerFeatureNotAssigned(
-  tenant: Tenant
+function isFeatureAssigned(
+  tenant: Tenant,
+  featureType: TenantFeature["type"]
+): boolean {
+  return tenant.features.some((f) => f.type === featureType);
+}
+
+export function assertFeatureNotAssigned(
+  tenant: Tenant,
+  featureType: TenantFeature["type"]
 ): void {
-  if (tenant.features.some((f) => f.type === "DelegatedProducer")) {
-    throw tenantAlreadyHasDelegatedProducerFeature(tenant.id);
+  if (isFeatureAssigned(tenant, featureType)) {
+    throw tenantAlreadyHasFeature(tenant.id, featureType);
+  }
+}
+
+export function assertFeatureAssigned(
+  tenant: Tenant,
+  featureType: TenantFeature["type"]
+): void {
+  if (!isFeatureAssigned(tenant, featureType)) {
+    throw tenantDoesNotHaveFeature(tenant.id, featureType);
   }
 }
