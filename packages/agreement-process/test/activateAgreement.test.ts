@@ -113,16 +113,6 @@ while (
 }
 
 describe("activate agreement", () => {
-  // beforeEach(async () => {
-  //   selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-  //     async () => mockSelfcareUserResponse
-  //   );
-  // });
-
-  // afterEach(async () => {
-  //   vi.clearAllMocks();
-  // });
-
   async function addRelatedAgreements(agreement: Agreement): Promise<{
     archivableRelatedAgreement1: Agreement;
     archivableRelatedAgreement2: Agreement;
@@ -202,7 +192,7 @@ describe("activate agreement", () => {
   }
 
   describe("Agreement Pending", () => {
-    it.only("Agreement Pending, Requester === Producer, valid attributes -- success case: Pending >> Activated", async () => {
+    it("Agreement Pending, Requester === Producer, valid attributes -- success case: Pending >> Activated", async () => {
       const producer: Tenant = getMockTenant();
 
       const certifiedAttribute: Attribute = {
@@ -310,14 +300,6 @@ describe("activate agreement", () => {
       await addOneAttribute(declaredAttribute);
       await addOneAttribute(verifiedAttribute);
       const relatedAgreements = await addRelatedAgreements(agreement);
-
-      // const acrivateAgreementReturnValue =
-      //   await agreementService.activateAgreement(agreement.id, {
-      //     authData,
-      //     serviceName: "",
-      //     correlationId: generateId(),
-      //     logger: genericLogger,
-      //   });
 
       const acrivateAgreementReturnValue =
         await mockAgreementRouterRequest.post({
@@ -2081,6 +2063,11 @@ describe("activate agreement", () => {
           },
         },
       };
+
+      mockSelfcareV2ClientCall({
+        value: mockSelfcareUserResponse,
+        mockedFor: "Service",
+      });
 
       await addOneTenant(consumer);
       await addOneTenant(producer);

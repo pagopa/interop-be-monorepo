@@ -121,6 +121,7 @@ export function createMockedApiRequester<
           if (err) {
             reject(err);
           }
+          console.log("Text", res.text);
           resolve(res.body);
         });
       });

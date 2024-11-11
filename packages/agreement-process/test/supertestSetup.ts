@@ -6,7 +6,7 @@ import { DB, FileManager } from "pagopa-interop-commons";
 import {
   mockAuthenticationMiddleware,
   createMockedApiRequester,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { vi, inject } from "vitest";
 import { postgresDB, fileManager, selfcareV2ClientMock } from "./utils.js";
 const mockGetUserInfoUsingGET = vi.fn();
@@ -32,7 +32,7 @@ vi.doMock("pagopa-interop-api-clients", async (importActual) => {
   >();
   return {
     ...actual,
-    selfcareV2InstitutionClientBuilder: (): SelfcareV2UsersClient =>
+    selfcareV2UsersClientBuilder: (): SelfcareV2UsersClient =>
       ({
         getUserInfoUsingGET: mockGetUserInfoUsingGET,
       } as unknown as SelfcareV2UsersClient),
