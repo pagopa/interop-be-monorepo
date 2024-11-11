@@ -1154,7 +1154,7 @@ components:
         - type: object
           additionalProperties: false
           properties:
-            delegatedProducer:
+            delegatedConsumer:
               $ref: "#/components/schemas/DelegatedConsumer"
     Certifier:
       description: Certifier Tenant Feature
