@@ -74,6 +74,7 @@ export * from "./read-models/authorizationReadModel.js";
 export * from "./brandedIds.js";
 export * from "./errors.js";
 export * from "./utils.js";
+export * from "./constants.js";
 
 //  Generated models
 export * from "./gen/v1/agreement/agreement.js";
