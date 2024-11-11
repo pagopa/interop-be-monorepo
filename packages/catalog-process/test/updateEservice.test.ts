@@ -72,6 +72,7 @@ describe("update eService", () => {
       ...eservice,
       name: updatedName,
       isSignalHubEnabled,
+      isDelegable,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
