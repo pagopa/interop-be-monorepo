@@ -1208,7 +1208,7 @@ export function catalogServiceBuilder(
           )
         );
       } else {
-        const updatedEService = await processPublishDescriptorUpdate(
+        const updatedEService = await processDescriptorPublication(
           eservice.data,
           descriptor,
           readModelService,
@@ -1779,7 +1779,7 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptor.id, descriptor.state.toString());
       }
 
-      const updatedEService = await processPublishDescriptorUpdate(
+      const updatedEService = await processDescriptorPublication(
         eservice.data,
         descriptor,
         readModelService,
@@ -1917,7 +1917,7 @@ const deleteDescriptorInterfaceAndDocs = async (
   await Promise.all(deleteDescriptorDocs);
 };
 
-const processPublishDescriptorUpdate = async (
+const processDescriptorPublication = async (
   eservice: EService,
   descriptor: Descriptor,
   readModelService: ReadModelService,
