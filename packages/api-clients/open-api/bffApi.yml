@@ -12193,7 +12193,7 @@ paths:
       operationId: createProducerDelegation
       responses:
         "200":
-          description: Delegation created.
+          description: Delegation created
           content:
             application/json:
               schema:
@@ -12492,11 +12492,11 @@ paths:
         schema:
           type: string
     get:
-      description: Retrieves a producer delegation
-      summary: Retrieves a producer delegation
+      description: Retrieves delegation
+      summary: Retrieves delegation
       tags:
         - delegations
-      operationId: getProducerDelegation
+      operationId: getDelegation
       responses:
         "200":
           description: Producer delegation retrieved
