@@ -15,18 +15,12 @@ params:query {
   limit: 50
   ~kind: DELEGATED_PRODUCER
   ~states: WAITING_FOR_APPROVAL
-  ~delegatorIds: 
-  ~delegatedIds: 
+  ~delegatorIds:
+  ~delegatedIds:
   ~eserviceIds:
 }
 
 headers {
-  Cache-Control: no-cache
-  Content-Type: application/json
-  Accept: */*
-  Accept-Encoding: gzip, deflate, br
-  Connection: keep-alive
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Content-Type: application/json
 }
