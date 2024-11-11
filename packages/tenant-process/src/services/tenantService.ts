@@ -52,6 +52,7 @@ import {
   toCreateEventMaintenanceTenantPromotedToCertifier,
   toCreateEventTenantVerifiedAttributeRevoked,
   toCreateEventTenantDelegatedProducerFeatureAdded,
+  toCreateEventTenantDelegatedProducerFeatureRemoved,
 } from "../model/domain/toEvent.js";
 import {
   attributeAlreadyRevoked,
@@ -1619,6 +1620,46 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         toCreateEventTenantDelegatedProducerFeatureAdded(
+          requesterTenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+    },
+    async removeTenantDelegatedProducerFeature({
+      organizationId,
+      correlationId,
+      authData,
+      logger,
+    }: {
+      organizationId: TenantId;
+      correlationId: CorrelationId;
+      authData: AuthData;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing delegated producer feature to tenant ${organizationId}`
+      );
+
+      assertRequesterIPAOrigin(authData);
+
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      assertDelegatedProducerFeatureNotAssigned(requesterTenant.data);
+
+      const updatedTenant: Tenant = {
+        ...requesterTenant.data,
+        features: requesterTenant.data.features.filter(
+          (f) => f.type !== "DelegatedProducer"
+        ),
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantDelegatedProducerFeatureRemoved(
           requesterTenant.metadata.version,
           updatedTenant,
           correlationId

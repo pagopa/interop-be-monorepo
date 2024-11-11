@@ -239,3 +239,10 @@ export const assignTenantDelegatedProducerFeatureErrorMapper = (
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const removeTenantDelegatedProducerFeatureErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantHasNoDelegatedProducerFeature", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
