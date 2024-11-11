@@ -39,93 +39,91 @@ function toOutboundTenantV2(
 export function toOutboundEventV2(
   message: TenantEventEnvelopeV2
 ): OutboundTenantEvent | undefined {
-  return (
-    match(message)
-      .returnType<OutboundTenantEvent | undefined>()
-      .with(
-        { type: "TenantOnboarded" },
-        { type: "TenantOnboardDetailsUpdated" },
-        { type: "MaintenanceTenantPromotedToCertifier" },
-        (msg) => ({
-          event_version: msg.event_version,
-          type: msg.type,
-          version: msg.version,
-          data: {
-            tenant:
-              msg.data.tenant &&
-              (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
-          },
-          stream_id: msg.stream_id,
-          timestamp: new Date(),
-        })
-      )
-      .with(
-        { type: "TenantCertifiedAttributeAssigned" },
-        { type: "TenantCertifiedAttributeRevoked" },
-        { type: "TenantDeclaredAttributeAssigned" },
-        { type: "TenantDeclaredAttributeRevoked" },
-        { type: "TenantVerifiedAttributeAssigned" },
-        { type: "TenantVerifiedAttributeRevoked" },
-        { type: "TenantVerifiedAttributeExpirationUpdated" },
-        { type: "TenantVerifiedAttributeExtensionUpdated" },
-        (msg) => ({
-          event_version: msg.event_version,
-          type: msg.type,
-          version: msg.version,
-          data: {
-            attributeId: msg.data.attributeId,
-            tenant:
-              msg.data.tenant &&
-              (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
-          },
-          stream_id: msg.stream_id,
-          timestamp: new Date(),
-        })
-      )
-      .with({ type: "MaintenanceTenantDeleted" }, (msg) => ({
+  return match(message)
+    .returnType<OutboundTenantEvent | undefined>()
+    .with(
+      { type: "TenantOnboarded" },
+      { type: "TenantOnboardDetailsUpdated" },
+      { type: "MaintenanceTenantPromotedToCertifier" },
+      (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
         version: msg.version,
         data: {
-          tenantId: msg.data.tenantId,
           tenant:
             msg.data.tenant &&
             (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
         },
         stream_id: msg.stream_id,
         timestamp: new Date(),
-      }))
-      .with({ type: "MaintenanceTenantUpdated" }, (msg) => ({
+      })
+    )
+    .with(
+      { type: "TenantCertifiedAttributeAssigned" },
+      { type: "TenantCertifiedAttributeRevoked" },
+      { type: "TenantDeclaredAttributeAssigned" },
+      { type: "TenantDeclaredAttributeRevoked" },
+      { type: "TenantVerifiedAttributeAssigned" },
+      { type: "TenantVerifiedAttributeRevoked" },
+      { type: "TenantVerifiedAttributeExpirationUpdated" },
+      { type: "TenantVerifiedAttributeExtensionUpdated" },
+      (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
         version: msg.version,
         data: {
-          tenantId: msg.data.tenantId,
+          attributeId: msg.data.attributeId,
           tenant:
             msg.data.tenant &&
             (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
         },
         stream_id: msg.stream_id,
         timestamp: new Date(),
-      }))
-      .with({ type: "TenantKindUpdated" }, (msg) => ({
-        event_version: msg.event_version,
-        type: msg.type,
-        version: msg.version,
-        data: {
-          oldKind: msg.data.oldKind,
-          tenant:
-            msg.data.tenant &&
-            (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
-        },
-        stream_id: msg.stream_id,
-        timestamp: new Date(),
-      }))
-      .with(
-        { type: "TenantMailAdded" },
-        { type: "TenantMailDeleted" },
-        () => undefined
-      )
-      .exhaustive()
-  );
+      })
+    )
+    .with({ type: "MaintenanceTenantDeleted" }, (msg) => ({
+      event_version: msg.event_version,
+      type: msg.type,
+      version: msg.version,
+      data: {
+        tenantId: msg.data.tenantId,
+        tenant:
+          msg.data.tenant &&
+          (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
+      },
+      stream_id: msg.stream_id,
+      timestamp: new Date(),
+    }))
+    .with({ type: "MaintenanceTenantUpdated" }, (msg) => ({
+      event_version: msg.event_version,
+      type: msg.type,
+      version: msg.version,
+      data: {
+        tenantId: msg.data.tenantId,
+        tenant:
+          msg.data.tenant &&
+          (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
+      },
+      stream_id: msg.stream_id,
+      timestamp: new Date(),
+    }))
+    .with({ type: "TenantKindUpdated" }, (msg) => ({
+      event_version: msg.event_version,
+      type: msg.type,
+      version: msg.version,
+      data: {
+        oldKind: msg.data.oldKind,
+        tenant:
+          msg.data.tenant &&
+          (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
+      },
+      stream_id: msg.stream_id,
+      timestamp: new Date(),
+    }))
+    .with(
+      { type: "TenantMailAdded" },
+      { type: "TenantMailDeleted" },
+      () => undefined
+    )
+    .exhaustive();
 }
