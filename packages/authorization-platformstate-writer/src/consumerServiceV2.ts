@@ -26,18 +26,18 @@ import {
   clientKindToTokenGenerationStatesClientKind,
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
-  deleteEntriesFromTokenStatesByClient,
+  deleteEntriesFromTokenStatesByClientId,
   deleteEntriesFromTokenStatesByKid,
-  deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable,
-  readClientEntry,
+  deleteEntriesFromTokenStatesByGSIPKClientIdPurposeId,
+  readPlatformClientEntry,
   readClientEntriesInTokenGenerationStates,
-  deleteClientEntryFromTokenGenerationStatesTable,
+  deleteClientEntryFromTokenGenerationStates,
   extractKidFromTokenEntryPK,
   extractAgreementIdFromAgreementPK,
   retrievePlatformStatesByPurpose,
   upsertPlatformClientEntry,
-  upsertTokenClientKidEntry,
-  upsertTokenStateClientPurposeEntry,
+  upsertTokenApiClient,
+  upsertTokenStatesConsumerClient,
   setClientPurposeIdsInPlatformStatesEntry,
   updateTokenDataForSecondRetrieval,
   createTokenClientPurposeEntry,
@@ -59,7 +59,7 @@ export async function handleMessageV2(
       }
 
       const platformClientPK = makePlatformStatesClientPK(client.id);
-      const clientEntry = await readClientEntry(
+      const clientEntry = await readPlatformClientEntry(
         platformClientPK,
         dynamoDBClient
       );
@@ -138,7 +138,7 @@ export async function handleMessageV2(
                 {}),
             };
 
-            await upsertTokenStateClientPurposeEntry(
+            await upsertTokenStatesConsumerClient(
               clientKidPurposeEntry,
               dynamoDBClient
             );
@@ -181,13 +181,13 @@ export async function handleMessageV2(
           GSIPK_kid: makeGSIPKKid(msg.data.kid),
           updatedAt: new Date().toISOString(),
         };
-        await upsertTokenClientKidEntry(clientKidEntry, dynamoDBClient);
+        await upsertTokenApiClient(clientKidEntry, dynamoDBClient);
       }
     })
     .with({ type: "ClientKeyDeleted" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
       const pk = makePlatformStatesClientPK(client.id);
-      const clientEntry = await readClientEntry(pk, dynamoDBClient);
+      const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
 
       if (clientEntry && clientEntry.version > msg.version) {
         return Promise.resolve();
@@ -212,7 +212,7 @@ export async function handleMessageV2(
 
       // platform-states
       const platformClientEntryPK = makePlatformStatesClientPK(client.id);
-      const clientEntry = await readClientEntry(
+      const clientEntry = await readPlatformClientEntry(
         platformClientEntryPK,
         dynamoDBClient
       );
@@ -265,11 +265,11 @@ export async function handleMessageV2(
                 catalogEntry,
               });
 
-              await upsertTokenStateClientPurposeEntry(
+              await upsertTokenStatesConsumerClient(
                 newTokenClientPurposeEntry,
                 dynamoDBClient
               );
-              await deleteClientEntryFromTokenGenerationStatesTable(
+              await deleteClientEntryFromTokenGenerationStates(
                 entry,
                 dynamoDBClient
               );
@@ -293,7 +293,7 @@ export async function handleMessageV2(
                     catalogEntry,
                   });
 
-                await upsertTokenStateClientPurposeEntry(
+                await upsertTokenStatesConsumerClient(
                   newTokenClientPurposeEntry,
                   dynamoDBClient
                 );
@@ -332,7 +332,7 @@ export async function handleMessageV2(
     .with({ type: "ClientPurposeRemoved" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
       const pk = makePlatformStatesClientPK(client.id);
-      const clientEntry = await readClientEntry(pk, dynamoDBClient);
+      const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
 
       if (clientEntry) {
         if (clientEntry.version > msg.version) {
@@ -351,7 +351,7 @@ export async function handleMessageV2(
 
           // token-generation-states
           if (client.purposes.length > 0) {
-            await deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable(
+            await deleteEntriesFromTokenStatesByGSIPKClientIdPurposeId(
               GSIPK_clientId_purposeId,
               dynamoDBClient
             );
@@ -370,7 +370,7 @@ export async function handleMessageV2(
       await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
 
       const GSIPK_clientId = client.id;
-      await deleteEntriesFromTokenStatesByClient(
+      await deleteEntriesFromTokenStatesByClientId(
         GSIPK_clientId,
         dynamoDBClient
       );

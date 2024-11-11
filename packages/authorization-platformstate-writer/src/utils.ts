@@ -94,10 +94,7 @@ export const deleteEntriesFromTokenStatesByKid = async (
       }
 
       for (const entry of tokenStateEntries.data) {
-        await deleteClientEntryFromTokenGenerationStatesTable(
-          entry,
-          dynamoDBClient
-        );
+        await deleteClientEntryFromTokenGenerationStates(entry, dynamoDBClient);
       }
 
       if (data.LastEvaluatedKey) {
@@ -127,7 +124,7 @@ export const deleteClientEntryFromPlatformStates = async (
   await dynamoDBClient.send(command);
 };
 
-export const deleteEntriesFromTokenStatesByClient = async (
+export const deleteEntriesFromTokenStatesByClientId = async (
   GSIPK_client: ClientId,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
@@ -168,10 +165,7 @@ export const deleteEntriesFromTokenStatesByClient = async (
       }
 
       for (const entry of tokenStateEntries.data) {
-        await deleteClientEntryFromTokenGenerationStatesTable(
-          entry,
-          dynamoDBClient
-        );
+        await deleteClientEntryFromTokenGenerationStates(entry, dynamoDBClient);
       }
 
       if (data.LastEvaluatedKey) {
@@ -187,7 +181,7 @@ export const deleteEntriesFromTokenStatesByClient = async (
   await runPaginatedQuery(GSIPK_client, dynamoDBClient, undefined);
 };
 
-export const deleteClientEntryFromTokenGenerationStatesTable = async (
+export const deleteClientEntryFromTokenGenerationStates = async (
   entryToDelete: TokenGenerationStatesGenericClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
@@ -201,7 +195,7 @@ export const deleteClientEntryFromTokenGenerationStatesTable = async (
   await dynamoDBClient.send(command);
 };
 
-export const readClientEntry = async (
+export const readPlatformClientEntry = async (
   primaryKey: PlatformStatesClientPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesClientEntry | undefined> => {
@@ -276,39 +270,35 @@ const readTokenStateEntriesByGSIPKClientPurpose = async (
   }
 };
 
-export const deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable =
-  async (
+export const deleteEntriesFromTokenStatesByGSIPKClientIdPurposeId = async (
+  GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const runPaginatedQuery = async (
     GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
-    dynamoDBClient: DynamoDBClient
+    dynamoDBClient: DynamoDBClient,
+    exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<void> => {
-    const runPaginatedQuery = async (
-      GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
-      dynamoDBClient: DynamoDBClient,
-      exclusiveStartKey?: Record<string, AttributeValue>
-    ): Promise<void> => {
-      const res = await readTokenStateEntriesByGSIPKClientPurpose(
+    const res = await readTokenStateEntriesByGSIPKClientPurpose(
+      GSIPK_clientId_purposeId,
+      dynamoDBClient,
+      exclusiveStartKey
+    );
+
+    for (const entry of res.tokenStateEntries) {
+      await deleteClientEntryFromTokenGenerationStates(entry, dynamoDBClient);
+    }
+
+    if (res.lastEvaluatedKey) {
+      await runPaginatedQuery(
         GSIPK_clientId_purposeId,
         dynamoDBClient,
-        exclusiveStartKey
+        res.lastEvaluatedKey
       );
-
-      for (const entry of res.tokenStateEntries) {
-        await deleteClientEntryFromTokenGenerationStatesTable(
-          entry,
-          dynamoDBClient
-        );
-      }
-
-      if (res.lastEvaluatedKey) {
-        await runPaginatedQuery(
-          GSIPK_clientId_purposeId,
-          dynamoDBClient,
-          res.lastEvaluatedKey
-        );
-      }
-    };
-    await runPaginatedQuery(GSIPK_clientId_purposeId, dynamoDBClient);
+    }
   };
+  await runPaginatedQuery(GSIPK_clientId_purposeId, dynamoDBClient);
+};
 
 export const convertEntriesToClientKidInTokenGenerationStates = async (
   GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
@@ -341,14 +331,10 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
       };
 
       // write the new one
-      // TODO this wasn't an upsert. Maybe make it a write operation
-      await upsertTokenStateClientPurposeEntry(newEntry, dynamoDBClient);
+      await writeTokenStatesConsumerClient(newEntry, dynamoDBClient);
 
       // delete the old one
-      await deleteClientEntryFromTokenGenerationStatesTable(
-        entry,
-        dynamoDBClient
-      );
+      await deleteClientEntryFromTokenGenerationStates(entry, dynamoDBClient);
     }
 
     if (!res.lastEvaluatedKey) {
@@ -367,7 +353,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
   await runPaginatedQuery(GSIPK_clientId_purposeId, dynamoDBClient);
 };
 
-export const writeTokenStateClientEntry = async (
+export const writeTokenStatesApiClient = async (
   tokenStateEntry: TokenGenerationStatesApiClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
@@ -402,7 +388,7 @@ export const writeTokenStateClientEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const readCatalogEntry = async (
+export const readPlatformCatalogEntry = async (
   primaryKey: PlatformStatesEServiceDescriptorPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesCatalogEntry | undefined> => {
@@ -498,11 +484,125 @@ export const readPlatformPurposeEntry = async (
   }
 };
 
-export const upsertTokenStateClientPurposeEntry = async (
+export const upsertTokenStatesConsumerClient = async (
   tokenStateEntry: TokenGenerationStatesConsumerClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
+    Item: {
+      PK: {
+        S: tokenStateEntry.PK,
+      },
+      ...(tokenStateEntry.descriptorState
+        ? {
+            descriptorState: {
+              S: tokenStateEntry.descriptorState,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.descriptorAudience
+        ? {
+            descriptorAudience: {
+              L: tokenStateEntry.descriptorAudience.map((item) => ({
+                S: item,
+              })),
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.descriptorVoucherLifespan
+        ? {
+            descriptorVoucherLifespan: {
+              N: tokenStateEntry.descriptorVoucherLifespan.toString(),
+            },
+          }
+        : {}),
+      updatedAt: {
+        S: tokenStateEntry.updatedAt,
+      },
+      consumerId: {
+        S: tokenStateEntry.consumerId,
+      },
+      ...(tokenStateEntry.agreementId
+        ? {
+            agreementId: {
+              S: tokenStateEntry.agreementId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.purposeVersionId
+        ? {
+            purposeVersionId: {
+              S: tokenStateEntry.purposeVersionId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.GSIPK_consumerId_eserviceId
+        ? {
+            GSIPK_consumerId_eserviceId: {
+              S: tokenStateEntry.GSIPK_consumerId_eserviceId,
+            },
+          }
+        : {}),
+      clientKind: {
+        S: tokenStateEntry.clientKind,
+      },
+      publicKey: {
+        S: tokenStateEntry.publicKey,
+      },
+      GSIPK_clientId: {
+        S: tokenStateEntry.GSIPK_clientId,
+      },
+      GSIPK_kid: {
+        S: tokenStateEntry.GSIPK_kid,
+      },
+      ...(tokenStateEntry.GSIPK_clientId_purposeId
+        ? {
+            GSIPK_clientId_purposeId: {
+              S: tokenStateEntry.GSIPK_clientId_purposeId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.agreementState
+        ? {
+            agreementState: {
+              S: tokenStateEntry.agreementState,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.GSIPK_eserviceId_descriptorId
+        ? {
+            GSIPK_eserviceId_descriptorId: {
+              S: tokenStateEntry.GSIPK_eserviceId_descriptorId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.GSIPK_purposeId
+        ? {
+            GSIPK_purposeId: {
+              S: tokenStateEntry.GSIPK_purposeId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.purposeState
+        ? {
+            purposeState: {
+              S: tokenStateEntry.purposeState,
+            },
+          }
+        : {}),
+    },
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const writeTokenStatesConsumerClient = async (
+  tokenStateEntry: TokenGenerationStatesConsumerClient,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: {
         S: tokenStateEntry.PK,
@@ -619,7 +719,7 @@ export const clientKindToTokenGenerationStatesClientKind = (
     .with(clientKind.api, () => clientKindTokenStates.api)
     .exhaustive();
 
-export const writeClientEntry = async (
+export const writePlatformClientEntry = async (
   clientEntry: PlatformStatesClientEntry,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
@@ -821,7 +921,10 @@ export const retrievePlatformStatesByPurpose = async (
     eserviceId: purposeEntry.purposeEserviceId,
     descriptorId: agreementEntry.agreementDescriptorId,
   });
-  const catalogEntry = await readCatalogEntry(catalogPK, dynamoDBClient);
+  const catalogEntry = await readPlatformCatalogEntry(
+    catalogPK,
+    dynamoDBClient
+  );
 
   if (!catalogEntry) {
     return {
@@ -873,7 +976,7 @@ export const upsertPlatformClientEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const upsertTokenClientKidEntry = async (
+export const upsertTokenApiClient = async (
   entry: TokenGenerationStatesApiClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {

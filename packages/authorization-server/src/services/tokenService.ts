@@ -50,7 +50,7 @@ import {
   clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
   fallbackAuditFailed,
-  invalidTokenClientKidPurposeEntry,
+  incompleteTokenGenerationStatesConsumerClient,
   kafkaAuditingFailed,
   tokenGenerationStatesEntryNotFound,
   platformStateValidationFailed,
@@ -230,7 +230,7 @@ export const retrieveKey = async (
         const consumerClient =
           FullTokenGenerationStatesConsumerClient.safeParse(entry);
         if (!consumerClient.success) {
-          throw invalidTokenClientKidPurposeEntry(entry.PK);
+          throw incompleteTokenGenerationStatesConsumerClient(entry.PK);
         }
 
         return consumerClient.data;

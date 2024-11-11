@@ -25,7 +25,7 @@ import {
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
 
-export const writeTokenStateClientEntry = async (
+export const writeTokenStatesApiClient = async (
   tokenStateEntry: TokenGenerationStatesApiClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
@@ -60,7 +60,7 @@ export const writeTokenStateClientEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const writeTokenStateEntry = async (
+export const writeTokenStatesConsumerClient = async (
   tokenStateEntry: TokenGenerationStatesConsumerClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
@@ -174,7 +174,7 @@ export const writeTokenStateEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const readAllTokenStateItems = async (
+export const readAllTokenStatesItems = async (
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesGenericClient[]> => {
   const readInput: ScanInput = {
@@ -205,7 +205,7 @@ export const readAllTokenStateItems = async (
   }
 };
 
-export const readAllPlatformStateItems = async (
+export const readAllPlatformStatesItems = async (
   dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesGenericEntry[]> => {
   const readInput: ScanInput = {
@@ -236,12 +236,12 @@ export const readAllPlatformStateItems = async (
   }
 };
 
-export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
-  eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+export const readTokenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
+  gsiPKEServiceIdDescriptorId: GSIPKEServiceIdDescriptorId,
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
-    eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+    gsiPKEServiceIdDescriptorId: GSIPKEServiceIdDescriptorId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<TokenGenerationStatesConsumerClient[]> => {
@@ -250,7 +250,7 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
       IndexName: "Descriptor",
       KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":gsiValue": { S: eserviceId_descriptorId },
+        ":gsiValue": { S: gsiPKEServiceIdDescriptorId },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
@@ -282,7 +282,7 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
         return [
           ...tokenStateEntries.data,
           ...(await runPaginatedQuery(
-            eserviceId_descriptorId,
+            gsiPKEServiceIdDescriptorId,
             dynamoDBClient,
             data.LastEvaluatedKey
           )),
@@ -292,18 +292,18 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
   };
 
   return await runPaginatedQuery(
-    eserviceId_descriptorId,
+    gsiPKEServiceIdDescriptorId,
     dynamoDBClient,
     undefined
   );
 };
 
-export const readTokenStateEntriesByConsumerIdEserviceId = async (
-  consumerId_eserviceId: GSIPKConsumerIdEServiceId,
+export const readTokenStatesEntriesByGSIPKConsumerIdEServiceId = async (
+  gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId,
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
-    consumerId_eserviceId: GSIPKConsumerIdEServiceId,
+    gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<TokenGenerationStatesConsumerClient[]> => {
@@ -312,7 +312,7 @@ export const readTokenStateEntriesByConsumerIdEserviceId = async (
       IndexName: "Agreement",
       KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":gsiValue": { S: consumerId_eserviceId },
+        ":gsiValue": { S: gsiPKConsumerIdEServiceId },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
@@ -344,7 +344,7 @@ export const readTokenStateEntriesByConsumerIdEserviceId = async (
         return [
           ...tokenStateEntries.data,
           ...(await runPaginatedQuery(
-            consumerId_eserviceId,
+            gsiPKConsumerIdEServiceId,
             dynamoDBClient,
             data.LastEvaluatedKey
           )),
@@ -354,13 +354,13 @@ export const readTokenStateEntriesByConsumerIdEserviceId = async (
   };
 
   return await runPaginatedQuery(
-    consumerId_eserviceId,
+    gsiPKConsumerIdEServiceId,
     dynamoDBClient,
     undefined
   );
 };
 
-export const writeCatalogEntry = async (
+export const writePlatformCatalogEntry = async (
   catalogEntry: PlatformStatesCatalogEntry,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {

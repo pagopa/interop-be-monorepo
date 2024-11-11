@@ -7,8 +7,8 @@ import {
   generateId,
   itemState,
   PurposeId,
-  TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesApiClient,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import * as jsonwebtoken from "jsonwebtoken";
 import {
@@ -30,9 +30,9 @@ import {
   algorithmNotFound,
   digestClaimNotFound,
   expNotFound,
-  inactiveAgreement,
-  inactiveEService,
-  inactivePurpose,
+  invalidEServiceState,
+  invalidAgreementState,
+  invalidPurposeState,
   invalidAudience,
   invalidClientAssertionFormat,
   invalidClientIdFormat,
@@ -56,7 +56,6 @@ import {
   clientAssertionInvalidClaims,
   invalidAudienceFormat,
   unexpectedClientAssertionSignatureVerificationError,
-  missingPlatformStates,
 } from "../src/errors.js";
 import { ClientAssertionValidationRequest } from "../src/types.js";
 import { getMockAccessTokenRequest, value64chars } from "./utils.js";
@@ -491,7 +490,7 @@ describe("validation test", async () => {
           exp: dateToSeconds(threeHourLater),
         },
       });
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
         publicKey: publicKeyEncodedPem,
       };
@@ -506,7 +505,7 @@ describe("validation test", async () => {
     it("unexpectedClientAssertionSignatureVerificationError - base64 key expected", async () => {
       const { jws, publicKeyEncodedPem } = await getMockClientAssertion();
 
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
         publicKey: Buffer.from(publicKeyEncodedPem, "base64").toString("utf8"),
       };
@@ -539,7 +538,7 @@ describe("validation test", async () => {
           exp: dateToSeconds(threeHourLater),
         },
       });
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
         publicKey: publicKeyEncodedPem,
       };
@@ -568,7 +567,7 @@ describe("validation test", async () => {
         },
       });
 
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
         publicKey: publicKeyEncodedPem,
       };
@@ -583,7 +582,7 @@ describe("validation test", async () => {
     });
     it("jsonWebTokenError", async () => {
       const { publicKeyEncodedPem } = generateKeySet();
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
         publicKey: publicKeyEncodedPem,
       };
@@ -600,7 +599,7 @@ describe("validation test", async () => {
 
     it("invalidSignature", async () => {
       const { publicKeyEncodedPem } = generateKeySet();
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
         publicKey: publicKeyEncodedPem,
       };
@@ -620,7 +619,7 @@ describe("validation test", async () => {
     });
     it("jsonWebTokenError - malformed jwt", async () => {
       const { publicKeyEncodedPem } = generateKeySet();
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
         publicKey: publicKeyEncodedPem,
       };
@@ -639,7 +638,7 @@ describe("validation test", async () => {
       const { jws: clientAssertion1, publicKeyEncodedPem } =
         await getMockClientAssertion();
 
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
         publicKey: publicKeyEncodedPem,
       };
@@ -676,7 +675,7 @@ describe("validation test", async () => {
           nbf: dateToSeconds(threeHoursLater),
         },
       });
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
         publicKey: publicKeyEncodedPem,
       };
@@ -698,7 +697,7 @@ describe("validation test", async () => {
 
   describe("validatePlatformState", async () => {
     it("success", async () => {
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
       };
       validatePlatformState(mockKey);
@@ -706,22 +705,24 @@ describe("validation test", async () => {
       expect(errors).toBeUndefined();
     });
 
-    it("inactiveAgreement", async () => {
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+    it("invalidAgreementState", async () => {
+      const agreementState = itemState.inactive;
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
-        agreementState: itemState.inactive,
+        agreementState,
       };
       validatePlatformState(mockKey);
       const { errors } = validatePlatformState(mockKey);
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(inactiveAgreement());
+      expect(errors![0]).toEqual(invalidAgreementState(agreementState));
     });
-    it("inactiveEservice", async () => {
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+    it("invalidEServiceState", async () => {
+      const descriptorState = itemState.inactive;
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
-        descriptorState: itemState.inactive,
+        descriptorState,
         descriptorAudience: ["test.interop.pagopa.it"],
         descriptorVoucherLifespan: 60,
       };
@@ -730,12 +731,13 @@ describe("validation test", async () => {
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(inactiveEService());
+      expect(errors![0]).toEqual(invalidEServiceState(descriptorState));
     });
-    it("inactivePurpose", async () => {
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+    it("invalidPurposeState", async () => {
+      const purposeState = itemState.inactive;
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
-        purposeState: itemState.inactive,
+        purposeState,
       };
 
       validatePlatformState(mockKey);
@@ -743,14 +745,17 @@ describe("validation test", async () => {
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(inactivePurpose());
+      expect(errors![0]).toEqual(invalidPurposeState(purposeState));
     });
-    it("inactiveAgreement and inactiveEservice and inactivePurpose", async () => {
-      const mockKey: TokenGenerationStatesClientPurposeEntry = {
+    it("invalidAgreementState and invalidEServiceState and invalidPurposeState", async () => {
+      const agreementState = itemState.inactive;
+      const descriptorState = itemState.inactive;
+      const purposeState = itemState.inactive;
+      const mockKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
-        agreementState: itemState.inactive,
-        descriptorState: itemState.inactive,
-        purposeState: itemState.inactive,
+        agreementState,
+        descriptorState,
+        purposeState,
       };
       validatePlatformState(mockKey);
       const { errors } = validatePlatformState(mockKey);
@@ -758,9 +763,9 @@ describe("validation test", async () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(3);
       expect(errors).toEqual([
-        inactiveAgreement(),
-        inactiveEService(),
-        inactivePurpose(),
+        invalidAgreementState(agreementState),
+        invalidEServiceState(descriptorState),
+        invalidPurposeState(purposeState),
       ]);
     });
   });
@@ -786,10 +791,11 @@ describe("validation test", async () => {
       expect(errors).toBeUndefined();
     });
 
-    it("inactiveEService (consumerKey with consumer client kind; invalid platform states)", async () => {
-      const mockConsumerKey: TokenGenerationStatesClientPurposeEntry = {
+    it("invalidEServiceState (consumerKey with consumer client kind; invalid platform states)", async () => {
+      const descriptorState = itemState.inactive;
+      const mockConsumerKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
-        descriptorState: itemState.inactive,
+        descriptorState,
       };
       const { data: mockClientAssertion } = verifyClientAssertion(
         (
@@ -808,11 +814,11 @@ describe("validation test", async () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(inactiveEService());
+      expect(errors![0]).toEqual(invalidEServiceState(descriptorState));
     });
 
     it("success (clientEntry with api client kind)", async () => {
-      const mockApiKey: TokenGenerationStatesClientEntry = {
+      const mockApiKey: TokenGenerationStatesApiClient = {
         ...getMockTokenStatesClientEntry(),
         clientKind: clientKindTokenStates.api,
       };
@@ -830,25 +836,34 @@ describe("validation test", async () => {
       expect(errors).toBeUndefined();
     });
 
-    it("missingPlatformStates (clientEntry with consumer client kind)", async () => {
-      const mockApiKey: TokenGenerationStatesClientEntry = {
-        ...getMockTokenStatesClientEntry(),
+    it("invalidPurposeState for consumer client", async () => {
+      const mockConsumerClient: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenStatesClientPurposeEntry(),
         clientKind: clientKindTokenStates.consumer,
+        agreementState: itemState.active,
+        descriptorState: itemState.active,
+        purposeState: undefined,
       };
       const { data: mockClientAssertion } = verifyClientAssertion(
-        (await getMockClientAssertion()).jws,
+        (
+          await getMockClientAssertion({
+            customClaims: { purposeId: mockConsumerClient.GSIPK_purposeId },
+          })
+        ).jws,
         undefined
       );
       if (!mockClientAssertion) {
         fail();
       }
       const { errors } = validateClientKindAndPlatformState(
-        mockApiKey,
+        mockConsumerClient,
         mockClientAssertion
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(missingPlatformStates());
+      expect(errors).toEqual([
+        invalidPurposeState(mockConsumerClient.purposeState),
+      ]);
     });
 
     it("purposeIdNotProvided for Client Kind Consumer", async () => {
@@ -874,9 +889,10 @@ describe("validation test", async () => {
     });
 
     it("purposeIdNotProvided and platformStateError", async () => {
-      const mockConsumerKey: TokenGenerationStatesClientPurposeEntry = {
+      const agreementState = itemState.inactive;
+      const mockConsumerKey: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(),
-        agreementState: itemState.inactive,
+        agreementState,
       };
       const { data: mockClientAssertion } = verifyClientAssertion(
         (
@@ -895,7 +911,10 @@ describe("validation test", async () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(2);
-      expect(errors).toEqual([inactiveAgreement(), purposeIdNotProvided()]);
+      expect(errors).toEqual([
+        invalidAgreementState(agreementState),
+        purposeIdNotProvided(),
+      ]);
     });
   });
 });

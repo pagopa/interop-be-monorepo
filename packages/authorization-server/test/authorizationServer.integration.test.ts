@@ -10,8 +10,8 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
   getMockTokenStatesClientEntry,
-  writeTokenStateEntry,
-  writeTokenStateClientEntry,
+  writeTokenStatesConsumerClient,
+  writeTokenStatesApiClient,
   getMockClientAssertion,
 } from "pagopa-interop-commons-test";
 import {
@@ -28,8 +28,8 @@ import {
   Purpose,
   PurposeId,
   purposeVersionState,
-  TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesApiClient,
+  TokenGenerationStatesConsumerClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { formatDateyyyyMMdd, genericLogger } from "pagopa-interop-commons";
@@ -40,12 +40,10 @@ import {
   clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
   fallbackAuditFailed,
-  invalidTokenClientKidPurposeEntry,
-  keyTypeMismatch,
+  incompleteTokenGenerationStatesConsumerClient,
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
-import { inactiveEService } from "../../client-assertion-validation/dist/errors.js";
 import {
   configTokenGenerationStates,
   dynamoDBClient,
@@ -126,7 +124,7 @@ describe("authorization server tests", () => {
     ).rejects.toThrowError(tokenGenerationStatesEntryNotFound(entryPK));
   });
 
-  it("should throw invalidTokenClientKidPurposeEntry", async () => {
+  it("should throw incompleteTokenGenerationStatesConsumerClient", async () => {
     const purposeId = generateId<PurposeId>();
     const clientId = generateId<ClientId>();
 
@@ -149,20 +147,20 @@ describe("authorization server tests", () => {
       }
     );
 
-    const tokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry = {
+    const tokenConsumerClient: TokenGenerationStatesConsumerClient = {
       ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
       agreementId: undefined,
     };
 
-    await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
+    await writeTokenStatesConsumerClient(tokenConsumerClient, dynamoDBClient);
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      invalidTokenClientKidPurposeEntry(tokenClientPurposeEntry.PK)
+      incompleteTokenGenerationStatesConsumerClient(tokenConsumerClient.PK)
     );
   });
 
-  it("should throw keyTypeMismatch - clientKid entry with consumer kind", async () => {
+  it("should throw incompleteTokenGenerationStatesConsumerClient - clientKid entry with consumer kind", async () => {
     const clientId = generateId<ClientId>();
     const { jws, clientAssertion } = await getMockClientAssertion({
       standardClaimsOverride: { sub: clientId },
@@ -179,55 +177,17 @@ describe("authorization server tests", () => {
       kid: clientAssertion.header.kid!,
     });
 
-    const tokenClientKidEntry: TokenGenerationStatesClientEntry = {
+    const tokenConsumerClient: TokenGenerationStatesConsumerClient = {
       ...getMockTokenStatesClientEntry(tokenClientKidPK),
       clientKind: clientKindTokenStates.consumer,
     };
 
-    await writeTokenStateClientEntry(tokenClientKidEntry, dynamoDBClient);
+    await writeTokenStatesConsumerClient(tokenConsumerClient, dynamoDBClient);
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      keyTypeMismatch(tokenClientKidEntry.PK, clientKindTokenStates.consumer)
-    );
-  });
-
-  it("should throw keyTypeMismatch - clientKidPurpose entry with api kind", async () => {
-    const purposeId = generateId<PurposeId>();
-    const clientId = generateId<ClientId>();
-
-    const { jws, clientAssertion } = await getMockClientAssertion({
-      standardClaimsOverride: { sub: clientId },
-      customClaims: { purposeId },
-    });
-
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
-    };
-
-    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
-      {
-        clientId,
-        kid: clientAssertion.header.kid!,
-        purposeId,
-      }
-    );
-
-    const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
-      {
-        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
-        clientKind: clientKindTokenStates.api,
-      };
-
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
-
-    expect(
-      tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(
-      keyTypeMismatch(tokenClientKidPurposeEntry.PK, clientKindTokenStates.api)
+      incompleteTokenGenerationStatesConsumerClient(tokenConsumerClient.PK)
     );
   });
 
@@ -257,10 +217,13 @@ describe("authorization server tests", () => {
       }
     );
 
-    const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
+    const tokenClientKidPurposeEntry: TokenGenerationStatesConsumerClient =
       getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK);
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStatesConsumerClient(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
+    );
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
@@ -293,19 +256,19 @@ describe("authorization server tests", () => {
       }
     );
 
-    const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
-      {
-        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
-        descriptorState: itemState.inactive,
-        publicKey: publicKeyEncodedPem,
-      };
+    const descriptorState = itemState.inactive;
+    const tokenConsumerClient: TokenGenerationStatesConsumerClient = {
+      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      descriptorState,
+      publicKey: publicKeyEncodedPem,
+    };
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStatesConsumerClient(tokenConsumerClient, dynamoDBClient);
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      platformStateValidationFailed([inactiveEService().detail])
+      platformStateValidationFailed([`E-Service state is: ${descriptorState}`])
     );
   });
 
@@ -333,13 +296,15 @@ describe("authorization server tests", () => {
       }
     );
 
-    const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
-      {
-        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
-        publicKey: publicKeyEncodedPem,
-      };
+    const tokenClientKidPurposeEntry: TokenGenerationStatesConsumerClient = {
+      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      publicKey: publicKeyEncodedPem,
+    };
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStatesConsumerClient(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
+    );
     // eslint-disable-next-line functional/no-let
     for (let i = 0; i < config.rateLimiterMaxRequests; i++) {
       const response = await tokenService.generateToken(
@@ -403,14 +368,16 @@ describe("authorization server tests", () => {
       }
     );
 
-    const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
-      {
-        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
-        clientKind: clientKindTokenStates.consumer,
-        publicKey: publicKeyEncodedPem,
-      };
+    const tokenClientKidPurposeEntry: TokenGenerationStatesConsumerClient = {
+      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      clientKind: clientKindTokenStates.consumer,
+      publicKey: publicKeyEncodedPem,
+    };
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStatesConsumerClient(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
+    );
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
@@ -446,13 +413,13 @@ describe("authorization server tests", () => {
       kid: clientAssertion.header.kid!,
     });
 
-    const tokenClientKidEntry: TokenGenerationStatesClientEntry = {
+    const tokenClientKidEntry: TokenGenerationStatesApiClient = {
       ...getMockTokenStatesClientEntry(tokenClientKidPK),
       clientKind: clientKindTokenStates.api,
       publicKey: publicKeyEncodedPem,
     };
 
-    await writeTokenStateClientEntry(tokenClientKidEntry, dynamoDBClient);
+    await writeTokenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
@@ -494,13 +461,15 @@ describe("authorization server tests", () => {
       }
     );
 
-    const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
-      {
-        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
-        publicKey: publicKeyEncodedPem,
-      };
+    const tokenClientKidPurposeEntry: TokenGenerationStatesConsumerClient = {
+      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      publicKey: publicKeyEncodedPem,
+    };
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStatesConsumerClient(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
+    );
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
@@ -533,13 +502,15 @@ describe("authorization server tests", () => {
       }
     );
 
-    const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
-      {
-        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
-        publicKey: publicKeyEncodedPem,
-      };
+    const tokenClientKidPurposeEntry: TokenGenerationStatesConsumerClient = {
+      ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+      publicKey: publicKeyEncodedPem,
+    };
 
-    await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
+    await writeTokenStatesConsumerClient(
+      tokenClientKidPurposeEntry,
+      dynamoDBClient
+    );
 
     const fileListBeforeAudit = await fileManager.listFiles(
       config.s3Bucket,
@@ -656,7 +627,7 @@ describe("authorization server tests", () => {
         purposeId: purpose.id,
       }
     );
-    const tokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry = {
+    const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
       ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
       consumerId: purpose.consumerId,
       GSIPK_purposeId: purpose.id,
@@ -669,7 +640,10 @@ describe("authorization server tests", () => {
       publicKey: publicKeyEncodedPem,
     };
 
-    await writeTokenStateEntry(tokenClientPurposeEntry, dynamoDBClient);
+    await writeTokenStatesConsumerClient(
+      tokenClientPurposeEntry,
+      dynamoDBClient
+    );
 
     const request = {
       ...(await getMockAccessTokenRequest()),
@@ -770,13 +744,13 @@ describe("authorization server tests", () => {
       kid: clientAssertion.header.kid!,
     });
 
-    const tokenClientKidEntry: TokenGenerationStatesClientEntry = {
+    const tokenClientKidEntry: TokenGenerationStatesApiClient = {
       ...getMockTokenStatesClientEntry(tokenClientKidK),
       clientKind: clientKindTokenStates.api,
       publicKey: publicKeyEncodedPem,
     };
 
-    await writeTokenStateClientEntry(tokenClientKidEntry, dynamoDBClient);
+    await writeTokenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
     const fileListBefore = await fileManager.listFiles(
       config.s3Bucket,

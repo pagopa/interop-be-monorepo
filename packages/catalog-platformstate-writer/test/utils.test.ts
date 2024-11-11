@@ -13,7 +13,7 @@ import {
 } from "vitest";
 import {
   PlatformStatesCatalogEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
   descriptorState,
   generateId,
   itemState,
@@ -29,9 +29,9 @@ import {
   getMockTokenStatesClientPurposeEntry,
   buildDynamoDBTables,
   deleteDynamoDBTables,
-  readTokenStateEntriesByEserviceIdAndDescriptorId,
-  readAllTokenStateItems,
-  writeTokenStateEntry,
+  readTokenStatesEntriesByGSIPKEServiceIdDescriptorId,
+  readAllTokenStatesItems,
+  writeTokenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import {
   deleteCatalogEntry,
@@ -261,15 +261,15 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStateEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
         descriptorState: itemState.inactive,
         descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
       };
-      await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+      await writeTokenStatesConsumerClient(tokenStateEntry, dynamoDBClient);
       expect(
-        writeTokenStateEntry(tokenStateEntry, dynamoDBClient)
+        writeTokenStatesConsumerClient(tokenStateEntry, dynamoDBClient)
       ).rejects.toThrowError(ConditionalCheckFailedException);
     });
 
@@ -284,20 +284,20 @@ describe("utils tests", async () => {
         descriptorId: generateId(),
       });
       const previousTokenStateEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+        await readTokenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
       expect(previousTokenStateEntries).toEqual([]);
-      const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStateEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
         descriptorState: itemState.inactive,
         descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
       };
-      await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+      await writeTokenStatesConsumerClient(tokenStateEntry, dynamoDBClient);
       const retrievedTokenStateEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+        await readTokenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
@@ -312,7 +312,7 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const result = await readTokenStateEntriesByEserviceIdAndDescriptorId(
+      const result = await readTokenStatesEntriesByGSIPKEServiceIdDescriptorId(
         eserviceId_descriptorId,
         dynamoDBClient
       );
@@ -329,29 +329,29 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const tokenStateEntry1: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStateEntry1: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
         descriptorState: itemState.inactive,
         descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
       };
-      await writeTokenStateEntry(tokenStateEntry1, dynamoDBClient);
+      await writeTokenStatesConsumerClient(tokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
         kid: `kid ${Math.random()}`,
         purposeId: generateId(),
       });
-      const tokenStateEntry2: TokenGenerationStatesClientPurposeEntry = {
+      const tokenStateEntry2: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
         descriptorState: itemState.inactive,
         descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
       };
-      await writeTokenStateEntry(tokenStateEntry2, dynamoDBClient);
+      await writeTokenStatesConsumerClient(tokenStateEntry2, dynamoDBClient);
 
       const tokenEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+        await readTokenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
@@ -369,7 +369,7 @@ describe("utils tests", async () => {
 
       const tokenEntriesLength = 10;
 
-      const writtenEntries: TokenGenerationStatesClientPurposeEntry[] = [];
+      const writtenEntries: TokenGenerationStatesConsumerClient[] = [];
       // eslint-disable-next-line functional/no-let
       for (let i = 0; i < tokenEntriesLength; i++) {
         const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
@@ -377,20 +377,20 @@ describe("utils tests", async () => {
           kid: `kid ${Math.random()}`,
           purposeId: generateId(),
         });
-        const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+        const tokenStateEntry: TokenGenerationStatesConsumerClient = {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
           descriptorState: itemState.inactive,
           descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           publicKey: crypto.randomBytes(100000).toString("hex"),
         };
-        await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+        await writeTokenStatesConsumerClient(tokenStateEntry, dynamoDBClient);
         // eslint-disable-next-line functional/immutable-data
         writtenEntries.push(tokenStateEntry);
       }
       vi.spyOn(dynamoDBClient, "send");
       const tokenEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+        await readTokenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
@@ -407,7 +407,7 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const tokenStateEntries = await readAllTokenStateItems(dynamoDBClient);
+      const tokenStateEntries = await readAllTokenStatesItems(dynamoDBClient);
       expect(tokenStateEntries).toEqual([]);
       expect(
         updateDescriptorStateInTokenGenerationStatesTable(
@@ -416,7 +416,7 @@ describe("utils tests", async () => {
           dynamoDBClient
         )
       ).resolves.not.toThrowError();
-      const tokenStateEntriesAfterUpdate = await readAllTokenStateItems(
+      const tokenStateEntriesAfterUpdate = await readAllTokenStatesItems(
         dynamoDBClient
       );
       expect(tokenStateEntriesAfterUpdate).toEqual([]);
@@ -432,50 +432,52 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
-          descriptorState: itemState.inactive,
-          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        };
-      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+      const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+        descriptorState: itemState.inactive,
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+      };
+      await writeTokenStatesConsumerClient(
+        previousTokenStateEntry1,
+        dynamoDBClient
+      );
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
         kid: `kid ${Math.random()}`,
         purposeId: generateId(),
       });
-      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
-          descriptorState: itemState.inactive,
-          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        };
-      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+      const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+        descriptorState: itemState.inactive,
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+      };
+      await writeTokenStatesConsumerClient(
+        previousTokenStateEntry2,
+        dynamoDBClient
+      );
       await updateDescriptorStateInTokenGenerationStatesTable(
         eserviceId_descriptorId,
         itemState.active,
         dynamoDBClient
       );
       const retrievedTokenStateEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+        await readTokenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...previousTokenStateEntry1,
-          descriptorState: itemState.active,
-          updatedAt: new Date().toISOString(),
-        };
-      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...previousTokenStateEntry2,
-          descriptorState: itemState.active,
-          updatedAt: new Date().toISOString(),
-        };
+      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
+        ...previousTokenStateEntry1,
+        descriptorState: itemState.active,
+        updatedAt: new Date().toISOString(),
+      };
+      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
+        ...previousTokenStateEntry2,
+        descriptorState: itemState.active,
+        updatedAt: new Date().toISOString(),
+      };
 
       expect(retrievedTokenStateEntries).toHaveLength(2);
       expect(retrievedTokenStateEntries).toEqual(
