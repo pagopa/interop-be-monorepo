@@ -220,10 +220,10 @@ describe("upload Document", () => {
       )
     ).rejects.toThrowError(interfaceAlreadyExists(descriptor.id));
   });
-  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor", async () => {
+  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
     const document: Document = {
       ...getMockDocument(),
-      prettyName: "test",
+      prettyName: "TEST",
     };
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -242,7 +242,7 @@ describe("upload Document", () => {
         descriptor.id,
         {
           ...buildDocumentSeed(),
-          prettyName: document.prettyName,
+          prettyName: document.prettyName.toLowerCase(),
         },
         {
           authData: getMockAuthData(eservice.producerId),
@@ -252,7 +252,7 @@ describe("upload Document", () => {
         }
       )
     ).rejects.toThrowError(
-      prettyNameDuplicate(document.prettyName, descriptor.id)
+      prettyNameDuplicate(document.prettyName.toLowerCase(), descriptor.id)
     );
   });
 });
