@@ -45,6 +45,7 @@ export function toOutboundEventV2(
       { type: "TenantOnboarded" },
       { type: "TenantOnboardDetailsUpdated" },
       { type: "MaintenanceTenantPromotedToCertifier" },
+      { type: "MaintenanceTenantUpdated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -82,19 +83,6 @@ export function toOutboundEventV2(
       })
     )
     .with({ type: "MaintenanceTenantDeleted" }, (msg) => ({
-      event_version: msg.event_version,
-      type: msg.type,
-      version: msg.version,
-      data: {
-        tenantId: msg.data.tenantId,
-        tenant:
-          msg.data.tenant &&
-          (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
-      },
-      stream_id: msg.stream_id,
-      timestamp: new Date(),
-    }))
-    .with({ type: "MaintenanceTenantUpdated" }, (msg) => ({
       event_version: msg.event_version,
       type: msg.type,
       version: msg.version,

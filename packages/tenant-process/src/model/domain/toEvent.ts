@@ -185,7 +185,6 @@ export const toCreateEventMaintenanceTenantUpdated = (
     event_version: 2,
     type: "MaintenanceTenantUpdated",
     data: {
-      tenantId: tenant.id,
       tenant: toTenantV2(tenant),
     },
   },
