@@ -12068,7 +12068,7 @@ paths:
               format: uuid
           description: "The delegator ids to filter by"
         - in: query
-          name: delegatedIds
+          name: delegateIds
           schema:
             type: array
             items: 
