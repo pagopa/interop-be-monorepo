@@ -87,6 +87,7 @@ import {
   assertRequesterIPAOrigin,
   assertDelegatedProducerFeatureNotAssigned,
   getTenantKind,
+  assertDelegatedProducerFeatureAssigned,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -1648,7 +1649,7 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      assertDelegatedProducerFeatureNotAssigned(requesterTenant.data);
+      assertDelegatedProducerFeatureAssigned(requesterTenant.data);
 
       const updatedTenant: Tenant = {
         ...requesterTenant.data,
