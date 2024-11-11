@@ -120,4 +120,5 @@ export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
   createdAt: dateToBigInt(eservice.createdAt),
   mode: toEServiceModeV2(eservice.mode),
   riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV2),
+  isDelegable: eservice.isDelegable,
 });
