@@ -11,6 +11,7 @@ import {
   TenantRevoker,
   badRequestError,
   CompactTenant,
+  AgreementAttribute,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -186,4 +187,42 @@ export const fromApiCompactTenant = (
 ): CompactTenant => ({
   id: unsafeBrandId(input.id),
   attributes: input.attributes.map(fromApiTenantAttribute),
+});
+
+const apiAttributeToAgreementAttribute = (
+  apiAttribute:
+    | agreementApi.VerifiedAttribute
+    | agreementApi.DeclaredAttribute
+    | agreementApi.CertifiedAttribute
+): AgreementAttribute => ({
+  ...apiAttribute,
+  id: unsafeBrandId(apiAttribute.id),
+});
+
+export const apiAgreementToAgreement = (
+  apiAgreement: agreementApi.Agreement
+): Agreement => ({
+  id: unsafeBrandId(apiAgreement.id),
+  createdAt: new Date(apiAgreement.createdAt),
+  eserviceId: unsafeBrandId(apiAgreement.eserviceId),
+  descriptorId: unsafeBrandId(apiAgreement.descriptorId),
+  producerId: unsafeBrandId(apiAgreement.producerId),
+  consumerId: unsafeBrandId(apiAgreement.consumerId),
+  state: apiAgreementStateToAgreementState(apiAgreement.state),
+  verifiedAttributes: apiAgreement.verifiedAttributes.map((attr) =>
+    apiAttributeToAgreementAttribute(attr)
+  ),
+  certifiedAttributes: apiAgreement.certifiedAttributes.map((attr) =>
+    apiAttributeToAgreementAttribute(attr)
+  ),
+  declaredAttributes: apiAgreement.declaredAttributes.map((attr) =>
+    apiAttributeToAgreementAttribute(attr)
+  ),
+  consumerDocuments: apiAgreement.consumerDocuments.map((doc) =>
+    apiAgreementDocumentToAgreementDocument(doc)
+  ),
+  suspendedByConsumer: apiAgreement.suspendedByConsumer,
+  suspendedByProducer: apiAgreement.suspendedByProducer,
+  suspendedByPlatform: apiAgreement.suspendedByPlatform,
+  stamps: {},
 });

@@ -13,15 +13,16 @@ import {
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
 import {
+  Agreement,
   AgreementAddedV2,
   AgreementDocument,
   AgreementId,
-  AgreementV2,
   DescriptorId,
   EServiceId,
   TenantId,
   agreementState,
   generateId,
+  toAgreementStampsV2,
   toAgreementV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -41,6 +42,7 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
+import { agreementToApiAgreement } from "../src/model/domain/apiConverter.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -51,6 +53,7 @@ import {
   readAgreementEventByVersion,
   uploadDocument,
 } from "./utils.js";
+import { mockAgreementRouterRequest } from "./supertestSetup.js";
 
 describe("clone agreement", () => {
   const TEST_EXECUTION_DATE = new Date();
@@ -132,15 +135,11 @@ describe("clone agreement", () => {
     };
     await addOneAgreement(anotherNonConflictingAgreement);
 
-    const returnedAgreement = await agreementService.cloneAgreement(
-      agreementToBeCloned.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
-    );
+    const returnedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/clone",
+      pathParams: { agreementId: agreementToBeCloned.id },
+      authData,
+    });
 
     const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
@@ -156,14 +155,13 @@ describe("clone agreement", () => {
       stream_id: newAgreementId,
     });
 
-    const agreementClonedEventPayload = decodeProtobufPayload({
+    const agreementClonedAgreement = decodeProtobufPayload({
       messageType: AgreementAddedV2,
       payload: agreementClonedEvent.data,
-    });
+    }).agreement;
 
-    const agreementClonedAgreement = agreementClonedEventPayload.agreement;
-
-    const expectedAgreementCloned: AgreementV2 = toAgreementV2({
+    const expectedAgreementCloned: Agreement = {
+      ...agreementToBeCloned,
       id: newAgreementId,
       eserviceId: agreementToBeCloned.eserviceId,
       descriptorId: agreementToBeCloned.descriptorId,
@@ -185,18 +183,17 @@ describe("clone agreement", () => {
         })
       ),
       stamps: {},
-    });
-    delete expectedAgreementCloned.suspendedAt;
-    delete expectedAgreementCloned.updatedAt;
-    delete expectedAgreementCloned.contract;
-    expectedAgreementCloned.stamps = {};
+    };
 
-    expect(agreementClonedEventPayload).toMatchObject({
-      agreement: expectedAgreementCloned,
-    });
-    expect(agreementClonedEventPayload).toEqual({
-      agreement: toAgreementV2(returnedAgreement),
-    });
+    const stamps = toAgreementStampsV2(expectedAgreementCloned.stamps);
+
+    expect({ ...agreementClonedAgreement, stamps }).toMatchObject(
+      toAgreementV2(expectedAgreementCloned)
+    );
+
+    expect(agreementToApiAgreement(expectedAgreementCloned)).toEqual(
+      returnedAgreement
+    );
 
     for (const agreementDoc of expectedAgreementCloned.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;

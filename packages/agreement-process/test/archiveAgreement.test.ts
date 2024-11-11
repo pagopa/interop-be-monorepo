@@ -16,6 +16,7 @@ import {
   agreementState,
   generateId,
   toAgreementV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { agreementArchivableStates } from "../src/model/domain/agreement-validators.js";
@@ -24,11 +25,13 @@ import {
   agreementNotInExpectedState,
   operationNotAllowed,
 } from "../src/model/domain/errors.js";
+import { agreementToApiAgreement } from "../src/model/domain/apiConverter.js";
 import {
   addOneAgreement,
   agreementService,
   readLastAgreementEvent,
 } from "./utils.js";
+import { mockAgreementRouterRequest } from "./supertestSetup.js";
 
 describe("archive agreement", () => {
   it("should succeed when the requester is the consumer and the agreement is in an archivable state", async () => {
@@ -46,15 +49,11 @@ describe("archive agreement", () => {
 
     await addOneAgreement(agreement);
 
-    const returnedAgreement = await agreementService.archiveAgreement(
-      agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
-    );
+    const returnedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/archive",
+      pathParams: { agreementId: agreement.id },
+      authData,
+    });
     const agreementId = returnedAgreement.id;
 
     expect(agreementId).toBeDefined();
@@ -62,7 +61,9 @@ describe("archive agreement", () => {
       fail("Unhandled error: returned agreementId is undefined");
     }
 
-    const actualAgreementData = await readLastAgreementEvent(agreementId);
+    const actualAgreementData = await readLastAgreementEvent(
+      unsafeBrandId(agreementId)
+    );
 
     if (!actualAgreementData) {
       fail("Creation fails: agreement not found in event-store");
@@ -99,7 +100,9 @@ describe("archive agreement", () => {
       toAgreementV2(expectedAgreemenentArchived)
     );
 
-    expect(actualAgreement).toMatchObject(toAgreementV2(returnedAgreement));
+    expect(agreementToApiAgreement(expectedAgreemenentArchived)).toMatchObject(
+      returnedAgreement
+    );
 
     vi.useRealTimers();
   });
