@@ -7,7 +7,7 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  DelegationApprovedV2,
+  ProducerDelegationApprovedV2,
   DelegationContractId,
   DelegationId,
   EService,
@@ -84,7 +84,7 @@ describe("approve delegation", () => {
     expect(event.version).toBe("1");
 
     const { delegation: actualDelegation } = decodeProtobufPayload({
-      messageType: DelegationApprovedV2,
+      messageType: ProducerDelegationApprovedV2,
       payload: event.data,
     });
 

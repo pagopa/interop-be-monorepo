@@ -24,10 +24,10 @@ import {
 } from "pagopa-interop-models";
 import { eserviceNotFound, tenantNotFound } from "../model/domain/errors.js";
 import {
-  toCreateEventDelegationSubmitted,
-  toCreateEventDelegationRevoked,
-  toCreateEventDelegationApproved,
-  toCreateEventDelegationRejected,
+  toCreateEventProducerDelegationSubmitted,
+  toCreateEventProducerDelegationRevoked,
+  toCreateEventProducerDelegationApproved,
+  toCreateEventProducerDelegationRejected,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
@@ -115,7 +115,7 @@ export function delegationProducerServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventDelegationSubmitted(delegation, correlationId)
+        toCreateEventProducerDelegationSubmitted(delegation, correlationId)
       );
 
       return delegation;
@@ -170,7 +170,7 @@ export function delegationProducerServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventDelegationRevoked(
+        toCreateEventProducerDelegationRevoked(
           revokedDelegation,
           currentDelegation.metadata.version,
           correlationId
@@ -215,7 +215,7 @@ export function delegationProducerServiceBuilder(
       const now = new Date();
 
       await repository.createEvent(
-        toCreateEventDelegationApproved(
+        toCreateEventProducerDelegationApproved(
           {
             data: {
               ...delegation,
@@ -251,7 +251,7 @@ export function delegationProducerServiceBuilder(
       assertIsState(delegationState.waitingForApproval, delegation);
 
       await repository.createEvent(
-        toCreateEventDelegationRejected(
+        toCreateEventProducerDelegationRejected(
           {
             data: {
               ...delegation,
