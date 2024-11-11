@@ -452,7 +452,7 @@ const tenantsRouter = (
             {
               tenantId: unsafeBrandId(req.params.tenantId),
               version: req.body.currentVersion,
-              tenant: req.body.tenant,
+              tenantUpdate: req.body.tenant,
               correlationId: ctx.correlationId,
             },
             ctx.logger

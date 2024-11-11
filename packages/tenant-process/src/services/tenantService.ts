@@ -1059,11 +1059,20 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
+      const convertedTenantUpdate = {
+        ...tenantUpdate,
+        mails: tenantUpdate.mails.map((mail) => ({
+          ...mail,
+          createdAt: new Date(mail.createdAt),
+        })),
+        onboardedAt: new Date(tenantUpdate.onboardedAt),
+      };
+
       const updatedTenant: Tenant = {
         ...tenant.data,
-        ...tenantUpdate,
-        updatedAt: new Date()
-      }
+        ...convertedTenantUpdate,
+        updatedAt: new Date(),
+      };
 
       await repository.createEvent(
         toCreateEventMaintenanceTenantUpdated(
