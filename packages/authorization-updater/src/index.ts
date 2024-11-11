@@ -103,6 +103,18 @@ export async function sendCatalogAuthUpdate(
         );
       }
     )
+    .with({ type: "EServiceDescriptorQuotasUpdated" }, async (msg) => {
+      const data = getDescriptorFromEvent(msg, decodedMessage.type);
+      await authService.updateEServiceState(
+        descriptorStateToClientState(data.descriptor.state),
+        data.descriptor.id,
+        data.eserviceId,
+        data.descriptor.audience,
+        data.descriptor.voucherLifespan,
+        logger,
+        correlationId
+      );
+    })
     .with(
       {
         type: P.union(
@@ -122,7 +134,6 @@ export async function sendCatalogAuthUpdate(
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
           "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptorQuotasUpdated",
           "EServiceDescriptionUpdated"
         ),
       },

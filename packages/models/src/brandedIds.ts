@@ -101,16 +101,20 @@ export type GSIPKConsumerIdEServiceId = z.infer<
   typeof GSIPKConsumerIdEServiceId
 >;
 
+export const clientKidPurposePrefix = "CLIENTKIDPURPOSE#";
 export const TokenGenerationStatesClientKidPurposePK = z
   .string()
-  .brand(`CLIENTKIDPURPOSE#clientId#kid#purposeId`);
+  .refine((pk) => pk.startsWith(clientKidPurposePrefix))
+  .brand(`${clientKidPurposePrefix}clientId#kid#purposeId`);
 export type TokenGenerationStatesClientKidPurposePK = z.infer<
   typeof TokenGenerationStatesClientKidPurposePK
 >;
 
+export const clientKidPrefix = "CLIENTKID#";
 export const TokenGenerationStatesClientKidPK = z
   .string()
-  .brand(`CLIENTKID#clientId#kid`);
+  .refine((pk) => pk.startsWith(clientKidPrefix))
+  .brand(`${clientKidPrefix}clientId#kid`);
 export type TokenGenerationStatesClientKidPK = z.infer<
   typeof TokenGenerationStatesClientKidPK
 >;
@@ -124,6 +128,9 @@ export type GSIPKEServiceIdDescriptorId = z.infer<
 
 export const GSIPKClientIdPurposeId = z.string().brand(`clientId#purposeId`);
 export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
+
+export const GSIPKKid = z.string().brand("kid");
+export type GSIPKKid = z.infer<typeof GSIPKKid>;
 
 type IDS =
   | CorrelationId
@@ -153,7 +160,8 @@ type IDS =
   | TokenGenerationStatesClientKidPurposePK
   | TokenGenerationStatesClientKidPK
   | GSIPKEServiceIdDescriptorId
-  | GSIPKClientIdPurposeId;
+  | GSIPKClientIdPurposeId
+  | GSIPKKid;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result
