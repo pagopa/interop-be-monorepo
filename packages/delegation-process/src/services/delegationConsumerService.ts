@@ -16,10 +16,7 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  toCreateEventConsumerDelegationSubmitted,
-  toCreateEventProducerDelegationSubmitted,
-} from "../model/domain/toEvent.js";
+import { toCreateEventConsumerDelegationSubmitted } from "../model/domain/toEvent.js";
 import {
   retrieveTenantById,
   retrieveEserviceById,

@@ -8,21 +8,28 @@ import {
   authorizationMiddleware,
   userRoles,
   fromAppContext,
+  DB,
 } from "pagopa-interop-commons";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { delegationToApiDelegation } from "../model/domain/apiConverter.js";
 import { delegationConsumerServiceBuilder } from "../services/delegationConsumerService.js";
+import { ReadModelService } from "../services/readModelService.js";
 
 const { ADMIN_ROLE } = userRoles;
 
-const delegationConsumerService = delegationConsumerServiceBuilder();
-
 const delegationConsumerRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  eventStore: DB,
+  readModelService: ReadModelService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const delegationConsumerRouter = ctx.router(delegationApi.consumerApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
+  const delegationConsumerService = delegationConsumerServiceBuilder(
+    eventStore,
+    readModelService
+  );
 
   delegationConsumerRouter.post(
     "/consumer/delegations",
@@ -31,10 +38,11 @@ const delegationConsumerRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const delegation = await delegationConsumerService
-          .createConsumerDelegation
-          // TODO
-          ();
+        const delegation =
+          await delegationConsumerService.createConsumerDelegation(
+            req.body,
+            ctx
+          );
         return res
           .status(200)
           .json(
