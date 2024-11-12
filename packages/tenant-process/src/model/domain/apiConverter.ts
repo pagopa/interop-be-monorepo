@@ -45,6 +45,11 @@ export function toApiTenantFeature(
         availabilityTimestamp: feature.availabilityTimestamp.toJSON(),
       },
     }))
+    .with({ type: "DelegatedConsumer" }, (feature) => ({
+      delegatedConsumer: {
+        availabilityTimestamp: feature.availabilityTimestamp.toJSON(),
+      },
+    }))
     .exhaustive();
 }
 

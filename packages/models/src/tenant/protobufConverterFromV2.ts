@@ -74,6 +74,12 @@ export const fromTenantFeatureV2 = (input: TenantFeatureV2): TenantFeature =>
         delegatedProducer.availabilityTimestamp
       ),
     }))
+    .with({ oneofKind: "delegatedConsumer" }, ({ delegatedConsumer }) => ({
+      type: "DelegatedConsumer",
+      availabilityTimestamp: bigIntToDate(
+        delegatedConsumer.availabilityTimestamp
+      ),
+    }))
     .with({ oneofKind: undefined }, () => {
       throw new Error("Unable to deserialize TenantFeature");
     })
