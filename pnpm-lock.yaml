@@ -1491,6 +1491,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pdf-lib:
+        specifier: 1.17.1
+        version: 1.17.1
       pg-promise:
         specifier: 11.8.0
         version: 11.8.0

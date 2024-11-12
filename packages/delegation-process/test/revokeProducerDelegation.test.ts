@@ -5,6 +5,7 @@ import {
   getMockEService,
   getMockTenant,
   getRandomAuthData,
+  flushPDFMetadata,
 } from "pagopa-interop-commons-test";
 import {
   Delegation,
@@ -36,7 +37,6 @@ import {
   addOneTenant,
   delegationProducerService,
   fileManager,
-  flushPDFMetadata,
   pdfGenerator,
   readDelegationEventByVersion,
 } from "./utils.js";
