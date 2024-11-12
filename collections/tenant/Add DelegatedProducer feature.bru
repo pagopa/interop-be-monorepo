@@ -1,11 +1,11 @@
 meta {
-  name: Revoke a delegation
+  name: Add DelegatedProducer feature
   type: http
-  seq: 6
+  seq: 26
 }
 
-delete {
-  url: {{host-delegation}}/producer/delegations/:delegationId
+post {
+  url: {{host-tenant}}/tenants/delegatedProducer
   body: none
   auth: none
 }

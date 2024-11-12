@@ -1,5 +1,5 @@
 meta {
-  name: List producer delegations
+  name: List delegations
   type: http
   seq: 1
 }
@@ -15,12 +15,16 @@ params:query {
   limit: 50
   ~kind: DELEGATED_PRODUCER
   ~delegationStates: WAITING_FOR_APPROVAL
-  ~delegatorIds:
-  ~delegateIds:
-  ~eserviceIds:
+  ~delegatorIds: 
+  ~delegateIds: 
+  ~eserviceIds: 
 }
 
 headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  delegationId: res.body.results.at(-1).id
 }
