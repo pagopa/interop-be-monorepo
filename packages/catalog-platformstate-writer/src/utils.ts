@@ -293,10 +293,6 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
         );
       }
 
-      console.log(
-        "these entries will be updated: ",
-        tokenStateEntries.data.map((item) => item.PK)
-      );
       await updateDescriptorInfoInTokenGenerationStatesEntries({
         descriptorState,
         descriptorVoucherLifespan,
