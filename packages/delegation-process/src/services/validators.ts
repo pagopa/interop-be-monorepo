@@ -3,6 +3,7 @@ import {
   DelegationKind,
   DelegationState,
   delegationState,
+  EService,
   EServiceId,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
@@ -14,12 +15,10 @@ import {
   delegatorAndDelegateSameIdError,
   delegatorNotAllowToRevoke,
   differentEServiceProducer,
-  eserviceNotFound,
   incorrectState,
   invalidExternalOriginError,
   operationRestrictedToDelegate,
   tenantNotAllowedToDelegation,
-  tenantNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -34,17 +33,11 @@ export const activeDelegationStates: DelegationState[] = [
   delegationState.active,
 ];
 
-export const assertEserviceExists = async (
+export const assertDelegatorIsProducer = (
   delegatorId: TenantId,
-  eserviceId: EServiceId,
-  readModelService: ReadModelService
-): Promise<void> => {
-  const eservice = await readModelService.getEServiceById(eserviceId);
-  if (!eservice) {
-    throw eserviceNotFound(eserviceId);
-  }
-
-  if (eservice.data.producerId !== delegatorId) {
+  eservice: EService
+): void => {
+  if (eservice.producerId !== delegatorId) {
     throw differentEServiceProducer(delegatorId);
   }
 };
@@ -75,16 +68,6 @@ export const assertTenantAllowedToReceiveProducerDelegation = (
 
   if (!delegationFeature) {
     throw tenantNotAllowedToDelegation(tenant.id);
-  }
-};
-
-export const assertTenantExists = async (
-  tenantId: TenantId,
-  readModelService: ReadModelService
-): Promise<void> => {
-  const tenant = await readModelService.getTenantById(tenantId);
-  if (!tenant) {
-    throw tenantNotFound(tenantId);
   }
 };
 

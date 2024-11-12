@@ -3,11 +3,17 @@ import {
   DelegationId,
   DelegationKind,
   DelegationState,
+  EService,
   EServiceId,
+  Tenant,
   TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { delegationNotFound } from "../model/domain/errors.js";
+import {
+  delegationNotFound,
+  eserviceNotFound,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
 export const retrieveDelegationById = async (
@@ -19,6 +25,28 @@ export const retrieveDelegationById = async (
     throw delegationNotFound(delegationId);
   }
   return delegation;
+};
+
+export const retrieveTenantById = async (
+  readModelService: ReadModelService,
+  tenantId: TenantId
+): Promise<Tenant> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (!tenant) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
+};
+
+export const retrieveEserviceById = async (
+  readModelService: ReadModelService,
+  id: EServiceId
+): Promise<EService> => {
+  const eservice = await readModelService.getEServiceById(id);
+  if (!eservice) {
+    throw eserviceNotFound(id);
+  }
+  return eservice.data;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
