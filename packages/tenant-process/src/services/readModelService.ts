@@ -21,6 +21,7 @@ import {
   TenantReadModel,
   genericInternalError,
   TenantFeatureType,
+  AgreementId,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
@@ -406,6 +407,24 @@ export function readModelServiceBuilder(
         );
       }
       return result.data;
+    },
+
+    async getAgreementById(
+      agreementId: AgreementId
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne({ "data.id": agreementId });
+      if (data) {
+        const result = Agreement.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse agreement item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+      return undefined;
     },
 
     async getCertifiedAttributes({

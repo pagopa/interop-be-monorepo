@@ -33,6 +33,12 @@ import {
   CorrelationId,
   tenantKind,
   TenantFeatureType,
+  AgreementId,
+  Agreement,
+  delegationKind,
+  Delegation,
+  DelegationKind,
+  AgreementState,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -73,6 +79,7 @@ import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
   verifiedAttributeSelfRevocationNotAllowed,
+  agreementNotFound,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -152,6 +159,27 @@ async function retrieveCertifiedAttribute({
     throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
   }
   return attribute;
+}
+
+async function retrieveAgreement(
+  agreementId: AgreementId,
+  readModelService: ReadModelService
+): Promise<Agreement> {
+  const agreement = await readModelService.getAgreementById(agreementId);
+  if (!agreement) {
+    throw agreementNotFound(agreementId);
+  }
+  return agreement;
+}
+
+async function retrieveActiveDelegation(
+  _a: {
+    agreementId: AgreementId;
+    kind: DelegationKind;
+  },
+  _readModelService: ReadModelService
+): Promise<Delegation | undefined> {
+  throw new Error("Function not implemented.");
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -689,21 +717,39 @@ export function tenantServiceBuilder(
       logger: Logger
     ): Promise<Tenant> {
       logger.info(
-        `Verifying attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
+        `Verifying attribute ${tenantAttributeSeed.id} to tenant ${tenantId} for agreement ${tenantAttributeSeed.agreementId}`
       );
 
       const attributeId = unsafeBrandId<AttributeId>(tenantAttributeSeed.id);
+      const agreementId = unsafeBrandId<AgreementId>(
+        tenantAttributeSeed.agreementId
+      );
 
-      const allowedStatuses = [
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+      // TODO check if the agreement is in allowed states
+      const allowedStatuses: AgreementState[] = [
         agreementState.pending,
         agreementState.active,
         agreementState.suspended,
       ];
+      if (!allowedStatuses.includes(agreement.state)) {
+        throw attributeVerificationNotAllowed(tenantId, attributeId);
+      }
+
+      const delegation = await retrieveActiveDelegation(
+        { agreementId, kind: delegationKind.delegatedProducer },
+        readModelService
+      );
+
+      const delegateId = delegation?.delegateId;
+      const delegatorId = delegation?.delegatorId;
+
       await assertVerifiedAttributeOperationAllowed({
         producerId: organizationId,
+        delegateId,
         consumerId: tenantId,
         attributeId,
-        agreementStates: allowedStatuses,
+        agreement,
         readModelService,
         error: attributeVerificationNotAllowed(tenantId, attributeId),
       });

@@ -1343,11 +1343,15 @@ components:
         id:
           type: string
           format: uuid
+        agreementId:
+          type: string
+          format: uuid
         expirationDate:
           type: string
           format: date-time
       required:
         - id
+        - agreementId
     UpdateVerifiedTenantAttributeSeed:
       type: object
       additionalProperties: false

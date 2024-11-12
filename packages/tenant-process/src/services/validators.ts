@@ -20,6 +20,7 @@ import {
   tenantAttributeType,
   tenantKind,
   SCP,
+  Agreement,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -48,55 +49,46 @@ export function assertVerifiedAttributeExistsInTenant(
 
 export async function assertVerifiedAttributeOperationAllowed({
   producerId,
+  delegateId,
   consumerId,
   attributeId,
-  agreementStates,
+  agreement,
   readModelService,
   error,
 }: {
   producerId: TenantId;
+  delegateId: TenantId | undefined;
   consumerId: TenantId;
   attributeId: AttributeId;
-  agreementStates: AgreementState[];
+  agreement: Agreement;
   readModelService: ReadModelService;
   error: Error;
 }): Promise<void> {
-  if (producerId === consumerId) {
+  if ([producerId, delegateId].includes(consumerId)) {
     throw verifiedAttributeSelfVerificationNotAllowed();
   }
-  // Get agreements
-  const agreements = await readModelService.getAgreements({
-    consumerId,
-    producerId,
-    states: agreementStates,
-  });
+  const descriptorId = agreement.descriptorId;
 
-  // Extract descriptor IDs
-  const descriptorIds = agreements.map((agreement) => agreement.descriptorId);
+  const eservice = await readModelService.getEServiceById(agreement.eserviceId);
 
-  // Get eServices concurrently
-  const eServices = (
-    await Promise.all(
-      agreements.map((agreement) =>
-        readModelService.getEServiceById(agreement.eserviceId)
-      )
-    )
-  ).filter((eService): eService is EService => eService !== undefined);
+  if (!eservice) {
+    throw new Error("eService not found"); // TODO: handle eservice not found
+  }
 
-  // Find verified attribute IDs
-  const attributeIds = new Set(
-    eServices
-      .flatMap((eService) =>
-        eService.descriptors.filter((descriptor) =>
-          descriptorIds.includes(descriptor.id)
-        )
-      )
-      .flatMap((descriptor) =>
-        descriptor.attributes.verified.flatMap((attribute) =>
-          attribute.map((a) => a.id)
-        )
-      )
+  const descriptor = eservice.descriptors.find(
+    (descriptor) => descriptor.id === descriptorId
   );
+
+  if (!descriptor) {
+    throw new Error("Descriptor not found"); // TODO: handle descriptor not found
+  }
+
+  const attributeIds = new Set(
+    descriptor.attributes.verified.flatMap((attribute) =>
+      attribute.map((a) => a.id)
+    )
+  );
+
   // Check if attribute is allowed
   if (!attributeIds.has(attributeId)) {
     throw error;
