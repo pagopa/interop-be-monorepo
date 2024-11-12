@@ -976,6 +976,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /tenants/delegatedProducer:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - tenant
