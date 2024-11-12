@@ -118,19 +118,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /delegations/{delegationId}:
+    parameters:
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       description: Retrieves a delegation
       summary: Retrieves a delegation
       tags:
         - delegation
       operationId: getDelegation
-      parameters:
-        - name: delegationId
-          in: path
-          description: The delegation id
-          required: true
-          schema:
-            type: string
       responses:
         "200":
           description: Delegation retrieved
@@ -156,10 +157,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /consumer/delegations:
+    post:
+      description: creates a consumer delegation
+      summary: Consumer Delegation Creation
+      tags:
+        - consumer
+      operationId: createConsumerDelegation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationSeed"
+        description: payload for delegation creation
+        required: true
+      responses:
+        "200":
+          description: Delegation created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /producer/delegations:
     post:
-      description: creates the delegation
-      summary: Delegation Creation
+      description: Creates a producer delegation
+      summary: Producer delegation creation
       tags:
         - producer
       operationId: createProducerDelegation
@@ -196,20 +236,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /producer/delegations/{delegationId}/approve:
+    parameters:
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
-      description: Approves a delegation
-      summary: Approves a delegation
+      description: Approves a producer delegation
+      summary: Producer delegation approval
       tags:
         - producer
       operationId: approveProducerDelegation
-      parameters:
-        - name: delegationId
-          in: path
-          description: The delegation id
-          required: true
-          schema:
-            type: string
-            format: uuid
       responses:
         "204":
           description: Delegation approved
@@ -238,9 +278,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /producer/delegations/{delegationId}/reject:
+    parameters:
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
-      description: Rejects a delegation
-      summary: Rejects a delegation
+      description: Rejects a producer delegation
+      summary: Producer delegation rejection
       tags:
         - producer
       operationId: rejectProducerDelegation
@@ -251,14 +299,6 @@ paths:
               $ref: "#/components/schemas/RejectDelegationPayload"
         required: true
         description: payload for delegation rejection
-      parameters:
-        - name: delegationId
-          in: path
-          description: The delegation id
-          required: true
-          schema:
-            type: string
-            format: uuid
       responses:
         "204":
           description: Delegation rejected
@@ -294,9 +334,10 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
     delete:
-      description: Revokes a delegation
-      summary: Revokes a delegation
+      description: Revokes a producer delegation
+      summary: Producer delegation revocation
       tags:
         - producer
       operationId: revokeProducerDelegation
