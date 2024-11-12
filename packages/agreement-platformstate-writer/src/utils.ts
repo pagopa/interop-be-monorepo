@@ -132,7 +132,7 @@ export const updateAgreementStateInPlatformStatesEntry = async (
       ":newVersion": {
         N: version.toString(),
       },
-      ":newUpdateAt": {
+      ":newUpdatedAt": {
         S: new Date().toISOString(),
       },
     },
@@ -140,7 +140,7 @@ export const updateAgreementStateInPlatformStatesEntry = async (
       "#state": "state",
     },
     UpdateExpression:
-      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt",
+      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdatedAt",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
   };
@@ -173,12 +173,12 @@ export const updateAgreementStateOnTokenStatesEntries = async ({
         ":newState": {
           S: agreementStateToItemState(agreementState),
         },
-        ":newUpdateAt": {
+        ":newUpdatedAt": {
           S: new Date().toISOString(),
         },
       },
       UpdateExpression:
-        "SET agreementState = :newState, updatedAt = :newUpdateAt",
+        "SET agreementState = :newState, updatedAt = :newUpdatedAt",
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       ReturnValues: "NONE",
     };
