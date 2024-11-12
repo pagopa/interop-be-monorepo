@@ -61,6 +61,7 @@ describe("get eservices", () => {
       descriptors: [descriptor1],
       producerId: organizationId1,
       isDelegable: true,
+      isClientAccessDelegable: true,
     };
     await addOneEService(eservice1);
 

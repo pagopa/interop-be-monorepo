@@ -43,6 +43,9 @@ describe("create eservice", () => {
   it("should write on event-store for the creation of an eservice", async () => {
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
     const isDelegable = randomBoolean();
+    const isClientAccessDelegable = isDelegable
+      ? randomArrayItem([false, true, undefined])
+      : undefined;
 
     const eservice = await catalogService.createEService(
       {
@@ -53,6 +56,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
         isDelegable,
+        isClientAccessDelegable,
       },
       {
         authData: getMockAuthData(mockEService.producerId),

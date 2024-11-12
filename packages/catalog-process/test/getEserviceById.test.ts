@@ -34,6 +34,7 @@ describe("get eservice by id", () => {
       name: "eservice 001",
       descriptors: [descriptor1],
       isDelegable: true,
+      isClientAccessDelegable: true,
     };
     await addOneEService(eservice1);
     const authData: AuthData = {

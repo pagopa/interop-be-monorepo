@@ -40,6 +40,7 @@ describe("update eService", () => {
     vi.spyOn(fileManager, "delete");
 
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
@@ -73,6 +74,7 @@ describe("update eService", () => {
       name: updatedName,
       isSignalHubEnabled,
       isDelegable,
+      isClientAccessDelegable,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
