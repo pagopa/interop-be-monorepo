@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="./agreementContractTemplate.css" type="text/css" />
   {{{paged-pdf-polyfill}}}
 </head>
-  
+
 <body>
   <!-- Pié di pagina -->
   <div class="footer">
@@ -44,25 +44,73 @@
     <strong>{{todayTime}}</strong>, l’Infrastruttura ha ricevuto la richiesta
     di fruizione contraddistinta da id <strong>{{agreementId}}</strong> (di
     seguito “Richiesta di Fruizione”), inviata dall’aderente
-    <strong>{{consumerText}}</strong> (di seguito “Fruitore”), tramite
-    l’operatore amministrativo <strong>{{submitter}}</strong>, per l’E-service
-    <strong>{{eServiceName}}</strong> reso disponibile dall’aderente
-    <strong>{{producerText}}</strong>
-    (di seguito “Erogatore”) di cui il Fruitore soddisfa i seguenti requisiti
-    di fruizione per lo stesso previsti dall’Erogatore.
+    <strong>{{consumerText}}</strong> (di seguito “Fruitore”),
+    tramite l’operatore amministrativo <strong>{{submitter}}</strong>,
+    per l’E-service <strong>{{eServiceName}}</strong>,
+    contraddistinto da id <strong>{{eServiceId}}</strong>,
+    versione <strong>{{eServiceDescriptorVersion}}</strong>,
+    contraddistinta da id <strong>{{eServiceDescriptorId}}</strong> (di seguito “e-service“),
+    reso disponibile dall’aderente
+
+    {{#if delegate}}
+    <strong>{{delegatorText}}</strong> (di seguito “Erogatore”), per tramite dell'aderente
+    <strong>{{delegateText}}</strong> (di seguito “Delegato all'erogazione”),
+    {{else}}
+    <strong>{{producerText}}</strong> (di seguito “Erogatore“)
+    {{/if}}
+
+    di cui il Fruitore soddisfa i seguenti requisiti di fruizione per lo stesso previsti dall’Erogatore.
   </div>
   <div class="content">
-    <h2>Attributi dichiarati</h2>
+    {{#if declaredAttributes}}
 
-    {{{declaredAttributes}}}
+    <h2>Attributi dichiarati</h2>
+    {{#each declaredAttributes}}
+    <div>
+      In data
+      <strong>{{this.assignmentDate}}</strong>
+      alle ore
+      <strong>{{this.assignmentTime}}</strong>, l’infrastruttura ha registrato
+      la dichiarazione del fruitore di possedere l’attributo dichiarato
+      <strong>{{this.attributeName}}</strong>, contraddistinto da id
+      <strong>{{this.attributeId}}</strong>, necessario a soddisfare il
+      requisito di fruizione stabilito dall’erogatore per l’accesso
+      all’e-service.
+    </div>
+    {{/each}} {{/if}} {{#if verifiedAttributes}}
 
     <h2>Attributi verificati</h2>
 
-    {{{verifiedAttributes}}}
+    {{#each verifiedAttributes}}
+    <div>
+      In data
+      <strong>{{this.assignmentDate}}</strong>
+      alle ore
+      <strong>{{this.assignmentTime}}</strong>, l’infrastruttura ha registrato
+      la verifica del delegato all’erogazione che il fruitore possegga
+      l’attributo verificato <strong>{{this.attributeName}}</strong>,
+      contraddistinto da id <strong>{{this.attributeId}}</strong>, {{#if
+      this.expirationDate}} ed avente scadenza il
+      {{this.expirationDate}},{{/if}} necessario a soddisfare il requisito di
+      fruizione stabilito dall’erogatore per l’accesso all’e-service.
+    </div>
 
+    {{/each}} {{/if}} {{#if certifiedAttributes}}
     <h2>Attributi certificati</h2>
 
-    {{{certifiedAttributes}}}
+    {{#each certifiedAttributes}}
+    <div>
+      In data
+      <strong>{{this.assignmentDate}}</strong>
+      alle ore
+      <strong>{{this.assignmentTime}}</strong>, l’infrastruttura ha registrato
+      il possesso da parte del fruitore dell’attributo certificato
+      <strong>{{this.attributeName}}</strong>, contraddistinto da id
+      <strong>{{this.attributeId}}</strong>, necessario a soddisfare il
+      requisito di fruizione stabilito dall’erogatore per l’accesso
+      all’e-service.
+    </div>
+    {{/each}} {{/if}}
 
     <h2>Registrazione</h2>
 
@@ -71,7 +119,17 @@
       <strong>{{submissionTime}}</strong>, l’Infrastruttura ha trasmesso
       all’Erogatore la Richiesta di Fruizione.
     </div>
-
+    
+    {{#if delegate}}
+    <div>
+      In data <strong>{{activationDate}}</strong> alle ore
+      <strong>{{activationTime}}</strong>, l’infrastruttura ha ricevuto
+      la dichiarazione di accettazione della richiesta di fruizione
+      (di seguito "dichiarazione di accettazione") inviata dal delegato all’erogazione,
+      tramite l’operatore amministrativo con identificativo Area Riservata
+      <strong>{{delegateId}}</strong>.
+    </div>
+    {{else}}
     <div>
       In data <strong>{{activationDate}}</strong> alle ore
       <strong>{{activationTime}}</strong>, l’Infrastruttura ha ricevuto la
@@ -79,6 +137,7 @@
       “Dichiarazione Accettazione”) inviata dall’Erogatore, tramite
       l’operatore amministrativo <strong>{{activator}}</strong>.
     </div>
+    {{/if}}
 
     <div>
       In data <strong>{{activationDate}}</strong> alle ore

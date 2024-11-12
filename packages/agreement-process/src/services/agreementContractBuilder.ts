@@ -28,6 +28,7 @@ import {
   unsafeBrandId,
   AgreementDocument,
   CorrelationId,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   selfcareV2ClientApi,
@@ -40,6 +41,7 @@ import {
   agreementSelfcareIdNotFound,
   agreementStampNotFound,
   attributeNotFound,
+  tenantNotFound,
   userNotFound,
 } from "../model/domain/errors.js";
 import { AgreementProcessConfig } from "../config/config.js";
@@ -47,6 +49,12 @@ import { ReadModelService } from "./readModelService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
+
+export type DelegationData = {
+  delegation: Delegation;
+  delegator: Tenant;
+  delegate: Tenant;
+};
 
 const retrieveUser = async (
   selfcareV2Client: SelfcareV2UsersClient,
@@ -68,6 +76,17 @@ const retrieveUser = async (
   return user;
 };
 
+const retrieveTenant = async (
+  tenantId: TenantId,
+  readModelService: ReadModelService
+): Promise<Tenant> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (!tenant) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
+};
+
 const createAgreementDocumentName = (
   consumerId: TenantId,
   producerId: TenantId,
@@ -77,23 +96,37 @@ const createAgreementDocumentName = (
     documentCreatedAt
   )}_agreement_contract.pdf`;
 
-const getAttributeInvolved = async (
+const getAttributesData = async (
   consumer: Tenant,
   agreement: Agreement,
   readModelService: ReadModelService
 ): Promise<{
-  certified: Array<[Attribute, CertifiedTenantAttribute]>;
-  declared: Array<[Attribute, DeclaredTenantAttribute]>;
-  verified: Array<[Attribute, VerifiedTenantAttribute]>;
+  certified: Array<{
+    attribute: Attribute;
+    tenantAttribute: CertifiedTenantAttribute;
+  }>;
+  declared: Array<{
+    attribute: Attribute;
+    tenantAttribute: DeclaredTenantAttribute;
+  }>;
+  verified: Array<{
+    attribute: Attribute;
+    tenantAttribute: VerifiedTenantAttribute;
+  }>;
 }> => {
-  const getAgreementAttributeByType = async <
+  const getAttributesDataByType = async <
     T extends
       | CertifiedTenantAttribute
       | DeclaredTenantAttribute
       | VerifiedTenantAttribute
   >(
     type: TenantAttributeType
-  ): Promise<Array<[Attribute, T]>> => {
+  ): Promise<
+    Array<{
+      attribute: Attribute;
+      tenantAttribute: T;
+    }>
+  > => {
     const seedAttributes = match(type)
       .with(
         tenantAttributeType.CERTIFIED,
@@ -122,18 +155,21 @@ const getAttributeInvolved = async (
         if (!attribute) {
           throw attributeNotFound(tenantAttribute.id);
         }
-        return [attribute, tenantAttribute as unknown as T];
+        return {
+          attribute,
+          tenantAttribute: tenantAttribute as T,
+        };
       })
     );
   };
 
-  const certified = await getAgreementAttributeByType<CertifiedTenantAttribute>(
+  const certified = await getAttributesDataByType<CertifiedTenantAttribute>(
     tenantAttributeType.CERTIFIED
   );
-  const declared = await getAgreementAttributeByType<DeclaredTenantAttribute>(
+  const declared = await getAttributesDataByType<DeclaredTenantAttribute>(
     tenantAttributeType.DECLARED
   );
-  const verified = await getAgreementAttributeByType<VerifiedTenantAttribute>(
+  const verified = await getAttributesDataByType<VerifiedTenantAttribute>(
     tenantAttributeType.VERIFIED
   );
 
@@ -241,72 +277,11 @@ const getPdfPayload = async (
   producer: Tenant,
   readModelService: ReadModelService,
   selfcareV2Client: SelfcareV2UsersClient,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  delegationData: DelegationData | undefined
 ): Promise<AgreementContractPDFPayload> => {
   const getTenantText = (name: string, origin: string, value: string): string =>
-    origin === "IPA" ? `"${name} (codice IPA: ${value})` : name;
-
-  const getCertifiedAttributeHtml = (
-    certifiedAttributes: Array<[Attribute, CertifiedTenantAttribute]>
-  ): string =>
-    certifiedAttributes
-      .map(
-        (attTuple: [Attribute, CertifiedTenantAttribute]) => `
-        <div>
-          In data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
-          )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,l’Infrastruttura ha registrato il possesso da parte del Fruitore del seguente attributo <strong>${
-          attTuple[0].name
-        }</strong> certificato,necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-        </div>`
-      )
-      .join("");
-
-  const getDeclaredAttributeHtml = (
-    declaredAttributes: Array<[Attribute, DeclaredTenantAttribute]>
-  ): string =>
-    declaredAttributes
-      .map(
-        (attTuple: [Attribute, DeclaredTenantAttribute]) => `
-      <div>
-         In data <strong>${dateAtRomeZone(
-           attTuple[1].assignmentTimestamp
-         )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,
-         l’Infrastruttura ha registrato la dichiarazione del Fruitore di possedere il seguente attributo <strong>${
-           attTuple[0].name
-         }</strong> dichiarato
-         ed avente il seguente periodo di validità ________,
-         necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-      </div>`
-      )
-      .join("");
-
-  const getVerifiedAttributeHtml = (
-    verifiedAttributes: Array<[Attribute, VerifiedTenantAttribute]>
-  ): string =>
-    verifiedAttributes
-      .map(
-        (attTuple: [Attribute, VerifiedTenantAttribute]) => `
-        <div>
-          In data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
-          )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,
-          l’Infrastruttura ha registrato la dichiarazione del Fruitore di possedere il seguente attributo <strong>${
-            attTuple[0].name
-          }</strong>,
-          verificata dall’aderente ________ OPPURE dall’Erogatore stesso in data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
-          )}</strong>,
-          necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-        </div>`
-      )
-      .join();
+    origin === "IPA" ? `${name} (codice IPA: ${value})` : name;
 
   const today = new Date();
   const producerText = getTenantText(
@@ -334,12 +309,17 @@ const getPdfPayload = async (
     correlationId
   );
 
-  const { certified, declared, verified } = await getAttributeInvolved(
+  const { certified, declared, verified } = await getAttributesData(
     consumer,
     agreement,
     readModelService
   );
 
+  // Nel template c'è un riferimento alla version del descriptor,
+  // è necessario recuperare l'ultima versione attiva del descriptor?
+  // in caso affermativo va sempre cercato in stato publish?
+  // ma i controlli per l'activate agreement supporta diversi stati
+  // const latestActiveDescriptor = getActiveDescriptor(eservice);
   return {
     todayDate: dateAtRomeZone(today),
     todayTime: timeAtRomeZone(today),
@@ -351,11 +331,92 @@ const getPdfPayload = async (
     activationDate: dateAtRomeZone(activationTimestamp),
     activationTime: timeAtRomeZone(activationTimestamp),
     eServiceName: eservice.name,
+    eServiceId: eservice.id,
     producerText,
     consumerText,
-    certifiedAttributes: getCertifiedAttributeHtml(certified),
-    declaredAttributes: getDeclaredAttributeHtml(declared),
-    verifiedAttributes: getVerifiedAttributeHtml(verified),
+    certifiedAttributes: certified.map(({ attribute, tenantAttribute }) => ({
+      assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+      assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+      attributeName: attribute.name,
+      attributeId: attribute.id,
+    })),
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    declaredAttributes: declared.map(({ attribute, tenantAttribute }) => ({
+      assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+      assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+      attributeName: attribute.name,
+      attributeId: attribute.id,
+    })),
+    verifiedAttributes: verified.map(({ attribute, tenantAttribute }) => {
+      const expirationDate = getVerifiedAttributeExpirationDate(
+        tenantAttribute,
+        producer.id
+      );
+      return {
+        assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+        assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+        attributeName: attribute.name,
+        attributeId: attribute.id,
+        expirationDate: expirationDate
+          ? dateAtRomeZone(expirationDate)
+          : undefined,
+      };
+    }),
+    delegationId: delegationData?.delegation.id,
+    delegatorText:
+      delegationData?.delegator &&
+      getTenantText(
+        delegationData?.delegator.name,
+        delegationData?.delegator.externalId.origin,
+        delegationData?.delegator.externalId.value
+      ),
+    delegateText:
+      delegationData?.delegate &&
+      getTenantText(
+        delegationData?.delegate.name,
+        delegationData?.delegate.externalId.origin,
+        delegationData?.delegate.externalId.value
+      ),
+  };
+};
+
+function getVerifiedAttributeExpirationDate(
+  tenantAttribute: VerifiedTenantAttribute,
+  producerId: TenantId
+): Date | undefined {
+  const activeProducerVerification = tenantAttribute.verifiedBy
+    .filter((verification) => verification.id === producerId)
+    .sort((a, b) => a.verificationDate.getTime() - b.verificationDate.getTime())
+    .find(
+      (verification) =>
+        !tenantAttribute.revokedBy.find(
+          (revocation) => revocation.id === verification.id
+        )
+    );
+
+  return (
+    activeProducerVerification?.extensionDate ??
+    activeProducerVerification?.expirationDate
+  );
+}
+
+const buildDelegationData = async (
+  delegation: Delegation,
+  readModelService: ReadModelService
+): Promise<DelegationData> => {
+  const delegator = await retrieveTenant(
+    delegation.delegatorId,
+    readModelService
+  );
+  const delegate = await retrieveTenant(
+    delegation.delegateId,
+    readModelService
+  );
+
+  return {
+    delegation,
+    delegator,
+    delegate,
   };
 };
 
@@ -371,20 +432,23 @@ export const contractBuilder = (
 ) => {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
+  const templateFilePath = path.resolve(
+    dirname,
+    "..",
+    "resources/templates/documents",
+    "agreementContractTemplate.html"
+  );
 
   return {
     createContract: async (
       agreement: Agreement,
       eservice: EService,
       consumer: Tenant,
-      producer: Tenant
+      producer: Tenant,
+      delegation: Delegation | undefined
     ): Promise<AgreementDocument> => {
-      const templateFilePath = path.resolve(
-        dirname,
-        "..",
-        "resources/templates/documents",
-        "agreementContractTemplate.html"
-      );
+      const delegationdData =
+        delegation && (await buildDelegationData(delegation, readModelService));
 
       const pdfPayload = await getPdfPayload(
         agreement,
@@ -393,7 +457,8 @@ export const contractBuilder = (
         producer,
         readModelService,
         selfcareV2Client,
-        correlationId
+        correlationId,
+        delegationdData
       );
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(
