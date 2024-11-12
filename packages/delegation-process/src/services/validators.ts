@@ -1,5 +1,6 @@
 import {
   Delegation,
+  delegationKind,
   DelegationKind,
   DelegationState,
   delegationState,
@@ -9,6 +10,7 @@ import {
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   delegationAlreadyExists,
   delegationNotRevokable,
@@ -59,15 +61,21 @@ export const assertDelegatorIsIPA = async (
   }
 };
 
-export const assertTenantAllowedToReceiveProducerDelegation = (
-  tenant: Tenant
+export const assertTenantAllowedToReceiveDelegation = (
+  tenant: Tenant,
+  kind: DelegationKind
 ): void => {
   const delegationFeature = tenant.features.find(
-    (f) => f.type === "DelegatedProducer"
+    (f) =>
+      f.type ===
+      match(kind)
+        .with(delegationKind.delegatedProducer, () => "DelegatedProducer")
+        .with(delegationKind.delegatedConsumer, () => "DelegatedConsumer")
+        .exhaustive()
   );
 
   if (!delegationFeature) {
-    throw tenantNotAllowedToDelegation(tenant.id);
+    throw tenantNotAllowedToDelegation(tenant.id, kind);
   }
 };
 

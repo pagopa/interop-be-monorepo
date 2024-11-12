@@ -5,6 +5,7 @@ import {
   makeApiProblemBuilder,
   TenantId,
   DelegationState,
+  DelegationKind,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -81,10 +82,11 @@ export function invalidExternalOriginError(
 }
 
 export function tenantNotAllowedToDelegation(
-  tenantId: string
+  tenantId: string,
+  kind: DelegationKind
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId} not allowed to delegation`,
+    detail: `Tenant ${tenantId} not allowed to receive delegations of kind: ${kind}`,
     code: "tenantNotAllowedToDelegation",
     title: "Tenant not allowed to delegation",
   });
