@@ -292,7 +292,8 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
         catalogEntry &&
         (!entry.GSIPK_eserviceId_descriptorId ||
           !entry.descriptorAudience ||
-          !entry.descriptorState);
+          !entry.descriptorState ||
+          !entry.descriptorVoucherLifespan);
 
       const descriptorExpressionAttributeValues: Record<
         string,
@@ -318,7 +319,7 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
             },
           }
         : {};
-      const descriptorUpdateExpression = catalogEntry
+      const descriptorUpdateExpression = isDescriptorDataMissingInTokenTable
         ? `, GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId, 
         descriptorState = :descriptorState, 
         descriptorAudience = :descriptorAudience, 
@@ -414,12 +415,12 @@ export const updatePurposeDataInTokenEntries = async ({
           ":newPurposeVersionId": {
             S: purposeVersionId,
           },
-          ":newUpdateAt": {
+          ":newUpdatedAt": {
             S: new Date().toISOString(),
           },
         },
         UpdateExpression:
-          "SET purposeState = :newState, updatedAt = :newUpdateAt, purposeVersionId = :newPurposeVersionId",
+          "SET purposeState = :newState, updatedAt = :newUpdatedAt, purposeVersionId = :newPurposeVersionId",
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
         ReturnValues: "NONE",
       };
