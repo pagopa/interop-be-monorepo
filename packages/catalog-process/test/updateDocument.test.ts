@@ -229,10 +229,10 @@ describe("update Document", () => {
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
     );
   });
-  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor", async () => {
+  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
     const document1: Document = {
       ...getMockDocument(),
-      prettyName: "test a",
+      prettyName: "TEST A",
     };
     const document2: Document = {
       ...getMockDocument(),
@@ -254,7 +254,7 @@ describe("update Document", () => {
         eservice.id,
         descriptor.id,
         document2.id,
-        { prettyName: document1.prettyName },
+        { prettyName: document1.prettyName.toLowerCase() },
         {
           authData: getMockAuthData(eservice.producerId),
           correlationId: generateId(),
@@ -263,7 +263,7 @@ describe("update Document", () => {
         }
       )
     ).rejects.toThrowError(
-      prettyNameDuplicate(document1.prettyName, descriptor.id)
+      prettyNameDuplicate(document1.prettyName.toLowerCase(), descriptor.id)
     );
   });
 });
