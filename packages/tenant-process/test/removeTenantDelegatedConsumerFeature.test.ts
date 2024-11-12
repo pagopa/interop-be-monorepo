@@ -65,7 +65,7 @@ describe("removeTenantDelegatedConsumerFeature", async () => {
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
 
-  it("Should throw tenantHasNoDelegatedConsumerFeature if the requester tenant already has the delegated Consumer feature", async () => {
+  it("Should throw tenantDoesNotHaveFeature if the requester tenant doesn't have the delegated consumer feature", async () => {
     const tenant: Tenant = {
       ...getMockTenant(),
       features: [],
