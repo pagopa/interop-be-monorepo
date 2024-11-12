@@ -709,11 +709,10 @@ describe("activate agreement", () => {
         const relatedAgreements = await addRelatedAgreements(agreement);
 
         const activateAgreementReturnValue =
-          await agreementService.activateAgreement(agreement.id, {
+          await mockAgreementRouterRequest.post({
+            path: "/agreements/:agreementId/activate",
+            pathParams: { agreementId: agreement.id },
             authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
           });
 
         const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -754,9 +753,10 @@ describe("activate agreement", () => {
           expectedActivatedAgreement
         );
 
-        expect(activateAgreementReturnValue).toMatchObject(
-          expectedActivatedAgreement
-        );
+        expect({
+          ...activateAgreementReturnValue,
+          suspendedAt: undefined,
+        }).toMatchObject(agreementToApiAgreement(expectedActivatedAgreement));
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
       }
@@ -844,11 +844,10 @@ describe("activate agreement", () => {
       const relatedAgreements = await addRelatedAgreements(agreement);
 
       const activateAgreementReturnValue =
-        await agreementService.activateAgreement(agreement.id, {
+        await mockAgreementRouterRequest.post({
+          path: "/agreements/:agreementId/activate",
+          pathParams: { agreementId: agreement.id },
           authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
         });
 
       const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -887,9 +886,10 @@ describe("activate agreement", () => {
         expectedActivatedAgreement
       );
 
-      expect(activateAgreementReturnValue).toMatchObject(
-        expectedActivatedAgreement
-      );
+      expect({
+        ...activateAgreementReturnValue,
+        suspendedAt: undefined,
+      }).toMatchObject(agreementToApiAgreement(expectedActivatedAgreement));
 
       await testRelatedAgreementsArchiviation(relatedAgreements);
     });
@@ -1044,11 +1044,10 @@ describe("activate agreement", () => {
           const relatedAgreements = await addRelatedAgreements(agreement);
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(agreement.id, {
+            await mockAgreementRouterRequest.post({
+              path: "/agreements/:agreementId/activate",
+              pathParams: { agreementId: agreement.id },
               authData,
-              serviceName: "",
-              correlationId: generateId(),
-              logger: genericLogger,
             });
 
           const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -1075,7 +1074,9 @@ describe("activate agreement", () => {
 
           expect(actualAgreementUnsuspended).toMatchObject(expected);
 
-          expect(activateAgreementReturnValue).toMatchObject(expected);
+          expect(activateAgreementReturnValue).toMatchObject(
+            agreementToApiAgreement(actualAgreementUnsuspended)
+          );
         });
 
         it("if suspendedByPlatform === true, unsuspends by Producer or Consumer and also by platform, and remains in a Suspended state", async () => {
@@ -1101,11 +1102,10 @@ describe("activate agreement", () => {
           const relatedAgreements = await addRelatedAgreements(agreement);
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(agreement.id, {
+            await mockAgreementRouterRequest.post({
+              path: "/agreements/:agreementId/activate",
+              pathParams: { agreementId: agreement.id },
               authData,
-              serviceName: "",
-              correlationId: generateId(),
-              logger: genericLogger,
             });
 
           const agreementEvent = await readAgreementEventByVersion(
@@ -1152,7 +1152,9 @@ describe("activate agreement", () => {
 
           await testRelatedAgreementsArchiviation(relatedAgreements);
           expect(actualAgreementUnsuspendedByPlatform).toMatchObject(expected2);
-          expect(activateAgreementReturnValue).toMatchObject(expected2);
+          expect(activateAgreementReturnValue).toMatchObject(
+            agreementToApiAgreement(actualAgreementUnsuspendedByPlatform)
+          );
         });
       }
     );
@@ -1321,13 +1323,14 @@ describe("activate agreement", () => {
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
+
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(agreement.id, {
+            await mockAgreementRouterRequest.post({
+              path: "/agreements/:agreementId/activate",
+              pathParams: { agreementId: agreement.id },
               authData,
-              serviceName: "",
-              correlationId: generateId(),
-              logger: genericLogger,
             });
+
           const agreementEvent = await readLastAgreementEvent(agreement.id);
           expect(agreementEvent).toMatchObject({
             type: isProducer
@@ -1347,7 +1350,9 @@ describe("activate agreement", () => {
           );
           await testRelatedAgreementsArchiviation(relatedAgreements);
           expect(actualAgreementUnsuspended).toMatchObject(expected);
-          expect(activateAgreementReturnValue).toMatchObject(expected);
+          expect(activateAgreementReturnValue).toMatchObject(
+            agreementToApiAgreement(expected)
+          );
         });
 
         it("if suspendedByPlatform === false, unsuspends by Producer or Consumer and also suspends by platform, and remains in a Suspended state", async () => {
@@ -1373,11 +1378,10 @@ describe("activate agreement", () => {
           const relatedAgreements = await addRelatedAgreements(agreement);
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(agreement.id, {
+            await mockAgreementRouterRequest.post({
+              path: "/agreements/:agreementId/activate",
+              pathParams: { agreementId: agreement.id },
               authData,
-              serviceName: "",
-              correlationId: generateId(),
-              logger: genericLogger,
             });
 
           const agreementEvent = await readAgreementEventByVersion(
@@ -1424,7 +1428,9 @@ describe("activate agreement", () => {
 
           await testRelatedAgreementsArchiviation(relatedAgreements);
           expect(actualAgreementUnsuspendedByPlatform).toMatchObject(expected2);
-          expect(activateAgreementReturnValue).toMatchObject(expected2);
+          expect(activateAgreementReturnValue).toMatchObject(
+            agreementToApiAgreement(actualAgreementUnsuspendedByPlatform)
+          );
         });
       }
     );
