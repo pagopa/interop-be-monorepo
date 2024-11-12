@@ -13,7 +13,7 @@ import {
   DelegationId,
   delegationKind,
   delegationState,
-  DelegationSubmittedV2,
+  ProducerDelegationSubmittedV2,
   EServiceId,
   generateId,
   TenantId,
@@ -71,7 +71,7 @@ const expectedDelegationCreation = async (
   }
 
   const actualDelegationData = decodeProtobufPayload({
-    messageType: DelegationSubmittedV2,
+    messageType: ProducerDelegationSubmittedV2,
     payload: lastDelegationEvent.data,
   });
 

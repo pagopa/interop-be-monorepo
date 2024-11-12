@@ -5,7 +5,9 @@ import {
   ExpressContext,
   ReadModelRepository,
   ZodiosContext,
+  authorizationMiddleware,
   fromAppContext,
+  userRoles,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
@@ -24,6 +26,11 @@ const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 
+const delegationService = delegationServiceBuilder(readModelService);
+
+const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } =
+  userRoles;
+
 const delegationRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -31,80 +38,98 @@ const delegationRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const delegationService = delegationServiceBuilder(readModelService);
-
   delegationRouter
-    .get("/delegations", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-      const {
-        offset,
-        limit,
-        delegateIds,
-        delegatorIds,
-        eserviceIds,
-        delegationStates,
-        kind,
-      } = req.query;
-
-      try {
-        const delegations = await delegationService.getDelegations({
-          delegateIds: delegateIds.map(unsafeBrandId<TenantId>),
-          delegatorIds: delegatorIds.map(unsafeBrandId<TenantId>),
-          delegationStates: delegationStates.map(
-            apiDelegationStateToDelegationState
-          ),
-          eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
-          kind: kind && apiDelegationKindToDelegationKind(kind),
+    .get(
+      "/delegations",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        const {
           offset,
           limit,
-        });
+          delegateIds,
+          delegatorIds,
+          eserviceIds,
+          delegationStates,
+          kind,
+        } = req.query;
 
-        return res.status(200).send(
-          delegationApi.Delegations.parse({
-            results: delegations.map((delegation) =>
-              delegationToApiDelegation(delegation)
+        try {
+          const delegations = await delegationService.getDelegations({
+            delegateIds: delegateIds.map(unsafeBrandId<TenantId>),
+            delegatorIds: delegatorIds.map(unsafeBrandId<TenantId>),
+            delegationStates: delegationStates.map(
+              apiDelegationStateToDelegationState
             ),
-            totalCount: delegations.length,
-          })
-        );
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getDelegationErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+            eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
+            kind: kind && apiDelegationKindToDelegationKind(kind),
+            offset,
+            limit,
+          });
 
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
-    .get("/delegations/:delegationId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-      const { delegationId } = req.params;
-
-      try {
-        const delegation = await delegationService.getDelegationById(
-          unsafeBrandId(delegationId)
-        );
-
-        return res
-          .status(200)
-          .send(
-            delegationApi.Delegation.parse(
-              delegationToApiDelegation(delegation)
-            )
+          return res.status(200).send(
+            delegationApi.Delegations.parse({
+              results: delegations.map((delegation) =>
+                delegationToApiDelegation(delegation)
+              ),
+              totalCount: delegations.length,
+            })
           );
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getDelegationErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getDelegationErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
 
-        return res.status(errorRes.status).send(errorRes);
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    });
+    )
+    .get(
+      "/delegations/:delegationId",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        const { delegationId } = req.params;
+
+        try {
+          const delegation = await delegationService.getDelegationById(
+            unsafeBrandId(delegationId)
+          );
+
+          return res
+            .status(200)
+            .send(
+              delegationApi.Delegation.parse(
+                delegationToApiDelegation(delegation)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getDelegationErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return delegationRouter;
 };

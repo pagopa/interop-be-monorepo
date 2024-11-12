@@ -11,10 +11,10 @@ export async function handleMessageV2(
 ): Promise<void> {
   await match(message)
     .with(
-      { type: "DelegationApproved" },
-      { type: "DelegationRejected" },
-      { type: "DelegationRevoked" },
-      { type: "DelegationSubmitted" },
+      { type: "ProducerDelegationApproved" },
+      { type: "ProducerDelegationRejected" },
+      { type: "ProducerDelegationRevoked" },
+      { type: "ProducerDelegationSubmitted" },
       async (message) => {
         const delegation = message.data.delegation;
         await delegations.updateOne(

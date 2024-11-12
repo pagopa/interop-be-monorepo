@@ -180,7 +180,7 @@ export function delegationServiceBuilder(
         offset,
         states,
         kind,
-        delegatedIds,
+        delegateIds,
         delegatorIds,
         eserviceIds,
       }: {
@@ -188,7 +188,7 @@ export function delegationServiceBuilder(
         offset: number;
         states?: bffApi.DelegationState[];
         kind?: bffApi.DelegationKind;
-        delegatedIds?: string[];
+        delegateIds?: string[];
         delegatorIds?: string[];
         eserviceIds?: string[];
       },
@@ -201,7 +201,7 @@ export function delegationServiceBuilder(
           limit,
           offset,
           delegatorIds,
-          delegateIds: delegatedIds,
+          delegateIds,
           delegationStates: states,
           kind,
           eserviceIds,
