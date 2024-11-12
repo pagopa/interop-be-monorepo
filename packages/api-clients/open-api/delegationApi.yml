@@ -159,7 +159,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
   /consumer/delegations:
     post:
-      description: creates a consumer delegation
+      description: Creates a consumer delegation
       summary: Consumer Delegation Creation
       tags:
         - consumer
@@ -169,7 +169,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/DelegationSeed"
-        description: payload for delegation creation
+        description: Payload for delegation creation
         required: true
       responses:
         "200":
@@ -208,7 +208,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/DelegationSeed"
-        description: payload for delegation creation
+        description: Payload for delegation creation
         required: true
       responses:
         "200":
