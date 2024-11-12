@@ -3,7 +3,6 @@ import {
   AuthorizationEventEnvelopeV2,
   Client,
   ClientV2,
-  EServiceId,
   fromClientV2,
   genericInternalError,
   itemState,

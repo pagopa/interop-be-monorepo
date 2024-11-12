@@ -132,7 +132,7 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
       ":newVersion": {
         N: version.toString(),
       },
-      ":newUpdateAt": {
+      ":newUpdatedAt": {
         S: new Date().toISOString(),
       },
     },
@@ -140,7 +140,7 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
       "#state": "state",
     },
     UpdateExpression:
-      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt",
+      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdatedAt",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
   };
@@ -168,12 +168,12 @@ export const updateDescriptorVoucherLifespanInPlatformStateEntry = async (
       ":newVersion": {
         N: version.toString(),
       },
-      ":newUpdateAt": {
+      ":newUpdatedAt": {
         S: new Date().toISOString(),
       },
     },
     UpdateExpression:
-      "SET descriptorVoucherLifespan = :newVoucherLifespan, version = :newVersion, updatedAt = :newUpdateAt",
+      "SET descriptorVoucherLifespan = :newVoucherLifespan, version = :newVersion, updatedAt = :newUpdatedAt",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
   };
@@ -411,12 +411,12 @@ const updateDescriptorStateInTokenGenerationStatesEntries = async (
         ":newState": {
           S: descriptorState,
         },
-        ":newUpdateAt": {
+        ":newUpdatedAt": {
           S: new Date().toISOString(),
         },
       },
       UpdateExpression:
-        "SET descriptorState = :newState, updatedAt = :newUpdateAt",
+        "SET descriptorState = :newState, updatedAt = :newUpdatedAt",
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       ReturnValues: "NONE",
     };
@@ -464,12 +464,12 @@ const updateDescriptorInfoInTokenGenerationStatesEntries = async ({
         ":gsi": {
           S: GSIPK_eserviceId_descriptorId,
         },
-        ":newUpdateAt": {
+        ":newUpdatedAt": {
           S: new Date().toISOString(),
         },
       },
       UpdateExpression:
-        "SET GSI_eservice_id_descriptor_id = :gsi, descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan, updatedAt = :newUpdateAt",
+        "SET GSI_eservice_id_descriptor_id = :gsi, descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan, updatedAt = :newUpdatedAt",
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       ReturnValues: "NONE",
     };
@@ -496,12 +496,12 @@ const updateDescriptorVoucherLifespanInTokenGenerationStatesEntries = async (
         ":newVoucherLifespan": {
           N: voucherLifespan.toString(),
         },
-        ":newUpdateAt": {
+        ":newUpdatedAt": {
           S: new Date().toISOString(),
         },
       },
       UpdateExpression:
-        "SET descriptorVoucherLifespan = :newVoucherLifespan, updatedAt = :newUpdateAt",
+        "SET descriptorVoucherLifespan = :newVoucherLifespan, updatedAt = :newUpdatedAt",
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       ReturnValues: "NONE",
     };
