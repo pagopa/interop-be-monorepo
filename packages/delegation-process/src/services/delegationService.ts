@@ -7,6 +7,7 @@ import {
   TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
+import { AppContext, WithLogger } from "pagopa-interop-commons";
 import { delegationNotFound } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -24,31 +25,42 @@ export const retrieveDelegationById = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationServiceBuilder(readModelService: ReadModelService) {
   return {
-    async getDelegationById(delegationId: DelegationId): Promise<Delegation> {
+    async getDelegationById(
+      delegationId: DelegationId,
+      { logger }: WithLogger<AppContext>
+    ): Promise<Delegation> {
+      logger.info(`Retrieving delegation by id ${delegationId}`);
+
       const delegation = await retrieveDelegationById(
         readModelService,
         delegationId
       );
       return delegation.data;
     },
-    // eslint-disable-next-line max-params
-    async getDelegations({
-      delegateIds,
-      delegatorIds,
-      delegationStates,
-      eserviceIds,
-      kind,
-      offset,
-      limit,
-    }: {
-      delegateIds: TenantId[];
-      delegatorIds: TenantId[];
-      delegationStates: DelegationState[];
-      eserviceIds: EServiceId[];
-      kind: DelegationKind | undefined;
-      offset: number;
-      limit: number;
-    }): Promise<Delegation[]> {
+    async getDelegations(
+      {
+        delegateIds,
+        delegatorIds,
+        delegationStates,
+        eserviceIds,
+        kind,
+        offset,
+        limit,
+      }: {
+        delegateIds: TenantId[];
+        delegatorIds: TenantId[];
+        delegationStates: DelegationState[];
+        eserviceIds: EServiceId[];
+        kind: DelegationKind | undefined;
+        offset: number;
+        limit: number;
+      },
+      { logger }: WithLogger<AppContext>
+    ): Promise<Delegation[]> {
+      logger.info(
+        `Retrieving delegations with filters: delegateIds=${delegateIds}, delegatorIds=${delegatorIds}, delegationStates=${delegationStates}, eserviceIds=${eserviceIds}, kind=${kind}, offset=${offset}, limit=${limit}`
+      );
+
       return readModelService.getDelegations({
         delegateIds,
         delegatorIds,

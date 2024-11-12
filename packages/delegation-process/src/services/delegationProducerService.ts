@@ -76,7 +76,7 @@ export function delegationProducerServiceBuilder(
       const eserviceId = unsafeBrandId<EServiceId>(delegationSeed.eserviceId);
 
       logger.info(
-        `Creating a delegation for tenant:${delegationSeed.delegateId} by producer:${delegatorId}`
+        `Creating a delegation for tenant ${delegationSeed.delegateId} by producer ${delegatorId}`
       );
 
       assertDelegatorIsNotDelegate(delegatorId, delegateId);
@@ -124,7 +124,7 @@ export function delegationProducerServiceBuilder(
     ): Promise<Delegation> {
       const delegatorId = unsafeBrandId<TenantId>(authData.organizationId);
       logger.info(
-        `Revoking delegation: ${delegationId} by producer:${delegatorId}`
+        `Revoking delegation ${delegationId} by producer ${delegatorId}`
       );
 
       const currentDelegation = await retrieveDelegationById(
@@ -184,7 +184,7 @@ export function delegationProducerServiceBuilder(
       const delegateId = unsafeBrandId<TenantId>(authData.organizationId);
 
       logger.info(
-        `Approving delegation:${delegationId} by delegate:${delegateId}`
+        `Approving delegation ${delegationId} by delegate ${delegateId}`
       );
 
       const { data: delegation, metadata } = await retrieveDelegationById(
@@ -246,7 +246,7 @@ export function delegationProducerServiceBuilder(
       const delegateId = unsafeBrandId<TenantId>(authData.organizationId);
 
       logger.info(
-        `Rejecting delegation: ${delegationId} by delegate:${delegateId}`
+        `Rejecting delegation ${delegationId} by delegate ${delegateId}`
       );
 
       const { data: delegation, metadata } = await retrieveDelegationById(

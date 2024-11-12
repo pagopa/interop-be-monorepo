@@ -64,17 +64,20 @@ const delegationRouter = (
         } = req.query;
 
         try {
-          const delegations = await delegationService.getDelegations({
-            delegateIds: delegateIds.map(unsafeBrandId<TenantId>),
-            delegatorIds: delegatorIds.map(unsafeBrandId<TenantId>),
-            delegationStates: delegationStates.map(
-              apiDelegationStateToDelegationState
-            ),
-            eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
-            kind: kind && apiDelegationKindToDelegationKind(kind),
-            offset,
-            limit,
-          });
+          const delegations = await delegationService.getDelegations(
+            {
+              delegateIds: delegateIds.map(unsafeBrandId<TenantId>),
+              delegatorIds: delegatorIds.map(unsafeBrandId<TenantId>),
+              delegationStates: delegationStates.map(
+                apiDelegationStateToDelegationState
+              ),
+              eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
+              kind: kind && apiDelegationKindToDelegationKind(kind),
+              offset,
+              limit,
+            },
+            ctx
+          );
 
           return res.status(200).send(
             delegationApi.Delegations.parse({
@@ -111,7 +114,8 @@ const delegationRouter = (
 
         try {
           const delegation = await delegationService.getDelegationById(
-            unsafeBrandId(delegationId)
+            unsafeBrandId(delegationId),
+            ctx
           );
 
           return res
