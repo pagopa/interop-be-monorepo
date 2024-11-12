@@ -121,4 +121,5 @@ export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
   mode: toEServiceModeV2(eservice.mode),
   riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV2),
   isDelegable: eservice.isDelegable,
+  isClientAccessDelegable: eservice.isClientAccessDelegable,
 });
