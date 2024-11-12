@@ -1071,6 +1071,7 @@ export function tenantServiceBuilder(
       const updatedTenant: Tenant = {
         ...tenant.data,
         ...convertedTenantUpdate,
+        subUnitType: convertedTenantUpdate.subUnitType,
         updatedAt: new Date(),
       };
 
