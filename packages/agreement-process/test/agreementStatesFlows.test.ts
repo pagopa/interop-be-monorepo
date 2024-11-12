@@ -1,5 +1,4 @@
 /* eslint-disable functional/immutable-data */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
@@ -30,17 +29,20 @@ import {
   toReadModelTenant,
 } from "pagopa-interop-models";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { apiAgreementToAgreement } from "../src/model/domain/apiConverter.js";
 import {
   addOneAttribute,
   addOneEService,
   addOneTenant,
-  agreementService,
   agreements,
   eservices,
-  selfcareV2ClientMock,
   tenants,
 } from "./utils.js";
+import {
+  mockAgreementRouterRequest,
+  mockSelfcareV2ClientCall,
+} from "./supertestSetup.js";
 
 describe("Agreeement states flows", () => {
   const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
@@ -51,9 +53,10 @@ describe("Agreeement states flows", () => {
     taxCode: "TSTTSTTSTTSTTSTT",
   };
   beforeEach(async () => {
-    selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-      async () => mockSelfcareUserResponse
-    );
+    mockSelfcareV2ClientCall({
+      value: mockSelfcareUserResponse,
+      mockedFor: "Router",
+    });
   });
 
   async function updateAgreementInReadModel(
@@ -161,17 +164,16 @@ describe("Agreeement states flows", () => {
       1) Consumer creates the agreement (state DRAFT)
     ================================= */
     const consumerAuthData = getRandomAuthData(consumer.id);
-    const createdAgreement = await agreementService.createAgreement(
-      {
-        eserviceId,
-        descriptorId,
-      },
-      {
-        authData: consumerAuthData,
-        serviceName: "AgreementService",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+
+    const apiCreatedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements",
+      body: { eserviceId, descriptorId },
+      authData: consumerAuthData,
+    });
+
+    const createdAgreement = apiAgreementToAgreement(
+      apiCreatedAgreement,
+      consumerAuthData.userId
     );
 
     expect(createdAgreement.state).toEqual(agreementState.draft);
@@ -180,17 +182,17 @@ describe("Agreeement states flows", () => {
     /* =================================
       2) Consumer submits the agreement (making it Active)
     ================================= */
-    const submittedAgreement = await agreementService.submitAgreement(
-      createdAgreement.id,
-      {
-        consumerNotes: "Some notes here!",
-      },
-      {
-        authData: consumerAuthData,
-        serviceName: "AgreementService",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+
+    const apiSubmittedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/submit",
+      pathParams: { agreementId: createdAgreement.id },
+      body: { consumerNotes: "Some notes here!" },
+      authData: consumerAuthData,
+    });
+
+    const submittedAgreement = apiAgreementToAgreement(
+      apiSubmittedAgreement,
+      consumerAuthData.userId
     );
 
     expect(submittedAgreement.state).toEqual(agreementState.active);
@@ -199,14 +201,16 @@ describe("Agreeement states flows", () => {
     /* =================================
       3) Consumer suspends the agreement (make it SUSPENDED byConsumer)
     ================================= */
-    const suspendedAgreement = await agreementService.suspendAgreement(
-      submittedAgreement.id,
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+
+    const apiSuspendedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/suspend",
+      pathParams: { agreementId: submittedAgreement.id },
+      authData: consumerAuthData,
+    });
+
+    const suspendedAgreement = apiAgreementToAgreement(
+      apiSuspendedAgreement,
+      consumerAuthData.userId
     );
 
     expect(suspendedAgreement.state).toEqual(agreementState.suspended);
@@ -260,14 +264,16 @@ describe("Agreeement states flows", () => {
     /* =================================
       5) Consumer upgrades the Agreement
     ================================= */
-    const upgradedAgreement = await agreementService.upgradeAgreement(
-      suspendedAgreement.id,
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+
+    const apiUpgradedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/upgrade",
+      pathParams: { agreementId: submittedAgreement.id },
+      authData: consumerAuthData,
+    });
+
+    const upgradedAgreement = apiAgreementToAgreement(
+      apiUpgradedAgreement,
+      consumerAuthData.userId
     );
 
     expect(upgradedAgreement.state).toEqual(agreementState.draft);
@@ -280,18 +286,22 @@ describe("Agreeement states flows", () => {
       6) Producer submits the agreement to make it PENDING
       (valid att CERTIFIED and DECLARED)
     ================================= */
-    const submittedUpgradedAgreement = await agreementService.submitAgreement(
-      upgradedAgreement.id,
+
+    const apiSubmittedUpgradedAgreement = await mockAgreementRouterRequest.post(
       {
-        consumerNotes:
-          "This upgrade is for transit agreement state to PENDING!",
-      },
-      {
+        path: "/agreements/:agreementId/submit",
+        pathParams: { agreementId: upgradedAgreement.id },
+        body: {
+          consumerNotes:
+            "This upgrade is for transit agreement state to PENDING!",
+        },
         authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
       }
+    );
+
+    const submittedUpgradedAgreement = apiAgreementToAgreement(
+      apiSubmittedUpgradedAgreement,
+      consumerAuthData.userId
     );
 
     expect(submittedUpgradedAgreement.state).toEqual(agreementState.pending);
@@ -352,14 +362,15 @@ describe("Agreeement states flows", () => {
 
     const producerAuthData = getRandomAuthData(producer.id);
 
-    const activatedAgreement = await agreementService.activateAgreement(
-      submittedUpgradedAgreement.id,
-      {
-        authData: producerAuthData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+    const apiActivatedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/activate",
+      pathParams: { agreementId: submittedUpgradedAgreement.id },
+      authData: producerAuthData,
+    });
+
+    const activatedAgreement = apiAgreementToAgreement(
+      apiActivatedAgreement,
+      producerAuthData.userId
     );
 
     await updateAgreementInReadModel(activatedAgreement);
@@ -439,17 +450,16 @@ describe("Agreeement states flows", () => {
       1) Consumer creates the agreement (state DRAFT)
     ================================= */
     const consumerAuthData = getRandomAuthData(consumer.id);
-    const createdAgreement = await agreementService.createAgreement(
-      {
-        eserviceId,
-        descriptorId,
-      },
-      {
-        authData: consumerAuthData,
-        serviceName: "AgreementService",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+
+    const apiCreatedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements",
+      body: { eserviceId, descriptorId },
+      authData: consumerAuthData,
+    });
+
+    const createdAgreement = apiAgreementToAgreement(
+      apiCreatedAgreement,
+      consumerAuthData.userId
     );
 
     expect(createdAgreement.state).toEqual(agreementState.draft);
@@ -458,17 +468,17 @@ describe("Agreeement states flows", () => {
     /* =================================
       2) Consumer submits the agreement (making it Active)
     ================================= */
-    const submittedAgreement = await agreementService.submitAgreement(
-      createdAgreement.id,
-      {
-        consumerNotes: "Some notes here!",
-      },
-      {
-        authData: consumerAuthData,
-        serviceName: "AgreementService",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+
+    const apiSubmittedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/submit",
+      pathParams: { agreementId: createdAgreement.id },
+      body: { consumerNotes: "Some notes here!" },
+      authData: consumerAuthData,
+    });
+
+    const submittedAgreement = apiAgreementToAgreement(
+      apiSubmittedAgreement,
+      consumerAuthData.userId
     );
 
     expect(submittedAgreement.state).toEqual(agreementState.active);
@@ -519,14 +529,16 @@ describe("Agreeement states flows", () => {
     /* =================================
       5) Consumer upgrades the Agreement
     ================================= */
-    const upgradedAgreement = await agreementService.upgradeAgreement(
-      submittedAgreement.id,
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+
+    const apiUpgradedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/upgrade",
+      pathParams: { agreementId: submittedAgreement.id },
+      authData: consumerAuthData,
+    });
+
+    const upgradedAgreement = apiAgreementToAgreement(
+      apiUpgradedAgreement,
+      consumerAuthData.userId
     );
 
     expect(upgradedAgreement.state).toEqual(agreementState.draft);
@@ -539,18 +551,22 @@ describe("Agreeement states flows", () => {
       6) Producer submits the agreement to make it PENDING
       (valid att CERTIFIED and DECLARED)
     ================================= */
-    const submittedUpgradedAgreement = await agreementService.submitAgreement(
-      upgradedAgreement.id,
+
+    const apiSubmittedUpgradedAgreement = await mockAgreementRouterRequest.post(
       {
-        consumerNotes:
-          "This upgrade is for transit agreement state to PENDING!",
-      },
-      {
+        path: "/agreements/:agreementId/submit",
+        pathParams: { agreementId: upgradedAgreement.id },
+        body: {
+          consumerNotes:
+            "This upgrade is for transit agreement state to PENDING!",
+        },
         authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
       }
+    );
+
+    const submittedUpgradedAgreement = apiAgreementToAgreement(
+      apiSubmittedUpgradedAgreement,
+      consumerAuthData.userId
     );
 
     expect(submittedUpgradedAgreement.state).toEqual(agreementState.pending);
@@ -605,14 +621,15 @@ describe("Agreeement states flows", () => {
 
     const producerAuthData = getRandomAuthData(producer.id);
 
-    const activatedAgreement = await agreementService.activateAgreement(
-      submittedUpgradedAgreement.id,
-      {
-        authData: producerAuthData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+    const apiActivatedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/activate",
+      pathParams: { agreementId: submittedUpgradedAgreement.id },
+      authData: producerAuthData,
+    });
+
+    const activatedAgreement = apiAgreementToAgreement(
+      apiActivatedAgreement,
+      producerAuthData.userId
     );
 
     await updateAgreementInReadModel(activatedAgreement);

@@ -12,6 +12,9 @@ import {
   badRequestError,
   CompactTenant,
   AgreementAttribute,
+  UserId,
+  AgreementStamps,
+  TenantId,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -59,6 +62,14 @@ export const agreementDocumentToApiAgreementDocument = (
   contentType: input.contentType,
   path: input.path,
   createdAt: input.createdAt?.toJSON(),
+});
+
+export const apiContractToContract = (
+  input: agreementApi.Document
+): AgreementDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: new Date(input.createdAt),
 });
 
 export const agreementToApiAgreement = (
@@ -200,7 +211,8 @@ const apiAttributeToAgreementAttribute = (
 });
 
 export const apiAgreementToAgreement = (
-  apiAgreement: agreementApi.Agreement
+  apiAgreement: agreementApi.Agreement,
+  userId?: UserId
 ): Agreement => ({
   id: unsafeBrandId(apiAgreement.id),
   createdAt: new Date(apiAgreement.createdAt),
@@ -224,5 +236,165 @@ export const apiAgreementToAgreement = (
   suspendedByConsumer: apiAgreement.suspendedByConsumer,
   suspendedByProducer: apiAgreement.suspendedByProducer,
   suspendedByPlatform: apiAgreement.suspendedByPlatform,
-  stamps: {},
+  consumerNotes: apiAgreement.consumerNotes,
+  contract: apiAgreement.contract
+    ? apiContractToContract(apiAgreement.contract)
+    : undefined,
+  stamps: userId
+    ? agreementStamps(
+        apiAgreement,
+        userId,
+        unsafeBrandId(apiAgreement.consumerId),
+        unsafeBrandId(apiAgreement.producerId)
+      )
+    : {},
 });
+
+const draftStatement = (
+  apiAgreement: agreementApi.Agreement,
+  consumerId: TenantId,
+  producerId: TenantId
+): AgreementStamps => {
+  if (apiAgreement.suspendedByConsumer) {
+    return {
+      suspensionByConsumer: {
+        who: unsafeBrandId(consumerId),
+        when: new Date(),
+      },
+    };
+  } else if (apiAgreement.suspendedByProducer) {
+    return {
+      suspensionByProducer: {
+        who: unsafeBrandId(producerId),
+        when: new Date(),
+      },
+    };
+  } else {
+    return {};
+  }
+};
+
+const suspendedStatement = (
+  apiAgreement: agreementApi.Agreement,
+  userId: UserId,
+  consumerId: TenantId,
+  producerId: TenantId
+): AgreementStamps => {
+  if (apiAgreement.suspendedByConsumer) {
+    return {
+      submission: {
+        who: userId,
+        when: new Date(),
+      },
+      activation: {
+        who: userId,
+        when: new Date(),
+      },
+      suspensionByConsumer: {
+        who: unsafeBrandId(consumerId),
+        when: new Date(),
+      },
+    };
+  } else if (apiAgreement.suspendedByProducer) {
+    return {
+      submission: {
+        who: userId,
+        when: new Date(),
+      },
+      activation: {
+        who: userId,
+        when: new Date(),
+      },
+      suspensionByProducer: {
+        who: unsafeBrandId(producerId),
+        when: new Date(),
+      },
+    };
+  } else {
+    return {};
+  }
+};
+
+const pendingStatement = (
+  apiAgreement: agreementApi.Agreement,
+  userId: UserId,
+  consumerId: TenantId,
+  producerId: TenantId
+): AgreementStamps => {
+  if (apiAgreement.suspendedByConsumer) {
+    return {
+      suspensionByConsumer: {
+        who: unsafeBrandId(consumerId),
+        when: new Date(),
+      },
+      submission: {
+        who: userId,
+        when: new Date(),
+      },
+    };
+  } else if (apiAgreement.suspendedByProducer) {
+    return {
+      suspensionByProducer: {
+        who: unsafeBrandId(producerId),
+        when: new Date(),
+      },
+      submission: {
+        who: userId,
+        when: new Date(),
+      },
+    };
+  } else {
+    return {
+      submission: {
+        who: userId,
+        when: new Date(),
+      },
+    };
+  }
+};
+
+export const agreementStamps = (
+  apiAgreement: agreementApi.Agreement,
+  userId: UserId,
+  consumerId: TenantId,
+  producerId: TenantId
+): AgreementStamps =>
+  match(apiAgreement.state)
+    .with("DRAFT", () => draftStatement(apiAgreement, consumerId, producerId))
+    .with("ACTIVE", () => ({
+      submission: {
+        who: userId,
+        when: new Date(),
+      },
+      activation: {
+        who: userId,
+        when: new Date(),
+      },
+    }))
+    .with("REJECTED", () => ({
+      submission: {
+        who: userId,
+        when: new Date(),
+      },
+      rejection: {
+        who: userId,
+        when: new Date(),
+      },
+    }))
+    .with("ARCHIVED", () => ({
+      submission: {
+        who: userId,
+        when: new Date(),
+      },
+      archiving: {
+        who: userId,
+        when: new Date(),
+      },
+    }))
+    .with("SUSPENDED", () =>
+      suspendedStatement(apiAgreement, userId, consumerId, producerId)
+    )
+    .with("PENDING", () =>
+      pendingStatement(apiAgreement, userId, consumerId, producerId)
+    )
+    .otherwise(() => ({}));
