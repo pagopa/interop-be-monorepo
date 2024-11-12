@@ -76,7 +76,7 @@ const delegationRouter = (
               offset,
               limit,
             },
-            ctx
+            ctx.logger
           );
 
           return res.status(200).send(
@@ -115,7 +115,7 @@ const delegationRouter = (
         try {
           const delegation = await delegationService.getDelegationById(
             unsafeBrandId(delegationId),
-            ctx
+            ctx.logger
           );
 
           return res

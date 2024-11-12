@@ -7,7 +7,7 @@ import {
   TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { AppContext, WithLogger } from "pagopa-interop-commons";
+import { Logger } from "pagopa-interop-commons";
 import { delegationNotFound } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -27,7 +27,7 @@ export function delegationServiceBuilder(readModelService: ReadModelService) {
   return {
     async getDelegationById(
       delegationId: DelegationId,
-      { logger }: WithLogger<AppContext>
+      logger: Logger
     ): Promise<Delegation> {
       logger.info(`Retrieving delegation by id ${delegationId}`);
 
@@ -55,7 +55,7 @@ export function delegationServiceBuilder(readModelService: ReadModelService) {
         offset: number;
         limit: number;
       },
-      { logger }: WithLogger<AppContext>
+      logger: Logger
     ): Promise<Delegation[]> {
       logger.info(
         `Retrieving delegations with filters: delegateIds=${delegateIds}, delegatorIds=${delegatorIds}, delegationStates=${delegationStates}, eserviceIds=${eserviceIds}, kind=${kind}, offset=${offset}, limit=${limit}`
