@@ -15228,11 +15228,16 @@ components:
           format: uuid
         producerName:
           type: string
+        descriptors: 
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactDescriptor"
       required:
         - id
         - name
         - producerId
         - producerName
+        - descriptors
     Delegation:
       type: object
       additionalProperties: false
