@@ -40,6 +40,8 @@ describe("update eService", () => {
     vi.spyOn(fileManager, "delete");
 
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const isDelegable = randomArrayItem([false, true, undefined]);
+
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
@@ -59,6 +61,7 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
         isSignalHubEnabled,
+        isDelegable,
       },
       {
         authData: getMockAuthData(mockEService.producerId),
