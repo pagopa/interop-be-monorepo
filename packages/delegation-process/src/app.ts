@@ -11,7 +11,7 @@ import delegationProducerRouter from "./routers/DelegationProducerRouter.js";
 import delegationRouter from "./routers/DelegationRouter.js";
 import { config } from "./config/config.js";
 
-const serviceName = "delgation-process";
+const serviceName = "delegation-process";
 
 const app = zodiosCtx.app();
 
