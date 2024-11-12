@@ -124,10 +124,8 @@ const delegationProducerRouter = (
 
         try {
           await delegationProducerService.approveProducerDelegation(
-            ctx.authData.organizationId,
             unsafeBrandId(delegationId),
-            ctx.correlationId,
-            ctx.logger
+            ctx
           );
 
           return res.status(204).send();
@@ -153,10 +151,9 @@ const delegationProducerRouter = (
 
         try {
           await delegationProducerService.rejectProducerDelegation(
-            ctx.authData.organizationId,
             unsafeBrandId(delegationId),
-            ctx.correlationId,
-            rejectionReason
+            rejectionReason,
+            ctx
           );
 
           return res.status(204).send();
