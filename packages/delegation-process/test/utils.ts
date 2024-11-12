@@ -73,7 +73,7 @@ export const writeSubmitDelegationInEventstore = async (
   delegation: Delegation
 ): Promise<void> => {
   const createProducerDelegationEvent: DelegationEvent = {
-    type: "DelegationSubmitted",
+    type: "ProducerDelegationSubmitted",
     event_version: 2,
     data: {
       delegation: toDelegationV2(delegation),

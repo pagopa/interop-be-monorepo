@@ -7,7 +7,7 @@ import {
   toDelegationV2,
 } from "pagopa-interop-models";
 
-export function toCreateEventProducerDelegation(
+export function toCreateEventProducerDelegationSubmitted(
   delegation: Delegation,
   correlationId: CorrelationId
 ): CreateEvent<DelegationEventV2> {
@@ -15,7 +15,7 @@ export function toCreateEventProducerDelegation(
     streamId: delegation.id,
     version: 0,
     event: {
-      type: "DelegationSubmitted",
+      type: "ProducerDelegationSubmitted",
       event_version: 2,
       data: {
         delegation: toDelegationV2(delegation),
@@ -25,7 +25,7 @@ export function toCreateEventProducerDelegation(
   };
 }
 
-export function toRevokeEventProducerDelegation(
+export function toCreateEventProducerDelegationRevoked(
   delegation: Delegation,
   version: number,
   correlationId: CorrelationId
@@ -34,7 +34,7 @@ export function toRevokeEventProducerDelegation(
     streamId: delegation.id,
     version,
     event: {
-      type: "DelegationRevoked",
+      type: "ProducerDelegationRevoked",
       event_version: 2,
       data: {
         delegation: toDelegationV2(delegation),
@@ -44,7 +44,7 @@ export function toRevokeEventProducerDelegation(
   };
 }
 
-export function toCreateEventApproveDelegation(
+export function toCreateEventProducerDelegationApproved(
   delegation: WithMetadata<Delegation>,
   correlationId: CorrelationId
 ): CreateEvent<DelegationEventV2> {
@@ -52,7 +52,7 @@ export function toCreateEventApproveDelegation(
     streamId: delegation.data.id,
     version: delegation.metadata.version,
     event: {
-      type: "DelegationApproved",
+      type: "ProducerDelegationApproved",
       event_version: 2,
       data: {
         delegation: toDelegationV2(delegation.data),
@@ -62,7 +62,7 @@ export function toCreateEventApproveDelegation(
   };
 }
 
-export function toCreateEventRejectDelegation(
+export function toCreateEventProducerDelegationRejected(
   delegation: WithMetadata<Delegation>,
   correlationId: CorrelationId
 ): CreateEvent<DelegationEventV2> {
@@ -70,7 +70,7 @@ export function toCreateEventRejectDelegation(
     streamId: delegation.data.id,
     version: delegation.metadata.version,
     event: {
-      type: "DelegationRejected",
+      type: "ProducerDelegationRejected",
       event_version: 2,
       data: {
         delegation: toDelegationV2(delegation.data),

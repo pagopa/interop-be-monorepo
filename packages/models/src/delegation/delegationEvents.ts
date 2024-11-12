@@ -2,10 +2,10 @@ import { z } from "zod";
 import { match } from "ts-pattern";
 
 import {
-  DelegationSubmittedV2,
-  DelegationApprovedV2,
-  DelegationRejectedV2,
-  DelegationRevokedV2,
+  ProducerDelegationSubmittedV2,
+  ProducerDelegationApprovedV2,
+  ProducerDelegationRejectedV2,
+  ProducerDelegationRevokedV2,
 } from "../gen/v2/delegation/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import { EventEnvelope } from "../events/events.js";
@@ -13,23 +13,23 @@ import { EventEnvelope } from "../events/events.js";
 export const DelegationEventV2 = z.discriminatedUnion("type", [
   z.object({
     event_version: z.literal(2),
-    type: z.literal("DelegationSubmitted"),
-    data: protobufDecoder(DelegationSubmittedV2),
+    type: z.literal("ProducerDelegationSubmitted"),
+    data: protobufDecoder(ProducerDelegationSubmittedV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("DelegationApproved"),
-    data: protobufDecoder(DelegationApprovedV2),
+    type: z.literal("ProducerDelegationApproved"),
+    data: protobufDecoder(ProducerDelegationApprovedV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("DelegationRejected"),
-    data: protobufDecoder(DelegationRejectedV2),
+    type: z.literal("ProducerDelegationRejected"),
+    data: protobufDecoder(ProducerDelegationRejectedV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("DelegationRevoked"),
-    data: protobufDecoder(DelegationRevokedV2),
+    type: z.literal("ProducerDelegationRevoked"),
+    data: protobufDecoder(ProducerDelegationRevokedV2),
   }),
 ]);
 
@@ -39,17 +39,17 @@ export function delegationEventToBinaryDataV2(
   event: DelegationEventV2
 ): Uint8Array {
   return match(event)
-    .with({ type: "DelegationSubmitted" }, ({ data }) =>
-      DelegationSubmittedV2.toBinary(data)
+    .with({ type: "ProducerDelegationSubmitted" }, ({ data }) =>
+      ProducerDelegationSubmittedV2.toBinary(data)
     )
-    .with({ type: "DelegationApproved" }, ({ data }) =>
-      DelegationApprovedV2.toBinary(data)
+    .with({ type: "ProducerDelegationApproved" }, ({ data }) =>
+      ProducerDelegationApprovedV2.toBinary(data)
     )
-    .with({ type: "DelegationRejected" }, ({ data }) =>
-      DelegationRejectedV2.toBinary(data)
+    .with({ type: "ProducerDelegationRejected" }, ({ data }) =>
+      ProducerDelegationRejectedV2.toBinary(data)
     )
-    .with({ type: "DelegationRevoked" }, ({ data }) =>
-      DelegationRevokedV2.toBinary(data)
+    .with({ type: "ProducerDelegationRevoked" }, ({ data }) =>
+      ProducerDelegationRevokedV2.toBinary(data)
     )
     .exhaustive();
 }

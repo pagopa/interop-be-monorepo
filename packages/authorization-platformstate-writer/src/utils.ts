@@ -716,9 +716,16 @@ export const readClientEntriesInTokenGenerationStates = async (
   return await runPaginatedQuery(GSIPK_clientId, dynamoDBClient, undefined);
 };
 
-export const cleanClientPurposeIdsInPlatformStatesEntry = async (
-  primaryKey: PlatformStatesClientPK,
-  version: number,
+export const setClientPurposeIdsInPlatformStatesEntry = async (
+  {
+    primaryKey,
+    version,
+    clientPurposeIds,
+  }: {
+    primaryKey: PlatformStatesClientPK;
+    version: number;
+    clientPurposeIds: PurposeId[];
+  },
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: UpdateItemInput = {
@@ -730,7 +737,9 @@ export const cleanClientPurposeIdsInPlatformStatesEntry = async (
     },
     ExpressionAttributeValues: {
       ":clientPurposesIds": {
-        L: [],
+        L: clientPurposeIds.map((purposeId) => ({
+          S: purposeId,
+        })),
       },
       ":newVersion": {
         N: version.toString(),

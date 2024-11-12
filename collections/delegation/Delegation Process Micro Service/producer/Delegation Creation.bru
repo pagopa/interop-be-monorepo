@@ -11,14 +11,8 @@ post {
 }
 
 headers {
-  Cache-Control: no-cache
-  Content-Type: application/json
-  Accept: */*
-  Accept-Encoding: gzip, deflate, br
-  Connection: keep-alive
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Content-Type: application/json
 }
 
 body:json {
