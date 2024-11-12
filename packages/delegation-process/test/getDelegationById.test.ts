@@ -2,6 +2,7 @@
 import { getMockDelegationProducer } from "pagopa-interop-commons-test/index.js";
 import { DelegationId, generateId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import { delegationNotFound } from "../src/model/domain/errors.js";
 import { addOneDelegation, delegationService } from "./utils.js";
 
@@ -12,7 +13,8 @@ describe("get delegation by id", () => {
     await addOneDelegation(delegation);
 
     const expectedDelegation = await delegationService.getDelegationById(
-      delegation.id
+      delegation.id,
+      genericLogger
     );
 
     expect(delegation).toEqual(expectedDelegation);
@@ -24,7 +26,10 @@ describe("get delegation by id", () => {
     await addOneDelegation(delegation);
 
     const notFoundId = generateId<DelegationId>();
-    const expectedDelegation = delegationService.getDelegationById(notFoundId);
+    const expectedDelegation = delegationService.getDelegationById(
+      notFoundId,
+      genericLogger
+    );
 
     await expect(expectedDelegation).rejects.toThrow(
       delegationNotFound(notFoundId)
