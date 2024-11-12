@@ -4,6 +4,7 @@ import {
   getMockDelegationProducer,
   getMockTenant,
   getMockEService,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -73,12 +74,12 @@ describe("approve delegation", () => {
     const { version } = await readLastDelegationEvent(delegation.id);
     expect(version).toBe("0");
 
-    await delegationProducerService.approveProducerDelegation(
-      delegate.id,
-      delegation.id,
-      generateId(),
-      genericLogger
-    );
+    await delegationProducerService.approveProducerDelegation(delegation.id, {
+      authData: getMockAuthData(delegate.id),
+      serviceName: "",
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
 
     const event = await readLastDelegationEvent(delegation.id);
     expect(event.version).toBe("1");
@@ -158,10 +159,13 @@ describe("approve delegation", () => {
 
     await expect(
       delegationProducerService.approveProducerDelegation(
-        delegateId,
         nonExistentDelegationId,
-        generateId(),
-        genericLogger
+        {
+          authData: getMockAuthData(delegateId),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrow(delegationNotFound(nonExistentDelegationId));
   });
@@ -178,12 +182,12 @@ describe("approve delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationProducerService.approveProducerDelegation(
-        wrongDelegate.id,
-        delegation.id,
-        generateId(),
-        genericLogger
-      )
+      delegationProducerService.approveProducerDelegation(delegation.id, {
+        authData: getMockAuthData(wrongDelegate.id),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrow(
       operationRestrictedToDelegate(wrongDelegate.id, delegation.id)
     );
@@ -199,12 +203,12 @@ describe("approve delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationProducerService.approveProducerDelegation(
-        delegate.id,
-        delegation.id,
-        generateId(),
-        genericLogger
-      )
+      delegationProducerService.approveProducerDelegation(delegation.id, {
+        authData: getMockAuthData(delegate.id),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrow(
       incorrectState(
         delegation.id,
@@ -225,12 +229,12 @@ describe("approve delegation", () => {
     const { version } = await readLastDelegationEvent(delegation.id);
     expect(version).toBe("0");
 
-    await delegationProducerService.approveProducerDelegation(
-      delegate.id,
-      delegation.id,
-      unsafeBrandId("9999"),
-      genericLogger
-    );
+    await delegationProducerService.approveProducerDelegation(delegation.id, {
+      authData: getMockAuthData(delegate.id),
+      serviceName: "",
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
 
     const contracts = await fileManager.listFiles(
       config.s3Bucket,
