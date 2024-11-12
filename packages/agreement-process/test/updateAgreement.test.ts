@@ -20,11 +20,13 @@ import {
   operationNotAllowed,
 } from "../src/model/domain/errors.js";
 import { agreementUpdatableStates } from "../src/model/domain/agreement-validators.js";
+import { agreementToApiAgreement } from "../src/model/domain/apiConverter.js";
 import {
   addOneAgreement,
   agreementService,
   readLastAgreementEvent,
 } from "./utils.js";
+import { mockAgreementRouterRequest } from "./supertestSetup.js";
 
 describe("update agreement", () => {
   it("should succeed when requester is Consumer and the Agreement is in an updatable state", async () => {
@@ -34,16 +36,13 @@ describe("update agreement", () => {
     };
     await addOneAgreement(agreement);
     const authData = getRandomAuthData(agreement.consumerId);
-    const returnedAgreement = await agreementService.updateAgreement(
-      agreement.id,
-      { consumerNotes: "Updated consumer notes" },
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
-    );
+
+    const returnedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/update",
+      pathParams: { agreementId: agreement.id },
+      body: { consumerNotes: "Updated consumer notes" },
+      authData,
+    });
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -63,9 +62,10 @@ describe("update agreement", () => {
       ...toAgreementV2(agreement),
       consumerNotes: "Updated consumer notes",
     });
-    expect(actualAgreementUptaded).toMatchObject(
-      toAgreementV2(returnedAgreement)
-    );
+    expect({
+      ...agreementToApiAgreement(agreement),
+      consumerNotes: "Updated consumer notes",
+    }).toMatchObject(returnedAgreement);
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {

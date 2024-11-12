@@ -46,7 +46,6 @@ import {
   afterAll,
   afterEach,
   beforeAll,
-  beforeEach,
   describe,
   expect,
   it,
@@ -69,6 +68,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
 import { config } from "../src/config/config.js";
+import { agreementToApiAgreement } from "../src/model/domain/apiConverter.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -79,9 +79,12 @@ import {
   getMockConsumerDocument,
   getMockContract,
   readAgreementEventByVersion,
-  selfcareV2ClientMock,
   uploadDocument,
 } from "./utils.js";
+import {
+  mockAgreementRouterRequest,
+  mockSelfcareV2ClientCall,
+} from "./supertestSetup.js";
 
 describe("upgrade Agreement", () => {
   beforeAll(() => {
@@ -100,19 +103,17 @@ describe("upgrade Agreement", () => {
     id: generateId(),
   };
 
-  beforeEach(async () => {
-    // eslint-disable-next-line functional/immutable-data
-    selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-      async () => mockSelfcareUserResponse
-    );
-  });
-
   afterEach(async () => {
     vi.clearAllMocks();
   });
 
   it("should succeed with valid Verified and Declared attributes when consumer and producer are the same", async () => {
     const producerAndConsumerId = generateId<TenantId>();
+
+    mockSelfcareV2ClientCall({
+      value: mockSelfcareUserResponse,
+      mockedFor: "Router",
+    });
 
     // Certified attributes are not verified when producer and consumer are the same,
     // so the test shall pass even with this invalid attribute
@@ -221,15 +222,12 @@ describe("upgrade Agreement", () => {
       await uploadDocument(agreementId, doc.id, doc.name);
     }
 
-    const returnedAgreement = await agreementService.upgradeAgreement(
-      agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
-    );
+    const returnedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/upgrade",
+      pathParams: { agreementId: agreement.id },
+      authData,
+    });
+
     const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     const actualAgreementArchivedEvent = await readAgreementEventByVersion(
@@ -330,7 +328,9 @@ describe("upgrade Agreement", () => {
     };
 
     expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
-    expect(actualAgreementUpgraded).toEqual(returnedAgreement);
+    expect(agreementToApiAgreement(expectedUpgradedAgreement)).toEqual(
+      returnedAgreement
+    );
 
     for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -343,6 +343,11 @@ describe("upgrade Agreement", () => {
 
   it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different", async () => {
     const producer = getMockTenant();
+
+    mockSelfcareV2ClientCall({
+      value: mockSelfcareUserResponse,
+      mockedFor: "Router",
+    });
 
     const validVerifiedTenantAttribute = {
       ...getMockVerifiedTenantAttribute(),
@@ -451,15 +456,11 @@ describe("upgrade Agreement", () => {
       await uploadDocument(agreementId, doc.id, doc.name);
     }
 
-    const returnedAgreement = await agreementService.upgradeAgreement(
-      agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
-    );
+    const returnedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/upgrade",
+      pathParams: { agreementId: agreement.id },
+      authData,
+    });
     const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     const actualAgreementArchivedEvent = await readAgreementEventByVersion(
@@ -560,7 +561,9 @@ describe("upgrade Agreement", () => {
     };
 
     expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
-    expect(actualAgreementUpgraded).toEqual(returnedAgreement);
+    expect(agreementToApiAgreement(expectedUpgradedAgreement)).toEqual(
+      returnedAgreement
+    );
 
     for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -676,15 +679,12 @@ describe("upgrade Agreement", () => {
       await uploadDocument(agreementId, doc.id, doc.name);
     }
 
-    const returnedAgreement = await agreementService.upgradeAgreement(
-      agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
-    );
+    const returnedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/upgrade",
+      pathParams: { agreementId: agreement.id },
+      authData,
+    });
+
     const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     expect(newAgreementId).toBeDefined();
@@ -734,7 +734,9 @@ describe("upgrade Agreement", () => {
     };
 
     expect(actualCreatedAgreement).toEqual(expectedCreatedAgreement);
-    expect(actualCreatedAgreement).toEqual(returnedAgreement);
+    expect(agreementToApiAgreement(expectedCreatedAgreement)).toEqual(
+      returnedAgreement
+    );
 
     for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
