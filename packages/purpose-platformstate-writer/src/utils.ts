@@ -205,7 +205,7 @@ export const updatePurposeDataInPlatformStatesEntry = async ({
       ":newVersion": {
         N: version.toString(),
       },
-      ":newUpdateAt": {
+      ":newUpdatedAt": {
         S: new Date().toISOString(),
       },
     },
@@ -213,7 +213,7 @@ export const updatePurposeDataInPlatformStatesEntry = async ({
       "#state": "state",
     },
     UpdateExpression:
-      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt, purposeVersionId = :newPurposeVersionId",
+      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdatedAt, purposeVersionId = :newPurposeVersionId",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
   };
@@ -342,12 +342,12 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
           ":newPurposeVersionId": {
             S: purposeVersionId,
           },
-          ":newUpdateAt": {
+          ":newUpdatedAt": {
             S: new Date().toISOString(),
           },
         },
         UpdateExpression:
-          "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, updatedAt = :newUpdateAt" +
+          "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, updatedAt = :newUpdatedAt" +
           agreementUpdateExpression +
           descriptorUpdateExpression,
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
