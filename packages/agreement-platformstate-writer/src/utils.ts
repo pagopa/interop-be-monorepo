@@ -237,13 +237,13 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
           ":newState": {
             S: agreementStateToItemState(agreementState),
           },
-          ":newUpdateAt": {
+          ":newUpdatedAt": {
             S: new Date().toISOString(),
           },
           ...additionalAttributesToSet,
         },
         UpdateExpression:
-          "SET agreementState = :newState, updatedAt = :newUpdateAt".concat(
+          "SET agreementState = :newState, updatedAt = :newUpdatedAt".concat(
             additionalDescriptorInfo
               ? ", GSI_eservice_id_descriptor_id = :gsi, descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan"
               : ""
