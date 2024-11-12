@@ -43,26 +43,50 @@ export const delegationStateToApiDelegationState = (
   state: DelegationState
 ): delegationApi.DelegationState =>
   match<DelegationState, delegationApi.DelegationState>(state)
-    .with(delegationState.active, () => "ACTIVE")
-    .with(delegationState.rejected, () => "REJECTED")
-    .with(delegationState.revoked, () => "REVOKED")
-    .with(delegationState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
+    .with(
+      delegationState.active,
+      () => delegationApi.DelegationState.Values.ACTIVE
+    )
+    .with(
+      delegationState.rejected,
+      () => delegationApi.DelegationState.Values.REJECTED
+    )
+    .with(
+      delegationState.revoked,
+      () => delegationApi.DelegationState.Values.REVOKED
+    )
+    .with(
+      delegationState.waitingForApproval,
+      () => delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL
+    )
     .exhaustive();
 
 export const delegationKindToApiDelegationKind = (
   kind: DelegationKind
 ): delegationApi.DelegationKind =>
   match<DelegationKind, delegationApi.DelegationKind>(kind)
-    .with(delegationKind.delegatedConsumer, () => "DELEGATED_CONSUMER")
-    .with(delegationKind.delegatedProducer, () => "DELEGATED_PRODUCER")
+    .with(
+      delegationKind.delegatedConsumer,
+      () => delegationApi.DelegationKind.Values.DELEGATED_CONSUMER
+    )
+    .with(
+      delegationKind.delegatedProducer,
+      () => delegationApi.DelegationKind.Values.DELEGATED_PRODUCER
+    )
     .exhaustive();
 
 export const apiDelegationKindToDelegationKind = (
   kind: delegationApi.DelegationKind
 ): DelegationKind =>
   match<delegationApi.DelegationKind, DelegationKind>(kind)
-    .with("DELEGATED_CONSUMER", () => delegationKind.delegatedConsumer)
-    .with("DELEGATED_PRODUCER", () => delegationKind.delegatedProducer)
+    .with(
+      delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+      () => delegationKind.delegatedConsumer
+    )
+    .with(
+      delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
+      () => delegationKind.delegatedProducer
+    )
     .exhaustive();
 
 export const delegationContractToApiDelegationContract = (
@@ -102,8 +126,20 @@ export const apiDelegationStateToDelegationState = (
   state: delegationApi.DelegationState
 ): DelegationState =>
   match<delegationApi.DelegationState, DelegationState>(state)
-    .with("ACTIVE", () => delegationState.active)
-    .with("REJECTED", () => delegationState.rejected)
-    .with("REVOKED", () => delegationState.revoked)
-    .with("WAITING_FOR_APPROVAL", () => delegationState.waitingForApproval)
+    .with(
+      delegationApi.DelegationState.Values.ACTIVE,
+      () => delegationState.active
+    )
+    .with(
+      delegationApi.DelegationState.Values.REJECTED,
+      () => delegationState.rejected
+    )
+    .with(
+      delegationApi.DelegationState.Values.REVOKED,
+      () => delegationState.revoked
+    )
+    .with(
+      delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
+      () => delegationState.waitingForApproval
+    )
     .exhaustive();

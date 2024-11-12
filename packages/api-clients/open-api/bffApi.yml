@@ -52,12 +52,12 @@ tags:
       description: Find out more
       url: "http://swagger.io"
   - name: delegations
-    description: Tenant Module
+    description: Delegation Module
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
   - name: producerDelegations
-    description: Tenant Module
+    description: Producer Delegation Module
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -9512,7 +9512,7 @@ paths:
                   minItems: 1
                   items:
                     type: string
-                    format: uuid             
+                    format: uuid
       responses:
         "200":
           description: Users added
@@ -11075,7 +11075,7 @@ paths:
                   minItems: 1
                   items:
                     type: string
-                    format: uuid    
+                    format: uuid
       responses:
         "204":
           description: Users added
@@ -12027,13 +12027,13 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /delegations:
     parameters:
-    - $ref: "#/components/parameters/CorrelationIdHeader"
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - delegations
-      summary: List producer delegations
-      description: List producer delegations
-      operationId: getProducerDelegations
+      summary: List delegations
+      description: List delegations
+      operationId: getDelegations
       parameters:
         - in: query
           name: offset
@@ -12063,15 +12063,15 @@ paths:
           name: delegatorIds
           schema:
             type: array
-            items: 
+            items:
               type: string
               format: uuid
           description: "The delegator ids to filter by"
         - in: query
-          name: delegatedIds
+          name: delegateIds
           schema:
             type: array
-            items: 
+            items:
               type: string
               format: uuid
           description: "The delegated ids to filter by"
@@ -12184,16 +12184,16 @@ paths:
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available  
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /producer/delegations:
     parameters:
-    - $ref: "#/components/parameters/CorrelationIdHeader"
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       summary: Producer delegation creation
       operationId: createProducerDelegation
       responses:
         "200":
-          description: Delegation created.
+          description: Delegation created
           content:
             application/json:
               schema:
@@ -12481,7 +12481,7 @@ paths:
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available   
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /delegations/{delegationId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -12492,11 +12492,11 @@ paths:
         schema:
           type: string
     get:
-      description: Retrieves a producer delegation
-      summary: Retrieves a producer delegation
+      description: Retrieves delegation
+      summary: Retrieves delegation
       tags:
         - delegations
-      operationId: getProducerDelegation
+      operationId: getDelegation
       responses:
         "200":
           description: Producer delegation retrieved
@@ -15208,10 +15208,10 @@ components:
       type: object
       additionalProperties: false
       properties:
-        id: 
+        id:
           type: string
           format: uuid
-        name: 
+        name:
           type: string
       required:
         - id
@@ -15220,14 +15220,14 @@ components:
       type: object
       additionalProperties: false
       properties:
-        id: 
+        id:
           type: string
           format: uuid
-        name: 
+        name:
           type: string
         description:
           type: string
-        producerId: 
+        producerId:
           type: string
           format: uuid
         producerName:

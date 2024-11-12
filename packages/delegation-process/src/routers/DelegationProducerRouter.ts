@@ -33,31 +33,31 @@ const readModelService = readModelServiceBuilder(
 const pdfGenerator = await initPDFGenerator();
 const fileManager = initFileManager(config);
 
+const delegationProducerService = delegationProducerServiceBuilder(
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
+  readModelService,
+  pdfGenerator,
+  fileManager
+);
+
 const { ADMIN_ROLE } = userRoles;
 
 const delegationProducerRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const delegationRouter = ctx.router(delegationApi.producerApi.api, {
+  const delegationProducerRouter = ctx.router(delegationApi.producerApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const delegationProducerService = delegationProducerServiceBuilder(
-    initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    }),
-    readModelService,
-    pdfGenerator,
-    fileManager
-  );
-
-  delegationRouter
+  delegationProducerRouter
     .post(
       "/producer/delegations",
       authorizationMiddleware([ADMIN_ROLE]),
@@ -97,7 +97,7 @@ const delegationProducerRouter = (
 
         try {
           const { delegationId } = req.params;
-          await delegationProducerService.revokeDelegation(
+          await delegationProducerService.revokeProducerDelegation(
             unsafeBrandId(delegationId),
             ctx
           );
@@ -115,57 +115,65 @@ const delegationProducerRouter = (
         }
       }
     )
-    .post("/producer/delegations/:delegationId/approve", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-      const { delegationId } = req.params;
+    .post(
+      "/producer/delegations/:delegationId/approve",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        const { delegationId } = req.params;
 
-      try {
-        await delegationProducerService.approveProducerDelegation(
-          ctx.authData.organizationId,
-          unsafeBrandId(delegationId),
-          ctx.correlationId,
-          ctx.logger
-        );
+        try {
+          await delegationProducerService.approveProducerDelegation(
+            ctx.authData.organizationId,
+            unsafeBrandId(delegationId),
+            ctx.correlationId,
+            ctx.logger
+          );
 
-        return res.status(204).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          approveDelegationErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            approveDelegationErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
 
-        return res.status(errorRes.status).send(errorRes);
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    })
-    .post("/producer/delegations/:delegationId/reject", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-      const { delegationId } = req.params;
-      const { rejectionReason } = req.body;
+    )
+    .post(
+      "/producer/delegations/:delegationId/reject",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        const { delegationId } = req.params;
+        const { rejectionReason } = req.body;
 
-      try {
-        await delegationProducerService.rejectProducerDelegation(
-          ctx.authData.organizationId,
-          unsafeBrandId(delegationId),
-          ctx.correlationId,
-          rejectionReason
-        );
+        try {
+          await delegationProducerService.rejectProducerDelegation(
+            ctx.authData.organizationId,
+            unsafeBrandId(delegationId),
+            ctx.correlationId,
+            rejectionReason
+          );
 
-        return res.status(204).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          rejectDelegationErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            rejectDelegationErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
 
-        return res.status(errorRes.status).send(errorRes);
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    });
+    );
 
-  return delegationRouter;
+  return delegationProducerRouter;
 };
 
 export default delegationProducerRouter;

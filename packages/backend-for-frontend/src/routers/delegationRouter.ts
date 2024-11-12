@@ -43,7 +43,7 @@ const delegationRouter = (
           offset,
           states,
           kind,
-          delegatedIds,
+          delegateIds,
           delegatorIds,
           eserviceIds,
         } = req.query;
@@ -54,7 +54,7 @@ const delegationRouter = (
             offset,
             states,
             delegatorIds,
-            delegatedIds,
+            delegateIds,
             eserviceIds,
             kind,
           },

@@ -659,7 +659,10 @@ export function catalogServiceBuilder(
 
       if (
         document.kind === "DOCUMENT" &&
-        descriptor.docs.some((d) => d.prettyName === document.prettyName)
+        descriptor.docs.some(
+          (d) =>
+            d.prettyName.toLowerCase() === document.prettyName.toLowerCase()
+        )
       ) {
         throw prettyNameDuplicate(document.prettyName, descriptor.id);
       }
@@ -817,7 +820,8 @@ export function catalogServiceBuilder(
         descriptor.docs.some(
           (d) =>
             d.id !== documentId &&
-            d.prettyName === apiEServiceDescriptorDocumentUpdateSeed.prettyName
+            d.prettyName.toLowerCase() ===
+              apiEServiceDescriptorDocumentUpdateSeed.prettyName.toLowerCase()
         )
       ) {
         throw prettyNameDuplicate(
