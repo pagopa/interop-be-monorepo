@@ -62,6 +62,10 @@ import {
   assertNotDelegatedEservice,
   assertRequesterIsProducer,
 } from "./validators.js";
+import {
+  getAllDelegations,
+  getTenantsFromDelegation,
+} from "./delegationService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -528,12 +532,16 @@ export function catalogServiceBuilder(
         descriptor
       );
 
-      const requesterTenant = await tenantProcessClient.tenant.getTenant({
-        headers,
-        params: {
-          id: requesterId,
-        },
-      });
+      const requesterTenants = await getTenantsFromDelegation(
+        tenantProcessClient,
+        await getAllDelegations(delegationProcessClient, headers, {
+          delegateIds: [requesterId],
+          delegationStates: ["ACTIVE"],
+          kind: "DELEGATED_CONSUMER",
+          eserviceIds: [eserviceId],
+        }),
+        headers
+      );
       const producerTenant = await tenantProcessClient.tenant.getTenant({
         headers,
         params: {
@@ -571,7 +579,7 @@ export function catalogServiceBuilder(
           descriptor,
           producerTenant,
           agreement,
-          requesterTenant
+          Array.from(requesterTenants, ([, tenant]) => tenant)
         ),
       };
     },
