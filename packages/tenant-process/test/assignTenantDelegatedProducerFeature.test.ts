@@ -11,7 +11,7 @@ import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
-import { tenantAlreadyHasDelegatedProducerFeature } from "../src/model/domain/errors.js";
+import { tenantAlreadyHasFeature } from "../src/model/domain/errors.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("assignTenantDelegatedProducerFeature", async () => {
@@ -85,7 +85,9 @@ describe("assignTenantDelegatedProducerFeature", async () => {
         authData: getMockAuthData(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(tenantAlreadyHasDelegatedProducerFeature(tenant.id));
+    ).rejects.toThrowError(
+      tenantAlreadyHasFeature(tenant.id, "DelegatedProducer")
+    );
   });
   it("Should throw operationForbidden if the requester tenant is not a public administration", async () => {
     const tenant = getMockTenant();
