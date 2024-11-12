@@ -16,14 +16,12 @@ import { config } from "../config/config.js";
 import {
   apiDelegationKindToDelegationKind,
   apiDelegationStateToDelegationState,
-  delegationContractToApiDelegationContract,
   delegationToApiDelegation,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   getDelegationsErrorMapper,
   getDelegationByIdErrorMapper,
-  getDelegationDocumentErrorMapper,
 } from "../utilites/errorMappers.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
@@ -127,45 +125,6 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             getDelegationByIdErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .get(
-      "/delegations/:delegationId/documents/:documentId",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        const { delegationId, documentId } = req.params;
-
-        try {
-          const document = await delegationService.getDelegationDocument(
-            unsafeBrandId(delegationId),
-            unsafeBrandId(documentId),
-            ctx
-          );
-
-          return res
-            .status(200)
-            .send(
-              delegationApi.DelegationContractDocument.parse(
-                delegationContractToApiDelegationContract(document)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getDelegationDocumentErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
