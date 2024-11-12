@@ -1,4 +1,3 @@
-import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
@@ -22,7 +21,7 @@ import {
   revokeDelegationErrorMapper,
   approveDelegationErrorMapper,
   rejectDelegationErrorMapper,
-} from "../utilites/errorMappers.js";
+} from "../utilities/errorMappers.js";
 
 const { ADMIN_ROLE } = userRoles;
 
@@ -32,7 +31,7 @@ const delegationProducerRouter = (
   readModelService: ReadModelService,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+): ZodiosRouter<typeof delegationApi.producerApi.api, ExpressContext> => {
   const delegationProducerRouter = ctx.router(delegationApi.producerApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
@@ -111,10 +110,8 @@ const delegationProducerRouter = (
 
         try {
           await delegationProducerService.approveProducerDelegation(
-            ctx.authData.organizationId,
             unsafeBrandId(delegationId),
-            ctx.correlationId,
-            ctx.logger
+            ctx
           );
 
           return res.status(204).send();
@@ -140,10 +137,9 @@ const delegationProducerRouter = (
 
         try {
           await delegationProducerService.rejectProducerDelegation(
-            ctx.authData.organizationId,
             unsafeBrandId(delegationId),
-            ctx.correlationId,
-            rejectionReason
+            rejectionReason,
+            ctx
           );
 
           return res.status(204).send();

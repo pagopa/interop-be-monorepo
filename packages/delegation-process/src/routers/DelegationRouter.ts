@@ -1,4 +1,3 @@
-import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
@@ -17,7 +16,10 @@ import {
   delegationToApiDelegation,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { getDelegationErrorMapper } from "../utilites/errorMappers.js";
+import {
+  getDelegationsErrorMapper,
+  getDelegationByIdErrorMapper,
+} from "../utilities/errorMappers.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
 const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } =
@@ -26,7 +28,7 @@ const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } =
 const delegationRouter = (
   ctx: ZodiosContext,
   readModelService: ReadModelService
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+): ZodiosRouter<typeof delegationApi.delegationApi.api, ExpressContext> => {
   const delegationRouter = ctx.router(delegationApi.delegationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
@@ -56,17 +58,20 @@ const delegationRouter = (
         } = req.query;
 
         try {
-          const delegations = await delegationService.getDelegations({
-            delegateIds: delegateIds.map(unsafeBrandId<TenantId>),
-            delegatorIds: delegatorIds.map(unsafeBrandId<TenantId>),
-            delegationStates: delegationStates.map(
-              apiDelegationStateToDelegationState
-            ),
-            eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
-            kind: kind && apiDelegationKindToDelegationKind(kind),
-            offset,
-            limit,
-          });
+          const delegations = await delegationService.getDelegations(
+            {
+              delegateIds: delegateIds.map(unsafeBrandId<TenantId>),
+              delegatorIds: delegatorIds.map(unsafeBrandId<TenantId>),
+              delegationStates: delegationStates.map(
+                apiDelegationStateToDelegationState
+              ),
+              eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
+              kind: kind && apiDelegationKindToDelegationKind(kind),
+              offset,
+              limit,
+            },
+            ctx.logger
+          );
 
           return res.status(200).send(
             delegationApi.Delegations.parse({
@@ -79,7 +84,7 @@ const delegationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getDelegationErrorMapper,
+            getDelegationsErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -103,7 +108,8 @@ const delegationRouter = (
 
         try {
           const delegation = await delegationService.getDelegationById(
-            unsafeBrandId(delegationId)
+            unsafeBrandId(delegationId),
+            ctx.logger
           );
 
           return res
@@ -116,7 +122,7 @@ const delegationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getDelegationErrorMapper,
+            getDelegationByIdErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
