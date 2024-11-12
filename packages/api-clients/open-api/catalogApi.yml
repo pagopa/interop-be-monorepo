@@ -1157,7 +1157,7 @@ components:
           type: boolean
         isDelegable:
           type: boolean
-        delegateClientAccess:
+        isClientAccessDelegable:
           type: boolean
     DescriptorSeedForEServiceCreation:
       required:
@@ -1469,7 +1469,7 @@ components:
           type: boolean
         isDelegable:
           type: boolean
-        delegateClientAccess:
+        isClientAccessDelegable:
           type: boolean
     EServiceMode:
       type: string
