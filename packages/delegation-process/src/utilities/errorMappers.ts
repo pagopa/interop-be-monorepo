@@ -14,7 +14,12 @@ const {
   HTTP_STATUS_UNAUTHORIZED,
 } = constants;
 
-export const getDelegationByIdsrrorMapper = (
+export const getDelegationsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getDelegationByIdErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -34,11 +39,6 @@ export const createProducerDelegationErrorMapper = (
       "tenantNotAllowedToDelegation",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const getDelegationErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeDelegationErrorMapper = (
