@@ -104,6 +104,7 @@ describe("create eservice", () => {
       id: eservice.id,
       descriptors: [],
       isSignalHubEnabled,
+      isDelegable,
     };
     const expectedEserviceWithDescriptor: EService = {
       ...mockEService,

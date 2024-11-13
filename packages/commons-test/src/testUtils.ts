@@ -101,6 +101,7 @@ export const getTenantCertifierFeatures = (
           feature as TenantFeatureCertifier,
         ])
         .with("DelegatedProducer", () => acc)
+        .with("DelegatedConsumer", () => acc)
         .exhaustive(),
     []
   );

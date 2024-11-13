@@ -98,8 +98,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.6-b
-        version: 1.0.6-b
+        specifier: 1.0.6-f
+        version: 1.0.6-f
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -975,8 +975,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.6-b
-        version: 1.0.6-b
+        specifier: 1.0.6-f
+        version: 1.0.6-f
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2449,8 +2449,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.6-b
-        version: 1.0.6-b
+        specifier: 1.0.6-f
+        version: 1.0.6-f
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2754,8 +2754,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.6-b
-        version: 1.0.6-b
+        specifier: 1.0.6-f
+        version: 1.0.6-f
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -4111,8 +4111,8 @@ packages:
   '@pagopa/eslint-config@3.0.0':
     resolution: {integrity: sha512-eYIPdiuYRbRPR5k0OuteRNqYb0Z2nfJ/lZohejB7ylfBeSDWwkaV8Z19AXP4RymE6oEesyPDZ6i0yNaE9tQrHw==}
 
-  '@pagopa/interop-outbound-models@1.0.6-b':
-    resolution: {integrity: sha512-yxGueush6nX1XqU4/WHueJwNcZ56XCNDkz44RPPXLWCJSucLrw9gKO9Mc3kUA/ocGd0mIsLYOCnuRpr42Pw7Iw==}
+  '@pagopa/interop-outbound-models@1.0.6-f':
+    resolution: {integrity: sha512-5v3AU4qvwxf5jpPN0dz63w05Dq6Hfs1zW0/ETupL/QOzmsBYyDtYQQgxwEzAyUYM5Z9q16lD2BYhtQU+gRIZhw==}
 
   '@pdf-lib/standard-fonts@1.0.0':
     resolution: {integrity: sha512-hU30BK9IUN/su0Mn9VdlVKsWBS6GyhVfqjwl1FjZN4TxP6cCw0jP2w7V3Hf5uX7M0AZJ16vey9yE0ny7Sa59ZA==}
@@ -9718,7 +9718,7 @@ snapshots:
   '@aws-sdk/middleware-expect-continue@3.598.0':
     dependencies:
       '@aws-sdk/types': 3.598.0
-      '@smithy/protocol-http': 4.0.3
+      '@smithy/protocol-http': 4.1.0
       '@smithy/types': 3.3.0
       tslib: 2.6.3
 
@@ -9867,7 +9867,7 @@ snapshots:
   '@aws-sdk/middleware-sdk-sqs@3.598.0':
     dependencies:
       '@aws-sdk/types': 3.598.0
-      '@smithy/smithy-client': 3.1.5
+      '@smithy/smithy-client': 3.2.0
       '@smithy/types': 3.3.0
       '@smithy/util-hex-encoding': 3.0.0
       '@smithy/util-utf8': 3.0.0
@@ -10640,7 +10640,7 @@ snapshots:
       - tsutils
       - typescript
 
-  '@pagopa/interop-outbound-models@1.0.6-b':
+  '@pagopa/interop-outbound-models@1.0.6-f':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
@@ -10841,11 +10841,11 @@ snapshots:
 
   '@smithy/core@2.2.4':
     dependencies:
-      '@smithy/middleware-endpoint': 3.0.4
-      '@smithy/middleware-retry': 3.0.7
+      '@smithy/middleware-endpoint': 3.1.0
+      '@smithy/middleware-retry': 3.0.15
       '@smithy/middleware-serde': 3.0.3
-      '@smithy/protocol-http': 4.0.3
-      '@smithy/smithy-client': 3.1.5
+      '@smithy/protocol-http': 4.1.0
+      '@smithy/smithy-client': 3.2.0
       '@smithy/types': 3.3.0
       '@smithy/util-middleware': 3.0.3
       tslib: 2.6.3
@@ -10957,7 +10957,7 @@ snapshots:
 
   '@smithy/fetch-http-handler@3.2.0':
     dependencies:
-      '@smithy/protocol-http': 4.0.3
+      '@smithy/protocol-http': 4.1.0
       '@smithy/querystring-builder': 3.0.3
       '@smithy/types': 3.3.0
       '@smithy/util-base64': 3.0.0
@@ -11049,7 +11049,7 @@ snapshots:
 
   '@smithy/middleware-content-length@3.0.3':
     dependencies:
-      '@smithy/protocol-http': 4.0.3
+      '@smithy/protocol-http': 4.1.0
       '@smithy/types': 3.3.0
       tslib: 2.6.3
 
@@ -11307,9 +11307,9 @@ snapshots:
 
   '@smithy/smithy-client@3.1.5':
     dependencies:
-      '@smithy/middleware-endpoint': 3.0.4
+      '@smithy/middleware-endpoint': 3.1.0
       '@smithy/middleware-stack': 3.0.3
-      '@smithy/protocol-http': 4.0.3
+      '@smithy/protocol-http': 4.1.0
       '@smithy/types': 3.3.0
       '@smithy/util-stream': 3.0.5
       tslib: 2.6.3
@@ -11445,7 +11445,7 @@ snapshots:
 
   '@smithy/util-endpoints@2.0.4':
     dependencies:
-      '@smithy/node-config-provider': 3.1.3
+      '@smithy/node-config-provider': 3.1.4
       '@smithy/types': 3.3.0
       tslib: 2.6.3
 

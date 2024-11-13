@@ -36,9 +36,18 @@ export type TenantFeatureDelegatedProducer = z.infer<
   typeof TenantFeatureDelegatedProducer
 >;
 
+export const TenantFeatureDelegatedConsumer = z.object({
+  type: z.literal("DelegatedConsumer"),
+  availabilityTimestamp: z.coerce.date(),
+});
+export type TenantFeatureDelegatedConsumer = z.infer<
+  typeof TenantFeatureDelegatedConsumer
+>;
+
 export const TenantFeature = z.discriminatedUnion("type", [
   TenantFeatureCertifier,
   TenantFeatureDelegatedProducer,
+  TenantFeatureDelegatedConsumer,
 ]);
 
 export type TenantFeature = z.infer<typeof TenantFeature>;
