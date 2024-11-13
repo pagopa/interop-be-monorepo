@@ -81,7 +81,7 @@ describe("getDelegationContract", () => {
     await addOneDelegation(delegation);
 
     const falseContractId = generateId<DelegationContractId>();
-    const returnedContract = await delegationService.getDelegationContract(
+    const returnedContract = delegationService.getDelegationContract(
       delegation.id,
       falseContractId,
       {
@@ -105,7 +105,7 @@ describe("getDelegationContract", () => {
 
     await addOneDelegation(delegation);
 
-    const returnedContract = await delegationService.getDelegationContract(
+    const returnedContract = delegationService.getDelegationContract(
       delegation.id,
       mockContract.id,
       {
@@ -115,8 +115,6 @@ describe("getDelegationContract", () => {
         serviceName: "",
       }
     );
-
-    expect(returnedContract).toEqual(mockContract);
 
     await expect(returnedContract).rejects.toThrow(operationForbidden);
   });
