@@ -241,5 +241,6 @@ export const removeTenantDelegatedConsumerFeatureErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantDoesNotHaveFeature", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

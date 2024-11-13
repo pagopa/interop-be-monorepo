@@ -5,12 +5,16 @@ import {
   protobufDecoder,
   toTenantV2,
   TenantDelegatedConsumerFeatureRemovedV2,
+  TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
 import { getMockTenant } from "pagopa-interop-commons-test";
-import { tenantDoesNotHaveFeature } from "../src/model/domain/errors.js";
+import {
+  tenantDoesNotHaveFeature,
+  tenantNotFound,
+} from "../src/model/domain/errors.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("removeTenantDelegatedConsumerFeature", async () => {
@@ -64,7 +68,16 @@ describe("removeTenantDelegatedConsumerFeature", async () => {
     };
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
-
+  it("Should throw tenantNotFound if the requester tenant doesn't exist", async () => {
+    const organizationId = generateId<TenantId>();
+    expect(
+      tenantService.removeTenantDelegatedConsumerFeature({
+        organizationId,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(tenantNotFound(organizationId));
+  });
   it("Should throw tenantDoesNotHaveFeature if the requester tenant doesn't have the delegated consumer feature", async () => {
     const tenant: Tenant = {
       ...getMockTenant(),

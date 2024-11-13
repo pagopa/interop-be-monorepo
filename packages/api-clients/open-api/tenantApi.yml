@@ -1007,6 +1007,12 @@ paths:
       responses:
         "204":
           description: Delegated consumer feature removed
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "409":
           description: Feature not assigned to tenant
           content:
