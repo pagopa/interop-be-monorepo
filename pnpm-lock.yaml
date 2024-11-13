@@ -101,8 +101,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.4-d
-        version: 1.0.4-d
+        specifier: 1.0.10
+        version: 1.0.10
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -978,8 +978,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.4-d
-        version: 1.0.4-d
+        specifier: 1.0.10
+        version: 1.0.10
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2452,8 +2452,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.4-d
-        version: 1.0.4-d
+        specifier: 1.0.10
+        version: 1.0.10
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2757,8 +2757,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.4-d
-        version: 1.0.4-d
+        specifier: 1.0.10
+        version: 1.0.10
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -4118,8 +4118,14 @@ packages:
   '@pagopa/eslint-config@3.0.0':
     resolution: {integrity: sha512-eYIPdiuYRbRPR5k0OuteRNqYb0Z2nfJ/lZohejB7ylfBeSDWwkaV8Z19AXP4RymE6oEesyPDZ6i0yNaE9tQrHw==}
 
-  '@pagopa/interop-outbound-models@1.0.4-d':
-    resolution: {integrity: sha512-AtE47wVwA2UjABo7Rdtbl2wgyPCnH02vbiwQHhsi0pLRHi+85lMpkzURfHdvwsEqtc4a4LtkVqiU8gjiBTT13A==}
+  '@pagopa/interop-outbound-models@1.0.10':
+    resolution: {integrity: sha512-/TDVP8j+Q0ErpVs7MzH9LhfiEPcOzqea00um4sjQ9uuA6/Yg0G9A739bDOuaxih2wKpJ3hNPLnm9riM+YAz6Ow==}
+
+  '@pdf-lib/standard-fonts@1.0.0':
+    resolution: {integrity: sha512-hU30BK9IUN/su0Mn9VdlVKsWBS6GyhVfqjwl1FjZN4TxP6cCw0jP2w7V3Hf5uX7M0AZJ16vey9yE0ny7Sa59ZA==}
+
+  '@pdf-lib/upng@1.0.1':
+    resolution: {integrity: sha512-dQK2FUMQtowVP00mtIksrlZhdFXQZPC+taih1q4CvPZ5vqdxR/LKBaFg0oAfzd1GlHZXXSPdQfzQnt+ViGvEIQ==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -10742,7 +10748,7 @@ snapshots:
       - tsutils
       - typescript
 
-  '@pagopa/interop-outbound-models@1.0.4-d':
+  '@pagopa/interop-outbound-models@1.0.10':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
@@ -11908,7 +11914,6 @@ snapshots:
 
   '@types/lodash.isempty@4.4.9':
     dependencies:
-      '@types/lodash': 4.17.6
       '@types/lodash': 4.17.6
 
   '@types/lodash.isequal@4.5.8':
