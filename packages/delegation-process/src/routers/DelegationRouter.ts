@@ -138,7 +138,7 @@ const delegationRouter = (
       }
     )
     .get(
-      "/delegations/:delegationId/contract/:contractId",
+      "/delegations/:delegationId/contracts/:contractId",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         const { delegationId, contractId } = req.params;

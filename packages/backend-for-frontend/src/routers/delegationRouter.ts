@@ -102,7 +102,7 @@ const delegationRouter = (
       }
     })
     .get(
-      "/delegations/:delegationId/contract/:contractId",
+      "/delegations/:delegationId/contracts/:contractId",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         const { delegationId, contractId } = req.params;

@@ -156,7 +156,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /delegations/{delegationId}/contract/{contractId}:
+  /delegations/{delegationId}/contracts/{contractId}:
     get:
       description: Retrieves a delegation contract
       summary: Retrieves a delegation contract

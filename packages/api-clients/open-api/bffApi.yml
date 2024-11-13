@@ -12662,7 +12662,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/delegations/{delegationId}/contract/{contractId}":
+  "/delegations/{delegationId}/contracts/{contractId}":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: delegationId
