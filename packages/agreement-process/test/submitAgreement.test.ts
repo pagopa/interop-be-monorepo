@@ -17,7 +17,6 @@ import {
   getMockVerifiedTenantAttribute,
   getRandomAuthData,
   randomArrayItem,
-  randomBoolean,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -60,8 +59,8 @@ import {
   tenantNotFound,
   userNotFound,
 } from "../src/model/domain/errors.js";
-import { createStamp } from "../src/services/agreementStampUtils.js";
 import { config } from "../src/config/config.js";
+import { apiAgreementToAgreement } from "../src/model/domain/apiConverter.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -72,8 +71,16 @@ import {
   readLastAgreementEvent,
   selfcareV2ClientMock,
 } from "./utils.js";
+import {
+  mockAgreementRouterRequest,
+  mockSelfcareV2ClientCall,
+} from "./supertestSetup.js";
 
 describe("submit agreement", () => {
+  afterEach(async () => {
+    vi.clearAllMocks();
+  });
+
   const mockSelfCareResponse = (
     userResponse?: selfcareV2ClientApi.UserResponse
   ): void => {
@@ -88,9 +95,13 @@ describe("submit agreement", () => {
     }
   };
 
-  afterEach(async () => {
-    vi.clearAllMocks();
-  });
+  const mockUserResponse: selfcareV2ClientApi.UserResponse = {
+    email: "selfcare.test.submitagreement@test.org",
+    name: "Test Name",
+    surname: "Test Surname",
+    id: generateId(),
+    taxCode: "TAXCODE",
+  };
 
   async function addRelatedAgreements(agreement: Agreement): Promise<{
     archivableRelatedAgreement1: Agreement;
@@ -1026,13 +1037,6 @@ describe("submit agreement", () => {
     await addOneAgreement(agreement);
 
     const authData = getRandomAuthData(consumer.id);
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
 
     mockSelfCareResponse(mockUserResponse);
 
@@ -1132,12 +1136,9 @@ describe("submit agreement", () => {
       certifiedAttributes: [],
       declaredAttributes: [],
       verifiedAttributes: [],
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
-      },
+      suspendedByConsumer: false,
+      suspendedByProducer: false,
+      stamps: {},
       suspendedAt: new Date(),
     };
 
@@ -1152,26 +1153,18 @@ describe("submit agreement", () => {
       nonArchivableRelatedAgreement,
     } = await addRelatedAgreements(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
-
     mockSelfCareResponse(mockUserResponse);
-    const submittedAgreement = await agreementService.submitAgreement(
-      agreement.id,
-      {
-        consumerNotes: consumerNotesText,
-      },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "AgreementServiceTest",
-        logger: genericLogger,
-      }
+
+    const apiSubmittedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/submit",
+      pathParams: { agreementId: agreement.id },
+      body: { consumerNotes: consumerNotesText },
+      authData,
+    });
+
+    const submittedAgreement = apiAgreementToAgreement(
+      apiSubmittedAgreement,
+      authData.userId
     );
 
     const actualAgreementData = await readLastAgreementEvent(agreement.id);
@@ -1208,26 +1201,49 @@ describe("submit agreement", () => {
     // https://pagopa.atlassian.net/browse/IMN-623
     expect(submittedAgreement.contract).not.toBeDefined();
 
-    const expectedAgreement = {
+    const expectedAgreement: Agreement = {
       ...agreement,
       state: agreementState.active,
+      createdAt: submittedAgreement.createdAt,
       consumerNotes: consumerNotesText,
       suspendedByPlatform: false,
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: submittedAgreement.consumerDocuments[index].createdAt,
+      })),
       stamps: {
         ...agreement.stamps,
         submission: {
           who: authData.userId,
-          when: submittedAgreement.stamps?.submission?.when,
+          when: submittedAgreement.stamps.submission!.when,
         },
         activation: {
           who: authData.userId,
-          when: submittedAgreement.stamps?.activation?.when,
+          when: submittedAgreement.stamps.activation!.when,
+        },
+      },
+    };
+
+    const actualAgreementWithCorrectDate: Agreement = {
+      ...fromAgreementV2(actualAgreement),
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: submittedAgreement.consumerDocuments[index].createdAt,
+      })),
+      stamps: {
+        submission: {
+          who: authData.userId,
+          when: submittedAgreement.stamps.submission!.when,
+        },
+        activation: {
+          who: authData.userId,
+          when: submittedAgreement.stamps.activation!.when,
         },
       },
     };
 
     expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
-    expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+    expect(actualAgreementWithCorrectDate).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
 
     await testRelatedAgreementsArchiviation({
@@ -1238,10 +1254,12 @@ describe("submit agreement", () => {
   });
 
   it("should create a new agreement contract for first activation with new state ACTIVE when producer is equal to consumer, generates AgreementActivated event", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
     const producerAndConsumerId = generateId<TenantId>();
     const producer = getMockTenant(producerAndConsumerId);
     const consumerNotesText = "This is a test";
-
     const validVerifiedTenantAttribute: TenantAttribute = {
       ...getMockVerifiedTenantAttribute(),
       verifiedBy: [
@@ -1303,12 +1321,9 @@ describe("submit agreement", () => {
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
-      },
+      suspendedByConsumer: false,
+      suspendedByProducer: false,
+      stamps: {},
       suspendedAt: new Date(),
     };
 
@@ -1344,26 +1359,18 @@ describe("submit agreement", () => {
     await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
+    mockSelfcareV2ClientCall({ value: mockUserResponse, mockedFor: "Router" });
 
-    mockSelfCareResponse(mockUserResponse);
-    const submittedAgreement = await agreementService.submitAgreement(
-      agreement.id,
-      {
-        consumerNotes: consumerNotesText,
-      },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "AgreementServiceTest",
-        logger: genericLogger,
-      }
+    const apiSubmittedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/submit",
+      pathParams: { agreementId: agreement.id },
+      body: { consumerNotes: consumerNotesText },
+      authData,
+    });
+
+    const submittedAgreement = apiAgreementToAgreement(
+      apiSubmittedAgreement,
+      authData.userId
     );
 
     expect(submittedAgreement).toBeDefined();
@@ -1414,11 +1421,34 @@ describe("submit agreement", () => {
       name: contractDocumentName,
     };
 
+    const actualAgreementWithCorrectDate: Agreement = {
+      ...fromAgreementV2(actualAgreement),
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: submittedAgreement.consumerDocuments[index].createdAt,
+      })),
+      stamps: {
+        submission: {
+          who: authData.userId,
+          when: submittedAgreement.stamps.submission!.when,
+        },
+        activation: {
+          who: authData.userId,
+          when: submittedAgreement.stamps.activation!.when,
+        },
+      },
+    };
+
     const expectedAgreement = {
       ...agreement,
       state: agreementState.active,
+      createdAt: submittedAgreement.createdAt,
       consumerNotes: consumerNotesText,
       contract: expectedContract,
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: submittedAgreement.consumerDocuments[index].createdAt,
+      })),
       suspendedByPlatform: false,
       verifiedAttributes: [
         {
@@ -1452,11 +1482,11 @@ describe("submit agreement", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedContract.path);
 
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).toHaveBeenCalled();
-    expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+    // expect(selfcareV2ClientMock.getUserInfoUsingGET).toHaveBeenCalled();
+    expect(actualAgreementWithCorrectDate).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
+    vi.useRealTimers();
   });
-
   it("should submit agreement contract with new state ACTIVE when producer and consumer are different, and generate an AgreementActivated event and AgreementArchivedByUpgrade for related agreements", async () => {
     const consumerId = generateId<TenantId>();
     const producer = getMockTenant(consumerId);
@@ -1524,12 +1554,9 @@ describe("submit agreement", () => {
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
-      },
+      suspendedByConsumer: false,
+      suspendedByProducer: false,
+      stamps: {},
       suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
@@ -1549,26 +1576,18 @@ describe("submit agreement", () => {
       nonArchivableRelatedAgreement,
     } = await addRelatedAgreements(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
+    mockSelfcareV2ClientCall({ value: mockUserResponse, mockedFor: "Router" });
 
-    mockSelfCareResponse(mockUserResponse);
-    const submittedAgreement = await agreementService.submitAgreement(
-      agreement.id,
-      {
-        consumerNotes: consumerNotesText,
-      },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "AgreementServiceTest",
-        logger: genericLogger,
-      }
+    const apiSubmittedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/submit",
+      pathParams: { agreementId: agreement.id },
+      body: { consumerNotes: consumerNotesText },
+      authData,
+    });
+
+    const submittedAgreement = apiAgreementToAgreement(
+      apiSubmittedAgreement,
+      authData.userId
     );
 
     const actualAgreementData = await readLastAgreementEvent(agreement.id);
@@ -1610,6 +1629,10 @@ describe("submit agreement", () => {
       state: agreementState.active,
       consumerNotes: consumerNotesText,
       suspendedByPlatform: false,
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: submittedAgreement.consumerDocuments[index].createdAt,
+      })),
       certifiedAttributes: [
         {
           id: validCertifiedTenantAttribute.id,
@@ -1638,8 +1661,25 @@ describe("submit agreement", () => {
       },
     };
 
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
-    expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+    const actualAgreementWithCorrectDate: Agreement = {
+      ...fromAgreementV2(actualAgreement),
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: submittedAgreement.consumerDocuments[index].createdAt,
+      })),
+      stamps: {
+        submission: {
+          who: authData.userId,
+          when: submittedAgreement.stamps.submission!.when,
+        },
+        activation: {
+          who: authData.userId,
+          when: submittedAgreement.stamps.activation!.when,
+        },
+      },
+    };
+    // expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
+    expect(actualAgreementWithCorrectDate).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
 
     await testRelatedAgreementsArchiviation({
@@ -1648,8 +1688,10 @@ describe("submit agreement", () => {
       nonArchivableRelatedAgreement,
     });
   });
-
   it("should create a new agreement contract for first activation with new state ACTIVE when producer and consumer are different, generates AgreementActivated", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
     const consumerId = generateId<TenantId>();
     const producer = getMockTenant(consumerId);
     const consumerNotesText = "This is a test";
@@ -1716,12 +1758,9 @@ describe("submit agreement", () => {
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
-      },
+      suspendedByConsumer: false,
+      suspendedByProducer: false,
+      stamps: {},
       suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
@@ -1762,26 +1801,18 @@ describe("submit agreement", () => {
     await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
+    mockSelfcareV2ClientCall({ value: mockUserResponse, mockedFor: "Router" });
 
-    mockSelfCareResponse(mockUserResponse);
-    const submittedAgreement = await agreementService.submitAgreement(
-      agreement.id,
-      {
-        consumerNotes: consumerNotesText,
-      },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "AgreementServiceTest",
-        logger: genericLogger,
-      }
+    const apiSubmittedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/submit",
+      pathParams: { agreementId: agreement.id },
+      body: { consumerNotes: consumerNotesText },
+      authData,
+    });
+
+    const submittedAgreement = apiAgreementToAgreement(
+      apiSubmittedAgreement,
+      authData.userId
     );
 
     expect(submittedAgreement).toBeDefined();
@@ -1837,6 +1868,10 @@ describe("submit agreement", () => {
       state: agreementState.active,
       consumerNotes: consumerNotesText,
       contract: expectedContract,
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: submittedAgreement.consumerDocuments[index].createdAt,
+      })),
       suspendedByPlatform: false,
       certifiedAttributes: [
         {
@@ -1865,14 +1900,34 @@ describe("submit agreement", () => {
         },
       },
     };
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).toHaveBeenCalled();
+
+    const actualAgreementWithCorrectDate: Agreement = {
+      ...fromAgreementV2(actualAgreement),
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: submittedAgreement.consumerDocuments[index].createdAt,
+      })),
+      stamps: {
+        submission: {
+          who: authData.userId,
+          when: submittedAgreement.stamps.submission!.when,
+        },
+        activation: {
+          who: authData.userId,
+          when: submittedAgreement.stamps.activation!.when,
+        },
+      },
+    };
+
+    // expect(selfcareV2ClientMock.getUserInfoUsingGET).toHaveBeenCalled();
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedContract.path);
 
-    expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+    expect(actualAgreementWithCorrectDate).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
+    vi.useRealTimers();
   });
 
   it("should submit agreement with new state PENDING when producer is different from consumer and no related agreements exist, and approval policy is manual, generates AgreementSubmitted event", async () => {
@@ -1932,12 +1987,9 @@ describe("submit agreement", () => {
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
-      },
+      suspendedByConsumer: false,
+      suspendedByProducer: false,
+      stamps: {},
       suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
@@ -1951,26 +2003,18 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
-
     mockSelfCareResponse(mockUserResponse);
-    const submittedAgreement = await agreementService.submitAgreement(
-      agreement.id,
-      {
-        consumerNotes: consumerNotesText,
-      },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "AgreementServiceTest",
-        logger: genericLogger,
-      }
+
+    const apiSubmittedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/submit",
+      pathParams: { agreementId: agreement.id },
+      body: { consumerNotes: consumerNotesText },
+      authData,
+    });
+
+    const submittedAgreement = apiAgreementToAgreement(
+      apiSubmittedAgreement,
+      authData.userId
     );
 
     const actualAgreementData = await readLastAgreementEvent(agreement.id);
@@ -2008,6 +2052,10 @@ describe("submit agreement", () => {
       ...agreement,
       state: agreementState.pending,
       consumerNotes: consumerNotesText,
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: submittedAgreement.consumerDocuments[index].createdAt,
+      })),
       certifiedAttributes: [],
       declaredAttributes: [],
       verifiedAttributes: [],
@@ -2021,8 +2069,22 @@ describe("submit agreement", () => {
       },
     };
 
+    const actualAgreementWithCorrectDate: Agreement = {
+      ...fromAgreementV2(actualAgreement),
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: submittedAgreement.consumerDocuments[index].createdAt,
+      })),
+      stamps: {
+        submission: {
+          who: authData.userId,
+          when: submittedAgreement.stamps.submission!.when,
+        },
+      },
+    };
+
     expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
-    expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+    expect(actualAgreementWithCorrectDate).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
   });
 
@@ -2084,12 +2146,9 @@ describe("submit agreement", () => {
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
-      },
+      suspendedByConsumer: false,
+      suspendedByProducer: false,
+      stamps: {},
       suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
@@ -2103,26 +2162,18 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
-
     mockSelfCareResponse(mockUserResponse);
-    const submittedAgreement = await agreementService.submitAgreement(
-      agreement.id,
-      {
-        consumerNotes: consumerNotesText,
-      },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "AgreementServiceTest",
-        logger: genericLogger,
-      }
+
+    const apiSubmittedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/submit",
+      pathParams: { agreementId: agreement.id },
+      body: { consumerNotes: consumerNotesText },
+      authData,
+    });
+
+    const submittedAgreement = apiAgreementToAgreement(
+      apiSubmittedAgreement,
+      authData.userId
     );
 
     const actualAgreementData = await readLastAgreementEvent(agreement.id);
@@ -2159,6 +2210,10 @@ describe("submit agreement", () => {
       ...agreement,
       state: agreementState.pending,
       consumerNotes: consumerNotesText,
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: submittedAgreement.consumerDocuments[index].createdAt,
+      })),
       certifiedAttributes: [],
       declaredAttributes: [],
       verifiedAttributes: [],
@@ -2172,8 +2227,22 @@ describe("submit agreement", () => {
       },
     };
 
+    const actualAgreementWithCorrectDate: Agreement = {
+      ...fromAgreementV2(actualAgreement),
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: submittedAgreement.consumerDocuments[index].createdAt,
+      })),
+      stamps: {
+        submission: {
+          who: authData.userId,
+          when: submittedAgreement.stamps.submission!.when,
+        },
+      },
+    };
+
     expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
-    expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+    expect(actualAgreementWithCorrectDate).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
   });
 });

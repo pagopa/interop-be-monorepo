@@ -20,7 +20,7 @@ import {
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { agreementConsumerDocumentChangeValidStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementDocumentAlreadyExists,
@@ -30,7 +30,10 @@ import {
   operationNotAllowed,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
-import { agreementDocumentToApiAgreementDocument } from "../src/model/domain/apiConverter.js";
+import {
+  agreementDocumentToApiAgreementDocument,
+  apiAgreementDocumentToAgreementDocument,
+} from "../src/model/domain/apiConverter.js";
 import {
   addOneAgreement,
   agreementService,
@@ -133,6 +136,8 @@ describe("agreement consumer document", () => {
 
   describe("add", () => {
     it("should succeed on happy path", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
       const authData = getRandomAuthData();
       const organizationId = authData.organizationId;
       const agreement = getMockAgreement(
@@ -140,21 +145,35 @@ describe("agreement consumer document", () => {
         organizationId
       );
 
-      const consumerDocument = getMockConsumerDocument(agreement.id);
+      const id = generateId();
+      const name = "mockDocument";
+      const apiDocument = {
+        id,
+        name,
+        path: `${config.consumerDocumentsPath}/${agreement.id}/${id}/${name}`,
+        prettyName: "pretty name",
+        contentType: "application/pdf",
+      };
+
+      const consumerDocument =
+        apiAgreementDocumentToAgreementDocument(apiDocument);
 
       await addOneAgreement(agreement);
 
-      const returnedConsumerDocument =
-        await agreementService.addConsumerDocument(
-          agreement.id,
-          consumerDocument,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
-        );
+      const apiReturnedConsumerDocument = await mockAgreementRouterRequest.post(
+        {
+          path: "/agreements/:agreementId/consumer-documents",
+          pathParams: {
+            agreementId: agreement.id,
+          },
+          body: apiDocument,
+          authData,
+        }
+      );
+      const returnedConsumerDocument = apiAgreementDocumentToAgreementDocument(
+        apiReturnedConsumerDocument
+      );
+
       const { data: payload } = await readLastAgreementEvent(agreement.id);
 
       const actualConsumerDocument = decodeProtobufPayload({
@@ -190,6 +209,7 @@ describe("agreement consumer document", () => {
         }),
         documentId: returnedConsumerDocument.id,
       });
+      vi.useRealTimers();
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
@@ -339,17 +359,14 @@ describe("agreement consumer document", () => {
         await fileManager.listFiles(config.s3Bucket, genericLogger)
       ).toContain(agreement1.consumerDocuments[0].path);
 
-      const returnedAgreementId =
-        await agreementService.removeAgreementConsumerDocument(
-          agreement1.id,
-          consumerDocument.id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
-        );
+      await mockAgreementRouterRequest.delete({
+        path: "/agreements/:agreementId/consumer-documents/:documentId",
+        pathParams: {
+          agreementId: agreement1.id,
+          documentId: consumerDocument.id,
+        },
+        authData,
+      });
 
       // Check that the file is removed from the bucket after removing it
       expect(
@@ -369,7 +386,7 @@ describe("agreement consumer document", () => {
         agreement: toAgreementV2(expectedAgreement),
         documentId: consumerDocument.id,
       });
-      expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
+      expect(actualConsumerDocument.agreement?.consumerDocuments).toEqual([]);
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {

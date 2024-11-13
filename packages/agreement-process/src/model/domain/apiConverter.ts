@@ -13,11 +13,10 @@ import {
   CompactTenant,
   AgreementAttribute,
   UserId,
-  AgreementStamps,
-  TenantId,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
+import { agreementStamps } from "./stampsStatement.js";
 
 export function agreementStateToApiAgreementState(
   input: AgreementState
@@ -64,13 +63,13 @@ export const agreementDocumentToApiAgreementDocument = (
   createdAt: input.createdAt?.toJSON(),
 });
 
-export const apiContractToContract = (
-  input: agreementApi.Document
-): AgreementDocument => ({
-  ...input,
-  id: unsafeBrandId(input.id),
-  createdAt: new Date(input.createdAt),
-});
+// export const apiContractToContract = (
+//   input: agreementApi.Document
+// ): AgreementDocument => ({
+//   ...input,
+//   id: unsafeBrandId(input.id),
+//   createdAt: new Date(input.createdAt),
+// });
 
 export const agreementToApiAgreement = (
   agreement: Agreement
@@ -220,6 +219,12 @@ export const apiAgreementToAgreement = (
   descriptorId: unsafeBrandId(apiAgreement.descriptorId),
   producerId: unsafeBrandId(apiAgreement.producerId),
   consumerId: unsafeBrandId(apiAgreement.consumerId),
+  suspendedAt: apiAgreement.suspendedAt
+    ? new Date(apiAgreement.suspendedAt)
+    : undefined,
+  updatedAt: apiAgreement.updatedAt
+    ? new Date(apiAgreement.updatedAt)
+    : undefined,
   state: apiAgreementStateToAgreementState(apiAgreement.state),
   verifiedAttributes: apiAgreement.verifiedAttributes.map((attr) =>
     apiAttributeToAgreementAttribute(attr)
@@ -237,8 +242,9 @@ export const apiAgreementToAgreement = (
   suspendedByProducer: apiAgreement.suspendedByProducer,
   suspendedByPlatform: apiAgreement.suspendedByPlatform,
   consumerNotes: apiAgreement.consumerNotes,
+  rejectionReason: apiAgreement.rejectionReason,
   contract: apiAgreement.contract
-    ? apiContractToContract(apiAgreement.contract)
+    ? apiAgreementDocumentToAgreementDocument(apiAgreement.contract)
     : undefined,
   stamps: userId
     ? agreementStamps(
@@ -249,152 +255,3 @@ export const apiAgreementToAgreement = (
       )
     : {},
 });
-
-const draftStatement = (
-  apiAgreement: agreementApi.Agreement,
-  consumerId: TenantId,
-  producerId: TenantId
-): AgreementStamps => {
-  if (apiAgreement.suspendedByConsumer) {
-    return {
-      suspensionByConsumer: {
-        who: unsafeBrandId(consumerId),
-        when: new Date(),
-      },
-    };
-  } else if (apiAgreement.suspendedByProducer) {
-    return {
-      suspensionByProducer: {
-        who: unsafeBrandId(producerId),
-        when: new Date(),
-      },
-    };
-  } else {
-    return {};
-  }
-};
-
-const suspendedStatement = (
-  apiAgreement: agreementApi.Agreement,
-  userId: UserId,
-  consumerId: TenantId,
-  producerId: TenantId
-): AgreementStamps => {
-  if (apiAgreement.suspendedByConsumer) {
-    return {
-      submission: {
-        who: userId,
-        when: new Date(),
-      },
-      activation: {
-        who: userId,
-        when: new Date(),
-      },
-      suspensionByConsumer: {
-        who: unsafeBrandId(consumerId),
-        when: new Date(),
-      },
-    };
-  } else if (apiAgreement.suspendedByProducer) {
-    return {
-      submission: {
-        who: userId,
-        when: new Date(),
-      },
-      activation: {
-        who: userId,
-        when: new Date(),
-      },
-      suspensionByProducer: {
-        who: unsafeBrandId(producerId),
-        when: new Date(),
-      },
-    };
-  } else {
-    return {};
-  }
-};
-
-const pendingStatement = (
-  apiAgreement: agreementApi.Agreement,
-  userId: UserId,
-  consumerId: TenantId,
-  producerId: TenantId
-): AgreementStamps => {
-  if (apiAgreement.suspendedByConsumer) {
-    return {
-      suspensionByConsumer: {
-        who: unsafeBrandId(consumerId),
-        when: new Date(),
-      },
-      submission: {
-        who: userId,
-        when: new Date(),
-      },
-    };
-  } else if (apiAgreement.suspendedByProducer) {
-    return {
-      suspensionByProducer: {
-        who: unsafeBrandId(producerId),
-        when: new Date(),
-      },
-      submission: {
-        who: userId,
-        when: new Date(),
-      },
-    };
-  } else {
-    return {
-      submission: {
-        who: userId,
-        when: new Date(),
-      },
-    };
-  }
-};
-
-export const agreementStamps = (
-  apiAgreement: agreementApi.Agreement,
-  userId: UserId,
-  consumerId: TenantId,
-  producerId: TenantId
-): AgreementStamps =>
-  match(apiAgreement.state)
-    .with("DRAFT", () => draftStatement(apiAgreement, consumerId, producerId))
-    .with("ACTIVE", () => ({
-      submission: {
-        who: userId,
-        when: new Date(),
-      },
-      activation: {
-        who: userId,
-        when: new Date(),
-      },
-    }))
-    .with("REJECTED", () => ({
-      submission: {
-        who: userId,
-        when: new Date(),
-      },
-      rejection: {
-        who: userId,
-        when: new Date(),
-      },
-    }))
-    .with("ARCHIVED", () => ({
-      submission: {
-        who: userId,
-        when: new Date(),
-      },
-      archiving: {
-        who: userId,
-        when: new Date(),
-      },
-    }))
-    .with("SUSPENDED", () =>
-      suspendedStatement(apiAgreement, userId, consumerId, producerId)
-    )
-    .with("PENDING", () =>
-      pendingStatement(apiAgreement, userId, consumerId, producerId)
-    )
-    .otherwise(() => ({}));
