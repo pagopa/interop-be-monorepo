@@ -63,6 +63,7 @@ describe("update eService", () => {
         mode: "DELIVER",
         isSignalHubEnabled,
         isDelegable,
+        isClientAccessDelegable,
       },
       {
         authData: getMockAuthData(mockEService.producerId),
