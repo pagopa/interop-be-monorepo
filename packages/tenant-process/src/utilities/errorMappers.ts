@@ -241,8 +241,18 @@ export const assignTenantDelegatedProducerFeatureErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "tenantAlreadyHasDelegatedProducerFeature",
       () => HTTP_STATUS_CONFLICT
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const removeTenantDelegatedProducerFeatureErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantHasNoDelegatedProducerFeature", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
