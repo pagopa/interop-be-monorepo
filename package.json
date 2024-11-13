@@ -58,10 +58,5 @@
   "config": {
     "protocVersion": "26.1"
   },
-  "pnpm": {
-    "overrides": {
-      "@smithy/types": "3.5.0"
-    }
-  },
   "packageManager": "pnpm@9.12.3"
 }
