@@ -12,7 +12,10 @@ import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
-import { tenantAlreadyHasFeature, tenantNotFound } from "../src/model/domain/errors.js";
+import {
+  tenantAlreadyHasFeature,
+  tenantNotFound,
+} from "../src/model/domain/errors.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("assignTenantDelegatedProducerFeature", async () => {
