@@ -60,3 +60,12 @@ export const approveDelegationErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const rejectDelegationErrorMapper = approveDelegationErrorMapper;
+
+export const getDelegationContractErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("delegationContractNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

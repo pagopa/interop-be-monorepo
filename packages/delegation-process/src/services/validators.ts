@@ -4,6 +4,7 @@ import {
   DelegationState,
   delegationState,
   EServiceId,
+  operationForbidden,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
@@ -140,5 +141,17 @@ export const assertIsState = (
       delegation.state,
       delegationState.waitingForApproval
     );
+  }
+};
+
+export const assertRequesterIsDelegateOrDelegator = (
+  delegation: Delegation,
+  requesterId: TenantId
+): void => {
+  if (
+    delegation.delegateId !== requesterId &&
+    delegation.delegatorId !== requesterId
+  ) {
+    throw operationForbidden;
   }
 };

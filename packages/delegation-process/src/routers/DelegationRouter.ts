@@ -21,6 +21,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import {
   getDelegationsErrorMapper,
   getDelegationByIdErrorMapper,
+  getDelegationContractErrorMapper,
 } from "../utilities/errorMappers.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
@@ -130,6 +131,35 @@ const delegationRouter = (
             getDelegationByIdErrorMapper,
             ctx.logger,
             ctx.correlationId
+          );
+
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/delegations/:delegationId/contract/:contractId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        const { delegationId, contractId } = req.params;
+
+        try {
+          const contract = await delegationService.getDelegationContract(
+            unsafeBrandId(delegationId),
+            unsafeBrandId(contractId),
+            ctx
+          );
+
+          return res
+            .status(200)
+            .send(delegationApi.DelegationContractDocument.parse(contract));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getDelegationContractErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error retrieving delegation ${req.params.delegationId} contract ${req.params.contractId}`
           );
 
           return res.status(errorRes.status).send(errorRes);
