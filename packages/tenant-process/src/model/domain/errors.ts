@@ -314,6 +314,6 @@ export function tenantDoesNotHaveFeature(
   return new ApiError({
     detail: `Tenant ${tenantId} doesn't have ${featureType} feature assigned`,
     code: "tenantDoesNotHaveFeature",
-    title: "Feature already assigned",
+    title: "Feature not assigned",
   });
 }
