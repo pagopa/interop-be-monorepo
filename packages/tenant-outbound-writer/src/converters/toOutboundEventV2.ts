@@ -45,6 +45,7 @@ export function toOutboundEventV2(
       { type: "TenantOnboarded" },
       { type: "TenantOnboardDetailsUpdated" },
       { type: "MaintenanceTenantPromotedToCertifier" },
+      { type: "MaintenanceTenantUpdated" },
       { type: "TenantDelegatedProducerFeatureAdded" },
       (msg) => ({
         event_version: msg.event_version,
