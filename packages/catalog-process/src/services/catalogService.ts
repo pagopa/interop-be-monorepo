@@ -438,7 +438,7 @@ export function catalogServiceBuilder(
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
         isDelegable: seed.isDelegable,
-        isClientAccessDelegable: seed.isClientAccessDelegable,
+        isClientAccessDelegable: seed.isDelegable ? seed.isClientAccessDelegable : undefined,
       };
 
       const eserviceCreationEvent = toCreateEventEServiceAdded(
