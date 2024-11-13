@@ -3,6 +3,7 @@ import {
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
+import express from "express";
 import healthRouter from "./routers/HealthRouter.js";
 import authorizationServerRouter from "./routers/AuthorizationServerRouter.js";
 
@@ -16,6 +17,7 @@ app.disable("x-powered-by");
 
 app.use(healthRouter);
 app.use(contextMiddleware(serviceName, false));
+app.use(express.urlencoded({ extended: true }));
 app.use(loggerMiddleware(serviceName));
 app.use(authorizationServerRouter(zodiosCtx));
 
