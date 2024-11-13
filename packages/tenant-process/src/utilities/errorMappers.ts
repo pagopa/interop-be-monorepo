@@ -236,3 +236,13 @@ export const m2mRevokeCertifiedAttributeErrorMapper = (
     )
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const assignTenantDelegatedProducerFeatureErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantAlreadyHasDelegatedProducerFeature",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

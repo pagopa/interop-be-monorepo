@@ -6,6 +6,7 @@ import {
   WithLogger,
   AppContext,
   CreateEvent,
+  AuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -28,6 +29,7 @@ import {
   TenantMail,
   TenantEvent,
   tenantMailKind,
+  TenantFeatureCertifier,
   CorrelationId,
   tenantKind,
 } from "pagopa-interop-models";
@@ -50,6 +52,7 @@ import {
   toCreateEventMaintenanceTenantPromotedToCertifier,
   toCreateEventTenantVerifiedAttributeRevoked,
   toCreateEventMaintenanceTenantUpdated,
+  toCreateEventTenantDelegatedProducerFeatureAdded,
 } from "../model/domain/toEvent.js";
 import {
   attributeAlreadyRevoked,
@@ -81,6 +84,8 @@ import {
   assertRequesterAllowed,
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
+  assertRequesterIPAOrigin,
+  assertDelegatedProducerFeatureNotAssigned,
   getTenantKind,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
@@ -1485,7 +1490,9 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      const certifierFeature = tenant.data.features.find((a) => a.certifierId);
+      const certifierFeature = tenant.data.features.find(
+        (a): a is TenantFeatureCertifier => a.type === "PersistentCertifier"
+      );
 
       if (certifierFeature) {
         if (certifierId === certifierFeature.certifierId) {
@@ -1551,7 +1558,7 @@ export function tenantServiceBuilder(
       );
 
       const certifierId = requesterTenant.data.features.find(
-        (f) => f.type === "PersistentCertifier"
+        (f): f is TenantFeatureCertifier => f.type === "PersistentCertifier"
       )?.certifierId;
 
       if (!certifierId) {
@@ -1620,6 +1627,47 @@ export function tenantServiceBuilder(
       } else {
         await repository.createEvent(attributeAssignmentEvent);
       }
+    },
+    async assignTenantDelegatedProducerFeature({
+      organizationId,
+      correlationId,
+      authData,
+      logger,
+    }: {
+      organizationId: TenantId;
+      correlationId: CorrelationId;
+      authData: AuthData;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Assigning delegated producer feature to tenant ${organizationId}`
+      );
+
+      assertRequesterIPAOrigin(authData);
+
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      assertDelegatedProducerFeatureNotAssigned(requesterTenant.data);
+
+      const updatedTenant: Tenant = {
+        ...requesterTenant.data,
+        features: [
+          ...requesterTenant.data.features,
+          { type: "DelegatedProducer", availabilityTimestamp: new Date() },
+        ],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantDelegatedProducerFeatureAdded(
+          requesterTenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
     },
   };
 }
