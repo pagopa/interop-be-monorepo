@@ -1,6 +1,7 @@
 /* eslint-disable functional/no-let */
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockDelegationProducer,
   getMockTenant,
 } from "pagopa-interop-commons-test/index.js";
@@ -13,6 +14,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { delegationState } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   delegationNotFound,
   operationRestrictedToDelegate,
@@ -40,10 +42,14 @@ describe("reject delegation", () => {
     const rejectionReason = "I don't like computers, please send me a pigeon";
 
     await delegationProducerService.rejectProducerDelegation(
-      delegate.id,
       delegation.id,
-      generateId(),
-      rejectionReason
+      rejectionReason,
+      {
+        authData: getMockAuthData(delegate.id),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      }
     );
 
     const event = await readLastDelegationEvent(delegation.id);
@@ -72,10 +78,14 @@ describe("reject delegation", () => {
 
     await expect(
       delegationProducerService.rejectProducerDelegation(
-        delegateId,
         nonExistentDelegationId,
-        generateId(),
-        ""
+        "",
+        {
+          authData: getMockAuthData(delegateId),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrow(delegationNotFound(nonExistentDelegationId));
   });
@@ -90,12 +100,12 @@ describe("reject delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationProducerService.rejectProducerDelegation(
-        wrongDelegate.id,
-        delegation.id,
-        generateId(),
-        ""
-      )
+      delegationProducerService.rejectProducerDelegation(delegation.id, "", {
+        authData: getMockAuthData(wrongDelegate.id),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrow(
       operationRestrictedToDelegate(wrongDelegate.id, delegation.id)
     );
@@ -110,12 +120,12 @@ describe("reject delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationProducerService.rejectProducerDelegation(
-        delegate.id,
-        delegation.id,
-        generateId(),
-        ""
-      )
+      delegationProducerService.rejectProducerDelegation(delegation.id, "", {
+        authData: getMockAuthData(delegate.id),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrow(
       incorrectState(
         delegation.id,
