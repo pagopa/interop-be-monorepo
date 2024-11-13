@@ -39,6 +39,7 @@ import {
   m2mUpsertTenantErrorMapper,
   assignTenantDelegatedProducerFeatureErrorMapper,
   removeTenantDelegatedConsumerFeatureErrorMapper,
+  assignTenantDelegatedConsumerFeatureErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
@@ -488,6 +489,29 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             assignTenantDelegatedProducerFeatureErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/tenants/delegatedConsumer",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await tenantService.assignTenantDelegatedConsumerFeature({
+            organizationId: ctx.authData.organizationId,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignTenantDelegatedConsumerFeatureErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
