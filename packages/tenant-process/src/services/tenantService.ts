@@ -51,6 +51,7 @@ import {
   toCreateEventTenantVerifiedAttributeAssigned,
   toCreateEventMaintenanceTenantPromotedToCertifier,
   toCreateEventTenantVerifiedAttributeRevoked,
+  toCreateEventMaintenanceTenantUpdated,
   toCreateEventTenantDelegatedProducerFeatureAdded,
   toCreateEventTenantDelegatedProducerFeatureRemoved,
 } from "../model/domain/toEvent.js";
@@ -1042,6 +1043,49 @@ export function tenantServiceBuilder(
         toCreateEventMaintenanceTenantDeleted(
           version,
           tenant.data,
+          correlationId
+        )
+      );
+    },
+
+    async maintenanceTenantUpdate(
+      {
+        tenantId,
+        tenantUpdate,
+        version,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        tenantUpdate: tenantApi.MaintenanceTenantUpdate;
+        version: number;
+        correlationId: CorrelationId;
+      },
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Maintenance update Tenant ${tenantId}`);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      const convertedTenantUpdate = {
+        ...tenantUpdate,
+        mails: tenantUpdate.mails.map((mail) => ({
+          ...mail,
+          createdAt: new Date(mail.createdAt),
+        })),
+        onboardedAt: new Date(tenantUpdate.onboardedAt),
+      };
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        ...convertedTenantUpdate,
+        subUnitType: convertedTenantUpdate.subUnitType,
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventMaintenanceTenantUpdated(
+          version,
+          updatedTenant,
           correlationId
         )
       );
