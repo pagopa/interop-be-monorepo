@@ -342,12 +342,18 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
           ":newPurposeVersionId": {
             S: purposeVersionId,
           },
+          ":GSIPK_consumerId_eserviceId": {
+            S: makeGSIPKConsumerIdEServiceId({
+              consumerId: purpose.consumerId,
+              eserviceId: purpose.eserviceId,
+            }),
+          },
           ":newUpdatedAt": {
             S: new Date().toISOString(),
           },
         },
         UpdateExpression:
-          "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, updatedAt = :newUpdatedAt" +
+          "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId, updatedAt = :newUpdatedAt" +
           agreementUpdateExpression +
           descriptorUpdateExpression,
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
