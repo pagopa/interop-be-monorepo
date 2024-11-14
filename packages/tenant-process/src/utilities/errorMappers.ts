@@ -136,6 +136,13 @@ export const maintenanceTenantDeletedErrorMapper = (
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const maintenanceTenantUpdatedErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const verifyVerifiedAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -234,8 +241,17 @@ export const assignTenantDelegatedProducerFeatureErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantAlreadyHasFeature", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const removeTenantDelegatedProducerFeatureErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantDoesNotHaveFeature", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const assignTenantDelegatedConsumerFeatureErrorMapper =

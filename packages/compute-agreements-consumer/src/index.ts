@@ -92,10 +92,12 @@ async function processMessage({
           "TenantVerifiedAttributeExpirationUpdated",
           "TenantKindUpdated",
           "MaintenanceTenantDeleted",
+          "MaintenanceTenantUpdated",
           "TenantMailDeleted",
           "TenantMailAdded",
           "MaintenanceTenantPromotedToCertifier",
           "TenantDelegatedProducerFeatureAdded",
+          "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
           "TenantDelegatedConsumerFeatureRemoved"
         ),
