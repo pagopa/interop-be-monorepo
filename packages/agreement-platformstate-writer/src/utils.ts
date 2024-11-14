@@ -234,7 +234,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
           ":agreementId": {
             S: agreementId,
           },
-          ":gsi": {
+          ":gsiEServiceIdDescriptorId": {
             S: GSIPK_eserviceId_descriptorId,
           },
           ":newState": {
@@ -246,7 +246,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
           ...additionalAttributesToSet,
         },
         UpdateExpression:
-          "SET agreementId = :agreementId, agreementState = :newState, GSI_eservice_id_descriptor_id = :gsi, updatedAt = :newUpdatedAt".concat(
+          "SET agreementId = :agreementId, agreementState = :newState, GSIPK_eserviceId_descriptorId = :gsiEServiceIdDescriptorId, updatedAt = :newUpdatedAt".concat(
             additionalDescriptorInfo
               ? ", descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan"
               : ""
