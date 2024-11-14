@@ -269,9 +269,6 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
       const agreementExpressionAttributeValues: Record<string, AttributeValue> =
         isAgreementMissingInTokenTable
           ? {
-              ":GSIPK_consumerId_eserviceId": {
-                S: platformAgreementEntry.GSIPK_consumerId_eserviceId,
-              },
               ":agreementId": {
                 S: extractAgreementIdFromAgreementPK(platformAgreementEntry.PK),
               },
@@ -281,8 +278,7 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
             }
           : {};
       const agreementUpdateExpression = isAgreementMissingInTokenTable
-        ? `, GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId, 
-      agreementId = :agreementId, 
+        ? `, agreementId = :agreementId, 
       agreementState = :agreementState`
         : "";
 
