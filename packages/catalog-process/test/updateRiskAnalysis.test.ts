@@ -359,7 +359,7 @@ describe("update risk analysis", () => {
       eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
     );
   });
-  it("should throw riskAnalysisDuplicated if risk analysis name is duplicated", async () => {
+  it("should throw riskAnalysisDuplicated if risk analysis name is duplicated, case insensitive", async () => {
     const producerTenantKind: TenantKind = randomArrayItem(
       Object.values(tenantKind)
     );
@@ -381,7 +381,13 @@ describe("update risk analysis", () => {
           state: descriptorState.draft,
         },
       ],
-      riskAnalysis: [riskAnalysis_1, riskAnalysis_2],
+      riskAnalysis: [
+        riskAnalysis_1,
+        {
+          ...riskAnalysis_2,
+          name: riskAnalysis_2.name.toUpperCase(),
+        },
+      ],
     };
 
     await addOneTenant(producer);
@@ -389,7 +395,7 @@ describe("update risk analysis", () => {
 
     const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed = {
       ...buildRiskAnalysisSeed(riskAnalysis_1),
-      name: riskAnalysis_2.name,
+      name: riskAnalysis_2.name.toLowerCase(),
     };
     expect(
       catalogService.updateRiskAnalysis(
@@ -404,7 +410,7 @@ describe("update risk analysis", () => {
         }
       )
     ).rejects.toThrowError(
-      riskAnalysisDuplicated(riskAnalysis_2.name, eservice.id)
+      riskAnalysisDuplicated(riskAnalysis_2.name.toLowerCase(), eservice.id)
     );
   });
   it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {

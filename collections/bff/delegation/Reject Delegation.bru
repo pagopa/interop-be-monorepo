@@ -1,0 +1,26 @@
+meta {
+  name: Reject delegation
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/producer/delegations/:delegationId/reject
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "rejectionReason": "I'm not feel comfortable with this delegation"
+  }
+}
+
+params:path {
+  delegationId: dd10132c-f3c9-45cf-994c-3a312bc4ab4e
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
