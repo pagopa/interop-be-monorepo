@@ -37,7 +37,9 @@ import {
   internalUpsertTenantErrorMapper,
   m2mRevokeCertifiedAttributeErrorMapper,
   m2mUpsertTenantErrorMapper,
+  maintenanceTenantUpdatedErrorMapper,
   assignTenantDelegatedProducerFeatureErrorMapper,
+  removeTenantDelegatedProducerFeatureErrorMapper,
   removeTenantDelegatedConsumerFeatureErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -443,6 +445,33 @@ const tenantsRouter = (
         }
       }
     )
+    .post(
+      "/maintenance/tenants/:tenantId",
+      authorizationMiddleware([MAINTENANCE_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await tenantService.maintenanceTenantUpdate(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              version: req.body.currentVersion,
+              tenantUpdate: req.body.tenant,
+              correlationId: ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceTenantUpdatedErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete(
       "/tenants/:tenantId/mails/:mailId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
@@ -488,6 +517,30 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             assignTenantDelegatedProducerFeatureErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/tenants/delegatedProducer",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await tenantService.removeTenantDelegatedProducerFeature({
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+            authData: ctx.authData,
+            logger: ctx.logger,
+          });
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            removeTenantDelegatedProducerFeatureErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
