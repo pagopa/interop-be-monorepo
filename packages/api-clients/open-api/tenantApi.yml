@@ -1005,6 +1005,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /tenants/delegatedProducer:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - tenant
@@ -1015,6 +1017,26 @@ paths:
           description: Delegated producer feature assigned
         "409":
           description: Feature already assigned to tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      tags:
+        - tenant
+      summary: Remove delegated producer feature to tenant caller
+      operationId: removeTenantDelegatedProducerFeature
+      responses:
+        "204":
+          description: Delegated producer feature removed
+        "409":
+          description: Feature not assigned to tenant
           content:
             application/json:
               schema:

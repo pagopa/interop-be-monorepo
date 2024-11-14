@@ -420,6 +420,24 @@ const tenantRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .delete("/tenants/delegatedProducer", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const tenantId = ctx.authData.organizationId;
+
+      try {
+        await tenantService.removeTenantDelegatedProducerFeature(tenantId, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error while removing delegated producer feature to ${tenantId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return tenantRouter;

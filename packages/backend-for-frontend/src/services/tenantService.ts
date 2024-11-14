@@ -430,6 +430,16 @@ export function tenantServiceBuilder(
         { headers }
       );
     },
+    async removeTenantDelegatedProducerFeature(
+      tenantId: TenantId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Removing delegated producer feature to tenant ${tenantId}`);
+      await tenantProcessClient.tenant.removeTenantDelegatedProducerFeature(
+        undefined,
+        { headers }
+      );
+    },
   };
 }
 
