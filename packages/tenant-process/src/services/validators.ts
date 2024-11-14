@@ -3,10 +3,14 @@ import {
   AgreementState,
   Attribute,
   AttributeId,
+  CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS,
   EService,
   ExternalId,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  PUBLIC_SERVICES_MANAGERS,
   Tenant,
   TenantAttribute,
+  TenantFeatureCertifier,
   TenantId,
   TenantKind,
   TenantVerifier,
@@ -15,6 +19,7 @@ import {
   operationForbidden,
   tenantAttributeType,
   tenantKind,
+  SCP,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -26,6 +31,8 @@ import {
   tenantIsNotACertifier,
   verifiedAttributeSelfVerificationNotAllowed,
   attributeNotFound,
+  tenantAlreadyHasDelegatedProducerFeature,
+  tenantHasNoDelegatedProducerFeature,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -118,11 +125,6 @@ export function assertExpirationDateExist(
   }
 }
 
-export const PUBLIC_ADMINISTRATIONS_IDENTIFIER = "IPA";
-const CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS = "SAG";
-const PUBLIC_SERVICES_MANAGERS = "L37";
-export const SCP = "PDND_INFOCAMERE-SCP";
-
 export function getTenantKind(
   attributes: ExternalId[],
   externalId: ExternalId
@@ -150,6 +152,12 @@ export async function assertRequesterAllowed(
   requesterId: string
 ): Promise<void> {
   if (resourceId !== requesterId) {
+    throw operationForbidden;
+  }
+}
+
+export function assertRequesterIPAOrigin(authData: AuthData): void {
+  if (authData.externalId.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
     throw operationForbidden;
   }
 }
@@ -240,11 +248,25 @@ export function evaluateNewSelfcareId({
 
 export function retrieveCertifierId(tenant: Tenant): string {
   const certifierFeature = tenant.features.find(
-    (f) => f.type === "PersistentCertifier"
+    (f): f is TenantFeatureCertifier => f.type === "PersistentCertifier"
   )?.certifierId;
 
   if (!certifierFeature) {
     throw tenantIsNotACertifier(tenant.id);
   }
   return certifierFeature;
+}
+
+export function assertDelegatedProducerFeatureNotAssigned(
+  tenant: Tenant
+): void {
+  if (tenant.features.some((f) => f.type === "DelegatedProducer")) {
+    throw tenantAlreadyHasDelegatedProducerFeature(tenant.id);
+  }
+}
+
+export function assertDelegatedProducerFeatureAssigned(tenant: Tenant): void {
+  if (!tenant.features.some((f) => f.type === "DelegatedProducer")) {
+    throw tenantHasNoDelegatedProducerFeature(tenant.id);
+  }
 }
