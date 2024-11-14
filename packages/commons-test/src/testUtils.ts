@@ -547,10 +547,7 @@ export const getMockClientAssertion = async (props?: {
   const defaultPayload: jose.JWTPayload = {
     iss: clientId,
     sub: clientId,
-    aud: [
-      "auth.refactor.dev.interop.pagopa.it/client-assertion",
-      "auth.refactor.test.interop.pagopa.it/client-assertion",
-    ],
+    aud: ["dev.interop.pagopa.it", "test.interop.pagopa.it"],
     exp: dateToSeconds(threeHourLater),
     jti: generateId(),
     iat: dateToSeconds(new Date()),
