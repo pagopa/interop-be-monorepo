@@ -264,10 +264,10 @@ describe("Message processor", () => {
       })
     );
   });
-  it.each(["SCP", "PRV"])(
+  it.each(["SCP", "PRV", "PT"])(
     "should upsert tenant with institutionType %s correctly",
     async (institutionType) => {
-      const origin = "PDND_INFOCAMERE";
+      const origin = "INFOCAMERE";
 
       const message: EachMessagePayload = {
         ...kafkaMessagePayload,

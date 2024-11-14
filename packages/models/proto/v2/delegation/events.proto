@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package delegation.v2;
+
+import "v2/delegation/delegation.proto";
+
+message ProducerDelegationSubmittedV2 {
+  DelegationV2 delegation = 1;
+}
+
+message ProducerDelegationApprovedV2 {
+  DelegationV2 delegation = 1;
+}
+
+message ProducerDelegationRejectedV2 {
+  DelegationV2 delegation = 1;
+}
+
+message ProducerDelegationRevokedV2 {
+  DelegationV2 delegation = 1;
+}
