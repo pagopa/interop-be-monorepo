@@ -616,7 +616,7 @@ describe("authorization server tests", () => {
     };
     expect(parsedDecodedFileContent).toEqual(expectedMessageBody);
     expect(response.limitReached).toBe(false);
-    expect(response.token).toBeDefined(); // TODO check expected token?
+    expect(response.token).toBeDefined();
     expect(response.rateLimiterStatus).toEqual({
       maxRequests: config.rateLimiterMaxRequests,
       rateInterval: config.rateLimiterRateInterval,
@@ -691,7 +691,7 @@ describe("authorization server tests", () => {
     expect(result.token).toBeDefined();
 
     expect(result.limitReached).toBe(false);
-    expect(result.token).toBeDefined(); // TODO check expected token?
+    expect(result.token).toBeDefined();
     expect(result.rateLimiterStatus).toEqual({
       maxRequests: config.rateLimiterMaxRequests,
       rateInterval: config.rateLimiterRateInterval,
@@ -798,7 +798,7 @@ describe("authorization server tests", () => {
     expect(fileManager.storeBytes).not.toHaveBeenCalled();
 
     expect(response.limitReached).toBe(false);
-    expect(response.token).toBeDefined(); // TODO check expected token?
+    expect(response.token).toBeDefined();
     expect(response.rateLimiterStatus).toEqual({
       maxRequests: config.rateLimiterMaxRequests,
       rateInterval: config.rateLimiterRateInterval,
