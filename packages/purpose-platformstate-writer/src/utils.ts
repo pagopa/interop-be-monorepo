@@ -285,7 +285,8 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
           : {};
       const agreementUpdateExpression = isAgreementMissingInTokenTable
         ? `, agreementId = :agreementId, 
-      agreementState = :agreementState`
+      agreementState = :agreementState, 
+      GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId`
         : "";
 
       // Descriptor data from platform-states

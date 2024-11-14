@@ -176,6 +176,7 @@ const handleFirstActivation = async (
     // token-generation-states
     await updateAgreementStateAndDescriptorInfoOnTokenStates({
       GSIPK_consumerId_eserviceId,
+      agreementId: agreement.id,
       agreementState: agreement.state,
       dynamoDBClient,
       GSIPK_eserviceId_descriptorId,
@@ -235,6 +236,7 @@ const handleActivationOrSuspension = async (
     // token-generation-states
     await updateAgreementStateAndDescriptorInfoOnTokenStates({
       GSIPK_consumerId_eserviceId,
+      agreementId: agreement.id,
       agreementState: agreement.state,
       dynamoDBClient,
       GSIPK_eserviceId_descriptorId,
@@ -336,6 +338,7 @@ const handleUpgrade = async (
 
       await updateAgreementStateAndDescriptorInfoOnTokenStates({
         GSIPK_consumerId_eserviceId,
+        agreementId: agreement.id,
         agreementState: agreement.state,
         dynamoDBClient,
         GSIPK_eserviceId_descriptorId,
