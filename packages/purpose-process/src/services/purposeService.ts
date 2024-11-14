@@ -105,6 +105,8 @@ import {
   validateRiskAnalysisOrThrow,
   assertPurposeTitleIsNotDuplicated,
   isOverQuota,
+  assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
+  assertRequesterIsProducer,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -267,11 +269,15 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      getOrganizationRole({
+
+      await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument({
+        eserviceId: eservice.id,
         organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
+        readModelService,
       });
+
       const version = retrievePurposeVersion(versionId, purpose);
 
       return retrievePurposeVersionDocument(purposeId, version, documentId);
@@ -341,9 +347,13 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      if (organizationId !== eservice.producerId) {
-        throw organizationIsNotTheProducer(organizationId);
-      }
+
+      await assertRequesterIsProducer({
+        eserviceId: eservice.id,
+        organizationId,
+        producerId: eservice.producerId,
+        readModelService,
+      });
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
@@ -535,10 +545,12 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const suspender = getOrganizationRole({
+      const suspender = await getOrganizationRole({
+        eserviceId: eservice.id,
         organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
+        readModelService,
       });
 
       const suspendedPurposeVersion: PurposeVersion = {
@@ -812,10 +824,12 @@ export function purposeServiceBuilder(
         });
       }
 
-      const purposeOwnership = getOrganizationRole({
+      const purposeOwnership = await getOrganizationRole({
+        eserviceId: eservice.id,
         organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
+        readModelService,
       });
 
       const { event, updatedPurposeVersion } = await match({
@@ -1331,24 +1345,37 @@ const authorizeRiskAnalysisForm = ({
   }
 };
 
-const getOrganizationRole = ({
+const getOrganizationRole = async ({
+  eserviceId,
   organizationId,
   producerId,
   consumerId,
+  readModelService,
 }: {
+  eserviceId: EServiceId;
   organizationId: TenantId;
   producerId: TenantId;
   consumerId: TenantId;
-}): Ownership => {
+  readModelService: ReadModelService;
+}): Promise<Ownership> => {
   if (producerId === consumerId && organizationId === producerId) {
     return ownership.SELF_CONSUMER;
   } else if (producerId !== consumerId && organizationId === consumerId) {
     return ownership.CONSUMER;
-  } else if (producerId !== consumerId && organizationId === producerId) {
-    return ownership.PRODUCER;
-  } else {
-    throw organizationNotAllowed(organizationId);
   }
+
+  const activeDelegation = await readModelService.getActiveDelegation(
+    eserviceId
+  );
+
+  if (
+    (activeDelegation && organizationId === activeDelegation.delegateId) ||
+    (!activeDelegation && organizationId === producerId)
+  ) {
+    return ownership.PRODUCER;
+  }
+
+  throw organizationNotAllowed(organizationId);
 };
 
 const replacePurposeVersion = (

@@ -23,6 +23,8 @@ import {
   agreementState,
   PurposeVersionState,
   TenantReadModel,
+  delegationState,
+  Delegation,
 } from "pagopa-interop-models";
 import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
@@ -233,7 +235,8 @@ async function buildGetPurposesAggregation(
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { eservices, purposes, tenants, agreements } = readModelRepository;
+  const { eservices, purposes, tenants, agreements, delegations } =
+    readModelRepository;
 
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -332,6 +335,23 @@ export function readModelServiceBuilder(
       }
 
       return result.data;
+    },
+    async getActiveDelegation(
+      eserviceId: EServiceId
+    ): Promise<Delegation | undefined> {
+      const data = await delegations.findOne({
+        "data.eserviceId": eserviceId,
+        "data.state": delegationState.active,
+      });
+      if (!data) {
+        return undefined;
+      } else {
+        const result = Delegation.safeParse(data.data);
+        if (!result.success) {
+          throw genericError("Unable to parse delegation item");
+        }
+        return result.data;
+      }
     },
   };
 }
