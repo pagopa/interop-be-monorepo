@@ -13,7 +13,9 @@ async function processMessage({ batch }: EachBatchPayload): Promise<void> {
   await handleMessages(batch.messages, fileManager, loggerInstance);
 
   loggerInstance.info(
-    `Auditing message was handled. Partition number: ${batch.partition}. Offset: ${batch.firstOffset} ->  ${batch.lastOffset}`
+    `Auditing message was handled. Partition number: ${
+      batch.partition
+    }. Offset: ${batch.firstOffset()} -> ${batch.lastOffset()}`
   );
 }
 
