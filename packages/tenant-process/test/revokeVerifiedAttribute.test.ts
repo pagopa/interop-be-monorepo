@@ -10,18 +10,17 @@ import {
   tenantAttributeType,
   TenantVerifiedAttributeRevokedV2,
   Agreement,
-  toReadModelEService,
-  toReadModelAgreement,
+  delegationState,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  writeInReadmodel,
   readLastEventByStreamId,
   getMockAuthData,
   getMockDescriptor,
   getMockTenant,
   getMockEService,
+  getMockDelegationProducer,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -36,12 +35,11 @@ import {
   getMockVerifiedTenantAttribute,
   getMockVerifiedBy,
   getMockRevokedBy,
-  eservices,
-  agreements,
   tenantService,
   postgresDB,
   addOneEService,
   addOneAgreement,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("revokeVerifiedAttribute", async () => {
@@ -77,6 +75,12 @@ describe("revokeVerifiedAttribute", async () => {
     consumerId: targetTenant.id,
   });
 
+  const delegation = getMockDelegationProducer({
+    eserviceId: eService.id,
+    delegateId: revokerTenant.id,
+    state: delegationState.active,
+  });
+
   beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -86,88 +90,104 @@ describe("revokeVerifiedAttribute", async () => {
     vi.useRealTimers();
   });
 
-  it("Should revoke the VerifiedAttribute if it exist", async () => {
-    const mockVerifiedBy = getMockVerifiedBy();
-    const tenantWithVerifiedAttribute: Tenant = {
-      ...targetTenant,
-      attributes: [
-        {
-          ...verifiedAttribute,
-          assignmentTimestamp: new Date(),
-          verifiedBy: [
-            {
-              ...mockVerifiedBy,
-              id: revokerTenant.id,
-            },
-          ],
-          revokedBy: [],
-        },
-      ],
-      updatedAt: new Date(),
-    };
+  it.each([
+    {
+      desc: "without delegation",
+      hasDelegation: false,
+    },
+    {
+      desc: "with delegation",
+      hasDelegation: true,
+    },
+  ])(
+    "Should revoke the VerifiedAttribute if it exist $desc",
+    async (hasDelegation) => {
+      const mockVerifiedBy = getMockVerifiedBy();
+      const tenantWithVerifiedAttribute: Tenant = {
+        ...targetTenant,
+        attributes: [
+          {
+            ...verifiedAttribute,
+            assignmentTimestamp: new Date(),
+            verifiedBy: [
+              {
+                ...mockVerifiedBy,
+                id: revokerTenant.id,
+              },
+            ],
+            revokedBy: [],
+          },
+        ],
+        updatedAt: new Date(),
+      };
 
-    await addOneTenant(tenantWithVerifiedAttribute);
-    await addOneTenant(revokerTenant);
+      await addOneTenant(tenantWithVerifiedAttribute);
+      await addOneTenant(revokerTenant);
+      await addOneEService(eService);
+      await addOneAgreement(agreementEservice);
+      if (hasDelegation) {
+        await addOneDelegation(delegation);
+      }
+
+      const returnedTenant = await tenantService.revokeVerifiedAttribute(
+        {
+          tenantId: tenantWithVerifiedAttribute.id,
+          attributeId: verifiedAttribute.id,
+          agreementId: agreementEservice.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
+
+      const writtenEvent = await readLastEventByStreamId(
+        tenantWithVerifiedAttribute.id,
+        "tenant",
+        postgresDB
+      );
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: tenantWithVerifiedAttribute.id,
+        version: "1",
+        type: "TenantVerifiedAttributeRevoked",
+        event_version: 2,
+      });
+
+      const writtenPayload = protobufDecoder(
+        TenantVerifiedAttributeRevokedV2
+      ).parse(writtenEvent?.data);
+
+      const updatedTenant: Tenant = {
+        ...tenantWithVerifiedAttribute,
+        attributes: [
+          {
+            id: verifiedAttribute.id,
+            type: tenantAttributeType.VERIFIED,
+            assignmentTimestamp: new Date(),
+            verifiedBy: [],
+            revokedBy: [
+              {
+                id: hasDelegation ? delegation.delegatorId : revokerTenant.id,
+                delegateId: hasDelegation ? revokerTenant.id : undefined,
+                verificationDate: mockVerifiedBy.verificationDate,
+                revocationDate: new Date(),
+              },
+            ],
+          },
+        ],
+        updatedAt: new Date(),
+      };
+
+      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      expect(returnedTenant).toEqual(updatedTenant);
+    }
+  );
+  it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
     await addOneEService(eService);
     await addOneAgreement(agreementEservice);
-
-    const returnedTenant = await tenantService.revokeVerifiedAttribute(
-      {
-        tenantId: tenantWithVerifiedAttribute.id,
-        attributeId: verifiedAttribute.id,
-        agreementId: agreementEservice.id,
-      },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
-
-    const writtenEvent = await readLastEventByStreamId(
-      tenantWithVerifiedAttribute.id,
-      "tenant",
-      postgresDB
-    );
-
-    expect(writtenEvent).toMatchObject({
-      stream_id: tenantWithVerifiedAttribute.id,
-      version: "1",
-      type: "TenantVerifiedAttributeRevoked",
-      event_version: 2,
-    });
-
-    const writtenPayload = protobufDecoder(
-      TenantVerifiedAttributeRevokedV2
-    ).parse(writtenEvent?.data);
-
-    const updatedTenant: Tenant = {
-      ...tenantWithVerifiedAttribute,
-      attributes: [
-        {
-          id: verifiedAttribute.id,
-          type: tenantAttributeType.VERIFIED,
-          assignmentTimestamp: new Date(),
-          verifiedBy: [],
-          revokedBy: [
-            {
-              id: revokerTenant.id,
-              verificationDate: mockVerifiedBy.verificationDate,
-              revocationDate: new Date(),
-            },
-          ],
-        },
-      ],
-      updatedAt: new Date(),
-    };
-
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-    expect(returnedTenant).toEqual(updatedTenant);
-  });
-  it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
-    await writeInReadmodel(toReadModelEService(eService), eservices);
-    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
     expect(
       tenantService.revokeVerifiedAttribute(
         {
@@ -199,8 +219,8 @@ describe("revokeVerifiedAttribute", async () => {
 
     await addOneTenant(tenantWithoutSameAttributeId);
     await addOneTenant(revokerTenant);
-    await writeInReadmodel(toReadModelEService(eService), eservices);
-    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
+    await addOneEService(eService);
+    await addOneAgreement(agreementEservice);
     expect(
       tenantService.revokeVerifiedAttribute(
         {
@@ -236,8 +256,8 @@ describe("revokeVerifiedAttribute", async () => {
 
     await addOneTenant(tenantWithVerifiedAttribute);
     await addOneTenant(revokerTenant);
-    await writeInReadmodel(toReadModelEService(eService), eservices);
-    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
+    await addOneEService(eService);
+    await addOneAgreement(agreementEservice);
 
     expect(
       tenantService.revokeVerifiedAttribute(
@@ -259,8 +279,8 @@ describe("revokeVerifiedAttribute", async () => {
   });
   it("Should throw verifiedAttributeSelfRevocationNotAllowed when trying to revoke own attributes", async () => {
     await addOneTenant(revokerTenant);
-    await writeInReadmodel(toReadModelEService(eService), eservices);
-    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
+    await addOneEService(eService);
+    await addOneAgreement(agreementEservice);
 
     expect(
       tenantService.revokeVerifiedAttribute(
@@ -292,8 +312,8 @@ describe("revokeVerifiedAttribute", async () => {
 
     await addOneTenant(tenantWithVerifiedAttribute);
     await addOneTenant(revokerTenant);
-    await writeInReadmodel(toReadModelEService(eService), eservices);
-    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
+    await addOneEService(eService);
+    await addOneAgreement(agreementEservice);
 
     expect(
       tenantService.revokeVerifiedAttribute(
