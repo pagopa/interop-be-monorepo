@@ -174,6 +174,23 @@ export const toCreateEventMaintenanceTenantDeleted = (
   correlationId,
 });
 
+export const toCreateEventMaintenanceTenantUpdated = (
+  version: number,
+  tenant: Tenant,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> => ({
+  streamId: tenant.id,
+  version,
+  event: {
+    event_version: 2,
+    type: "MaintenanceTenantUpdated",
+    data: {
+      tenant: toTenantV2(tenant),
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventTenantVerifiedAttributeAssigned = (
   version: number,
   updatedTenant: Tenant,
@@ -281,6 +298,40 @@ export const toCreateEventMaintenanceTenantPromotedToCertifier = (
     type: "MaintenanceTenantPromotedToCertifier",
     data: {
       tenant: toTenantV2(tenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantDelegatedProducerFeatureAdded = (
+  version: number,
+  updatedTenant: Tenant,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantDelegatedProducerFeatureAdded",
+    event_version: 2,
+    data: {
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantDelegatedProducerFeatureRemoved = (
+  version: number,
+  updatedTenant: Tenant,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantDelegatedProducerFeatureRemoved",
+    event_version: 2,
+    data: {
+      tenant: toTenantV2(updatedTenant),
     },
   },
   correlationId,
