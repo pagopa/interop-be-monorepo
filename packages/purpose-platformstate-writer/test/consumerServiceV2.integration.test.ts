@@ -176,6 +176,8 @@ describe("integration tests for events V2", () => {
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          GSIPK_consumerId_eserviceId: undefined,
+          GSIPK_eserviceId_descriptorId: undefined,
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
         };
@@ -189,6 +191,8 @@ describe("integration tests for events V2", () => {
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          GSIPK_consumerId_eserviceId: undefined,
+          GSIPK_eserviceId_descriptorId: undefined,
           GSIPK_purposeId: purposeId,
           purposeState,
         };
@@ -214,12 +218,17 @@ describe("integration tests for events V2", () => {
         expectedPlatformPurposeEntry
       );
 
-      // token-generation-states;
+      // token-generation-states
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: purpose.consumerId,
+        eserviceId: purpose.eserviceId,
+      });
       const retrievedTokenStateEntries =
         await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
       const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry1,
+          GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
           updatedAt: new Date().toISOString(),
@@ -227,6 +236,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry2,
+          GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
           updatedAt: new Date().toISOString(),
@@ -361,6 +371,8 @@ describe("integration tests for events V2", () => {
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(),
+          GSIPK_consumerId_eserviceId: undefined,
+          GSIPK_eserviceId_descriptorId: undefined,
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
         };
@@ -369,6 +381,8 @@ describe("integration tests for events V2", () => {
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(),
+          GSIPK_consumerId_eserviceId: undefined,
+          GSIPK_eserviceId_descriptorId: undefined,
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
         };
@@ -391,12 +405,17 @@ describe("integration tests for events V2", () => {
         expectedPlatformPurposeEntry
       );
 
-      // token-generation-states;
+      // token-generation-states
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: purpose.consumerId,
+        eserviceId: purpose.eserviceId,
+      });
       const retrievedTokenStateEntries =
         await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
       const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry1,
+          GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
           updatedAt: new Date().toISOString(),
@@ -404,6 +423,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry2,
+          GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
           updatedAt: new Date().toISOString(),
@@ -891,6 +911,8 @@ describe("integration tests for events V2", () => {
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          GSIPK_consumerId_eserviceId: undefined,
+          GSIPK_eserviceId_descriptorId: undefined,
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
         };
@@ -904,6 +926,8 @@ describe("integration tests for events V2", () => {
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          GSIPK_consumerId_eserviceId: undefined,
+          GSIPK_eserviceId_descriptorId: undefined,
           GSIPK_purposeId: purposeId,
           purposeState,
         };
@@ -929,12 +953,17 @@ describe("integration tests for events V2", () => {
         expectedPlatformPurposeEntry
       );
 
-      // token-generation-states;
+      // token-generation-states
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: purpose.consumerId,
+        eserviceId: purpose.eserviceId,
+      });
       const retrievedTokenStateEntries =
         await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
       const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry1,
+          GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
           updatedAt: new Date().toISOString(),
@@ -942,6 +971,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry2,
+          GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
           updatedAt: new Date().toISOString(),
@@ -1078,6 +1108,8 @@ describe("integration tests for events V2", () => {
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(),
+          GSIPK_consumerId_eserviceId: undefined,
+          GSIPK_eserviceId_descriptorId: undefined,
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
         };
@@ -1086,6 +1118,8 @@ describe("integration tests for events V2", () => {
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(),
+          GSIPK_consumerId_eserviceId: undefined,
+          GSIPK_eserviceId_descriptorId: undefined,
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
         };
@@ -1108,12 +1142,17 @@ describe("integration tests for events V2", () => {
         expectedPlatformPurposeEntry
       );
 
-      // token-generation-states;
+      // token-generation-states
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: purpose.consumerId,
+        eserviceId: purpose.eserviceId,
+      });
       const retrievedTokenStateEntries =
         await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
       const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry1,
+          GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
           updatedAt: new Date().toISOString(),
@@ -1121,6 +1160,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry2,
+          GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
           updatedAt: new Date().toISOString(),
