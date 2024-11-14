@@ -3,6 +3,7 @@ import {
   apiGatewayApi,
   attributeRegistryApi,
   catalogApi,
+  delegationApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
 import { operationForbidden, TenantId } from "pagopa-interop-models";
@@ -15,6 +16,7 @@ import {
   missingAvailableDescriptor,
   multipleAgreementForEserviceAndConsumer,
   unexpectedDescriptorState,
+  multipleActiveDelegationsForEservice,
 } from "../models/errors.js";
 import { NonDraftCatalogApiDescriptor } from "../api/catalogApiConverter.js";
 
@@ -91,5 +93,23 @@ export function assertRegistryAttributeExists(
 ): asserts registryAttribute is NonNullable<attributeRegistryApi.Attribute> {
   if (!registryAttribute) {
     throw attributeNotFoundInRegistry(attributeId);
+  }
+}
+
+export function assertIsEserviceProducerDelegate(
+  delegation: delegationApi.Delegation | undefined,
+  organizationId: TenantId
+): void {
+  if (!delegation || delegation.delegateId !== organizationId) {
+    throw operationForbidden;
+  }
+}
+
+export function assertOnlyOneActiveDelegationForEserviceExists(
+  delegations: delegationApi.Delegations,
+  eserviceId: apiGatewayApi.EService["id"]
+): void {
+  if (delegations.totalCount > 1) {
+    throw multipleActiveDelegationsForEservice(eserviceId);
   }
 }
