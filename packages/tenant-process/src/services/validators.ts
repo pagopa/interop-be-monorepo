@@ -1,10 +1,8 @@
 import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
-  AgreementState,
   Attribute,
   AttributeId,
   CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS,
-  EService,
   ExternalId,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   PUBLIC_SERVICES_MANAGERS,

@@ -22,6 +22,8 @@ import {
   genericInternalError,
   TenantFeatureType,
   AgreementId,
+  DelegationKind,
+  Delegation,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
@@ -158,7 +160,8 @@ async function getTenant(
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { attributes, eservices, tenants, agreements } = readModelRepository;
+  const { attributes, eservices, tenants, agreements, delegations } =
+    readModelRepository;
   return {
     async getTenants({
       name,
@@ -528,6 +531,33 @@ export function readModelServiceBuilder(
         "data.kind": attributeKind.certified,
         "data.origin": certifierId,
       });
+    },
+
+    async getActiveDelegation({
+      agreementId,
+      kind,
+    }: {
+      agreementId: AgreementId;
+      kind: DelegationKind;
+    }): Promise<Delegation | undefined> {
+      const data = await delegations.findOne({
+        "data.agreementId": agreementId,
+        "data.kind": kind,
+        "data.state": agreementState.active,
+      });
+
+      if (data) {
+        const result = Delegation.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse delegation item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+      return undefined;
     },
   };
 }

@@ -70,6 +70,7 @@ export type TenantAttributeType = z.infer<typeof TenantAttributeType>;
 
 export const TenantVerifier = z.object({
   id: TenantId,
+  delegateId: TenantId.optional(),
   verificationDate: z.coerce.date(),
   expirationDate: z.coerce.date().optional(),
   extensionDate: z.coerce.date().optional(),
@@ -80,6 +81,7 @@ export const TenantRevoker = z.object({
   expirationDate: z.coerce.date().optional(),
   extensionDate: z.coerce.date().optional(),
   id: TenantId,
+  delegateId: TenantId.optional(),
   revocationDate: z.coerce.date(),
   verificationDate: z.coerce.date(),
 });

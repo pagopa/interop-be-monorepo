@@ -7633,6 +7633,28 @@ paths:
         - tenants
       operationId: revokeVerifiedAttribute
       description: Revoke a Verified attribute to a Tenant by the requester Tenant
+      parameters:
+        - name: tenantId
+          in: path
+          description: Tenant id which attribute needs to be verified
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: attributeId
+          in: path
+          description: Attribute id to be revoked
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: agreementId
+          in: query
+          description: Agreement id for the attirbute to be revoked
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         "204":
           description: Updated Tenant
