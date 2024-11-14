@@ -32,6 +32,7 @@ import {
   TenantFeatureCertifier,
   CorrelationId,
   tenantKind,
+  TenantFeatureType,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -1218,22 +1219,24 @@ export function tenantServiceBuilder(
         limit,
       });
     },
-    async getTenantsByName(
+    async getTenants(
       {
         name,
+        features,
         offset,
         limit,
       }: {
         name: string | undefined;
+        features: TenantFeatureType[];
         offset: number;
         limit: number;
       },
       logger: Logger
     ): Promise<ListResult<Tenant>> {
       logger.info(
-        `Retrieving Tenants with name = ${name}, limit = ${limit}, offset = ${offset}`
+        `Retrieving Tenants with name = ${name}, features = ${features}, limit = ${limit}, offset = ${offset}`
       );
-      return readModelService.getTenantsByName({ name, offset, limit });
+      return readModelService.getTenants({ name, features, offset, limit });
     },
     async getTenantById(id: TenantId, logger: Logger): Promise<Tenant> {
       logger.info(`Retrieving tenant ${id}`);
