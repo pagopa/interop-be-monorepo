@@ -13,19 +13,16 @@ import {
   Attribute,
   attributeKind,
   Agreement,
-  toReadModelAttribute,
-  toReadModelEService,
-  toReadModelAgreement,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  writeInReadmodel,
   getMockAttribute,
   readLastEventByStreamId,
   getMockDescriptor,
   getMockEService,
   getMockTenant,
+  getMockDelegationProducer,
 } from "pagopa-interop-commons-test";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
@@ -41,21 +38,22 @@ import {
   getMockVerifiedBy,
   getMockRevokedBy,
   tenantService,
-  attributes,
-  eservices,
-  agreements,
   postgresDB,
+  addOneAgreement,
+  addOneAttribute,
+  addOneEService,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("verifyVerifiedAttribute", async () => {
   const targetTenant = getMockTenant();
   const requesterTenant = getMockTenant();
-  const tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed = {
-    id: generateId(),
-  };
+
+  const tenantAttributeSeedId = generateId();
+
   const attribute: Attribute = {
     ...getMockAttribute(),
-    id: unsafeBrandId(tenantAttributeSeed.id),
+    id: unsafeBrandId(tenantAttributeSeedId),
     kind: attributeKind.verified,
   };
   const descriptor1: Descriptor = {
@@ -65,7 +63,7 @@ describe("verifyVerifiedAttribute", async () => {
       verified: [
         [
           {
-            id: unsafeBrandId(tenantAttributeSeed.id),
+            id: unsafeBrandId(tenantAttributeSeedId),
             explicitAttributeVerification: false,
           },
         ],
@@ -85,6 +83,15 @@ describe("verifyVerifiedAttribute", async () => {
     producerId: eService1.producerId,
     consumerId: targetTenant.id,
   });
+  const tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed = {
+    id: tenantAttributeSeedId,
+    agreementId: agreementEservice1.id,
+  };
+
+  const delegation = getMockDelegationProducer({
+    eserviceId: eService1.id,
+    delegateId: requesterTenant.id,
+  });
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -98,12 +105,11 @@ describe("verifyVerifiedAttribute", async () => {
   it("Should verify the VerifiedAttribute if verifiedTenantAttribute doesn't exist", async () => {
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await addOneAttribute(attribute);
+    await addOneEService(eService1);
+    await addOneAgreement(agreementEservice1);
+    await addOneDelegation(delegation);
+
     const returnedTenant = await tenantService.verifyVerifiedAttribute(
       {
         tenantId: targetTenant.id,
@@ -179,12 +185,9 @@ describe("verifyVerifiedAttribute", async () => {
 
     await addOneTenant(tenantWithVerifiedAttribute);
     await addOneTenant(requesterTenant);
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await addOneAttribute(attribute);
+    await addOneEService(eService1);
+    await addOneAgreement(agreementEservice1);
 
     const returnedTenant = await tenantService.verifyVerifiedAttribute(
       {
@@ -236,11 +239,9 @@ describe("verifyVerifiedAttribute", async () => {
     expect(returnedTenant).toEqual(updatedTenant);
   });
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await addOneEService(eService1);
+    await addOneAgreement(agreementEservice1);
+
     expect(
       tenantService.verifyVerifiedAttribute(
         {
@@ -256,11 +257,9 @@ describe("verifyVerifiedAttribute", async () => {
   it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await addOneEService(eService1);
+    await addOneAgreement(agreementEservice1);
+
     expect(
       tenantService.verifyVerifiedAttribute(
         {
@@ -303,20 +302,17 @@ describe("verifyVerifiedAttribute", async () => {
 
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
-    await writeInReadmodel(
-      toReadModelEService(eServiceWithNotAllowedDescriptor),
-      eservices
-    );
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEserviceWithNotAllowedDescriptor),
-      agreements
-    );
+    await addOneEService(eServiceWithNotAllowedDescriptor);
+    await addOneAgreement(agreementEserviceWithNotAllowedDescriptor);
 
     expect(
       tenantService.verifyVerifiedAttribute(
         {
           tenantId: targetTenant.id,
-          tenantAttributeSeed,
+          tenantAttributeSeed: {
+            ...tenantAttributeSeed,
+            agreementId: agreementEserviceWithNotAllowedDescriptor.id,
+          },
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         },
@@ -332,11 +328,8 @@ describe("verifyVerifiedAttribute", async () => {
   it("Should throw verifiedAttributeSelfVerificationNotAllowed if the organizations are not allowed to revoke own attributes", async () => {
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await addOneEService(eService1);
+    await addOneAgreement(agreementEservice1);
 
     expect(
       tenantService.verifyVerifiedAttribute(
