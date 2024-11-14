@@ -114,20 +114,6 @@ const kafkaCommitMessageOffsets = async (
   );
 };
 
-const kafkaCommitBatchOffsets = async (
-  consumer: Consumer,
-  payload: EachBatchPayload
-): Promise<void> => {
-  const { topic, partition, lastOffset } = payload.batch;
-  await consumer.commitOffsets([
-    { topic, partition, offset: (Number(lastOffset) + 1).toString() },
-  ]);
-
-  genericLogger.debug(
-    `Topic message offset ${Number(lastOffset) + 1} committed`
-  );
-};
-
 export async function resetPartitionsOffsets(
   topics: string[],
   kafka: Kafka,
@@ -276,6 +262,7 @@ const initCustomConsumer = async ({
       },
     },
     ...batchConfig,
+    maxBytes: batchConfig ? batchConfig.minBytes * 1.25 : undefined, // TODO double-check
   });
 
   if (config.resetConsumerOffsets) {
@@ -403,17 +390,15 @@ export const runBatchConsumer = async (
   consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>
 ): Promise<void> => {
   try {
-    const consumerRunConfig = (consumer: Consumer): ConsumerRunConfig => ({
-      autoCommit: false,
+    const consumerRunConfig = (): ConsumerRunConfig => ({
       eachBatch: async (payload: EachBatchPayload): Promise<void> => {
         try {
           await consumerHandlerBatch(payload);
-          await kafkaCommitBatchOffsets(consumer, payload);
         } catch (e) {
           throw kafkaMessageProcessError(
             payload.batch.topic,
             payload.batch.partition,
-            payload.batch.lastOffset.toString(),
+            payload.batch.lastOffset().toString(),
             e
           );
         }
