@@ -325,55 +325,6 @@ describe("get agreements", () => {
     });
   });
 
-  // it("should get agreements with filters: attributeId", async () => {
-  //   // const agreements1 = await agreementService.getAgreements(
-  //   //   {
-  //   //     attributeId: attribute2.id,
-  //   //   },
-  //   //   10,
-  //   //   0,
-  //   //   genericLogger
-  //   // );
-  //   const agreements1 = await mockAgreementRouterRequest.get({
-  //     path: "/agreements",
-  //     queryParams: {
-  //       attributeId: attribute2.id,
-  //       limit: 10,
-  //       offset: 0,
-  //     },
-  //     authData: getMockAuthData(),
-  //   });
-  //   expect(agreements1).toEqual({
-  //     totalCount: 1,
-  //     results: expect.arrayContaining([agreement1]),
-  //   });
-
-  //   const agreements2 = await agreementService.getAgreements(
-  //     {
-  //       attributeId: attribute3.id,
-  //     },
-  //     10,
-  //     0,
-  //     genericLogger
-  //   );
-  //   expect(agreements2).toEqual({
-  //     totalCount: 2,
-  //     results: expect.arrayContaining([agreement1, agreement2]),
-  //   });
-
-  //   const agreements3 = await agreementService.getAgreements(
-  //     {
-  //       attributeId: [attribute1.id, attribute3.id, attribute4.id],
-  //     },
-  //     10,
-  //     0,
-  //     genericLogger
-  //   );
-  //   expect(agreements3).toEqual({
-  //     totalCount: 2,
-  //     results: expect.arrayContaining([agreement1, agreement2]),
-  //   });
-  // });
   it("should get agreements with filters: state", async () => {
     const agreements = await mockAgreementRouterRequest.get({
       path: "/agreements",
@@ -456,22 +407,6 @@ describe("get agreements", () => {
       results: expect.arrayContaining([agreementToApiAgreement(agreement1)]),
     });
   });
-
-  // it("should get agreements with filters: attributeId, state", async () => {
-  //   const agreements = await agreementService.getAgreements(
-  //     {
-  //       attributeId: attribute3.id,
-  //       agreementStates: [agreementState.active],
-  //     },
-  //     10,
-  //     0,
-  //     genericLogger
-  //   );
-  //   expect(agreements).toEqual({
-  //     totalCount: 1,
-  //     results: expect.arrayContaining([agreement2]),
-  //   });
-  // });
 
   it("should get agreements with filters: showOnlyUpgradeable, state, descriptorId", async () => {
     const agreements1 = await mockAgreementRouterRequest.get({

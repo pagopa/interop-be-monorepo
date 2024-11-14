@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
@@ -22,6 +23,7 @@ import {
 import {
   Agreement,
   AgreementId,
+  AgreementStamps,
   AgreementSuspendedByConsumerV2,
   AgreementSuspendedByProducerV2,
   Descriptor,
@@ -30,8 +32,9 @@ import {
   Tenant,
   TenantId,
   agreementState,
+  fromAgreementV2,
   generateId,
-  toAgreementV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { agreementSuspendableStates } from "../src/model/domain/agreement-validators.js";
@@ -44,6 +47,7 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
+import { apiAgreementToAgreement } from "../src/model/domain/apiConverter.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -51,6 +55,7 @@ import {
   agreementService,
   readLastAgreementEvent,
 } from "./utils.js";
+import { mockAgreementRouterRequest } from "./supertestSetup.js";
 
 describe("suspend agreement", () => {
   beforeEach(async () => {
@@ -96,6 +101,8 @@ describe("suspend agreement", () => {
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
       producerId: eservice.producerId,
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
       state: randomArrayItem(agreementSuspendableStates),
       certifiedAttributes: [
         getMockAgreementAttribute(consumer.attributes[0].id),
@@ -106,6 +113,7 @@ describe("suspend agreement", () => {
       verifiedAttributes: [
         getMockAgreementAttribute(consumer.attributes[2].id),
       ],
+      stamps: {},
     };
 
     await addOneTenant(consumer);
@@ -118,14 +126,15 @@ describe("suspend agreement", () => {
     ]);
     const authData = getRandomAuthData(requesterId);
 
-    const returnedAgreement = await agreementService.suspendAgreement(
-      agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+    const apiReturnedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/suspend",
+      pathParams: { agreementId: agreement.id },
+      authData,
+    });
+
+    const returnedAgreement = apiAgreementToAgreement(
+      apiReturnedAgreement,
+      authData.userId
     );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -149,20 +158,7 @@ describe("suspend agreement", () => {
 
     /* The agreement will be suspended with suspendedByConsumer or suspendedByProducer flag set
     to true depending on the requester (consumer or producer) */
-    const expectedStamps = {
-      suspensionByConsumer: isConsumer
-        ? {
-            who: authData.userId,
-            when: new Date(),
-          }
-        : agreement.stamps.suspensionByConsumer,
-      suspensionByProducer: !isConsumer
-        ? {
-            who: authData.userId,
-            when: new Date(),
-          }
-        : agreement.stamps.suspensionByProducer,
-    };
+
     const expectedSuspensionFlags = {
       suspendedByConsumer: isConsumer
         ? true
@@ -171,22 +167,84 @@ describe("suspend agreement", () => {
         ? true
         : agreement.suspendedByProducer ?? false,
     };
+
+    const expectedStamps: AgreementStamps =
+      returnedAgreement.suspendedByProducer &&
+      returnedAgreement.suspendedByConsumer
+        ? {
+            suspensionByProducer: {
+              who: unsafeBrandId(returnedAgreement.producerId),
+              when: new Date(),
+            },
+            suspensionByConsumer: {
+              who: unsafeBrandId(returnedAgreement.consumerId),
+              when: new Date(),
+            },
+          }
+        : returnedAgreement.suspendedByConsumer
+        ? {
+            suspensionByConsumer: {
+              who: unsafeBrandId(returnedAgreement.consumerId),
+              when: new Date(),
+            },
+          }
+        : returnedAgreement.suspendedByProducer
+        ? {
+            suspensionByProducer: {
+              who: unsafeBrandId(returnedAgreement.producerId),
+              when: new Date(),
+            },
+          }
+        : {};
+
     const expectedAgreementSuspended: Agreement = {
       ...agreement,
       ...expectedSuspensionFlags,
       state: agreementState.suspended,
+      contract: returnedAgreement.contract,
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: returnedAgreement.consumerDocuments[index].createdAt,
+      })),
       suspendedAt: agreement.suspendedAt ?? new Date(),
       stamps: {
-        ...agreement.stamps,
         ...expectedStamps,
+        submission: {
+          who: unsafeBrandId(authData.userId),
+          when: new Date(),
+        },
+        activation: {
+          who: unsafeBrandId(authData.userId),
+          when: new Date(),
+        },
       },
     };
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(expectedAgreementSuspended)
+
+    const actualAgreementWithCorrectDate: Agreement = {
+      ...fromAgreementV2(actualAgreementSuspended!),
+      contract: returnedAgreement.contract,
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: returnedAgreement.consumerDocuments[index].createdAt,
+      })),
+      stamps: {
+        ...expectedStamps,
+        submission: {
+          who: authData.userId,
+          when: returnedAgreement.stamps.submission!.when,
+        },
+        activation: {
+          who: authData.userId,
+          when: returnedAgreement.stamps.activation!.when,
+        },
+      },
+    };
+
+    expect(actualAgreementWithCorrectDate).toMatchObject(
+      expectedAgreementSuspended
     );
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(returnedAgreement)
-    );
+
+    expect(expectedAgreementSuspended).toMatchObject(returnedAgreement);
   });
 
   it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
@@ -233,6 +291,7 @@ describe("suspend agreement", () => {
       verifiedAttributes: [
         getMockAgreementAttribute(consumer.attributes[2].id),
       ],
+      stamps: {},
     };
 
     await addOneTenant(consumer);
@@ -241,14 +300,15 @@ describe("suspend agreement", () => {
 
     const authData = getRandomAuthData(producerAndConsumerId);
 
-    const returnedAgreement = await agreementService.suspendAgreement(
-      agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+    const apiReturnedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/suspend",
+      pathParams: { agreementId: agreement.id },
+      authData,
+    });
+
+    const returnedAgreement = apiAgreementToAgreement(
+      apiReturnedAgreement,
+      authData.userId
     );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -271,26 +331,66 @@ describe("suspend agreement", () => {
       ...agreement,
       suspendedByConsumer: true,
       suspendedByProducer: true,
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: returnedAgreement.consumerDocuments[index].createdAt,
+      })),
       state: agreementState.suspended,
       suspendedAt: agreement.suspendedAt ?? new Date(),
+      contract: returnedAgreement.contract,
       stamps: {
         ...agreement.stamps,
-        suspensionByConsumer: {
+        submission: {
           who: authData.userId,
+          when: returnedAgreement.stamps.submission!.when,
+        },
+        activation: {
+          who: authData.userId,
+          when: returnedAgreement.stamps.activation!.when,
+        },
+        suspensionByConsumer: {
+          who: unsafeBrandId(returnedAgreement.consumerId),
           when: new Date(),
         },
         suspensionByProducer: {
-          who: authData.userId,
+          who: unsafeBrandId(returnedAgreement.producerId),
           when: new Date(),
         },
       },
     };
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(expectedAgreementSuspended)
+
+    const actualAgreementWithCorrectDate: Agreement = {
+      ...fromAgreementV2(actualAgreementSuspended!),
+      contract: returnedAgreement.contract,
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: returnedAgreement.consumerDocuments[index].createdAt,
+      })),
+      stamps: {
+        submission: {
+          who: authData.userId,
+          when: returnedAgreement.stamps.submission!.when,
+        },
+        activation: {
+          who: authData.userId,
+          when: returnedAgreement.stamps.activation!.when,
+        },
+        suspensionByProducer: {
+          who: unsafeBrandId(returnedAgreement.producerId),
+          when: new Date(),
+        },
+        suspensionByConsumer: {
+          who: unsafeBrandId(returnedAgreement.consumerId),
+          when: new Date(),
+        },
+      },
+    };
+
+    expect(actualAgreementWithCorrectDate).toMatchObject(
+      expectedAgreementSuspended
     );
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(returnedAgreement)
-    );
+
+    expect(expectedAgreementSuspended).toMatchObject(returnedAgreement);
   });
 
   it("should preserve the suspension flags and the stamps that it does not update", async () => {
@@ -332,14 +432,15 @@ describe("suspend agreement", () => {
     await addOneEService(eservice);
     await addOneAgreement(agreement);
 
-    const returnedAgreement = await agreementService.suspendAgreement(
-      agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+    const apiReturnedAgreement = await mockAgreementRouterRequest.post({
+      path: "/agreements/:agreementId/suspend",
+      pathParams: { agreementId: agreement.id },
+      authData,
+    });
+
+    const returnedAgreement = apiAgreementToAgreement(
+      apiReturnedAgreement,
+      authData.userId
     );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -361,20 +462,34 @@ describe("suspend agreement", () => {
       payload: agreementEvent.data,
     }).agreement;
 
-    const expectedStamps = {
-      suspensionByConsumer: isConsumer
+    const expectedStamps: AgreementStamps =
+      returnedAgreement.suspendedByProducer &&
+      returnedAgreement.suspendedByConsumer
         ? {
-            who: authData.userId,
-            when: new Date(),
+            suspensionByProducer: {
+              who: unsafeBrandId(returnedAgreement.producerId),
+              when: new Date(),
+            },
+            suspensionByConsumer: {
+              who: unsafeBrandId(returnedAgreement.consumerId),
+              when: new Date(),
+            },
           }
-        : agreement.stamps.suspensionByConsumer,
-      suspensionByProducer: !isConsumer
+        : returnedAgreement.suspendedByConsumer
         ? {
-            who: authData.userId,
-            when: new Date(),
+            suspensionByConsumer: {
+              who: unsafeBrandId(returnedAgreement.consumerId),
+              when: new Date(),
+            },
           }
-        : agreement.stamps.suspensionByProducer,
-    };
+        : returnedAgreement.suspendedByProducer
+        ? {
+            suspensionByProducer: {
+              who: unsafeBrandId(returnedAgreement.producerId),
+              when: new Date(),
+            },
+          }
+        : {};
     const expectedSuspensionFlags = {
       suspendedByConsumer: isConsumer
         ? true
@@ -386,6 +501,11 @@ describe("suspend agreement", () => {
     const expectedAgreementSuspended: Agreement = {
       ...agreement,
       ...expectedSuspensionFlags,
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: returnedAgreement.consumerDocuments[index].createdAt,
+      })),
+      contract: returnedAgreement.contract,
       state: agreementState.suspended,
       suspendedAt: agreement.suspendedAt ?? new Date(),
       stamps: {
@@ -393,12 +513,25 @@ describe("suspend agreement", () => {
         ...expectedStamps,
       },
     };
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(expectedAgreementSuspended)
+
+    const actualAgreementWithCorrectDate: Agreement = {
+      ...fromAgreementV2(actualAgreementSuspended!),
+      contract: returnedAgreement.contract,
+      consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+        ...doc,
+        createdAt: returnedAgreement.consumerDocuments[index].createdAt,
+      })),
+      stamps: {
+        ...agreement.stamps,
+        ...expectedStamps,
+      },
+    };
+
+    expect(actualAgreementWithCorrectDate).toMatchObject(
+      expectedAgreementSuspended
     );
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(returnedAgreement)
-    );
+
+    expect(expectedAgreementSuspended).toMatchObject(returnedAgreement);
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
