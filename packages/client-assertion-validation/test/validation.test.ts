@@ -223,9 +223,7 @@ describe("validation test", async () => {
 
     it("invalidAudienceFormat - comma-separated strings", async () => {
       const { jws } = await getMockClientAssertion({
-        standardClaimsOverride: {
-          aud: "test.interop.pagopa.it, other-aud",
-        },
+        standardClaimsOverride: { aud: "test.interop.pagopa.it, other-aud" },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
