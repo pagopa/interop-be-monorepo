@@ -255,12 +255,12 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
     eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
     voucherLifespan: number,
     dynamoDBClient: DynamoDBClient
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<void> => {
     const runPaginatedQuery = async (
       eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
       dynamoDBClient: DynamoDBClient,
       exclusiveStartKey?: Record<string, AttributeValue>
-    ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+    ): Promise<void> => {
       const input: QueryInput = {
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
         IndexName: "Descriptor",
@@ -298,26 +298,17 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
           tokenStateEntries.data
         );
 
-        if (!data.LastEvaluatedKey) {
-          return tokenStateEntries.data;
-        } else {
-          return [
-            ...tokenStateEntries.data,
-            ...(await runPaginatedQuery(
-              eserviceId_descriptorId,
-              dynamoDBClient,
-              data.LastEvaluatedKey
-            )),
-          ];
+        if (data.LastEvaluatedKey) {
+          await runPaginatedQuery(
+            eserviceId_descriptorId,
+            dynamoDBClient,
+            data.LastEvaluatedKey
+          );
         }
       }
     };
 
-    return await runPaginatedQuery(
-      eserviceId_descriptorId,
-      dynamoDBClient,
-      undefined
-    );
+    await runPaginatedQuery(eserviceId_descriptorId, dynamoDBClient, undefined);
   };
 
 const updateDescriptorStateEntriesInTokenGenerationStatesTable = async (
