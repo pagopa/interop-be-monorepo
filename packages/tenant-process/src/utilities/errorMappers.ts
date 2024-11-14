@@ -150,6 +150,7 @@ export const verifyVerifiedAttributeErrorMapper = (
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("descriptorNotFoundInEservice", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "verifiedAttributeSelfVerificationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
@@ -164,6 +165,7 @@ export const revokeVerifiedAttributeErrorMapper = (
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("descriptorNotFoundInEservice", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "verifiedAttributeSelfRevocationNotAllowed",
       "attributeRevocationNotAllowed",

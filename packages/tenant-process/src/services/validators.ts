@@ -32,6 +32,8 @@ import {
   attributeNotFound,
   tenantAlreadyHasDelegatedProducerFeature,
   tenantHasNoDelegatedProducerFeature,
+  eServiceNotFound,
+  descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -70,7 +72,7 @@ export async function assertVerifiedAttributeOperationAllowed({
   const eservice = await readModelService.getEServiceById(agreement.eserviceId);
 
   if (!eservice) {
-    throw new Error("eService not found"); // TODO: handle eservice not found
+    throw eServiceNotFound(agreement.eserviceId);
   }
 
   const descriptor = eservice.descriptors.find(
@@ -78,7 +80,7 @@ export async function assertVerifiedAttributeOperationAllowed({
   );
 
   if (!descriptor) {
-    throw new Error("Descriptor not found"); // TODO: handle descriptor not found
+    throw descriptorNotFoundInEservice(eservice.id, descriptorId);
   }
 
   const attributeIds = new Set(
