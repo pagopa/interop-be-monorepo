@@ -32,6 +32,8 @@
     "start:ivass-certified-attributes-importer": "turbo start --filter pagopa-interop-ivass-certified-attributes-importer",
     "start:pn-consumers": "turbo start --filter pagopa-interop-pn-consumers",
     "start:one-trust-notices": "turbo start --filter pagopa-interop-one-trust-notices",
+    "start:delegation": "turbo start --filter pagopa-interop-delegation-process",
+    "start:delegation-readmodel-writer": "turbo start --filter pagopa-interop-delegation-readmodel-writer",
     "start:datalake-data-export": "turbo start --filter pagopa-interop-datalake-data-export",
     "test": "turbo test",
     "build": "turbo build",
