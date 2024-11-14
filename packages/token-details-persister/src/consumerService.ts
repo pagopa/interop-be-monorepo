@@ -1,10 +1,10 @@
+import crypto from "crypto";
 import {
   FileManager,
   formatDateyyyyMMdd,
   formatTimehhmmss,
   Logger,
 } from "pagopa-interop-commons";
-import { generateId } from "pagopa-interop-models";
 import { KafkaMessage } from "kafkajs";
 import { config } from "./config/config.js";
 
@@ -19,7 +19,9 @@ export async function handleMessages(
   const ymdDate = formatDateyyyyMMdd(date);
   const hmsTime = formatTimehhmmss(date);
 
-  const fileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
+  // TODO only for testing. Revert to generateId()
+  const hash = crypto.createHash("md5").update(fileContent).digest("hex");
+  const fileName = `${ymdDate}_${hmsTime}_${hash}.ndjson`;
   const filePath = `token-details/${ymdDate}`;
   try {
     await fileManager.storeBytes(

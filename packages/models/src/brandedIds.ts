@@ -74,6 +74,14 @@ export type SelfcareId = z.infer<typeof SelfcareId>;
 export const ProducerKeychainId = z.string().uuid().brand("ProducerKeychainId");
 export type ProducerKeychainId = z.infer<typeof ProducerKeychainId>;
 
+export const DelegationId = z.string().uuid().brand("DelegationId");
+export type DelegationId = z.infer<typeof DelegationId>;
+
+export const DelegationContractId = z
+  .string()
+  .uuid()
+  .brand("DelegationContractId");
+export type DelegationContractId = z.infer<typeof DelegationContractId>;
 export const PlatformStatesEServiceDescriptorPK = z
   .string()
   .brand(`ESERVICEDESCRIPTOR#eServiceId#descriptorId`);
@@ -152,6 +160,8 @@ type IDS =
   | UserId
   | SelfcareId
   | ProducerKeychainId
+  | DelegationId
+  | DelegationContractId
   | PlatformStatesEServiceDescriptorPK
   | PlatformStatesAgreementPK
   | PlatformStatesPurposePK
