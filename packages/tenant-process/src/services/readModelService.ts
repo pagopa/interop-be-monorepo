@@ -534,14 +534,14 @@ export function readModelServiceBuilder(
     },
 
     async getActiveDelegation({
-      agreementId,
+      eserviceId,
       kind,
     }: {
-      agreementId: AgreementId;
+      eserviceId: EServiceId;
       kind: DelegationKind;
     }): Promise<Delegation | undefined> {
       const data = await delegations.findOne({
-        "data.agreementId": agreementId,
+        "data.eserviceId": eserviceId,
         "data.kind": kind,
         "data.state": agreementState.active,
       });

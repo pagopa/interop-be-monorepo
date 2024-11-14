@@ -39,6 +39,7 @@ import {
   Delegation,
   DelegationKind,
   AgreementState,
+  EServiceId,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -174,16 +175,16 @@ async function retrieveAgreement(
 
 async function retrieveActiveDelegation(
   {
-    agreementId,
+    eserviceId,
     kind,
   }: {
-    agreementId: AgreementId;
+    eserviceId: EServiceId;
     kind: DelegationKind;
   },
   readModelService: ReadModelService
 ): Promise<Delegation | undefined> {
   return await readModelService.getActiveDelegation({
-    agreementId,
+    eserviceId,
     kind,
   });
 }
@@ -743,7 +744,10 @@ export function tenantServiceBuilder(
       }
 
       const delegation = await retrieveActiveDelegation(
-        { agreementId, kind: delegationKind.delegatedProducer },
+        {
+          eserviceId: agreement.eserviceId,
+          kind: delegationKind.delegatedProducer,
+        },
         readModelService
       );
 
@@ -836,7 +840,10 @@ export function tenantServiceBuilder(
       }
 
       const delegation = await retrieveActiveDelegation(
-        { agreementId, kind: delegationKind.delegatedProducer },
+        {
+          eserviceId: agreement.eserviceId,
+          kind: delegationKind.delegatedProducer,
+        },
         readModelService
       );
 
