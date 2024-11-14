@@ -224,7 +224,7 @@ describe("validation test", async () => {
     it("invalidAudienceFormat - comma-separated strings", async () => {
       const { jws } = await getMockClientAssertion({
         standardClaimsOverride: {
-          aud: "dev.interop.pagopa.it, other-aud",
+          aud: "test.interop.pagopa.it, other-aud",
         },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -246,7 +246,7 @@ describe("validation test", async () => {
     it("invalidAudience - missing entry", async () => {
       const { jws } = await getMockClientAssertion({
         standardClaimsOverride: {
-          aud: ["dev.interop.pagopa.it"],
+          aud: ["test.interop.pagopa.it"],
         },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -724,7 +724,7 @@ describe("validation test", async () => {
       const mockKey: TokenGenerationStatesClientPurposeEntry = {
         ...getMockTokenStatesClientPurposeEntry(),
         descriptorState: itemState.inactive,
-        descriptorAudience: ["dev.interop.pagopa.it"],
+        descriptorAudience: ["test.interop.pagopa.it"],
         descriptorVoucherLifespan: 60,
       };
       validatePlatformState(mockKey);
