@@ -260,10 +260,7 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
     for (const entry of result.tokenStateEntries) {
       const tokenEntryPK = entry.PK;
       const isAgreementMissingInTokenTable =
-        platformAgreementEntry &&
-        (!entry.GSIPK_consumerId_eserviceId ||
-          !entry.agreementId ||
-          !entry.agreementState);
+        platformAgreementEntry && (!entry.agreementId || !entry.agreementState);
 
       // Agreement data from platform-states
       const agreementExpressionAttributeValues: Record<string, AttributeValue> =
@@ -274,6 +271,12 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
               },
               ":agreementState": {
                 S: platformAgreementEntry.state,
+              },
+              ":GSIPK_eserviceId_descriptorId": {
+                S: makeGSIPKEServiceIdDescriptorId({
+                  eserviceId: purpose.eserviceId,
+                  descriptorId: platformAgreementEntry.agreementDescriptorId,
+                }),
               },
             }
           : {};
@@ -286,8 +289,7 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
       const isDescriptorDataMissingInTokenTable =
         platformAgreementEntry &&
         catalogEntry &&
-        (!entry.GSIPK_eserviceId_descriptorId ||
-          !entry.descriptorAudience ||
+        (!entry.descriptorAudience ||
           !entry.descriptorState ||
           !entry.descriptorVoucherLifespan);
 
@@ -296,12 +298,6 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
         AttributeValue
       > = isDescriptorDataMissingInTokenTable
         ? {
-            ":GSIPK_eserviceId_descriptorId": {
-              S: makeGSIPKEServiceIdDescriptorId({
-                eserviceId: purpose.eserviceId,
-                descriptorId: platformAgreementEntry.agreementDescriptorId,
-              }),
-            },
             ":descriptorState": {
               S: catalogEntry.state,
             },
@@ -316,8 +312,7 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
           }
         : {};
       const descriptorUpdateExpression = isDescriptorDataMissingInTokenTable
-        ? `, GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId, 
-        descriptorState = :descriptorState, 
+        ? `, descriptorState = :descriptorState, 
         descriptorAudience = :descriptorAudience, 
         descriptorVoucherLifespan = :descriptorVoucherLifespan`
         : "";
