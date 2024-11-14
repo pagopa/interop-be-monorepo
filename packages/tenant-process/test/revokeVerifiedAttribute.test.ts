@@ -40,6 +40,8 @@ import {
   agreements,
   tenantService,
   postgresDB,
+  addOneEService,
+  addOneAgreement,
 } from "./utils.js";
 
 describe("revokeVerifiedAttribute", async () => {
@@ -106,13 +108,14 @@ describe("revokeVerifiedAttribute", async () => {
 
     await addOneTenant(tenantWithVerifiedAttribute);
     await addOneTenant(revokerTenant);
-    await writeInReadmodel(toReadModelEService(eService), eservices);
-    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
+    await addOneEService(eService);
+    await addOneAgreement(agreementEservice);
 
     const returnedTenant = await tenantService.revokeVerifiedAttribute(
       {
         tenantId: tenantWithVerifiedAttribute.id,
         attributeId: verifiedAttribute.id,
+        agreementId: agreementEservice.id,
       },
       {
         authData,
@@ -170,6 +173,7 @@ describe("revokeVerifiedAttribute", async () => {
         {
           tenantId: targetTenant.id,
           attributeId: verifiedAttribute.id,
+          agreementId: agreementEservice.id,
         },
         {
           authData,
@@ -202,6 +206,7 @@ describe("revokeVerifiedAttribute", async () => {
         {
           tenantId: tenantWithoutSameAttributeId.id,
           attributeId: verifiedAttribute.id,
+          agreementId: agreementEservice.id,
         },
         {
           authData,
@@ -239,6 +244,7 @@ describe("revokeVerifiedAttribute", async () => {
         {
           tenantId: tenantWithVerifiedAttribute.id,
           attributeId: verifiedAttribute.id,
+          agreementId: agreementEservice.id,
         },
         {
           authData,
@@ -261,6 +267,7 @@ describe("revokeVerifiedAttribute", async () => {
         {
           tenantId: revokerTenant.id,
           attributeId: verifiedAttribute.id,
+          agreementId: agreementEservice.id,
         },
         {
           authData,
@@ -293,6 +300,7 @@ describe("revokeVerifiedAttribute", async () => {
         {
           tenantId: tenantWithVerifiedAttribute.id,
           attributeId: verifiedAttribute.id,
+          agreementId: agreementEservice.id,
         },
         {
           authData,
