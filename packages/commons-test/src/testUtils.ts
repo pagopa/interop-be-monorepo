@@ -1,3 +1,4 @@
+import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
@@ -47,6 +48,14 @@ import {
   AgreementId,
   PurposeVersionId,
   ProducerKeychain,
+  Delegation,
+  delegationKind,
+  DelegationId,
+  DelegationContractDocument,
+  DelegationContractId,
+  DelegationState,
+  TenantFeatureCertifier,
+  TenantFeature,
   DescriptorState,
   GSIPKConsumerIdEServiceId,
   PlatformStatesAgreementEntry,
@@ -61,6 +70,7 @@ import {
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
+import { match } from "ts-pattern";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -79,6 +89,31 @@ export function randomBoolean(): boolean {
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export const getTenantCertifierFeatures = (
+  tenant: Tenant
+): TenantFeatureCertifier[] =>
+  tenant.features.reduce(
+    (acc: TenantFeatureCertifier[], feature: TenantFeature) =>
+      match(feature.type)
+        .with("PersistentCertifier", () => [
+          ...acc,
+          feature as TenantFeatureCertifier,
+        ])
+        .with("DelegatedProducer", () => acc)
+        .exhaustive(),
+    []
+  );
+
+export const getTenantOneCertifierFeature = (
+  tenant: Tenant
+): TenantFeatureCertifier => {
+  const certifiedFeatures = getTenantCertifierFeatures(tenant);
+  if (certifiedFeatures.length === 0) {
+    fail("Expected certifier feature not found in Tenant");
+  }
+  return certifiedFeatures[0];
+};
 
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
@@ -329,6 +364,56 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
     origin: "IPA",
   },
   selfcareId: generateId(),
+});
+
+export const getMockDelegationProducer = ({
+  id = generateId<DelegationId>(),
+  delegatorId = generateId<TenantId>(),
+  delegateId = generateId<TenantId>(),
+  eserviceId = generateId<EServiceId>(),
+  state = "WaitingForApproval",
+  activationContract = undefined,
+  revocationContract = undefined,
+}: {
+  id?: DelegationId;
+  delegatorId?: TenantId;
+  delegateId?: TenantId;
+  eserviceId?: EServiceId;
+  state?: DelegationState;
+  activationContract?: DelegationContractDocument;
+  revocationContract?: DelegationContractDocument;
+} = {}): Delegation => {
+  const creationTime = new Date();
+
+  return {
+    id,
+    delegatorId,
+    delegateId,
+    eserviceId,
+    createdAt: creationTime,
+    submittedAt: creationTime,
+    state,
+    activationContract,
+    revocationContract,
+    kind: delegationKind.delegatedProducer,
+    stamps: {
+      submission: {
+        who: delegatorId,
+        when: creationTime,
+      },
+    },
+  };
+};
+
+export const getMockDelegationDocument = (
+  id?: DelegationContractId
+): DelegationContractDocument => ({
+  id: id ?? generateId(),
+  name: "Test document",
+  prettyName: "Test document",
+  contentType: "json",
+  path: "path",
+  createdAt: new Date(),
 });
 
 export const getMockTokenStatesClientPurposeEntry = (
