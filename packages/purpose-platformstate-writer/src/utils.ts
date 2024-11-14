@@ -260,7 +260,10 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
     for (const entry of result.tokenStateEntries) {
       const tokenEntryPK = entry.PK;
       const isAgreementMissingInTokenTable =
-        platformAgreementEntry && (!entry.agreementId || !entry.agreementState);
+        platformAgreementEntry &&
+        (!entry.agreementId ||
+          !entry.agreementState ||
+          !entry.GSIPK_eserviceId_descriptorId);
 
       // Agreement data from platform-states
       const agreementExpressionAttributeValues: Record<string, AttributeValue> =

@@ -204,7 +204,11 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
     catalogEntry: PlatformStatesCatalogEntry | undefined;
   }): Promise<void> => {
     for (const entry of entriesToUpdate) {
-      const additionalDescriptorInfo = catalogEntry && !entry.descriptorState;
+      const additionalDescriptorInfo =
+        catalogEntry &&
+        (!entry.descriptorState ||
+          !entry.descriptorAudience ||
+          !entry.descriptorVoucherLifespan);
 
       const additionalAttributesToSet: Record<string, AttributeValue> =
         additionalDescriptorInfo
