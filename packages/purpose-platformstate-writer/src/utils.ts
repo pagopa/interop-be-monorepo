@@ -327,7 +327,7 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
         : "";
 
       const input: UpdateItemInput = {
-        ConditionExpression: "attribute_exists(GSIPK_purposeId)",
+        ConditionExpression: "attribute_exists(PK)",
         Key: {
           PK: {
             S: tokenEntryPK,
@@ -402,7 +402,7 @@ export const updatePurposeDataInTokenEntries = async ({
 
     for (const entry of result.tokenStateEntries) {
       const input: UpdateItemInput = {
-        ConditionExpression: "attribute_exists(GSIPK_purposeId)",
+        ConditionExpression: "attribute_exists(PK)",
         Key: {
           PK: {
             S: entry.PK,

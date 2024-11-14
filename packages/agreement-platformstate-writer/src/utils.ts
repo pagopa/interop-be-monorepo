@@ -163,7 +163,7 @@ export const updateAgreementStateOnTokenStatesEntries = async ({
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
       // ConditionExpression to avoid upsert
-      ConditionExpression: "attribute_exists(GSIPK_eserviceId_descriptorId)",
+      ConditionExpression: "attribute_exists(PK)",
       Key: {
         PK: {
           S: entry.PK,

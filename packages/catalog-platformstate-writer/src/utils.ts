@@ -401,7 +401,7 @@ const updateDescriptorStateInTokenGenerationStatesEntries = async (
 ): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
-      // ConditionExpression: "attribute_exists(GSIPK_eserviceId_descriptorId)",
+      ConditionExpression: "attribute_exists(PK)",
       Key: {
         PK: {
           S: entry.PK,
@@ -442,8 +442,7 @@ const updateDescriptorInfoInTokenGenerationStatesEntries = async ({
 }): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
-      // TODO double check if we can safely remove this
-      // ConditionExpression: "attribute_exists(GSIPK_eserviceId_descriptorId)",
+      ConditionExpression: "attribute_exists(PK)",
       Key: {
         PK: {
           S: entry.PK,
@@ -485,8 +484,7 @@ const updateDescriptorVoucherLifespanInTokenGenerationStatesEntries = async (
 ): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
-      // TODO check if we can remove the condition
-      // ConditionExpression: "attribute_exists(GSIPK_eserviceId_descriptorId)",
+      ConditionExpression: "attribute_exists(PK)",
       Key: {
         PK: {
           S: entry.PK,
