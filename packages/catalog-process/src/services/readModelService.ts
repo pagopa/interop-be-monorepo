@@ -119,6 +119,7 @@ export function readModelServiceBuilder(
         name,
         attributesIds,
         mode,
+        delegated,
       } = filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
@@ -165,7 +166,7 @@ export function readModelServiceBuilder(
       );
 
       const delegationLookup =
-        producersIds.length > 0
+        producersIds.length > 0 || delegated !== undefined
           ? [
               {
                 $lookup: {
@@ -261,19 +262,29 @@ export function readModelServiceBuilder(
         ? { "data.mode": { $eq: mode } }
         : {};
 
+      const delegatedFilter: ReadModelFilter<EService> = match(delegated)
+        .with(true, () => ({
+          "delegation.data.state": {
+            $in: [delegationState.active, delegationState.waitingForApproval],
+          },
+        }))
+        .with(false, () => ({
+          "delegation.data.state": {
+            $nin: [delegationState.active, delegationState.waitingForApproval],
+          },
+        }))
+        .otherwise(() => ({}));
+
       const aggregationPipeline = [
         ...delegationLookup,
-        {
-          $match: {
-            ...nameFilter,
-            ...idsFilter,
-            ...producersIdsFilter,
-            ...descriptorsStateFilter,
-            ...attributesFilter,
-            ...visibilityFilter,
-            ...modeFilter,
-          } satisfies ReadModelFilter<EService>,
-        },
+        { $match: nameFilter },
+        { $match: idsFilter },
+        { $match: producersIdsFilter },
+        { $match: descriptorsStateFilter },
+        { $match: attributesFilter },
+        { $match: visibilityFilter },
+        { $match: modeFilter },
+        { $match: delegatedFilter },
         {
           $project: {
             data: 1,

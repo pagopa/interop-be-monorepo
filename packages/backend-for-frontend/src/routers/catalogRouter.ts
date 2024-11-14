@@ -79,6 +79,7 @@ const catalogRouter = (
         const response = await catalogService.getProducerEServices(
           req.query.q,
           req.query.consumersIds,
+          req.query.delegated,
           req.query.offset,
           req.query.limit,
           ctx
