@@ -12,6 +12,7 @@ import {
   agreementState,
   CompactTenant,
   CorrelationId,
+  TenantId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
@@ -41,9 +42,13 @@ const {
 const nextStateFromDraft = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  tenant: Tenant | CompactTenant,
+  delegateId: TenantId | undefined
 ): AgreementState => {
-  if (agreement.consumerId === agreement.producerId) {
+  if (
+    agreement.consumerId === agreement.producerId ||
+    (delegateId && delegateId === agreement.consumerId)
+  ) {
     return active;
   }
   if (!certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
@@ -93,9 +98,13 @@ const nextStateFromPending = (
 const nextStateFromActiveOrSuspended = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  tenant: Tenant | CompactTenant,
+  delegateId: TenantId | undefined
 ): AgreementState => {
-  if (agreement.consumerId === agreement.producerId) {
+  if (
+    agreement.consumerId === agreement.producerId ||
+    (delegateId && agreement.consumerId === delegateId)
+  ) {
     return active;
   }
   if (
@@ -125,17 +134,18 @@ const nextStateFromMissingCertifiedAttributes = (
 export const nextStateByAttributesFSM = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  tenant: Tenant | CompactTenant,
+  delegateId?: TenantId | undefined
 ): AgreementState =>
   match(agreement.state)
     .with(agreementState.draft, () =>
-      nextStateFromDraft(agreement, descriptor, tenant)
+      nextStateFromDraft(agreement, descriptor, tenant, delegateId)
     )
     .with(agreementState.pending, () =>
       nextStateFromPending(agreement, descriptor, tenant)
     )
     .with(agreementState.active, agreementState.suspended, () =>
-      nextStateFromActiveOrSuspended(agreement, descriptor, tenant)
+      nextStateFromActiveOrSuspended(agreement, descriptor, tenant, delegateId)
     )
     .with(agreementState.archived, () => archived)
     .with(agreementState.missingCertifiedAttributes, () =>
@@ -182,9 +192,10 @@ export const suspendedByConsumerFlag = (
 export const suspendedByProducerFlag = (
   agreement: Agreement,
   requesterOrgId: Tenant["id"],
-  targetDestinationState: AgreementState
+  targetDestinationState: AgreementState,
+  delegateId?: TenantId | undefined
 ): boolean | undefined =>
-  requesterOrgId === agreement.producerId
+  requesterOrgId === agreement.producerId || requesterOrgId === delegateId
     ? targetDestinationState === agreementState.suspended
     : agreement.suspendedByProducer;
 

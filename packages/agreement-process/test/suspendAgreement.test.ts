@@ -401,18 +401,37 @@ describe("suspend agreement", () => {
   it.each(agreementSuspendableStates)(
     "should succeed if the requester is the delegate and the agreement is in state %s",
     async (state) => {
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          getMockCertifiedTenantAttribute(),
+          getMockDeclaredTenantAttribute(),
+          getMockVerifiedTenantAttribute(),
+        ],
+      };
+
+      const descriptor = {
+        ...getMockDescriptorPublished(),
+        attributes: {
+          certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
+          declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
+          verified: [[getMockEServiceAttribute(consumer.attributes[2].id)]],
+        },
+      };
       const eservice: EService = {
         ...getMockEService(),
-        descriptors: [getMockDescriptorPublished()],
+        descriptors: [descriptor],
       };
-      const consumer = getMockTenant();
       const agreement = {
         ...getMockAgreement(),
         state,
         eserviceId: eservice.id,
         producerId: eservice.producerId,
         consumerId: consumer.id,
-        descriptorId: eservice.descriptors[0].id,
+        descriptorId: descriptor.id,
+        suspendedByConsumer: false,
+        suspendedByProducer: false,
+        suspendedByPlatform: false,
       };
       const authData = getRandomAuthData();
       const delegation = getMockDelegationProducer({
@@ -429,6 +448,7 @@ describe("suspend agreement", () => {
       const expectedAgreement = {
         ...agreement,
         state: agreementState.suspended,
+        suspendedByProducer: true,
         stamps: {
           ...agreement.stamps,
           suspensionByProducer: {
