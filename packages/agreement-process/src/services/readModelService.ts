@@ -28,6 +28,9 @@ import {
   DelegationState,
   Delegation,
   delegationState,
+  AgreementReadModel,
+  DescriptorReadModel,
+  EServiceReadModel,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -358,94 +361,69 @@ export function readModelServiceBuilder(
           : [producerId]
         : [];
 
-      const aggregationPipeline = [
-        getAgreementsFilters(filtersWithoutProducerId),
-        {
-          $lookup: {
-            from: "eservices",
-            localField: "data.eserviceId",
-            foreignField: "data.id",
-            as: "eservices",
-          },
-        },
-        {
-          $unwind: "$eservices",
-        },
-        ...getDelegateAgreementsFilters(producerIds),
-        ...(filters.showOnlyUpgradeable
-          ? [
-              {
-                $addFields: {
-                  currentDescriptor: {
-                    $filter: {
-                      input: "$eservices.data.descriptors",
-                      as: "descr",
-                      cond: {
-                        $eq: ["$$descr.id", "$data.descriptorId"],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                $unwind: "$currentDescriptor",
-              },
-              {
-                $addFields: {
-                  upgradableDescriptor: {
-                    $filter: {
-                      input: "$eservices.data.descriptors",
-                      as: "upgradable",
-                      cond: {
-                        $and: [
-                          {
-                            $gt: [
-                              "$$upgradable.publishedAt",
-                              "$currentDescriptor.publishedAt",
-                            ],
-                          },
-                          {
-                            $in: [
-                              "$$upgradable.state",
-                              [
-                                descriptorState.published,
-                                descriptorState.suspended,
-                              ],
-                            ],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                $match: {
-                  upgradableDescriptor: { $ne: [] },
-                },
-              },
-            ]
-          : []),
-        {
-          $project: {
-            data: 1,
-            eservices: 1,
-            lowerName: { $toLower: "$eservices.data.name" },
-          },
-        },
-        {
-          $sort: { lowerName: 1 },
-        },
-      ];
-
-      const data = await agreements
+      const agreementsData = await agreements
         .aggregate(
-          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
-          { allowDiskUse: true }
+          [
+            getAgreementsFilters(filtersWithoutProducerId),
+            ...getDelegateAgreementsFilters(producerIds),
+          ],
+          {
+            allowDiskUse: true,
+          }
         )
         .toArray();
 
-      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
+      const eserviceIds = agreementsData.map(
+        (agreement) => agreement.data.eserviceId
+      );
+      const eservicesData = await eservices
+        .find({ "data.id": { $in: eserviceIds } })
+        .toArray();
+
+      const eservicesMap = new Map(
+        eservicesData.map((eservice) => [eservice.data.id, eservice.data])
+      );
+
+      const combinedData: Array<{
+        agreement: AgreementReadModel;
+        eservice: EServiceReadModel;
+      }> = agreementsData.flatMap((agreement) => {
+        const eservice = eservicesMap.get(agreement.data.eserviceId);
+        return eservice ? [{ agreement: agreement.data, eservice }] : [];
+      });
+
+      const filteredData = filters.showOnlyUpgradeable
+        ? combinedData.filter((cb) => {
+            const currentDescriptor = cb.eservice.descriptors.find(
+              (descr) => descr.id === cb.agreement.descriptorId
+            );
+            const upgradableDescriptor = cb.eservice.descriptors.filter(
+              (upgradable: DescriptorReadModel) => {
+                // Since the dates are optional, if they are undefined they are set to a very old date
+                const currentPublishedAt =
+                  currentDescriptor?.publishedAt ?? new Date(0);
+                const upgradablePublishedAt =
+                  upgradable.publishedAt ?? new Date(0);
+                return (
+                  upgradablePublishedAt > currentPublishedAt &&
+                  (upgradable.state === descriptorState.published ||
+                    upgradable.state === descriptorState.suspended)
+                );
+              }
+            );
+            return upgradableDescriptor.length > 0;
+          })
+        : combinedData;
+
+      const data = filteredData
+        .slice(offset, offset + limit)
+        .sort((a, b) =>
+          a.eservice.name
+            .toLowerCase()
+            .localeCompare(b.eservice.name.toLowerCase())
+        );
+
+      const result = z.array(Agreement).safeParse(data.map((d) => d.agreement));
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse agreements items: result ${JSON.stringify(
@@ -456,10 +434,7 @@ export function readModelServiceBuilder(
 
       return {
         results: result.data,
-        totalCount: await ReadModelRepository.getTotalCount(
-          agreements,
-          aggregationPipeline
-        ),
+        totalCount: filteredData.length,
       };
     },
     async getAgreementById(
@@ -567,7 +542,7 @@ export function readModelServiceBuilder(
           : { "data.state": { $in: filters.agreeementStates } }),
       };
 
-      const aggregationPipeline = [
+      const agreementAggregationPipeline = [
         ...getDelegateAgreementsFilters(filters.producerIds),
         {
           $match: agreementFilter,
@@ -578,28 +553,30 @@ export function readModelServiceBuilder(
           },
         },
         {
-          $lookup: {
-            from: "eservices",
-            localField: "_id",
-            foreignField: "data.id",
-            as: "eservices",
+          $project: {
+            _id: 0,
+            eserviceId: "$_id",
           },
         },
-        {
-          $unwind: "$eservices",
-        },
+      ];
+
+      const agreementData = await agreements
+        .aggregate([...agreementAggregationPipeline], { allowDiskUse: true })
+        .toArray();
+
+      const agreementEservicesIds = agreementData.map((d) => d.eserviceId);
+
+      const aggregationPipeline = [
         {
           $match: {
-            ...makeRegexFilter("eservices.data.name", filters.eserviceName),
+            ...{ "data.id": { $in: agreementEservicesIds } },
+            ...makeRegexFilter("data.name", filters.eserviceName),
           },
         },
         {
           $project: {
-            data: {
-              id: "$eservices.data.id",
-              name: "$eservices.data.name",
-            },
-            lowerName: { $toLower: "$eservices.data.name" },
+            data: { id: "$data.id", name: "$data.name" },
+            lowerName: { $toLower: "$data.name" },
           },
         },
         {
@@ -607,17 +584,9 @@ export function readModelServiceBuilder(
         },
       ];
 
-      const data = await agreements
+      const data = await eservices
         .aggregate(
-          [
-            ...aggregationPipeline,
-            {
-              $skip: offset,
-            },
-            {
-              $limit: limit,
-            },
-          ],
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
           { allowDiskUse: true }
         )
         .toArray();
@@ -636,7 +605,7 @@ export function readModelServiceBuilder(
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
-          agreements,
+          eservices,
           aggregationPipeline
         ),
       };
