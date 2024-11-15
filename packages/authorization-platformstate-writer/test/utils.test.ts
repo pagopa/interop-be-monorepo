@@ -69,6 +69,7 @@ import {
 } from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { z } from "zod";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   setClientPurposeIdsInPlatformStatesEntry,
   convertEntriesToClientKidInTokenGenerationStates,
@@ -554,7 +555,8 @@ describe("utils", () => {
 
     const res = await retrievePlatformStatesByPurpose(
       purposeId,
-      dynamoDBClient
+      dynamoDBClient,
+      genericLogger
     );
 
     expect(res).toEqual({
