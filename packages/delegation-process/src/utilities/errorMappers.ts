@@ -45,6 +45,20 @@ export const createProducerDelegationErrorMapper = (
     .with("delegationAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const createConsumerDelegationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceNotFound",
+      "tenantNotFound",
+      "delegatorAndDelegateSameId",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("tenantNotAllowedToDelegation", () => HTTP_STATUS_FORBIDDEN)
+    .with("delegationAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const revokeDelegationErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

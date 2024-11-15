@@ -14,6 +14,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import { delegationToApiDelegation } from "../model/domain/apiConverter.js";
 import { delegationConsumerServiceBuilder } from "../services/delegationConsumerService.js";
 import { ReadModelService } from "../services/readModelService.js";
+import { createConsumerDelegationErrorMapper } from "../utilities/errorMappers.js";
 
 const { ADMIN_ROLE } = userRoles;
 
@@ -21,7 +22,7 @@ const delegationConsumerRouter = (
   ctx: ZodiosContext,
   eventStore: DB,
   readModelService: ReadModelService
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+): ZodiosRouter<typeof delegationApi.consumerApi.api, ExpressContext> => {
   const delegationConsumerRouter = ctx.router(delegationApi.consumerApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
@@ -53,7 +54,7 @@ const delegationConsumerRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          () => 500, // TODO error mapper
+          createConsumerDelegationErrorMapper,
           ctx.logger,
           ctx.correlationId
         );
