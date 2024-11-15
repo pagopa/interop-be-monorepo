@@ -52,8 +52,7 @@ export function authorizationServiceBuilder(
   interopTokenGenerator: InteropTokenGenerator,
   tenantProcessClient: PagoPAInteropBeClients["tenantProcessClient"],
   allowList: string[],
-  rateLimiter: RateLimiter,
-  jwksClients: ReturnType<typeof buildJwksClients>
+  rateLimiter: RateLimiter
 ) {
   const readJwt = async (
     identityToken: string,
@@ -63,12 +62,7 @@ export function authorizationServiceBuilder(
     sessionClaims: SessionClaims;
     selfcareId: string;
   }> => {
-    const verified = await verifyJwtToken(
-      identityToken,
-      jwksClients,
-      config,
-      logger
-    );
+    const verified = await verifyJwtToken(identityToken, config, logger);
     if (!verified) {
       throw tokenVerificationFailed();
     }
