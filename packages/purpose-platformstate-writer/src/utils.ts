@@ -247,7 +247,7 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
     });
 
     logger.info(
-      `Retrieving agreement entry ${gsiPKConsumerIdEServiceId} to add agreement info in token-generation-states`
+      `Retrieving agreement entry with GSIPK_consumerId_eserviceId ${gsiPKConsumerIdEServiceId} to add agreement info in token-generation-states`
     );
 
     const platformAgreementEntry = await readPlatformAgreementEntry(

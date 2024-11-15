@@ -810,7 +810,7 @@ export const retrievePlatformStatesByPurpose = async (
   });
 
   logger.info(
-    `Retrieving agreement entry ${agreementGSI} to add agreement info in token-generation-states`
+    `Retrieving agreement entry with GSIPK_consumerId_eserviceId ${agreementGSI} to add agreement info in token-generation-states`
   );
 
   const agreementEntry =
