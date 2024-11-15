@@ -1875,6 +1875,114 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/agreements/verify":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      tags:
+        - agreements
+      summary: Verify a Tenant has required certified attributes
+      description: Verify a Tenant has required certified attributes
+      operationId: verifyTenantCertifiedAttributes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tenantId
+                - descriptorId
+              properties:
+                tenantId:
+                  type: string
+                  format: uuid
+                  description: The Tenant id
+                eserviceId:
+                  type: string
+                  format: uuid
+                  description: The E-Service id
+                descriptorId:
+                  type: string
+                  format: uuid
+                  description: The E-Service descriptor id
+      responses:
+        "200":
+          description: Tenant has required certified attributes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/hasCertifiedAttributes"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/catalog":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -12903,6 +13011,8 @@ components:
         maxLength:
           type: integer
           format: int32
+    hasCertifiedAttributes:
+      type: boolean
     HideOption:
       type: object
       additionalProperties: false
@@ -13079,7 +13189,6 @@ components:
         - dailyCallsPerConsumer
         - dailyCallsTotal
         - agreementApprovalPolicy
-        - hasCertifiedAttributes
         - isSubscribed
         - isMine
       properties:
@@ -13230,7 +13339,7 @@ components:
         isMine:
           type: boolean
         hasCertifiedAttributes:
-          type: boolean
+          $ref: "#/components/schemas/hasCertifiedAttributes"
         isSubscribed:
           type: boolean
         activeDescriptor:
@@ -13591,7 +13700,7 @@ components:
         isMine:
           type: boolean
         hasCertifiedAttributes:
-          type: boolean
+          $ref: "#/components/schemas/hasCertifiedAttributes"
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
     ClientKind:

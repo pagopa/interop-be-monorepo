@@ -16,6 +16,7 @@ import {
   tenantApi,
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
+import { DescriptorId, EServiceId, TenantId } from "pagopa-interop-models";
 import {
   AgreementProcessClient,
   PagoPAInteropBeClients,
@@ -40,7 +41,8 @@ import {
 } from "../api/agreementApiConverter.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
-import { isAgreementUpgradable } from "./validators.js";
+import { hasCertifiedAttributes, isAgreementUpgradable } from "./validators.js";
+import { retrieveEserviceDescriptor } from "./catalogService.js";
 
 export async function getAllAgreements(
   agreementProcessClient: AgreementProcessClient,
@@ -64,7 +66,8 @@ export function agreementServiceBuilder(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
-  const { agreementProcessClient } = clients;
+  const { agreementProcessClient, catalogProcessClient, tenantProcessClient } =
+    clients;
   return {
     async createAgreement(
       payload: bffApi.AgreementPayload,
@@ -525,6 +528,32 @@ export function agreementServiceBuilder(
         },
         results: consumers.results.map((c) => toBffCompactOrganization(c)),
       };
+    },
+    async verifyAgreement(
+      tenantId: TenantId,
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.hasCertifiedAttributes> {
+      logger.info(
+        `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
+      );
+
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const eservice = await catalogProcessClient.getEServiceById({
+        params: {
+          eServiceId: eserviceId,
+        },
+        headers,
+      });
+
+      const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
+
+      return hasCertifiedAttributes(descriptor, tenant);
     },
   };
 }

@@ -7,6 +7,7 @@ import {
   zodiosValidationErrorToApiProblem,
   FileManager,
 } from "pagopa-interop-commons";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -498,6 +499,32 @@ const agreementRouter = (
           ctx.logger,
           ctx.correlationId,
           `Error upgrading agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+
+    .post("/agreements/verify", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const { tenantId, eServiceId, descriptorId } = req.body;
+        const result = await agreementService.verifyAgreement(
+          unsafeBrandId(tenantId),
+          unsafeBrandId(eServiceId),
+          unsafeBrandId(descriptorId),
+          ctx
+        );
+        return res
+          .status(200)
+          .send(bffApi.hasCertifiedAttributes.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error verifying agreement`
         );
         return res.status(errorRes.status).send(errorRes);
       }
