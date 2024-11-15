@@ -397,10 +397,9 @@ export function tenantServiceBuilder(
         `Revoking verified attribute ${attributeId} for tenant ${tenantId}`
       );
       await tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(
-        undefined,
+        { agreementId },
         {
           params: { tenantId, attributeId },
-          queries: { agreementId },
           headers,
         }
       );
