@@ -48,7 +48,7 @@ export function assertVerifiedAttributeExistsInTenant(
 }
 
 export async function assertVerifiedAttributeOperationAllowed({
-  producerId,
+  requesterId,
   delegateId,
   consumerId,
   attributeId,
@@ -56,7 +56,7 @@ export async function assertVerifiedAttributeOperationAllowed({
   readModelService,
   error,
 }: {
-  producerId: TenantId;
+  requesterId: TenantId;
   delegateId: TenantId | undefined;
   consumerId: TenantId;
   attributeId: AttributeId;
@@ -64,9 +64,10 @@ export async function assertVerifiedAttributeOperationAllowed({
   readModelService: ReadModelService;
   error: Error;
 }): Promise<void> {
-  if ([producerId, delegateId].includes(consumerId)) {
+  if ([requesterId, delegateId].includes(consumerId)) {
     throw verifiedAttributeSelfVerificationNotAllowed();
   }
+
   const descriptorId = agreement.descriptorId;
 
   const eservice = await readModelService.getEServiceById(agreement.eserviceId);

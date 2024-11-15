@@ -754,16 +754,10 @@ export function tenantServiceBuilder(
       const delegateId = delegation?.delegateId;
       const delegatorId = delegation?.delegatorId;
 
-      if (delegation && delegateId !== organizationId) {
-        throw attributeVerificationNotAllowed(tenantId, attributeId);
-      }
-
-      if (!delegation && organizationId !== agreement.producerId) {
-        throw attributeVerificationNotAllowed(tenantId, attributeId);
-      }
+      const error = attributeVerificationNotAllowed(tenantId, attributeId);
 
       await assertVerifiedAttributeOperationAllowed({
-        producerId: organizationId,
+        requesterId: organizationId,
         delegateId,
         consumerId: tenantId,
         attributeId,
@@ -784,6 +778,14 @@ export function tenantServiceBuilder(
         (attr): attr is VerifiedTenantAttribute =>
           attr.type === tenantAttributeType.VERIFIED && attr.id === attribute.id
       );
+
+      if (delegateId && delegateId !== organizationId) {
+        throw error;
+      }
+
+      if (!delegateId && organizationId !== agreement.producerId) {
+        throw error;
+      }
 
       const updatedTenant: Tenant = {
         ...targetTenant.data,
@@ -836,6 +838,7 @@ export function tenantServiceBuilder(
         throw verifiedAttributeSelfRevocationNotAllowed();
       }
 
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
       const allowedStatuses: AgreementState[] = [
@@ -858,17 +861,17 @@ export function tenantServiceBuilder(
       const delegateId = delegation?.delegateId;
       const delegatorId = delegation?.delegatorId;
 
+      const error = attributeRevocationNotAllowed(tenantId, attributeId);
+
       await assertVerifiedAttributeOperationAllowed({
-        producerId: authData.organizationId,
+        requesterId: authData.organizationId,
         delegateId,
         consumerId: tenantId,
         attributeId,
         agreement,
         readModelService,
-        error: attributeRevocationNotAllowed(tenantId, attributeId),
+        error,
       });
-
-      const targetTenant = await retrieveTenant(tenantId, readModelService);
 
       const verifiedTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is VerifiedTenantAttribute =>
@@ -897,6 +900,14 @@ export function tenantServiceBuilder(
           authData.organizationId,
           attributeId
         );
+      }
+
+      if (delegateId !== authData.organizationId) {
+        throw error;
+      }
+
+      if (!delegateId && authData.organizationId !== agreement.producerId) {
+        throw error;
       }
 
       const updatedTenant: Tenant = {
