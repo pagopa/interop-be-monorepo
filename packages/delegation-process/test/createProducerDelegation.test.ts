@@ -25,7 +25,7 @@ import {
   delegatorAndDelegateSameIdError,
   differentEServiceProducer,
   eserviceNotFound,
-  invalidExternalOriginError,
+  tenantIsNotIPAError,
   tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
@@ -488,9 +488,7 @@ describe("create producer delegation", () => {
           serviceName: "DelegationServiceTest",
         }
       )
-    ).rejects.toThrowError(
-      invalidExternalOriginError(delegator.externalId.origin)
-    );
+    ).rejects.toThrowError(tenantIsNotIPAError(delegator));
   });
 
   it("should throw an eserviceNotFound error if Eservice does not exist", async () => {

@@ -18,7 +18,7 @@ import {
   delegatorNotAllowToRevoke,
   differentEServiceProducer,
   incorrectState,
-  invalidExternalOriginError,
+  tenantIsNotIPAError,
   operationRestrictedToDelegate,
   tenantNotAllowedToDelegation,
 } from "../model/domain/errors.js";
@@ -53,9 +53,9 @@ export const assertDelegatorIsNotDelegate = (
   }
 };
 
-export const assertIsIPATenant = async (tenant?: Tenant): Promise<void> => {
+export const assertIsIPATenant = async (tenant: Tenant): Promise<void> => {
   if (tenant?.externalId?.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
-    throw invalidExternalOriginError(tenant?.externalId?.origin);
+    throw tenantIsNotIPAError(tenant);
   }
 };
 
