@@ -53,11 +53,9 @@ export const assertDelegatorIsNotDelegate = (
   }
 };
 
-export const assertDelegatorIsIPA = async (
-  delegator?: Tenant
-): Promise<void> => {
-  if (delegator?.externalId?.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
-    throw invalidExternalOriginError(delegator?.externalId?.origin);
+export const assertIsIPATenant = async (tenant?: Tenant): Promise<void> => {
+  if (tenant?.externalId?.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
+    throw invalidExternalOriginError(tenant?.externalId?.origin);
   }
 };
 

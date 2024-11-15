@@ -29,7 +29,7 @@ import { ReadModelService } from "./readModelService.js";
 import {
   assertDelegationIsRevokable,
   assertDelegationNotExists,
-  assertDelegatorIsIPA,
+  assertIsIPATenant,
   assertDelegatorIsNotDelegate,
   assertIsDelegate,
   assertIsState,
@@ -73,7 +73,7 @@ export function delegationProducerServiceBuilder(
         delegate,
         delegationKind.delegatedProducer
       );
-      await assertDelegatorIsIPA(delegator);
+      await assertIsIPATenant(delegator);
 
       const eservice = await retrieveEserviceById(readModelService, eserviceId);
       assertDelegatorIsProducer(delegatorId, eservice);

@@ -23,7 +23,6 @@ import {
 } from "./delegationService.js";
 import {
   assertDelegatorIsNotDelegate,
-  assertDelegatorIsIPA,
   assertDelegationNotExists,
   assertTenantAllowedToReceiveDelegation,
 } from "./validators.js";
@@ -57,7 +56,6 @@ export function delegationConsumerServiceBuilder(
         delegate,
         delegationKind.delegatedConsumer
       );
-      await assertDelegatorIsIPA(delegator); // TODO needed also in this case?
 
       await retrieveEserviceById(readModelService, eserviceId);
       await assertDelegationNotExists(
