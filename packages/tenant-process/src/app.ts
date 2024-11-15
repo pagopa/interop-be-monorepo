@@ -1,6 +1,5 @@
 import {
   authenticationMiddleware,
-  buildJwksClients,
   contextMiddleware,
   loggerMiddleware,
   zodiosCtx,

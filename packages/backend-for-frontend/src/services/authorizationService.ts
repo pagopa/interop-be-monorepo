@@ -16,7 +16,6 @@ import {
   USER_ROLES,
   WithLogger,
   decodeJwtToken,
-  buildJwksClients,
   userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
