@@ -388,6 +388,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  parameters:
+    CorrelationIdHeader:
+      in: header
+      name: X-Correlation-Id
+      required: true
+      schema:
+        type: string
   schemas:
     Delegations:
       type: object
