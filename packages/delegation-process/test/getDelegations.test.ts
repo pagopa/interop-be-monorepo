@@ -8,11 +8,11 @@ import { addOneDelegation, delegationService } from "./utils.js";
 describe("get delegations", () => {
   it("should get delegations", async () => {
     const delegation1 = getMockDelegation({
-      kind: delegationKind.delegatedConsumer,
+      kind: delegationKind.delegatedProducer,
       state: "Active",
     });
     const delegation2 = getMockDelegation({
-      kind: delegationKind.delegatedConsumer,
+      kind: delegationKind.delegatedProducer,
     });
     await addOneDelegation(delegation1);
     await addOneDelegation(delegation2);
