@@ -734,13 +734,15 @@ export function tenantServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
+      const error = attributeVerificationNotAllowed(tenantId, attributeId);
+
       const allowedStatuses: AgreementState[] = [
         agreementState.pending,
         agreementState.active,
         agreementState.suspended,
       ];
       if (!allowedStatuses.includes(agreement.state)) {
-        throw attributeVerificationNotAllowed(tenantId, attributeId);
+        throw error;
       }
 
       const delegation = await retrieveActiveDelegation(
@@ -754,8 +756,6 @@ export function tenantServiceBuilder(
       const delegateId = delegation?.delegateId;
       const delegatorId = delegation?.delegatorId;
 
-      const error = attributeVerificationNotAllowed(tenantId, attributeId);
-
       await assertVerifiedAttributeOperationAllowed({
         requesterId: organizationId,
         delegateId,
@@ -763,7 +763,7 @@ export function tenantServiceBuilder(
         attributeId,
         agreement,
         readModelService,
-        error: attributeVerificationNotAllowed(tenantId, attributeId),
+        error,
       });
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
