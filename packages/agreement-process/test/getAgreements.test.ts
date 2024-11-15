@@ -4,6 +4,7 @@ import {
   getMockDescriptorPublished,
   getMockEService,
   getMockAgreement,
+  getMockDelegationProducer,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -24,6 +25,7 @@ import {
   addOneEService,
   addOneAgreement,
   agreementService,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("get agreements", () => {
@@ -38,6 +40,7 @@ describe("get agreements", () => {
   let eservice1: EService;
   let eservice2: EService;
   let eservice3: EService;
+  let eservice4: EService;
   let attribute1: AgreementAttribute;
   let attribute2: AgreementAttribute;
   let attribute3: AgreementAttribute;
@@ -48,6 +51,7 @@ describe("get agreements", () => {
   let agreement4: Agreement;
   let agreement5: Agreement;
   let agreement6: Agreement;
+  let agreement7: Agreement;
 
   beforeEach(async () => {
     tenant1 = getMockTenant();
@@ -92,6 +96,10 @@ describe("get agreements", () => {
       ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
       name: "EService3", // Adding name because results are sorted by esevice name
     };
+    eservice4 = {
+      ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
+      name: "EService4", // Adding name because results are sorted by esevice name
+    };
 
     await addOneTenant(tenant1);
     await addOneTenant(tenant2);
@@ -99,6 +107,7 @@ describe("get agreements", () => {
     await addOneEService(eservice1);
     await addOneEService(eservice2);
     await addOneEService(eservice3);
+    await addOneEService(eservice4);
 
     attribute1 = { id: generateId() };
     attribute2 = { id: generateId() };
@@ -149,12 +158,26 @@ describe("get agreements", () => {
       producerId: eservice3.producerId,
     };
 
+    agreement7 = {
+      ...getMockAgreement(eservice4.id, tenant1.id, agreementState.draft),
+      descriptorId: eservice4.descriptors[0].id,
+      producerId: eservice4.producerId,
+    };
+
     await addOneAgreement(agreement1);
     await addOneAgreement(agreement2);
     await addOneAgreement(agreement3);
     await addOneAgreement(agreement4);
     await addOneAgreement(agreement5);
     await addOneAgreement(agreement6);
+    await addOneAgreement(agreement7);
+
+    const delegation1 = getMockDelegationProducer({
+      delegateId: eservice4.producerId,
+      eserviceId: eservice4.id,
+      state: agreementState.active,
+    });
+    await addOneDelegation(delegation1);
   });
 
   it("should get all agreements if no filters are provided", async () => {
@@ -165,7 +188,7 @@ describe("get agreements", () => {
       genericLogger
     );
     expect(allAgreements).toEqual({
-      totalCount: 6,
+      totalCount: 7,
       results: expect.arrayContaining([
         agreement1,
         agreement2,
@@ -173,6 +196,7 @@ describe("get agreements", () => {
         agreement4,
         agreement5,
         agreement6,
+        agreement7,
       ]),
     });
   });
@@ -221,8 +245,13 @@ describe("get agreements", () => {
       genericLogger
     );
     expect(agreements1).toEqual({
-      totalCount: 3,
-      results: expect.arrayContaining([agreement1, agreement3, agreement5]),
+      totalCount: 4,
+      results: expect.arrayContaining([
+        agreement1,
+        agreement3,
+        agreement5,
+        agreement7,
+      ]),
     });
 
     const agreements2 = await agreementService.getAgreements(
@@ -234,13 +263,14 @@ describe("get agreements", () => {
       genericLogger
     );
     expect(agreements2).toEqual({
-      totalCount: 5,
+      totalCount: 6,
       results: expect.arrayContaining([
         agreement1,
         agreement2,
         agreement3,
         agreement4,
         agreement5,
+        agreement7,
       ]),
     });
   });
@@ -301,12 +331,13 @@ describe("get agreements", () => {
       genericLogger
     );
     expect(agreements2).toEqual({
-      totalCount: 4,
+      totalCount: 5,
       results: expect.arrayContaining([
         agreement1,
         agreement3,
         agreement5,
         agreement6,
+        agreement7,
       ]),
     });
   });
@@ -496,6 +527,7 @@ describe("get agreements", () => {
       results: expect.arrayContaining([agreement2, agreement3]),
     });
   });
+
   it("should get no agreements in case no filters match", async () => {
     const agreements = await agreementService.getAgreements(
       {
@@ -509,6 +541,21 @@ describe("get agreements", () => {
     expect(agreements).toEqual({
       totalCount: 0,
       results: [],
+    });
+  });
+
+  it("should get agreements for a delegated eservice with filters: producerId", async () => {
+    const agreements = await agreementService.getAgreements(
+      {
+        producerId: eservice4.producerId,
+      },
+      10,
+      0,
+      genericLogger
+    );
+    expect(agreements).toEqual({
+      totalCount: 3,
+      results: expect.arrayContaining([agreement5, agreement6, agreement7]),
     });
   });
 });

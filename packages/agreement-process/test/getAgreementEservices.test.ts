@@ -25,6 +25,7 @@ describe("get agreement eservices", () => {
   let eservice1: EService;
   let eservice2: EService;
   let eservice3: EService;
+  let eservice4: EService;
 
   let tenant1: Tenant;
   let tenant2: Tenant;
@@ -52,6 +53,10 @@ describe("get agreement eservices", () => {
       ...getMockEService(generateId<EServiceId>(), tenant3.id),
       name: "EService 3 FooBar",
     };
+    eservice4 = {
+      ...getMockEService(generateId<EServiceId>(), tenant3.id),
+      name: "EService 4 FooBar",
+    };
 
     await addOneTenant(tenant1);
     await addOneTenant(tenant2);
@@ -59,6 +64,7 @@ describe("get agreement eservices", () => {
     await addOneEService(eservice1);
     await addOneEService(eservice2);
     await addOneEService(eservice3);
+    await addOneEService(eservice4);
 
     const agreement1 = {
       ...getMockAgreement(eservice1.id),
@@ -79,10 +85,17 @@ describe("get agreement eservices", () => {
       consumerId: tenant1.id,
       state: agreementState.pending,
     };
+    const agreement4 = {
+      ...getMockAgreement(eservice4.id),
+      producerId: eservice4.producerId,
+      consumerId: tenant3.id,
+      state: agreementState.draft,
+    };
 
     await addOneAgreement(agreement1);
     await addOneAgreement(agreement2);
     await addOneAgreement(agreement3);
+    await addOneAgreement(agreement4);
   });
 
   it("should get all agreement eservices", async () => {
@@ -99,9 +112,9 @@ describe("get agreement eservices", () => {
     );
 
     expect(eservices).toEqual({
-      totalCount: 3,
+      totalCount: 4,
       results: expect.arrayContaining(
-        [eservice1, eservice2, eservice3].map(toCompactEService)
+        [eservice1, eservice2, eservice3, eservice4].map(toCompactEService)
       ),
     });
   });
@@ -120,9 +133,9 @@ describe("get agreement eservices", () => {
     );
 
     expect(eservices).toEqual({
-      totalCount: 2,
+      totalCount: 3,
       results: expect.arrayContaining(
-        [eservice1, eservice3].map(toCompactEService)
+        [eservice1, eservice3, eservice4].map(toCompactEService)
       ),
     });
   });
@@ -141,9 +154,9 @@ describe("get agreement eservices", () => {
     );
 
     expect(eservices).toEqual({
-      totalCount: 2,
+      totalCount: 3,
       results: expect.arrayContaining(
-        [eservice1, eservice2].map(toCompactEService)
+        [eservice1, eservice2, eservice4].map(toCompactEService)
       ),
     });
   });
@@ -223,7 +236,7 @@ describe("get agreement eservices", () => {
     );
 
     expect(eservices).toEqual({
-      totalCount: 1,
+      totalCount: 2,
       results: expect.arrayContaining([eservice3].map(toCompactEService)),
     });
   });
@@ -261,7 +274,7 @@ describe("get agreement eservices", () => {
     );
 
     expect(eservices).toEqual({
-      totalCount: 3,
+      totalCount: 4,
       results: expect.arrayContaining(
         [eservice1, eservice2].map(toCompactEService)
       ),
@@ -282,7 +295,7 @@ describe("get agreement eservices", () => {
     );
 
     expect(eservices).toEqual({
-      totalCount: 3,
+      totalCount: 4,
       results: expect.arrayContaining(
         [eservice2, eservice3].map(toCompactEService)
       ),
@@ -305,6 +318,26 @@ describe("get agreement eservices", () => {
     expect(eservices).toEqual({
       totalCount: 0,
       results: [],
+    });
+  });
+
+  it("should get agreement eservice for a delegated eservice with filters: producerId", async () => {
+    const agreements1 = await agreementService.getAgreementEServices(
+      {
+        producerIds: [eservice4.producerId],
+        eserviceName: undefined,
+        consumerIds: [],
+        agreeementStates: [],
+      },
+      10,
+      0,
+      genericLogger
+    );
+    expect(agreements1).toEqual({
+      totalCount: 2,
+      results: expect.arrayContaining(
+        [eservice3, eservice4].map(toCompactEService)
+      ),
     });
   });
 });
