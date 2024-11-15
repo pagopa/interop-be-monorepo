@@ -754,6 +754,14 @@ export function tenantServiceBuilder(
       const delegateId = delegation?.delegateId;
       const delegatorId = delegation?.delegatorId;
 
+      if (delegation && delegateId !== organizationId) {
+        throw attributeVerificationNotAllowed(tenantId, attributeId);
+      }
+
+      if (!delegation && organizationId !== agreement.producerId) {
+        throw attributeVerificationNotAllowed(tenantId, attributeId);
+      }
+
       await assertVerifiedAttributeOperationAllowed({
         producerId: organizationId,
         delegateId,
@@ -836,7 +844,7 @@ export function tenantServiceBuilder(
         agreementState.suspended,
       ];
       if (!allowedStatuses.includes(agreement.state)) {
-        throw attributeVerificationNotAllowed(tenantId, attributeId);
+        throw attributeRevocationNotAllowed(tenantId, attributeId);
       }
 
       const delegation = await retrieveActiveDelegation(
