@@ -38,6 +38,7 @@ import {
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { Logger } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 
 export const getPurposeStateFromPurposeVersions = (
@@ -225,7 +226,8 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
   dynamoDBClient: DynamoDBClient,
   purpose: Purpose,
   purposeState: ItemState,
-  purposeVersionId: PurposeVersionId
+  purposeVersionId: PurposeVersionId,
+  logger: Logger
 ): Promise<void> => {
   const runPaginatedUpdateQuery = async (
     dynamoDBClient: DynamoDBClient,
@@ -243,18 +245,31 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
       consumerId: purpose.consumerId,
       eserviceId: purpose.eserviceId,
     });
+
+    logger.info(
+      `Retrieving agreement entry ${gsiPKConsumerIdEServiceId} to add agreement info in token-generation-states`
+    );
+
     const platformAgreementEntry = await readPlatformAgreementEntry(
       dynamoDBClient,
       gsiPKConsumerIdEServiceId
     );
-    const catalogEntry = platformAgreementEntry
-      ? await readCatalogEntry(
-          dynamoDBClient,
-          makePlatformStatesEServiceDescriptorPK({
-            eserviceId: purpose.eserviceId,
-            descriptorId: platformAgreementEntry.agreementDescriptorId,
-          })
-        )
+
+    const catalogEntryPK = platformAgreementEntry
+      ? makePlatformStatesEServiceDescriptorPK({
+          eserviceId: purpose.eserviceId,
+          descriptorId: platformAgreementEntry.agreementDescriptorId,
+        })
+      : undefined;
+
+    if (catalogEntryPK) {
+      logger.info(
+        `Retrieving catalog entry ${catalogEntryPK} to add descriptor info in token-generation-states`
+      );
+    }
+
+    const catalogEntry = catalogEntryPK
+      ? await readCatalogEntry(dynamoDBClient, catalogEntryPK)
       : undefined;
 
     for (const entry of result.tokenStateEntries) {

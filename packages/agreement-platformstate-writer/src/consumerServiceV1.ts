@@ -14,6 +14,7 @@ import {
   PlatformStatesCatalogEntry,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   readAgreementEntry,
   updateAgreementStateInPlatformStatesEntry,
@@ -28,12 +29,18 @@ import {
 
 export async function handleMessageV1(
   message: AgreementEventEnvelopeV1,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with({ type: "AgreementActivated" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
-      await handleFirstActivation(agreement, dynamoDBClient, msg.version);
+      await handleFirstActivation(
+        agreement,
+        dynamoDBClient,
+        msg.version,
+        logger
+      );
     })
     .with({ type: "AgreementSuspended" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
@@ -77,7 +84,7 @@ export async function handleMessageV1(
         .with(agreementState.active, async () => {
           // this case is for agreement upgraded
           const agreement = parseAgreement(msg.data.agreement);
-          await handleUpgrade(agreement, dynamoDBClient, msg.version);
+          await handleUpgrade(agreement, dynamoDBClient, msg.version, logger);
         })
         .with(
           agreementState.draft,
@@ -113,7 +120,8 @@ const parseAgreement = (agreementV1: AgreementV1 | undefined): Agreement => {
 const handleFirstActivation = async (
   agreement: Agreement,
   dynamoDBClient: DynamoDBClient,
-  incomingVersion: number
+  incomingVersion: number,
+  logger: Logger
 ): Promise<void> => {
   const primaryKey = makePlatformStatesAgreementPK(agreement.id);
 
@@ -165,6 +173,10 @@ const handleFirstActivation = async (
       eserviceId: agreement.eserviceId,
       descriptorId: agreement.descriptorId,
     });
+
+    logger.info(
+      `Retrieving catalog entry ${pkCatalogEntry} to add descriptor info in token-generation-states`
+    );
 
     const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
 
@@ -277,7 +289,8 @@ const handleArchiving = async (
 const handleUpgrade = async (
   agreement: Agreement,
   dynamoDBClient: DynamoDBClient,
-  msgVersion: number
+  msgVersion: number,
+  logger: Logger
 ): Promise<void> => {
   const primaryKey = makePlatformStatesAgreementPK(agreement.id);
   const agreementEntry = await readAgreementEntry(primaryKey, dynamoDBClient);
@@ -286,6 +299,11 @@ const handleUpgrade = async (
     eserviceId: agreement.eserviceId,
     descriptorId: agreement.descriptorId,
   });
+
+  logger.info(
+    `Retrieving catalog entry ${pkCatalogEntry} to add descriptor info in token-generation-states`
+  );
+
   const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
 
   const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({

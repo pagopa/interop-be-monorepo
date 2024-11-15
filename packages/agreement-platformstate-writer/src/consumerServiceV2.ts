@@ -13,6 +13,7 @@ import {
   PlatformStatesCatalogEntry,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { Logger } from "pagopa-interop-commons";
 import {
   agreementStateToItemState,
   deleteAgreementEntry,
@@ -27,7 +28,8 @@ import {
 
 export async function handleMessageV2(
   message: AgreementEventEnvelopeV2,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with({ type: "AgreementActivated" }, async (msg) => {
@@ -86,6 +88,11 @@ export async function handleMessageV2(
           eserviceId: agreement.eserviceId,
           descriptorId: agreement.descriptorId,
         });
+
+        logger.info(
+          `Retrieving catalog entry ${pkCatalogEntry} to add descriptor info in token-generation-states`
+        );
+
         const catalogEntry = await readCatalogEntry(
           pkCatalogEntry,
           dynamoDBClient
@@ -232,6 +239,10 @@ export async function handleMessageV2(
           });
         }
       };
+
+      logger.info(
+        `Retrieving catalog entry ${pkCatalogEntry} to add descriptor info in token-generation-states`
+      );
 
       const catalogEntry = await readCatalogEntry(
         pkCatalogEntry,

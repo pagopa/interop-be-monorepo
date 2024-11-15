@@ -9,6 +9,7 @@ import {
   PurposeV1,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   deletePlatformPurposeEntry,
   getPurposeStateFromPurposeVersions,
@@ -23,7 +24,8 @@ import {
 
 export async function handleMessageV1(
   message: PurposeEventEnvelopeV1,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with({ type: "PurposeVersionActivated" }, async (msg) => {
@@ -78,7 +80,8 @@ export async function handleMessageV1(
           dynamoDBClient,
           purpose,
           purposeState,
-          purposeVersion.id
+          purposeVersion.id,
+          logger
         );
       }
     })

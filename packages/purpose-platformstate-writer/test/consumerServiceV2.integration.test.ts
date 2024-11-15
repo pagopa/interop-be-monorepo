@@ -48,6 +48,7 @@ import {
   toPurposeV2,
 } from "pagopa-interop-models";
 import { getMockTokenStatesClientPurposeEntry } from "pagopa-interop-commons-test";
+import { genericLogger } from "pagopa-interop-commons";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   getPurposeStateFromPurposeVersions,
@@ -113,7 +114,7 @@ describe("integration tests for events V2", () => {
       // token-generation-states
       expect(await readAllTokenStateItems(dynamoDBClient)).toHaveLength(0);
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -198,7 +199,7 @@ describe("integration tests for events V2", () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -304,7 +305,7 @@ describe("integration tests for events V2", () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -388,7 +389,7 @@ describe("integration tests for events V2", () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -540,7 +541,7 @@ describe("integration tests for events V2", () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       const retrievedTokenStateEntries =
         await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
@@ -664,7 +665,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -768,7 +769,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -847,7 +848,7 @@ describe("integration tests for events V2", () => {
       // token-generation-states
       expect(await readAllTokenStateItems(dynamoDBClient)).toHaveLength(0);
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -933,7 +934,7 @@ describe("integration tests for events V2", () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -1040,7 +1041,7 @@ describe("integration tests for events V2", () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -1125,7 +1126,7 @@ describe("integration tests for events V2", () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -1278,7 +1279,7 @@ describe("integration tests for events V2", () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       const retrievedTokenStateEntries =
         await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
@@ -1402,7 +1403,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -1500,7 +1501,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -1610,7 +1611,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -1728,7 +1729,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -1826,7 +1827,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -1936,7 +1937,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -2056,7 +2057,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -2156,7 +2157,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -2267,7 +2268,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -2387,7 +2388,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -2487,7 +2488,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -2598,7 +2599,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -2725,7 +2726,7 @@ describe("integration tests for events V2", () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(

@@ -45,6 +45,7 @@ import {
   getMockDescriptor,
   getMockAgreement,
 } from "pagopa-interop-commons-test";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   deletePlatformPurposeEntry,
   getPurposeStateFromPurposeVersions,
@@ -659,7 +660,8 @@ describe("utils tests", async () => {
           dynamoDBClient,
           purpose,
           itemState.inactive,
-          purpose.versions[0].id
+          purpose.versions[0].id,
+          genericLogger
         )
       ).resolves.not.toThrowError();
       const tokenStateEntriesAfterUpdate = await readAllTokenStateItems(
@@ -722,7 +724,8 @@ describe("utils tests", async () => {
         dynamoDBClient,
         purpose,
         itemState.active,
-        newPurposeVersionId
+        newPurposeVersionId,
+        genericLogger
       );
 
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
@@ -825,7 +828,8 @@ describe("utils tests", async () => {
         dynamoDBClient,
         purpose,
         itemState.active,
-        newPurposeVersionId
+        newPurposeVersionId,
+        genericLogger
       );
 
       const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
@@ -955,7 +959,8 @@ describe("utils tests", async () => {
         dynamoDBClient,
         purpose,
         itemState.active,
-        newPurposeVersionId
+        newPurposeVersionId,
+        genericLogger
       );
 
       const retrievedTokenStateEntries =
