@@ -52,6 +52,7 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
 import { UpdateItemInput } from "@aws-sdk/client-dynamodb";
 import { UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 
 export const deleteEntriesFromTokenStatesByKid = async (
@@ -780,7 +781,8 @@ export const extractAgreementIdFromAgreementPK = (
 
 export const retrievePlatformStatesByPurpose = async (
   purposeId: PurposeId,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<{
   purposeEntry?: PlatformStatesPurposeEntry;
   agreementEntry?: PlatformStatesAgreementEntry;
@@ -790,6 +792,10 @@ export const retrievePlatformStatesByPurpose = async (
   const purposeEntry = await readPlatformPurposeEntry(
     purposePK,
     dynamoDBClient
+  );
+
+  logger.info(
+    `Retrieving purpose entry ${purposePK} to add purpose info in token-generation-states`
   );
 
   if (!purposeEntry) {
@@ -802,6 +808,10 @@ export const retrievePlatformStatesByPurpose = async (
     eserviceId: purposeEntry.purposeEserviceId,
     consumerId: purposeEntry.purposeConsumerId,
   });
+
+  logger.info(
+    `Retrieving agreement entry ${agreementGSI} to add agreement info in token-generation-states`
+  );
 
   const agreementEntry =
     await readPlatformAgreementEntryByGSIPKConsumerIdEServiceId(
@@ -820,6 +830,9 @@ export const retrievePlatformStatesByPurpose = async (
     eserviceId: purposeEntry.purposeEserviceId,
     descriptorId: agreementEntry.agreementDescriptorId,
   });
+  logger.info(
+    `Retrieving catalog entry ${catalogPK} to add descriptor info in token-generation-states`
+  );
   const catalogEntry = await readCatalogEntry(catalogPK, dynamoDBClient);
 
   if (!catalogEntry) {

@@ -21,6 +21,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { Logger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
   convertEntriesToClientKidInTokenGenerationStates,
@@ -44,7 +45,8 @@ import {
 
 export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with({ type: "ClientKeyAdded" }, async (msg) => {
@@ -84,7 +86,11 @@ export async function handleMessageV2(
         const addedEntries = await Promise.all(
           client.purposes.map(async (purposeId) => {
             const { purposeEntry, agreementEntry, catalogEntry } =
-              await retrievePlatformStatesByPurpose(purposeId, dynamoDBClient);
+              await retrievePlatformStatesByPurpose(
+                purposeId,
+                dynamoDBClient,
+                logger
+              );
 
             const tokenClientKidPurposePK =
               makeTokenGenerationStatesClientKidPurposePK({
@@ -160,7 +166,8 @@ export async function handleMessageV2(
               catalogEntry: catalogEntry2,
             } = await retrievePlatformStatesByPurpose(
               purposeId,
-              dynamoDBClient
+              dynamoDBClient,
+              logger
             );
 
             const addedClientKidPurposeEntry = addedEntries[index];
@@ -248,7 +255,11 @@ export async function handleMessageV2(
       } else {
         const purposeId = unsafeBrandId<PurposeId>(msg.data.purposeId);
         const { purposeEntry, agreementEntry, catalogEntry } =
-          await retrievePlatformStatesByPurpose(purposeId, dynamoDBClient);
+          await retrievePlatformStatesByPurpose(
+            purposeId,
+            dynamoDBClient,
+            logger
+          );
 
         const seenKids = new Set<string>();
         const addedTokenClientPurposeEntries = await Promise.all(
@@ -320,7 +331,8 @@ export async function handleMessageV2(
               catalogEntry: catalogEntry2,
             } = await retrievePlatformStatesByPurpose(
               purposeId,
-              dynamoDBClient
+              dynamoDBClient,
+              logger
             );
 
             await updateTokenDataForSecondRetrieval({

@@ -25,6 +25,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
   convertEntriesToClientKidInTokenGenerationStates,
@@ -48,7 +49,8 @@ import {
 
 export async function handleMessageV1(
   message: AuthorizationEventEnvelopeV1,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with({ type: "ClientAdded" }, async (msg) => {
@@ -105,7 +107,8 @@ export async function handleMessageV1(
               const { purposeEntry, agreementEntry, catalogEntry } =
                 await retrievePlatformStatesByPurpose(
                   purposeId,
-                  dynamoDBClient
+                  dynamoDBClient,
+                  logger
                 );
 
               const tokenClientKidPurposePK =
@@ -177,7 +180,8 @@ export async function handleMessageV1(
                 catalogEntry: catalogEntry2,
               } = await retrievePlatformStatesByPurpose(
                 purposeId,
-                dynamoDBClient
+                dynamoDBClient,
+                logger
               );
 
               const addedClientKidPurposeEntry = addedEntries[index];
@@ -264,7 +268,11 @@ export async function handleMessageV1(
         return Promise.resolve();
       } else {
         const { purposeEntry, agreementEntry, catalogEntry } =
-          await retrievePlatformStatesByPurpose(purposeId, dynamoDBClient);
+          await retrievePlatformStatesByPurpose(
+            purposeId,
+            dynamoDBClient,
+            logger
+          );
 
         const seenKids = new Set<string>();
         const addedTokenClientPurposeEntries = await Promise.all(
@@ -336,7 +344,8 @@ export async function handleMessageV1(
               catalogEntry: catalogEntry2,
             } = await retrievePlatformStatesByPurpose(
               purposeId,
-              dynamoDBClient
+              dynamoDBClient,
+              logger
             );
 
             await updateTokenDataForSecondRetrieval({
