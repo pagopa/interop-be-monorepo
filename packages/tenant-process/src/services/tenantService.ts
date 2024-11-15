@@ -841,13 +841,15 @@ export function tenantServiceBuilder(
       const targetTenant = await retrieveTenant(tenantId, readModelService);
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
+      const error = attributeRevocationNotAllowed(tenantId, attributeId);
+
       const allowedStatuses: AgreementState[] = [
         agreementState.pending,
         agreementState.active,
         agreementState.suspended,
       ];
       if (!allowedStatuses.includes(agreement.state)) {
-        throw attributeRevocationNotAllowed(tenantId, attributeId);
+        throw error;
       }
 
       const delegation = await retrieveActiveDelegation(
@@ -860,8 +862,6 @@ export function tenantServiceBuilder(
 
       const delegateId = delegation?.delegateId;
       const delegatorId = delegation?.delegatorId;
-
-      const error = attributeRevocationNotAllowed(tenantId, attributeId);
 
       await assertVerifiedAttributeOperationAllowed({
         requesterId: authData.organizationId,
@@ -887,7 +887,7 @@ export function tenantServiceBuilder(
       );
 
       if (!verifier) {
-        throw attributeRevocationNotAllowed(tenantId, attributeId);
+        throw error;
       }
 
       const isInRevokedBy = verifiedTenantAttribute.revokedBy.some(
