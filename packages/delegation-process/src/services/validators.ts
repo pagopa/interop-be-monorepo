@@ -25,7 +25,7 @@ import {
 import { ReadModelService } from "./readModelService.js";
 
 /* ========= STATES ========= */
-export const delegationNotActivableStates: DelegationState[] = [
+export const inactiveDelegationStates: DelegationState[] = [
   delegationState.rejected,
   delegationState.revoked,
 ];

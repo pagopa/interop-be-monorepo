@@ -2,13 +2,14 @@
 import {
   decodeProtobufPayload,
   getMockAuthData,
-  getMockDelegationProducer,
+  getMockDelegation,
   getMockTenant,
 } from "pagopa-interop-commons-test/index.js";
 import { describe, expect, it, vi } from "vitest";
 import {
   DelegationId,
   ProducerDelegationRejectedV2,
+  delegationKind,
   generateId,
   toDelegationV2,
   unsafeBrandId,
@@ -26,14 +27,15 @@ import {
   readLastDelegationEvent,
 } from "./utils.js";
 
-describe("reject delegation", () => {
+describe("reject producer delegation", () => {
   it("should reject delegation if all validations succed", async () => {
     const currentExecutionTime = new Date();
     vi.useFakeTimers();
     vi.setSystemTime(currentExecutionTime);
 
     const delegate = getMockTenant();
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       state: "WaitingForApproval",
       delegateId: delegate.id,
     });
@@ -93,7 +95,8 @@ describe("reject delegation", () => {
   it("should throw operationRestrictedToDelegate when rejecter is not the delegate", async () => {
     const delegate = getMockTenant();
     const wrongDelegate = getMockTenant();
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       state: "WaitingForApproval",
       delegateId: delegate.id,
     });
@@ -113,7 +116,8 @@ describe("reject delegation", () => {
 
   it("should throw incorrectState when delegation is not in WaitingForApproval state", async () => {
     const delegate = getMockTenant();
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       state: "Active",
       delegateId: delegate.id,
     });
