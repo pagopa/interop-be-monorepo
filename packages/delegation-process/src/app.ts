@@ -15,6 +15,7 @@ import delegationProducerRouter from "./routers/DelegationProducerRouter.js";
 import delegationRouter from "./routers/DelegationRouter.js";
 import { config } from "./config/config.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
+import delegationConsumerRouter from "./routers/DelegationConsumerRouter.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -57,5 +58,6 @@ app.use(
     fileManager
   )
 );
+app.use(delegationConsumerRouter(zodiosCtx, eventStore, readModelService));
 
 export default app;
