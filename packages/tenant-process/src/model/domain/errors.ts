@@ -14,7 +14,7 @@ export const errorCodes = {
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
   tenantNotFoundBySelfcareId: "0006",
-  operationForbidden: "0007",
+  tenantIsNotIPA: "0007",
   selfcareIdConflict: "0008",
   verifiedAttributeNotFoundInTenant: "0009",
   expirationDateCannotBeInThePast: "0010",
@@ -315,5 +315,13 @@ export function tenantDoesNotHaveFeature(
     detail: `Tenant ${tenantId} doesn't have ${featureType} feature assigned`,
     code: "tenantDoesNotHaveFeature",
     title: "Feature not assigned",
+  });
+}
+
+export function tenantIsNotIPA(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} does not have IPA origin`,
+    code: "tenantIsNotIPA",
+    title: "Tenant is not an IPA",
   });
 }

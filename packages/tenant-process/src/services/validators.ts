@@ -34,6 +34,7 @@ import {
   attributeNotFound,
   tenantDoesNotHaveFeature,
   tenantAlreadyHasFeature,
+  tenantIsNotIPA,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -159,7 +160,7 @@ export async function assertRequesterAllowed(
 
 export function assertRequesterIPAOrigin(authData: AuthData): void {
   if (authData.externalId.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
-    throw operationForbidden;
+    throw tenantIsNotIPA(authData.organizationId);
   }
 }
 
