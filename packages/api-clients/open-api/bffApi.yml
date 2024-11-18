@@ -13594,8 +13594,6 @@ components:
           type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
-        isDelegable:
-          type: boolean
         isClientAccessDelegable:
           type: boolean
     ClientKind:
