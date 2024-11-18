@@ -5,7 +5,6 @@ import {
   protobufDecoder,
   toTenantV2,
   TenantDelegatedProducerFeatureAddedV2,
-  operationForbidden,
   TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
@@ -14,6 +13,7 @@ import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventS
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
 import {
   tenantAlreadyHasFeature,
+  tenantIsNotIPA,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
@@ -104,8 +104,9 @@ describe("assignTenantDelegatedProducerFeature", async () => {
       })
     ).rejects.toThrowError(tenantNotFound(organizationId));
   });
-  it("Should throw operationForbidden if the requester tenant is not a public administration", async () => {
+  it("Should throw tenantIsNotIPA(t) if the requester tenant is not a public administration", async () => {
     const tenant = getMockTenant();
+    const organizationId = generateId<TenantId>();
 
     await addOneTenant(tenant);
 
@@ -114,11 +115,11 @@ describe("assignTenantDelegatedProducerFeature", async () => {
         organizationId: tenant.id,
         correlationId: generateId(),
         authData: {
-          ...getMockAuthData(),
+          ...getMockAuthData(organizationId),
           externalId: { origin: "UNKNOWN", value: "test" },
         },
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationForbidden);
+    ).rejects.toThrowError(tenantIsNotIPA(organizationId));
   });
 });

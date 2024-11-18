@@ -10,9 +10,10 @@ import {
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
-import { getMockTenant } from "pagopa-interop-commons-test";
+import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
 import {
   tenantAlreadyHasFeature,
+  tenantIsNotIPA,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
@@ -31,7 +32,8 @@ describe("assignTenantDelegatedConsumerFeature", async () => {
     const mockTenant: Tenant = getMockTenant();
     await addOneTenant(mockTenant);
     await tenantService.assignTenantDelegatedConsumerFeature({
-      organizationId: mockTenant.id,
+      authData: getMockAuthData(mockTenant.id),
+      serviceName: "TenantService",
       correlationId: generateId(),
       logger: genericLogger,
     });
@@ -69,14 +71,15 @@ describe("assignTenantDelegatedConsumerFeature", async () => {
     const organizationId = generateId<TenantId>();
     expect(
       tenantService.assignTenantDelegatedConsumerFeature({
-        organizationId,
+        authData: getMockAuthData(organizationId),
+        serviceName: "TenantService",
         correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(tenantNotFound(organizationId));
   });
   it("Should throw tenantAlreadyHasFeature if the requester tenant already has the delegated consumer feature", async () => {
-    const tenant: Tenant = {
+    const mockTenant: Tenant = {
       ...getMockTenant(),
       features: [
         {
@@ -86,16 +89,32 @@ describe("assignTenantDelegatedConsumerFeature", async () => {
       ],
     };
 
-    await addOneTenant(tenant);
+    await addOneTenant(mockTenant);
 
     expect(
       tenantService.assignTenantDelegatedConsumerFeature({
-        organizationId: tenant.id,
+        authData: getMockAuthData(mockTenant.id),
+        serviceName: "TenantService",
         correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      tenantAlreadyHasFeature(tenant.id, "DelegatedConsumer")
+      tenantAlreadyHasFeature(mockTenant.id, "DelegatedConsumer")
     );
+  });
+  it("Should throw tenantIsNotIPA if the requester tenant is not a public administration", async () => {
+    const organizationId = generateId<TenantId>();
+
+    expect(
+      tenantService.assignTenantDelegatedConsumerFeature({
+        authData: {
+          ...getMockAuthData(organizationId),
+          externalId: { origin: "UNKNOWN", value: "test" },
+        },
+        serviceName: "TenantService",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(tenantIsNotIPA(organizationId));
   });
 });
