@@ -37,6 +37,8 @@ import {
   unsafeBrandId,
   CompactTenant,
   CorrelationId,
+  DelegationId,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   declaredAttributesSatisfied,
@@ -50,6 +52,7 @@ import {
   agreementDocumentNotFound,
   agreementNotFound,
   agreementSubmissionFailed,
+  delegationNotFound,
   descriptorNotFound,
   eServiceNotFound,
   noNewerDescriptor,
@@ -86,11 +89,14 @@ import {
   agreementUpgradableStates,
   assertActivableState,
   assertCanWorkOnConsumerDocuments,
+  assertDelegationIsActive,
   assertExpectedState,
+  assertIsDelegate,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsProducer,
   assertSubmittableState,
+  assertTenantIsRequester,
   failOnActivationFailure,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
@@ -198,6 +204,17 @@ function retrieveAgreementDocument(
   }
   return document;
 }
+
+export const retrieveDelegationById = async (
+  readModelService: ReadModelService,
+  delegationId: DelegationId
+): Promise<Delegation> => {
+  const delegation = await readModelService.getDelegationById(delegationId);
+  if (!delegation) {
+    throw delegationNotFound(delegationId);
+  }
+  return delegation;
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
@@ -1130,6 +1147,32 @@ export function agreementServiceBuilder(
       for (const event of events) {
         await repository.createEvent(event);
       }
+    },
+    async verifyTenantCertifiedAttributes(
+      body: agreementApi.verifyTenantCertifiedAttributes_Body,
+      { logger, authData }: WithLogger<AppContext>
+    ): Promise<agreementApi.hasCertifiedAttributes> {
+      const tenantId = unsafeBrandId<TenantId>(body.tenantId);
+      const descriptorId = unsafeBrandId<DescriptorId>(body.descriptorId);
+      const eserviceId = unsafeBrandId<EServiceId>(body.eserviceId);
+      logger.info(
+        `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
+      );
+
+      if (body.delegationId) {
+        const delegationId = unsafeBrandId<DelegationId>(body.delegationId);
+        const delegation = await retrieveDelegationById(
+          readModelService,
+          delegationId
+        );
+
+        assertDelegationIsActive(delegation);
+        assertIsDelegate(delegation, tenantId);
+      } else {
+        assertTenantIsRequester(authData.organizationId, tenantId);
+      }
+
+      
     },
   };
 }

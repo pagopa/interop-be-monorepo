@@ -664,5 +664,31 @@ const agreementRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .post(
+      "/agreements/verify",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const result = await agreementService.verifyTenantCertifiedAttributes(
+            req.body,
+            ctx
+          );
+          return res
+            .status(200)
+            .send(agreementApi.hasCertifiedAttributes.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            verifyTenantCertifiedAttributesErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error verifying agreement`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
 export default agreementRouter;

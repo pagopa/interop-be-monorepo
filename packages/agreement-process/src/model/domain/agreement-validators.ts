@@ -14,6 +14,8 @@ import {
   EServiceId,
   unsafeBrandId,
   TenantId,
+  Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
@@ -29,12 +31,15 @@ import {
   agreementAlreadyExists,
   agreementNotInExpectedState,
   agreementSubmissionFailed,
+  delegationNotActive,
   descriptorNotFound,
   descriptorNotInExpectedState,
   documentChangeNotAllowed,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
+  operationRestrictedToDelegate,
+  tenantIsNotRequester,
 } from "./errors.js";
 import {
   CertifiedAgreementAttribute,
@@ -186,6 +191,30 @@ export const assertCanWorkOnConsumerDocuments = (
 export const assertActivableState = (agreement: Agreement): void => {
   if (!agreementActivableStates.includes(agreement.state)) {
     throw agreementNotInExpectedState(agreement.id, agreement.state);
+  }
+};
+
+export const assertIsDelegate = (
+  delegation: Delegation,
+  delegateId: TenantId
+): void => {
+  if (delegation.delegateId !== delegateId) {
+    throw operationRestrictedToDelegate(delegateId, delegation.id);
+  }
+};
+
+export const assertDelegationIsActive = (delegation: Delegation): void => {
+  if (delegation.state !== delegationState.active) {
+    throw delegationNotActive(delegation.id);
+  }
+};
+
+export const assertTenantIsRequester = (
+  organizationId: TenantId,
+  tenantId: TenantId
+): void => {
+  if (organizationId !== tenantId) {
+    throw tenantIsNotRequester(organizationId, tenantId);
   }
 };
 

@@ -40,6 +40,10 @@ export const errorCodes = {
   consumerWithNotValidEmail: "0024",
   agreementDocumentAlreadyExists: "0025",
   userNotFound: "0026",
+  delegationNotFound: "0027",
+  operationRestrictedToDelegate: "0028",
+  delegationNotActive: "0029",
+  tenantIsNotRequester: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -306,5 +310,45 @@ export function attributeNotFound(
     detail: `Attribute ${attributeId} not found`,
     code: "attributeNotFound",
     title: "Attribute not found",
+  });
+}
+
+export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} not found`,
+    code: "delegationNotFound",
+    title: "Delegation not found",
+  });
+}
+
+export function operationRestrictedToDelegate(
+  tenantId: string,
+  delegationId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not a delegate for delegation ${delegationId}`,
+    code: "operationRestrictedToDelegate",
+    title: "Operation restricted to delegate",
+  });
+}
+
+export function delegationNotActive(
+  delegationId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} is not active`,
+    code: "delegationNotActive",
+    title: "Delegation not active",
+  });
+}
+
+export function tenantIsNotRequester(
+  organizationId: string,
+  tenantId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester ${organizationId} is not the same as tenant ${tenantId}`,
+    code: "tenantIsNotRequester",
+    title: "Tenant is not requester",
   });
 }
