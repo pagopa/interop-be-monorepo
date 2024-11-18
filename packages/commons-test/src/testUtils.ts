@@ -369,3 +369,26 @@ export const getMockTokenStatesClientPurposeEntry = (
     }),
   };
 };
+
+export const expectedAgreementWithCorrectDate = ({
+  expectedAgreement,
+  agreement,
+  agreementReturnValue,
+}: {
+  expectedAgreement: Agreement;
+  agreement: Agreement;
+  agreementReturnValue: Agreement;
+}): Agreement => ({
+  ...expectedAgreement,
+  consumerDocuments: agreement.consumerDocuments.map((doc, index) => ({
+    ...doc,
+    createdAt: agreementReturnValue.consumerDocuments[index].createdAt,
+  })),
+  contract:
+    agreement.contract && agreementReturnValue.contract
+      ? {
+          ...agreement.contract,
+          createdAt: agreementReturnValue.contract.createdAt,
+        }
+      : undefined,
+});

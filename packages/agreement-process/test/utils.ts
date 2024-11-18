@@ -71,8 +71,12 @@ export const attributes = readModelRepository.attributes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-export const selfcareV2ClientMock: SelfcareV2UsersClient =
-  {} as SelfcareV2UsersClient;
+export const mockGetUserInfoUsingGET = vi.fn();
+
+export const selfcareV2ClientMock: SelfcareV2UsersClient = {
+  getUserInfoUsingGET: mockGetUserInfoUsingGET,
+} as unknown as SelfcareV2UsersClient;
+
 export const pdfGenerator = await initPDFGenerator();
 
 export const agreementService = agreementServiceBuilder(
