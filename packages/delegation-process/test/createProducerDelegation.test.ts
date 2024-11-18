@@ -451,7 +451,7 @@ describe("create producer delegation", () => {
     ).rejects.toThrowError(delegatorAndDelegateSameIdError());
   });
 
-  it("should throw an invalidExternalOriginError error if delegator has externalId origin different from IPA", async () => {
+  it("should throw an tenantIsNotIPAError error if delegator has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegator = {
@@ -491,7 +491,7 @@ describe("create producer delegation", () => {
     ).rejects.toThrowError(tenantIsNotIPAError(delegator, "Delegator"));
   });
 
-  it("should throw an invalidExternalOriginError error if delegate has externalId origin different from IPA", async () => {
+  it("should throw an tenantIsNotIPAError error if delegate has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegator = {
