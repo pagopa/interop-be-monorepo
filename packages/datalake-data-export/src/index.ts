@@ -27,3 +27,8 @@ export const dataLakeService = datalakeServiceBuilder(
 log.info("Datalake Data Exporter job started");
 await dataLakeService.exportData();
 log.info("Done!");
+
+process.exit(0);
+// process.exit() should not be required.
+// however, something in this script hangs on exit.
+// TODO figure out why and remove this workaround.
