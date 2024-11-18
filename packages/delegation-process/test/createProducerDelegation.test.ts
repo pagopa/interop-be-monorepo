@@ -25,7 +25,7 @@ import {
   delegatorAndDelegateSameIdError,
   differentEServiceProducer,
   eserviceNotFound,
-  invalidExternalOriginError,
+  tenantIsNotIPAError,
   tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
@@ -451,7 +451,7 @@ describe("create producer delegation", () => {
     ).rejects.toThrowError(delegatorAndDelegateSameIdError());
   });
 
-  it("should throw an invalidExternalOriginError error if delegator has externalId origin different from IPA", async () => {
+  it("should throw an tenantIsNotIPAError error if delegator has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegator = {
@@ -488,9 +488,51 @@ describe("create producer delegation", () => {
           serviceName: "DelegationServiceTest",
         }
       )
-    ).rejects.toThrowError(
-      invalidExternalOriginError(delegator.externalId.origin)
-    );
+    ).rejects.toThrowError(tenantIsNotIPAError(delegator, "Delegator"));
+  });
+
+  it("should throw an tenantIsNotIPAError error if delegate has externalId origin different from IPA", async () => {
+    const delegatorId = generateId<TenantId>();
+    const authData = getRandomAuthData(delegatorId);
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "IPA",
+        value: "test",
+      },
+    };
+
+    const delegate = {
+      ...getMockTenant(),
+      externalId: {
+        origin: "NOT_IPA",
+        value: "test",
+      },
+      features: [
+        {
+          type: "DelegatedProducer" as const,
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
+
+    await addOneTenant(delegate);
+    await addOneTenant(delegator);
+
+    await expect(
+      delegationProducerService.createProducerDelegation(
+        {
+          delegateId: delegate.id,
+          eserviceId: generateId<EServiceId>(),
+        },
+        {
+          authData,
+          logger: genericLogger,
+          correlationId: generateId(),
+          serviceName: "DelegationServiceTest",
+        }
+      )
+    ).rejects.toThrowError(tenantIsNotIPAError(delegate, "Delegate"));
   });
 
   it("should throw an eserviceNotFound error if Eservice does not exist", async () => {

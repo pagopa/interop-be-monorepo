@@ -6,7 +6,9 @@ import {
   TenantId,
   DelegationState,
   DelegationKind,
+  Tenant,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export const errorCodes = {
   delegationNotFound: "0001",
@@ -14,7 +16,7 @@ export const errorCodes = {
   delegationAlreadyExists: "0003",
   tenantNotFound: "0004",
   invalidDelegatorAndDelegateIds: "0005",
-  invalidExternalOriginId: "0006",
+  tenantIsNotIPAError: "0006",
   tenantNotAllowedToDelegation: "0007",
   delegationNotRevokable: "0008",
   operationNotAllowOnDelegation: "0009",
@@ -71,13 +73,18 @@ export function delegatorAndDelegateSameIdError(): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidExternalOriginError(
-  externalOrigin?: string
+export function tenantIsNotIPAError(
+  tenant: Tenant,
+  delegatorOrDelegate: "Delegator" | "Delegate"
 ): ApiError<ErrorCodes> {
+  const delegatorOrDelegateString = match(delegatorOrDelegate)
+    .with("Delegator", () => "Delegator")
+    .with("Delegate", () => "Delegate")
+    .exhaustive();
   return new ApiError({
-    detail: `Delegator is not an IPA`,
-    code: "invalidExternalOriginId",
-    title: `Invalid External origin ${externalOrigin}`,
+    detail: `${delegatorOrDelegateString} ${tenant.id} with external origin ${tenant.externalId.origin} is not an IPA`,
+    code: "tenantIsNotIPAError",
+    title: `Invalid external origin`,
   });
 }
 

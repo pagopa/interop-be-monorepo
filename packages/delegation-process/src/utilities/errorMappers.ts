@@ -38,7 +38,7 @@ export const createProducerDelegationErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "invalidExternalOriginId",
+      "tenantIsNotIPAError",
       "tenantNotAllowedToDelegation",
       () => HTTP_STATUS_FORBIDDEN
     )
