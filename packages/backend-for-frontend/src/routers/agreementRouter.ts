@@ -7,7 +7,6 @@ import {
   zodiosValidationErrorToApiProblem,
   FileManager,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";

@@ -41,6 +41,7 @@ import {
   Delegation,
 } from "pagopa-interop-models";
 import {
+  certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
 } from "pagopa-interop-agreement-lifecycle";
@@ -1149,18 +1150,24 @@ export function agreementServiceBuilder(
       }
     },
     async verifyTenantCertifiedAttributes(
-      body: agreementApi.verifyTenantCertifiedAttributes_Body,
+      {
+        tenantId,
+        descriptorId,
+        eserviceId,
+        delegationId,
+      }: {
+        tenantId: TenantId;
+        descriptorId: DescriptorId;
+        eserviceId: EServiceId;
+        delegationId?: DelegationId;
+      },
       { logger, authData }: WithLogger<AppContext>
     ): Promise<agreementApi.hasCertifiedAttributes> {
-      const tenantId = unsafeBrandId<TenantId>(body.tenantId);
-      const descriptorId = unsafeBrandId<DescriptorId>(body.descriptorId);
-      const eserviceId = unsafeBrandId<EServiceId>(body.eserviceId);
       logger.info(
         `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
       );
 
-      if (body.delegationId) {
-        const delegationId = unsafeBrandId<DelegationId>(body.delegationId);
+      if (delegationId) {
         const delegation = await retrieveDelegationById(
           readModelService,
           delegationId
@@ -1171,8 +1178,16 @@ export function agreementServiceBuilder(
       } else {
         assertTenantIsRequester(authData.organizationId, tenantId);
       }
+      const consumer = await retrieveTenant(tenantId, readModelService);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      
+      return {
+        hasCertifiedAttributes: certifiedAttributesSatisfied(
+          descriptor.attributes,
+          consumer.attributes
+        ),
+      };
     },
   };
 }

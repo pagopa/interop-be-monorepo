@@ -17,6 +17,7 @@ import {
   DescriptorId,
   EServiceId,
   unsafeBrandId,
+  DelegationId,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { selfcareV2UsersClientBuilder } from "pagopa-interop-api-clients";
@@ -45,6 +46,7 @@ import {
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
   computeAgreementsStateErrorMapper,
+  verifyTenantCertifiedAttributesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
@@ -673,7 +675,14 @@ const agreementRouter = (
 
         try {
           const result = await agreementService.verifyTenantCertifiedAttributes(
-            req.body,
+            {
+              tenantId: unsafeBrandId<TenantId>(req.body.tenantId),
+              descriptorId: unsafeBrandId<DescriptorId>(req.body.descriptorId),
+              eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                : undefined,
+            },
             ctx
           );
           return res
@@ -685,7 +694,7 @@ const agreementRouter = (
             verifyTenantCertifiedAttributesErrorMapper,
             ctx.logger,
             ctx.correlationId,
-            `Error verifying agreement`
+            `Error verifying certified attributes`
           );
           return res.status(errorRes.status).send(errorRes);
         }
