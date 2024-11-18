@@ -563,9 +563,6 @@ export function catalogServiceBuilder(
           : eservice.data.descriptors,
         isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
         isDelegable: eserviceSeed.isDelegable,
-        isClientAccessDelegable: eserviceSeed.isDelegable
-          ? eserviceSeed.isClientAccessDelegable
-          : undefined,
       };
 
       const event = toCreateEventEServiceUpdated(
