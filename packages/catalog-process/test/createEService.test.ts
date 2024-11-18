@@ -4,7 +4,6 @@ import {
   decodeProtobufPayload,
   getMockDescriptor,
   randomArrayItem,
-  randomBoolean,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -42,7 +41,7 @@ describe("create eservice", () => {
   });
   it("should write on event-store for the creation of an eservice", async () => {
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
-    const isDelegable = randomBoolean();
+    const isDelegable = randomArrayItem([false, true, undefined]);
     const isClientAccessDelegable = isDelegable
       ? randomArrayItem([false, true, undefined])
       : undefined;
@@ -112,6 +111,7 @@ describe("create eservice", () => {
       createdAt: new Date(),
       id: eservice.id,
       isSignalHubEnabled,
+      isDelegable,
       descriptors: [
         {
           ...mockDescriptor,

@@ -32,6 +32,7 @@ import {
   verifiedAttributeSelfVerificationNotAllowed,
   attributeNotFound,
   tenantAlreadyHasDelegatedProducerFeature,
+  tenantHasNoDelegatedProducerFeature,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -261,5 +262,11 @@ export function assertDelegatedProducerFeatureNotAssigned(
 ): void {
   if (tenant.features.some((f) => f.type === "DelegatedProducer")) {
     throw tenantAlreadyHasDelegatedProducerFeature(tenant.id);
+  }
+}
+
+export function assertDelegatedProducerFeatureAssigned(tenant: Tenant): void {
+  if (!tenant.features.some((f) => f.type === "DelegatedProducer")) {
+    throw tenantHasNoDelegatedProducerFeature(tenant.id);
   }
 }
