@@ -496,13 +496,24 @@ export function agreementServiceBuilder(
         updatedAgreement.state === agreementState.active &&
         !hasRelatedAgreements;
 
+      const activeDelegation = (
+        await retrieveActiveDelegationByEserviceId(
+          agreement.data.eserviceId,
+          readModelService
+        )
+      )?.data;
+
+      const requesterIsDelegate =
+        authData.organizationId === activeDelegation?.delegateId;
+
       const submittedAgreement = await addContractOnFirstActivation(
         isFirstActivation,
         contractBuilderInstance,
         eservice,
         consumer,
         producer,
-        updatedAgreement
+        updatedAgreement,
+        requesterIsDelegate ? activeDelegation : undefined
       );
 
       const agreementEvent =
@@ -1094,7 +1105,8 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreementWithoutContract
+        updatedAgreementWithoutContract,
+        activeDelegation?.data
       );
 
       const suspendedByPlatformChanged =
@@ -1276,14 +1288,16 @@ async function addContractOnFirstActivation(
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  agreement: Agreement
+  agreement: Agreement,
+  delegation: Delegation | undefined
 ): Promise<Agreement> {
   if (isFirstActivation) {
     const contract = await contractBuilder.createContract(
       agreement,
       eservice,
       consumer,
-      producer
+      producer,
+      delegation
     );
 
     return {

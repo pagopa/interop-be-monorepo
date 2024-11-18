@@ -27,7 +27,10 @@ import {
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementUpgraded,
 } from "../model/domain/toEvent.js";
-import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
+import {
+  createAndCopyDocumentsForClonedAgreement,
+  retrieveActiveDelegationByEserviceId,
+} from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { ReadModelService } from "./readModelService.js";
 import { ContractBuilder } from "./agreementContractBuilder.js";
@@ -109,11 +112,25 @@ export async function createUpgradeOrNewDraft({
       },
     };
 
+    const delegateId =
+      agreement.data.stamps.activation?.delegateId ??
+      agreement.data.stamps.submission?.delegateId;
+
+    const activeDelegation = delegateId
+      ? (
+          await retrieveActiveDelegationByEserviceId(
+            eservice.id,
+            readModelService
+          )
+        )?.data
+      : undefined;
+
     const contract = await contractBuilder.createContract(
       upgraded,
       eservice,
       consumer,
-      producer
+      producer,
+      activeDelegation
     );
 
     const upgradedWithContract: Agreement = {

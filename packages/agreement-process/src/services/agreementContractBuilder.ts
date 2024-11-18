@@ -315,11 +315,6 @@ const getPdfPayload = async (
     readModelService
   );
 
-  // Nel template c'è un riferimento alla version del descriptor,
-  // è necessario recuperare l'ultima versione attiva del descriptor?
-  // in caso affermativo va sempre cercato in stato publish?
-  // ma i controlli per l'activate agreement supporta diversi stati
-  // const latestActiveDescriptor = getActiveDescriptor(eservice);
   return {
     todayDate: dateAtRomeZone(today),
     todayTime: timeAtRomeZone(today),
