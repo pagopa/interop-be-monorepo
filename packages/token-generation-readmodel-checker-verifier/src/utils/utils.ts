@@ -79,7 +79,8 @@ export function getLastPurposeVersion(
   purposeVersions: PurposeVersion[]
 ): PurposeVersion {
   return purposeVersions.toSorted(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    (purposeVersion1, purposeVersion2) =>
+      purposeVersion2.createdAt.getTime() - purposeVersion1.createdAt.getTime()
   )[0];
 }
 
@@ -87,7 +88,8 @@ export function getLastEServiceDescriptor(
   descriptors: Descriptor[]
 ): Descriptor | undefined {
   return descriptors.toSorted(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    (descriptor1, descriptor2) =>
+      descriptor2.createdAt.getTime() - descriptor1.createdAt.getTime()
   )[0];
 }
 
@@ -191,6 +193,7 @@ export async function compareTokenGenerationReadModel(
   );
   loggerInstance.info("> Connecting to database...");
   const readModel = ReadModelRepository.init(config);
+  const readModelService = readModelServiceBuilder(readModel);
   loggerInstance.info("> Connected to database!\n");
 
   const tokenGenerationService =
@@ -278,24 +281,24 @@ export async function compareTokenGenerationReadModel(
     await compareReadModelPurposesWithTokenGenReadModel({
       platformStatesEntries: platformPurposeEntries,
       tokenGenerationStatesEntries: tokenGenerationStatesClientPurposeEntries,
-      readModel,
+      readModelService,
     });
   const agreementDifferences =
     await compareReadModelAgreementsWithTokenGenReadModel({
       platformStatesEntries: platformAgreementEntries,
       tokenGenerationStatesEntries: tokenGenerationStatesClientPurposeEntries,
-      readModel,
+      readModelService,
     });
   const catalogDifferences =
     await compareReadModelEServicesWithTokenGenReadModel({
       platformStatesEntries: platformCatalogEntries,
       tokenGenerationStatesEntries: tokenGenerationStatesClientPurposeEntries,
-      readModel,
+      readModelService,
     });
   const clientDifferences = await compareReadModelClientsWithTokenGenReadModel({
     platformStatesEntries: platformClientEntries,
     tokenGenerationStatesEntries,
-    readModel,
+    readModelService,
   });
 
   return (
@@ -310,70 +313,68 @@ export async function compareTokenGenerationReadModel(
 export async function compareReadModelPurposesWithTokenGenReadModel({
   platformStatesEntries,
   tokenGenerationStatesEntries,
-  readModel,
+  readModelService,
 }: {
   platformStatesEntries: PlatformStatesPurposeEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
-  readModel: ReadModelRepository;
+  readModelService: ReturnType<typeof readModelServiceBuilder>;
 }): Promise<PurposeDifferencesResult> {
-  const readModelService = readModelServiceBuilder(readModel);
-  const [resultsA, resultsB, resultsC] = [
+  return zipPurposeDataById(
     platformStatesEntries,
     tokenGenerationStatesEntries,
-    await readModelService.getAllReadModelPurposes(),
-  ];
+    await readModelService.getAllReadModelPurposes()
+  ).reduce<PurposeDifferencesResult>(
+    (acc, [platformStatesEntry, tokenStatesEntry, purpose]) => {
+      if (!purpose) {
+        // eslint-disable-next-line functional/immutable-data
+        acc.push([
+          platformStatesEntry
+            ? ComparisonPlatformStatesPurposeEntry.parse(platformStatesEntry)
+            : undefined,
+          tokenStatesEntry && tokenStatesEntry.length > 0
+            ? ComparisonTokenStatesPurposeEntry.array().parse(tokenStatesEntry)
+            : undefined,
+          undefined,
+        ]);
+        return acc;
+      }
 
-  return zipPurposeDataById(
-    resultsA,
-    resultsB,
-    resultsC
-  ).reduce<PurposeDifferencesResult>((acc, [a, b, c]) => {
-    if (!c) {
-      // eslint-disable-next-line functional/immutable-data
-      acc.push([
-        a ? ComparisonPlatformStatesPurposeEntry.parse(a) : undefined,
-        b && b.length > 0
-          ? ComparisonTokenStatesPurposeEntry.array().parse(b)
-          : undefined,
-        undefined,
-      ]);
+      const purposeState = getPurposeStateFromPurposeVersions(purpose.versions);
+      const lastPurposeVersion = getLastPurposeVersion(purpose.versions);
+
+      const {
+        isPlatformStatesPurposeCorrect: isPlatformStatesCorrect,
+        data: platformPurposeEntryDiff,
+      } = validatePurposePlatformStates({
+        platformPurposeEntry: platformStatesEntry,
+        purpose,
+        purposeState,
+        lastPurposeVersion,
+      });
+
+      const {
+        isTokenGenerationStatesPurposeCorrect: isTokenGenerationStatesCorrect,
+        data: tokenPurposeEntryDiff,
+      } = validatePurposeTokenGenerationStates({
+        tokenEntries: tokenStatesEntry,
+        purpose,
+        purposeState,
+        lastPurposeVersion,
+      });
+
+      if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
+        // eslint-disable-next-line functional/immutable-data
+        acc.push([
+          platformPurposeEntryDiff,
+          tokenPurposeEntryDiff,
+          ComparisonPurpose.parse(purpose),
+        ]);
+      }
+
       return acc;
-    }
-
-    const purposeState = getPurposeStateFromPurposeVersions(c.versions);
-    const lastPurposeVersion = getLastPurposeVersion(c.versions);
-
-    const {
-      isPlatformStatesPurposeCorrect: isPlatformStatesCorrect,
-      data: platformPurposeEntryDiff,
-    } = validatePurposePlatformStates({
-      platformPurposeEntry: a,
-      purpose: c,
-      purposeState,
-      lastPurposeVersion,
-    });
-
-    const {
-      isTokenGenerationStatesPurposeCorrect: isTokenGenerationStatesCorrect,
-      data: tokenPurposeEntryDiff,
-    } = validatePurposeTokenGenerationStates({
-      tokenEntries: b,
-      purpose: c,
-      purposeState,
-      lastPurposeVersion,
-    });
-
-    if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
-      // eslint-disable-next-line functional/immutable-data
-      acc.push([
-        platformPurposeEntryDiff,
-        tokenPurposeEntryDiff,
-        ComparisonPurpose.parse(c),
-      ]);
-    }
-
-    return acc;
-  }, []);
+    },
+    []
+  );
 }
 
 function validatePurposePlatformStates({
@@ -541,65 +542,69 @@ export function countPurposeDifferences(
 export async function compareReadModelAgreementsWithTokenGenReadModel({
   platformStatesEntries,
   tokenGenerationStatesEntries,
-  readModel,
+  readModelService,
 }: {
   platformStatesEntries: PlatformStatesAgreementEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
-  readModel: ReadModelRepository;
+  readModelService: ReturnType<typeof readModelServiceBuilder>;
 }): Promise<AgreementDifferencesResult> {
-  const readModelService = readModelServiceBuilder(readModel);
-  const [resultsA, resultsB, resultsC] = await Promise.all([
+  return zipAgreementDataById(
     platformStatesEntries,
     tokenGenerationStatesEntries,
-    readModelService.getAllReadModelAgreements(),
-  ]);
-  return zipAgreementDataById(
-    resultsA,
-    resultsB,
-    resultsC
-  ).reduce<AgreementDifferencesResult>((acc, [a, b, c]) => {
-    if (!c) {
-      // eslint-disable-next-line functional/immutable-data
-      acc.push([
-        a ? ComparisonPlatformStatesAgreementEntry.parse(a) : undefined,
-        b && b.length > 0
-          ? ComparisonTokenStatesAgreementEntry.array().parse(b)
-          : undefined,
-        undefined,
-      ]);
+    await readModelService.getAllReadModelAgreements()
+  ).reduce<AgreementDifferencesResult>(
+    (acc, [platformStatesEntry, tokenStatesEntry, agreement]) => {
+      if (!agreement) {
+        // eslint-disable-next-line functional/immutable-data
+        acc.push([
+          platformStatesEntry
+            ? ComparisonPlatformStatesAgreementEntry.parse(platformStatesEntry)
+            : undefined,
+          tokenStatesEntry && tokenStatesEntry.length > 0
+            ? ComparisonTokenStatesAgreementEntry.array().parse(
+                tokenStatesEntry
+              )
+            : undefined,
+          undefined,
+        ]);
+        return acc;
+      }
+
+      const agreementItemState = agreementStateToItemState(agreement.state);
+      const {
+        isPlatformStatesAgreementCorrect: isPlatformStatesAgreementCorrect,
+        data: platformAgreementEntryDiff,
+      } = validateAgreementPlatformStates({
+        platformAgreementEntry: platformStatesEntry,
+        agreement,
+        agreementItemState,
+      });
+
+      const {
+        isTokenGenerationStatesAgreementCorrect: isTokenGenerationStatesCorrect,
+        data: tokenAgreementEntryDiff,
+      } = validateAgreementTokenGenerationStates({
+        tokenEntries: tokenStatesEntry,
+        agreementState: agreementItemState,
+        agreement,
+      });
+
+      if (
+        !isPlatformStatesAgreementCorrect ||
+        !isTokenGenerationStatesCorrect
+      ) {
+        // eslint-disable-next-line functional/immutable-data
+        acc.push([
+          platformAgreementEntryDiff,
+          tokenAgreementEntryDiff,
+          ComparisonAgreement.parse(agreement),
+        ]);
+      }
+
       return acc;
-    }
-
-    const agreementItemState = agreementStateToItemState(c.state);
-    const {
-      isPlatformStatesAgreementCorrect: isPlatformStatesAgreementCorrect,
-      data: platformAgreementEntryDiff,
-    } = validateAgreementPlatformStates({
-      platformAgreementEntry: a,
-      agreement: c,
-      agreementItemState,
-    });
-
-    const {
-      isTokenGenerationStatesAgreementCorrect: isTokenGenerationStatesCorrect,
-      data: tokenAgreementEntryDiff,
-    } = validateAgreementTokenGenerationStates({
-      tokenEntries: b,
-      agreementState: agreementItemState,
-      agreement: c,
-    });
-
-    if (!isPlatformStatesAgreementCorrect || !isTokenGenerationStatesCorrect) {
-      // eslint-disable-next-line functional/immutable-data
-      acc.push([
-        platformAgreementEntryDiff,
-        tokenAgreementEntryDiff,
-        ComparisonAgreement.parse(c),
-      ]);
-    }
-
-    return acc;
-  }, []);
+    },
+    []
+  );
 }
 
 function validateAgreementPlatformStates({
@@ -765,67 +770,65 @@ export function countAgreementDifferences(
 export async function compareReadModelEServicesWithTokenGenReadModel({
   platformStatesEntries,
   tokenGenerationStatesEntries,
-  readModel,
+  readModelService,
 }: {
   platformStatesEntries: PlatformStatesCatalogEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
-  readModel: ReadModelRepository;
+  readModelService: ReturnType<typeof readModelServiceBuilder>;
 }): Promise<CatalogDifferencesResult> {
-  const readModelService = readModelServiceBuilder(readModel);
-  const [resultsA, resultsB, resultsC] = await Promise.all([
+  return zipEServiceDataById(
     platformStatesEntries,
     tokenGenerationStatesEntries,
-    readModelService.getAllReadModelEServices(),
-  ]);
+    await readModelService.getAllReadModelEServices()
+  ).reduce<CatalogDifferencesResult>(
+    (acc, [platformStatesEntry, tokenStatesEntry, eservice]) => {
+      const lastEServiceDescriptor = eservice
+        ? getLastEServiceDescriptor(eservice.descriptors)
+        : undefined;
+      if (!eservice || !lastEServiceDescriptor) {
+        // eslint-disable-next-line functional/immutable-data
+        acc.push([
+          platformStatesEntry
+            ? ComparisonPlatformStatesCatalogEntry.parse(platformStatesEntry)
+            : undefined,
+          tokenStatesEntry && tokenStatesEntry.length > 0
+            ? ComparisonTokenStatesCatalogEntry.array().parse(tokenStatesEntry)
+            : undefined,
+          eservice ? ComparisonEService.parse(eservice) : undefined,
+        ]);
+        return acc;
+      }
 
-  return zipEServiceDataById(
-    resultsA,
-    resultsB,
-    resultsC
-  ).reduce<CatalogDifferencesResult>((acc, [a, b, c]) => {
-    const lastEServiceDescriptor = c
-      ? getLastEServiceDescriptor(c.descriptors)
-      : undefined;
-    if (!c || !lastEServiceDescriptor) {
-      // eslint-disable-next-line functional/immutable-data
-      acc.push([
-        a ? ComparisonPlatformStatesCatalogEntry.parse(a) : undefined,
-        b && b.length > 0
-          ? ComparisonTokenStatesCatalogEntry.array().parse(b)
-          : undefined,
-        c ? ComparisonEService.parse(c) : undefined,
-      ]);
+      const {
+        isPlatformStatesCatalogCorrect: isPlatformStatesCorrect,
+        data: platformCatalogEntryDiff,
+      } = validateCatalogPlatformStates({
+        platformCatalogEntry: platformStatesEntry,
+        descriptor: lastEServiceDescriptor,
+      });
+
+      const {
+        isTokenGenerationStatesCatalogCorrect: isTokenGenerationStatesCorrect,
+        data: tokenCatalogEntryDiff,
+      } = validateCatalogTokenGenerationStates({
+        tokenEntries: tokenStatesEntry,
+        eservice,
+        descriptor: lastEServiceDescriptor,
+      });
+
+      if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
+        // eslint-disable-next-line functional/immutable-data
+        acc.push([
+          platformCatalogEntryDiff,
+          tokenCatalogEntryDiff,
+          ComparisonEService.parse(eservice),
+        ]);
+      }
+
       return acc;
-    }
-
-    const {
-      isPlatformStatesCatalogCorrect: isPlatformStatesCorrect,
-      data: platformCatalogEntryDiff,
-    } = validateCatalogPlatformStates({
-      platformCatalogEntry: a,
-      descriptor: lastEServiceDescriptor,
-    });
-
-    const {
-      isTokenGenerationStatesCatalogCorrect: isTokenGenerationStatesCorrect,
-      data: tokenCatalogEntryDiff,
-    } = validateCatalogTokenGenerationStates({
-      tokenEntries: b,
-      eservice: c,
-      descriptor: lastEServiceDescriptor,
-    });
-
-    if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
-      // eslint-disable-next-line functional/immutable-data
-      acc.push([
-        platformCatalogEntryDiff,
-        tokenCatalogEntryDiff,
-        ComparisonEService.parse(c),
-      ]);
-    }
-
-    return acc;
-  }, []);
+    },
+    []
+  );
 }
 
 function validateCatalogPlatformStates({
@@ -1043,62 +1046,64 @@ export function countCatalogDifferences(
 export async function compareReadModelClientsWithTokenGenReadModel({
   platformStatesEntries,
   tokenGenerationStatesEntries,
-  readModel,
+  readModelService,
 }: {
   platformStatesEntries: PlatformStatesClientEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesGenericEntry[];
-  readModel: ReadModelRepository;
+  readModelService: ReturnType<typeof readModelServiceBuilder>;
 }): Promise<ClientDifferencesResult> {
-  const readModelService = readModelServiceBuilder(readModel);
-  const [resultsA, resultsB, resultsC] = await Promise.all([
+  return zipClientDataById(
     platformStatesEntries,
     tokenGenerationStatesEntries,
-    readModelService.getAllReadModelClients(),
-  ]);
-  return zipClientDataById(
-    resultsA,
-    resultsB,
-    resultsC
-  ).reduce<ClientDifferencesResult>((acc, [a, b, c]) => {
-    // TODO: are missing token entries considered errors or not?
-    if (!c || (c && (!a || b?.length === 0))) {
-      // eslint-disable-next-line functional/immutable-data
-      acc.push([
-        a ? ComparisonPlatformStatesClientEntry.parse(a) : undefined,
-        b && b.length > 0
-          ? ComparisonTokenStatesClientEntry.array().parse(b)
-          : undefined,
-        c ? ComparisonClient.parse(c) : undefined,
-      ]);
+    await readModelService.getAllReadModelClients()
+  ).reduce<ClientDifferencesResult>(
+    (acc, [platformStatesEntry, tokenStatesEntry, client]) => {
+      // TODO: are missing token entries considered errors or not?
+      if (
+        !client ||
+        (client && (!platformStatesEntry || tokenStatesEntry?.length === 0))
+      ) {
+        // eslint-disable-next-line functional/immutable-data
+        acc.push([
+          platformStatesEntry
+            ? ComparisonPlatformStatesClientEntry.parse(platformStatesEntry)
+            : undefined,
+          tokenStatesEntry && tokenStatesEntry.length > 0
+            ? ComparisonTokenStatesClientEntry.array().parse(tokenStatesEntry)
+            : undefined,
+          client ? ComparisonClient.parse(client) : undefined,
+        ]);
+        return acc;
+      }
+
+      const {
+        isPlatformStatesClientCorrect: isPlatformStatesCorrect,
+        data: platformClientEntryDiff,
+      } = validateClientPlatformStates({
+        platformClientEntry: platformStatesEntry,
+        client,
+      });
+
+      const {
+        isTokenGenerationStatesClientCorrect: isTokenGenerationStatesCorrect,
+        data: tokenClientEntryDiff,
+      } = validateClientTokenGenerationStates({
+        tokenEntries: tokenStatesEntry,
+        client,
+      });
+      if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
+        // eslint-disable-next-line functional/immutable-data
+        acc.push([
+          platformClientEntryDiff,
+          tokenClientEntryDiff,
+          ComparisonClient.parse(client),
+        ]);
+      }
+
       return acc;
-    }
-
-    const {
-      isPlatformStatesClientCorrect: isPlatformStatesCorrect,
-      data: platformClientEntryDiff,
-    } = validateClientPlatformStates({
-      platformClientEntry: a,
-      client: c,
-    });
-
-    const {
-      isTokenGenerationStatesClientCorrect: isTokenGenerationStatesCorrect,
-      data: tokenClientEntryDiff,
-    } = validateClientTokenGenerationStates({
-      tokenEntries: b,
-      client: c,
-    });
-    if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
-      // eslint-disable-next-line functional/immutable-data
-      acc.push([
-        platformClientEntryDiff,
-        tokenClientEntryDiff,
-        ComparisonClient.parse(c),
-      ]);
-    }
-
-    return acc;
-  }, []);
+    },
+    []
+  );
 }
 
 function validateClientPlatformStates({
