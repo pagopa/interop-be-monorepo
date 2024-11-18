@@ -343,16 +343,18 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
     const purposeState = getPurposeStateFromPurposeVersions(c.versions);
     const lastPurposeVersion = getLastPurposeVersion(c.versions);
 
-    const { status: isPlatformStatesCorrect, data: platformPurposeEntryDiff } =
-      validatePurposePlatformStates({
-        platformPurposeEntry: a,
-        purpose: c,
-        purposeState,
-        lastPurposeVersion,
-      });
+    const {
+      isPlatformStatesPurposeCorrect: isPlatformStatesCorrect,
+      data: platformPurposeEntryDiff,
+    } = validatePurposePlatformStates({
+      platformPurposeEntry: a,
+      purpose: c,
+      purposeState,
+      lastPurposeVersion,
+    });
 
     const {
-      status: isTokenGenerationStatesCorrect,
+      isTokenGenerationStatesPurposeCorrect: isTokenGenerationStatesCorrect,
       data: tokenPurposeEntryDiff,
     } = validatePurposeTokenGenerationStates({
       tokenEntries: b,
@@ -385,11 +387,11 @@ function validatePurposePlatformStates({
   purposeState: ItemState;
   lastPurposeVersion: PurposeVersion;
 }): {
-  status: boolean;
+  isPlatformStatesPurposeCorrect: boolean;
   data: ComparisonPlatformStatesPurposeEntry | undefined;
 } {
   const isArchived = lastPurposeVersion.state === purposeVersionState.archived;
-  const status = !platformPurposeEntry
+  const isPlatformStatesPurposeCorrect = !platformPurposeEntry
     ? isArchived
     : !isArchived &&
       getIdFromPlatformStatesPK<PurposeId>(platformPurposeEntry.PK).id ===
@@ -400,9 +402,9 @@ function validatePurposePlatformStates({
       platformPurposeEntry.purposeVersionId === lastPurposeVersion.id;
 
   return {
-    status,
+    isPlatformStatesPurposeCorrect,
     data:
-      !status && platformPurposeEntry
+      !isPlatformStatesPurposeCorrect && platformPurposeEntry
         ? {
             PK: platformPurposeEntry.PK,
             state: platformPurposeEntry.state,
@@ -425,12 +427,12 @@ function validatePurposeTokenGenerationStates({
   purposeState: ItemState;
   lastPurposeVersion: PurposeVersion;
 }): {
-  status: boolean;
+  isTokenGenerationStatesPurposeCorrect: boolean;
   data: ComparisonTokenStatesPurposeEntry[] | undefined;
 } {
   if (!tokenEntries || tokenEntries.length === 0) {
     return {
-      status: false,
+      isTokenGenerationStatesPurposeCorrect: false,
       data: undefined,
     };
   }
@@ -447,7 +449,7 @@ function validatePurposeTokenGenerationStates({
   );
 
   return {
-    status: foundEntries.length === 0,
+    isTokenGenerationStatesPurposeCorrect: foundEntries.length === 0,
     data:
       foundEntries.length > 0
         ? foundEntries.map((entry) => ({
@@ -570,7 +572,7 @@ export async function compareReadModelAgreementsWithTokenGenReadModel({
 
     const agreementItemState = agreementStateToItemState(c.state);
     const {
-      status: isPlatformStatesCorrect,
+      isPlatformStatesAgreementCorrect: isPlatformStatesAgreementCorrect,
       data: platformAgreementEntryDiff,
     } = validateAgreementPlatformStates({
       platformAgreementEntry: a,
@@ -579,7 +581,7 @@ export async function compareReadModelAgreementsWithTokenGenReadModel({
     });
 
     const {
-      status: isTokenGenerationStatesCorrect,
+      isTokenGenerationStatesAgreementCorrect: isTokenGenerationStatesCorrect,
       data: tokenAgreementEntryDiff,
     } = validateAgreementTokenGenerationStates({
       tokenEntries: b,
@@ -587,7 +589,7 @@ export async function compareReadModelAgreementsWithTokenGenReadModel({
       agreement: c,
     });
 
-    if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
+    if (!isPlatformStatesAgreementCorrect || !isTokenGenerationStatesCorrect) {
       // eslint-disable-next-line functional/immutable-data
       acc.push([
         platformAgreementEntryDiff,
@@ -609,11 +611,11 @@ function validateAgreementPlatformStates({
   agreement: Agreement;
   agreementItemState: ItemState;
 }): {
-  status: boolean;
+  isPlatformStatesAgreementCorrect: boolean;
   data: ComparisonPlatformStatesAgreementEntry | undefined;
 } {
   const isArchived = agreement.state === agreementState.archived;
-  const status = !platformAgreementEntry
+  const isPlatformStatesAgreementCorrect = !platformAgreementEntry
     ? isArchived
     : !isArchived &&
       agreementItemState === platformAgreementEntry.state &&
@@ -625,9 +627,9 @@ function validateAgreementPlatformStates({
       platformAgreementEntry.agreementDescriptorId === agreement.descriptorId;
 
   return {
-    status,
+    isPlatformStatesAgreementCorrect,
     data:
-      !status && platformAgreementEntry
+      !isPlatformStatesAgreementCorrect && platformAgreementEntry
         ? {
             PK: platformAgreementEntry.PK,
             state: platformAgreementEntry.state,
@@ -648,12 +650,12 @@ function validateAgreementTokenGenerationStates({
   agreementState: ItemState;
   agreement: Agreement;
 }): {
-  status: boolean;
+  isTokenGenerationStatesAgreementCorrect: boolean;
   data: ComparisonTokenStatesAgreementEntry[] | undefined;
 } {
   if (!tokenEntries || tokenEntries.length === 0) {
     return {
-      status: true,
+      isTokenGenerationStatesAgreementCorrect: true,
       data: undefined,
     };
   }
@@ -673,7 +675,7 @@ function validateAgreementTokenGenerationStates({
   );
 
   return {
-    status: foundEntries.length === 0,
+    isTokenGenerationStatesAgreementCorrect: foundEntries.length === 0,
     data:
       foundEntries.length > 0
         ? foundEntries.map((entry) => ({
@@ -796,14 +798,16 @@ export async function compareReadModelEServicesWithTokenGenReadModel({
       return acc;
     }
 
-    const { status: isPlatformStatesCorrect, data: platformCatalogEntryDiff } =
-      validateCatalogPlatformStates({
-        platformCatalogEntry: a,
-        descriptor: lastEServiceDescriptor,
-      });
+    const {
+      isPlatformStatesCatalogCorrect: isPlatformStatesCorrect,
+      data: platformCatalogEntryDiff,
+    } = validateCatalogPlatformStates({
+      platformCatalogEntry: a,
+      descriptor: lastEServiceDescriptor,
+    });
 
     const {
-      status: isTokenGenerationStatesCorrect,
+      isTokenGenerationStatesCatalogCorrect: isTokenGenerationStatesCorrect,
       data: tokenCatalogEntryDiff,
     } = validateCatalogTokenGenerationStates({
       tokenEntries: b,
@@ -831,12 +835,13 @@ function validateCatalogPlatformStates({
   platformCatalogEntry: PlatformStatesCatalogEntry | undefined;
   descriptor: Descriptor;
 }): {
-  status: boolean;
+  isPlatformStatesCatalogCorrect: boolean;
   data: ComparisonPlatformStatesCatalogEntry | undefined;
 } {
   if (!platformCatalogEntry) {
     return {
-      status: descriptor.state === descriptorState.archived,
+      isPlatformStatesCatalogCorrect:
+        descriptor.state === descriptorState.archived,
       data: undefined,
     };
   }
@@ -846,7 +851,7 @@ function validateCatalogPlatformStates({
   ).descriptorId;
   if (descriptor.id !== extractedDescriptorId) {
     return {
-      status: false,
+      isPlatformStatesCatalogCorrect: false,
       data: ComparisonPlatformStatesCatalogEntry.parse(platformCatalogEntry),
     };
   }
@@ -854,7 +859,7 @@ function validateCatalogPlatformStates({
   const isArchived = descriptor.state === descriptorState.archived;
   const catalogState = descriptorStateToItemState(descriptor.state);
 
-  const status =
+  const isPlatformStatesCatalogCorrect =
     !isArchived &&
     platformCatalogEntry.state === catalogState &&
     platformCatalogEntry.descriptorVoucherLifespan ===
@@ -864,8 +869,8 @@ function validateCatalogPlatformStates({
     );
 
   return {
-    status,
-    data: !status
+    isPlatformStatesCatalogCorrect,
+    data: !isPlatformStatesCatalogCorrect
       ? {
           PK: platformCatalogEntry.PK,
           state: platformCatalogEntry.state,
@@ -876,6 +881,7 @@ function validateCatalogPlatformStates({
       : undefined,
   };
 }
+
 function validateCatalogTokenGenerationStates({
   tokenEntries,
   eservice,
@@ -885,12 +891,12 @@ function validateCatalogTokenGenerationStates({
   eservice: EService;
   descriptor: Descriptor;
 }): {
-  status: boolean;
+  isTokenGenerationStatesCatalogCorrect: boolean;
   data: ComparisonTokenStatesCatalogEntry[] | undefined;
 } {
   if (!tokenEntries || tokenEntries.length === 0) {
     return {
-      status: true,
+      isTokenGenerationStatesCatalogCorrect: true,
       data: undefined,
     };
   }
@@ -923,7 +929,7 @@ function validateCatalogTokenGenerationStates({
     );
   });
   return {
-    status: foundEntries.length === 0,
+    isTokenGenerationStatesCatalogCorrect: foundEntries.length === 0,
     data:
       foundEntries.length > 0
         ? foundEntries.map(
@@ -1067,14 +1073,16 @@ export async function compareReadModelClientsWithTokenGenReadModel({
       return acc;
     }
 
-    const { status: isPlatformStatesCorrect, data: platformClientEntryDiff } =
-      validateClientPlatformStates({
-        platformClientEntry: a,
-        client: c,
-      });
+    const {
+      isPlatformStatesClientCorrect: isPlatformStatesCorrect,
+      data: platformClientEntryDiff,
+    } = validateClientPlatformStates({
+      platformClientEntry: a,
+      client: c,
+    });
 
     const {
-      status: isTokenGenerationStatesCorrect,
+      isTokenGenerationStatesClientCorrect: isTokenGenerationStatesCorrect,
       data: tokenClientEntryDiff,
     } = validateClientTokenGenerationStates({
       tokenEntries: b,
@@ -1100,10 +1108,10 @@ function validateClientPlatformStates({
   platformClientEntry: PlatformStatesClientEntry | undefined;
   client: Client;
 }): {
-  status: boolean;
+  isPlatformStatesClientCorrect: boolean;
   data: ComparisonPlatformStatesClientEntry | undefined;
 } {
-  const status = !platformClientEntry
+  const isPlatformStatesClientCorrect = !platformClientEntry
     ? true
     : getIdFromPlatformStatesPK<ClientId>(platformClientEntry.PK).id ===
         client.id &&
@@ -1115,9 +1123,9 @@ function validateClientPlatformStates({
       );
 
   return {
-    status,
+    isPlatformStatesClientCorrect,
     data:
-      !status && platformClientEntry
+      !isPlatformStatesClientCorrect && platformClientEntry
         ? {
             PK: platformClientEntry.PK,
             clientKind: platformClientEntry.clientKind,
@@ -1135,13 +1143,13 @@ function validateClientTokenGenerationStates({
   tokenEntries: TokenGenerationStatesGenericEntry[] | undefined;
   client: Client;
 }): {
-  status: boolean;
+  isTokenGenerationStatesClientCorrect: boolean;
   data: ComparisonTokenStatesClientEntry[] | undefined;
 } {
   // TODO: is this correct?
   if (!tokenEntries || tokenEntries.length === 0) {
     return {
-      status: true,
+      isTokenGenerationStatesClientCorrect: true,
       data: undefined,
     };
   }
@@ -1166,7 +1174,7 @@ function validateClientTokenGenerationStates({
   );
 
   return {
-    status: foundEntries.length === 0,
+    isTokenGenerationStatesClientCorrect: foundEntries.length === 0,
     data:
       foundEntries.length > 0
         ? foundEntries.map((entry) => ({
