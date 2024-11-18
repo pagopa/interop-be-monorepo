@@ -51,21 +51,21 @@ import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerat
 import { config } from "../configs/config.js";
 import {
   AgreementDifferencesResult,
-  PartialPlatformStatesAgreementEntry,
-  PartialPlatformStatesPurposeEntry,
+  ComparisonPlatformStatesAgreementEntry,
+  ComparisonPlatformStatesPurposeEntry,
   PurposeDifferencesResult,
-  PartialAgreement,
-  PartialPurpose,
-  PartialTokenStatesAgreementEntry,
-  PartialTokenStatesPurposeEntry,
-  PartialPlatformStatesCatalogEntry,
-  PartialTokenStatesCatalogEntry,
+  ComparisonAgreement,
+  ComparisonPurpose,
+  ComparisonTokenStatesAgreementEntry,
+  ComparisonTokenStatesPurposeEntry,
+  ComparisonPlatformStatesCatalogEntry,
+  ComparisonTokenStatesCatalogEntry,
   CatalogDifferencesResult,
-  PartialEService,
-  PartialPlatformStatesClientEntry,
-  PartialTokenStatesClientEntry,
+  ComparisonEService,
+  ComparisonPlatformStatesClientEntry,
+  ComparisonTokenStatesClientEntry,
   ClientDifferencesResult,
-  PartialClient,
+  ComparisonClient,
 } from "../models/types.js";
 
 type Accumulator = {
@@ -331,9 +331,9 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
     if (!c) {
       // eslint-disable-next-line functional/immutable-data
       acc.push([
-        a ? PartialPlatformStatesPurposeEntry.parse(a) : undefined,
+        a ? ComparisonPlatformStatesPurposeEntry.parse(a) : undefined,
         b && b.length > 0
-          ? PartialTokenStatesPurposeEntry.array().parse(b)
+          ? ComparisonTokenStatesPurposeEntry.array().parse(b)
           : undefined,
         undefined,
       ]);
@@ -366,7 +366,7 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
       acc.push([
         platformPurposeEntryDiff,
         tokenPurposeEntryDiff,
-        PartialPurpose.parse(c),
+        ComparisonPurpose.parse(c),
       ]);
     }
 
@@ -386,7 +386,7 @@ function validatePurposePlatformStates({
   lastPurposeVersion: PurposeVersion;
 }): {
   status: boolean;
-  data: PartialPlatformStatesPurposeEntry | undefined;
+  data: ComparisonPlatformStatesPurposeEntry | undefined;
 } {
   const isArchived = lastPurposeVersion.state === purposeVersionState.archived;
   const status = !platformPurposeEntry
@@ -426,7 +426,7 @@ function validatePurposeTokenGenerationStates({
   lastPurposeVersion: PurposeVersion;
 }): {
   status: boolean;
-  data: PartialTokenStatesPurposeEntry[] | undefined;
+  data: ComparisonTokenStatesPurposeEntry[] | undefined;
 } {
   if (!tokenEntries || tokenEntries.length === 0) {
     return {
@@ -559,9 +559,9 @@ export async function compareReadModelAgreementsWithTokenGenReadModel({
     if (!c) {
       // eslint-disable-next-line functional/immutable-data
       acc.push([
-        a ? PartialPlatformStatesAgreementEntry.parse(a) : undefined,
+        a ? ComparisonPlatformStatesAgreementEntry.parse(a) : undefined,
         b && b.length > 0
-          ? PartialTokenStatesAgreementEntry.array().parse(b)
+          ? ComparisonTokenStatesAgreementEntry.array().parse(b)
           : undefined,
         undefined,
       ]);
@@ -592,7 +592,7 @@ export async function compareReadModelAgreementsWithTokenGenReadModel({
       acc.push([
         platformAgreementEntryDiff,
         tokenAgreementEntryDiff,
-        PartialAgreement.parse(c),
+        ComparisonAgreement.parse(c),
       ]);
     }
 
@@ -610,7 +610,7 @@ function validateAgreementPlatformStates({
   agreementItemState: ItemState;
 }): {
   status: boolean;
-  data: PartialPlatformStatesAgreementEntry | undefined;
+  data: ComparisonPlatformStatesAgreementEntry | undefined;
 } {
   const isArchived = agreement.state === agreementState.archived;
   const status = !platformAgreementEntry
@@ -649,7 +649,7 @@ function validateAgreementTokenGenerationStates({
   agreement: Agreement;
 }): {
   status: boolean;
-  data: PartialTokenStatesAgreementEntry[] | undefined;
+  data: ComparisonTokenStatesAgreementEntry[] | undefined;
 } {
   if (!tokenEntries || tokenEntries.length === 0) {
     return {
@@ -787,11 +787,11 @@ export async function compareReadModelEServicesWithTokenGenReadModel({
     if (!c || !lastEServiceDescriptor) {
       // eslint-disable-next-line functional/immutable-data
       acc.push([
-        a ? PartialPlatformStatesCatalogEntry.parse(a) : undefined,
+        a ? ComparisonPlatformStatesCatalogEntry.parse(a) : undefined,
         b && b.length > 0
-          ? PartialTokenStatesCatalogEntry.array().parse(b)
+          ? ComparisonTokenStatesCatalogEntry.array().parse(b)
           : undefined,
-        c ? PartialEService.parse(c) : undefined,
+        c ? ComparisonEService.parse(c) : undefined,
       ]);
       return acc;
     }
@@ -816,7 +816,7 @@ export async function compareReadModelEServicesWithTokenGenReadModel({
       acc.push([
         platformCatalogEntryDiff,
         tokenCatalogEntryDiff,
-        PartialEService.parse(c),
+        ComparisonEService.parse(c),
       ]);
     }
 
@@ -832,7 +832,7 @@ function validateCatalogPlatformStates({
   descriptor: Descriptor;
 }): {
   status: boolean;
-  data: PartialPlatformStatesCatalogEntry | undefined;
+  data: ComparisonPlatformStatesCatalogEntry | undefined;
 } {
   if (!platformCatalogEntry) {
     return {
@@ -847,7 +847,7 @@ function validateCatalogPlatformStates({
   if (descriptor.id !== extractedDescriptorId) {
     return {
       status: false,
-      data: PartialPlatformStatesCatalogEntry.parse(platformCatalogEntry),
+      data: ComparisonPlatformStatesCatalogEntry.parse(platformCatalogEntry),
     };
   }
 
@@ -886,7 +886,7 @@ function validateCatalogTokenGenerationStates({
   descriptor: Descriptor;
 }): {
   status: boolean;
-  data: PartialTokenStatesCatalogEntry[] | undefined;
+  data: ComparisonTokenStatesCatalogEntry[] | undefined;
 } {
   if (!tokenEntries || tokenEntries.length === 0) {
     return {
@@ -927,7 +927,7 @@ function validateCatalogTokenGenerationStates({
     data:
       foundEntries.length > 0
         ? foundEntries.map(
-            (entry): PartialTokenStatesCatalogEntry => ({
+            (entry): ComparisonTokenStatesCatalogEntry => ({
               PK: entry.PK,
               GSIPK_consumerId_eserviceId: entry.GSIPK_consumerId_eserviceId,
               GSIPK_eserviceId_descriptorId:
@@ -1058,11 +1058,11 @@ export async function compareReadModelClientsWithTokenGenReadModel({
     if (!c || (c && (!a || b?.length === 0))) {
       // eslint-disable-next-line functional/immutable-data
       acc.push([
-        a ? PartialPlatformStatesClientEntry.parse(a) : undefined,
+        a ? ComparisonPlatformStatesClientEntry.parse(a) : undefined,
         b && b.length > 0
-          ? PartialTokenStatesClientEntry.array().parse(b)
+          ? ComparisonTokenStatesClientEntry.array().parse(b)
           : undefined,
-        c ? PartialClient.parse(c) : undefined,
+        c ? ComparisonClient.parse(c) : undefined,
       ]);
       return acc;
     }
@@ -1085,7 +1085,7 @@ export async function compareReadModelClientsWithTokenGenReadModel({
       acc.push([
         platformClientEntryDiff,
         tokenClientEntryDiff,
-        PartialClient.parse(c),
+        ComparisonClient.parse(c),
       ]);
     }
 
@@ -1101,7 +1101,7 @@ function validateClientPlatformStates({
   client: Client;
 }): {
   status: boolean;
-  data: PartialPlatformStatesClientEntry | undefined;
+  data: ComparisonPlatformStatesClientEntry | undefined;
 } {
   const status = !platformClientEntry
     ? true
@@ -1136,7 +1136,7 @@ function validateClientTokenGenerationStates({
   client: Client;
 }): {
   status: boolean;
-  data: PartialTokenStatesClientEntry[] | undefined;
+  data: ComparisonTokenStatesClientEntry[] | undefined;
 } {
   // TODO: is this correct?
   if (!tokenEntries || tokenEntries.length === 0) {

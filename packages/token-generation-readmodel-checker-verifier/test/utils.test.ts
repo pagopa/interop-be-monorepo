@@ -65,21 +65,21 @@ import {
   zipPurposeDataById,
 } from "../src/utils/utils.js";
 import {
-  PartialPlatformStatesPurposeEntry,
+  ComparisonPlatformStatesPurposeEntry,
   PurposeDifferencesResult,
-  PartialPurpose,
+  ComparisonPurpose,
   AgreementDifferencesResult,
-  PartialPlatformStatesAgreementEntry,
-  PartialTokenStatesAgreementEntry,
-  PartialAgreement,
+  ComparisonPlatformStatesAgreementEntry,
+  ComparisonTokenStatesAgreementEntry,
+  ComparisonAgreement,
   CatalogDifferencesResult,
-  PartialPlatformStatesCatalogEntry,
-  PartialTokenStatesCatalogEntry,
-  PartialEService,
+  ComparisonPlatformStatesCatalogEntry,
+  ComparisonTokenStatesCatalogEntry,
+  ComparisonEService,
   ClientDifferencesResult,
-  PartialTokenStatesClientEntry,
-  PartialClient,
-  PartialPlatformStatesClientEntry,
+  ComparisonTokenStatesClientEntry,
+  ComparisonClient,
+  ComparisonPlatformStatesClientEntry,
 } from "../src/models/types.js";
 import { tokenGenerationReadModelServiceBuilder } from "../src/services/tokenGenerationReadModelService.js";
 import {
@@ -170,9 +170,9 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       });
       const expectedDifferences: PurposeDifferencesResult = [
         [
-          PartialPlatformStatesPurposeEntry.parse(platformPurposeEntry2),
+          ComparisonPlatformStatesPurposeEntry.parse(platformPurposeEntry2),
           undefined,
-          PartialPurpose.parse(purpose2),
+          ComparisonPurpose.parse(purpose2),
         ],
       ];
 
@@ -408,13 +408,13 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       const expectedDifferences: AgreementDifferencesResult = [
         [
           undefined,
-          [PartialTokenStatesAgreementEntry.parse(tokenStatesEntry)],
-          PartialAgreement.parse(agreement1),
+          [ComparisonTokenStatesAgreementEntry.parse(tokenStatesEntry)],
+          ComparisonAgreement.parse(agreement1),
         ],
         [
-          PartialPlatformStatesAgreementEntry.parse(platformAgreementEntry2),
+          ComparisonPlatformStatesAgreementEntry.parse(platformAgreementEntry2),
           undefined,
-          PartialAgreement.parse(agreement2),
+          ComparisonAgreement.parse(agreement2),
         ],
       ];
 
@@ -685,13 +685,13 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       const expectedDifferences: CatalogDifferencesResult = [
         [
           undefined,
-          [PartialTokenStatesCatalogEntry.parse(tokenStatesEntry)],
-          PartialEService.parse(eservice1),
+          [ComparisonTokenStatesCatalogEntry.parse(tokenStatesEntry)],
+          ComparisonEService.parse(eservice1),
         ],
         [
-          PartialPlatformStatesCatalogEntry.parse(platformCatalogEntry2),
+          ComparisonPlatformStatesCatalogEntry.parse(platformCatalogEntry2),
           undefined,
-          PartialEService.parse(eservice2),
+          ComparisonEService.parse(eservice2),
         ],
       ];
       expect(differences).toHaveLength(2);
@@ -928,13 +928,13 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       const expectedDifferences: ClientDifferencesResult = [
         [
           undefined,
-          [PartialTokenStatesClientEntry.parse(tokenStatesEntry)],
-          PartialClient.parse(client1),
+          [ComparisonTokenStatesClientEntry.parse(tokenStatesEntry)],
+          ComparisonClient.parse(client1),
         ],
         [
-          PartialPlatformStatesClientEntry.parse(platformClientEntry2),
+          ComparisonPlatformStatesClientEntry.parse(platformClientEntry2),
           undefined,
-          PartialClient.parse(client2),
+          ComparisonClient.parse(client2),
         ],
       ];
 

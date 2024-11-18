@@ -13,15 +13,15 @@ import {
 import { z } from "zod";
 
 // purpose
-export const PartialPurpose = Purpose.pick({
+export const ComparisonPurpose = Purpose.pick({
   id: true,
   consumerId: true,
   eserviceId: true,
   versions: true,
 });
-export type PartialPurpose = z.infer<typeof PartialPurpose>;
+export type ComparisonPurpose = z.infer<typeof ComparisonPurpose>;
 
-export const PartialPlatformStatesPurposeEntry =
+export const ComparisonPlatformStatesPurposeEntry =
   PlatformStatesPurposeEntry.pick({
     PK: true,
     state: true,
@@ -29,11 +29,11 @@ export const PartialPlatformStatesPurposeEntry =
     purposeEserviceId: true,
     purposeVersionId: true,
   });
-export type PartialPlatformStatesPurposeEntry = z.infer<
-  typeof PartialPlatformStatesPurposeEntry
+export type ComparisonPlatformStatesPurposeEntry = z.infer<
+  typeof ComparisonPlatformStatesPurposeEntry
 >;
 
-export const PartialTokenStatesPurposeEntry =
+export const ComparisonTokenStatesPurposeEntry =
   TokenGenerationStatesClientPurposeEntry.pick({
     PK: true,
     consumerId: true,
@@ -42,40 +42,40 @@ export const PartialTokenStatesPurposeEntry =
     purposeVersionId: true,
     GSIPK_clientId_purposeId: true,
   });
-export type PartialTokenStatesPurposeEntry = z.infer<
-  typeof PartialTokenStatesPurposeEntry
+export type ComparisonTokenStatesPurposeEntry = z.infer<
+  typeof ComparisonTokenStatesPurposeEntry
 >;
 
 export type PurposeDifferencesResult = Array<
   [
-    PartialPlatformStatesPurposeEntry | undefined,
-    PartialTokenStatesPurposeEntry[] | undefined,
-    PartialPurpose | undefined
+    ComparisonPlatformStatesPurposeEntry | undefined,
+    ComparisonTokenStatesPurposeEntry[] | undefined,
+    ComparisonPurpose | undefined
   ]
 >;
 
 // agreement
-export const PartialAgreement = Agreement.pick({
+export const ComparisonAgreement = Agreement.pick({
   id: true,
   state: true,
   consumerId: true,
   eserviceId: true,
   descriptorId: true,
 });
-export type PartialAgreement = z.infer<typeof PartialAgreement>;
+export type ComparisonAgreement = z.infer<typeof ComparisonAgreement>;
 
-export const PartialPlatformStatesAgreementEntry =
+export const ComparisonPlatformStatesAgreementEntry =
   PlatformStatesAgreementEntry.pick({
     PK: true,
     state: true,
     GSIPK_consumerId_eserviceId: true,
     agreementDescriptorId: true,
   });
-export type PartialPlatformStatesAgreementEntry = z.infer<
-  typeof PartialPlatformStatesAgreementEntry
+export type ComparisonPlatformStatesAgreementEntry = z.infer<
+  typeof ComparisonPlatformStatesAgreementEntry
 >;
 
-export const PartialTokenStatesAgreementEntry =
+export const ComparisonTokenStatesAgreementEntry =
   TokenGenerationStatesClientPurposeEntry.pick({
     PK: true,
     consumerId: true,
@@ -84,37 +84,37 @@ export const PartialTokenStatesAgreementEntry =
     GSIPK_consumerId_eserviceId: true,
     GSIPK_eserviceId_descriptorId: true,
   });
-export type PartialTokenStatesAgreementEntry = z.infer<
-  typeof PartialTokenStatesAgreementEntry
+export type ComparisonTokenStatesAgreementEntry = z.infer<
+  typeof ComparisonTokenStatesAgreementEntry
 >;
 
 export type AgreementDifferencesResult = Array<
   [
-    PartialPlatformStatesAgreementEntry | undefined,
-    PartialTokenStatesAgreementEntry[] | undefined,
-    PartialAgreement | undefined
+    ComparisonPlatformStatesAgreementEntry | undefined,
+    ComparisonTokenStatesAgreementEntry[] | undefined,
+    ComparisonAgreement | undefined
   ]
 >;
 
 // catalog
-export const PartialEService = EService.pick({
+export const ComparisonEService = EService.pick({
   id: true,
   descriptors: true,
 });
-export type PartialEService = z.infer<typeof PartialEService>;
+export type ComparisonEService = z.infer<typeof ComparisonEService>;
 
-export const PartialPlatformStatesCatalogEntry =
+export const ComparisonPlatformStatesCatalogEntry =
   PlatformStatesCatalogEntry.pick({
     PK: true,
     state: true,
     descriptorAudience: true,
     descriptorVoucherLifespan: true,
   });
-export type PartialPlatformStatesCatalogEntry = z.infer<
-  typeof PartialPlatformStatesCatalogEntry
+export type ComparisonPlatformStatesCatalogEntry = z.infer<
+  typeof ComparisonPlatformStatesCatalogEntry
 >;
 
-export const PartialTokenStatesCatalogEntry =
+export const ComparisonTokenStatesCatalogEntry =
   TokenGenerationStatesClientPurposeEntry.pick({
     PK: true,
     GSIPK_consumerId_eserviceId: true,
@@ -123,42 +123,43 @@ export const PartialTokenStatesCatalogEntry =
     descriptorAudience: true,
     descriptorVoucherLifespan: true,
   });
-export type PartialTokenStatesCatalogEntry = z.infer<
-  typeof PartialTokenStatesCatalogEntry
+export type ComparisonTokenStatesCatalogEntry = z.infer<
+  typeof ComparisonTokenStatesCatalogEntry
 >;
 
 export type CatalogDifferencesResult = Array<
   [
-    PartialPlatformStatesCatalogEntry | undefined,
-    PartialTokenStatesCatalogEntry[] | undefined,
-    PartialEService | undefined
+    ComparisonPlatformStatesCatalogEntry | undefined,
+    ComparisonTokenStatesCatalogEntry[] | undefined,
+    ComparisonEService | undefined
   ]
 >;
 
 // client
-export const PartialClient = Client.pick({
+export const ComparisonClient = Client.pick({
   id: true,
   kind: true,
   consumerId: true,
   purposes: true,
 });
-export type PartialClient = z.infer<typeof PartialClient>;
+export type ComparisonClient = z.infer<typeof ComparisonClient>;
 
-export const PartialPlatformStatesClientEntry = PlatformStatesClientEntry.pick({
-  PK: true,
-  clientKind: true,
-  clientConsumerId: true,
-  clientPurposesIds: true,
-});
-export type PartialPlatformStatesClientEntry = z.infer<
-  typeof PartialPlatformStatesClientEntry
+export const ComparisonPlatformStatesClientEntry =
+  PlatformStatesClientEntry.pick({
+    PK: true,
+    clientKind: true,
+    clientConsumerId: true,
+    clientPurposesIds: true,
+  });
+export type ComparisonPlatformStatesClientEntry = z.infer<
+  typeof ComparisonPlatformStatesClientEntry
 >;
 
 const TokenStatesClientEntryPK = z.union([
   TokenGenerationStatesClientPurposeEntry.shape.PK,
   TokenGenerationStatesClientEntry.shape.PK,
 ]);
-export const PartialTokenStatesClientEntry =
+export const ComparisonTokenStatesClientEntry =
   TokenGenerationStatesClientPurposeEntry.pick({
     consumerId: true,
     clientKind: true,
@@ -168,14 +169,14 @@ export const PartialTokenStatesClientEntry =
     PK: TokenStatesClientEntryPK,
   });
 
-export type PartialTokenStatesClientEntry = z.infer<
-  typeof PartialTokenStatesClientEntry
+export type ComparisonTokenStatesClientEntry = z.infer<
+  typeof ComparisonTokenStatesClientEntry
 >;
 
 export type ClientDifferencesResult = Array<
   [
-    PartialPlatformStatesClientEntry | undefined,
-    PartialTokenStatesClientEntry[] | undefined,
-    PartialClient | undefined
+    ComparisonPlatformStatesClientEntry | undefined,
+    ComparisonTokenStatesClientEntry[] | undefined,
+    ComparisonClient | undefined
   ]
 >;
