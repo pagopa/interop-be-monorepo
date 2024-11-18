@@ -1714,20 +1714,18 @@ export function tenantServiceBuilder(
       );
     },
     async assignTenantDelegatedConsumerFeature({
+      authData,
       correlationId,
-      organizationId,
       logger,
-    }: {
-      correlationId: CorrelationId;
-      organizationId: TenantId;
-      logger: Logger;
-    }): Promise<void> {
+    }: WithLogger<AppContext>): Promise<void> {
       logger.info(
-        `Assigning delegated consumer feature to tenant ${organizationId}`
+        `Assigning delegated consumer feature to tenant ${authData.organizationId}`
       );
 
+      assertRequesterIPAOrigin(authData);
+
       const requesterTenant = await retrieveTenant(
-        organizationId,
+        authData.organizationId,
         readModelService
       );
 

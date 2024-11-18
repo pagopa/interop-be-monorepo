@@ -531,11 +531,7 @@ const tenantsRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await tenantService.assignTenantDelegatedConsumerFeature({
-            organizationId: ctx.authData.organizationId,
-            correlationId: ctx.correlationId,
-            logger: ctx.logger,
-          });
+          await tenantService.assignTenantDelegatedConsumerFeature(ctx);
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
