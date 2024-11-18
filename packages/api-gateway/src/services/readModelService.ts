@@ -6,15 +6,20 @@ import { genericInternalError, ClientJWKKey } from "pagopa-interop-models";
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { keys } = readModelRepository;
+  const { keys, producerKeys } = readModelRepository;
   return {
     getJWKById: async (
       kId: ClientJWKKey["kid"]
     ): Promise<apiGatewayApi.JWK | undefined> => {
-      const data = await keys.findOne(
-        { "data.kid": kId },
-        { projection: { data: true } }
-      );
+      const data =
+        (await keys.findOne(
+          { "data.kid": kId },
+          { projection: { data: true } }
+        )) ??
+        (await producerKeys.findOne(
+          { "data.kid": kId },
+          { projection: { data: true } }
+        ));
 
       if (data) {
         const result = apiGatewayApi.JWK.safeParse(data.data);
