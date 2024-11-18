@@ -112,6 +112,7 @@ describe("create eservice", () => {
       id: eservice.id,
       isSignalHubEnabled,
       isDelegable,
+      isClientAccessDelegable,
       descriptors: [
         {
           ...mockDescriptor,

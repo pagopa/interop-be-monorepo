@@ -13594,8 +13594,6 @@ components:
           type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
-        isClientAccessDelegable:
-          type: boolean
     ClientKind:
       type: string
       enum:

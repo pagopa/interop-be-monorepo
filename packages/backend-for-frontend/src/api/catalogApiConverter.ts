@@ -61,7 +61,6 @@ export function toBffCatalogApiEService(
       activeDescriptor,
       requesterTenant
     ),
-    isClientAccessDelegable: eservice.isClientAccessDelegable,
   };
 
   return {
