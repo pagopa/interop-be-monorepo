@@ -3,6 +3,8 @@ import {
   AppContext,
   DB,
   eventRepository,
+  FileManager,
+  PDFGenerator,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
@@ -16,23 +18,33 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { toCreateEventConsumerDelegationSubmitted } from "../model/domain/toEvent.js";
+import { config } from "../config/config.js";
 import {
-  retrieveTenantById,
+  toCreateEventConsumerDelegationApproved,
+  toCreateEventConsumerDelegationSubmitted,
+} from "../model/domain/toEvent.js";
+import { contractBuilder } from "./delegationContractBuilder.js";
+import {
+  retrieveDelegationById,
   retrieveEserviceById,
+  retrieveTenantById,
 } from "./delegationService.js";
+import { ReadModelService } from "./readModelService.js";
 import {
-  assertDelegatorIsNotDelegate,
   assertDelegationNotExists,
+  assertDelegatorIsNotDelegate,
+  assertIsDelegate,
+  assertIsState,
   assertTenantAllowedToReceiveDelegation,
   assertDelegatorAndDelegateIPA,
 } from "./validators.js";
-import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationConsumerServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  pdfGenerator: PDFGenerator,
+  fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
   return {
@@ -90,6 +102,67 @@ export function delegationConsumerServiceBuilder(
       );
 
       return delegation;
+    },
+    async approveConsumerDelegation(
+      delegationId: DelegationId,
+      { logger, correlationId, authData }: WithLogger<AppContext>
+    ): Promise<void> {
+      const delegateId = unsafeBrandId<TenantId>(authData.organizationId);
+
+      logger.info(
+        `Approving delegation ${delegationId} by delegate ${delegateId}`
+      );
+
+      const { data: delegation, metadata } = await retrieveDelegationById(
+        readModelService,
+        delegationId
+      );
+
+      assertIsDelegate(delegation, delegateId);
+      assertIsState(delegationState.waitingForApproval, delegation);
+
+      const [delegator, delegate, eservice] = await Promise.all([
+        retrieveTenantById(readModelService, delegation.delegatorId),
+        retrieveTenantById(readModelService, delegation.delegateId),
+        retrieveEserviceById(readModelService, delegation.eserviceId),
+      ]);
+
+      const activationContract = await contractBuilder.createActivationContract(
+        {
+          delegation,
+          delegator,
+          delegate,
+          eservice,
+          pdfGenerator,
+          fileManager,
+          config,
+          logger,
+        }
+      );
+
+      const now = new Date();
+
+      await repository.createEvent(
+        toCreateEventConsumerDelegationApproved(
+          {
+            data: {
+              ...delegation,
+              state: delegationState.active,
+              approvedAt: now,
+              activationContract,
+              stamps: {
+                ...delegation.stamps,
+                activation: {
+                  who: delegateId,
+                  when: now,
+                },
+              },
+            },
+            metadata,
+          },
+          correlationId
+        )
+      );
     },
   };
 }
