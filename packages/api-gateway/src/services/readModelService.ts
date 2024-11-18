@@ -23,10 +23,11 @@ export function readModelServiceBuilder(
         ),
       ]);
 
-      const data = keyData ?? producerKeyData;
+      const data: apiGatewayApi.JWK | undefined =
+        keyData?.data ?? producerKeyData?.data;
 
       if (data) {
-        const result = apiGatewayApi.JWK.safeParse(data.data);
+        const result = apiGatewayApi.JWK.safeParse(data);
 
         if (!result.success) {
           throw genericInternalError(
