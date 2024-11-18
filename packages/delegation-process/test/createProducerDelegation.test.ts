@@ -488,7 +488,51 @@ describe("create producer delegation", () => {
           serviceName: "DelegationServiceTest",
         }
       )
-    ).rejects.toThrowError(tenantIsNotIPAError(delegator));
+    ).rejects.toThrowError(tenantIsNotIPAError(delegator, "Delegator"));
+  });
+
+  it("should throw an invalidExternalOriginError error if delegate has externalId origin different from IPA", async () => {
+    const delegatorId = generateId<TenantId>();
+    const authData = getRandomAuthData(delegatorId);
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "IPA",
+        value: "test",
+      },
+    };
+
+    const delegate = {
+      ...getMockTenant(),
+      externalId: {
+        origin: "NOT_IPA",
+        value: "test",
+      },
+      features: [
+        {
+          type: "DelegatedProducer" as const,
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
+
+    await addOneTenant(delegate);
+    await addOneTenant(delegator);
+
+    await expect(
+      delegationProducerService.createProducerDelegation(
+        {
+          delegateId: delegate.id,
+          eserviceId: generateId<EServiceId>(),
+        },
+        {
+          authData,
+          logger: genericLogger,
+          correlationId: generateId(),
+          serviceName: "DelegationServiceTest",
+        }
+      )
+    ).rejects.toThrowError(tenantIsNotIPAError(delegate, "Delegate"));
   });
 
   it("should throw an eserviceNotFound error if Eservice does not exist", async () => {

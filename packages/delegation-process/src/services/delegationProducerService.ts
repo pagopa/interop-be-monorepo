@@ -29,12 +29,12 @@ import { ReadModelService } from "./readModelService.js";
 import {
   assertDelegationIsRevokable,
   assertDelegationNotExists,
-  assertIsIPATenant,
   assertDelegatorIsNotDelegate,
   assertIsDelegate,
   assertIsState,
   assertDelegatorIsProducer,
   assertTenantAllowedToReceiveDelegation,
+  assertDelegatorAndDelegateIPA,
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
 import {
@@ -73,7 +73,7 @@ export function delegationProducerServiceBuilder(
         delegate,
         delegationKind.delegatedProducer
       );
-      await assertIsIPATenant(delegator);
+      await assertDelegatorAndDelegateIPA(delegator, delegate);
 
       const eservice = await retrieveEserviceById(readModelService, eserviceId);
       assertDelegatorIsProducer(delegatorId, eservice);

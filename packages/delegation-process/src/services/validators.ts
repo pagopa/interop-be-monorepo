@@ -53,9 +53,16 @@ export const assertDelegatorIsNotDelegate = (
   }
 };
 
-export const assertIsIPATenant = async (tenant: Tenant): Promise<void> => {
-  if (tenant?.externalId?.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
-    throw tenantIsNotIPAError(tenant);
+export const assertDelegatorAndDelegateIPA = async (
+  delegator: Tenant,
+  delegate: Tenant
+): Promise<void> => {
+  if (delegator?.externalId?.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
+    throw tenantIsNotIPAError(delegator, "Delegator");
+  }
+
+  if (delegate?.externalId?.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
+    throw tenantIsNotIPAError(delegate, "Delegate");
   }
 };
 

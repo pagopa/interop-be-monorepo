@@ -8,6 +8,7 @@ import {
   DelegationKind,
   Tenant,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export const errorCodes = {
   delegationNotFound: "0001",
@@ -72,9 +73,16 @@ export function delegatorAndDelegateSameIdError(): ApiError<ErrorCodes> {
   });
 }
 
-export function tenantIsNotIPAError(tenant: Tenant): ApiError<ErrorCodes> {
+export function tenantIsNotIPAError(
+  tenant: Tenant,
+  delegatorOrDelegate: "Delegator" | "Delegate"
+): ApiError<ErrorCodes> {
+  const delegatorOrDelegateString = match(delegatorOrDelegate)
+    .with("Delegator", () => "Delegator")
+    .with("Delegate", () => "Delegate")
+    .exhaustive();
   return new ApiError({
-    detail: `${tenant.id} with external origin ${tenant.externalId.origin} is not an IPA`,
+    detail: `${delegatorOrDelegateString} ${tenant.id} with external origin ${tenant.externalId.origin} is not an IPA`,
     code: "tenantIsNotIPAError",
     title: `Invalid external origin`,
   });
