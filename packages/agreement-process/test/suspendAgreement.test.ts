@@ -6,7 +6,6 @@
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  expectedAgreementWithCorrectDate,
   getMockAgreement,
   getMockAgreementAttribute,
   getMockCertifiedTenantAttribute,
@@ -51,6 +50,7 @@ import {
   addOneEService,
   addOneTenant,
   agreementService,
+  expectedAgreementWithCorrectDate,
   readLastAgreementEvent,
 } from "./utils.js";
 import { mockAgreementRouterRequest } from "./supertestSetup.js";

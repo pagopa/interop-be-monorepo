@@ -7,7 +7,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  expectedAgreementWithCorrectDate,
   getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
@@ -70,6 +69,7 @@ import {
   addOneEService,
   addOneTenant,
   agreementService,
+  expectedAgreementWithCorrectDate,
   fileManager,
   readLastAgreementEvent,
   selfcareV2ClientMock,

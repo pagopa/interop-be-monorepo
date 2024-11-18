@@ -2,7 +2,6 @@ import { fail } from "assert";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  expectedAgreementWithCorrectDate,
   getMockAgreement,
   getRandomAuthData,
   randomArrayItem,
@@ -29,6 +28,7 @@ import { apiAgreementToAgreement } from "../src/model/domain/apiConverter.js";
 import {
   addOneAgreement,
   agreementService,
+  expectedAgreementWithCorrectDate,
   readLastAgreementEvent,
 } from "./utils.js";
 import { mockAgreementRouterRequest } from "./supertestSetup.js";

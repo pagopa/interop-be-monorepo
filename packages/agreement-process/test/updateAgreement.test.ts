@@ -5,7 +5,6 @@ import {
   getRandomAuthData,
   decodeProtobufPayload,
   randomArrayItem,
-  expectedAgreementWithCorrectDate,
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
@@ -27,6 +26,7 @@ import { apiAgreementToAgreement } from "../src/model/domain/apiConverter.js";
 import {
   addOneAgreement,
   agreementService,
+  expectedAgreementWithCorrectDate,
   readLastAgreementEvent,
 } from "./utils.js";
 import { mockAgreementRouterRequest } from "./supertestSetup.js";

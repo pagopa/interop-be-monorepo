@@ -8,7 +8,6 @@ import {
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
-  expectedAgreementWithCorrectDate,
   getMockAgreement,
   getMockAgreementAttribute,
   getMockAttribute,
@@ -78,6 +77,7 @@ import {
   addOneEService,
   addOneTenant,
   agreementService,
+  expectedAgreementWithCorrectDate,
   fileManager,
   readAgreementEventByVersion,
   readLastAgreementEvent,
