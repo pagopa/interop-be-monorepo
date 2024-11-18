@@ -508,11 +508,8 @@ const agreementRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const { tenantId, eServiceId, descriptorId } = req.body;
-        const result = await agreementService.verifyAgreement(
-          unsafeBrandId(tenantId),
-          unsafeBrandId(eServiceId),
-          unsafeBrandId(descriptorId),
+        const result = await agreementService.verifyTenantCertifiedAttributes(
+          req.body,
           ctx
         );
         return res

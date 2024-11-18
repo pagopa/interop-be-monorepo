@@ -1893,6 +1893,7 @@ paths:
               required:
                 - tenantId
                 - descriptorId
+                - eserviceId
               properties:
                 tenantId:
                   type: string
@@ -1906,6 +1907,10 @@ paths:
                   type: string
                   format: uuid
                   description: The E-Service descriptor id
+                delegationId:
+                  type: string
+                  format: uuid
+                  description: The E-Service delegation id
       responses:
         "200":
           description: Tenant has required certified attributes
@@ -1928,6 +1933,44 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -13012,7 +13055,12 @@ components:
           type: integer
           format: int32
     hasCertifiedAttributes:
-      type: boolean
+      type: object
+      properties:
+        hasCertifiedAttributes:
+          type: boolean
+      required:
+        - hasCertifiedAttributes
     HideOption:
       type: object
       additionalProperties: false
@@ -13339,7 +13387,7 @@ components:
         isMine:
           type: boolean
         hasCertifiedAttributes:
-          $ref: "#/components/schemas/hasCertifiedAttributes"
+          type: boolean
         isSubscribed:
           type: boolean
         activeDescriptor:
@@ -13700,7 +13748,7 @@ components:
         isMine:
           type: boolean
         hasCertifiedAttributes:
-          $ref: "#/components/schemas/hasCertifiedAttributes"
+          type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
     ClientKind:
