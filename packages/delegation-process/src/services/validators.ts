@@ -1,25 +1,26 @@
 import {
   Delegation,
+  delegationKind,
   DelegationKind,
   DelegationState,
   delegationState,
+  EService,
   EServiceId,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   delegationAlreadyExists,
   delegationNotRevokable,
   delegatorAndDelegateSameIdError,
   delegatorNotAllowToRevoke,
   differentEServiceProducer,
-  eserviceNotFound,
   incorrectState,
   invalidExternalOriginError,
   operationRestrictedToDelegate,
   tenantNotAllowedToDelegation,
-  tenantNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -34,17 +35,11 @@ export const activeDelegationStates: DelegationState[] = [
   delegationState.active,
 ];
 
-export const assertEserviceExists = async (
+export const assertDelegatorIsProducer = (
   delegatorId: TenantId,
-  eserviceId: EServiceId,
-  readModelService: ReadModelService
-): Promise<void> => {
-  const eservice = await readModelService.getEServiceById(eserviceId);
-  if (!eservice) {
-    throw eserviceNotFound(eserviceId);
-  }
-
-  if (eservice.data.producerId !== delegatorId) {
+  eservice: EService
+): void => {
+  if (eservice.producerId !== delegatorId) {
     throw differentEServiceProducer(delegatorId);
   }
 };
@@ -66,25 +61,21 @@ export const assertDelegatorIsIPA = async (
   }
 };
 
-export const assertTenantAllowedToReceiveProducerDelegation = (
-  tenant: Tenant
+export const assertTenantAllowedToReceiveDelegation = (
+  tenant: Tenant,
+  kind: DelegationKind
 ): void => {
   const delegationFeature = tenant.features.find(
-    (f) => f.type === "DelegatedProducer"
+    (f) =>
+      f.type ===
+      match(kind)
+        .with(delegationKind.delegatedProducer, () => "DelegatedProducer")
+        .with(delegationKind.delegatedConsumer, () => "DelegatedConsumer")
+        .exhaustive()
   );
 
   if (!delegationFeature) {
-    throw tenantNotAllowedToDelegation(tenant.id);
-  }
-};
-
-export const assertTenantExists = async (
-  tenantId: TenantId,
-  readModelService: ReadModelService
-): Promise<void> => {
-  const tenant = await readModelService.getTenantById(tenantId);
-  if (!tenant) {
-    throw tenantNotFound(tenantId);
+    throw tenantNotAllowedToDelegation(tenant.id, kind);
   }
 };
 

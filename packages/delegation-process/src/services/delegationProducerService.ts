@@ -34,8 +34,8 @@ import {
   assertDelegationNotExists,
   assertDelegatorIsIPA,
   assertDelegatorIsNotDelegate,
-  assertEserviceExists,
-  assertTenantAllowedToReceiveProducerDelegation,
+  assertDelegatorIsProducer,
+  assertTenantAllowedToReceiveDelegation,
   assertIsDelegate,
   assertIsState,
 } from "./validators.js";
@@ -84,9 +84,14 @@ export function delegationProducerServiceBuilder(
       const delegator = await retrieveTenantById(delegatorId);
       const delegate = await retrieveTenantById(delegateId);
 
-      assertTenantAllowedToReceiveProducerDelegation(delegate);
+      assertTenantAllowedToReceiveDelegation(
+        delegate,
+        delegationKind.delegatedProducer
+      );
       await assertDelegatorIsIPA(delegator);
-      await assertEserviceExists(delegatorId, eserviceId, readModelService);
+
+      const eservice = await retrieveEserviceById(eserviceId);
+      assertDelegatorIsProducer(delegatorId, eservice);
       await assertDelegationNotExists(
         delegator,
         eserviceId,

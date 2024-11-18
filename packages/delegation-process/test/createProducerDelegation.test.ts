@@ -559,6 +559,11 @@ describe("create delegation", () => {
           serviceName: "DelegationServiceTest",
         }
       )
-    ).rejects.toThrowError(tenantNotAllowedToDelegation(delegate.id));
+    ).rejects.toThrowError(
+      tenantNotAllowedToDelegation(
+        delegate.id,
+        delegationKind.delegatedProducer
+      )
+    );
   });
 });
