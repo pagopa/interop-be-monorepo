@@ -1,54 +1,43 @@
 import { ApiError, ItemState } from "pagopa-interop-models";
 
 export const errorCodes = {
-  clientAssertionValidationFailure: "0001",
-  unexpectedClientAssertionSignatureVerificationError: "0002",
-  invalidAssertionType: "0003",
-  invalidGrantType: "0004",
-  invalidAudienceFormat: "0005",
-  invalidAudience: "0006",
-  audienceNotFound: "0007",
-  invalidClientAssertionFormat: "0008",
-  unexpectedClientAssertionPayload: "0009",
-  jtiNotFound: "00010",
-  issuedAtNotFound: "0011",
-  expNotFound: "0012",
-  issuerNotFound: "0013",
-  subjectNotFound: "0014",
-  invalidSubject: "0015",
-  invalidPurposeIdClaimFormat: "0016",
-  kidNotFound: "0017",
-  clientAssertionSignatureVerificationError: "0018",
-  tokenExpiredError: "0019",
-  jsonWebTokenError: "0020",
-  notBeforeError: "0021",
-  invalidPurposeState: "0022",
-  invalidAgreementState: "0023",
-  invalidEServiceState: "0024",
-  invalidClientIdFormat: "0025",
-  invalidSubjectFormat: "0026",
-  digestClaimNotFound: "0027",
-  invalidHashLength: "0028",
-  invalidHashAlgorithm: "0029",
-  algorithmNotFound: "0030",
-  algorithmNotAllowed: "0031",
-  purposeIdNotProvided: "0032",
-  invalidKidFormat: "0033",
-  clientAssertionInvalidClaims: "0034",
-  invalidSignature: "0035",
+  unexpectedClientAssertionSignatureVerificationError: "0001",
+  invalidAssertionType: "0002",
+  invalidGrantType: "0003",
+  invalidAudienceFormat: "0004",
+  invalidAudience: "0005",
+  audienceNotFound: "0006",
+  invalidClientAssertionFormat: "0007",
+  unexpectedClientAssertionPayload: "0008",
+  jtiNotFound: "0009",
+  issuedAtNotFound: "0010",
+  expNotFound: "0011",
+  issuerNotFound: "0012",
+  subjectNotFound: "0013",
+  invalidSubject: "0014",
+  invalidPurposeIdClaimFormat: "0015",
+  kidNotFound: "0016",
+  clientAssertionSignatureVerificationError: "0017",
+  tokenExpiredError: "0018",
+  jsonWebTokenError: "0019",
+  notBeforeError: "0020",
+  invalidPurposeState: "0021",
+  invalidAgreementState: "0022",
+  invalidEServiceState: "0023",
+  invalidClientIdFormat: "0024",
+  invalidSubjectFormat: "0025",
+  digestClaimNotFound: "0026",
+  invalidHashLength: "0027",
+  invalidHashAlgorithm: "0028",
+  algorithmNotFound: "0029",
+  algorithmNotAllowed: "0030",
+  purposeIdNotProvided: "0031",
+  invalidKidFormat: "0032",
+  clientAssertionInvalidClaims: "0033",
+  invalidSignature: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
-
-export function clientAssertionValidationFailure(
-  details: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Client assertion validation failed: ${details}`,
-    code: "clientAssertionValidationFailure",
-    title: "Client assertion validation failed",
-  });
-}
 
 export function unexpectedClientAssertionSignatureVerificationError(
   message: string
