@@ -3,7 +3,8 @@ name: "Build & Push"
 on:
   push:
     branches:
-      - "main"
+      - "develop"
+      - "hotfix/*"
     tags:
       - "*"
     paths:
@@ -55,8 +56,16 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2
 
-      - name: (latest) Docker metadata
-        id: meta_latest
+      - name: Normalize ref name
+        id: norm_ref
+        run: |
+          set -euo pipefail
+
+          NORM_REF="$(echo ${{ github.ref_name }} | sed -e 's/\//-/g')"
+          echo "NORM_REF=$NORM_REF" >> $GITHUB_ENV
+
+      - name: (branch) Docker metadata
+        id: meta_branch
         if: ${{ github.ref_type == 'branch' }}
         uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
         with:
@@ -66,7 +75,7 @@ jobs:
             prefix=
             suffix=
           tags: |
-            type=raw,value=2.x-latest
+            type=raw,value=${{ env.NORM_REF }}
 
       - name: (tag) Docker metadata
         id: meta_tag
@@ -88,5 +97,5 @@ jobs:
           context: .
           file: packages/${{ matrix.package }}/Dockerfile
           push: true
-          tags: ${{ github.ref_type == 'branch' && steps.meta_latest.outputs.tags || steps.meta_tag.outputs.tags }}
-          labels: ${{ github.ref_type == 'branch' && steps.meta_latest.outputs.labels || steps.meta_tag.outputs.labels }}
+          tags: ${{ github.ref_type == 'branch' && steps.meta_branch.outputs.tags || steps.meta_tag.outputs.tags }}
+          labels: ${{ github.ref_type == 'branch' && steps.meta_branch.outputs.labels || steps.meta_tag.outputs.labels }}
