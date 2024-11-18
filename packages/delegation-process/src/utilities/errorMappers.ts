@@ -12,6 +12,7 @@ const {
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_UNAUTHORIZED,
+  HTTP_STATUS_CONFLICT,
 } = constants;
 
 export const getDelegationsErrorMapper = (
@@ -32,13 +33,16 @@ export const createProducerDelegationErrorMapper = (
   match(error.code)
     .with(
       "eserviceNotFound",
-      "delegationAlreadyExists",
       "tenantNotFound",
       "invalidDelegatorAndDelegateIds",
-      "invalidExternalOriginId",
-      "tenantNotAllowedToDelegation",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with(
+      "invalidExternalOriginId",
+      "tenantNotAllowedToDelegation",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("delegationAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeDelegationErrorMapper = (
