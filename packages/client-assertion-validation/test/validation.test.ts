@@ -17,6 +17,7 @@ import {
   getMockTokenStatesClientEntry,
   getMockTokenStatesClientPurposeEntry,
 } from "pagopa-interop-commons-test";
+import { dateToSeconds } from "pagopa-interop-commons";
 import {
   validateClientKindAndPlatformState,
   validateRequestParameters,
@@ -486,8 +487,8 @@ describe("validation test", async () => {
 
       const { jws, publicKeyEncodedPem } = await getMockClientAssertion({
         standardClaimsOverride: {
-          iat: new Date().getTime() / 1000,
-          exp: threeHourLater.getTime() / 1000,
+          iat: dateToSeconds(new Date()),
+          exp: dateToSeconds(threeHourLater),
         },
       });
       const mockKey: TokenGenerationStatesClientPurposeEntry = {
@@ -534,8 +535,8 @@ describe("validation test", async () => {
           alg: notAllowedAlg,
         },
         standardClaimsOverride: {
-          iat: new Date().getTime() / 1000,
-          exp: threeHourLater.getTime() / 1000,
+          iat: dateToSeconds(new Date()),
+          exp: dateToSeconds(threeHourLater),
         },
       });
       const mockKey: TokenGenerationStatesClientPurposeEntry = {
@@ -562,8 +563,8 @@ describe("validation test", async () => {
 
       const { jws, publicKeyEncodedPem } = await getMockClientAssertion({
         standardClaimsOverride: {
-          iat: sixHoursAgo.getTime() / 1000,
-          exp: threeHourAgo.getTime() / 1000,
+          iat: dateToSeconds(sixHoursAgo),
+          exp: dateToSeconds(threeHourAgo),
         },
       });
 
@@ -670,9 +671,9 @@ describe("validation test", async () => {
 
       const { jws, publicKeyEncodedPem } = await getMockClientAssertion({
         standardClaimsOverride: {
-          iat: threeHoursAgo.getTime() / 1000,
-          exp: sixHoursLater.getTime() / 1000,
-          nbf: threeHoursLater.getTime() / 1000,
+          iat: dateToSeconds(threeHoursAgo),
+          exp: dateToSeconds(sixHoursLater),
+          nbf: dateToSeconds(threeHoursLater),
         },
       });
       const mockKey: TokenGenerationStatesClientPurposeEntry = {

@@ -70,7 +70,7 @@ import {
   makePlatformStatesClientPK,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { AuthData } from "pagopa-interop-commons";
+import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
 import { match } from "ts-pattern";
@@ -532,18 +532,25 @@ export const getMockClientAssertion = async (props?: {
   customHeader?: { [k: string]: unknown };
 }): Promise<{
   jws: string;
+  clientAssertion: {
+    payload: jose.JWTPayload;
+    header: jose.JWTHeaderParameters;
+  };
   publicKeyEncodedPem: string;
 }> => {
   const { keySet, publicKeyEncodedPem } = generateKeySet();
+
+  const threeHourLater = new Date();
+  threeHourLater.setHours(threeHourLater.getHours() + 3);
 
   const clientId = generateId<ClientId>();
   const defaultPayload: jose.JWTPayload = {
     iss: clientId,
     sub: clientId,
     aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
-    exp: 60,
+    exp: dateToSeconds(threeHourLater),
     jti: generateId(),
-    iat: 5,
+    iat: dateToSeconds(new Date()),
   };
 
   const actualPayload: jose.JWTPayload = {
@@ -566,6 +573,10 @@ export const getMockClientAssertion = async (props?: {
 
   return {
     jws,
+    clientAssertion: {
+      payload: actualPayload,
+      header: headers,
+    },
     publicKeyEncodedPem,
   };
 };
