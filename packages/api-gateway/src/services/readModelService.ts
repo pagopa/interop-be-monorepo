@@ -15,15 +15,15 @@ export function readModelServiceBuilder(
     getJWKById: async (
       kId: ClientJWKKey["kid"] | ProducerJWKKey["kid"]
     ): Promise<apiGatewayApi.JWK | undefined> => {
-      const data =
-        (await keys.findOne(
+      const [keyData, producerKeyData] = await Promise.all([
+        keys.findOne({ "data.kid": kId }, { projection: { data: true } }),
+        producerKeys.findOne(
           { "data.kid": kId },
           { projection: { data: true } }
-        )) ??
-        (await producerKeys.findOne(
-          { "data.kid": kId },
-          { projection: { data: true } }
-        ));
+        ),
+      ]);
+
+      const data = keyData ?? producerKeyData;
 
       if (data) {
         const result = apiGatewayApi.JWK.safeParse(data.data);
