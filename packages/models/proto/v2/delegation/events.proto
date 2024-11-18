@@ -23,3 +23,7 @@ message ProducerDelegationRevokedV2 {
 message ConsumerDelegationSubmittedV2 {
   DelegationV2 delegation = 1;
 }
+
+message ConsumerDelegationApprovedV2 {
+  DelegationV2 delegation = 1;
+}
