@@ -1,6 +1,10 @@
 import { apiGatewayApi } from "pagopa-interop-api-clients";
 import { ReadModelRepository } from "pagopa-interop-commons";
-import { genericInternalError, ClientJWKKey } from "pagopa-interop-models";
+import {
+  genericInternalError,
+  ClientJWKKey,
+  ProducerJWKKey,
+} from "pagopa-interop-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
@@ -9,7 +13,7 @@ export function readModelServiceBuilder(
   const { keys, producerKeys } = readModelRepository;
   return {
     getJWKById: async (
-      kId: ClientJWKKey["kid"]
+      kId: ClientJWKKey["kid"] | ProducerJWKKey["kid"]
     ): Promise<apiGatewayApi.JWK | undefined> => {
       const data =
         (await keys.findOne(
