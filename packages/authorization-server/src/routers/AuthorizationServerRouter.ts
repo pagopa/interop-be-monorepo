@@ -1,29 +1,23 @@
 import {
+  ExpressContext,
+  fromAppContext,
   initFileManager,
   initRedisRateLimiter,
   InteropTokenGenerator,
-  logger,
-  LoggerMetadata,
   rateLimiterHeadersFromStatus,
+  ZodiosContext,
+  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { fastifyFormbody } from "@fastify/formbody";
-import Fastify, { FastifyRequest } from "fastify";
-import { FastifyInstance } from "fastify";
-import {
-  CorrelationId,
-  generateId,
-  tooManyRequestsError,
-} from "pagopa-interop-models";
+import { tooManyRequestsError } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { initProducer } from "kafka-iam-auth";
+import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { ZodiosRouter } from "@zodios/express";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { tokenServiceBuilder } from "../services/tokenService.js";
 import { config } from "../config/config.js";
-import { InteropTokenResponse } from "../model/domain/models.js";
-
-const serviceName = "authorization-server";
 
 const dynamoDBClient = new DynamoDBClient({});
 const redisRateLimiter = await initRedisRateLimiter({
@@ -37,9 +31,6 @@ const redisRateLimiter = await initRedisRateLimiter({
 });
 const producer = await initProducer(config, config.tokenAuditingTopic);
 const fileManager = initFileManager(config);
-
-const fastifyServer: FastifyInstance = Fastify({ logger: { level: "error" } });
-await fastifyServer.register(fastifyFormbody);
 
 const tokenGenerator = new InteropTokenGenerator({
   generatedInteropTokenKid: config.generatedInteropTokenKid,
@@ -57,59 +48,57 @@ const tokenService = tokenServiceBuilder({
   fileManager,
 });
 
-fastifyServer.post(
-  "/token.oauth2",
-  async (
-    request: FastifyRequest<{
-      Body: authorizationServerApi.AccessTokenRequest;
-    }>,
-    reply
-  ) => {
-    const correlationId = generateId<CorrelationId>();
-    const loggerMetadata: LoggerMetadata = {
-      serviceName,
-      correlationId,
-    };
-    const loggerInstance = logger(loggerMetadata);
+const authorizationServerRouter = (
+  ctx: ZodiosContext
+): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+  const authorizationServerRouter = ctx.router(
+    authorizationServerApi.authApi.api,
+    {
+      validationErrorHandler: zodiosValidationErrorToApiProblem,
+    }
+  );
+  authorizationServerRouter.post("/token.oauth2", async (req, res) => {
+    const ctx = fromAppContext(req.ctx);
 
     try {
-      const res = await tokenService.generateToken(
-        request.body,
-        correlationId,
-        loggerInstance
+      const tokenResult = await tokenService.generateToken(
+        req.body,
+        ctx.correlationId,
+        ctx.logger
       );
 
-      const headers = rateLimiterHeadersFromStatus(res.rateLimiterStatus);
-      await reply.headers(headers);
+      const headers = rateLimiterHeadersFromStatus(
+        tokenResult.rateLimiterStatus
+      );
+      res.set(headers);
 
-      if (res.limitReached) {
+      if (tokenResult.limitReached) {
         const errorRes = makeApiProblem(
-          tooManyRequestsError(res.rateLimitedTenantId),
+          tooManyRequestsError(tokenResult.rateLimitedTenantId),
           authorizationServerErrorMapper,
-          loggerInstance,
-          correlationId
+          ctx.logger,
+          ctx.correlationId
         );
 
-        return reply.status(errorRes.status).send(errorRes);
+        return res.status(errorRes.status).send(errorRes);
       }
 
-      return reply.status(200).send({
-        access_token: res.token.serialized,
+      return res.status(200).send({
+        access_token: tokenResult.token.serialized,
         token_type: "Bearer",
-        expires_in: res.token.payload.exp,
-      } satisfies InteropTokenResponse);
+        expires_in: tokenResult.token.payload.exp,
+      });
     } catch (err) {
       const errorRes = makeApiProblem(
         err,
         authorizationServerErrorMapper,
-        loggerInstance,
-        correlationId
+        ctx.logger,
+        ctx.correlationId
       );
-      return reply.status(errorRes.status).send(errorRes);
+      return res.status(errorRes.status).send(errorRes);
     }
-  }
-);
+  });
+  return authorizationServerRouter;
+};
 
-fastifyServer.get("/status", async (_, reply) => reply.status(200).send());
-
-export default fastifyServer;
+export default authorizationServerRouter;
