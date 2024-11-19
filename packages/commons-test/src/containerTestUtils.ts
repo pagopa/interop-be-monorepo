@@ -89,7 +89,10 @@ export const minioContainer = (config: S3Config): GenericContainer =>
     })
     .withEntrypoint(["sh", "-c"])
     .withCommand([
-      `mkdir -p /data/${config.s3Bucket} && /usr/bin/minio server /data`,
+      `mkdir -p /data/${config.s3Bucket} &&
+       mkdir -p /data/test-bucket-1 &&
+       mkdir -p /data/test-bucket-2 &&
+       /usr/bin/minio server /data`,
     ])
     .withExposedPorts(TEST_MINIO_PORT);
 
