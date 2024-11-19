@@ -3,7 +3,7 @@ import { z } from "zod";
 export const SftpConfig = z
   .object({
     SFTP_HOST: z.string(),
-    SFTP_PORT: z.coerce.number().min(1001),
+    SFTP_PORT: z.coerce.number(),
     SFTP_USERNAME: z.string(),
     SFTP_PASSWORD: z.string(),
     SFTP_FILENAME_PREFIX: z.string(),
