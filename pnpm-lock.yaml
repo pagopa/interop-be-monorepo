@@ -1588,9 +1588,6 @@ importers:
       pg-promise:
         specifier: 11.8.0
         version: 11.8.0
-      puppeteer:
-        specifier: 22.11.2
-        version: 22.11.2(typescript@5.4.5)
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
