@@ -1,0 +1,30 @@
+meta {
+  name: Add a tenant mail
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/tenants/:tenantId/mails
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: 69e2865e-65ab-4e48-a638-2037a9ee2ee7
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "kind": "CONTACT_EMAIL",
+    "address": "<string>",
+    "description": "<string>"
+  }
+}

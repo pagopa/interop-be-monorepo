@@ -15,6 +15,7 @@ import {
 } from "vitest";
 import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
+  CorrelationId,
   EServiceId,
   TenantId,
   agreementState,
@@ -31,7 +32,7 @@ import { addOneAgreement, addOneEService, readModelService } from "./utils.js";
 
 describe("EService Descripors Archiver", async () => {
   describe("archiveDescriptorsForArchivedAgreement", async () => {
-    const testCorrelationId = generateId();
+    const testCorrelationId: CorrelationId = generateId();
     const testToken = "mockToken";
     const testHeaders = {
       "X-Correlation-Id": testCorrelationId,

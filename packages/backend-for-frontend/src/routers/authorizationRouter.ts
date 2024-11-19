@@ -8,6 +8,7 @@ import {
   zodiosValidationErrorToApiProblem,
   RateLimiter,
   rateLimiterHeadersFromStatus,
+  buildJwksClients,
 } from "pagopa-interop-commons";
 import { tooManyRequestsError } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
@@ -21,7 +22,8 @@ const authorizationRouter = (
   ctx: ZodiosContext,
   { tenantProcessClient }: PagoPAInteropBeClients,
   allowList: string[],
-  rateLimiter: RateLimiter
+  rateLimiter: RateLimiter,
+  jwksClients: ReturnType<typeof buildJwksClients>
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const authorizationRouter = ctx.router(bffApi.authorizationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -32,7 +34,8 @@ const authorizationRouter = (
     interopTokenGenerator,
     tenantProcessClient,
     allowList,
-    rateLimiter
+    rateLimiter,
+    jwksClients
   );
 
   authorizationRouter
@@ -61,6 +64,7 @@ const authorizationRouter = (
           error,
           sessionTokenErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           "Error creating a session token"
         );
 

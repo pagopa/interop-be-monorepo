@@ -24,13 +24,24 @@ export function attributeNotFound(identifier: string): ApiError<ErrorCodes> {
   });
 }
 
-export function attributeDuplicate(
+export function attributeDuplicateByName(
   attributeName: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `ApiError during Attribute creation with name ${attributeName}`,
+    detail: `An attribute with name ${attributeName} already exists`,
     code: "attributeDuplicate",
     title: "Duplicated attribute name",
+  });
+}
+
+export function attributeDuplicateByNameAndCode(
+  attributeName: string,
+  attributeCode: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `An attribute with name ${attributeName} and code ${attributeCode} already exists`,
+    code: "attributeDuplicate",
+    title: "Duplicated attribute name and code",
   });
 }
 

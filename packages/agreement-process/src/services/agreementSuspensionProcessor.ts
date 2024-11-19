@@ -2,6 +2,7 @@ import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEventV2,
+  CorrelationId,
   Descriptor,
   Tenant,
   TenantId,
@@ -102,7 +103,7 @@ export function createSuspensionUpdatedAgreement({
 
 export function createAgreementSuspendedEvent(
   organizationId: TenantId,
-  correlationId: string,
+  correlationId: CorrelationId,
   updatedAgreement: Agreement,
   agreement: WithMetadata<Agreement>
 ): CreateEvent<AgreementEventV2> {

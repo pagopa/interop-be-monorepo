@@ -51,7 +51,7 @@ const getKey = async (
   kid: string,
   logger: Logger
 ): Promise<Secret> => {
-  logger.info(`Getting signing key for kid ${kid}`);
+  logger.debug(`Getting signing key for kid ${kid}`);
   for (const client of clients) {
     try {
       const signingKey = await client.getSigningKey(kid);
@@ -78,12 +78,12 @@ export const verifyJwtToken = async (
     const jwtHeader = decodeJwtTokenHeaders(jwtToken, logger);
     if (!jwtHeader?.kid) {
       logger.warn("Token verification failed: missing kid");
-      return Promise.reject(false);
+      return Promise.resolve(false);
     }
 
     const secret: Secret = await getKey(jwksClients, jwtHeader.kid, logger);
 
-    return new Promise((resolve, _reject) => {
+    return new Promise((resolve) => {
       jwt.verify(
         jwtToken,
         secret,
@@ -101,7 +101,7 @@ export const verifyJwtToken = async (
     });
   } catch (error) {
     logger.error(`Error verifying JWT token: ${error}`);
-    return Promise.reject(false);
+    return Promise.resolve(false);
   }
 };
 

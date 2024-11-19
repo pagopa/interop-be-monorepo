@@ -1,0 +1,29 @@
+meta {
+  name: Upsert Tenant
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-api-gw}}/organizations/origin/:origin/externalId/:externalId/attributes/:code
+  body: json
+  auth: none
+}
+
+params:path {
+  origin: {{tenantOrigin}}
+  externalId: {{tenantExternalId}}
+  code: {{attributeCode}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
+
+body:json {
+  {
+      "code": "{{$randomLoremWord}}",
+      "name": "ipsa",
+      "description": "{{$randomLoremWords}}"
+  }
+}

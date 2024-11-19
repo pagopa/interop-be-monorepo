@@ -6,6 +6,7 @@ import {
   WithLogger,
   AppContext,
   CreateEvent,
+  AuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -28,6 +29,9 @@ import {
   TenantMail,
   TenantEvent,
   tenantMailKind,
+  TenantFeatureCertifier,
+  CorrelationId,
+  tenantKind,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -47,6 +51,9 @@ import {
   toCreateEventTenantVerifiedAttributeAssigned,
   toCreateEventMaintenanceTenantPromotedToCertifier,
   toCreateEventTenantVerifiedAttributeRevoked,
+  toCreateEventMaintenanceTenantUpdated,
+  toCreateEventTenantDelegatedProducerFeatureAdded,
+  toCreateEventTenantDelegatedProducerFeatureRemoved,
 } from "../model/domain/toEvent.js";
 import {
   attributeAlreadyRevoked,
@@ -79,6 +86,10 @@ import {
   assertRequesterAllowed,
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
+  assertRequesterIPAOrigin,
+  assertDelegatedProducerFeatureNotAssigned,
+  getTenantKind,
+  assertDelegatedProducerFeatureAssigned,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -348,6 +359,10 @@ export function tenantServiceBuilder(
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
           createdAt: new Date(),
+          kind:
+            getTenantKind([], tenantSeed.externalId) === tenantKind.SCP
+              ? tenantKind.SCP
+              : undefined,
         };
         return await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)
@@ -363,7 +378,7 @@ export function tenantServiceBuilder(
       }: {
         attributeId: AttributeId;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -418,7 +433,7 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         tenantAttributeSeed: tenantApi.CertifiedTenantAttributeSeed;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -503,7 +518,7 @@ export function tenantServiceBuilder(
       }: {
         tenantAttributeSeed: tenantApi.DeclaredTenantAttributeSeed;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -655,7 +670,7 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -829,7 +844,7 @@ export function tenantServiceBuilder(
         tenantExternalId: string;
         attributeOrigin: string;
         attributeExternalId: string;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -902,7 +917,7 @@ export function tenantServiceBuilder(
         tenantExternalId: string;
         attributeOrigin: string;
         attributeExternalId: string;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -1003,7 +1018,7 @@ export function tenantServiceBuilder(
       }: {
         tenantId: TenantId;
         version: number;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -1020,6 +1035,49 @@ export function tenantServiceBuilder(
       );
     },
 
+    async maintenanceTenantUpdate(
+      {
+        tenantId,
+        tenantUpdate,
+        version,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        tenantUpdate: tenantApi.MaintenanceTenantUpdate;
+        version: number;
+        correlationId: CorrelationId;
+      },
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Maintenance update Tenant ${tenantId}`);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      const convertedTenantUpdate = {
+        ...tenantUpdate,
+        mails: tenantUpdate.mails.map((mail) => ({
+          ...mail,
+          createdAt: new Date(mail.createdAt),
+        })),
+        onboardedAt: new Date(tenantUpdate.onboardedAt),
+      };
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        ...convertedTenantUpdate,
+        subUnitType: convertedTenantUpdate.subUnitType,
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventMaintenanceTenantUpdated(
+          version,
+          updatedTenant,
+          correlationId
+        )
+      );
+    },
+
     async deleteTenantMailById(
       {
         tenantId,
@@ -1030,7 +1088,7 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         mailId: string;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -1070,7 +1128,7 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         mailSeed: tenantApi.MailSeed;
         organizationId: TenantId;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<void> {
@@ -1415,7 +1473,7 @@ export function tenantServiceBuilder(
       }: {
         tenantId: TenantId;
         certifierId: string;
-        correlationId: string;
+        correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
@@ -1423,7 +1481,9 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      const certifierFeature = tenant.data.features.find((a) => a.certifierId);
+      const certifierFeature = tenant.data.features.find(
+        (a): a is TenantFeatureCertifier => a.type === "PersistentCertifier"
+      );
 
       if (certifierFeature) {
         if (certifierId === certifierFeature.certifierId) {
@@ -1477,7 +1537,7 @@ export function tenantServiceBuilder(
       tenantOrigin: string;
       tenantExternalId: string;
       attributeExternalId: string;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(
@@ -1489,7 +1549,7 @@ export function tenantServiceBuilder(
       );
 
       const certifierId = requesterTenant.data.features.find(
-        (f) => f.type === "PersistentCertifier"
+        (f): f is TenantFeatureCertifier => f.type === "PersistentCertifier"
       )?.certifierId;
 
       if (!certifierId) {
@@ -1558,6 +1618,87 @@ export function tenantServiceBuilder(
       } else {
         await repository.createEvent(attributeAssignmentEvent);
       }
+    },
+    async assignTenantDelegatedProducerFeature({
+      organizationId,
+      correlationId,
+      authData,
+      logger,
+    }: {
+      organizationId: TenantId;
+      correlationId: CorrelationId;
+      authData: AuthData;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Assigning delegated producer feature to tenant ${organizationId}`
+      );
+
+      assertRequesterIPAOrigin(authData);
+
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      assertDelegatedProducerFeatureNotAssigned(requesterTenant.data);
+
+      const updatedTenant: Tenant = {
+        ...requesterTenant.data,
+        features: [
+          ...requesterTenant.data.features,
+          { type: "DelegatedProducer", availabilityTimestamp: new Date() },
+        ],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantDelegatedProducerFeatureAdded(
+          requesterTenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+    },
+    async removeTenantDelegatedProducerFeature({
+      organizationId,
+      correlationId,
+      authData,
+      logger,
+    }: {
+      organizationId: TenantId;
+      correlationId: CorrelationId;
+      authData: AuthData;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing delegated producer feature to tenant ${organizationId}`
+      );
+
+      assertRequesterIPAOrigin(authData);
+
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      assertDelegatedProducerFeatureAssigned(requesterTenant.data);
+
+      const updatedTenant: Tenant = {
+        ...requesterTenant.data,
+        features: requesterTenant.data.features.filter(
+          (f) => f.type !== "DelegatedProducer"
+        ),
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantDelegatedProducerFeatureRemoved(
+          requesterTenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
     },
   };
 }

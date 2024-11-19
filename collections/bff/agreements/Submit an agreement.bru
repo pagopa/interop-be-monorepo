@@ -1,0 +1,32 @@
+meta {
+  name: Submit an agreement
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/agreements/:agreementId/submit
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: d2581b25-0713-44bb-b97a-9fc110977c9e
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "consumerNotes": "teststetste"
+  }
+}
+
+docs {
+  returns the updated agreement
+}

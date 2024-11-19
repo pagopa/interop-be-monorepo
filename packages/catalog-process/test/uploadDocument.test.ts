@@ -10,6 +10,7 @@ import {
   unsafeBrandId,
   operationForbidden,
   Document,
+  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
@@ -59,7 +60,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -109,7 +110,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -134,7 +135,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -154,7 +155,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -186,7 +187,7 @@ describe("upload Document", () => {
           buildInterfaceSeed(),
           {
             authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
+            correlationId: generateId(),
             serviceName: "",
             logger: genericLogger,
           }
@@ -212,17 +213,17 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
       )
     ).rejects.toThrowError(interfaceAlreadyExists(descriptor.id));
   });
-  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor", async () => {
+  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
     const document: Document = {
       ...getMockDocument(),
-      prettyName: "test",
+      prettyName: "TEST",
     };
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -241,17 +242,17 @@ describe("upload Document", () => {
         descriptor.id,
         {
           ...buildDocumentSeed(),
-          prettyName: document.prettyName,
+          prettyName: document.prettyName.toLowerCase(),
         },
         {
           authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
       )
     ).rejects.toThrowError(
-      prettyNameDuplicate(document.prettyName, descriptor.id)
+      prettyNameDuplicate(document.prettyName.toLowerCase(), descriptor.id)
     );
   });
 });

@@ -1,5 +1,6 @@
 import {
   authenticationMiddleware,
+  buildJwksClients,
   contextMiddleware,
   loggerMiddleware,
   zodiosCtx,
@@ -12,13 +13,15 @@ const serviceName = "attribute-registry-process";
 
 const app = zodiosCtx.app();
 
+const jwksClients = buildJwksClients(config);
+
 // Disable the "X-Powered-By: Express" HTTP header for security reasons.
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(contextMiddleware(serviceName));
 app.use(healthRouter);
-app.use(authenticationMiddleware(config));
+app.use(contextMiddleware(serviceName));
+app.use(authenticationMiddleware(config, jwksClients));
 app.use(loggerMiddleware(serviceName));
 app.use(attributeRouter(zodiosCtx));
 
