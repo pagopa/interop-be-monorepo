@@ -1,0 +1,37 @@
+meta {
+  name: Create Producer Keychain
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{host-authorization}}/producerKeychains
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "name": "{{randomName}}",
+    "description": "Some description",
+    "members": [
+      "{{userId1}}", "{{userId2}}"
+    ]
+  }
+  
+}
+
+vars:post-response {
+  producerKeychainId: res.body.id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}

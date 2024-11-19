@@ -1,0 +1,29 @@
+meta {
+  name: Retrieves eservices for producers in agreements
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/producers/agreements/eservices
+  body: none
+  auth: none
+}
+
+params:query {
+  q: 
+  states: 
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Retrieves eservices for producers in agreements
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Get Keys With Client
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{host-authorization}}/clients/:clientId/keys/:keyId/bundle
+  body: none
+  auth: none
+}
+
+params:path {
+  clientId: {{clientId}}
+  keyId: {{keyId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

@@ -2,6 +2,7 @@ import { userRoles } from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
+  CorrelationId,
   EService,
   ProducerKeychain,
   ProducerKeychainId,
@@ -18,8 +19,10 @@ import {
   tooManyKeysPerClient,
   tooManyKeysPerProducerKeychain,
   organizationNotAllowedOnEService,
+  keyAlreadyExists,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
+import { ReadModelService } from "./readModelService.js";
 
 export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareId,
@@ -34,7 +37,7 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   consumerId: TenantId;
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   userIdToCheck: UserId;
-  correlationId: string;
+  correlationId: CorrelationId;
 }): Promise<void> => {
   const users =
     await selfcareV2InstitutionClient.getInstitutionProductUsersUsingGET({
@@ -107,5 +110,19 @@ export const assertOrganizationIsEServiceProducer = (
 ): void => {
   if (organizationId !== eservice.producerId) {
     throw organizationNotAllowedOnEService(organizationId, eservice.id);
+  }
+};
+
+export const assertKeyDoesNotAlreadyExist = async (
+  kid: string,
+  readModelService: ReadModelService
+): Promise<void> => {
+  const [clientKey, producerKey] = await Promise.all([
+    readModelService.getClientKeyByKid(kid),
+    readModelService.getProducerKeychainKeyByKid(kid),
+  ]);
+
+  if (clientKey || producerKey) {
+    throw keyAlreadyExists(kid);
   }
 };

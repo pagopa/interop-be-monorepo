@@ -1,12 +1,12 @@
 import { ApiError } from "pagopa-interop-models";
 
 export const errorCodes = {
-  clientAssertionValidationFailure: "0001",
-  unexpectedClientAssertionSignatureVerificationError: "0002",
-  invalidAssertionType: "0003",
-  invalidGrantType: "0004",
-  invalidAudienceFormat: "0005",
-  invalidAudience: "0006",
+  unexpectedClientAssertionSignatureVerificationError: "0001",
+  invalidAssertionType: "0002",
+  invalidGrantType: "0003",
+  invalidAudienceFormat: "0004",
+  invalidAudience: "0005",
+  audienceNotFound: "0006",
   invalidClientAssertionFormat: "0007",
   unexpectedClientAssertionPayload: "0008",
   jtiNotFound: "0009",
@@ -17,7 +17,7 @@ export const errorCodes = {
   invalidSubject: "0014",
   invalidPurposeIdClaimFormat: "0015",
   kidNotFound: "0016",
-  invalidClientAssertionSignatureType: "0017",
+  clientAssertionSignatureVerificationError: "0017",
   tokenExpiredError: "0018",
   jsonWebTokenError: "0019",
   notBeforeError: "0020",
@@ -35,25 +35,28 @@ export const errorCodes = {
   invalidKidFormat: "0032",
   clientAssertionInvalidClaims: "0033",
   invalidSignature: "0034",
+  missingPlatformStates: "0035",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export function clientAssertionValidationFailure(
-  details: string
+export function unexpectedClientAssertionSignatureVerificationError(
+  message: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion validation failed: ${details}`,
-    code: "clientAssertionValidationFailure",
-    title: "Client assertion validation failed",
+    detail: `Unexpected client assertion signature verification error: ${message}`,
+    code: "unexpectedClientAssertionSignatureVerificationError",
+    title: "Unexpected client assertion signature verification error",
   });
 }
 
-export function unexpectedClientAssertionSignatureVerificationError(): ApiError<ErrorCodes> {
+export function clientAssertionSignatureVerificationError(
+  errorMessage: string
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Unexpected client assertion signature verification error`,
-    code: "unexpectedClientAssertionSignatureVerificationError",
-    title: "Unexpected client assertion signature verification error",
+    detail: `Error verifying client assertion signature: Reason: ${errorMessage}`,
+    code: "clientAssertionSignatureVerificationError",
+    title: "Client assertion signature verification error",
   });
 }
 
@@ -77,7 +80,7 @@ export function invalidGrantType(grantType: string): ApiError<ErrorCodes> {
 
 export function invalidAudienceFormat(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Audience must be an array`,
+    detail: "Audience must be an array or a string in case of single value",
     code: "invalidAudienceFormat",
     title: "Invalid audience format",
   });
@@ -91,9 +94,19 @@ export function invalidAudience(): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidClientAssertionFormat(): ApiError<ErrorCodes> {
+export function audienceNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid format for Client assertion`,
+    detail: "Audience not found in client assertion",
+    code: "audienceNotFound",
+    title: "Audience not found",
+  });
+}
+
+export function invalidClientAssertionFormat(
+  message: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid format for Client assertion: ${message}`,
     code: "invalidClientAssertionFormat",
     title: "Invalid format for Client assertion",
   });
@@ -172,16 +185,6 @@ export function kidNotFound(): ApiError<ErrorCodes> {
     detail: `KID not found in client assertion`,
     code: "kidNotFound",
     title: "KID not found",
-  });
-}
-
-export function invalidClientAssertionSignatureType(
-  clientAssertionSignatureType: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Client assertion signature's type not valid: ${clientAssertionSignatureType}`,
-    code: "invalidClientAssertionSignatureType",
-    title: "Token expired in client assertion signature validation",
   });
 }
 
@@ -321,5 +324,13 @@ export function invalidSignature(): ApiError<ErrorCodes> {
     detail: "Client assertion signature is invalid",
     code: "invalidSignature",
     title: "Invalid signature",
+  });
+}
+
+export function missingPlatformStates(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Platform states not available for the entry",
+    code: "missingPlatformStates",
+    title: "Missing platform states",
   });
 }

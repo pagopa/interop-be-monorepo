@@ -5,7 +5,12 @@ import {
   decodeKafkaMessage,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
-import { AuthorizationEvent } from "pagopa-interop-models";
+import {
+  AuthorizationEvent,
+  CorrelationId,
+  generateId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV2 } from "./producerKeyConsumerServiceV2.js";
 import { config } from "./config/config.js";
@@ -23,7 +28,9 @@ async function processMessage({
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
-    correlationId: decodedMessage.correlation_id,
+    correlationId: decodedMessage.correlation_id
+      ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+      : generateId<CorrelationId>(),
   });
   await match(decodedMessage)
     .with({ event_version: 2 }, (msg) => handleMessageV2(msg, producerKeys))

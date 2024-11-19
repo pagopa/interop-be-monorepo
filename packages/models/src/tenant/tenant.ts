@@ -5,6 +5,7 @@ export const tenantKind = {
   PA: "PA",
   GSP: "GSP",
   PRIVATE: "PRIVATE",
+  SCP: "SCP",
 } as const;
 
 export const TenantKind = z.enum([
@@ -25,10 +26,20 @@ export const TenantFeatureCertifier = z.object({
   type: z.literal("PersistentCertifier"),
   certifierId: z.string(),
 });
-
 export type TenantFeatureCertifier = z.infer<typeof TenantFeatureCertifier>;
 
-export const TenantFeature = TenantFeatureCertifier; // It will be extended with other features, we will use this union to discriminate them
+export const TenantFeatureDelegatedProducer = z.object({
+  type: z.literal("DelegatedProducer"),
+  availabilityTimestamp: z.coerce.date(),
+});
+export type TenantFeatureDelegatedProducer = z.infer<
+  typeof TenantFeatureDelegatedProducer
+>;
+
+export const TenantFeature = z.discriminatedUnion("type", [
+  TenantFeatureCertifier,
+  TenantFeatureDelegatedProducer,
+]);
 
 export type TenantFeature = z.infer<typeof TenantFeature>;
 

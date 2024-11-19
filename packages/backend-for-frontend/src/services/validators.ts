@@ -4,17 +4,30 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { TenantId } from "pagopa-interop-models";
-import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
-import { tenantAttributesFromApi } from "../api/tenantApiConverter.js";
 import {
+  delegationKind,
+  delegationState,
+  EServiceId,
+  TenantId,
+} from "pagopa-interop-models";
+import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
+import {
+  toDelegationKind,
+  toDelegationState,
+} from "../api/delegationApiConverter.js";
+import { tenantAttributesFromApi } from "../api/tenantApiConverter.js";
+import { DelegationProcessClient } from "../clients/clientsProvider.js";
+import {
+  delegatedEserviceNotExportable,
   invalidEServiceRequester,
   notValidDescriptor,
 } from "../model/errors.js";
 import {
-  catalogApiDescriptorState,
   agreementApiState,
+  catalogApiDescriptorState,
 } from "../model/types.js";
+import { BffAppContext } from "../utilities/context.js";
+import { getAllDelegations } from "./delegationService.js";
 
 export function isRequesterEserviceProducer(
   requesterId: string,
@@ -29,6 +42,31 @@ export function assertRequesterIsProducer(
 ): void {
   if (!isRequesterEserviceProducer(requesterId, eservice)) {
     throw invalidEServiceRequester(eservice.id, requesterId);
+  }
+}
+
+export async function assertNotDelegatedEservice(
+  delegationProcessClient: DelegationProcessClient,
+  headers: BffAppContext["headers"],
+  delegatorId: TenantId,
+  eserviceid: EServiceId
+): Promise<void> {
+  const delegations = await getAllDelegations(
+    delegationProcessClient,
+    headers,
+    {
+      kind: toDelegationKind(delegationKind.delegatedConsumer),
+      delegatorIds: [delegatorId],
+      eserviceIds: [eserviceid],
+      delegationStates: [
+        toDelegationState(delegationState.active),
+        toDelegationState(delegationState.waitingForApproval),
+      ],
+    }
+  );
+
+  if (delegations.length > 0) {
+    throw delegatedEserviceNotExportable(delegatorId);
   }
 }
 

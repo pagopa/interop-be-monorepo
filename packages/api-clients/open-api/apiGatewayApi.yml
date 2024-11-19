@@ -2617,6 +2617,8 @@ components:
           type: array
           items:
             type: string
+        isSignalHubEnabled:
+          type: boolean
     EServiceAttributes:
       description: the attributes set associated to the EService
       properties:
@@ -2665,8 +2667,7 @@ components:
         code:
           type: string
           description: source identifier
-          pattern: '^[a-zA-Z0-9\-_]+$'
-          maxLength: 48
+          maxLength: 64
         origin:
           $ref: "#/components/schemas/Origin"
         explicitAttributeVerification:

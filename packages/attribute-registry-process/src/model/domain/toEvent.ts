@@ -3,11 +3,12 @@ import {
   AttributeEvent,
   Attribute,
   toAttributeV1,
+  CorrelationId,
 } from "pagopa-interop-models";
 
 export const toCreateEventAttributeAdded = (
   attribute: Attribute,
-  correlationId: string
+  correlationId: CorrelationId
 ): CreateEvent<AttributeEvent> => ({
   streamId: attribute.id,
   version: 0,

@@ -1,0 +1,23 @@
+meta {
+  name: Delete a tenant mail
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{host-bff}}/tenants/:tenantId/mails/:mailId
+  body: none
+  auth: none
+}
+
+params:path {
+  tenantId: 69e2865e-65ab-4e48-a638-2037a9ee2ee7
+  mailId: 25396998a039c4167ec58d778bab95fc1ba8cdc41e772b10ef74d84b92ae7a58
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+

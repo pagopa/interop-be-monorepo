@@ -31,8 +31,9 @@ import {
   UserId,
   PurposeId,
   fromClientV2,
+  CorrelationId,
+  generateId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { authorizationManagementApi } from "pagopa-interop-api-clients";
 import {
   AuthorizationService,
@@ -59,7 +60,7 @@ export async function sendCatalogAuthUpdate(
   decodedMessage: EServiceEventEnvelopeV2,
   authService: AuthorizationService,
   logger: Logger,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<void> {
   await match(decodedMessage)
     .with(
@@ -102,6 +103,18 @@ export async function sendCatalogAuthUpdate(
         );
       }
     )
+    .with({ type: "EServiceDescriptorQuotasUpdated" }, async (msg) => {
+      const data = getDescriptorFromEvent(msg, decodedMessage.type);
+      await authService.updateEServiceState(
+        descriptorStateToClientState(data.descriptor.state),
+        data.descriptor.id,
+        data.eserviceId,
+        data.descriptor.audience,
+        data.descriptor.voucherLifespan,
+        logger,
+        correlationId
+      );
+    })
     .with(
       {
         type: P.union(
@@ -121,7 +134,6 @@ export async function sendCatalogAuthUpdate(
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
           "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptorQuotasUpdated",
           "EServiceDescriptionUpdated"
         ),
       },
@@ -137,7 +149,7 @@ export async function sendAgreementAuthUpdate(
   readModelService: ReadModelService,
   authService: AuthorizationService,
   logger: Logger,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<void> {
   await match(decodedMessage)
     .with(
@@ -230,7 +242,7 @@ export async function sendPurposeAuthUpdate(
   readModelService: ReadModelService,
   authService: AuthorizationService,
   logger: Logger,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<void> {
   await match(decodedMessage)
     /**
@@ -339,7 +351,7 @@ export async function sendAuthorizationAuthUpdate(
   authService: AuthorizationService,
   readModelService: ReadModelService,
   logger: Logger,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<void> {
   await match(decodedMessage)
     .with({ type: "ClientAdded" }, async (msg): Promise<void> => {
@@ -520,7 +532,9 @@ function processMessage(
           throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
         });
 
-      const correlationId = decodedMessage.correlation_id || uuidv4();
+      const correlationId: CorrelationId = decodedMessage.correlation_id
+        ? unsafeBrandId(decodedMessage.correlation_id)
+        : generateId();
 
       const loggerInstance = logger({
         serviceName: "authorization-updater",
