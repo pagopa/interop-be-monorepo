@@ -111,7 +111,7 @@ export function delegationProducerServiceBuilder(
         kind: delegationKind.delegatedProducer,
         stamps: {
           submission: {
-            who: delegatorId,
+            who: authData.userId,
             when: creationDate,
           },
         },
@@ -166,7 +166,7 @@ export function delegationProducerServiceBuilder(
         stamps: {
           ...currentDelegation.data.stamps,
           revocation: {
-            who: delegatorId,
+            who: authData.userId,
             when: now,
           },
         },
@@ -232,7 +232,7 @@ export function delegationProducerServiceBuilder(
               stamps: {
                 ...delegation.stamps,
                 activation: {
-                  who: delegateId,
+                  who: authData.userId,
                   when: now,
                 },
               },
@@ -262,19 +262,20 @@ export function delegationProducerServiceBuilder(
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
+      const now = new Date();
       await repository.createEvent(
         toCreateEventProducerDelegationRejected(
           {
             data: {
               ...delegation,
               state: delegationState.rejected,
-              rejectedAt: new Date(),
+              rejectedAt: now,
               rejectionReason,
               stamps: {
                 ...delegation.stamps,
                 rejection: {
-                  who: delegateId,
-                  when: new Date(),
+                  who: authData.userId,
+                  when: now,
                 },
               },
             },
