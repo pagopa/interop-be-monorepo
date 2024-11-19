@@ -94,6 +94,14 @@ export async function assertVerifiedAttributeOperationAllowed({
   if (!attributeIds.has(attributeId)) {
     throw error;
   }
+
+  if (delegateId && delegateId !== requesterId) {
+    throw error;
+  }
+
+  if (!delegateId && requesterId !== agreement.producerId) {
+    throw error;
+  }
 }
 
 export function assertOrganizationVerifierExist(

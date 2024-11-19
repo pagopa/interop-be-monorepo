@@ -779,14 +779,6 @@ export function tenantServiceBuilder(
           attr.type === tenantAttributeType.VERIFIED && attr.id === attribute.id
       );
 
-      if (delegateId && delegateId !== organizationId) {
-        throw error;
-      }
-
-      if (!delegateId && organizationId !== agreement.producerId) {
-        throw error;
-      }
-
       const updatedTenant: Tenant = {
         ...targetTenant.data,
         attributes: verifiedTenantAttribute
@@ -900,14 +892,6 @@ export function tenantServiceBuilder(
           authData.organizationId,
           attributeId
         );
-      }
-
-      if (delegateId !== authData.organizationId) {
-        throw error;
-      }
-
-      if (!delegateId && authData.organizationId !== agreement.producerId) {
-        throw error;
       }
 
       const updatedTenant: Tenant = {
