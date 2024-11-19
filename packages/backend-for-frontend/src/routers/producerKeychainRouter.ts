@@ -59,6 +59,7 @@ const producerKeychainRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving producer keychains with name = ${
             req.query.q
           }, limit = ${req.query.limit}, offset = ${
@@ -83,6 +84,7 @@ const producerKeychainRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating producer keychain with seed: ${JSON.stringify(
             req.body
           )}`
@@ -107,6 +109,7 @@ const producerKeychainRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving producer keychain with id = ${req.params.producerKeychainId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -126,6 +129,7 @@ const producerKeychainRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error deleting producer keychain with id = ${req.params.producerKeychainId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -149,6 +153,7 @@ const producerKeychainRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error adding EService ${req.body.eserviceId} to producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -172,6 +177,7 @@ const producerKeychainRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error removing EService ${req.params.eserviceId} from producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -193,6 +199,7 @@ const producerKeychainRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating producer key in producer keychain ${
             req.params.producerKeychainId
           } with seed: ${JSON.stringify(req.body)}`
@@ -215,6 +222,7 @@ const producerKeychainRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving producer keys in producer keychain ${
             req.params.producerKeychainId
           } for user ids: ${JSON.stringify(req.query.userIds)}`
@@ -239,6 +247,7 @@ const producerKeychainRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error retrieving producer key ${req.params.keyId} in producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -263,6 +272,7 @@ const producerKeychainRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error deleting producer key ${req.params.keyId} in producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -284,6 +294,7 @@ const producerKeychainRouter = (
           error,
           getProducerKeychainUsersErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving users in producer keychain ${req.params.producerKeychainId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -305,6 +316,7 @@ const producerKeychainRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error adding users ${req.body.userIds.join(
             ","
           )} to producer keychain ${req.params.producerKeychainId}`
@@ -330,6 +342,7 @@ const producerKeychainRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error removing user ${req.params.userId} from producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -354,6 +367,7 @@ const producerKeychainRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error retrieving key ${req.params.keyId} for producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);

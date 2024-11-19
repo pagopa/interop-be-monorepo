@@ -4,7 +4,7 @@ import { badRequestError, makeApiProblemBuilder } from "pagopa-interop-models";
 import { z } from "zod";
 import { fromZodIssue } from "zod-validation-error";
 import { WithZodiosContext } from "@zodios/express";
-import { ExpressContext, logger } from "../index.js";
+import { ExpressContext, fromAppContext } from "../index.js";
 
 const makeApiProblem = makeApiProblemBuilder({});
 
@@ -17,6 +17,7 @@ export function zodiosValidationErrorToApiProblem(
   res: Response,
   _next: NextFunction
 ): Response {
+  const ctx = fromAppContext(req.ctx);
   const detail = `Incorrect value for ${zodError.context}`;
   const errors = zodError.error.map((e) => fromZodIssue(e));
 
@@ -26,7 +27,8 @@ export function zodiosValidationErrorToApiProblem(
       makeApiProblem(
         badRequestError(detail, errors),
         () => constants.HTTP_STATUS_BAD_REQUEST,
-        logger({ ...req.ctx })
+        ctx.logger,
+        ctx.correlationId
       )
     );
 }

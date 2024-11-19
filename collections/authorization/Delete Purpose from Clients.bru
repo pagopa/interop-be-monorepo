@@ -1,0 +1,20 @@
+meta {
+  name: Delete Purpose from Clients
+  type: http
+  seq: 17
+}
+
+delete {
+  url: {{host-authorization}}/clients/purposes/:purposeId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

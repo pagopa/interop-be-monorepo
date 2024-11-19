@@ -45,6 +45,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving consumers for name ${req.query.q}, offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -67,6 +68,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving producers for name ${req.query.q}, offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -90,6 +92,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving tenant certified attributes offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -113,6 +116,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving certified attributes for tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -131,6 +135,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error adding certified attribute ${req.body.id} to tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -148,6 +153,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error adding declared attribute ${req.body.id} to requester tenant`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -166,6 +172,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error revoking declared attribute ${req.params.attributeId} to requester tenant`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -186,6 +193,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving declared attributes for tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -206,6 +214,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving verified attributes for tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -224,6 +233,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error verifying verified attribute ${req.body.id} to tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -251,6 +261,7 @@ const tenantRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error revoking certified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -280,6 +291,7 @@ const tenantRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error updating expirationDate for verified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -308,6 +320,7 @@ const tenantRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error revoking verified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -326,6 +339,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving tenant with tenantId ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -343,6 +357,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error adding mail to tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -360,6 +375,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error deleting mail ${req.params.mailId} from tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -383,12 +399,49 @@ const tenantRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error retrieving tenants`
           );
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/tenants/delegatedProducer", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const tenantId = ctx.authData.organizationId;
+
+      try {
+        await tenantService.assignTenantDelegatedProducerFeature(tenantId, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error while assigning delegated producer feature to ${tenantId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/tenants/delegatedProducer", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const tenantId = ctx.authData.organizationId;
+
+      try {
+        await tenantService.removeTenantDelegatedProducerFeature(tenantId, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error while removing delegated producer feature to ${tenantId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return tenantRouter;
 };

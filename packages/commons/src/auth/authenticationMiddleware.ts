@@ -5,10 +5,10 @@ import {
   unauthorizedError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { JwksClient } from "jwks-rsa";
 import {
   ExpressContext,
   fromAppContext,
-  getJwksClients,
   JWTConfig,
   jwtFromAuthHeader,
 } from "../index.js";
@@ -18,17 +18,16 @@ import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
 const makeApiProblem = makeApiProblemBuilder({});
 
 export const authenticationMiddleware: (
-  config: JWTConfig
+  config: JWTConfig,
+  jwksClients: JwksClient[]
 ) => ZodiosRouterContextRequestHandler<ExpressContext> =
-  (config: JWTConfig) =>
+  (config: JWTConfig, jwksClients: JwksClient[]) =>
   async (req, res, next): Promise<unknown> => {
     // We assume that:
     // - contextMiddleware already set ctx.serviceName and ctx.correlationId
     const ctx = fromAppContext(req.ctx);
 
     try {
-      const jwksClients = getJwksClients(config);
-
       const jwtToken = jwtFromAuthHeader(req, ctx.logger);
       const valid = await verifyJwtToken(
         jwtToken,
@@ -53,7 +52,8 @@ export const authenticationMiddleware: (
             .with("operationForbidden", () => 403)
             .with("missingHeader", "badBearerToken", () => 400)
             .otherwise(() => 500),
-        ctx.logger
+        ctx.logger,
+        ctx.correlationId
       );
       return res.status(problem.status).send(problem);
     }

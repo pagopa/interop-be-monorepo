@@ -1,0 +1,33 @@
+meta {
+  name: Create a new consumer client
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/clientsConsumer
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "name": "asfdsfdsafdsgfasgda",
+    "members": [
+      "urn:uuid:5b9be123-3c6e-7629-5e0a-a5e41ab83d0b",
+      "urn:uuid:f6585bfa-7574-3e4d-01ee-555ed53c7cd4"
+    ],
+    "description": "sdgfdfsg fdag g sag "
+  }
+}
+
+docs {
+  Create a new consumer client
+}

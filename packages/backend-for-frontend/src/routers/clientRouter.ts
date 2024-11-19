@@ -54,6 +54,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           "Error retrieving clients"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -74,6 +75,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -91,6 +93,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error deleting client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -112,6 +115,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error removing purpose ${req.params.purposeId} from client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -134,6 +138,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving keys of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -155,6 +160,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error deleting key ${req.params.keyId} of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -176,6 +182,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error adding users ${req.body.userIds.join(",")} to client ${
             req.params.clientId
           }`
@@ -200,6 +207,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error removing user ${req.params.userId} from client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -222,6 +230,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error adding purpose to client ${req.body.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -244,6 +253,7 @@ const clientRouter = (
           error,
           getClientUsersErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving users of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -261,6 +271,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating keys for client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -282,6 +293,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving keys of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -303,6 +315,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving key ${req.params.keyId} for client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -321,6 +334,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating consumer client with name ${req.body.name}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -339,6 +353,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating api client with name ${req.body.name}`
         );
         return res.status(errorRes.status).send(errorRes);

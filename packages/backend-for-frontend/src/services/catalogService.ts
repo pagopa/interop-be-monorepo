@@ -32,6 +32,7 @@ import {
   AgreementProcessClient,
   AttributeProcessClient,
   CatalogProcessClient,
+  DelegationProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
@@ -57,7 +58,10 @@ import {
 } from "../model/types.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
-import { assertRequesterIsProducer } from "./validators.js";
+import {
+  assertNotDelegatedEservice,
+  assertRequesterIsProducer,
+} from "./validators.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -189,6 +193,7 @@ export function catalogServiceBuilder(
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
   attributeProcessClient: AttributeProcessClient,
+  delegationProcessClient: DelegationProcessClient,
   fileManager: FileManager,
   bffConfig: BffProcessConfig
 ) {
@@ -320,6 +325,7 @@ export function catalogServiceBuilder(
         riskAnalysis: eservice.riskAnalysis.map(
           toBffCatalogApiEserviceRiskAnalysis
         ),
+        isSignalHubEnabled: eservice.isSignalHubEnabled,
       };
     },
     updateEServiceDescription: async (
@@ -976,6 +982,12 @@ export function catalogServiceBuilder(
       });
 
       assertRequesterIsProducer(requesterId, eservice);
+      await assertNotDelegatedEservice(
+        delegationProcessClient,
+        headers,
+        requesterId,
+        eserviceId
+      );
 
       const zipFolderName = `${eservice.id}_${descriptorId}`;
       const zipFile = await createDescriptorDocumentZipFile(
@@ -1118,6 +1130,7 @@ export function catalogServiceBuilder(
           agreementApprovalPolicy:
             importedEservice.descriptor.agreementApprovalPolicy,
         },
+        isSignalHubEnabled: importedEservice.isSignalHubEnabled,
       };
 
       const pollEServiceById = createPollingByCondition(() =>

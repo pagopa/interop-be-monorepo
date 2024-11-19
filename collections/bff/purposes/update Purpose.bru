@@ -1,0 +1,61 @@
+meta {
+  name: update Purpose
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-bff}}/purposes/:purposeId
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: 26d9891f-fe05-4bff-82fd-fc4edad2d076
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "title": "{{$randomLoremWord}} asda",
+    "description": "{{$randomLoremWords}} asda",
+    "isFreeOfCharge": {{$randomBoolean}},
+    "dailyCalls": {{$randomInt}},
+    "freeOfChargeReason": "{{$randomLoremWords}}",
+    "riskAnalysisForm": {
+      "version": "3.0",
+      "answers": {
+              "purpose": ["INSTITUTIONAL"],
+      "institutionalPurpose": ["MyPurpose"],
+      "personalDataTypes": ["OTHER"],
+      "otherPersonalDataTypes": ["MyDataTypes"],
+      "legalBasis": ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
+      "legalObligationReference": ["somethingLegal"],
+      "legalBasisPublicInterest": ["RULE_OF_LAW"],
+      "ruleOfLawText": ["TheLaw"],
+      "knowsDataQuantity": ["NO"],
+      "dataQuantity": [],
+      "deliveryMethod": ["ANONYMOUS"],
+      "policyProvided": ["YES"],
+      "confirmPricipleIntegrityAndDiscretion": ["true"],
+      "reasonPolicyNotProvided": ["Because"],
+      "doneDpia": ["NO"],
+      "dataDownload": ["YES"],
+      "confirmDataRetentionPeriod": ["true"],
+      "purposePursuit": ["MERE_CORRECTNESS"],
+      "checkedExistenceMereCorrectnessInteropCatalogue": ["true"],
+      "usesThirdPartyData": ["NO"],
+      "declarationConfirmGDPR": ["true"]
+    }}
+  }
+}
+
+docs {
+  Updates a Purpose if not yet activated
+}
