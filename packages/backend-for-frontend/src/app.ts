@@ -6,6 +6,7 @@ import {
   zodiosCtx,
   initRedisRateLimiter,
   rateLimiterMiddleware,
+  buildJwksClients,
 } from "pagopa-interop-commons";
 import express from "express";
 import { config } from "./config/config.js";
@@ -28,6 +29,8 @@ import {
 } from "./utilities/middlewares.js";
 import clientRouter from "./routers/clientRouter.js";
 import producerKeychainRouter from "./routers/producerKeychainRouter.js";
+import delegationRouter from "./routers/delegationRouter.js";
+import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 
 const serviceName = "backend-for-frontend";
 const fileManager = initFileManager(config);
@@ -36,6 +39,8 @@ const allowList = await getAllowList(serviceName, fileManager, config);
 const clients = getInteropBeClients();
 
 const app = zodiosCtx.app();
+
+const jwksClients = buildJwksClients(config);
 
 const redisRateLimiter = await initRedisRateLimiter({
   limiterGroup: "BFF",
@@ -66,8 +71,14 @@ app.use(
   `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}`,
   healthRouter,
   contextMiddleware(serviceName, false),
-  authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter),
-  authenticationMiddleware(config),
+  authorizationRouter(
+    zodiosCtx,
+    clients,
+    allowList,
+    redisRateLimiter,
+    jwksClients
+  ),
+  authenticationMiddleware(config, jwksClients),
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
   catalogRouter(zodiosCtx, clients, fileManager),
@@ -75,12 +86,14 @@ app.use(
   purposeRouter(zodiosCtx, clients),
   agreementRouter(zodiosCtx, clients, fileManager),
   selfcareRouter(clients, zodiosCtx),
-  supportRouter(zodiosCtx, clients, redisRateLimiter),
+  supportRouter(zodiosCtx, clients, redisRateLimiter, jwksClients),
   toolRouter(zodiosCtx, clients),
   tenantRouter(zodiosCtx, clients),
   clientRouter(zodiosCtx, clients),
   privacyNoticeRouter(zodiosCtx),
-  producerKeychainRouter(zodiosCtx, clients)
+  producerKeychainRouter(zodiosCtx, clients),
+  delegationRouter(zodiosCtx, clients),
+  producerDelegationRouter(zodiosCtx, clients)
 );
 
 export default app;

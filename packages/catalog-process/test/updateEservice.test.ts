@@ -343,7 +343,7 @@ describe("update eService", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eServiceDuplicate if the updated name is already in use", async () => {
+  it("should throw eServiceDuplicate if the updated name is already in use, case insensitive", async () => {
     const eservice1: EService = {
       ...mockEService,
       id: generateId(),
@@ -362,7 +362,7 @@ describe("update eService", () => {
       catalogService.updateEService(
         eservice1.id,
         {
-          name: "eservice name already in use",
+          name: "ESERVICE NAME ALREADY IN USE",
           description: "eservice description",
           technology: "REST",
           mode: "DELIVER",
@@ -374,7 +374,7 @@ describe("update eService", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(eServiceDuplicate("eservice name already in use"));
+    ).rejects.toThrowError(eServiceDuplicate("ESERVICE NAME ALREADY IN USE"));
   });
 
   it("should throw eserviceNotInDraftState if the eservice descriptor is in published state", async () => {

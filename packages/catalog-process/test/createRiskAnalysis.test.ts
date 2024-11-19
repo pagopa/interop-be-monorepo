@@ -282,7 +282,7 @@ describe("create risk analysis", () => {
       )
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
-  it("should throw riskAnalysisDuplicated if risk analysis name is duplicated", async () => {
+  it("should throw riskAnalysisDuplicated if risk analysis name is duplicated, case insensitive", async () => {
     const producerTenantKind: TenantKind = randomArrayItem(
       Object.values(tenantKind)
     );
@@ -305,13 +305,18 @@ describe("create risk analysis", () => {
           state: descriptorState.draft,
         },
       ],
-      riskAnalysis: [riskAnalysis],
+      riskAnalysis: [
+        {
+          ...riskAnalysis,
+          name: riskAnalysis.name.toUpperCase(),
+        },
+      ],
     };
     await addOneEService(eservice);
 
     const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed = {
       ...buildRiskAnalysisSeed(riskAnalysis),
-      name: riskAnalysis.name,
+      name: riskAnalysis.name.toLowerCase(),
     };
 
     expect(
@@ -322,7 +327,7 @@ describe("create risk analysis", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      riskAnalysisDuplicated(riskAnalysis.name, eservice.id)
+      riskAnalysisDuplicated(riskAnalysis.name.toLowerCase(), eservice.id)
     );
   });
   it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {

@@ -252,7 +252,7 @@ describe("clone descriptor", () => {
       })
     ).rejects.toThrowError(FileManagerError);
   });
-  it("should throw eServiceDuplicate if an eservice with the same name already exists", async () => {
+  it("should throw eServiceDuplicate if an eservice with the same name already exists, case insensitive", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -261,15 +261,16 @@ describe("clone descriptor", () => {
     };
     const eservice1: EService = {
       ...mockEService,
+      name: mockEService.name.toUpperCase(),
       id: generateId(),
       descriptors: [descriptor],
     };
     await addOneEService(eservice1);
 
     const cloneTimestamp = new Date();
-    const conflictEServiceName = `${
-      eservice1.name
-    } - clone - ${formatDateddMMyyyyHHmmss(cloneTimestamp)}`;
+    const conflictEServiceName = `${eservice1.name.toLowerCase()} - clone - ${formatDateddMMyyyyHHmmss(
+      cloneTimestamp
+    )}`;
 
     const eservice2: EService = {
       ...mockEService,
@@ -286,7 +287,13 @@ describe("clone descriptor", () => {
         serviceName: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(eServiceDuplicate(conflictEServiceName));
+    ).rejects.toThrowError(
+      eServiceDuplicate(
+        `${eservice1.name} - clone - ${formatDateddMMyyyyHHmmss(
+          cloneTimestamp
+        )}`
+      )
+    );
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(
