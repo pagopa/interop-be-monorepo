@@ -179,12 +179,12 @@ describe("revoke producer delegation", () => {
       payload: event.data,
     });
 
-    const expectedContractFilePath = (
+    const actualContractPath = (
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     )[0];
 
     const documentId = unsafeBrandId<DelegationContractId>(
-      expectedContractFilePath.split("/")[2]
+      actualContractPath.split("/")[2]
     );
 
     const revokedDelegationWithoutContract: Delegation = {
@@ -209,7 +209,7 @@ describe("revoke producer delegation", () => {
         name: `${formatDateyyyyMMddHHmmss(
           currentExecutionTime
         )}_delegation_revocation_contract.pdf`,
-        path: expectedContractFilePath,
+        path: actualContractPath,
         prettyName: "Revoca della delega",
       },
     });
@@ -217,7 +217,7 @@ describe("revoke producer delegation", () => {
 
     const actualContract = await fileManager.get(
       config.s3Bucket,
-      expectedContractFilePath,
+      actualContractPath,
       genericLogger
     );
 
@@ -239,6 +239,7 @@ describe("revoke producer delegation", () => {
       genericLogger
     );
 
+    // TODO fix this, it's not really working
     expect(flushPDFMetadata(actualContract, currentExecutionTime)).toEqual(
       flushPDFMetadata(expectedContract, currentExecutionTime)
     );

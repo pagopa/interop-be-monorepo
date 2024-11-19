@@ -93,12 +93,12 @@ describe("approve producer delegation", () => {
       payload: event.data,
     });
 
-    const expectedContractFilePath = (
+    const actualConractPath = (
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     )[0];
 
     const documentId = unsafeBrandId<DelegationContractId>(
-      expectedContractFilePath.split("/")[2]
+      actualConractPath.split("/")[2]
     );
 
     const approvedDelegationWithoutContract: Delegation = {
@@ -123,7 +123,7 @@ describe("approve producer delegation", () => {
         name: `${formatDateyyyyMMddHHmmss(
           currentExecutionTime
         )}_delegation_activation_contract.pdf`,
-        path: expectedContractFilePath,
+        path: actualConractPath,
         prettyName: "Delega",
       },
     });
@@ -131,7 +131,7 @@ describe("approve producer delegation", () => {
 
     const actualContract = await fileManager.get(
       config.s3Bucket,
-      expectedContractFilePath,
+      actualConractPath,
       genericLogger
     );
 
@@ -153,6 +153,7 @@ describe("approve producer delegation", () => {
       genericLogger
     );
 
+    // TODO fix this, it's not really working
     expect(flushPDFMetadata(actualContract, currentExecutionTime)).toEqual(
       flushPDFMetadata(expectedContract, currentExecutionTime)
     );
