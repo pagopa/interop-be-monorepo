@@ -498,34 +498,3 @@ const updateDescriptorVoucherLifespanInTokenGenerationStatesEntries = async (
     await dynamoDBClient.send(command);
   }
 };
-
-const updateDescriptorVoucherLifespanInTokenGenerationStatesEntries = async (
-  voucherLifespan: number,
-  dynamoDBClient: DynamoDBClient,
-  entriesToUpdate: TokenGenerationStatesClientPurposeEntry[]
-): Promise<void> => {
-  for (const entry of entriesToUpdate) {
-    const input: UpdateItemInput = {
-      ConditionExpression: "attribute_exists(GSIPK_eserviceId_descriptorId)",
-      Key: {
-        PK: {
-          S: entry.PK,
-        },
-      },
-      ExpressionAttributeValues: {
-        ":newVoucherLifespan": {
-          N: voucherLifespan.toString(),
-        },
-        ":newUpdateAt": {
-          S: new Date().toISOString(),
-        },
-      },
-      UpdateExpression:
-        "SET descriptorVoucherLifespan = :newVoucherLifespan, updatedAt = :newUpdateAt",
-      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      ReturnValues: "NONE",
-    };
-    const command = new UpdateItemCommand(input);
-    await dynamoDBClient.send(command);
-  }
-};
