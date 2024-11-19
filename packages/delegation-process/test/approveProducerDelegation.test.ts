@@ -17,6 +17,7 @@ import {
   toDelegationV2,
   unsafeBrandId,
   delegationKind,
+  Delegation,
 } from "pagopa-interop-models";
 import { delegationState } from "pagopa-interop-models";
 import {
@@ -100,30 +101,32 @@ describe("approve producer delegation", () => {
       expectedContractFilePath.split("/")[2]
     );
 
-    const expectedDelegation = {
-      ...toDelegationV2({
-        ...delegation,
-        state: delegationState.active,
-        approvedAt: currentExecutionTime,
-        stamps: {
-          ...delegation.stamps,
-          activation: {
-            who: authData.userId,
-            when: currentExecutionTime,
-          },
+    const approvedDelegationWithoutContract: Delegation = {
+      ...delegation,
+      state: delegationState.active,
+      approvedAt: currentExecutionTime,
+      stamps: {
+        ...delegation.stamps,
+        activation: {
+          who: authData.userId,
+          when: currentExecutionTime,
         },
-        activationContract: {
-          id: documentId,
-          contentType: "application/pdf",
-          createdAt: currentExecutionTime,
-          name: `${formatDateyyyyMMddHHmmss(
-            currentExecutionTime
-          )}_delegation_activation_contract.pdf`,
-          path: expectedContractFilePath,
-          prettyName: "Delega",
-        },
-      }),
+      },
     };
+
+    const expectedDelegation = toDelegationV2({
+      ...approvedDelegationWithoutContract,
+      activationContract: {
+        id: documentId,
+        contentType: "application/pdf",
+        createdAt: currentExecutionTime,
+        name: `${formatDateyyyyMMddHHmmss(
+          currentExecutionTime
+        )}_delegation_activation_contract.pdf`,
+        path: expectedContractFilePath,
+        prettyName: "Delega",
+      },
+    });
     expect(actualDelegation).toEqual(expectedDelegation);
 
     const actualContract = await fileManager.get(
@@ -134,7 +137,7 @@ describe("approve producer delegation", () => {
 
     const { path: expectedContractPath } =
       await contractBuilder.createActivationContract({
-        delegation,
+        delegation: approvedDelegationWithoutContract,
         delegator,
         delegate,
         eservice,

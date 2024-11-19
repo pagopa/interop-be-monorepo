@@ -1,4 +1,3 @@
-import { fail } from "assert";
 import {
   decodeProtobufPayload,
   getMockDelegation,
@@ -13,12 +12,12 @@ import {
   delegationState,
   generateId,
   TenantId,
-  fromDelegationV2,
   EServiceId,
   unsafeBrandId,
   DelegationContractId,
   delegationKind,
   UserId,
+  toDelegationV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -40,7 +39,7 @@ import {
   fileManager,
   flushPDFMetadata,
   pdfGenerator,
-  readDelegationEventByVersion,
+  readLastDelegationEvent,
 } from "./utils.js";
 
 type DelegationStateSeed =
@@ -162,16 +161,23 @@ describe("revoke producer delegation", () => {
 
     await addOneDelegation(existentDelegation);
 
-    const actualDelegation =
-      await delegationProducerService.revokeProducerDelegation(
-        existentDelegation.id,
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
-      );
+    await delegationProducerService.revokeProducerDelegation(
+      existentDelegation.id,
+      {
+        authData,
+        logger: genericLogger,
+        correlationId: generateId(),
+        serviceName: "DelegationServiceTest",
+      }
+    );
+
+    const event = await readLastDelegationEvent(existentDelegation.id);
+    expect(event.version).toBe("1");
+
+    const { delegation: actualDelegation } = decodeProtobufPayload({
+      messageType: ProducerDelegationRevokedV2,
+      payload: event.data,
+    });
 
     const expectedContractFilePath = (
       await fileManager.listFiles(config.s3Bucket, genericLogger)
@@ -181,24 +187,21 @@ describe("revoke producer delegation", () => {
       expectedContractFilePath.split("/")[2]
     );
 
-    const expectedDelegation: Delegation = {
+    const revokedDelegationWithoutContract: Delegation = {
       ...existentDelegation,
       state: delegationState.revoked,
       revokedAt: currentExecutionTime,
       stamps: {
-        submission: {
-          who: existentDelegation.stamps.submission.who,
-          when: delegationCreationDate,
-        },
-        activation: {
-          who: existentDelegation.stamps.activation!.who,
-          when: delegationActivationDate,
-        },
+        ...existentDelegation.stamps,
         revocation: {
           who: authData.userId,
           when: currentExecutionTime,
         },
       },
+    };
+
+    const expectedDelegation = toDelegationV2({
+      ...revokedDelegationWithoutContract,
       revocationContract: {
         id: documentId,
         contentType: "application/pdf",
@@ -209,8 +212,7 @@ describe("revoke producer delegation", () => {
         path: expectedContractFilePath,
         prettyName: "Revoca della delega",
       },
-    };
-
+    });
     expect(actualDelegation).toEqual(expectedDelegation);
 
     const actualContract = await fileManager.get(
@@ -220,8 +222,8 @@ describe("revoke producer delegation", () => {
     );
 
     const { path: expectedContractPath } =
-      await contractBuilder.createActivationContract({
-        delegation: actualDelegation,
+      await contractBuilder.createRevocationContract({
+        delegation: revokedDelegationWithoutContract,
         delegator,
         delegate,
         eservice,
@@ -240,24 +242,6 @@ describe("revoke producer delegation", () => {
     expect(flushPDFMetadata(actualContract, currentExecutionTime)).toEqual(
       flushPDFMetadata(expectedContract, currentExecutionTime)
     );
-
-    const lastDelegationEvent = await readDelegationEventByVersion(
-      actualDelegation.id,
-      1
-    );
-
-    const delegationEventPayload = decodeProtobufPayload({
-      messageType: ProducerDelegationRevokedV2,
-      payload: lastDelegationEvent.data,
-    }).delegation;
-    if (!delegationEventPayload) {
-      return fail("DelegationRevokedV2 payload not found");
-    }
-
-    const delegationFromLastEvent = fromDelegationV2(delegationEventPayload);
-
-    expect(lastDelegationEvent.version).toBe("1");
-    expect(delegationFromLastEvent).toMatchObject(expectedDelegation);
   });
 
   it("should throw a delegationNotFound if Delegation does not exist", async () => {
