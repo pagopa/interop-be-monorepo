@@ -239,9 +239,9 @@ describe("revoke producer delegation", () => {
       genericLogger
     );
 
-    expect(await pdfScreenshot(actualContract)).toEqual(
-      await pdfScreenshot(expectedContract)
-    );
+    const actualContactScreenshot = await pdfScreenshot(actualContract);
+    const expectedContactScreenshot = await pdfScreenshot(expectedContract);
+    expect(actualContactScreenshot).toEqual(expectedContactScreenshot);
   });
 
   it("should throw a delegationNotFound if Delegation does not exist", async () => {
