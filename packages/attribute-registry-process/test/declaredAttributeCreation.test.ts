@@ -15,8 +15,8 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
+  attributeDuplicateByName,
   originNotCompliant,
-  attributeDuplicate,
 } from "../src/model/domain/errors.js";
 import {
   toApiAttribute,
@@ -113,6 +113,6 @@ describe("declared attribute creation", () => {
           serviceName: "",
         }
       )
-    ).rejects.toThrowError(attributeDuplicate(attribute.name));
+    ).rejects.toThrowError(attributeDuplicateByName(attribute.name));
   });
 });

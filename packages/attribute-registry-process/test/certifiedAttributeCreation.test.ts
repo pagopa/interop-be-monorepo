@@ -15,10 +15,11 @@ import {
   attributeKind,
   toAttributeV1,
   unsafeBrandId,
+  TenantFeatureCertifier,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
-  attributeDuplicate,
+  attributeDuplicateByNameAndCode,
   OrganizationIsNotACertifier,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
@@ -83,7 +84,7 @@ describe("certified attribute creation", () => {
       code: "code",
       kind: attributeKind.certified,
       creationTime: new Date(writtenPayload.attribute!.creationTime),
-      origin: tenant.features[0].certifierId,
+      origin: (tenant.features[0] as TenantFeatureCertifier).certifierId,
     };
     expect(writtenPayload.attribute).toEqual(
       toAttributeV1(toAttribute(attribute))
@@ -123,7 +124,9 @@ describe("certified attribute creation", () => {
           serviceName: "",
         }
       )
-    ).rejects.toThrowError(attributeDuplicate(attribute.name));
+    ).rejects.toThrowError(
+      attributeDuplicateByNameAndCode(attribute.name, attribute.code)
+    );
   });
   it("should throw OrganizationIsNotACertifier if the organization is not a certifier", async () => {
     await addOneTenant(mockTenant);

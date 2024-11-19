@@ -15,13 +15,14 @@ import {
   attributeKind,
   toAttributeV1,
   unsafeBrandId,
+  TenantFeatureCertifier,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { attributeDuplicate } from "../src/model/domain/errors.js";
 import {
   toApiAttribute,
   toAttribute,
 } from "../src/model/domain/apiConverter.js";
+import { attributeDuplicateByNameAndCode } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
   attributeRegistryService,
@@ -56,7 +57,7 @@ describe("certified attribute internal creation", () => {
       body: {
         name: mockAttribute.name,
         code: "code",
-        origin: tenant.features[0].certifierId,
+        origin: (tenant.features[0] as TenantFeatureCertifier).certifierId,
         description: mockAttribute.description,
       },
       authData,
@@ -84,7 +85,7 @@ describe("certified attribute internal creation", () => {
       code: "code",
       kind: attributeKind.certified,
       creationTime: new Date(writtenPayload.attribute!.creationTime),
-      origin: tenant.features[0].certifierId,
+      origin: (tenant.features[0] as TenantFeatureCertifier).certifierId,
     };
 
     expect(writtenPayload.attribute).toEqual(
@@ -116,7 +117,7 @@ describe("certified attribute internal creation", () => {
         {
           name: attribute.name,
           code: attribute.code,
-          origin: tenant.features[0].certifierId,
+          origin: (tenant.features[0] as TenantFeatureCertifier).certifierId,
           description: attribute.description,
         },
         {
@@ -126,6 +127,8 @@ describe("certified attribute internal creation", () => {
           serviceName: "",
         }
       )
-    ).rejects.toThrowError(attributeDuplicate(attribute.name));
+    ).rejects.toThrowError(
+      attributeDuplicateByNameAndCode(attribute.name, attribute.code)
+    );
   });
 });
