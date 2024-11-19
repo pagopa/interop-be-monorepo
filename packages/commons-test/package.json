@@ -34,7 +34,6 @@
     "jsonwebtoken": "9.0.2",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pdf-lib": "1.17.1",
     "pg-promise": "11.8.0",
     "testcontainers": "10.9.0",
     "ts-pattern": "5.2.0",
