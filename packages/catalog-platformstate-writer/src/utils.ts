@@ -181,39 +181,6 @@ export const updateDescriptorVoucherLifespanInPlatformStateEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const updateDescriptorVoucherLifespanInPlatformStateEntry = async (
-  dynamoDBClient: DynamoDBClient,
-  primaryKey: PlatformStatesEServiceDescriptorPK,
-  voucherLifespan: number,
-  version: number
-): Promise<void> => {
-  const input: UpdateItemInput = {
-    ConditionExpression: "attribute_exists(PK)",
-    Key: {
-      PK: {
-        S: primaryKey,
-      },
-    },
-    ExpressionAttributeValues: {
-      ":newVoucherLifespan": {
-        N: voucherLifespan.toString(),
-      },
-      ":newVersion": {
-        N: version.toString(),
-      },
-      ":newUpdateAt": {
-        S: new Date().toISOString(),
-      },
-    },
-    UpdateExpression:
-      "SET descriptorVoucherLifespan = :newVoucherLifespan, version = :newVersion, updatedAt = :newUpdateAt",
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
-    ReturnValues: "NONE",
-  };
-  const command = new UpdateItemCommand(input);
-  await dynamoDBClient.send(command);
-};
-
 export const updateDescriptorStateInTokenGenerationStatesTable = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   descriptorState: ItemState,
