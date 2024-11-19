@@ -18,6 +18,7 @@ import {
   unsafeBrandId,
   DelegationContractId,
   delegationKind,
+  UserId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -51,7 +52,7 @@ type DelegationStateSeed =
       };
       stamps: {
         rejection: {
-          who: TenantId;
+          who: UserId;
           when: Date;
         };
       };
@@ -63,7 +64,7 @@ type DelegationStateSeed =
       };
       stamps: {
         revocation: {
-          who: TenantId;
+          who: UserId;
           when: Date;
         };
       };
@@ -83,7 +84,7 @@ const getNotRevocableStateSeeds = (): DelegationStateSeed[] => {
       },
       stamps: {
         rejection: {
-          who: generateId<TenantId>(),
+          who: generateId<UserId>(),
           when: rejectionOrRevokeDate,
         },
       },
@@ -95,7 +96,7 @@ const getNotRevocableStateSeeds = (): DelegationStateSeed[] => {
       },
       stamps: {
         revocation: {
-          who: generateId<TenantId>(),
+          who: generateId<UserId>(),
           when: rejectionOrRevokeDate,
         },
       },
@@ -149,11 +150,11 @@ describe("revoke producer delegation", () => {
       submittedAt: delegationCreationDate,
       stamps: {
         submission: {
-          who: delegatorId,
+          who: generateId<UserId>(),
           when: delegationCreationDate,
         },
         activation: {
-          who: delegateId,
+          who: generateId<UserId>(),
           when: delegationActivationDate,
         },
       },
@@ -186,15 +187,15 @@ describe("revoke producer delegation", () => {
       revokedAt: currentExecutionTime,
       stamps: {
         submission: {
-          who: delegatorId,
+          who: existentDelegation.stamps.submission.who,
           when: delegationCreationDate,
         },
         activation: {
-          who: delegateId,
+          who: existentDelegation.stamps.activation!.who,
           when: delegationActivationDate,
         },
         revocation: {
-          who: delegatorId,
+          who: authData.userId,
           when: currentExecutionTime,
         },
       },
@@ -297,11 +298,11 @@ describe("revoke producer delegation", () => {
       submittedAt: delegationCreationDate,
       stamps: {
         submission: {
-          who: delegatorId,
+          who: generateId<UserId>(),
           when: delegationCreationDate,
         },
         approval: {
-          who: delegateId,
+          who: generateId<UserId>(),
           when: delegationApprovalDate,
         },
       },
@@ -345,11 +346,11 @@ describe("revoke producer delegation", () => {
         submittedAt: delegationCreationDate,
         stamps: {
           submission: {
-            who: delegatorId,
+            who: generateId<UserId>(),
             when: delegationCreationDate,
           },
           activation: {
-            who: delegateId,
+            who: generateId<UserId>(),
             when: delegationActivationDate,
           },
           ...notRevocableDelegationState.stamps,

@@ -4,7 +4,7 @@ import {
   getMockDelegation,
   getMockTenant,
   getMockEService,
-  getMockAuthData,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -63,6 +63,7 @@ describe("approve producer delegation", () => {
 
   it("should approve delegation if validations succeed", async () => {
     const delegationId = generateId<DelegationId>();
+    const authData = getRandomAuthData(delegate.id);
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
@@ -77,7 +78,7 @@ describe("approve producer delegation", () => {
     expect(version).toBe("0");
 
     await delegationProducerService.approveProducerDelegation(delegation.id, {
-      authData: getMockAuthData(delegate.id),
+      authData,
       serviceName: "",
       correlationId: generateId(),
       logger: genericLogger,
@@ -107,7 +108,7 @@ describe("approve producer delegation", () => {
         stamps: {
           ...delegation.stamps,
           activation: {
-            who: delegate.id,
+            who: authData.userId,
             when: currentExecutionTime,
           },
         },
@@ -163,7 +164,7 @@ describe("approve producer delegation", () => {
       delegationProducerService.approveProducerDelegation(
         nonExistentDelegationId,
         {
-          authData: getMockAuthData(delegateId),
+          authData: getRandomAuthData(delegateId),
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
@@ -186,7 +187,7 @@ describe("approve producer delegation", () => {
 
     await expect(
       delegationProducerService.approveProducerDelegation(delegation.id, {
-        authData: getMockAuthData(wrongDelegate.id),
+        authData: getRandomAuthData(wrongDelegate.id),
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
@@ -208,7 +209,7 @@ describe("approve producer delegation", () => {
 
     await expect(
       delegationProducerService.approveProducerDelegation(delegation.id, {
-        authData: getMockAuthData(delegate.id),
+        authData: getRandomAuthData(delegate.id),
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
@@ -235,7 +236,7 @@ describe("approve producer delegation", () => {
     expect(version).toBe("0");
 
     await delegationProducerService.approveProducerDelegation(delegation.id, {
-      authData: getMockAuthData(delegate.id),
+      authData: getRandomAuthData(delegate.id),
       serviceName: "",
       correlationId: generateId(),
       logger: genericLogger,
