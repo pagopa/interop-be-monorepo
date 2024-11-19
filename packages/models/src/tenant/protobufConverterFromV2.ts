@@ -20,7 +20,6 @@ import {
   TenantMailKind,
   tenantMailKind,
   TenantMail,
-  TenantFeatureCertifier,
   TenantVerifier,
   TenantRevoker,
   TenantAttribute,
@@ -29,6 +28,7 @@ import {
   tenantAttributeType,
   TenantUnitType,
   tenantUnitType,
+  TenantFeature,
 } from "./tenant.js";
 
 export const fromTenantKindV2 = (input: TenantKindV2): TenantKind => {
@@ -62,15 +62,17 @@ export const fromTenantMailV2 = (input: TenantMailV2): TenantMail => ({
   kind: fromTenantMailKindV2(input.kind),
 });
 
-export const fromTenantFeatureV2 = (
-  input: TenantFeatureV2
-): TenantFeatureCertifier =>
-  match<TenantFeatureV2["sealedValue"], TenantFeatureCertifier>(
-    input.sealedValue
-  )
+export const fromTenantFeatureV2 = (input: TenantFeatureV2): TenantFeature =>
+  match<TenantFeatureV2["sealedValue"], TenantFeature>(input.sealedValue)
     .with({ oneofKind: "certifier" }, ({ certifier }) => ({
       type: "PersistentCertifier",
       certifierId: certifier.certifierId,
+    }))
+    .with({ oneofKind: "delegatedProducer" }, ({ delegatedProducer }) => ({
+      type: "DelegatedProducer",
+      availabilityTimestamp: bigIntToDate(
+        delegatedProducer.availabilityTimestamp
+      ),
     }))
     .with({ oneofKind: undefined }, () => {
       throw new Error("Unable to deserialize TenantFeature");
