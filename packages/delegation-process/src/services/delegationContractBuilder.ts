@@ -63,7 +63,7 @@ export const contractBuilder = {
       dirname,
       "..",
       "resources/templates",
-      "delegationActivatedTemplate.html"
+      "delegationApprovedTemplate.html"
     );
     const documentCreatedAt = new Date();
     const todayDate = dateAtRomeZone(documentCreatedAt);
