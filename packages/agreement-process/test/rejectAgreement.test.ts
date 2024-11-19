@@ -176,7 +176,7 @@ describe("reject agreement", () => {
       {
         authData,
         serviceName: "",
-        correlationId: "",
+        correlationId: generateId(),
         logger: genericLogger,
       }
     );
@@ -235,7 +235,7 @@ describe("reject agreement", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       )
@@ -253,7 +253,7 @@ describe("reject agreement", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       )
@@ -278,7 +278,7 @@ describe("reject agreement", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       )
@@ -302,7 +302,7 @@ describe("reject agreement", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       )
@@ -338,7 +338,7 @@ describe("reject agreement", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       )
@@ -370,7 +370,7 @@ describe("reject agreement", () => {
         {
           authData,
           serviceName: "",
-          correlationId: "",
+          correlationId: generateId(),
           logger: genericLogger,
         }
       )

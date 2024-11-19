@@ -5,6 +5,7 @@ import {
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
   GSIPKEServiceIdDescriptorId,
+  GSIPKKid,
   PurposeId,
   PurposeVersionId,
   TenantId,
@@ -12,23 +13,14 @@ import {
   TokenGenerationStatesClientKidPurposePK,
 } from "../brandedIds.js";
 import { ItemState } from "./platform-states-entry.js";
-
-export const clientKindTokenStates = {
-  consumer: "CONSUMER",
-  api: "API",
-} as const;
-export const ClientKindTokenStates = z.enum([
-  Object.values(clientKindTokenStates)[0],
-  ...Object.values(clientKindTokenStates).slice(1),
-]);
-export type ClientKindTokenStates = z.infer<typeof ClientKindTokenStates>;
+import { ClientKindTokenStates } from "./commons.js";
 
 const TokenGenerationStatesBaseEntry = z.object({
   consumerId: TenantId,
   clientKind: ClientKindTokenStates,
   publicKey: z.string(),
   GSIPK_clientId: ClientId,
-  GSIPK_kid: z.string(),
+  GSIPK_kid: GSIPKKid,
   updatedAt: z.string().datetime(),
 });
 type TokenGenerationStatesBaseEntry = z.infer<
@@ -54,10 +46,22 @@ export type TokenGenerationStatesClientPurposeEntry = z.infer<
   typeof TokenGenerationStatesClientPurposeEntry
 >;
 
+export const FullTokenGenerationStatesClientPurposeEntry =
+  TokenGenerationStatesClientPurposeEntry.required();
+export type FullTokenGenerationStatesClientPurposeEntry = z.infer<
+  typeof FullTokenGenerationStatesClientPurposeEntry
+>;
+
 export const TokenGenerationStatesClientEntry =
   TokenGenerationStatesBaseEntry.extend({
     PK: TokenGenerationStatesClientKidPK,
   });
 export type TokenGenerationStatesClientEntry = z.infer<
-  typeof TokenGenerationStatesClientPurposeEntry
+  typeof TokenGenerationStatesClientEntry
+>;
+
+export const TokenGenerationStatesGenericEntry =
+  TokenGenerationStatesClientPurposeEntry.or(TokenGenerationStatesClientEntry);
+export type TokenGenerationStatesGenericEntry = z.infer<
+  typeof TokenGenerationStatesGenericEntry
 >;

@@ -37,6 +37,14 @@ export function toFeatureV2(feature: TenantFeature): TenantFeatureV2 {
         },
       },
     }))
+    .with({ type: "DelegatedProducer" }, (feature) => ({
+      sealedValue: {
+        oneofKind: "delegatedProducer",
+        delegatedProducer: {
+          availabilityTimestamp: dateToBigInt(feature.availabilityTimestamp),
+        },
+      },
+    }))
     .exhaustive();
 }
 
@@ -116,6 +124,7 @@ export function toTenantKindV2(input: TenantKind): TenantKindV2 {
     .with(tenantKind.GSP, () => TenantKindV2.GSP)
     .with(tenantKind.PA, () => TenantKindV2.PA)
     .with(tenantKind.PRIVATE, () => TenantKindV2.PRIVATE)
+    .with(tenantKind.SCP, () => TenantKindV2.SCP)
     .exhaustive();
 }
 

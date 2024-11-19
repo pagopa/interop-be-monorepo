@@ -1,5 +1,13 @@
 import { match } from "ts-pattern";
-import { clientKindTokenStates } from "pagopa-interop-models";
+import {
+  clientKidPurposePrefix,
+  clientKindTokenStates,
+  TokenGenerationStatesClientEntry,
+  TokenGenerationStatesClientPurposeEntry,
+  ClientAssertion,
+  ClientAssertionHeader,
+  ClientAssertionPayload,
+} from "pagopa-interop-models";
 import * as jose from "jose";
 import {
   JOSEError,
@@ -9,6 +17,7 @@ import {
   JWTExpired,
   JWTInvalid,
 } from "jose/errors";
+import { createPublicKey } from "pagopa-interop-commons";
 import {
   failedValidation,
   successfulValidation,
@@ -28,14 +37,8 @@ import {
   ALLOWED_ALGORITHM,
 } from "./utils.js";
 import {
-  ApiKey,
   Base64Encoded,
-  ClientAssertion,
-  ClientAssertionHeader,
-  ClientAssertionPayload,
   ClientAssertionValidationRequest,
-  ConsumerKey,
-  Key,
   ValidationResult,
 } from "./types.js";
 import {
@@ -52,6 +55,7 @@ import {
   clientAssertionInvalidClaims,
   algorithmNotAllowed,
   clientAssertionSignatureVerificationError,
+  missingPlatformStates,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -183,11 +187,14 @@ export const verifyClientAssertion = (
 
 export const verifyClientAssertionSignature = async (
   clientAssertionJws: string,
-  key: Key
+  key:
+    | TokenGenerationStatesClientPurposeEntry
+    | TokenGenerationStatesClientEntry,
+  clientAssertionAlgorithm: string
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
-    if (key.algorithm !== ALLOWED_ALGORITHM) {
-      return failedValidation([algorithmNotAllowed(key.algorithm)]);
+    if (clientAssertionAlgorithm !== ALLOWED_ALGORITHM) {
+      return failedValidation([algorithmNotAllowed(clientAssertionAlgorithm)]);
     }
 
     if (!Base64Encoded.safeParse(key.publicKey).success) {
@@ -200,11 +207,17 @@ export const verifyClientAssertionSignature = async (
       ]);
     }
 
-    const decoded = Buffer.from(key.publicKey, "base64").toString("utf8");
-    const publicKey = await jose.importSPKI(decoded, key.algorithm);
+    // Note: we use our common function based on crypto to import the public key,
+    // instead of using the dedicated function from jose.
+    // Why:
+    // - it's the same function we use to create the public key when adding it to the client
+    // - jose throws and error in case of keys with missing trailing newline, while crypto does not
+    // See keyImport.test.ts
+    // See also Jose docs, it accepts crypto KeyObject as well: https://github.com/panva/jose/blob/main/docs/types/types.KeyLike.md
+    const publicKey = createPublicKey(key.publicKey);
 
     const result = await jose.jwtVerify(clientAssertionJws, publicKey, {
-      algorithms: [key.algorithm],
+      algorithms: [clientAssertionAlgorithm],
     });
 
     return successfulValidation(result.payload);
@@ -234,7 +247,9 @@ export const verifyClientAssertionSignature = async (
 };
 
 export const validateClientKindAndPlatformState = (
-  key: ApiKey | ConsumerKey,
+  key:
+    | TokenGenerationStatesClientEntry
+    | TokenGenerationStatesClientPurposeEntry,
   jwt: ClientAssertion
 ): ValidationResult<ClientAssertion> =>
   match(key)
@@ -242,14 +257,18 @@ export const validateClientKindAndPlatformState = (
       successfulValidation(jwt)
     )
     .with({ clientKind: clientKindTokenStates.consumer }, (key) => {
-      const { errors: platformStateErrors } = validatePlatformState(key);
-      const purposeIdError = jwt.payload.purposeId
-        ? undefined
-        : purposeIdNotProvided();
+      if (key.PK.startsWith(clientKidPurposePrefix)) {
+        const parsed = key as TokenGenerationStatesClientPurposeEntry;
+        const { errors: platformStateErrors } = validatePlatformState(parsed);
+        const purposeIdError = jwt.payload.purposeId
+          ? undefined
+          : purposeIdNotProvided();
 
-      if (!platformStateErrors && !purposeIdError) {
-        return successfulValidation(jwt);
+        if (!platformStateErrors && !purposeIdError) {
+          return successfulValidation(jwt);
+        }
+        return failedValidation([platformStateErrors, purposeIdError]);
       }
-      return failedValidation([platformStateErrors, purposeIdError]);
+      return failedValidation([missingPlatformStates()]);
     })
     .exhaustive();

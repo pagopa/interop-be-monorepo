@@ -1,0 +1,23 @@
+meta {
+  name: Generate Put Presigned URL
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-bff}}/import/eservices/presignedUrl?fileName=054d02f9-7beb-4443-994a-062c4157672e_1635b970-eb99-4c12-8a51-aac884dfd648.zip
+  body: none
+  auth: none
+}
+
+params:query {
+  fileName: 054d02f9-7beb-4443-994a-062c4157672e_1635b970-eb99-4c12-8a51-aac884dfd648.zip
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+  Accept: application/octet-stream
+}
+
+

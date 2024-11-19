@@ -36,6 +36,7 @@ const catalogRouter = (
     tenantProcessClient,
     agreementProcessClient,
     attributeProcessClient,
+    delegationProcessClient,
   }: PagoPAInteropBeClients,
   fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -48,6 +49,7 @@ const catalogRouter = (
     tenantProcessClient,
     agreementProcessClient,
     attributeProcessClient,
+    delegationProcessClient,
     fileManager,
     config
   );
@@ -65,6 +67,7 @@ const catalogRouter = (
           error,
           bffGetCatalogErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           "Error retrieving Catalog EServices"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -87,6 +90,7 @@ const catalogRouter = (
           error,
           bffGetCatalogErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           "Error retrieving Producer EServices"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -107,6 +111,7 @@ const catalogRouter = (
           error,
           bffGetCatalogErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error retrieving producer eservice ${req.params.eserviceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -131,6 +136,7 @@ const catalogRouter = (
             error,
             bffGetCatalogErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error retrieving producer descriptor ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -156,6 +162,7 @@ const catalogRouter = (
             error,
             bffGetCatalogErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error retrieving descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId} from catalog`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -182,6 +189,7 @@ const catalogRouter = (
           error,
           bffGetCatalogErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error getting consumers of eservice ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -203,6 +211,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error while deleting draft descriptor ${req.params.descriptorId} for E-Service ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -228,6 +237,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error updating draft descriptor ${
               req.params.descriptorId
             } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
@@ -253,6 +263,7 @@ const catalogRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating descriptor in EService ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -274,6 +285,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error activating descriptor ${req.params.descriptorId} on service ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -297,6 +309,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error updating descriptor ${req.params.descriptorId} on service ${
               req.params.eServiceId
             } with seed: ${JSON.stringify(req.body)}`
@@ -321,6 +334,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error publishing descriptor ${req.params.descriptorId} for service ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -343,6 +357,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error suspending descriptor ${req.params.descriptorId} for service ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -366,6 +381,7 @@ const catalogRouter = (
             error,
             createEServiceDocumentErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error creating eService document of kind ${req.body.kind} and name ${req.body.prettyName} for eService ${req.params.eServiceId} and descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -389,6 +405,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error deleting document ${req.params.documentId} for eService ${req.params.eServiceId} descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -416,6 +433,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error getting document ${req.params.documentId} for eService ${req.params.eServiceId} descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -443,6 +461,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error cloning eService ${req.params.eServiceId} with descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -477,6 +496,7 @@ const catalogRouter = (
             error,
             bffGetCatalogErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error updating document ${documentId} on eService ${eServiceId} for descriptor ${descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -498,6 +518,7 @@ const catalogRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error creating eservice with seed: ${JSON.stringify(req.body)}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -516,6 +537,7 @@ const catalogRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error deleting EService ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -537,6 +559,7 @@ const catalogRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error updating EService ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -557,6 +580,7 @@ const catalogRouter = (
           error,
           bffGetCatalogErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error inserting risk analysis ${req.body.name} to eservice ${req.params.eServiceId} from catalog`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -576,6 +600,7 @@ const catalogRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           `Error updating description of eservice with Id: ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -600,6 +625,7 @@ const catalogRouter = (
             error,
             bffGetCatalogErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error retrieving risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -623,6 +649,7 @@ const catalogRouter = (
             error,
             bffGetCatalogErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error updating risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -645,6 +672,7 @@ const catalogRouter = (
             error,
             bffGetCatalogErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error deleting risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -668,6 +696,7 @@ const catalogRouter = (
             error,
             exportEServiceDescriptorErrorMapper,
             ctx.logger,
+            ctx.correlationId,
             `Error exporting eservice ${req.params.eserviceId} with descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -688,6 +717,7 @@ const catalogRouter = (
           error,
           bffGetCatalogErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           "Error getting eservice import presigned url"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -710,6 +740,7 @@ const catalogRouter = (
           error,
           importEServiceErrorMapper,
           ctx.logger,
+          ctx.correlationId,
           "Error importing eService"
         );
         return res.status(errorRes.status).send(errorRes);

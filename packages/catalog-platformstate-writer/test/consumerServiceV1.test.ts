@@ -38,7 +38,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { writeTokenStateEntry } from "pagopa-interop-commons-test";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
-import { config, sleep } from "./utils.js";
+import { config } from "./utils.js";
 describe("V1 events", async () => {
   if (!config) {
     fail();
@@ -124,7 +124,6 @@ describe("V1 events", async () => {
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
         await handleMessageV1(message, dynamoDBClient);
-        await sleep(1000, mockDate);
 
         const primaryKey = makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
@@ -169,7 +168,7 @@ describe("V1 events", async () => {
           ])
         );
       });
-      it("(suspended -> published) should update the entry if incoming version is more recent than existing table entry", async () => {
+      it("(suspended -> published) should update the entry if the incoming version is more recent than the existing table entry", async () => {
         const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it/test1", "pagopa.it/test2"],
@@ -244,7 +243,6 @@ describe("V1 events", async () => {
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
         await handleMessageV1(message, dynamoDBClient);
-        await sleep(1000, mockDate);
 
         const retrievedCatalogEntry = await readCatalogEntry(
           primaryKey,
@@ -358,7 +356,6 @@ describe("V1 events", async () => {
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
         await handleMessageV1(message, dynamoDBClient);
-        await sleep(1000, mockDate);
 
         const retrievedCatalogEntry = await readCatalogEntry(
           catalogPrimaryKey,
@@ -381,7 +378,7 @@ describe("V1 events", async () => {
       });
 
       describe("(published -> suspended)", () => {
-        it("should update the entry if msg.version >= existing version", async () => {
+        it("should update the entry if the incoming version is more recent than the existing table entry", async () => {
           const suspendedDescriptor: Descriptor = {
             ...getMockDescriptor(),
             audience: ["pagopa.it/test1", "pagopa.it/test2"],
@@ -458,7 +455,6 @@ describe("V1 events", async () => {
             };
           await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
           await handleMessageV1(message, dynamoDBClient);
-          await sleep(1000, mockDate);
 
           const retrievedEntry = await readCatalogEntry(
             primaryKey,
@@ -497,7 +493,7 @@ describe("V1 events", async () => {
           );
         });
 
-        it("should do no operation if msg.version < existing version", async () => {
+        it("should do no operation if the existing table entry is more recent", async () => {
           const suspendedDescriptor: Descriptor = {
             ...getMockDescriptor(),
             audience: ["pagopa.it/test1", "pagopa.it/test2"],
@@ -574,7 +570,6 @@ describe("V1 events", async () => {
           await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
           await handleMessageV1(message, dynamoDBClient);
-          await sleep(1000, mockDate);
 
           const retrievedEntry = await readCatalogEntry(
             primaryKey,
@@ -716,7 +711,6 @@ describe("V1 events", async () => {
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       await handleMessageV1(message, dynamoDBClient);
-      await sleep(1000, mockDate);
 
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       expect(retrievedEntry).toBeUndefined();

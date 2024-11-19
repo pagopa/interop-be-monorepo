@@ -22,6 +22,7 @@ import {
   getMockTenant,
   readEventByStreamIdAndVersion,
   getRandomAuthData,
+  getTenantOneCertifierFeature,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -53,7 +54,7 @@ describe("revokeCertifiedAttributeById", async () => {
   const attribute: Attribute = {
     ...getMockAttribute(),
     kind: attributeKind.certified,
-    origin: requesterTenant.features[0].certifierId,
+    origin: getTenantOneCertifierFeature(requesterTenant).certifierId,
   };
 
   beforeAll(async () => {
@@ -87,7 +88,7 @@ describe("revokeCertifiedAttributeById", async () => {
       },
       {
         authData,
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -134,7 +135,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -154,7 +155,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -180,7 +181,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -208,7 +209,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }
@@ -243,7 +244,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "",
+          correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
         }

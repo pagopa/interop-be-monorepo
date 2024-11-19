@@ -40,7 +40,7 @@ export function selfcareServiceBuilder(
       {
         authData: { selfcareId: institutionId, userId, organizationId },
         logger,
-        headers,
+        correlationId,
       }: WithLogger<BffAppContext>
     ): Promise<bffApi.User> {
       logger.info(
@@ -55,7 +55,7 @@ export function selfcareServiceBuilder(
             userId: userIdQuery,
           },
           headers: {
-            "X-Correlation-Id": headers["X-Correlation-Id"],
+            "X-Correlation-Id": correlationId,
           },
         });
 
@@ -69,7 +69,7 @@ export function selfcareServiceBuilder(
     async getSelfcareInstitutionsProducts({
       authData: { selfcareId: institutionId, userId },
       logger,
-      headers,
+      correlationId,
     }: WithLogger<BffAppContext>): Promise<bffApi.SelfcareProduct[]> {
       logger.info(
         `Retrieving Products for Institution ${institutionId} and User ${userId}`
@@ -79,7 +79,7 @@ export function selfcareServiceBuilder(
           params: { institutionId },
           queries: { userId },
           headers: {
-            "X-Correlation-Id": headers["X-Correlation-Id"],
+            "X-Correlation-Id": correlationId,
           },
         });
 
@@ -89,14 +89,14 @@ export function selfcareServiceBuilder(
     async getSelfcareInstitutions({
       authData: { userId, selfcareId },
       logger,
-      headers,
+      correlationId,
     }: WithLogger<BffAppContext>): Promise<bffApi.SelfcareInstitution[]> {
       logger.info(`Retrieving Institutions for User ${userId}`);
       const institutions =
         await selfcareV2UsersClient.getUserInstitutionUsingGET({
           queries: { userId, institutionId: selfcareId },
           headers: {
-            "X-Correlation-Id": headers["X-Correlation-Id"],
+            "X-Correlation-Id": correlationId,
           },
         });
 
@@ -108,7 +108,7 @@ export function selfcareServiceBuilder(
       userId: string | undefined,
       roles: string[],
       query: string | undefined,
-      { authData, logger, headers }: WithLogger<BffAppContext>
+      { authData, logger, correlationId, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.Users> {
       logger.info(`Retrieving users for institutions ${tenantId}`);
 
@@ -132,7 +132,7 @@ export function selfcareServiceBuilder(
             productRoles: roles,
           },
           headers: {
-            "X-Correlation-Id": headers["X-Correlation-Id"],
+            "X-Correlation-Id": correlationId,
           },
         });
 

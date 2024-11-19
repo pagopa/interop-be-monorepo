@@ -1,0 +1,26 @@
+meta {
+  name: retrieves an agreement
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/agreements/:agreementId
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: 345d991b-3e47-4bf7-9591-1eddb44512e7
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  returns an agreement for a given agreementId
+}

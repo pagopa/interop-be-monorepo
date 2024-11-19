@@ -1,5 +1,6 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
-import { Attribute, Tenant } from "pagopa-interop-models";
+import { Attribute } from "pagopa-interop-models";
+import { AnacReadModelTenant } from "../model/tenant.js";
 
 const projectUnrevokedCertifiedAttributes = {
   _id: 0,
@@ -26,7 +27,9 @@ export class ReadModelQueries {
   /**
    * Retrieve all PA tenants that matches the given IPA codes, with their unrevoked certified attribute
    */
-  public async getPATenants(ipaCodes: string[]): Promise<Tenant[]> {
+  public async getPATenants(
+    ipaCodes: string[]
+  ): Promise<AnacReadModelTenant[]> {
     return await this.readModelClient.tenants
       .aggregate([
         {
@@ -39,14 +42,16 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => Tenant.parse(data))
+      .map(({ data }) => AnacReadModelTenant.parse(data))
       .toArray();
   }
 
   /**
    * Retrieve all non-PA tenants that matches the given tax codes, with their unrevoked certified attribute
    */
-  public async getNonPATenants(taxCodes: string[]): Promise<Tenant[]> {
+  public async getNonPATenants(
+    taxCodes: string[]
+  ): Promise<AnacReadModelTenant[]> {
     return await this.readModelClient.tenants
       .aggregate([
         {
@@ -59,11 +64,11 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => Tenant.parse(data))
+      .map(({ data }) => AnacReadModelTenant.parse(data))
       .toArray();
   }
 
-  public async getTenantById(tenantId: string): Promise<Tenant> {
+  public async getTenantById(tenantId: string): Promise<AnacReadModelTenant> {
     const result = await this.readModelClient.tenants
       .aggregate([
         {
@@ -75,7 +80,7 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => Tenant.parse(data))
+      .map(({ data }) => AnacReadModelTenant.parse(data))
       .toArray();
 
     if (result.length === 0) {
@@ -111,7 +116,7 @@ export class ReadModelQueries {
 
   public async getTenantsWithAttributes(
     attributeIds: string[]
-  ): Promise<Tenant[]> {
+  ): Promise<AnacReadModelTenant[]> {
     return await this.readModelClient.tenants
       .aggregate([
         {
@@ -123,7 +128,7 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => Tenant.parse(data))
+      .map(({ data }) => AnacReadModelTenant.parse(data))
       .toArray();
   }
 }

@@ -1,0 +1,27 @@
+meta {
+  name: Returns a set of keys by user ID and client ID-
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/clients/:clientId/users/:userId/keys
+  body: none
+  auth: none
+}
+
+params:path {
+  clientId: <uuid>
+  userId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Given a user and a client it returns its corresponding set of keys, if any
+}

@@ -1,0 +1,28 @@
+meta {
+  name: get Consumers
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/consumers
+  body: none
+  auth: none
+}
+
+params:query {
+  q: 
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Retrieve Tenants that are subscribed to at least one EService
+}
