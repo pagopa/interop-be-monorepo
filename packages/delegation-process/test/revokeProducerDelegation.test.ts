@@ -239,8 +239,8 @@ describe("revoke producer delegation", () => {
       genericLogger
     );
 
-    expect(pdfScreenshot(actualContract)).toEqual(
-      pdfScreenshot(expectedContract)
+    expect(await pdfScreenshot(actualContract)).toEqual(
+      await pdfScreenshot(expectedContract)
     );
   });
 
