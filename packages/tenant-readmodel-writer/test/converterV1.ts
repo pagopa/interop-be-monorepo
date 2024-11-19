@@ -35,7 +35,9 @@ export function toFeatureV1(feature: TenantFeature): TenantFeatureV1 {
         },
       },
     }))
-    .exhaustive();
+    .otherwise(() => {
+      throw new Error("Unsupported tenant feature");
+    });
 }
 
 export function toTenantVerifierV1(verifier: TenantVerifier): TenantVerifierV1 {
@@ -115,7 +117,9 @@ export function toTenantKindV1(input: TenantKind): TenantKindV1 {
     .with(tenantKind.GSP, () => TenantKindV1.GSP)
     .with(tenantKind.PA, () => TenantKindV1.PA)
     .with(tenantKind.PRIVATE, () => TenantKindV1.PRIVATE)
-    .exhaustive();
+    .otherwise(() => {
+      throw new Error("Unsupported tenant kind");
+    });
 }
 
 export function toTenantUnitTypeV1(input: TenantUnitType): TenantUnitTypeV1 {

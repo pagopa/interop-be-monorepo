@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import winston from "winston";
+import { CorrelationId } from "pagopa-interop-models";
 import { LoggerConfig } from "../config/loggerConfig.js";
 import { bigIntReplacer } from "./utils.js";
 
@@ -7,7 +8,7 @@ export type LoggerMetadata = {
   serviceName?: string;
   userId?: string;
   organizationId?: string;
-  correlationId?: string | null;
+  correlationId?: CorrelationId | null;
   eventType?: string;
   eventVersion?: number;
   streamId?: string;

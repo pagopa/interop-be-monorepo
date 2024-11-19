@@ -1,0 +1,27 @@
+meta {
+  name: Gets the certified attributes of the requester
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/tenants/attributes/certified
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Retrieve the certified attributes
+}

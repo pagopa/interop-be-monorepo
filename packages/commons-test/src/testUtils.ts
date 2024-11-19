@@ -1,3 +1,5 @@
+import crypto from "crypto";
+import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
@@ -47,10 +49,31 @@ import {
   AgreementId,
   PurposeVersionId,
   ProducerKeychain,
+  Delegation,
+  delegationKind,
+  DelegationId,
+  DelegationContractDocument,
+  DelegationContractId,
+  DelegationState,
+  TenantFeatureCertifier,
+  TenantFeature,
   DescriptorState,
+  GSIPKConsumerIdEServiceId,
+  PlatformStatesAgreementEntry,
+  PlatformStatesAgreementPK,
+  makeGSIPKKid,
+  TokenGenerationStatesClientKidPK,
+  TokenGenerationStatesClientEntry,
+  makeTokenGenerationStatesClientKidPK,
+  PlatformStatesClientPK,
+  PlatformStatesClientEntry,
+  makePlatformStatesClientPK,
+  unsafeBrandId,
 } from "pagopa-interop-models";
-import { AuthData } from "pagopa-interop-commons";
+import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
+import * as jose from "jose";
+import { match } from "ts-pattern";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -69,6 +92,31 @@ export function randomBoolean(): boolean {
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export const getTenantCertifierFeatures = (
+  tenant: Tenant
+): TenantFeatureCertifier[] =>
+  tenant.features.reduce(
+    (acc: TenantFeatureCertifier[], feature: TenantFeature) =>
+      match(feature.type)
+        .with("PersistentCertifier", () => [
+          ...acc,
+          feature as TenantFeatureCertifier,
+        ])
+        .with("DelegatedProducer", () => acc)
+        .exhaustive(),
+    []
+  );
+
+export const getTenantOneCertifierFeature = (
+  tenant: Tenant
+): TenantFeatureCertifier => {
+  const certifiedFeatures = getTenantCertifierFeatures(tenant);
+  if (certifiedFeatures.length === 0) {
+    fail("Expected certifier feature not found in Tenant");
+  }
+  return certifiedFeatures[0];
+};
 
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
@@ -321,27 +369,81 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   selfcareId: generateId(),
 });
 
+export const getMockDelegationProducer = ({
+  id = generateId<DelegationId>(),
+  delegatorId = generateId<TenantId>(),
+  delegateId = generateId<TenantId>(),
+  eserviceId = generateId<EServiceId>(),
+  state = "WaitingForApproval",
+  activationContract = undefined,
+  revocationContract = undefined,
+}: {
+  id?: DelegationId;
+  delegatorId?: TenantId;
+  delegateId?: TenantId;
+  eserviceId?: EServiceId;
+  state?: DelegationState;
+  activationContract?: DelegationContractDocument;
+  revocationContract?: DelegationContractDocument;
+} = {}): Delegation => {
+  const creationTime = new Date();
+
+  return {
+    id,
+    delegatorId,
+    delegateId,
+    eserviceId,
+    createdAt: creationTime,
+    submittedAt: creationTime,
+    state,
+    activationContract,
+    revocationContract,
+    kind: delegationKind.delegatedProducer,
+    stamps: {
+      submission: {
+        who: delegatorId,
+        when: creationTime,
+      },
+    },
+  };
+};
+
+export const getMockDelegationDocument = (
+  id?: DelegationContractId
+): DelegationContractDocument => ({
+  id: id ?? generateId(),
+  name: "Test document",
+  prettyName: "Test document",
+  contentType: "json",
+  path: "path",
+  createdAt: new Date(),
+});
+
 export const getMockTokenStatesClientPurposeEntry = (
   tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
 ): TokenGenerationStatesClientPurposeEntry => {
-  const clientId = generateId<ClientId>();
+  const clientId = tokenStateEntryPK
+    ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
+    : generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
   const descriptorId = generateId<DescriptorId>();
   const agreementId = generateId<AgreementId>();
   const purposeVersionId = generateId<PurposeVersionId>();
+  const kid = `kid ${Math.random()}`;
 
   return {
     PK:
       tokenStateEntryPK ||
       makeTokenGenerationStatesClientKidPurposePK({
         clientId,
-        kid: `kid ${Math.random()}`,
+        kid,
         purposeId,
       }),
-    descriptorState: itemState.inactive,
+    descriptorState: itemState.active,
     descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+    descriptorVoucherLifespan: 60,
     updatedAt: new Date().toISOString(),
     consumerId,
     agreementId,
@@ -353,17 +455,173 @@ export const getMockTokenStatesClientPurposeEntry = (
     clientKind: clientKindTokenStates.consumer,
     publicKey: "PEM",
     GSIPK_clientId: clientId,
-    GSIPK_kid: "KID",
-    agreementState: "ACTIVE",
+    GSIPK_kid: makeGSIPKKid(kid),
+    agreementState: itemState.active,
     GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
       eserviceId,
       descriptorId,
     }),
     GSIPK_purposeId: purposeId,
-    purposeState: itemState.inactive,
+    purposeState: itemState.active,
     GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
       clientId,
       purposeId,
     }),
   };
+};
+
+export const getMockAgreementEntry = (
+  primaryKey: PlatformStatesAgreementPK,
+  GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId(
+    {
+      consumerId: generateId<TenantId>(),
+      eserviceId: generateId<EServiceId>(),
+    }
+  )
+): PlatformStatesAgreementEntry => ({
+  PK: primaryKey,
+  state: itemState.inactive,
+  version: 1,
+  updatedAt: new Date().toISOString(),
+  GSIPK_consumerId_eserviceId,
+  GSISK_agreementTimestamp: new Date().toISOString(),
+  agreementDescriptorId: generateId<DescriptorId>(),
+});
+
+export const getMockTokenStatesClientEntry = (
+  tokenStateEntryPK?: TokenGenerationStatesClientKidPK
+): TokenGenerationStatesClientEntry => {
+  const clientId = tokenStateEntryPK
+    ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
+    : generateId<ClientId>();
+
+  const consumerId = generateId<TenantId>();
+  const kid = `kid ${Math.random()}`;
+
+  return {
+    PK:
+      tokenStateEntryPK ||
+      makeTokenGenerationStatesClientKidPK({
+        clientId,
+        kid,
+      }),
+    updatedAt: new Date().toISOString(),
+    consumerId,
+    clientKind: clientKindTokenStates.consumer,
+    publicKey: "PEM",
+    GSIPK_clientId: clientId,
+    GSIPK_kid: makeGSIPKKid(kid),
+  };
+};
+
+export const getMockPlatformStatesClientEntry = (
+  pk?: PlatformStatesClientPK
+): PlatformStatesClientEntry => ({
+  PK: pk || makePlatformStatesClientPK(generateId<ClientId>()),
+  version: 0,
+  state: "ACTIVE",
+  updatedAt: new Date().toISOString(),
+  clientKind: "CONSUMER",
+  clientConsumerId: generateId<TenantId>(),
+  clientPurposesIds: [],
+});
+
+export const getMockClientAssertion = async (props?: {
+  standardClaimsOverride?: Partial<jose.JWTPayload>;
+  customClaims?: { [k: string]: unknown };
+  customHeader?: { [k: string]: unknown };
+}): Promise<{
+  jws: string;
+  clientAssertion: {
+    payload: jose.JWTPayload;
+    header: jose.JWTHeaderParameters;
+  };
+  publicKeyEncodedPem: string;
+}> => {
+  const { keySet, publicKeyEncodedPem } = generateKeySet();
+
+  const threeHourLater = new Date();
+  threeHourLater.setHours(threeHourLater.getHours() + 3);
+
+  const clientId = generateId<ClientId>();
+  const defaultPayload: jose.JWTPayload = {
+    iss: clientId,
+    sub: clientId,
+    aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
+    exp: dateToSeconds(threeHourLater),
+    jti: generateId(),
+    iat: dateToSeconds(new Date()),
+  };
+
+  const actualPayload: jose.JWTPayload = {
+    ...defaultPayload,
+    ...props?.standardClaimsOverride,
+    ...props?.customClaims,
+  };
+
+  const headers: jose.JWTHeaderParameters = {
+    alg: "RS256",
+    kid: "kid",
+    ...props?.customHeader,
+  };
+
+  const jws = await signClientAssertion({
+    payload: actualPayload,
+    headers,
+    keySet,
+  });
+
+  return {
+    jws,
+    clientAssertion: {
+      payload: actualPayload,
+      header: headers,
+    },
+    publicKeyEncodedPem,
+  };
+};
+
+export const generateKeySet = (): {
+  keySet: crypto.KeyPairKeyObjectResult;
+  publicKeyEncodedPem: string;
+} => {
+  const keySet: crypto.KeyPairKeyObjectResult = crypto.generateKeyPairSync(
+    "rsa",
+    {
+      modulusLength: 2048,
+    }
+  );
+
+  const pemPublicKey = keySet.publicKey
+    .export({
+      type: "spki",
+      format: "pem",
+    })
+    .toString();
+
+  const publicKeyEncodedPem = Buffer.from(pemPublicKey).toString("base64");
+  return {
+    keySet,
+    publicKeyEncodedPem,
+  };
+};
+
+const signClientAssertion = async ({
+  payload,
+  headers,
+  keySet,
+}: {
+  payload: jose.JWTPayload;
+  headers: jose.JWTHeaderParameters;
+  keySet: crypto.KeyPairKeyObjectResult;
+}): Promise<string> => {
+  const pemPrivateKey = keySet.privateKey.export({
+    type: "pkcs8",
+    format: "pem",
+  });
+
+  const privateKey = crypto.createPrivateKey(pemPrivateKey);
+  return await new jose.SignJWT(payload)
+    .setProtectedHeader(headers)
+    .sign(privateKey);
 };

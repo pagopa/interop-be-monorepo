@@ -1,0 +1,27 @@
+meta {
+  name: Returns a base64 encoded key by client and key identifier -kid--
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/clients/:clientId/encoded/keys/:keyId
+  body: none
+  auth: none
+}
+
+params:path {
+  clientId: bfb613c0-f07a-45ee-be0a-26cf9985f940
+  keyId: Cy5DVDEz8sgHJVGNQZ5Eb59wPUQXBNR0EEQIR_cU_30
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Given a client and key identifiers it returns the corresponding encoded key, if any
+}
