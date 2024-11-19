@@ -5,6 +5,7 @@ import {
   getMockTenant,
   getMockEService,
   getRandomAuthData,
+  pdfScreenshot,
 } from "pagopa-interop-commons-test/index.js";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -39,7 +40,6 @@ import {
   fileManager,
   readLastDelegationEvent,
   pdfGenerator,
-  flushPDFMetadata,
 } from "./utils.js";
 
 describe("approve producer delegation", () => {
@@ -153,9 +153,8 @@ describe("approve producer delegation", () => {
       genericLogger
     );
 
-    // TODO fix this, it's not really working
-    expect(flushPDFMetadata(actualContract, currentExecutionTime)).toEqual(
-      flushPDFMetadata(expectedContract, currentExecutionTime)
+    expect(pdfScreenshot(actualContract)).toEqual(
+      pdfScreenshot(expectedContract)
     );
   });
 
