@@ -1,6 +1,6 @@
 vars {
   host-agreement: http://localhost:3100
-  JWT: {{process.env.JWT}}
+  JWT: Bearer {{process.env.JWT}}
   host-catalog: http://localhost:3000
   correlation-id: 79eb4963-3866-422f-8ef0-87871e5f9a71
   JWT-Invalid: 
@@ -9,6 +9,7 @@ vars {
   host-tenant: http://localhost:3500
   host-purpose: http://localhost:3400
   host-authorization: http://localhost:3300
+  host-delegation: http://localhost:3800
   host-api-gw: http://localhost:3700/api-gateway/0.0
-  JWT-M2M: {{process.env.JWT-M2M}}
+  JWT-M2M: Bearer {{process.env.JWT-M2M}}
 }
