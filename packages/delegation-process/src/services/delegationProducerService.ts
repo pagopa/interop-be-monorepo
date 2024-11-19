@@ -126,7 +126,7 @@ export function delegationProducerServiceBuilder(
     async revokeProducerDelegation(
       delegationId: DelegationId,
       { authData, logger, correlationId }: WithLogger<AppContext>
-    ): Promise<Delegation> {
+    ): Promise<void> {
       const delegatorId = unsafeBrandId<TenantId>(authData.organizationId);
       logger.info(
         `Revoking delegation ${delegationId} by producer ${delegatorId}`
@@ -145,7 +145,7 @@ export function delegationProducerServiceBuilder(
       ]);
 
       const now = new Date();
-      const revokedDelegation = {
+      const revokedDelegationWithoutContract = {
         ...delegation,
         state: delegationState.revoked,
         revokedAt: now,
@@ -160,7 +160,7 @@ export function delegationProducerServiceBuilder(
 
       const revocationContract = await contractBuilder.createRevocationContract(
         {
-          delegation: revokedDelegation,
+          delegation: revokedDelegationWithoutContract,
           delegator,
           delegate,
           eservice,
@@ -171,20 +171,19 @@ export function delegationProducerServiceBuilder(
         }
       );
 
+      const revokedDelegation = {
+        ...revokedDelegationWithoutContract,
+        revocationContract,
+      };
       await repository.createEvent(
         toCreateEventProducerDelegationRevoked(
           {
-            data: {
-              ...revokedDelegation,
-              revocationContract,
-            },
+            data: revokedDelegation,
             metadata,
           },
           correlationId
         )
       );
-
-      return revokedDelegation;
     },
     async approveProducerDelegation(
       delegationId: DelegationId,
@@ -211,7 +210,7 @@ export function delegationProducerServiceBuilder(
       ]);
 
       const now = new Date();
-      const activatedDelegation: Delegation = {
+      const approvedDelegationWithoutContract: Delegation = {
         ...delegation,
         state: delegationState.active,
         approvedAt: now,
@@ -223,9 +222,10 @@ export function delegationProducerServiceBuilder(
           },
         },
       };
+
       const activationContract = await contractBuilder.createActivationContract(
         {
-          delegation: activatedDelegation,
+          delegation: approvedDelegationWithoutContract,
           delegator,
           delegate,
           eservice,
@@ -236,13 +236,15 @@ export function delegationProducerServiceBuilder(
         }
       );
 
+      const approvedDelegation = {
+        ...approvedDelegationWithoutContract,
+        activationContract,
+      };
+
       await repository.createEvent(
         toCreateEventProducerDelegationApproved(
           {
-            data: {
-              ...activatedDelegation,
-              activationContract,
-            },
+            data: approvedDelegation,
             metadata,
           },
           correlationId
