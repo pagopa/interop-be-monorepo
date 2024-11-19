@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
 import {
@@ -67,9 +68,11 @@ import {
   PlatformStatesClientEntry,
   makePlatformStatesClientPK,
   DelegationKind,
+  unsafeBrandId,
 } from "pagopa-interop-models";
-import { AuthData } from "pagopa-interop-commons";
+import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
+import * as jose from "jose";
 import { match } from "ts-pattern";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
@@ -421,7 +424,9 @@ export const getMockDelegationDocument = (
 export const getMockTokenStatesClientPurposeEntry = (
   tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
 ): TokenGenerationStatesClientPurposeEntry => {
-  const clientId = generateId<ClientId>();
+  const clientId = tokenStateEntryPK
+    ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
+    : generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -438,7 +443,7 @@ export const getMockTokenStatesClientPurposeEntry = (
         kid,
         purposeId,
       }),
-    descriptorState: itemState.inactive,
+    descriptorState: itemState.active,
     descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
     descriptorVoucherLifespan: 60,
     updatedAt: new Date().toISOString(),
@@ -459,7 +464,7 @@ export const getMockTokenStatesClientPurposeEntry = (
       descriptorId,
     }),
     GSIPK_purposeId: purposeId,
-    purposeState: itemState.inactive,
+    purposeState: itemState.active,
     GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
       clientId,
       purposeId,
@@ -488,7 +493,10 @@ export const getMockAgreementEntry = (
 export const getMockTokenStatesClientEntry = (
   tokenStateEntryPK?: TokenGenerationStatesClientKidPK
 ): TokenGenerationStatesClientEntry => {
-  const clientId = generateId<ClientId>();
+  const clientId = tokenStateEntryPK
+    ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
+    : generateId<ClientId>();
+
   const consumerId = generateId<TenantId>();
   const kid = `kid ${Math.random()}`;
 
@@ -519,3 +527,103 @@ export const getMockPlatformStatesClientEntry = (
   clientConsumerId: generateId<TenantId>(),
   clientPurposesIds: [],
 });
+
+export const getMockClientAssertion = async (props?: {
+  standardClaimsOverride?: Partial<jose.JWTPayload>;
+  customClaims?: { [k: string]: unknown };
+  customHeader?: { [k: string]: unknown };
+}): Promise<{
+  jws: string;
+  clientAssertion: {
+    payload: jose.JWTPayload;
+    header: jose.JWTHeaderParameters;
+  };
+  publicKeyEncodedPem: string;
+}> => {
+  const { keySet, publicKeyEncodedPem } = generateKeySet();
+
+  const threeHourLater = new Date();
+  threeHourLater.setHours(threeHourLater.getHours() + 3);
+
+  const clientId = generateId<ClientId>();
+  const defaultPayload: jose.JWTPayload = {
+    iss: clientId,
+    sub: clientId,
+    aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
+    exp: dateToSeconds(threeHourLater),
+    jti: generateId(),
+    iat: dateToSeconds(new Date()),
+  };
+
+  const actualPayload: jose.JWTPayload = {
+    ...defaultPayload,
+    ...props?.standardClaimsOverride,
+    ...props?.customClaims,
+  };
+
+  const headers: jose.JWTHeaderParameters = {
+    alg: "RS256",
+    kid: "kid",
+    ...props?.customHeader,
+  };
+
+  const jws = await signClientAssertion({
+    payload: actualPayload,
+    headers,
+    keySet,
+  });
+
+  return {
+    jws,
+    clientAssertion: {
+      payload: actualPayload,
+      header: headers,
+    },
+    publicKeyEncodedPem,
+  };
+};
+
+export const generateKeySet = (): {
+  keySet: crypto.KeyPairKeyObjectResult;
+  publicKeyEncodedPem: string;
+} => {
+  const keySet: crypto.KeyPairKeyObjectResult = crypto.generateKeyPairSync(
+    "rsa",
+    {
+      modulusLength: 2048,
+    }
+  );
+
+  const pemPublicKey = keySet.publicKey
+    .export({
+      type: "spki",
+      format: "pem",
+    })
+    .toString();
+
+  const publicKeyEncodedPem = Buffer.from(pemPublicKey).toString("base64");
+  return {
+    keySet,
+    publicKeyEncodedPem,
+  };
+};
+
+const signClientAssertion = async ({
+  payload,
+  headers,
+  keySet,
+}: {
+  payload: jose.JWTPayload;
+  headers: jose.JWTHeaderParameters;
+  keySet: crypto.KeyPairKeyObjectResult;
+}): Promise<string> => {
+  const pemPrivateKey = keySet.privateKey.export({
+    type: "pkcs8",
+    format: "pem",
+  });
+
+  const privateKey = crypto.createPrivateKey(pemPrivateKey);
+  return await new jose.SignJWT(payload)
+    .setProtectedHeader(headers)
+    .sign(privateKey);
+};
