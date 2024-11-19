@@ -53,10 +53,7 @@ describe("addProducerKeychainUsers", () => {
       users,
     };
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Router",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     await addOneProducerKeychain(mockProducerKeychain);
 
@@ -105,10 +102,7 @@ describe("addProducerKeychainUsers", () => {
 
     await addOneProducerKeychain(getMockProducerKeychain());
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.addProducerKeychainUsers(
@@ -136,10 +130,7 @@ describe("addProducerKeychainUsers", () => {
 
     await addOneProducerKeychain(mockProducerKeychain);
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.addProducerKeychainUsers(
@@ -169,10 +160,7 @@ describe("addProducerKeychainUsers", () => {
 
     await addOneProducerKeychain(mockProducerKeychain);
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.addProducerKeychainUsers(
@@ -213,10 +201,7 @@ describe("addProducerKeychainUsers", () => {
 
     await addOneProducerKeychain(mockProducerKeychain);
 
-    mockSelfcareV2ClientCall({
-      value: [],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([]);
 
     expect(
       authorizationService.addProducerKeychainUsers(

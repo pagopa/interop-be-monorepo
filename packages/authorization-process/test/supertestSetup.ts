@@ -2,7 +2,7 @@ import {
   createMockedApiRequester,
   mockAuthenticationMiddleware,
 } from "pagopa-interop-commons-test";
-import { inject, vi } from "vitest";
+import { inject, Mock, vi } from "vitest";
 import { DB } from "pagopa-interop-commons";
 import {
   authorizationApi,
@@ -10,25 +10,16 @@ import {
 } from "pagopa-interop-api-clients";
 import { postgresDB, selfcareV2Client } from "./utils.js";
 
-const mockGetInstitutionProductUsersUsingGET = vi.fn();
-export function mockSelfcareV2ClientCall({
-  value,
-  mockedFor,
-}: {
-  value: Awaited<
-    ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
-  >;
-  mockedFor: "Router" | "Service";
-}): void {
-  if (mockedFor === "Router") {
-    mockGetInstitutionProductUsersUsingGET.mockImplementation(
-      async () => value
-    );
-  } else {
-    selfcareV2Client.getInstitutionProductUsersUsingGET = vi.fn(
-      async () => value
-    );
-  }
+export function mockSelfcareV2ClientCall(
+  value?:
+    | Awaited<
+        ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
+      >
+    | undefined
+): void {
+  (
+    selfcareV2Client.getInstitutionProductUsersUsingGET as Mock
+  ).mockImplementation(async () => value);
 }
 
 vi.doMock("pagopa-interop-api-clients", async (importActual) => {
@@ -38,10 +29,7 @@ vi.doMock("pagopa-interop-api-clients", async (importActual) => {
   return {
     ...actual,
     selfcareV2InstitutionClientBuilder: (): SelfcareV2InstitutionClient =>
-      ({
-        getInstitutionProductUsersUsingGET:
-          mockGetInstitutionProductUsersUsingGET,
-      } as unknown as SelfcareV2InstitutionClient),
+      selfcareV2Client,
   };
 });
 

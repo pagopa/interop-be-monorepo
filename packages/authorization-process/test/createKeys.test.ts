@@ -104,10 +104,7 @@ describe("createKeys", () => {
   };
 
   it("should create the keys and add them to the client", async () => {
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Router",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     await addOneClient(mockClient);
 
@@ -160,10 +157,7 @@ describe("createKeys", () => {
   it("should throw clientNotFound if the client doesn't exist ", async () => {
     await addOneClient(getMockClient());
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.createKeys({
@@ -183,10 +177,7 @@ describe("createKeys", () => {
 
     await addOneClient(notConsumerClient);
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.createKeys({
@@ -203,10 +194,7 @@ describe("createKeys", () => {
   it("should throw userWithoutSecurityPrivileges if the Security user is not found", async () => {
     await addOneClient(mockClient);
 
-    mockSelfcareV2ClientCall({
-      value: [],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([]);
 
     expect(
       authorizationService.createKeys({
@@ -235,10 +223,7 @@ describe("createKeys", () => {
       users: [userId],
     };
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     await addOneClient(clientWith100Keys);
 
@@ -265,10 +250,7 @@ describe("createKeys", () => {
 
     await addOneClient(noUsersClient);
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.createKeys({
@@ -302,10 +284,7 @@ describe("createKeys", () => {
 
     await addOneClient(mockClient);
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.createKeys({
@@ -329,10 +308,7 @@ describe("createKeys", () => {
     };
     await addOneClient(clientWithDuplicateKey);
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.createKeys({
@@ -363,10 +339,7 @@ describe("createKeys", () => {
     await addOneClient(client);
     await addOneClient(clientWithDuplicateKey);
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.createKeys({
@@ -396,10 +369,7 @@ describe("createKeys", () => {
     await addOneClient(client);
     await addOneProducerKeychain(keychainWithDuplicateKey);
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.createKeys({
@@ -431,10 +401,7 @@ describe("createKeys", () => {
 
     await addOneClient(mockClient);
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.createKeys({
@@ -458,10 +425,7 @@ describe("createKeys", () => {
 
     await addOneClient(mockClient);
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.createKeys({
@@ -476,10 +440,7 @@ describe("createKeys", () => {
     );
   });
   it("should throw notAllowedCertificateException if the key contains a certificate", async () => {
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     await addOneClient(mockClient);
 

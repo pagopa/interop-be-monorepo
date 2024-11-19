@@ -53,10 +53,7 @@ describe("addClientUsers", () => {
       users: userIds,
     };
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Router",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     await addOneClient(mockClient);
 
@@ -101,10 +98,7 @@ describe("addClientUsers", () => {
 
     await addOneClient(getMockClient());
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.addClientUsers(
@@ -135,10 +129,7 @@ describe("addClientUsers", () => {
 
     await addOneClient(mockClient);
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.addClientUsers(
@@ -165,10 +156,7 @@ describe("addClientUsers", () => {
 
     await addOneClient(mockClient);
 
-    mockSelfcareV2ClientCall({
-      value: [mockSelfCareUsers],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.addClientUsers(
@@ -206,10 +194,7 @@ describe("addClientUsers", () => {
 
     await addOneClient(mockClient);
 
-    mockSelfcareV2ClientCall({
-      value: [],
-      mockedFor: "Service",
-    });
+    mockSelfcareV2ClientCall([]);
 
     expect(
       authorizationService.addClientUsers(
