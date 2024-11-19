@@ -36,7 +36,6 @@
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "11.8.0",
-    "puppeteer": "22.11.2",
     "testcontainers": "10.9.0",
     "ts-pattern": "5.2.0",
     "typescript": "5.4.5",

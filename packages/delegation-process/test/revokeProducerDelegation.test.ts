@@ -4,7 +4,6 @@ import {
   getMockEService,
   getMockTenant,
   getRandomAuthData,
-  pdfScreenshot,
 } from "pagopa-interop-commons-test";
 import {
   Delegation,
@@ -31,14 +30,12 @@ import {
   delegatorNotAllowToRevoke,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
-import { contractBuilder } from "../src/services/delegationContractBuilder.js";
 import {
   addOneDelegation,
   addOneEservice,
   addOneTenant,
   delegationProducerService,
   fileManager,
-  pdfGenerator,
   readLastDelegationEvent,
 } from "./utils.js";
 
@@ -179,6 +176,7 @@ describe("revoke producer delegation", () => {
       payload: event.data,
     });
 
+    // TODO expected contract - refactor to do what it's done in activateAgreementTests
     const actualContractPath = (
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     )[0];
@@ -215,33 +213,7 @@ describe("revoke producer delegation", () => {
     });
     expect(actualDelegation).toEqual(expectedDelegation);
 
-    const actualContract = await fileManager.get(
-      config.s3Bucket,
-      actualContractPath,
-      genericLogger
-    );
-
-    const { path: expectedContractPath } =
-      await contractBuilder.createRevocationContract({
-        delegation: revokedDelegationWithoutContract,
-        delegator,
-        delegate,
-        eservice,
-        pdfGenerator,
-        fileManager,
-        config,
-        logger: genericLogger,
-      });
-
-    const expectedContract = await fileManager.get(
-      config.s3Bucket,
-      expectedContractPath,
-      genericLogger
-    );
-
-    const actualContactScreenshot = await pdfScreenshot(actualContract);
-    const expectedContactScreenshot = await pdfScreenshot(expectedContract);
-    expect(actualContactScreenshot).toEqual(expectedContactScreenshot);
+    // TODO spy on pdfGenerator.generate and check that it's actually called with what's expected
   });
 
   it("should throw a delegationNotFound if Delegation does not exist", async () => {
