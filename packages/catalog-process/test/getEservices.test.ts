@@ -60,6 +60,7 @@ describe("get eservices", () => {
       name: "eservice 001 test",
       descriptors: [descriptor1],
       producerId: organizationId1,
+      isSignalHubEnabled: true,
       isDelegable: true,
     };
     await addOneEService(eservice1);
