@@ -2,6 +2,7 @@ import {
   Delegation,
   delegationKind,
   DelegationKind,
+  DelegationStamp,
   DelegationState,
   delegationState,
   EService,
@@ -14,6 +15,7 @@ import { match } from "ts-pattern";
 import {
   delegationAlreadyExists,
   delegationNotRevokable,
+  delegationStampNotFound,
   delegatorAndDelegateSameIdError,
   delegatorNotAllowToRevoke,
   differentEServiceProducer,
@@ -138,3 +140,14 @@ export const assertIsState = (
     );
   }
 };
+
+export function assertStampExists<S extends keyof Delegation["stamps"]>(
+  stamps: Delegation["stamps"],
+  stamp: S
+): asserts stamps is Delegation["stamps"] & {
+  [key in S]: DelegationStamp;
+} {
+  if (!stamps[stamp]) {
+    throw delegationStampNotFound(stamp);
+  }
+}

@@ -23,6 +23,7 @@ export const errorCodes = {
   operationRestrictedToDelegate: "0010",
   incorrectState: "0011",
   differentEserviceProducer: "0012",
+  stampNotFound: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -149,5 +150,15 @@ export function differentEServiceProducer(
     detail: `Eservice producer if different from requester with id ${requesterId}`,
     code: "differentEserviceProducer",
     title: "Operation not allowed",
+  });
+}
+
+export function delegationStampNotFound(
+  stamp: keyof Delegation["stamps"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${stamp} stamp not found`,
+    code: "stampNotFound",
+    title: "Stamp not found",
   });
 }
