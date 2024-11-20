@@ -4,8 +4,7 @@ import {
   getMockDelegationProducer,
   getMockTenant,
   getMockEService,
-  flushPDFMetadata,
-} from "pagopa-interop-commons-test";
+} from "pagopa-interop-commons-test/index.js";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ProducerDelegationApprovedV2,
@@ -37,6 +36,7 @@ import {
   fileManager,
   readLastDelegationEvent,
   pdfGenerator,
+  flushPDFMetadata,
 } from "./utils.js";
 
 describe("approve delegation", () => {

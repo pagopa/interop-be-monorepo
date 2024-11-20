@@ -117,3 +117,20 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 export const addOneEservice = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
 };
+
+export const flushPDFMetadata = async (
+  byteArray: Uint8Array,
+  currentExecutionTime: Date
+): Promise<Uint8Array> => {
+  const pdfModified = await PDFDocument.load(byteArray);
+  // Remove metadata properties
+  pdfModified.setTitle("");
+  pdfModified.setAuthor("");
+  pdfModified.setSubject("");
+  pdfModified.setKeywords([]);
+  pdfModified.setProducer("");
+  pdfModified.setCreator("");
+  pdfModified.setCreationDate(currentExecutionTime);
+  pdfModified.setModificationDate(currentExecutionTime);
+  return await pdfModified.save();
+};

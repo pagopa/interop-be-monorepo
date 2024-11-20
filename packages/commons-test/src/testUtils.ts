@@ -73,7 +73,6 @@ import {
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
 import { match } from "ts-pattern";
-import { PDFDocument } from "pdf-lib";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -92,23 +91,6 @@ export function randomBoolean(): boolean {
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
-export const flushPDFMetadata = async (
-  byteArray: Uint8Array,
-  currentExecutionTime: Date
-): Promise<Uint8Array> => {
-  const pdfModified = await PDFDocument.load(byteArray);
-  // Remove metadata properties
-  pdfModified.setTitle("");
-  pdfModified.setAuthor("");
-  pdfModified.setSubject("");
-  pdfModified.setKeywords([]);
-  pdfModified.setProducer("");
-  pdfModified.setCreator("");
-  pdfModified.setCreationDate(currentExecutionTime);
-  pdfModified.setModificationDate(currentExecutionTime);
-  return await pdfModified.save();
-};
 
 export const getTenantCertifierFeatures = (
   tenant: Tenant
