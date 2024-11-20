@@ -17,6 +17,7 @@ import {
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   EService,
+  Descriptor,
   SelfcareId,
   Tenant,
   TenantAttributeType,
@@ -29,6 +30,7 @@ import {
   AgreementDocument,
   CorrelationId,
   Delegation,
+  DescriptorId,
 } from "pagopa-interop-models";
 import {
   selfcareV2ClientApi,
@@ -41,6 +43,7 @@ import {
   agreementSelfcareIdNotFound,
   agreementStampNotFound,
   attributeNotFound,
+  publishedDescriptorNotFound,
   tenantNotFound,
   userNotFound,
 } from "../model/domain/errors.js";
@@ -270,6 +273,18 @@ const getActivationInfo = async (
   throw agreementMissingUserInfo(activation.who);
 };
 
+export function getDescriptor(
+  eservice: EService,
+  descriptorId: DescriptorId
+): Descriptor {
+  const descriptor = eservice.descriptors.find(({ id }) => descriptorId === id);
+
+  if (!descriptor) {
+    throw publishedDescriptorNotFound(eservice.id);
+  }
+  return descriptor;
+}
+
 const getPdfPayload = async (
   agreement: Agreement,
   eservice: EService,
@@ -315,6 +330,8 @@ const getPdfPayload = async (
     readModelService
   );
 
+  const activeDescriptor = getDescriptor(eservice, agreement.descriptorId);
+
   return {
     todayDate: dateAtRomeZone(today),
     todayTime: timeAtRomeZone(today),
@@ -327,6 +344,7 @@ const getPdfPayload = async (
     activationTime: timeAtRomeZone(activationTimestamp),
     eServiceName: eservice.name,
     eServiceId: eservice.id,
+    eServiceDescriptorVersion: activeDescriptor.version,
     producerText,
     consumerText,
     certifiedAttributes: certified.map(({ attribute, tenantAttribute }) => ({
