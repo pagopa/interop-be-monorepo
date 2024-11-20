@@ -15692,6 +15692,9 @@ components:
         id:
           type: string
           format: uuid
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
     UpdateVerifiedTenantAttributeSeed:
