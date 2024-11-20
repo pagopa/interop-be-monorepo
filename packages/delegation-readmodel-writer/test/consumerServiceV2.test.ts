@@ -1,4 +1,7 @@
-import { getMockDelegationProducer } from "pagopa-interop-commons-test/index.js";
+import {
+  getMockDelegation,
+  randomArrayItem,
+} from "pagopa-interop-commons-test/index.js";
 import {
   DelegationEventEnvelopeV2,
   toDelegationV2,
@@ -6,13 +9,16 @@ import {
   ProducerDelegationRejectedV2,
   ProducerDelegationRevokedV2,
   ProducerDelegationSubmittedV2,
+  delegationKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/delegationConsumerServiceV2.js";
 import { delegations } from "./utils.js";
 
 describe("Events V2", async () => {
-  const mockDelegation = getMockDelegationProducer();
+  const mockDelegation = getMockDelegation({
+    kind: randomArrayItem(Object.values(delegationKind)),
+  });
   const mockMessage: DelegationEventEnvelopeV2 = {
     event_version: 2,
     stream_id: mockDelegation.id,
