@@ -565,6 +565,11 @@ export function catalogServiceBuilder(
           : eservice.data.descriptors,
         isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
         isDelegable: eserviceSeed.isDelegable,
+        isClientAccessDelegable: match(eserviceSeed.isDelegable)
+          .with(P.nullish, () => undefined)
+          .with(false, () => false)
+          .with(true, () => eservice.data.isClientAccessDelegable)
+          .exhaustive(),
       };
 
       const event = toCreateEventEServiceUpdated(
