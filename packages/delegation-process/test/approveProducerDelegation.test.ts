@@ -90,14 +90,24 @@ describe("approve producer delegation", () => {
       payload: event.data,
     });
 
-    // TODO expected contract - refactor to do what it's done in activateAgreementTests
-    const actualConractPath = (
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    )[0];
-
-    const documentId = unsafeBrandId<DelegationContractId>(
-      actualConractPath.split("/")[2]
+    const expectedContractId = unsafeBrandId<DelegationContractId>(
+      actualDelegation!.activationContract!.id
     );
+    const expectedContractName = `${formatDateyyyyMMddHHmmss(
+      currentExecutionTime
+    )}_delegation_activation_contract.pdf`;
+    const expectedContract = {
+      id: expectedContractId,
+      contentType: "application/pdf",
+      createdAt: currentExecutionTime,
+      name: expectedContractName,
+      path: `${config.delegationDocumentPath}/${delegation.id}/${expectedContractId}/${expectedContractName}`,
+      prettyName: "Delega",
+    };
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(expectedContract.path);
 
     const approvedDelegationWithoutContract: Delegation = {
       ...delegation,
@@ -114,16 +124,7 @@ describe("approve producer delegation", () => {
 
     const expectedDelegation = toDelegationV2({
       ...approvedDelegationWithoutContract,
-      activationContract: {
-        id: documentId,
-        contentType: "application/pdf",
-        createdAt: currentExecutionTime,
-        name: `${formatDateyyyyMMddHHmmss(
-          currentExecutionTime
-        )}_delegation_activation_contract.pdf`,
-        path: actualConractPath,
-        prettyName: "Delega",
-      },
+      activationContract: expectedContract,
     });
     expect(actualDelegation).toEqual(expectedDelegation);
 

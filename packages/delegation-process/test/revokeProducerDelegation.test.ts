@@ -117,14 +117,24 @@ describe("revoke producer delegation", () => {
       payload: event.data,
     });
 
-    // TODO expected contract - refactor to do what it's done in activateAgreementTests
-    const actualContractPath = (
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    )[0];
-
-    const documentId = unsafeBrandId<DelegationContractId>(
-      actualContractPath.split("/")[2]
+    const expectedContractId = unsafeBrandId<DelegationContractId>(
+      actualDelegation!.revocationContract!.id
     );
+    const expectedContractName = `${formatDateyyyyMMddHHmmss(
+      currentExecutionTime
+    )}_delegation_revocation_contract.pdf`;
+    const expectedContract = {
+      id: expectedContractId,
+      contentType: "application/pdf",
+      createdAt: currentExecutionTime,
+      name: expectedContractName,
+      path: `${config.delegationDocumentPath}/${existentDelegation.id}/${expectedContractId}/${expectedContractName}`,
+      prettyName: "Revoca della delega",
+    };
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(expectedContract.path);
 
     const revokedDelegationWithoutContract: Delegation = {
       ...existentDelegation,
@@ -141,16 +151,7 @@ describe("revoke producer delegation", () => {
 
     const expectedDelegation = toDelegationV2({
       ...revokedDelegationWithoutContract,
-      revocationContract: {
-        id: documentId,
-        contentType: "application/pdf",
-        createdAt: currentExecutionTime,
-        name: `${formatDateyyyyMMddHHmmss(
-          currentExecutionTime
-        )}_delegation_revocation_contract.pdf`,
-        path: actualContractPath,
-        prettyName: "Revoca della delega",
-      },
+      revocationContract: expectedContract,
     });
     expect(actualDelegation).toEqual(expectedDelegation);
 
