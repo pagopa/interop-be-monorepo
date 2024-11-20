@@ -127,9 +127,23 @@ export function delegationConsumerServiceBuilder(
         retrieveEserviceById(readModelService, delegation.eserviceId),
       ]);
 
+      const now = new Date();
+      const approvedDelegationWithoutContract: Delegation = {
+        ...delegation,
+        state: delegationState.active,
+        approvedAt: now,
+        stamps: {
+          ...delegation.stamps,
+          activation: {
+            who: delegateId,
+            when: now,
+          },
+        },
+      };
+
       const activationContract = await contractBuilder.createActivationContract(
         {
-          delegation,
+          delegation: approvedDelegationWithoutContract,
           delegator,
           delegate,
           eservice,
@@ -140,24 +154,15 @@ export function delegationConsumerServiceBuilder(
         }
       );
 
-      const now = new Date();
+      const approvedDelegation = {
+        ...approvedDelegationWithoutContract,
+        activationContract,
+      };
 
       await repository.createEvent(
         toCreateEventConsumerDelegationApproved(
           {
-            data: {
-              ...delegation,
-              state: delegationState.active,
-              approvedAt: now,
-              activationContract,
-              stamps: {
-                ...delegation.stamps,
-                activation: {
-                  who: delegateId,
-                  when: now,
-                },
-              },
-            },
+            data: approvedDelegation,
             metadata,
           },
           correlationId
