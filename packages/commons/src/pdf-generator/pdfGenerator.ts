@@ -73,7 +73,9 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
           ...context,
           "paged-pdf-polyfill": `<script src="file://${polyfillFilePath}"></script>`,
         });
-        await page.setContent(htmlCompiled, { waitUntil: "networkidle2" });
+        await page.setContent(htmlCompiled, {
+          waitUntil: "networkidle2",
+        });
 
         return await page.pdf({
           format: "A4",

@@ -6,6 +6,7 @@ import {
   decodeProtobufPayload,
   getMockAttribute,
   getMockAuthData,
+  getTenantOneCertifierFeature,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -263,7 +264,7 @@ describe("database test", () => {
           code: "code",
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
-          origin: tenant.features[0].certifierId,
+          origin: getTenantOneCertifierFeature(tenant).certifierId,
         };
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
@@ -367,7 +368,7 @@ describe("database test", () => {
             {
               name: mockAttribute.name,
               code: "code",
-              origin: tenant.features[0].certifierId,
+              origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: mockAttribute.description,
             },
             {
@@ -397,7 +398,7 @@ describe("database test", () => {
           code: "code",
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
-          origin: tenant.features[0].certifierId,
+          origin: getTenantOneCertifierFeature(tenant).certifierId,
         };
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
@@ -405,6 +406,7 @@ describe("database test", () => {
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
       it("should throw attributeDuplicate if an attribute with the same name and code already exists, case insensitive", async () => {
+        // This test is the same as the previous one, but with a different method
         const attribute = {
           ...mockAttribute,
           name: mockAttribute.name.toUpperCase(),
@@ -428,7 +430,7 @@ describe("database test", () => {
             {
               name: attribute.name.toLowerCase(),
               code: attribute.code.toLowerCase(),
-              origin: tenant.features[0].certifierId,
+              origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: attribute.description,
             },
             {

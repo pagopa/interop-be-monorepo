@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   AttributeValue,
   DynamoDBClient,
@@ -17,10 +15,50 @@ import {
   GSIPKConsumerIdEServiceId,
   GSIPKEServiceIdDescriptorId,
   PlatformStatesCatalogEntry,
+  PlatformStatesGenericEntry,
   TokenGenerationStatesClientPurposeEntry,
+  PlatformStatesPurposeEntry,
+  PlatformStatesAgreementEntry,
+  TokenGenerationStatesGenericEntry,
+  TokenGenerationStatesClientEntry,
 } from "pagopa-interop-models";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
+
+export const writeTokenStateClientEntry = async (
+  tokenStateEntry: TokenGenerationStatesClientEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: tokenStateEntry.PK,
+      },
+      updatedAt: {
+        S: tokenStateEntry.updatedAt,
+      },
+      consumerId: {
+        S: tokenStateEntry.consumerId,
+      },
+      clientKind: {
+        S: tokenStateEntry.clientKind,
+      },
+      publicKey: {
+        S: tokenStateEntry.publicKey,
+      },
+      GSIPK_clientId: {
+        S: tokenStateEntry.GSIPK_clientId,
+      },
+      GSIPK_kid: {
+        S: tokenStateEntry.GSIPK_kid,
+      },
+    },
+    TableName: "token-generation-states",
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
 
 export const writeTokenStateEntry = async (
   tokenStateEntry: TokenGenerationStatesClientPurposeEntry,
@@ -138,7 +176,7 @@ export const writeTokenStateEntry = async (
 
 export const readAllTokenStateItems = async (
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+): Promise<TokenGenerationStatesGenericEntry[]> => {
   const readInput: ScanInput = {
     TableName: "token-generation-states",
   };
@@ -153,7 +191,7 @@ export const readAllTokenStateItems = async (
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
     const tokenStateEntries = z
-      .array(TokenGenerationStatesClientPurposeEntry)
+      .array(TokenGenerationStatesGenericEntry)
       .safeParse(unmarshalledItems);
 
     if (!tokenStateEntries.success) {
@@ -164,6 +202,37 @@ export const readAllTokenStateItems = async (
       );
     }
     return tokenStateEntries.data;
+  }
+};
+
+export const readAllPlatformStateItems = async (
+  dynamoDBClient: DynamoDBClient
+): Promise<PlatformStatesGenericEntry[]> => {
+  const readInput: ScanInput = {
+    TableName: "platform-states",
+  };
+  const commandQuery = new ScanCommand(readInput);
+  const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+
+  if (!data.Items) {
+    throw genericInternalError(
+      `Unable to read platform state entries: result ${JSON.stringify(data)} `
+    );
+  } else {
+    const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+    const platformStateEntries = z
+      .array(PlatformStatesGenericEntry)
+      .safeParse(unmarshalledItems);
+
+    if (!platformStateEntries.success) {
+      throw genericInternalError(
+        `Unable to parse platform state entry item: result ${JSON.stringify(
+          platformStateEntries
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return platformStateEntries.data;
   }
 };
 
@@ -317,6 +386,76 @@ export const writeCatalogEntry = async (
       },
       updatedAt: {
         S: catalogEntry.updatedAt,
+      },
+    },
+    TableName: "platform-states",
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const writePlatformPurposeEntry = async (
+  purposeEntry: PlatformStatesPurposeEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: purposeEntry.PK,
+      },
+      state: {
+        S: purposeEntry.state,
+      },
+      purposeVersionId: {
+        S: purposeEntry.purposeVersionId,
+      },
+      purposeEserviceId: {
+        S: purposeEntry.purposeEserviceId,
+      },
+      purposeConsumerId: {
+        S: purposeEntry.purposeConsumerId,
+      },
+      version: {
+        N: purposeEntry.version.toString(),
+      },
+      updatedAt: {
+        S: purposeEntry.updatedAt,
+      },
+    },
+    TableName: "platform-states",
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const writePlatformAgreementEntry = async (
+  agreementEntry: PlatformStatesAgreementEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: agreementEntry.PK,
+      },
+      state: {
+        S: agreementEntry.state,
+      },
+      version: {
+        N: agreementEntry.version.toString(),
+      },
+      updatedAt: {
+        S: agreementEntry.updatedAt,
+      },
+      GSIPK_consumerId_eserviceId: {
+        S: agreementEntry.GSIPK_consumerId_eserviceId,
+      },
+      GSISK_agreementTimestamp: {
+        S: agreementEntry.GSISK_agreementTimestamp,
+      },
+      agreementDescriptorId: {
+        S: agreementEntry.agreementDescriptorId,
       },
     },
     TableName: "platform-states",
