@@ -30,7 +30,6 @@ import {
 import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 import {
-  assertDelegationIsRevokable,
   assertDelegationNotExists,
   assertDelegatorIsNotDelegate,
   assertDelegatorIsProducer,
@@ -38,6 +37,9 @@ import {
   assertIsDelegate,
   assertIsState,
   assertDelegatorAndDelegateIPA,
+  assertIsDelegator,
+  assertIsOneOfStates,
+  activeDelegationStates,
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
 import { retrieveDelegationById } from "./delegationService.js";
@@ -136,7 +138,9 @@ export function delegationProducerServiceBuilder(
         readModelService,
         delegationId
       );
-      assertDelegationIsRevokable(delegation, delegatorId);
+
+      assertIsDelegator(delegation, delegatorId);
+      assertIsOneOfStates(activeDelegationStates, delegation);
 
       const [delegator, delegate, eservice] = await Promise.all([
         retrieveTenantById(delegation.delegatorId),

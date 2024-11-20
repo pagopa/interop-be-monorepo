@@ -14,13 +14,12 @@ import {
 import { match } from "ts-pattern";
 import {
   delegationAlreadyExists,
-  delegationNotRevokable,
   delegationStampNotFound,
   delegatorAndDelegateSameIdError,
-  delegatorNotAllowToRevoke,
   differentEServiceProducer,
   incorrectState,
   operationRestrictedToDelegate,
+  operationRestrictedToDelegator,
   tenantIsNotIPAError,
   tenantNotAllowedToDelegation,
 } from "../model/domain/errors.js";
@@ -86,19 +85,6 @@ export const assertTenantAllowedToReceiveDelegation = (
   }
 };
 
-export const assertDelegationIsRevokable = (
-  delegation: Delegation,
-  expectedDelegatorId: TenantId
-): void => {
-  if (delegation.delegatorId !== expectedDelegatorId) {
-    throw delegatorNotAllowToRevoke(delegation);
-  }
-
-  if (!activeDelegationStates.includes(delegation.state)) {
-    throw delegationNotRevokable(delegation);
-  }
-};
-
 export const assertDelegationNotExists = async (
   delegator: Tenant,
   eserviceId: EServiceId,
@@ -111,7 +97,7 @@ export const assertDelegationNotExists = async (
     delegatorId,
     eserviceId,
     delegationKind,
-    states: [delegationState.active, delegationState.waitingForApproval],
+    states: activeDelegationStates,
   });
 
   if (delegations.length > 0) {
@@ -121,10 +107,19 @@ export const assertDelegationNotExists = async (
 
 export const assertIsDelegate = (
   delegation: Delegation,
-  delegateId: TenantId
+  requesterId: TenantId
 ): void => {
-  if (delegation.delegateId !== delegateId) {
-    throw operationRestrictedToDelegate(delegateId, delegation.id);
+  if (delegation.delegateId !== requesterId) {
+    throw operationRestrictedToDelegate(requesterId, delegation.id);
+  }
+};
+
+export const assertIsDelegator = (
+  delegation: Delegation,
+  requesterId: TenantId
+): void => {
+  if (delegation.delegatorId !== requesterId) {
+    throw operationRestrictedToDelegator(requesterId, delegation.id);
   }
 };
 
@@ -133,11 +128,16 @@ export const assertIsState = (
   delegation: Delegation
 ): void => {
   if (delegation.state !== state) {
-    throw incorrectState(
-      delegation.id,
-      delegation.state,
-      delegationState.waitingForApproval
-    );
+    throw incorrectState(delegation.id, delegation.state, state);
+  }
+};
+
+export const assertIsOneOfStates = (
+  states: DelegationState[],
+  delegation: Delegation
+): void => {
+  if (!states.includes(delegation.state)) {
+    throw incorrectState(delegation.id, delegation.state, states);
   }
 };
 

@@ -172,31 +172,34 @@ describe("approve producer delegation", () => {
     );
   });
 
-  it("should throw incorrectState when delegation is not in WaitingForApproval state", async () => {
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedProducer,
-      state: "Active",
-      delegateId: delegate.id,
-      delegatorId: delegator.id,
-      eserviceId: eservice.id,
-    });
-    await addOneDelegation(delegation);
+  it.each(
+    Object.values(delegationState).filter(
+      (state) => state !== delegationState.waitingForApproval
+    )
+  )(
+    "should throw incorrectState when delegation is in %s state",
+    async (state) => {
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        state,
+        delegateId: delegate.id,
+        delegatorId: delegator.id,
+        eserviceId: eservice.id,
+      });
+      await addOneDelegation(delegation);
 
-    await expect(
-      delegationProducerService.approveProducerDelegation(delegation.id, {
-        authData: getRandomAuthData(delegate.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
-    ).rejects.toThrow(
-      incorrectState(
-        delegation.id,
-        delegationState.active,
-        delegationState.waitingForApproval
-      )
-    );
-  });
+      await expect(
+        delegationProducerService.approveProducerDelegation(delegation.id, {
+          authData: getRandomAuthData(delegate.id),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrow(
+        incorrectState(delegation.id, state, delegationState.waitingForApproval)
+      );
+    }
+  );
 
   it("should generete a pdf document for a delegation", async () => {
     const delegation = getMockDelegation({
