@@ -227,7 +227,7 @@ describe("create consumer delegation", () => {
   );
 
   it.each(activeDelegationStates)(
-    "should throw a delegationAlreadyExists error when a consumer Delegation in state %s already exists with for same delegator, delegate and eservice",
+    "should throw a delegationAlreadyExists error when a consumer Delegation in state %s already exists with same delegator, delegate and eservice",
     async (activeDelegationState) => {
       const delegatorId = generateId<TenantId>();
       const authData = getRandomAuthData(delegatorId);
@@ -326,7 +326,7 @@ describe("create consumer delegation", () => {
     }
   );
 
-  it("should throw an tenantNotFound error if delegated tenant does not exist", async () => {
+  it("should throw a tenantNotFound error if delegated tenant does not exist", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegator = getMockTenant(delegatorId);
@@ -404,7 +404,7 @@ describe("create consumer delegation", () => {
     ).rejects.toThrowError(delegatorAndDelegateSameIdError());
   });
 
-  it("should throw an tenantIsNotIPAError error if delegator has externalId origin different from IPA", async () => {
+  it("should throw a tenantIsNotIPAError error if delegator has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegator = {
@@ -444,7 +444,7 @@ describe("create consumer delegation", () => {
     ).rejects.toThrowError(tenantIsNotIPAError(delegator, "Delegator"));
   });
 
-  it("should throw an tenantIsNotIPAError error if delegate has externalId origin different from IPA", async () => {
+  it("should throw a tenantIsNotIPAError error if delegate has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegator = {
