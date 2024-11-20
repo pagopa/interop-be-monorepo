@@ -19,11 +19,11 @@ export const errorCodes = {
   invalidDelegatorAndDelegateIds: "0005",
   tenantIsNotIPAError: "0006",
   tenantNotAllowedToDelegation: "0007",
-  operationRestrictedToDelegator: "0008",
-  operationRestrictedToDelegate: "0009",
-  incorrectState: "0010",
-  differentEserviceProducer: "0011",
-  stampNotFound: "0012",
+  stampNotFound: "0008",
+  operationRestrictedToDelegator: "0009",
+  operationRestrictedToDelegate: "0010",
+  incorrectState: "0011",
+  differentEserviceProducer: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
