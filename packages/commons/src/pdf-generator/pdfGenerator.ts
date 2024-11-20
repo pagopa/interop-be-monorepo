@@ -10,7 +10,6 @@ export interface PDFGenerator {
     templatePath: string,
     context: Record<string, unknown>
   ) => Promise<Buffer>;
-  screenshotFromBytes: (pdfContent: Uint8Array) => Promise<Buffer>;
 }
 
 /* Function to launch puppeteer for testing
@@ -87,61 +86,6 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
             right: "0px",
             bottom: "0px",
           },
-        });
-      } catch (error) {
-        throw pdfGenerationError(error);
-      } finally {
-        await page?.close();
-      }
-    },
-    screenshotFromBytes: async (pdfContent: Uint8Array): Promise<Buffer> => {
-      let page: puppeteer.Page | undefined;
-
-      try {
-        const browser = await getBrowser();
-        page = await browser.newPage();
-        const pdfBase64 = Buffer.from(pdfContent).toString("base64");
-
-        await page.setContent(
-          `
-            <!DOCTYPE html>
-            <html>
-                <head>
-                    <style>
-                        html, body {
-                            margin: 0;
-                            padding: 0;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            height: 100vh;
-                            background-color: white;
-                            overflow: hidden;
-                        }
-                        embed {
-                            display: block;
-                            width: 100vw;
-                            height: 100vh;
-                            border: none;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <embed src="data:application/pdf;base64,${pdfBase64}" type="application/pdf" />
-                </body>
-            </html>
-        
-      `,
-          {
-            waitUntil: "networkidle2",
-          }
-        );
-
-        await page.waitForSelector("embed", { visible: true });
-
-        return await page.screenshot({
-          type: "png",
-          fullPage: true,
         });
       } catch (error) {
         throw pdfGenerationError(error);
