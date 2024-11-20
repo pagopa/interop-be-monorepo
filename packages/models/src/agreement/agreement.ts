@@ -91,6 +91,7 @@ export type AgreementContractPDFPayload = {
   activationTime: string;
   eServiceName: string;
   eServiceId: string;
+  eServiceDescriptorVersion: string;
   producerText: string;
   consumerText: string;
   certifiedAttributes: Array<{
