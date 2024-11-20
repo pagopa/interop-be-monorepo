@@ -18,8 +18,8 @@ import {
   delegatorNotAllowToRevoke,
   differentEServiceProducer,
   incorrectState,
-  tenantIsNotIPAError,
   operationRestrictedToDelegate,
+  tenantIsNotIPAError,
   tenantNotAllowedToDelegation,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";

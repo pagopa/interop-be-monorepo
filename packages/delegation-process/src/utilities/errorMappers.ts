@@ -34,7 +34,7 @@ export const createProducerDelegationErrorMapper = (
     .with(
       "eserviceNotFound",
       "tenantNotFound",
-      "delegatorAndDelegateSameId",
+      "invalidDelegatorAndDelegateIds",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -53,7 +53,7 @@ export const createConsumerDelegationErrorMapper = (
     .with(
       "eserviceNotFound",
       "tenantNotFound",
-      "delegatorAndDelegateSameId",
+      "invalidDelegatorAndDelegateIds",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(

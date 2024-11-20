@@ -15,7 +15,7 @@ export const errorCodes = {
   eserviceNotFound: "0002",
   delegationAlreadyExists: "0003",
   tenantNotFound: "0004",
-  delegatorAndDelegateSameId: "0005",
+  invalidDelegatorAndDelegateIds: "0005",
   tenantIsNotIPAError: "0006",
   tenantNotAllowedToDelegation: "0007",
   delegationNotRevokable: "0008",
@@ -68,8 +68,8 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
 export function delegatorAndDelegateSameIdError(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Error occurs because Delegator and Delegate have the same Id`,
-    code: "delegatorAndDelegateSameId",
-    title: "Delegator and Delegate have the same Id",
+    code: "invalidDelegatorAndDelegateIds",
+    title: "Invalid Delegator and Delegate",
   });
 }
 
