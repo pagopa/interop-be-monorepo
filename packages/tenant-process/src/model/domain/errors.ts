@@ -1,6 +1,7 @@
 import {
   ApiError,
   AttributeId,
+  DelegationId,
   EServiceId,
   TenantFeature,
   TenantId,
@@ -39,6 +40,7 @@ export const errorCodes = {
   notValidMailAddress: "0029",
   agreementNotFound: "0030",
   descriptorNotFoundInEservice: "0031",
+  delegationNotFound: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -353,5 +355,15 @@ export function notValidMailAddress(address: string): ApiError<ErrorCodes> {
     detail: `mail address ${address} not valid`,
     code: "notValidMailAddress",
     title: "Not valid mail address",
+  });
+}
+
+export function delegationNotFound(
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} not found`,
+    code: "delegationNotFound",
+    title: "Delegation not found",
   });
 }
