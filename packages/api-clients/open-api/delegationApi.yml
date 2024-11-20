@@ -307,7 +307,7 @@ paths:
             schema:
               $ref: "#/components/schemas/RejectDelegationPayload"
         required: true
-        description: payload for delegation rejection
+        description: Payload for delegation rejection
       responses:
         "204":
           description: Delegation rejected
