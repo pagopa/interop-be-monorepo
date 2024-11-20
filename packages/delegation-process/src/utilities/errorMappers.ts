@@ -40,6 +40,7 @@ export const createProducerDelegationErrorMapper = (
     .with(
       "tenantIsNotIPAError",
       "tenantNotAllowedToDelegation",
+      "differentEserviceProducer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("delegationAlreadyExists", () => HTTP_STATUS_CONFLICT)
