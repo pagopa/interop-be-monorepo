@@ -1,3 +1,5 @@
+import { fileURLToPath } from "url";
+import path from "path";
 import {
   decodeProtobufPayload,
   getMockDelegation,
@@ -21,8 +23,10 @@ import {
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
+  dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
   genericLogger,
+  timeAtRomeZone,
 } from "pagopa-interop-commons";
 import {
   delegationNotFound,
@@ -40,6 +44,7 @@ import {
   addOneTenant,
   delegationProducerService,
   fileManager,
+  pdfGenerator,
   readLastDelegationEvent,
 } from "./utils.js";
 
@@ -56,6 +61,7 @@ describe("revoke producer delegation", () => {
   });
 
   it("should revoke a delegation if it exists", async () => {
+    vi.spyOn(pdfGenerator, "generate");
     const currentExecutionTime = new Date();
     const eserviceId = generateId<EServiceId>();
     const delegatorId = generateId<TenantId>();
@@ -155,7 +161,29 @@ describe("revoke producer delegation", () => {
     });
     expect(actualDelegation).toEqual(expectedDelegation);
 
-    // TODO spy on pdfGenerator.generate and check that it's actually called with what's expected
+    expect(pdfGenerator.generate).toHaveBeenCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates",
+        "delegationRevokedTemplate.html"
+      ),
+      {
+        todayDate: dateAtRomeZone(currentExecutionTime),
+        todayTime: timeAtRomeZone(currentExecutionTime),
+        delegationId: revokedDelegationWithoutContract.id,
+        delegatorName: delegator.name,
+        delegatorCode: delegator.externalId.value,
+        delegateName: delegate.name,
+        delegateCode: delegate.externalId.value,
+        eserviceId: eservice.id,
+        eserviceName: eservice.name,
+        submitterId: revokedDelegationWithoutContract.stamps.submission.who,
+        revokerId: revokedDelegationWithoutContract.stamps.revocation!.who,
+        revocationDate: dateAtRomeZone(currentExecutionTime),
+        revocationTime: timeAtRomeZone(currentExecutionTime),
+      }
+    );
   });
 
   it("should throw a delegationNotFound if Delegation does not exist", async () => {

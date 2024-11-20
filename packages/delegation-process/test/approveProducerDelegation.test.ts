@@ -1,4 +1,6 @@
 /* eslint-disable functional/no-let */
+import { fileURLToPath } from "url";
+import path from "path";
 import {
   decodeProtobufPayload,
   getMockDelegation,
@@ -21,8 +23,10 @@ import {
 } from "pagopa-interop-models";
 import { delegationState } from "pagopa-interop-models";
 import {
+  dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
   genericLogger,
+  timeAtRomeZone,
 } from "pagopa-interop-commons";
 import {
   delegationNotFound,
@@ -37,6 +41,7 @@ import {
   delegationProducerService,
   fileManager,
   readLastDelegationEvent,
+  pdfGenerator,
 } from "./utils.js";
 
 describe("approve producer delegation", () => {
@@ -60,6 +65,7 @@ describe("approve producer delegation", () => {
   });
 
   it("should approve delegation if validations succeed", async () => {
+    vi.spyOn(pdfGenerator, "generate");
     const delegationId = generateId<DelegationId>();
     const authData = getRandomAuthData(delegate.id);
 
@@ -128,7 +134,31 @@ describe("approve producer delegation", () => {
     });
     expect(actualDelegation).toEqual(expectedDelegation);
 
-    // TODO spy on pdfGenerator.generate and check that it's actually called with what's expected
+    expect(pdfGenerator.generate).toHaveBeenCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates",
+        "delegationApprovedTemplate.html"
+      ),
+      {
+        todayDate: dateAtRomeZone(currentExecutionTime),
+        todayTime: timeAtRomeZone(currentExecutionTime),
+        delegationId: approvedDelegationWithoutContract.id,
+        delegatorName: delegator.name,
+        delegatorCode: delegator.externalId.value,
+        delegateName: delegate.name,
+        delegateCode: delegate.externalId.value,
+        eserviceId: eservice.id,
+        eserviceName: eservice.name,
+        submitterId: approvedDelegationWithoutContract.stamps.submission.who,
+        submissionDate: dateAtRomeZone(currentExecutionTime),
+        submissionTime: timeAtRomeZone(currentExecutionTime),
+        activatorId: approvedDelegationWithoutContract.stamps.activation!.who,
+        activationDate: dateAtRomeZone(currentExecutionTime),
+        activationTime: timeAtRomeZone(currentExecutionTime),
+      }
+    );
   });
 
   it("should throw delegationNotFound when delegation doesn't exist", async () => {
