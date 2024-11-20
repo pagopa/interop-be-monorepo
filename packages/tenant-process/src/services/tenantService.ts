@@ -40,6 +40,7 @@ import {
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
+import { match, P } from "ts-pattern";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
@@ -81,6 +82,7 @@ import {
   verifiedAttributeSelfRevocationNotAllowed,
   agreementNotFound,
   notValidMailAddress,
+  delegationNotFound,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -541,13 +543,41 @@ export function tenantServiceBuilder(
       },
       logger: Logger
     ): Promise<Tenant> {
-      logger.info(
-        `Add declared attribute ${tenantAttributeSeed.id} to requester tenant ${organizationId}`
-      );
-      const targetTenant = await retrieveTenant(
-        organizationId,
-        readModelService
-      );
+      const { tenant, delegationId } = await match(
+        tenantAttributeSeed.delegationId
+      )
+        .with(P.nullish, async () => {
+          logger.info(
+            `Add declared attribute ${tenantAttributeSeed.id} to requester tenant ${organizationId}`
+          );
+          const targetTenant = await retrieveTenant(
+            organizationId,
+            readModelService
+          );
+
+          return { tenant: targetTenant, delegationId: undefined };
+        })
+        .otherwise(async (seedDelegationId) => {
+          const delegationId: DelegationId = unsafeBrandId(seedDelegationId);
+          const delegation = await readModelService.getDelegation(
+            delegationId,
+            "DelegatedConsumer"
+          );
+
+          if (!delegation) {
+            throw delegationNotFound(delegationId);
+          }
+          logger.info(
+            `Add declared attribute ${tenantAttributeSeed.id} to delegatator tenant ${delegation.delegatorId}`
+          );
+          const targetTenant = await retrieveTenant(
+            delegation.delegatorId,
+            readModelService
+          );
+
+          return { tenant: targetTenant, delegationId };
+        });
+
       const attribute = await retrieveAttribute(
         unsafeBrandId(tenantAttributeSeed.id),
         readModelService
@@ -557,26 +587,31 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attribute.id);
       }
 
-      const declaredTenantAttribute = targetTenant.data.attributes.find(
+      const declaredTenantAttribute = tenant.data.attributes.find(
         (attr): attr is DeclaredTenantAttribute =>
           attr.type === tenantAttributeType.DECLARED && attr.id === attribute.id
       );
 
       const updatedTenant: Tenant = {
-        ...targetTenant.data,
+        ...tenant.data,
         attributes: declaredTenantAttribute
           ? reassignDeclaredAttribute(
-              targetTenant.data.attributes,
-              attribute.id
+              tenant.data.attributes,
+              attribute.id,
+              delegationId
             )
-          : assignDeclaredAttribute(targetTenant.data.attributes, attribute.id),
+          : assignDeclaredAttribute(
+              tenant.data.attributes,
+              attribute.id,
+              delegationId
+            ),
 
         updatedAt: new Date(),
       };
 
       await repository.createEvent(
         toCreateEventTenantDeclaredAttributeAssigned(
-          targetTenant.metadata.version,
+          tenant.metadata.version,
           updatedTenant,
           unsafeBrandId(tenantAttributeSeed.id),
           correlationId
@@ -1924,7 +1959,8 @@ function buildVerifiedBy(
 
 function assignDeclaredAttribute(
   attributes: TenantAttribute[],
-  attributeId: AttributeId
+  attributeId: AttributeId,
+  delegationId: DelegationId | undefined
 ): TenantAttribute[] {
   return [
     ...attributes,
@@ -1933,21 +1969,30 @@ function assignDeclaredAttribute(
       type: tenantAttributeType.DECLARED,
       assignmentTimestamp: new Date(),
       revocationTimestamp: undefined,
+      delegationId,
     },
   ];
 }
 
 function reassignDeclaredAttribute(
   attributes: TenantAttribute[],
-  attributeId: AttributeId
+  attributeId: AttributeId,
+  delegationId: DelegationId | undefined
 ): TenantAttribute[] {
   return attributes.map((attr) =>
     attr.id === attributeId
-      ? {
-          ...attr,
-          assignmentTimestamp: new Date(),
-          revocationTimestamp: undefined,
-        }
+      ? attr.type === tenantAttributeType.DECLARED
+        ? {
+            ...attr,
+            assignmentTimestamp: new Date(),
+            revocationTimestamp: undefined,
+            delegationId,
+          }
+        : {
+            ...attr,
+            assignmentTimestamp: new Date(),
+            revocationTimestamp: undefined,
+          }
       : attr
   );
 }

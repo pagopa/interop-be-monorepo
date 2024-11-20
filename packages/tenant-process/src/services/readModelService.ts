@@ -23,6 +23,8 @@ import {
   genericInternalError,
   TenantFeatureType,
   AgreementId,
+  DelegationKind,
+  DelegationId,
   Delegation,
   DelegationReadModel,
   delegationKind,
@@ -556,7 +558,6 @@ export function readModelServiceBuilder(
         "data.origin": certifierId,
       });
     },
-
     async getActiveProducerDelegationByEservice(
       eserviceId: EServiceId
     ): Promise<Delegation | undefined> {
@@ -565,6 +566,34 @@ export function readModelServiceBuilder(
         "data.kind": delegationKind.delegatedProducer,
         "data.state": delegationState.active,
       });
+    },
+    async getDelegation(
+      delegationId: DelegationId,
+      kind: DelegationKind
+    ): Promise<Delegation | undefined> {
+      const data = await delegations.findOne(
+        {
+          "data.id": delegationId,
+          "data.state": agreementState.active,
+          "data.kind": kind,
+        },
+        { projection: { data: true } }
+      );
+
+      if (!data) {
+        return undefined;
+      } else {
+        const result = Delegation.safeParse(data.data);
+
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse delegation item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
     },
   };
 }
