@@ -1157,6 +1157,8 @@ components:
           type: boolean
         isDelegable:
           type: boolean
+        isClientAccessDelegable:
+          type: boolean
     DescriptorSeedForEServiceCreation:
       required:
         - audience

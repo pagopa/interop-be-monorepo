@@ -568,7 +568,7 @@ export function catalogServiceBuilder(
         isClientAccessDelegable: match(eserviceSeed.isDelegable)
           .with(P.nullish, () => undefined)
           .with(false, () => false)
-          .with(true, () => eservice.data.isClientAccessDelegable)
+          .with(true, () => eserviceSeed.isClientAccessDelegable)
           .exhaustive(),
       };
 
