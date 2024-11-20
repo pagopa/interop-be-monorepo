@@ -11,3 +11,4 @@ export * as apiGatewayApi from "./apiGatewayApi.js";
 export * as notifierApi from "./generated/notifierApi.js";
 export * as delegationApi from "./generated/delegationApi.js";
 export * from "./selfcareClients.js";
+export * as authorizationServerApi from "./generated/authorizationServerApi.js";

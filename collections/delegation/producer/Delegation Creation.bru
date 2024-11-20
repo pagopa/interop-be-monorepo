@@ -1,7 +1,7 @@
 meta {
   name: Delegation Creation
   type: http
-  seq: 3
+  seq: 1
 }
 
 post {
@@ -17,7 +17,11 @@ headers {
 
 body:json {
   {
-    "eserviceId": "",
-    "delegateId": ""
+    "eserviceId": "{{eserviceId}}",
+    "delegateId": "{{tenantId2}}"
   }
+}
+
+vars:post-response {
+  delegationId: res.body.id
 }
