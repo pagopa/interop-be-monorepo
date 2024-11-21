@@ -52,7 +52,7 @@
     contraddistinta da id <strong>{{eServiceDescriptorId}}</strong> (di seguito “e-service“),
     reso disponibile dall’aderente
 
-    {{#if delegate}}
+    {{#if delegationId}}
     <strong>{{delegatorText}}</strong> (di seguito “Erogatore”), per tramite dell'aderente
     <strong>{{delegateText}}</strong> (di seguito “Delegato all'erogazione”),
     {{else}}
@@ -82,6 +82,19 @@
     <h2>Attributi verificati</h2>
 
     {{#each verifiedAttributes}}
+    <div>
+      In data
+      <strong>{{this.assignmentDate}}</strong>
+      alle ore
+      <strong>{{this.assignmentTime}}</strong>, l’infrastruttura ha registrato
+      la verifica {{#if delegationId}}del delegato{{else}}dell’erogatore{{/if}} all’erogazione che il fruitore possegga
+      l’attributo verificato <strong>{{this.attributeName}}</strong>,
+      contraddistinto da id <strong>{{this.attributeId}}</strong>, {{#if
+      this.expirationDate}} ed avente scadenza il
+      {{this.expirationDate}},{{/if}} necessario a soddisfare il requisito di
+      fruizione stabilito dall’erogatore per l’accesso all’e-service.
+    </div>
+
     <div>
       In data
       <strong>{{this.assignmentDate}}</strong>
@@ -120,7 +133,7 @@
       all’Erogatore la Richiesta di Fruizione.
     </div>
     
-    {{#if delegate}}
+    {{#if delegationId}}
     <div>
       In data <strong>{{activationDate}}</strong> alle ore
       <strong>{{activationTime}}</strong>, l’infrastruttura ha ricevuto
