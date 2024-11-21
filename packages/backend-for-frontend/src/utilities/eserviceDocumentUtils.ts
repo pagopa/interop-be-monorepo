@@ -253,7 +253,7 @@ function processSoapInterface(file: string) {
   return address;
 }
 
-async function handleEServiceDocumentProcessing(
+export async function handleEServiceDocumentProcessing(
   doc: bffApi.createEServiceDocument_Body,
   technology: catalogApi.EServiceTechnology,
   eServiceId: string
