@@ -13172,6 +13172,11 @@ components:
           type: boolean
         hasCertifiedAttributes:
           type: boolean
+          description: > 
+            True in case:
+              - the requester has the certified attributes required to consume the eservice, or
+              - the requester is the delegated consumer for the eservice and 
+                the delegator has the certified attributes required to consume the eservice 
         isSubscribed:
           type: boolean
         activeDescriptor:

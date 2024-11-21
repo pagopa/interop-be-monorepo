@@ -3,7 +3,12 @@
 /* eslint-disable functional/immutable-data */
 import { randomUUID } from "crypto";
 import AdmZip from "adm-zip";
-import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  bffApi,
+  catalogApi,
+  delegationApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
 import {
   FileManager,
   WithLogger,
@@ -26,6 +31,7 @@ import {
   invalidZipStructure,
   missingDescriptorInClonedEservice,
   noDescriptorInEservice,
+  tenantNotFound,
 } from "../model/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import {
@@ -536,12 +542,26 @@ export function catalogServiceBuilder(
         tenantProcessClient,
         await getAllDelegations(delegationProcessClient, headers, {
           delegateIds: [requesterId],
-          delegationStates: ["ACTIVE"],
-          kind: "DELEGATED_CONSUMER",
+          delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
+          kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
           eserviceIds: [eserviceId],
         }),
         headers
       );
+
+      const delegationTenants = Array.from(requesterTenants.values());
+      const requesterTenant = delegationTenants.find(
+        (t) => t.id === requesterId
+      );
+
+      if (!requesterTenant) {
+        throw tenantNotFound(requesterId);
+      }
+
+      const consumerDelegators = delegationTenants.filter(
+        (t) => t.id !== requesterId
+      );
+
       const producerTenant = await tenantProcessClient.tenant.getTenant({
         headers,
         params: {
@@ -579,7 +599,8 @@ export function catalogServiceBuilder(
           descriptor,
           producerTenant,
           agreement,
-          Array.from(requesterTenants, ([, tenant]) => tenant)
+          requesterTenant,
+          consumerDelegators
         ),
       };
     },
