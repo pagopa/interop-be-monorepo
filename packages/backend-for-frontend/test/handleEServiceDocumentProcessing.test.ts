@@ -3,7 +3,10 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import { ZodError } from "zod";
 import { handleEServiceDocumentProcessing } from "../src/utilities/eserviceDocumentUtils.js";
-import { invalidInterfaceFileDetected } from "../src/model/errors.js";
+import {
+  invalidInterfaceFileDetected,
+  openapiVersionNotRecognized,
+} from "../src/model/errors.js";
 
 describe("handleEServiceDocumentProcessing", () => {
   const eserviceId = generateId();
@@ -188,5 +191,82 @@ describe("handleEServiceDocumentProcessing", () => {
     await expect(
       handleEServiceDocumentProcessing(soapDoc, "SOAP", eserviceId)
     ).rejects.toThrow(ZodError);
+  });
+
+  it("should process REST interface with OpenAPI 2.0", async () => {
+    const swaggerDoc = {
+      doc: {
+        name: "test.json",
+        text: vi.fn().mockResolvedValue(
+          JSON.stringify({
+            openapi: "2.0",
+            host: "api.example.com",
+            paths: [{}],
+          })
+        ),
+      },
+      kind: "INTERFACE",
+    } as unknown as bffApi.createEServiceDocument_Body;
+
+    const result = await handleEServiceDocumentProcessing(
+      swaggerDoc,
+      "REST",
+      eserviceId
+    );
+    expect(result).toEqual(["api.example.com"]);
+  });
+
+  it("should throw error for unsupported OpenAPI version", async () => {
+    const invalidDoc = {
+      doc: {
+        name: "test.json",
+        text: vi.fn().mockResolvedValue(
+          JSON.stringify({
+            openapi: "1.0",
+            servers: [{ url: "http://example.com" }],
+          })
+        ),
+      },
+      kind: "INTERFACE",
+    } as unknown as bffApi.createEServiceDocument_Body;
+
+    await expect(
+      handleEServiceDocumentProcessing(invalidDoc, "REST", eserviceId)
+    ).rejects.toThrow(openapiVersionNotRecognized("1.0"));
+  });
+
+  it("should throw error for invalid JSON in REST interface", async () => {
+    const invalidDoc = {
+      doc: {
+        name: "test.json",
+        text: vi.fn().mockResolvedValue("invalid json"),
+      },
+      kind: "INTERFACE",
+    } as unknown as bffApi.createEServiceDocument_Body;
+
+    await expect(
+      handleEServiceDocumentProcessing(invalidDoc, "REST", eserviceId)
+    ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
+  });
+
+  it("should process REST interface with YAML format", async () => {
+    const yamlDoc = {
+      doc: {
+        name: "test.yaml",
+        text: vi
+          .fn()
+          .mockResolvedValue(
+            "openapi: 3.0.0\nservers:\n  - url: http://example.com"
+          ),
+      },
+      kind: "INTERFACE",
+    } as unknown as bffApi.createEServiceDocument_Body;
+
+    const result = await handleEServiceDocumentProcessing(
+      yamlDoc,
+      "REST",
+      eserviceId
+    );
+    expect(result).toEqual(["http://example.com"]);
   });
 });

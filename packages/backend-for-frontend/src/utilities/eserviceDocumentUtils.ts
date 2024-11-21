@@ -177,17 +177,18 @@ export const verifyAndCreateImportedDoc = async (
 };
 
 function handleOpenApiV2(openApi: Record<string, unknown>) {
-  const { data: host, error: hostError } = z.string().safeParse(openApi.host);
-  const { error: pathsError } = z.array(z.object({})).safeParse(openApi.paths);
+  const { data, error } = z
+    .object({
+      host: z.string(),
+      paths: z.array(z.object({})),
+    })
+    .safeParse(openApi);
 
-  if (hostError) {
-    throw new Error();
-  }
-  if (pathsError) {
-    throw new Error();
+  if (error) {
+    throw error;
   }
 
-  return [host];
+  return [data.host];
 }
 
 function handleOpenApiV3(openApi: Record<string, unknown>) {
@@ -195,7 +196,7 @@ function handleOpenApiV3(openApi: Record<string, unknown>) {
     .array(z.object({ url: z.string() }))
     .safeParse(openApi.servers);
   if (error) {
-    throw new Error();
+    throw error;
   }
 
   return servers.flatMap((s) => s.url);
