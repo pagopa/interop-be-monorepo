@@ -43,15 +43,12 @@ import {
   tenantMailKind,
   toAgreementStateV2,
 } from "pagopa-interop-models";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { agreementSubmissionConflictingStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
-  agreementMissingUserInfo,
   agreementNotFound,
   agreementNotInExpectedState,
-  agreementSelfcareIdNotFound,
   agreementSubmissionFailed,
   consumerWithNotValidEmail,
   descriptorNotInExpectedState,
@@ -59,7 +56,6 @@ import {
   notLatestEServiceDescriptor,
   operationNotAllowed,
   tenantNotFound,
-  userNotFound,
 } from "../src/model/domain/errors.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
 import { config } from "../src/config/config.js";
@@ -71,28 +67,9 @@ import {
   agreementService,
   fileManager,
   readLastAgreementEvent,
-  selfcareV2ClientMock,
 } from "./utils.js";
 
 describe("submit agreement", () => {
-  const mockSelfCareResponse = (
-    userResponse?: selfcareV2ClientApi.UserResponse
-  ): void => {
-    if (userResponse) {
-      selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-        async () => userResponse
-      );
-    } else {
-      selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-        async () => undefined as unknown as selfcareV2ClientApi.UserResponse // this should never happend
-      );
-    }
-  };
-
-  afterEach(async () => {
-    vi.clearAllMocks();
-  });
-
   async function addRelatedAgreements(agreement: Agreement): Promise<{
     archivableRelatedAgreement1: Agreement;
     archivableRelatedAgreement2: Agreement;
@@ -775,7 +752,6 @@ describe("submit agreement", () => {
 
     const authData = getRandomAuthData(consumer.id);
 
-    mockSelfCareResponse();
     await expect(
       agreementService.submitAgreement(
         agreement.id,
@@ -788,176 +764,6 @@ describe("submit agreement", () => {
         }
       )
     ).rejects.toThrowError(agreementSubmissionFailed(agreement.id));
-  });
-
-  it("should throw a userNotFound error when user info cannot be fetched from Selfcare API in getSubmissionInfo", async () => {
-    const consumer = {
-      ...getMockTenant(),
-      selfcareId: generateId<SelfcareId>(),
-      mails: [
-        {
-          id: generateId(),
-          kind: tenantMailKind.ContactEmail,
-          address: "avalidemailaddressfortenant@testingagreement.com",
-          createdAt: new Date(),
-        },
-      ],
-    };
-    const producer = getMockTenant(consumer.id);
-
-    const descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.suspended,
-      attributes: {
-        certified: [],
-        declared: [],
-        verified: [],
-      },
-    };
-    const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
-      descriptor,
-    ]);
-
-    const agreement = {
-      ...getMockAgreement(eservice.id, consumer.id),
-      producerId: producer.id,
-      descriptorId: eservice.descriptors[0].id,
-      state: agreementState.draft,
-    };
-
-    await addOneEService(eservice);
-    await addOneTenant(consumer);
-    await addOneTenant(producer);
-    await addOneAgreement(agreement);
-
-    const authData = getRandomAuthData(consumer.id);
-    mockSelfCareResponse(undefined);
-
-    await expect(
-      agreementService.submitAgreement(
-        agreement.id,
-        { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(userNotFound(consumer.selfcareId, authData.userId));
-  });
-
-  it("should throw an agreementSelfcareIdNotFound error when selfcare id is not found for the consumer", async () => {
-    const consumer = {
-      ...getMockTenant(),
-      selfcareId: undefined,
-      mails: [
-        {
-          id: generateId(),
-          kind: tenantMailKind.ContactEmail,
-          address: "avalidemailaddressfortenant@testingagreement.com",
-          createdAt: new Date(),
-        },
-      ],
-    };
-    const producer = getMockTenant(consumer.id);
-
-    const descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.suspended,
-      attributes: {
-        certified: [[getMockEServiceAttribute()]],
-        declared: [],
-        verified: [],
-      },
-    };
-    const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
-      descriptor,
-    ]);
-
-    const agreement = {
-      ...getMockAgreement(eservice.id, consumer.id),
-      producerId: producer.id,
-      descriptorId: eservice.descriptors[0].id,
-      state: agreementState.draft,
-    };
-
-    await addOneEService(eservice);
-    await addOneTenant(consumer);
-    await addOneTenant(producer);
-    await addOneAgreement(agreement);
-
-    const authData = getRandomAuthData(consumer.id);
-
-    await expect(
-      agreementService.submitAgreement(
-        agreement.id,
-        { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(agreementSelfcareIdNotFound(consumer.id));
-  });
-
-  it("should throw an agreementMissingUserInfo error when name, surname, or taxcode properties are missing in selfcare user response", async () => {
-    const consumer = {
-      ...getMockTenant(),
-      selfcareId: generateId<SelfcareId>(),
-      mails: [
-        {
-          id: generateId(),
-          kind: tenantMailKind.ContactEmail,
-          address: "avalidemailaddressfortenant@testingagreement.com",
-          createdAt: new Date(),
-        },
-      ],
-    };
-    const producer = getMockTenant(consumer.id);
-
-    const descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.suspended,
-      attributes: {
-        certified: [[getMockEServiceAttribute()]],
-        declared: [],
-        verified: [],
-      },
-    };
-    const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
-      descriptor,
-    ]);
-
-    const agreement = {
-      ...getMockAgreement(eservice.id, consumer.id),
-      producerId: producer.id,
-      descriptorId: eservice.descriptors[0].id,
-      state: agreementState.draft,
-    };
-
-    await addOneEService(eservice);
-    await addOneTenant(consumer);
-    await addOneTenant(producer);
-    await addOneAgreement(agreement);
-
-    const authData = getRandomAuthData(consumer.id);
-    mockSelfCareResponse({});
-
-    await expect(
-      agreementService.submitAgreement(
-        agreement.id,
-        { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(agreementMissingUserInfo(authData.userId));
   });
 
   it("should throw an agreementSubmissionFailed error when recalculation of suspendByPlatform returns true, and also set the agreement to MissingCertifiedAttributes state", async () => {
@@ -1028,15 +834,6 @@ describe("submit agreement", () => {
     await addOneAgreement(agreement);
 
     const authData = getRandomAuthData(consumer.id);
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
-
-    mockSelfCareResponse(mockUserResponse);
 
     await expect(
       agreementService.submitAgreement(
@@ -1083,7 +880,6 @@ describe("submit agreement", () => {
       fail("impossible to decode AgreementAddedV1 data");
     }
 
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
     expect(actualAgreement.suspendedByPlatform).toBeTruthy();
     expect(actualAgreement.state).toEqual(
       toAgreementStateV2(agreementState.missingCertifiedAttributes)
@@ -1154,15 +950,6 @@ describe("submit agreement", () => {
       nonArchivableRelatedAgreement,
     } = await addRelatedAgreements(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
-
-    mockSelfCareResponse(mockUserResponse);
     const submittedAgreement = await agreementService.submitAgreement(
       agreement.id,
       {
@@ -1228,7 +1015,6 @@ describe("submit agreement", () => {
       },
     };
 
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
     expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
 
@@ -1347,15 +1133,6 @@ describe("submit agreement", () => {
     await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
-
-    mockSelfCareResponse(mockUserResponse);
     const submittedAgreement = await agreementService.submitAgreement(
       agreement.id,
       {
@@ -1455,7 +1232,6 @@ describe("submit agreement", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedContract.path);
 
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).toHaveBeenCalled();
     expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
   });
@@ -1553,15 +1329,6 @@ describe("submit agreement", () => {
       nonArchivableRelatedAgreement,
     } = await addRelatedAgreements(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
-
-    mockSelfCareResponse(mockUserResponse);
     const submittedAgreement = await agreementService.submitAgreement(
       agreement.id,
       {
@@ -1642,7 +1409,6 @@ describe("submit agreement", () => {
       },
     };
 
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
     expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
 
@@ -1767,15 +1533,6 @@ describe("submit agreement", () => {
     await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
-
-    mockSelfCareResponse(mockUserResponse);
     const submittedAgreement = await agreementService.submitAgreement(
       agreement.id,
       {
@@ -1870,7 +1627,6 @@ describe("submit agreement", () => {
         },
       },
     };
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).toHaveBeenCalled();
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
@@ -1956,15 +1712,6 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
-
-    mockSelfCareResponse(mockUserResponse);
     const submittedAgreement = await agreementService.submitAgreement(
       agreement.id,
       {
@@ -2026,7 +1773,6 @@ describe("submit agreement", () => {
       },
     };
 
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
     expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
   });
@@ -2108,15 +1854,6 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
-
-    mockSelfCareResponse(mockUserResponse);
     const submittedAgreement = await agreementService.submitAgreement(
       agreement.id,
       {
@@ -2177,7 +1914,6 @@ describe("submit agreement", () => {
       },
     };
 
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
     expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
   });

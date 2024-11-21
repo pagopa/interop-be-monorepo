@@ -9,10 +9,7 @@ import {
   WithLogger,
   eventRepository,
 } from "pagopa-interop-commons";
-import {
-  agreementApi,
-  SelfcareV2UsersClient,
-} from "pagopa-interop-api-clients";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   Agreement,
   AgreementDocument,
@@ -204,8 +201,7 @@ export function agreementServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
   fileManager: FileManager,
-  pdfGenerator: PDFGenerator,
-  selfcareV2Client: SelfcareV2UsersClient
+  pdfGenerator: PDFGenerator
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -471,10 +467,8 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
-        selfcareV2Client,
         config,
-        logger,
-        correlationId
+        logger
       );
 
       const isFirstActivation =
@@ -615,10 +609,8 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
-        selfcareV2Client,
         config,
-        logger,
-        correlationId
+        logger
       );
 
       const [agreement, events] = await createUpgradeOrNewDraft({
@@ -936,10 +928,8 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
-        selfcareV2Client,
         config,
-        logger,
-        correlationId
+        logger
       );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);

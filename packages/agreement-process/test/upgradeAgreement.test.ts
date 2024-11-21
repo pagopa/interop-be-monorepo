@@ -42,17 +42,7 @@ import {
   toAgreementV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { addDays } from "date-fns";
 import { agreementUpgradableStates } from "../src/model/domain/agreement-validators.js";
 import {
@@ -80,7 +70,6 @@ import {
   getMockConsumerDocument,
   getMockContract,
   readAgreementEventByVersion,
-  selfcareV2ClientMock,
   uploadDocument,
 } from "./utils.js";
 
@@ -91,25 +80,6 @@ describe("upgrade Agreement", () => {
   });
   afterAll(() => {
     vi.useRealTimers();
-  });
-
-  const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
-    email: "test@test.com",
-    name: "Test Name",
-    surname: "Test Surname",
-    taxCode: "TSTTSTTSTTSTTSTT",
-    id: generateId(),
-  };
-
-  beforeEach(async () => {
-    // eslint-disable-next-line functional/immutable-data
-    selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-      async () => mockSelfcareUserResponse
-    );
-  });
-
-  afterEach(async () => {
-    vi.clearAllMocks();
   });
 
   it("should succeed with valid Verified and Declared attributes when consumer and producer are the same", async () => {

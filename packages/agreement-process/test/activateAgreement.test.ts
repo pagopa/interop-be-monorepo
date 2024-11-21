@@ -5,7 +5,6 @@ import {
   formatDateyyyyMMddHHmmss,
   genericLogger,
 } from "pagopa-interop-commons";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -36,19 +35,16 @@ import {
   DeclaredTenantAttribute,
   Descriptor,
   EService,
-  SelfcareId,
   Tenant,
   TenantAttribute,
   TenantId,
-  UserId,
   VerifiedTenantAttribute,
   agreementState,
   descriptorState,
   fromAgreementV2,
   generateId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { addDays } from "date-fns";
 import {
   agreementActivableStates,
@@ -57,10 +53,8 @@ import {
 } from "../src/model/domain/agreement-validators.js";
 import {
   agreementActivationFailed,
-  agreementMissingUserInfo,
   agreementNotFound,
   agreementNotInExpectedState,
-  agreementSelfcareIdNotFound,
   agreementStampNotFound,
   attributeNotFound,
   descriptorNotFound,
@@ -68,7 +62,6 @@ import {
   eServiceNotFound,
   operationNotAllowed,
   tenantNotFound,
-  userNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -80,45 +73,9 @@ import {
   fileManager,
   readAgreementEventByVersion,
   readLastAgreementEvent,
-  selfcareV2ClientMock,
 } from "./utils.js";
 
 describe("activate agreement", () => {
-  const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
-    email: "test@test.com",
-    name: "Test Name",
-    surname: "Test Surname",
-    taxCode: "TSTTSTTSTTSTTSTT",
-    id: generateId(),
-  };
-
-  // eslint-disable-next-line functional/no-let
-  let mockSelfcareUserResponseWithMissingInfo: selfcareV2ClientApi.UserResponse =
-    mockSelfcareUserResponse;
-  while (
-    mockSelfcareUserResponseWithMissingInfo.name &&
-    mockSelfcareUserResponseWithMissingInfo.surname &&
-    mockSelfcareUserResponseWithMissingInfo.taxCode
-  ) {
-    // At least one of the three must be undefined to test the missing info case
-    mockSelfcareUserResponseWithMissingInfo = {
-      ...mockSelfcareUserResponse,
-      name: randomArrayItem([mockSelfcareUserResponse.name, undefined]),
-      surname: randomArrayItem([mockSelfcareUserResponse.surname, undefined]),
-      taxCode: randomArrayItem([mockSelfcareUserResponse.taxCode, undefined]),
-    };
-  }
-
-  beforeEach(async () => {
-    selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-      async () => mockSelfcareUserResponse
-    );
-  });
-
-  afterEach(async () => {
-    vi.clearAllMocks();
-  });
-
   async function addRelatedAgreements(agreement: Agreement): Promise<{
     archivableRelatedAgreement1: Agreement;
     archivableRelatedAgreement2: Agreement;
@@ -1715,300 +1672,6 @@ describe("activate agreement", () => {
           logger: genericLogger,
         })
       ).rejects.toThrowError(agreementStampNotFound("submission"));
-    });
-
-    it("should throw agreementSelfcareIdNotFound when the contract builder cannot find consumer selfcareId", async () => {
-      const producer: Tenant = getMockTenant();
-      const consumer: Tenant = { ...getMockTenant(), selfcareId: undefined };
-
-      const authData = getRandomAuthData(producer.id);
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const mockAgreement: Agreement = getMockAgreement();
-      const agreement: Agreement = {
-        ...mockAgreement,
-        state: agreementState.pending,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedByConsumer: false,
-        suspendedByProducer: randomBoolean(),
-        stamps: {
-          submission: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
-      };
-
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(agreementSelfcareIdNotFound(agreement.consumerId));
-    });
-
-    it("should throw userNotFound when the contract builder cannot fetch submission stamp user info from Selfcare API", async () => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(async () => undefined);
-
-      const producer: Tenant = getMockTenant();
-      const consumer: Tenant = {
-        ...getMockTenant(),
-        selfcareId: generateId(),
-      };
-
-      const authData = getRandomAuthData(producer.id);
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const mockAgreement: Agreement = getMockAgreement();
-      const agreement: Agreement = {
-        ...mockAgreement,
-        state: agreementState.pending,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedByConsumer: false,
-        suspendedByProducer: randomBoolean(),
-        stamps: {
-          submission: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
-      };
-
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(
-        userNotFound(unsafeBrandId(consumer.selfcareId!), authData.userId)
-      );
-    });
-
-    it("should throw agreementMissingUserInfo when the contract builder cannot find name, surname or taxcode in submission stamp user info from Selfcare API", async () => {
-      selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-        async () => mockSelfcareUserResponseWithMissingInfo
-      );
-
-      const producer: Tenant = getMockTenant();
-      const consumer: Tenant = {
-        ...getMockTenant(),
-        selfcareId: generateId(),
-      };
-
-      const authData = getRandomAuthData(producer.id);
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const mockAgreement: Agreement = getMockAgreement();
-      const agreement: Agreement = {
-        ...mockAgreement,
-        state: agreementState.pending,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedByConsumer: false,
-        suspendedByProducer: randomBoolean(),
-        stamps: {
-          submission: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
-      };
-
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(agreementMissingUserInfo(authData.userId));
-    });
-
-    it("should throw userNotFound when the contract builder cannot fetch activation stamp user info from Selfcare API", async () => {
-      const submissionStampUserId = generateId<UserId>();
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-        async ({ params: { id } }) =>
-          id === submissionStampUserId ? mockSelfcareUserResponse : undefined
-      );
-
-      const mockProducerSelfcareId: SelfcareId = generateId();
-
-      const producer: Tenant = {
-        ...getMockTenant(),
-        selfcareId: mockProducerSelfcareId,
-      };
-      const consumer: Tenant = getMockTenant();
-
-      const authData = getRandomAuthData(producer.id);
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const mockAgreement: Agreement = getMockAgreement();
-      const agreement: Agreement = {
-        ...mockAgreement,
-        state: agreementState.pending,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedByConsumer: false,
-        suspendedByProducer: randomBoolean(),
-        stamps: {
-          submission: {
-            who: submissionStampUserId,
-            when: new Date(),
-          },
-          activation: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
-      };
-
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(
-        userNotFound(mockProducerSelfcareId, authData.userId)
-      );
-    });
-
-    it("should throw agreementMissingUserInfo when the contract builder cannot find name, surname or taxcode in activation stamp user info from Selfcare API", async () => {
-      const submissionStampUserId = generateId<UserId>();
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-        async ({ params: { id } }) =>
-          id === submissionStampUserId
-            ? mockSelfcareUserResponse
-            : mockSelfcareUserResponseWithMissingInfo
-      );
-
-      const producer: Tenant = getMockTenant();
-      const consumer: Tenant = {
-        ...getMockTenant(),
-        selfcareId: generateId(),
-      };
-
-      const authData = getRandomAuthData(producer.id);
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const mockAgreement: Agreement = getMockAgreement();
-      const agreement: Agreement = {
-        ...mockAgreement,
-        state: agreementState.pending,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedByConsumer: false,
-        suspendedByProducer: randomBoolean(),
-        stamps: {
-          submission: {
-            who: submissionStampUserId,
-            when: new Date(),
-          },
-          activation: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
-      };
-
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(agreementMissingUserInfo(authData.userId));
     });
 
     it("should throw attributeNotFound when the contract builder cannot retrieve an attribute", async () => {
