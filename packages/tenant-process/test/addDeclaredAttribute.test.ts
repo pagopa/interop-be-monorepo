@@ -1,11 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { attributeKind, toReadModelAttribute } from "pagopa-interop-models";
+import {
+  attributeKind,
+  DelegationId,
+  toReadModelAttribute,
+} from "pagopa-interop-models";
 import {
   writeInReadmodel,
   getMockAttribute,
   readLastEventByStreamId,
   getMockTenant,
+  getMockDelegation,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -23,12 +28,14 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   tenantNotFound,
   attributeNotFound,
+  delegationNotFound,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
   attributes,
   postgresDB,
   tenantService,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("addDeclaredAttribute", async () => {
@@ -148,6 +155,143 @@ describe("addDeclaredAttribute", async () => {
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
     expect(returnedTenant).toEqual(updatedTenant);
   });
+  it("Should add the declared attribute to the delegator if the delegator doesn't have that", async () => {
+    const delegateWithoutDeclaredAttribute: Tenant = {
+      ...getMockTenant(),
+      attributes: [],
+    };
+    const delegatorWithoutDeclaredAttribute: Tenant = {
+      ...getMockTenant(),
+      attributes: [],
+    };
+
+    await writeInReadmodel(toReadModelAttribute(declaredAttribute), attributes);
+    await addOneTenant(delegateWithoutDeclaredAttribute);
+    await addOneTenant(delegatorWithoutDeclaredAttribute);
+
+    const delegationId: DelegationId = generateId();
+
+    await addOneDelegation(
+      getMockDelegation({
+        id: delegationId,
+        kind: "DelegatedConsumer",
+        delegatorId: delegatorWithoutDeclaredAttribute.id,
+        delegateId: delegateWithoutDeclaredAttribute.id,
+      })
+    );
+
+    const returnedTenant = await tenantService.addDeclaredAttribute(
+      {
+        tenantAttributeSeed: {
+          id: declaredAttribute.id,
+          delegationId,
+        },
+        organizationId: delegateWithoutDeclaredAttribute.id,
+        correlationId: generateId(),
+      },
+      genericLogger
+    );
+    const writtenEvent = await readLastEventByStreamId(
+      delegatorWithoutDeclaredAttribute.id,
+      "tenant",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: delegatorWithoutDeclaredAttribute.id,
+      version: "1",
+      type: "TenantDeclaredAttributeAssigned",
+      event_version: 2,
+    });
+    const writtenPayload = protobufDecoder(
+      TenantDeclaredAttributeAssignedV2
+    ).parse(writtenEvent?.data);
+
+    const updatedTenant: Tenant = {
+      ...delegatorWithoutDeclaredAttribute,
+      attributes: [
+        {
+          id: declaredAttribute.id,
+          type: "PersistentDeclaredAttribute",
+          assignmentTimestamp: new Date(),
+        },
+      ],
+      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      updatedAt: new Date(),
+    };
+    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(returnedTenant).toEqual(updatedTenant);
+  });
+  it("Should re-assign the declared attribute to the delegator if it was revoked", async () => {
+    const delegateWithoutDeclaredAttribute: Tenant = {
+      ...getMockTenant(),
+      attributes: [],
+    };
+    const delegatorWithAttributeRevoked: Tenant = {
+      ...getMockTenant(),
+      attributes: [
+        {
+          id: declaredAttribute.id,
+          type: tenantAttributeType.DECLARED,
+          assignmentTimestamp: new Date(),
+          revocationTimestamp: new Date(),
+        },
+      ],
+    };
+    await writeInReadmodel(toReadModelAttribute(declaredAttribute), attributes);
+    await addOneTenant(delegateWithoutDeclaredAttribute);
+    await addOneTenant(delegatorWithAttributeRevoked);
+
+    const delegationId: DelegationId = generateId();
+    await addOneDelegation(
+      getMockDelegation({
+        id: delegationId,
+        kind: "DelegatedConsumer",
+        delegatorId: delegatorWithAttributeRevoked.id,
+        delegateId: delegateWithoutDeclaredAttribute.id,
+      })
+    );
+
+    const returnedTenant = await tenantService.addDeclaredAttribute(
+      {
+        tenantAttributeSeed: { id: declaredAttribute.id, delegationId },
+        organizationId: delegateWithoutDeclaredAttribute.id,
+        correlationId: generateId(),
+      },
+      genericLogger
+    );
+
+    const writtenEvent = await readLastEventByStreamId(
+      delegatorWithAttributeRevoked.id,
+      "tenant",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: delegatorWithAttributeRevoked.id,
+      version: "1",
+      type: "TenantDeclaredAttributeAssigned",
+      event_version: 2,
+    });
+    const writtenPayload = protobufDecoder(
+      TenantDeclaredAttributeAssignedV2
+    ).parse(writtenEvent?.data);
+
+    const updatedTenant: Tenant = {
+      ...delegatorWithAttributeRevoked,
+      attributes: [
+        {
+          id: declaredAttribute.id,
+          type: "PersistentDeclaredAttribute",
+          assignmentTimestamp: new Date(),
+        },
+      ],
+      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      updatedAt: new Date(),
+    };
+    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(returnedTenant).toEqual(updatedTenant);
+  });
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
     await writeInReadmodel(toReadModelAttribute(declaredAttribute), attributes);
     expect(
@@ -176,5 +320,23 @@ describe("addDeclaredAttribute", async () => {
     ).rejects.toThrowError(
       attributeNotFound(unsafeBrandId(declaredAttribute.id))
     );
+  });
+  it("Should throw delegationNotFound if the delegation doesn't exist", async () => {
+    await addOneTenant(tenant);
+
+    const delegationId: DelegationId = generateId();
+    expect(
+      tenantService.addDeclaredAttribute(
+        {
+          tenantAttributeSeed: {
+            id: declaredAttribute.id,
+            delegationId,
+          },
+          organizationId: tenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      )
+    ).rejects.toThrowError(delegationNotFound(delegationId));
   });
 });
