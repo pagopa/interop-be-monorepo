@@ -3,6 +3,7 @@
 import {
   attributeKind,
   DelegationId,
+  TenantId,
   toReadModelAttribute,
 } from "pagopa-interop-models";
 import {
@@ -175,6 +176,7 @@ describe("addDeclaredAttribute", async () => {
       getMockDelegation({
         id: delegationId,
         kind: "DelegatedConsumer",
+        state: "Active",
         delegatorId: delegatorWithoutDeclaredAttribute.id,
         delegateId: delegateWithoutDeclaredAttribute.id,
       })
@@ -214,6 +216,7 @@ describe("addDeclaredAttribute", async () => {
           id: declaredAttribute.id,
           type: "PersistentDeclaredAttribute",
           assignmentTimestamp: new Date(),
+          delegationId,
         },
       ],
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
@@ -247,6 +250,7 @@ describe("addDeclaredAttribute", async () => {
       getMockDelegation({
         id: delegationId,
         kind: "DelegatedConsumer",
+        state: "Active",
         delegatorId: delegatorWithAttributeRevoked.id,
         delegateId: delegateWithoutDeclaredAttribute.id,
       })
@@ -284,6 +288,7 @@ describe("addDeclaredAttribute", async () => {
           id: declaredAttribute.id,
           type: "PersistentDeclaredAttribute",
           assignmentTimestamp: new Date(),
+          delegationId,
         },
       ],
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
@@ -325,6 +330,60 @@ describe("addDeclaredAttribute", async () => {
     await addOneTenant(tenant);
 
     const delegationId: DelegationId = generateId();
+    expect(
+      tenantService.addDeclaredAttribute(
+        {
+          tenantAttributeSeed: {
+            id: declaredAttribute.id,
+            delegationId,
+          },
+          organizationId: tenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      )
+    ).rejects.toThrowError(delegationNotFound(delegationId));
+  });
+  it("Should throw delegationNotFound if the delegation is not active", async () => {
+    await addOneTenant(tenant);
+
+    const delegationId: DelegationId = generateId();
+    await addOneDelegation(
+      getMockDelegation({
+        id: delegationId,
+        kind: "DelegatedConsumer",
+        state: "WaitingForApproval",
+        delegatorId: generateId<TenantId>(),
+        delegateId: generateId<TenantId>(),
+      })
+    );
+    expect(
+      tenantService.addDeclaredAttribute(
+        {
+          tenantAttributeSeed: {
+            id: declaredAttribute.id,
+            delegationId,
+          },
+          organizationId: tenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      )
+    ).rejects.toThrowError(delegationNotFound(delegationId));
+  });
+  it("Should throw delegationNotFound if the delegation is of kinf DelegatedConsumer", async () => {
+    await addOneTenant(tenant);
+
+    const delegationId: DelegationId = generateId();
+    await addOneDelegation(
+      getMockDelegation({
+        id: delegationId,
+        kind: "DelegatedProducer",
+        state: "Active",
+        delegatorId: generateId<TenantId>(),
+        delegateId: generateId<TenantId>(),
+      })
+    );
     expect(
       tenantService.addDeclaredAttribute(
         {
