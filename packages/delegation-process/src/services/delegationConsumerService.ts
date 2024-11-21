@@ -21,6 +21,7 @@ import {
 import { config } from "../config/config.js";
 import {
   toCreateEventConsumerDelegationApproved,
+  toCreateEventConsumerDelegationRevoked,
   toCreateEventConsumerDelegationSubmitted,
 } from "../model/domain/toEvent.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
@@ -169,6 +170,73 @@ export function delegationConsumerServiceBuilder(
           correlationId
         )
       );
+    },
+
+    async revokeConsumerDelegation(
+      delegationId: DelegationId,
+      { authData, logger, correlationId }: WithLogger<AppContext>
+    ): Promise<Delegation> {
+      const delegatorId = unsafeBrandId<TenantId>(authData.organizationId);
+      logger.info(
+        `Revoking delegation ${delegationId} by consumer ${delegatorId}`
+      );
+
+      const { data: delegation, metadata } = await retrieveDelegationById(
+        readModelService,
+        delegationId
+      );
+
+      // TODO Add validations after https://github.com/pagopa/interop-be-monorepo/pull/1217 is merged
+
+      const [delegator, delegate, eservice] = await Promise.all([
+        retrieveTenantById(readModelService, delegation.delegatorId),
+        retrieveTenantById(readModelService, delegation.delegateId),
+        retrieveEserviceById(readModelService, delegation.eserviceId),
+      ]);
+
+      const now = new Date();
+      const revokedDelegationWithoutContract = {
+        ...delegation,
+        state: delegationState.revoked,
+        revokedAt: now,
+        stamps: {
+          ...delegation.stamps,
+          revocation: {
+            who: delegatorId,
+            when: now,
+          },
+        },
+      };
+
+      const revocationContract = await contractBuilder.createRevocationContract(
+        {
+          delegation: revokedDelegationWithoutContract,
+          delegator,
+          delegate,
+          eservice,
+          pdfGenerator,
+          fileManager,
+          config,
+          logger,
+        }
+      );
+
+      const revokedDelegation = {
+        ...revokedDelegationWithoutContract,
+        revocationContract,
+      };
+
+      await repository.createEvent(
+        toCreateEventConsumerDelegationRevoked(
+          {
+            data: revokedDelegation,
+            metadata,
+          },
+          correlationId
+        )
+      );
+
+      return revokedDelegation;
     },
   };
 }

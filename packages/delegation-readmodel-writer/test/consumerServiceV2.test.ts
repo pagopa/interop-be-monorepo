@@ -174,4 +174,28 @@ describe("Events V2", async () => {
       version: 1,
     });
   });
+
+  it("ConsumerDelegationRevoked", async () => {
+    const payload: ConsumerDelegationRevokedV2 = {
+      delegation: toDelegationV2(mockDelegation),
+    };
+
+    const message: DelegationEventEnvelopeV2 = {
+      ...mockMessage,
+      type: "ConsumerDelegationRevoked",
+      data: payload,
+    };
+
+    await handleMessageV2(message, delegations);
+
+    const retrievedDelegation = await delegations.findOne({
+      "data.id": mockDelegation.id,
+    });
+
+    expect(retrievedDelegation?.data).toEqual(mockDelegation);
+
+    expect(retrievedDelegation?.metadata).toEqual({
+      version: 1,
+    });
+  });
 });
