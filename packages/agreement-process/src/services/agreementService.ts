@@ -503,9 +503,6 @@ export function agreementServiceBuilder(
         )
       )?.data;
 
-      const requesterIsDelegate =
-        authData.organizationId === activeDelegation?.delegateId;
-
       const submittedAgreement = await addContractOnFirstActivation(
         isFirstActivation,
         contractBuilderInstance,
@@ -513,7 +510,7 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreement,
-        requesterIsDelegate ? activeDelegation : undefined
+        activeDelegation
       );
 
       const agreementEvent =
