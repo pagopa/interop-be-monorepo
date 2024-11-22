@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getMockAuthData,
   getMockCertifiedTenantAttribute,
-  getMockDelegationConsumer,
+  getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
@@ -71,7 +71,8 @@ describe("Verify Tenant Certified Attributes", () => {
     [mockDescriptor]
   );
   describe("With delegationId", () => {
-    const mockDelegation = getMockDelegationConsumer({
+    const mockDelegation = getMockDelegation({
+      kind: "DelegatedConsumer",
       eserviceId: mockEService.id,
       delegatorId: mockTenant.id,
     });
