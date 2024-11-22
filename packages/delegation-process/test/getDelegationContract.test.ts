@@ -28,7 +28,7 @@ describe("getDelegationContract", () => {
     prettyName: "prettyName",
   };
 
-  it("should get the delegation delegation contract if it exists", async () => {
+  it("should get the delegation contract if it exists", async () => {
     const delegation = {
       ...getMockDelegationProducer(),
       activationContract: mockContract,
