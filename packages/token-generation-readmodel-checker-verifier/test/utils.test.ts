@@ -88,7 +88,7 @@ import {
   addOneEService,
   addOnePurpose,
   config,
-  readModelRepository,
+  readModelService,
   writeClientEntry,
 } from "./utils.js";
 
@@ -166,7 +166,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       const differences = await compareReadModelPurposesWithTokenGenReadModel({
         platformStatesEntries: [platformPurposeEntry1, platformPurposeEntry2],
         tokenGenerationStatesEntries: [tokenStatesEntry],
-        readModel: readModelRepository,
+        readModelService,
       });
       const expectedDifferences: PurposeDifferencesResult = [
         [
@@ -402,7 +402,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
             platformAgreementEntry2,
           ],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModel: readModelRepository,
+          readModelService,
         }
       );
       const expectedDifferences: AgreementDifferencesResult = [
@@ -680,7 +680,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       const differences = await compareReadModelEServicesWithTokenGenReadModel({
         platformStatesEntries: [platformCatalogEntry1, platformCatalogEntry2],
         tokenGenerationStatesEntries: [tokenStatesEntry],
-        readModel: readModelRepository,
+        readModelService,
       });
       const expectedDifferences: CatalogDifferencesResult = [
         [
@@ -923,7 +923,7 @@ describe("Token Generation Read Model Checker Verifier utils tests", () => {
       const differences = await compareReadModelClientsWithTokenGenReadModel({
         platformStatesEntries: [platformClientEntry1, platformClientEntry2],
         tokenGenerationStatesEntries: [tokenStatesEntry],
-        readModel: readModelRepository,
+        readModelService,
       });
       const expectedDifferences: ClientDifferencesResult = [
         [
