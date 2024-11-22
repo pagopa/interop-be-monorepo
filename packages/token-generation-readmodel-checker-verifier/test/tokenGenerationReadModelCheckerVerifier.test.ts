@@ -118,7 +118,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
   });
 
   describe("all collections", () => {
-    it("should detect differences for all collections", async () => {
+    it("should detect differences for all collections when the Token Generation Read Model states are wrong", async () => {
       // catalog
       const descriptor1: Descriptor = {
         ...getMockDescriptor(),
