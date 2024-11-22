@@ -33,6 +33,8 @@ export const errorCodes = {
   certifierWithExistingAttributes: "0024",
   attributeNotFoundInTenant: "0025",
   tenantNotFoundByExternalId: "0026",
+  tenantAlreadyHasDelegatedProducerFeature: "0027",
+  tenantHasNoDelegatedProducerFeature: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -290,5 +292,25 @@ export function attributeNotFoundInTenant(
     detail: `Attribute ${attributeId} not found in tenant ${tenantId}`,
     code: "attributeNotFoundInTenant",
     title: "Attribute not found in tenant",
+  });
+}
+
+export function tenantAlreadyHasDelegatedProducerFeature(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} already has delegated producer feature assigned`,
+    code: "tenantAlreadyHasDelegatedProducerFeature",
+    title: "Feature already assigned",
+  });
+}
+
+export function tenantHasNoDelegatedProducerFeature(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} has no delegated producer feature assigned`,
+    code: "tenantHasNoDelegatedProducerFeature",
+    title: "Feature not assigned",
   });
 }
