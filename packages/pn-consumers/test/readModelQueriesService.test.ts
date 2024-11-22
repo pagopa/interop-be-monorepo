@@ -1,4 +1,5 @@
 /* eslint-disable functional/no-let */
+import { randomUUID } from "crypto";
 import { describe, expect, it, afterEach, inject } from "vitest";
 import {
   getMockPurpose,
@@ -7,15 +8,14 @@ import {
   setupTestContainersVitest,
 } from "pagopa-interop-commons-test/index.js";
 import { AttributeId, TenantId, unsafeBrandId } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { ReadModelQueriesClient } from "../src/services/readModelQueriesService.js";
 
 const PN_ESERVICE_ID_MOCK = "4747d063-0d9c-4a5d-b143-9f2fdc4d7f22";
 const COMUNI_E_LORO_CONSORZI_E_ASSOCIAZIONI_ATTRIBUTE_ID_MOCK =
   "5ec5dd81-ff71-4af8-974b-4190eb8347bf";
 
-const TENANT_COMUNE_ID = uuidv4();
-const TENANT_NON_COMUNE_ID = uuidv4();
+const TENANT_COMUNE_ID = randomUUID();
+const TENANT_NON_COMUNE_ID = randomUUID();
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
@@ -75,7 +75,7 @@ describe("MetricsManager", () => {
           consumerId: unsafeBrandId(TENANT_COMUNE_ID),
           versions: [
             {
-              id: uuidv4(),
+              id: randomUUID(),
               state: "Active",
               dailyCalls: 1,
               createdAt: new Date(),
@@ -90,7 +90,7 @@ describe("MetricsManager", () => {
           consumerId: unsafeBrandId(TENANT_NON_COMUNE_ID),
           versions: [
             {
-              id: uuidv4(),
+              id: randomUUID(),
               state: "Active",
               dailyCalls: 1,
               createdAt: new Date(),
