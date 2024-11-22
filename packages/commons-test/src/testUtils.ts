@@ -127,12 +127,17 @@ export const getRandomAuthData = (
   organizationId,
 });
 
-export const getMockDescriptorPublished = (
-  descriptorId: DescriptorId = generateId<DescriptorId>(),
-  certifiedAttributes: EServiceAttribute[][] = [],
-  declaredAttributes: EServiceAttribute[][] = [],
-  verifiedAttributes: EServiceAttribute[][] = []
-): Descriptor => ({
+export const getMockDescriptorPublished = ({
+  descriptorId = generateId<DescriptorId>(),
+  certifiedAttributes = [],
+  declaredAttributes = [],
+  verifiedAttributes = [],
+}: {
+  descriptorId?: DescriptorId;
+  certifiedAttributes?: EServiceAttribute[][];
+  declaredAttributes?: EServiceAttribute[][];
+  verifiedAttributes?: EServiceAttribute[][];
+} = {}): Descriptor => ({
   ...generateMock(Descriptor),
   id: descriptorId,
   state: descriptorState.published,
@@ -159,11 +164,15 @@ export const getMockAgreementAttribute = (
 export const getMockEServiceAttributes = (num: number): EServiceAttribute[] =>
   new Array(num).map(() => getMockEServiceAttribute());
 
-export const getMockEService = (
-  eserviceId: EServiceId = generateId<EServiceId>(),
-  producerId: TenantId = generateId<TenantId>(),
-  descriptors: Descriptor[] = []
-): EService => ({
+export const getMockEService = ({
+  eserviceId = generateId<EServiceId>(),
+  producerId = generateId<TenantId>(),
+  descriptors = [],
+}: {
+  eserviceId?: EServiceId;
+  producerId?: TenantId;
+  descriptors?: Descriptor[];
+} = {}): EService => ({
   id: eserviceId,
   name: "eService name",
   description: "eService description",

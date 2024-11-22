@@ -125,9 +125,11 @@ describe("Agreeement states flows", () => {
     const descriptorId = generateId<DescriptorId>();
     const descriptorV1: Descriptor = {
       ...getMockDescriptorPublished(
-        descriptorId,
-        [[validCertifiedEserviceAttribute]],
-        [[validDeclaredEserviceAttribute]]
+        {
+          descriptorId,
+          certifiedAttributes: [[validCertifiedEserviceAttribute]],
+          declaredAttributes: [[validDeclaredEserviceAttribute]],
+        }
         // No verified attributes required in V1
       ),
       version: "1",
@@ -136,7 +138,11 @@ describe("Agreeement states flows", () => {
 
     const eserviceId = generateId<EServiceId>();
     const eservice: EService = {
-      ...getMockEService(eserviceId, producer.id, [descriptorV1]),
+      ...getMockEService({
+        eserviceId,
+        producerId: producer.id,
+        descriptors: [descriptorV1],
+      }),
     };
 
     await addOneEService(eservice);
@@ -403,9 +409,11 @@ describe("Agreeement states flows", () => {
     const descriptorId = generateId<DescriptorId>();
     const descriptorV1: Descriptor = {
       ...getMockDescriptorPublished(
-        descriptorId,
-        [[validCertifiedEserviceAttribute]],
-        [[validDeclaredEserviceAttribute]]
+        {
+          descriptorId,
+          certifiedAttributes: [[validCertifiedEserviceAttribute]],
+          declaredAttributes: [[validDeclaredEserviceAttribute]],
+        }
         // No verified attributes required in V1
       ),
       version: "1",
@@ -414,7 +422,11 @@ describe("Agreeement states flows", () => {
 
     const eserviceId = generateId<EServiceId>();
     const eservice: EService = {
-      ...getMockEService(eserviceId, producer.id, [descriptorV1]),
+      ...getMockEService({
+        eserviceId,
+        producerId: producer.id,
+        descriptors: [descriptorV1],
+      }),
     };
 
     await addOneEService(eservice);

@@ -17,9 +17,7 @@ import {
   AgreementDocument,
   AgreementId,
   AgreementV2,
-  DescriptorId,
   EServiceId,
-  TenantId,
   agreementState,
   generateId,
   toAgreementV2,
@@ -79,18 +77,15 @@ describe("clone agreement", () => {
 
     const consumer = getMockTenant(consumerId, [validCertifiedTenantAttribute]);
 
-    const descriptor = getMockDescriptorPublished(
-      generateId<DescriptorId>(),
-      [[validCertifiedEserviceAttribute]],
+    const descriptor = getMockDescriptorPublished({
+      certifiedAttributes: [[validCertifiedEserviceAttribute]],
       // Declared and verified attributes shall not be validated: we add some random ones to test that
-      [[getMockEServiceAttribute()]],
-      [[getMockEServiceAttribute()]]
-    );
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+      declaredAttributes: [[getMockEServiceAttribute()]],
+      verifiedAttributes: [[getMockEServiceAttribute()]],
+    });
+    const eservice = getMockEService({
+      descriptors: [descriptor],
+    });
 
     const agreementId = generateId<AgreementId>();
 
@@ -321,11 +316,9 @@ describe("clone agreement", () => {
     const consumerId = authData.organizationId;
 
     const descriptor = getMockDescriptorPublished();
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+    const eservice = getMockEService({
+      descriptors: [descriptor],
+    });
     const agreement = {
       ...getMockAgreement(
         eservice.id,
@@ -408,14 +401,12 @@ describe("clone agreement", () => {
       invalidCertifiedTenantAttribute,
     ]);
 
-    const descriptor = getMockDescriptorPublished(generateId<DescriptorId>(), [
-      [invalidCertifiedEserviceAttribute],
-    ]);
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+    const descriptor = getMockDescriptorPublished({
+      certifiedAttributes: [[invalidCertifiedEserviceAttribute]],
+    });
+    const eservice = getMockEService({
+      descriptors: [descriptor],
+    });
 
     const agreementId = generateId<AgreementId>();
 
@@ -453,11 +444,9 @@ describe("clone agreement", () => {
     const consumer = getMockTenant(consumerId);
 
     const descriptor = getMockDescriptorPublished();
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+    const eservice = getMockEService({
+      descriptors: [descriptor],
+    });
 
     const agreementId = generateId<AgreementId>();
 

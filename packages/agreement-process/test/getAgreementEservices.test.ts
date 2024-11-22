@@ -5,13 +5,7 @@ import {
   getMockEService,
   getMockAgreement,
 } from "pagopa-interop-commons-test/index.js";
-import {
-  EService,
-  Tenant,
-  generateId,
-  EServiceId,
-  agreementState,
-} from "pagopa-interop-models";
+import { EService, Tenant, agreementState } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 import { CompactEService } from "../src/model/domain/models.js";
 import {
@@ -41,15 +35,15 @@ describe("get agreement eservices", () => {
     tenant3 = getMockTenant();
 
     eservice1 = {
-      ...getMockEService(generateId<EServiceId>(), tenant1.id),
+      ...getMockEService({ producerId: tenant1.id }),
       name: "EService 1 Foo",
     };
     eservice2 = {
-      ...getMockEService(generateId<EServiceId>(), tenant2.id),
+      ...getMockEService({ producerId: tenant2.id }),
       name: "EService 2 Bar",
     };
     eservice3 = {
-      ...getMockEService(generateId<EServiceId>(), tenant3.id),
+      ...getMockEService({ producerId: tenant3.id }),
       name: "EService 3 FooBar",
     };
 

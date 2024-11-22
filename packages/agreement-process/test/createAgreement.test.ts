@@ -127,12 +127,15 @@ describe("create agreement", () => {
     const descriptorId = generateId<DescriptorId>();
     const attributeId = generateId<AttributeId>();
 
-    const descriptor = getMockDescriptorPublished(descriptorId, [
-      [getMockEServiceAttribute(attributeId)],
-    ]);
-    const eservice = getMockEService(eserviceId, authData.organizationId, [
-      descriptor,
-    ]);
+    const descriptor = getMockDescriptorPublished({
+      descriptorId,
+      certifiedAttributes: [[getMockEServiceAttribute(attributeId)]],
+    });
+    const eservice = getMockEService({
+      eserviceId,
+      producerId: authData.organizationId,
+      descriptors: [descriptor],
+    });
     const tenant = getMockTenant(authData.organizationId);
 
     await addOneEService(eservice);
@@ -170,10 +173,12 @@ describe("create agreement", () => {
     const certifiedDescriptorAttribute2: EServiceAttribute =
       getMockEServiceAttribute();
 
-    const descriptor = getMockDescriptorPublished(generateId<DescriptorId>(), [
-      [certifiedDescriptorAttribute1],
-      [certifiedDescriptorAttribute2],
-    ]);
+    const descriptor = getMockDescriptorPublished({
+      certifiedAttributes: [
+        [certifiedDescriptorAttribute1],
+        [certifiedDescriptorAttribute2],
+      ],
+    });
 
     const certifiedTenantAttribute1: TenantAttribute = {
       ...getMockCertifiedTenantAttribute(certifiedDescriptorAttribute1.id),
@@ -191,11 +196,10 @@ describe("create agreement", () => {
       certifiedTenantAttribute2,
     ]);
 
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      eserviceProducer.id,
-      [descriptor]
-    );
+    const eservice = getMockEService({
+      producerId: eserviceProducer.id,
+      descriptors: [descriptor],
+    });
 
     await addOneTenant(eserviceProducer);
     await addOneTenant(consumer);
@@ -232,11 +236,10 @@ describe("create agreement", () => {
     // Descriptor has no certified attributes - no requirements for the consumer
     const descriptor = getMockDescriptorPublished();
 
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      eserviceProducer.id,
-      [descriptor]
-    );
+    const eservice = getMockEService({
+      producerId: eserviceProducer.id,
+      descriptors: [descriptor],
+    });
 
     await addOneTenant(eserviceProducer);
     await addOneTenant(consumer);
@@ -283,11 +286,10 @@ describe("create agreement", () => {
       state: descriptorState.draft,
     };
 
-    const eservice = getMockEService(generateId<EServiceId>(), tenant.id, [
-      descriptor0,
-      descriptor1,
-      descriptor2,
-    ]);
+    const eservice = getMockEService({
+      producerId: tenant.id,
+      descriptors: [descriptor0, descriptor1, descriptor2],
+    });
 
     await addOneTenant(tenant);
     await addOneEService(eservice);
@@ -321,9 +323,10 @@ describe("create agreement", () => {
     const tenant: Tenant = getMockTenant();
     const descriptor: Descriptor = getMockDescriptorPublished();
 
-    const eservice = getMockEService(generateId<EServiceId>(), tenant.id, [
-      descriptor,
-    ]);
+    const eservice = getMockEService({
+      producerId: tenant.id,
+      descriptors: [descriptor],
+    });
 
     const otherAgreement = getMockAgreement(
       eservice.id,
@@ -390,7 +393,10 @@ describe("create agreement", () => {
     const authData = getRandomAuthData();
     const eserviceId = generateId<EServiceId>();
 
-    const eservice = getMockEService(eserviceId, authData.organizationId, []);
+    const eservice = getMockEService({
+      eserviceId,
+      producerId: authData.organizationId,
+    });
 
     await addOneEService(eservice);
 
@@ -431,10 +437,11 @@ describe("create agreement", () => {
       state: randomArrayItem(notDraftDescriptorStates),
     };
 
-    const eservice = getMockEService(eserviceId, authData.organizationId, [
-      descriptor0,
-      descriptor1,
-    ]);
+    const eservice = getMockEService({
+      eserviceId,
+      producerId: authData.organizationId,
+      descriptors: [descriptor0, descriptor1],
+    });
 
     await addOneEService(eservice);
     await addOneTenant(getMockTenant(authData.organizationId));
@@ -474,9 +481,11 @@ describe("create agreement", () => {
       ),
     };
 
-    const eservice = getMockEService(eserviceId, authData.organizationId, [
-      descriptor,
-    ]);
+    const eservice = getMockEService({
+      eserviceId,
+      producerId: authData.organizationId,
+      descriptors: [descriptor],
+    });
 
     await addOneEService(eservice);
     await addOneTenant(getMockTenant(authData.organizationId));
@@ -504,9 +513,10 @@ describe("create agreement", () => {
     const consumer: Tenant = getMockTenant();
     const descriptor: Descriptor = getMockDescriptorPublished();
 
-    const eservice = getMockEService(generateId<EServiceId>(), consumer.id, [
-      descriptor,
-    ]);
+    const eservice = getMockEService({
+      producerId: consumer.id,
+      descriptors: [descriptor],
+    });
 
     const conflictingAgreement = getMockAgreement(
       eservice.id,
@@ -538,11 +548,7 @@ describe("create agreement", () => {
     const consumer: Tenant = getMockTenant();
     const descriptor: Descriptor = getMockDescriptorPublished();
 
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+    const eservice = getMockEService({ descriptors: [descriptor] });
 
     await addOneEService(eservice);
 
@@ -571,10 +577,12 @@ describe("create agreement", () => {
     const certifiedDescriptorAttribute2: EServiceAttribute =
       getMockEServiceAttribute();
 
-    const descriptor = getMockDescriptorPublished(generateId<DescriptorId>(), [
-      [certifiedDescriptorAttribute1],
-      [certifiedDescriptorAttribute2],
-    ]);
+    const descriptor = getMockDescriptorPublished({
+      certifiedAttributes: [
+        [certifiedDescriptorAttribute1],
+        [certifiedDescriptorAttribute2],
+      ],
+    });
 
     // In this case, the consumer is missing one of the two certified attributes
     const certifiedTenantAttribute1: TenantAttribute =
@@ -585,11 +593,10 @@ describe("create agreement", () => {
       attributes: [certifiedTenantAttribute1],
     };
 
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      eserviceProducer.id,
-      [descriptor]
-    );
+    const eservice = getMockEService({
+      producerId: eserviceProducer.id,
+      descriptors: [descriptor],
+    });
 
     await addOneTenant(eserviceProducer);
     await addOneTenant(consumer);
@@ -622,16 +629,17 @@ describe("create agreement", () => {
     const certifiedDescriptorAttribute2: EServiceAttribute =
       getMockEServiceAttribute();
 
-    const descriptor: Descriptor = getMockDescriptorPublished(
-      generateId<DescriptorId>(),
-      [[certifiedDescriptorAttribute1], [certifiedDescriptorAttribute2]]
-    );
+    const descriptor: Descriptor = getMockDescriptorPublished({
+      certifiedAttributes: [
+        [certifiedDescriptorAttribute1],
+        [certifiedDescriptorAttribute2],
+      ],
+    });
 
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      eserviceProducer.id,
-      [descriptor]
-    );
+    const eservice = getMockEService({
+      producerId: eserviceProducer.id,
+      descriptors: [descriptor],
+    });
 
     // In this case, the consumer has one of the two certified attributes revoked
     const certifiedTenantAttribute1: TenantAttribute = {
