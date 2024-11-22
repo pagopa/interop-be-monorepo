@@ -91,7 +91,10 @@ export function tenantIsNotIPAError(
   });
 }
 
-export function tenantNotAllowedToDelegation(tenantId: string, kind: DelegationKind): ApiError<ErrorCodes> {
+export function tenantNotAllowedToDelegation(
+  tenantId: string,
+  kind: DelegationKind
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not allowed to receive delegations of kind: ${kind}`,
     code: "tenantNotAllowedToDelegation",
@@ -99,7 +102,9 @@ export function tenantNotAllowedToDelegation(tenantId: string, kind: DelegationK
   });
 }
 
-export function delegationNotRevokable(delegation: Delegation): ApiError<ErrorCodes> {
+export function delegationNotRevokable(
+  delegation: Delegation
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Delegation ${delegation.id} is not revokable. State: ${delegation.state}`,
     code: "delegationNotRevokable",
@@ -107,7 +112,9 @@ export function delegationNotRevokable(delegation: Delegation): ApiError<ErrorCo
   });
 }
 
-export function delegatorNotAllowToRevoke(delegation: Delegation): ApiError<ErrorCodes> {
+export function delegatorNotAllowToRevoke(
+  delegation: Delegation
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Requester ${delegation.id} is not delegator for the current delegation with id ${delegation.id}`,
     code: "operationNotAllowOnDelegation",
@@ -115,7 +122,10 @@ export function delegatorNotAllowToRevoke(delegation: Delegation): ApiError<Erro
   });
 }
 
-export function operationRestrictedToDelegate(tenantId: string, delegationId: string): ApiError<ErrorCodes> {
+export function operationRestrictedToDelegate(
+  tenantId: string,
+  delegationId: string
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} is not a delegate for delegation ${delegationId}`,
     code: "operationRestrictedToDelegate",
@@ -135,7 +145,9 @@ export function incorrectState(
   });
 }
 
-export function differentEServiceProducer(requesterId: string): ApiError<ErrorCodes> {
+export function differentEServiceProducer(
+  requesterId: string
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Eservice producer if different from requester with id ${requesterId}`,
     code: "differentEserviceProducer",
