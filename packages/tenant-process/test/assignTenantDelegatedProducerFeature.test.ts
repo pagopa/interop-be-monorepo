@@ -104,9 +104,8 @@ describe("assignTenantDelegatedProducerFeature", async () => {
       })
     ).rejects.toThrowError(tenantNotFound(organizationId));
   });
-  it("Should throw tenantIsNotIPA(t) if the requester tenant is not a public administration", async () => {
+  it("Should throw tenantIsNotIPA if the requester tenant is not a public administration", async () => {
     const tenant = getMockTenant();
-    const organizationId = generateId<TenantId>();
 
     await addOneTenant(tenant);
 
@@ -115,11 +114,11 @@ describe("assignTenantDelegatedProducerFeature", async () => {
         organizationId: tenant.id,
         correlationId: generateId(),
         authData: {
-          ...getMockAuthData(organizationId),
+          ...getMockAuthData(tenant.id),
           externalId: { origin: "UNKNOWN", value: "test" },
         },
         logger: genericLogger,
       })
-    ).rejects.toThrowError(tenantIsNotIPA(organizationId));
+    ).rejects.toThrowError(tenantIsNotIPA(tenant.id));
   });
 });
