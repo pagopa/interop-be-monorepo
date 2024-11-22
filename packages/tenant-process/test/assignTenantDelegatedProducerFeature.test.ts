@@ -5,13 +5,17 @@ import {
   protobufDecoder,
   toTenantV2,
   TenantDelegatedProducerFeatureAddedV2,
-  operationForbidden,
+  TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
-import { tenantAlreadyHasFeature } from "../src/model/domain/errors.js";
+import {
+  tenantAlreadyHasFeature,
+  tenantIsNotIPA,
+  tenantNotFound,
+} from "../src/model/domain/errors.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("assignTenantDelegatedProducerFeature", async () => {
@@ -89,7 +93,18 @@ describe("assignTenantDelegatedProducerFeature", async () => {
       tenantAlreadyHasFeature(tenant.id, "DelegatedProducer")
     );
   });
-  it("Should throw operationForbidden if the requester tenant is not a public administration", async () => {
+  it("Should throw tenantNotFound if the requester tenant doesn't exist", async () => {
+    const organizationId = generateId<TenantId>();
+    expect(
+      tenantService.assignTenantDelegatedProducerFeature({
+        organizationId,
+        correlationId: generateId(),
+        authData: getMockAuthData(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(tenantNotFound(organizationId));
+  });
+  it("Should throw tenantIsNotIPA if the requester tenant is not a public administration", async () => {
     const tenant = getMockTenant();
 
     await addOneTenant(tenant);
@@ -99,11 +114,11 @@ describe("assignTenantDelegatedProducerFeature", async () => {
         organizationId: tenant.id,
         correlationId: generateId(),
         authData: {
-          ...getMockAuthData(),
+          ...getMockAuthData(tenant.id),
           externalId: { origin: "UNKNOWN", value: "test" },
         },
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationForbidden);
+    ).rejects.toThrowError(tenantIsNotIPA(tenant.id));
   });
 });
