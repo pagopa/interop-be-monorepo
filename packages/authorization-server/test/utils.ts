@@ -20,6 +20,7 @@ import { initProducer } from "kafka-iam-auth";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { dateToSeconds, InteropTokenGenerator } from "pagopa-interop-commons";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
+import { config } from "../src/config/config.js";
 
 export const configTokenGenerationStates = inject(
   "tokenGenerationReadModelConfig"
@@ -53,10 +54,11 @@ export const mockKMSClient = {
 
 const tokenGenerator = new InteropTokenGenerator(
   {
-    generatedInteropTokenKid: "test",
-    generatedInteropTokenIssuer: "test",
-    generatedInteropTokenM2MAudience: "M2Maudience",
-    generatedInteropTokenM2MDurationSeconds: 300,
+    generatedInteropTokenKid: config.generatedInteropTokenKid,
+    generatedInteropTokenIssuer: config.generatedInteropTokenIssuer,
+    generatedInteropTokenM2MAudience: config.generatedInteropTokenM2MAudience,
+    generatedInteropTokenM2MDurationSeconds:
+      config.generatedInteropTokenM2MDurationSeconds,
   },
   mockKMSClient as unknown as KMSClient
 );
