@@ -1,12 +1,13 @@
 /* eslint-disable functional/no-let */
 import {
   getMockAuthData,
-  getMockDelegationProducer,
+  getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
   DelegationContractDocument,
   DelegationContractId,
   DelegationId,
+  delegationKind,
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
@@ -30,7 +31,9 @@ describe("getDelegationContract", () => {
 
   it("should get the delegation contract if it exists", async () => {
     const delegation = {
-      ...getMockDelegationProducer(),
+      ...getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+      }),
       activationContract: mockContract,
     };
 
@@ -51,7 +54,9 @@ describe("getDelegationContract", () => {
   });
 
   it("should throw delegationNotFound error if delegation does not exist", async () => {
-    const delegation = getMockDelegationProducer();
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+    });
 
     await addOneDelegation(delegation);
 
@@ -74,7 +79,9 @@ describe("getDelegationContract", () => {
 
   it("should throw delegationContractNotFound error if the delegation contract does not exist", async () => {
     const delegation = {
-      ...getMockDelegationProducer(),
+      ...getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+      }),
       activationContract: mockContract,
     };
 
@@ -99,7 +106,9 @@ describe("getDelegationContract", () => {
 
   it("should throw operationNotAllowed error if requester is not the delegate nor the delegator", async () => {
     const delegation = {
-      ...getMockDelegationProducer(),
+      ...getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+      }),
       activationContract: mockContract,
     };
 
