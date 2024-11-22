@@ -67,6 +67,7 @@ import {
   PlatformStatesClientPK,
   PlatformStatesClientEntry,
   makePlatformStatesClientPK,
+  DelegationKind,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -367,7 +368,7 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   selfcareId: generateId(),
 });
 
-export const getMockDelegationProducer = ({
+const getMockDelegation = ({
   id = generateId<DelegationId>(),
   delegatorId = generateId<TenantId>(),
   delegateId = generateId<TenantId>(),
@@ -375,6 +376,7 @@ export const getMockDelegationProducer = ({
   state = "WaitingForApproval",
   activationContract = undefined,
   revocationContract = undefined,
+  kind,
 }: {
   id?: DelegationId;
   delegatorId?: TenantId;
@@ -383,7 +385,8 @@ export const getMockDelegationProducer = ({
   state?: DelegationState;
   activationContract?: DelegationContractDocument;
   revocationContract?: DelegationContractDocument;
-} = {}): Delegation => {
+  kind: DelegationKind;
+}): Delegation => {
   const creationTime = new Date();
 
   return {
@@ -396,7 +399,7 @@ export const getMockDelegationProducer = ({
     state,
     activationContract,
     revocationContract,
-    kind: delegationKind.delegatedProducer,
+    kind,
     stamps: {
       submission: {
         who: delegatorId,
@@ -405,6 +408,62 @@ export const getMockDelegationProducer = ({
     },
   };
 };
+
+export const getMockDelegationProducer = ({
+  id,
+  delegatorId,
+  delegateId,
+  eserviceId,
+  state,
+  activationContract,
+  revocationContract,
+}: {
+  id?: DelegationId;
+  delegatorId?: TenantId;
+  delegateId?: TenantId;
+  eserviceId?: EServiceId;
+  state?: DelegationState;
+  activationContract?: DelegationContractDocument;
+  revocationContract?: DelegationContractDocument;
+} = {}): Delegation =>
+  getMockDelegation({
+    id,
+    delegatorId,
+    delegateId,
+    eserviceId,
+    state,
+    activationContract,
+    revocationContract,
+    kind: delegationKind.delegatedProducer,
+  });
+
+export const getMockDelegationConsumer = ({
+  id,
+  delegatorId,
+  delegateId,
+  eserviceId,
+  state,
+  activationContract,
+  revocationContract,
+}: {
+  id?: DelegationId;
+  delegatorId?: TenantId;
+  delegateId?: TenantId;
+  eserviceId?: EServiceId;
+  state?: DelegationState;
+  activationContract?: DelegationContractDocument;
+  revocationContract?: DelegationContractDocument;
+} = {}): Delegation =>
+  getMockDelegation({
+    id,
+    delegatorId,
+    delegateId,
+    eserviceId,
+    state,
+    activationContract,
+    revocationContract,
+    kind: delegationKind.delegatedConsumer,
+  });
 
 export const getMockDelegationDocument = (
   id?: DelegationContractId
