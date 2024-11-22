@@ -327,21 +327,21 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
   ).reduce<PurposeDifferencesResult>(
     (acc, [platformStatesEntry, tokenStatesEntries, purpose]) => {
       if (!purpose) {
-        // eslint-disable-next-line functional/immutable-data
-        acc.push([
-          platformStatesEntry
-            ? ComparisonPlatformStatesPurposeEntry.parse(platformStatesEntry)
-            : undefined,
-          tokenStatesEntries && tokenStatesEntries.length > 0
-            ? ComparisonTokenStatesPurposeEntry.array().parse(
-                tokenStatesEntries
-              )
-            : undefined,
-          undefined,
-        ]);
-        return acc;
+        return [
+          ...acc,
+          [
+            platformStatesEntry
+              ? ComparisonPlatformStatesPurposeEntry.parse(platformStatesEntry)
+              : undefined,
+            tokenStatesEntries && tokenStatesEntries.length > 0
+              ? ComparisonTokenStatesPurposeEntry.array().parse(
+                  tokenStatesEntries
+                )
+              : undefined,
+            undefined,
+          ],
+        ];
       }
-
       const purposeState = getPurposeStateFromPurposeVersions(purpose.versions);
       const lastPurposeVersion = getLastPurposeVersion(purpose.versions);
 
@@ -366,12 +366,14 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
       });
 
       if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
-        // eslint-disable-next-line functional/immutable-data
-        acc.push([
-          platformPurposeEntryDiff,
-          tokenPurposeEntryDiff,
-          ComparisonPurpose.parse(purpose),
-        ]);
+        return [
+          ...acc,
+          [
+            platformPurposeEntryDiff,
+            tokenPurposeEntryDiff,
+            ComparisonPurpose.parse(purpose),
+          ],
+        ];
       }
 
       return acc;
@@ -559,19 +561,22 @@ export async function compareReadModelAgreementsWithTokenGenReadModel({
   ).reduce<AgreementDifferencesResult>(
     (acc, [platformStatesEntry, tokenStatesEntries, agreement]) => {
       if (!agreement) {
-        // eslint-disable-next-line functional/immutable-data
-        acc.push([
-          platformStatesEntry
-            ? ComparisonPlatformStatesAgreementEntry.parse(platformStatesEntry)
-            : undefined,
-          tokenStatesEntries && tokenStatesEntries.length > 0
-            ? ComparisonTokenStatesAgreementEntry.array().parse(
-                tokenStatesEntries
-              )
-            : undefined,
-          undefined,
-        ]);
-        return acc;
+        return [
+          ...acc,
+          [
+            platformStatesEntry
+              ? ComparisonPlatformStatesAgreementEntry.parse(
+                  platformStatesEntry
+                )
+              : undefined,
+            tokenStatesEntries && tokenStatesEntries.length > 0
+              ? ComparisonTokenStatesAgreementEntry.array().parse(
+                  tokenStatesEntries
+                )
+              : undefined,
+            undefined,
+          ],
+        ];
       }
 
       const agreementItemState = agreementStateToItemState(agreement.state);
@@ -597,12 +602,14 @@ export async function compareReadModelAgreementsWithTokenGenReadModel({
         !isPlatformStatesAgreementCorrect ||
         !isTokenGenerationStatesCorrect
       ) {
-        // eslint-disable-next-line functional/immutable-data
-        acc.push([
-          platformAgreementEntryDiff,
-          tokenAgreementEntryDiff,
-          ComparisonAgreement.parse(agreement),
-        ]);
+        return [
+          ...acc,
+          [
+            platformAgreementEntryDiff,
+            tokenAgreementEntryDiff,
+            ComparisonAgreement.parse(agreement),
+          ],
+        ];
       }
 
       return acc;
@@ -791,19 +798,20 @@ export async function compareReadModelEServicesWithTokenGenReadModel({
         ? getLastEServiceDescriptor(eservice.descriptors)
         : undefined;
       if (!eservice || !lastEServiceDescriptor) {
-        // eslint-disable-next-line functional/immutable-data
-        acc.push([
-          platformStatesEntry
-            ? ComparisonPlatformStatesCatalogEntry.parse(platformStatesEntry)
-            : undefined,
-          tokenStatesEntries && tokenStatesEntries.length > 0
-            ? ComparisonTokenStatesCatalogEntry.array().parse(
-                tokenStatesEntries
-              )
-            : undefined,
-          eservice ? ComparisonEService.parse(eservice) : undefined,
-        ]);
-        return acc;
+        return [
+          ...acc,
+          [
+            platformStatesEntry
+              ? ComparisonPlatformStatesCatalogEntry.parse(platformStatesEntry)
+              : undefined,
+            tokenStatesEntries && tokenStatesEntries.length > 0
+              ? ComparisonTokenStatesCatalogEntry.array().parse(
+                  tokenStatesEntries
+                )
+              : undefined,
+            eservice ? ComparisonEService.parse(eservice) : undefined,
+          ],
+        ];
       }
 
       const {
@@ -824,12 +832,14 @@ export async function compareReadModelEServicesWithTokenGenReadModel({
       });
 
       if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
-        // eslint-disable-next-line functional/immutable-data
-        acc.push([
-          platformCatalogEntryDiff,
-          tokenCatalogEntryDiff,
-          ComparisonEService.parse(eservice),
-        ]);
+        return [
+          ...acc,
+          [
+            platformCatalogEntryDiff,
+            tokenCatalogEntryDiff,
+            ComparisonEService.parse(eservice),
+          ],
+        ];
       }
 
       return acc;
@@ -1100,12 +1110,14 @@ export async function compareReadModelClientsWithTokenGenReadModel({
         client,
       });
       if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
-        // eslint-disable-next-line functional/immutable-data
-        acc.push([
-          platformClientEntryDiff,
-          tokenClientEntryDiff,
-          ComparisonClient.parse(client),
-        ]);
+        return [
+          ...acc,
+          [
+            platformClientEntryDiff,
+            tokenClientEntryDiff,
+            ComparisonClient.parse(client),
+          ],
+        ];
       }
 
       return acc;
