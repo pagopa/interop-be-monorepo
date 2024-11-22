@@ -6,11 +6,11 @@ import {
   EService,
   generateId,
   EServiceId,
-  Delegation,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { getMockDelegationProducer } from "pagopa-interop-commons-test/index.js";
+import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
 import { eServiceNotFound } from "../src/model/domain/errors.js";
 import {
   addOneDelegation,
@@ -261,12 +261,13 @@ describe("get eservice by id", () => {
         ...getMockAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
       };
-      const delegation: Delegation = {
-        ...getMockDelegationProducer(),
-        state: delegationState.active,
-        eserviceId: eservice.id,
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         delegateId: authData.organizationId,
-      };
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      });
+
       await addOneEService(eservice);
       await addOneDelegation(delegation);
       const result = await catalogService.getEServiceById(eservice.id, {
@@ -353,12 +354,12 @@ describe("get eservice by id", () => {
       ...getMockAuthData(),
       userRoles: [userRoles.ADMIN_ROLE],
     };
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
-      state: delegationState.active,
-      eserviceId: eservice.id,
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       delegateId: authData.organizationId,
-    };
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
     await addOneEService(eservice);
     await addOneDelegation(delegation);
     const result = await catalogService.getEServiceById(eservice.id, {

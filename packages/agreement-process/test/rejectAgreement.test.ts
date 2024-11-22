@@ -6,7 +6,7 @@ import {
   getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
-  getMockDelegationProducer,
+  getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
@@ -27,6 +27,7 @@ import {
   TenantId,
   VerifiedTenantAttribute,
   agreementState,
+  delegationKind,
   delegationState,
   generateId,
   toAgreementV2,
@@ -190,7 +191,8 @@ describe("reject agreement", () => {
           : getRandomAuthData();
 
       if (type === "delegate") {
-        const delegation = getMockDelegationProducer({
+        const delegation = getMockDelegation({
+          kind: delegationKind.delegatedProducer,
           delegateId: authData.organizationId,
           eserviceId: eservice.id,
           state: delegationState.active,
@@ -427,7 +429,8 @@ describe("reject agreement", () => {
       descriptorId: eservice.descriptors[0].id,
     };
     const authData = getRandomAuthData(agreement.producerId);
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       delegateId: delegate.id,
       eserviceId: eservice.id,
       state: delegationState.active,
@@ -468,7 +471,8 @@ describe("reject agreement", () => {
       descriptorId: eservice.descriptors[0].id,
     };
     const authData = getRandomAuthData();
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       delegateId: authData.organizationId,
       eserviceId: eservice.id,
       state: delegationState.waitingForApproval,

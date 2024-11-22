@@ -3,7 +3,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockValidRiskAnalysis,
   decodeProtobufPayload,
-  getMockDelegationProducer,
+  getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
   EService,
@@ -14,8 +14,8 @@ import {
   Descriptor,
   descriptorState,
   operationForbidden,
-  Delegation,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -86,11 +86,11 @@ describe("delete risk analysis", () => {
       riskAnalysis: [riskAnalysis],
       mode: "Receive",
     };
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);
@@ -270,11 +270,11 @@ describe("delete risk analysis", () => {
       riskAnalysis: [getMockValidRiskAnalysis("PA")],
       mode: "Receive",
     };
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);

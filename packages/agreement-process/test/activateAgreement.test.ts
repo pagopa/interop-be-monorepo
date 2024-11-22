@@ -13,7 +13,7 @@ import {
   getMockAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
-  getMockDelegationProducer,
+  getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
@@ -44,6 +44,7 @@ import {
   UserId,
   VerifiedTenantAttribute,
   agreementState,
+  delegationKind,
   delegationState,
   descriptorState,
   fromAgreementV2,
@@ -617,7 +618,8 @@ describe("activate agreement", () => {
         suspendedByProducer: false,
         suspendedByPlatform: false,
       };
-      const delegation = getMockDelegationProducer({
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         eserviceId: agreement.eserviceId,
         delegateId: authData.organizationId,
         state: delegationState.active,
@@ -680,7 +682,8 @@ describe("activate agreement", () => {
         suspendedByProducer: false,
         suspendedByPlatform: false,
       };
-      const delegation = getMockDelegationProducer({
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         eserviceId: agreement.eserviceId,
         delegateId: authData.organizationId,
         state: delegationState.active,
@@ -1588,7 +1591,8 @@ describe("activate agreement", () => {
         state: agreementState.pending,
         producerId: authData.organizationId,
       };
-      const delegation = getMockDelegationProducer({
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         eserviceId: agreement.eserviceId,
         state: delegationState.active,
       });
