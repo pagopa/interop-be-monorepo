@@ -4,12 +4,10 @@ import {
   DB,
   eventRepository,
   FileManager,
-  Logger,
   PDFGenerator,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
-  CorrelationId,
   Delegation,
   DelegationId,
   delegationEventToBinaryDataV2,
@@ -34,12 +32,12 @@ import { ReadModelService } from "./readModelService.js";
 import {
   assertDelegationIsRevokable,
   assertDelegationNotExists,
-  assertDelegatorIsIPA,
   assertDelegatorIsNotDelegate,
-  assertEserviceExists,
-  assertTenantAllowedToReceiveProducerDelegation,
+  assertDelegatorIsProducer,
+  assertTenantAllowedToReceiveDelegation,
   assertIsDelegate,
   assertIsState,
+  assertDelegatorAndDelegateIPA,
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
 import { retrieveDelegationById } from "./delegationService.js";
@@ -78,7 +76,7 @@ export function delegationProducerServiceBuilder(
       const eserviceId = unsafeBrandId<EServiceId>(delegationSeed.eserviceId);
 
       logger.info(
-        `Creating a delegation for tenant:${delegationSeed.delegateId} by producer:${delegatorId}`
+        `Creating a delegation for tenant ${delegationSeed.delegateId} by producer ${delegatorId}`
       );
 
       assertDelegatorIsNotDelegate(delegatorId, delegateId);
@@ -86,9 +84,14 @@ export function delegationProducerServiceBuilder(
       const delegator = await retrieveTenantById(delegatorId);
       const delegate = await retrieveTenantById(delegateId);
 
-      assertTenantAllowedToReceiveProducerDelegation(delegate);
-      await assertDelegatorIsIPA(delegator);
-      await assertEserviceExists(delegatorId, eserviceId, readModelService);
+      assertTenantAllowedToReceiveDelegation(
+        delegate,
+        delegationKind.delegatedProducer
+      );
+      await assertDelegatorAndDelegateIPA(delegator, delegate);
+
+      const eservice = await retrieveEserviceById(eserviceId);
+      assertDelegatorIsProducer(delegatorId, eservice);
       await assertDelegationNotExists(
         delegator,
         eserviceId,
@@ -108,7 +111,7 @@ export function delegationProducerServiceBuilder(
         kind: delegationKind.delegatedProducer,
         stamps: {
           submission: {
-            who: delegatorId,
+            who: authData.userId,
             when: creationDate,
           },
         },
@@ -126,7 +129,7 @@ export function delegationProducerServiceBuilder(
     ): Promise<Delegation> {
       const delegatorId = unsafeBrandId<TenantId>(authData.organizationId);
       logger.info(
-        `Revoking delegation:${delegationId} by producer:${delegatorId}`
+        `Revoking delegation ${delegationId} by producer ${delegatorId}`
       );
 
       const currentDelegation = await retrieveDelegationById(
@@ -163,7 +166,7 @@ export function delegationProducerServiceBuilder(
         stamps: {
           ...currentDelegation.data.stamps,
           revocation: {
-            who: delegatorId,
+            who: authData.userId,
             when: now,
           },
         },
@@ -180,24 +183,28 @@ export function delegationProducerServiceBuilder(
       return revokedDelegation;
     },
     async approveProducerDelegation(
-      delegateId: TenantId,
       delegationId: DelegationId,
-      correlationId: CorrelationId,
-      logger: Logger
+      { logger, correlationId, authData }: WithLogger<AppContext>
     ): Promise<void> {
+      const delegateId = unsafeBrandId<TenantId>(authData.organizationId);
+
+      logger.info(
+        `Approving delegation ${delegationId} by delegate ${delegateId}`
+      );
+
       const { data: delegation, metadata } = await retrieveDelegationById(
         readModelService,
         delegationId
       );
+
+      assertIsDelegate(delegation, delegateId);
+      assertIsState(delegationState.waitingForApproval, delegation);
 
       const [delegator, delegate, eservice] = await Promise.all([
         retrieveTenantById(delegation.delegatorId),
         retrieveTenantById(delegation.delegateId),
         retrieveEserviceById(delegation.eserviceId),
       ]);
-
-      assertIsDelegate(delegation, delegateId);
-      assertIsState(delegationState.waitingForApproval, delegation);
 
       const activationContract = await contractBuilder.createActivationContract(
         {
@@ -225,7 +232,7 @@ export function delegationProducerServiceBuilder(
               stamps: {
                 ...delegation.stamps,
                 activation: {
-                  who: delegateId,
+                  who: authData.userId,
                   when: now,
                 },
               },
@@ -237,11 +244,16 @@ export function delegationProducerServiceBuilder(
       );
     },
     async rejectProducerDelegation(
-      delegateId: TenantId,
       delegationId: DelegationId,
-      correlationId: CorrelationId,
-      rejectionReason: string
+      rejectionReason: string,
+      { logger, correlationId, authData }: WithLogger<AppContext>
     ): Promise<void> {
+      const delegateId = unsafeBrandId<TenantId>(authData.organizationId);
+
+      logger.info(
+        `Rejecting delegation ${delegationId} by delegate ${delegateId}`
+      );
+
       const { data: delegation, metadata } = await retrieveDelegationById(
         readModelService,
         delegationId
@@ -250,19 +262,20 @@ export function delegationProducerServiceBuilder(
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
+      const now = new Date();
       await repository.createEvent(
         toCreateEventProducerDelegationRejected(
           {
             data: {
               ...delegation,
               state: delegationState.rejected,
-              rejectedAt: new Date(),
+              rejectedAt: now,
               rejectionReason,
               stamps: {
                 ...delegation.stamps,
                 rejection: {
-                  who: delegateId,
-                  when: new Date(),
+                  who: authData.userId,
+                  when: now,
                 },
               },
             },

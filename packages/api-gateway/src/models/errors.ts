@@ -28,6 +28,7 @@ export const errorCodes = {
   tenantAttributeNotFound: "0016",
   attributeByCodeNotFound: "0017",
   certifiedAttributeAlreadyAssigned: "0018",
+  multipleActiveDelegationForEservice: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -266,5 +267,15 @@ export function certifiedAttributeAlreadyAssigned(
     detail: `Certified attribute ${attributeCode} already assigned to Institution (${origin}, ${externalId})`,
     code: "certifiedAttributeAlreadyAssigned",
     title: "Certified attribute already assigned",
+  });
+}
+
+export function multipleActiveDelegationsForEservice(
+  eserviceId: catalogApi.EService["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected multiple Active delegation for EService ${eserviceId}`,
+    code: "multipleActiveDelegationForEservice",
+    title: "Multiple active delegation found",
   });
 }

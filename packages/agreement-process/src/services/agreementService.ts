@@ -416,10 +416,17 @@ export function agreementServiceBuilder(
         readModelService
       );
 
+      const activeDelegation = await retrieveActiveDelegationByEserviceId(
+        agreement.data.eserviceId,
+        readModelService
+      );
+      const delegateId = activeDelegation?.data.delegateId;
+
       const nextStateByAttributes = nextStateByAttributesFSM(
         agreement.data,
         descriptor,
-        consumer
+        consumer,
+        delegateId
       );
 
       const suspendedByPlatform = suspendedByPlatformFlag(
