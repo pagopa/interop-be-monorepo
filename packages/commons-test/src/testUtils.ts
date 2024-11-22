@@ -51,7 +51,6 @@ import {
   PurposeVersionId,
   ProducerKeychain,
   Delegation,
-  delegationKind,
   DelegationId,
   DelegationContractDocument,
   DelegationContractId,
@@ -70,7 +69,9 @@ import {
   PlatformStatesClientEntry,
   makePlatformStatesClientPK,
   AgreementStamps,
+  DelegationKind,
   unsafeBrandId,
+  UserId,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -384,23 +385,27 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   selfcareId: generateId(),
 });
 
-export const getMockDelegationProducer = ({
+export const getMockDelegation = ({
+  kind,
   id = generateId<DelegationId>(),
   delegatorId = generateId<TenantId>(),
   delegateId = generateId<TenantId>(),
   eserviceId = generateId<EServiceId>(),
   state = "WaitingForApproval",
+  submitterId = generateId<UserId>(),
   activationContract = undefined,
   revocationContract = undefined,
 }: {
+  kind: DelegationKind;
   id?: DelegationId;
   delegatorId?: TenantId;
   delegateId?: TenantId;
   eserviceId?: EServiceId;
   state?: DelegationState;
+  submitterId?: UserId;
   activationContract?: DelegationContractDocument;
   revocationContract?: DelegationContractDocument;
-} = {}): Delegation => {
+}): Delegation => {
   const creationTime = new Date();
 
   return {
@@ -413,10 +418,10 @@ export const getMockDelegationProducer = ({
     state,
     activationContract,
     revocationContract,
-    kind: delegationKind.delegatedProducer,
+    kind,
     stamps: {
       submission: {
-        who: delegatorId,
+        who: submitterId,
         when: creationTime,
       },
     },

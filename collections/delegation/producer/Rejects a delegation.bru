@@ -1,7 +1,7 @@
 meta {
   name: Rejects a delegation
   type: http
-  seq: 5
+  seq: 3
 }
 
 post {
@@ -11,16 +11,16 @@ post {
 }
 
 params:path {
-  delegationId:
+  delegationId: {{delegationId}}
 }
 
 headers {
-  Authorization: {{JWT}}
+  Authorization: {{JWT2}}
   X-Correlation-Id: {{correlation-id}}
 }
 
 body:json {
   {
-    "rejectionReason": ""
+    "rejectionReason": "test rejection reason"
   }
 }
