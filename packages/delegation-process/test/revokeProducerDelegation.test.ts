@@ -1,7 +1,7 @@
 import { fail } from "assert";
 import {
   decodeProtobufPayload,
-  getMockDelegationProducer,
+  getMockDelegation,
   getMockEService,
   getMockTenant,
   getRandomAuthData,
@@ -17,6 +17,8 @@ import {
   EServiceId,
   unsafeBrandId,
   DelegationContractId,
+  delegationKind,
+  UserId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -50,7 +52,7 @@ type DelegationStateSeed =
       };
       stamps: {
         rejection: {
-          who: TenantId;
+          who: UserId;
           when: Date;
         };
       };
@@ -62,7 +64,7 @@ type DelegationStateSeed =
       };
       stamps: {
         revocation: {
-          who: TenantId;
+          who: UserId;
           when: Date;
         };
       };
@@ -82,7 +84,7 @@ const getNotRevocableStateSeeds = (): DelegationStateSeed[] => {
       },
       stamps: {
         rejection: {
-          who: generateId<TenantId>(),
+          who: generateId<UserId>(),
           when: rejectionOrRevokeDate,
         },
       },
@@ -94,7 +96,7 @@ const getNotRevocableStateSeeds = (): DelegationStateSeed[] => {
       },
       stamps: {
         revocation: {
-          who: generateId<TenantId>(),
+          who: generateId<UserId>(),
           when: rejectionOrRevokeDate,
         },
       },
@@ -102,7 +104,7 @@ const getNotRevocableStateSeeds = (): DelegationStateSeed[] => {
   ];
 };
 
-describe("revoke delegation", () => {
+describe("revoke producer delegation", () => {
   const TEST_EXECUTION_DATE = new Date();
 
   beforeAll(() => {
@@ -138,7 +140,8 @@ describe("revoke delegation", () => {
     await addOneEservice(eservice);
 
     const existentDelegation: Delegation = {
-      ...getMockDelegationProducer({
+      ...getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         delegatorId,
         delegateId,
       }),
@@ -147,11 +150,11 @@ describe("revoke delegation", () => {
       submittedAt: delegationCreationDate,
       stamps: {
         submission: {
-          who: delegatorId,
+          who: generateId<UserId>(),
           when: delegationCreationDate,
         },
         activation: {
-          who: delegateId,
+          who: generateId<UserId>(),
           when: delegationActivationDate,
         },
       },
@@ -184,15 +187,15 @@ describe("revoke delegation", () => {
       revokedAt: currentExecutionTime,
       stamps: {
         submission: {
-          who: delegatorId,
+          who: existentDelegation.stamps.submission.who,
           when: delegationCreationDate,
         },
         activation: {
-          who: delegateId,
+          who: existentDelegation.stamps.activation!.who,
           when: delegationActivationDate,
         },
         revocation: {
-          who: delegatorId,
+          who: authData.userId,
           when: currentExecutionTime,
         },
       },
@@ -257,7 +260,7 @@ describe("revoke delegation", () => {
     expect(delegationFromLastEvent).toMatchObject(expectedDelegation);
   });
 
-  it("should throw an delegationNotFound if Delegation not exists", async () => {
+  it("should throw a delegationNotFound if Delegation does not exist", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegationId = generateId<DelegationId>();
@@ -271,7 +274,7 @@ describe("revoke delegation", () => {
     ).rejects.toThrow(delegationNotFound(delegationId));
   });
 
-  it("should throw an delegatorNotAllowToRevoke if Requester Id and DelegatorId are differents", async () => {
+  it("should throw a delegatorNotAllowToRevoke if Requester Id and DelegatorId are differents", async () => {
     const currentExecutionTime = new Date();
 
     const delegatorId = generateId<TenantId>();
@@ -286,7 +289,8 @@ describe("revoke delegation", () => {
     delegationApprovalDate.setMonth(currentExecutionTime.getMonth() - 1);
 
     const existentDelegation = {
-      ...getMockDelegationProducer({
+      ...getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         id: delegationId,
         delegateId,
       }),
@@ -294,11 +298,11 @@ describe("revoke delegation", () => {
       submittedAt: delegationCreationDate,
       stamps: {
         submission: {
-          who: delegatorId,
+          who: generateId<UserId>(),
           when: delegationCreationDate,
         },
         approval: {
-          who: delegateId,
+          who: generateId<UserId>(),
           when: delegationApprovalDate,
         },
       },
@@ -318,7 +322,7 @@ describe("revoke delegation", () => {
   });
 
   it.each(notRevocableDelegationState)(
-    "should throw an delegatorNotAllowToRevoke if delegation doesn't have revocable one of revocable states [Rejected,Revoked]",
+    "should throw a delegatorNotAllowToRevoke if delegation doesn't have revocable one of revocable states [Rejected,Revoked]",
     async (notRevocableDelegationState: DelegationStateSeed) => {
       const currentExecutionTime = new Date();
 
@@ -333,7 +337,8 @@ describe("revoke delegation", () => {
       delegationActivationDate.setMonth(currentExecutionTime.getMonth() - 1);
 
       const existentDelegation: Delegation = {
-        ...getMockDelegationProducer({
+        ...getMockDelegation({
+          kind: delegationKind.delegatedProducer,
           delegatorId,
           delegateId,
         }),
@@ -341,11 +346,11 @@ describe("revoke delegation", () => {
         submittedAt: delegationCreationDate,
         stamps: {
           submission: {
-            who: delegatorId,
+            who: generateId<UserId>(),
             when: delegationCreationDate,
           },
           activation: {
-            who: delegateId,
+            who: generateId<UserId>(),
             when: delegationActivationDate,
           },
           ...notRevocableDelegationState.stamps,

@@ -1,10 +1,10 @@
 /* eslint-disable functional/no-let */
 import {
   decodeProtobufPayload,
-  getMockDelegationProducer,
+  getMockDelegation,
   getMockTenant,
   getMockEService,
-  getMockAuthData,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -16,6 +16,7 @@ import {
   Tenant,
   toDelegationV2,
   unsafeBrandId,
+  delegationKind,
 } from "pagopa-interop-models";
 import { delegationState } from "pagopa-interop-models";
 import {
@@ -40,7 +41,7 @@ import {
   flushPDFMetadata,
 } from "./utils.js";
 
-describe("approve delegation", () => {
+describe("approve producer delegation", () => {
   const currentExecutionTime = new Date();
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -62,8 +63,10 @@ describe("approve delegation", () => {
 
   it("should approve delegation if validations succeed", async () => {
     const delegationId = generateId<DelegationId>();
+    const authData = getRandomAuthData(delegate.id);
 
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       id: delegationId,
       state: "WaitingForApproval",
       delegateId: delegate.id,
@@ -75,7 +78,7 @@ describe("approve delegation", () => {
     expect(version).toBe("0");
 
     await delegationProducerService.approveProducerDelegation(delegation.id, {
-      authData: getMockAuthData(delegate.id),
+      authData,
       serviceName: "",
       correlationId: generateId(),
       logger: genericLogger,
@@ -105,7 +108,7 @@ describe("approve delegation", () => {
         stamps: {
           ...delegation.stamps,
           activation: {
-            who: delegate.id,
+            who: authData.userId,
             when: currentExecutionTime,
           },
         },
@@ -161,7 +164,7 @@ describe("approve delegation", () => {
       delegationProducerService.approveProducerDelegation(
         nonExistentDelegationId,
         {
-          authData: getMockAuthData(delegateId),
+          authData: getRandomAuthData(delegateId),
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
@@ -173,7 +176,8 @@ describe("approve delegation", () => {
   it("should throw operationRestrictedToDelegate when approver is not the delegate", async () => {
     const wrongDelegate = getMockTenant();
     await addOneTenant(wrongDelegate);
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       state: "WaitingForApproval",
       delegateId: delegate.id,
       delegatorId: delegator.id,
@@ -183,7 +187,7 @@ describe("approve delegation", () => {
 
     await expect(
       delegationProducerService.approveProducerDelegation(delegation.id, {
-        authData: getMockAuthData(wrongDelegate.id),
+        authData: getRandomAuthData(wrongDelegate.id),
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
@@ -194,7 +198,8 @@ describe("approve delegation", () => {
   });
 
   it("should throw incorrectState when delegation is not in WaitingForApproval state", async () => {
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       state: "Active",
       delegateId: delegate.id,
       delegatorId: delegator.id,
@@ -204,7 +209,7 @@ describe("approve delegation", () => {
 
     await expect(
       delegationProducerService.approveProducerDelegation(delegation.id, {
-        authData: getMockAuthData(delegate.id),
+        authData: getRandomAuthData(delegate.id),
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
@@ -219,7 +224,8 @@ describe("approve delegation", () => {
   });
 
   it("should generete a pdf document for a delegation", async () => {
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       state: "WaitingForApproval",
       delegateId: delegate.id,
       delegatorId: delegator.id,
@@ -230,7 +236,7 @@ describe("approve delegation", () => {
     expect(version).toBe("0");
 
     await delegationProducerService.approveProducerDelegation(delegation.id, {
-      authData: getMockAuthData(delegate.id),
+      authData: getRandomAuthData(delegate.id),
       serviceName: "",
       correlationId: generateId(),
       logger: genericLogger,
