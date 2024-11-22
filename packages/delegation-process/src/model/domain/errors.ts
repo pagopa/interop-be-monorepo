@@ -23,7 +23,6 @@ export const errorCodes = {
   incorrectState: "0011",
   differentEserviceProducer: "0012",
   delegationContractNotFound: "0013",
-  operationForbidden: "0014",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
