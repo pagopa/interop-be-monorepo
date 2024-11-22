@@ -1,16 +1,16 @@
 import {
-  CommonHTTPServiceConfig,
   FileManagerConfig,
   KafkaProducerConfig,
   RedisRateLimiterConfig,
   S3Config,
   AuthorizationServerTokenGenerationConfig,
+  HTTPServerConfig,
+  LoggerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const AuthorizationServerConfig = CommonHTTPServiceConfig.and(
-  RedisRateLimiterConfig
-)
+const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
+  .and(RedisRateLimiterConfig)
   .and(KafkaProducerConfig)
   .and(FileManagerConfig)
   .and(S3Config)

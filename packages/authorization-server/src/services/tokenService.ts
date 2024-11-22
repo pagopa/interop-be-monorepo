@@ -109,6 +109,8 @@ export function tokenServiceBuilder({
         verifyClientAssertion(request.client_assertion, request.client_id);
 
       if (clientAssertionErrors) {
+        // TODO double check if errors have to be logged or put inside the error below (check the same for parameters errors)
+        logger.warn(clientAssertionErrors.map((error) => error.detail));
         throw clientAssertionValidationFailed(request.client_id);
       }
 
