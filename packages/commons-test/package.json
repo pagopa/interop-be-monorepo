@@ -19,7 +19,6 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@anatine/zod-mock": "3.13.4",
-    "@faker-js/faker": "8.4.1",
     "@aws-sdk/client-dynamodb": "3.693.0",
     "@aws-sdk/client-sesv2": "3.693.0",
     "@aws-sdk/util-dynamodb": "3.693.0",
