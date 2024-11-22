@@ -1174,7 +1174,7 @@ export function agreementServiceBuilder(
         );
 
         assertDelegationIsActive(delegation);
-        assertIsDelegate(delegation, tenantId);
+        assertIsDelegate(delegation, authData.organizationId);
       } else {
         assertTenantIsRequester(authData.organizationId, tenantId);
       }
@@ -1183,10 +1183,12 @@ export function agreementServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       return {
-        hasCertifiedAttributes: certifiedAttributesSatisfied(
-          descriptor.attributes,
-          consumer.attributes
-        ),
+        hasCertifiedAttributes:
+          eservice.producerId === consumer.id || // in case the consumer is also the producer, we don't need to check the attributes
+          certifiedAttributesSatisfied(
+            descriptor.attributes,
+            consumer.attributes
+          ),
       };
     },
   };
