@@ -10,9 +10,10 @@ import {
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
-import { getMockTenant } from "pagopa-interop-commons-test";
+import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
 import {
   tenantDoesNotHaveFeature,
+  tenantIsNotIPA,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
@@ -41,6 +42,7 @@ describe("removeTenantDelegatedConsumerFeature", async () => {
     await tenantService.removeTenantDelegatedConsumerFeature({
       organizationId: mockTenant.id,
       correlationId: generateId(),
+      authData: getMockAuthData(mockTenant.id),
       logger: genericLogger,
     });
     const writtenEvent = await readLastEventByStreamId(
@@ -74,6 +76,7 @@ describe("removeTenantDelegatedConsumerFeature", async () => {
       tenantService.removeTenantDelegatedConsumerFeature({
         organizationId,
         correlationId: generateId(),
+        authData: getMockAuthData(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(tenantNotFound(organizationId));
@@ -90,10 +93,35 @@ describe("removeTenantDelegatedConsumerFeature", async () => {
       tenantService.removeTenantDelegatedConsumerFeature({
         organizationId: tenant.id,
         correlationId: generateId(),
+        authData: getMockAuthData(tenant.id),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
       tenantDoesNotHaveFeature(tenant.id, "DelegatedConsumer")
     );
+  });
+  it("Should throw tenantIsNotIPA if the requester tenant is not a public administration", async () => {
+    const tenant: Tenant = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "DelegatedConsumer",
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
+    await addOneTenant(tenant);
+
+    expect(
+      tenantService.removeTenantDelegatedConsumerFeature({
+        organizationId: tenant.id,
+        correlationId: generateId(),
+        authData: {
+          ...getMockAuthData(tenant.id),
+          externalId: { origin: "UNKNOWN", value: "test" },
+        },
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(tenantIsNotIPA(tenant.id));
   });
 });

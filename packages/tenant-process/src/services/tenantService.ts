@@ -1751,15 +1751,19 @@ export function tenantServiceBuilder(
     async removeTenantDelegatedConsumerFeature({
       organizationId,
       correlationId,
+      authData,
       logger,
     }: {
       organizationId: TenantId;
       correlationId: CorrelationId;
+      authData: AuthData;
       logger: Logger;
     }): Promise<void> {
       logger.info(
         `Removing delegated consumer feature to tenant ${organizationId}`
       );
+
+      assertRequesterIPAOrigin(authData);
 
       const requesterTenant = await retrieveTenant(
         organizationId,
