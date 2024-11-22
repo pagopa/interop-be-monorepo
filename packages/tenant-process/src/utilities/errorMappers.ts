@@ -23,7 +23,7 @@ export const getTenantByExternalIdErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotFoundByExternalId", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getTenantBySelfcareIdErrorMapper = (
@@ -136,6 +136,13 @@ export const maintenanceTenantDeletedErrorMapper = (
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const maintenanceTenantUpdatedErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const verifyVerifiedAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -191,7 +198,12 @@ export const m2mUpsertTenantErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantNotFound", "attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantNotFound",
+      "attributeNotFound",
+      "tenantNotFoundByExternalId",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -217,6 +229,30 @@ export const m2mRevokeCertifiedAttributeErrorMapper = (
       "tenantNotFoundByExternalId",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("attributeNotFoundInTenant", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "attributeNotFound",
+      "attributeNotFoundInTenant",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const assignTenantDelegatedProducerFeatureErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "tenantAlreadyHasDelegatedProducerFeature",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const removeTenantDelegatedProducerFeatureErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantHasNoDelegatedProducerFeature", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

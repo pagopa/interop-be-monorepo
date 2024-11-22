@@ -20,6 +20,7 @@ export function toApiTenantKind(input: TenantKind): tenantApi.TenantKind {
     .with(tenantKind.GSP, () => "GSP")
     .with(tenantKind.PA, () => "PA")
     .with(tenantKind.PRIVATE, () => "PRIVATE")
+    .with(tenantKind.SCP, () => "SCP")
     .exhaustive();
 }
 
@@ -37,6 +38,11 @@ export function toApiTenantFeature(
     .with({ type: "PersistentCertifier" }, (feature) => ({
       certifier: {
         certifierId: feature.certifierId,
+      },
+    }))
+    .with({ type: "DelegatedProducer" }, (feature) => ({
+      delegatedProducer: {
+        availabilityTimestamp: feature.availabilityTimestamp.toJSON(),
       },
     }))
     .exhaustive();

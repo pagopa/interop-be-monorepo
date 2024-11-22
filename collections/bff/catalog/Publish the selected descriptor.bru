@@ -1,0 +1,21 @@
+meta {
+  name: Publish the selected descriptor-
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/eservices/:eServiceId/descriptors/:descriptorId/publish
+  body: none
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

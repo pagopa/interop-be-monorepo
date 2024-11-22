@@ -1,0 +1,31 @@
+meta {
+  name: Get eservices
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host-catalog}}/eservices?offset=0&limit=50
+  body: json
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 50
+  ~attributesIds: ["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
+  ~producersIds: ["4D55696F-16C0-4968-854B-2B166397FC30"]
+  ~name: lol
+  ~agreementStates: ["SUSPENDED"]
+  ~eservicesIds: ["adb7d6fa-9b8e-4eed-87b0-2b2bf3d95f7a"]
+  ~states: "PUBLISHED, HELLO"
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  eserviceId: res.body.results.at(-1).id
+}

@@ -10,6 +10,8 @@ import {
   toApiGatewayPurpose,
   toPurposeProcessGetPurposesQueryParams,
 } from "../api/purposeApiConverter.js";
+import { clientStatusCodeToError } from "../clients/catchClientError.js";
+import { purposeNotFound } from "../models/errors.js";
 import {
   assertIsEserviceProducer,
   assertOnlyOneAgreementForEserviceAndConsumerExists,
@@ -18,7 +20,7 @@ import { getAllAgreements } from "./agreementService.js";
 
 export async function getAllPurposes(
   purposeProcessClient: PurposeProcessClient,
-  headers: ApiGatewayAppContext["headers"],
+  ctx: WithLogger<ApiGatewayAppContext>,
   { eserviceId, consumerId }: apiGatewayApi.GetPurposesQueryParams
 ): Promise<apiGatewayApi.Purposes> {
   const getPurposesQueryParams = toPurposeProcessGetPurposesQueryParams({
@@ -29,7 +31,7 @@ export async function getAllPurposes(
   const purposes = await getAllFromPaginated<purposeApi.Purpose>(
     async (offset, limit) =>
       await purposeProcessClient.getPurposes({
-        headers,
+        headers: ctx.headers,
         queries: {
           ...getPurposesQueryParams,
           offset,
@@ -38,8 +40,26 @@ export async function getAllPurposes(
       })
   );
 
-  return { purposes: purposes.map(toApiGatewayPurpose) };
+  return { purposes: purposes.map((p) => toApiGatewayPurpose(p, ctx.logger)) };
 }
+
+const retrievePurpose = async (
+  purposeProcessClient: PurposeProcessClient,
+  headers: ApiGatewayAppContext["headers"],
+  purposeId: purposeApi.Purpose["id"]
+): Promise<purposeApi.Purpose> =>
+  purposeProcessClient
+    .getPurpose({
+      headers,
+      params: {
+        id: purposeId,
+      },
+    })
+    .catch((res) => {
+      throw clientStatusCodeToError(res, {
+        404: purposeNotFound(purposeId),
+      });
+    });
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
@@ -58,12 +78,11 @@ export function purposeServiceBuilder(
     ): Promise<apiGatewayApi.Purpose> => {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
-      const purpose = await purposeProcessClient.getPurpose({
+      const purpose = await retrievePurpose(
+        purposeProcessClient,
         headers,
-        params: {
-          id: purposeId,
-        },
-      });
+        purposeId
+      );
 
       if (purpose.consumerId !== organizationId) {
         const eservice = await catalogProcessClient.getEServiceById({
@@ -76,37 +95,36 @@ export function purposeServiceBuilder(
         assertIsEserviceProducer(eservice, organizationId);
       }
 
-      return toApiGatewayPurpose(purpose);
+      return toApiGatewayPurpose(purpose, logger);
     },
 
     getPurposes: async (
-      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      ctx: WithLogger<ApiGatewayAppContext>,
       { eserviceId, consumerId }: apiGatewayApi.GetPurposesQueryParams
     ): Promise<apiGatewayApi.Purposes> => {
-      logger.info(
+      ctx.logger.info(
         `Retrieving Purposes for eservice ${eserviceId} and consumer ${consumerId}"`
       );
-      return await getAllPurposes(purposeProcessClient, headers, {
+      return await getAllPurposes(purposeProcessClient, ctx, {
         eserviceId,
         consumerId,
       });
     },
 
     getAgreementByPurpose: async (
-      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      ctx: WithLogger<ApiGatewayAppContext>,
       purposeId: purposeApi.Purpose["id"]
     ): Promise<apiGatewayApi.Agreement> => {
-      logger.info(`Retrieving agreement by purpose ${purposeId}`);
-      const purpose = await purposeProcessClient.getPurpose({
-        headers,
-        params: {
-          id: purposeId,
-        },
-      });
+      ctx.logger.info(`Retrieving agreement by purpose ${purposeId}`);
+      const purpose = await retrievePurpose(
+        purposeProcessClient,
+        ctx.headers,
+        purposeId
+      );
 
       const { agreements } = await getAllAgreements(
         agreementProcessClient,
-        headers,
+        ctx,
         {
           consumerId: purpose.consumerId,
           eserviceId: purpose.eserviceId,

@@ -1,5 +1,6 @@
 import {
   authenticationMiddleware,
+  buildJwksClients,
   contextMiddleware,
   initRedisRateLimiter,
   loggerMiddleware,
@@ -17,6 +18,8 @@ const clients = getInteropBeClients();
 
 const app = zodiosCtx.app();
 
+const jwksClients = buildJwksClients(config);
+
 const redisRateLimiter = await initRedisRateLimiter({
   limiterGroup: "API_GW",
   maxRequests: config.rateLimiterMaxRequests,
@@ -31,16 +34,16 @@ const redisRateLimiter = await initRedisRateLimiter({
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(contextMiddleware(serviceName, true));
-
-// Unauthenticated routes
-app.use(healthRouter);
-
-app.use(authenticationMiddleware);
-
-// Authenticated routes - rate limiter and logger need authentication data to work
 app.use(loggerMiddleware(serviceName));
-app.use(rateLimiterMiddleware(redisRateLimiter));
-app.use(apiGatewayRouter(zodiosCtx, clients));
+
+app.use(
+  `/api-gateway/${config.apiGatewayInterfaceVersion}`,
+  healthRouter,
+  contextMiddleware(serviceName, false),
+  authenticationMiddleware(config, jwksClients),
+  // Authenticated routes - rate limiter relies on auth data to work
+  rateLimiterMiddleware(redisRateLimiter),
+  apiGatewayRouter(zodiosCtx, clients)
+);
 
 export default app;

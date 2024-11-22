@@ -2,6 +2,7 @@
 import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { CorrelationId } from "./brandedIds.js";
 
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
@@ -14,26 +15,22 @@ export class ApiError<T> extends Error {
   public title: string;
   public detail: string;
   public errors: Array<{ code: T; detail: string }>;
-  public correlationId?: string;
 
   constructor({
     code,
     title,
     detail,
-    correlationId,
     errors,
   }: {
     code: T;
     title: string;
     detail: string;
-    correlationId?: string;
     errors?: Error[];
   }) {
     super(detail);
     this.code = code;
     this.title = title;
     this.detail = detail;
-    this.correlationId = correlationId;
     this.errors =
       errors && errors.length > 0
         ? errors.map((e) => ({ code, detail: e.message }))
@@ -52,12 +49,12 @@ export class InternalError<T> extends Error {
   }
 }
 
-export type ProblemError = {
+type ProblemError = {
   code: string;
   detail: string;
 };
 
-export type Problem = {
+type Problem = {
   type: string;
   status: number;
   title: string;
@@ -67,11 +64,12 @@ export type Problem = {
   toString: () => string;
 };
 
-export type MakeApiProblemFn<T extends string> = (
+type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
   logger: { error: (message: string) => void; warn: (message: string) => void },
-  logMessage?: string
+  correlationId: CorrelationId,
+  operationalLogMessage?: string
 ) => Problem;
 
 const makeProblemLogString = (
@@ -82,14 +80,17 @@ const makeProblemLogString = (
   return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - original error: ${originalError}`;
 };
 
-export function makeApiProblemBuilder<T extends string>(errors: {
-  [K in T]: string;
-}): MakeApiProblemFn<T> {
+export function makeApiProblemBuilder<T extends string>(
+  errors: {
+    [K in T]: string;
+  },
+  problemErrorsPassthrough: boolean = true
+): MakeApiProblemFn<T> {
   const allErrors = { ...errorCodes, ...errors };
-  return (error, httpMapper, logger, operationalMsg) => {
+  return (error, httpMapper, logger, correlationId, operationalLogMessage) => {
     const makeProblem = (
       httpStatus: number,
-      { title, detail, correlationId, errors }: ApiError<T | CommonErrorCodes>
+      { title, detail, errors }: ApiError<T | CommonErrorCodes>
     ): Problem => ({
       type: "about:blank",
       title,
@@ -102,46 +103,67 @@ export function makeApiProblemBuilder<T extends string>(errors: {
       })),
     });
 
-    return (
-      match<unknown, Problem>(error)
-        .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
-          const problem = makeProblem(httpMapper(error), error);
-          logger.warn(makeProblemLogString(problem, error));
-          return problem;
-        })
-        // this case is to allow a passthrough of PROBLEM errors in the BFF
-        .with(
-          {
-            response: {
+    const genericProblem = makeProblem(500, genericError("Unexpected error"));
+
+    if (operationalLogMessage) {
+      logger.warn(operationalLogMessage);
+    }
+    return match<unknown, Problem>(error)
+      .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
+        const problem = makeProblem(httpMapper(error), error);
+        logger.warn(makeProblemLogString(problem, error));
+        return problem;
+      })
+      .with(
+        /* this case is to allow a passthrough of Problem errors, so that
+           services that call other interop services can forward Problem errors
+           as they are, without the need to explicitly handle them */
+        {
+          response: {
+            status: P.number,
+            data: {
+              type: "about:blank",
+              title: P.string,
               status: P.number,
-              data: {
-                type: "about:blank",
-                title: P.string,
-                status: P.number,
+              detail: P.string,
+              errors: P.array({
+                code: P.string,
                 detail: P.string,
-                errors: P.array({
-                  code: P.string,
-                  detail: P.string,
-                }),
-                correlationId: P.string.optional(),
-              },
+              }),
+              correlationId: P.string.optional(),
             },
           },
-          (e) => {
-            const receivedProblem: Problem = e.response.data;
-            if (operationalMsg) {
-              logger.warn(operationalMsg);
-            }
+        },
+        (e) => {
+          const receivedProblem: Problem = e.response.data;
+          if (problemErrorsPassthrough) {
             logger.warn(makeProblemLogString(receivedProblem, error));
-            return e.response.data;
+            return receivedProblem;
+          } else {
+            logger.warn(
+              makeProblemLogString(
+                genericProblem,
+                `${receivedProblem.title}, code ${
+                  receivedProblem.errors.at(0)?.code
+                }, ${receivedProblem.errors.at(0)?.detail}`
+              )
+            );
+            return genericProblem;
           }
-        )
-        .otherwise((error: unknown) => {
-          const problem = makeProblem(500, genericError("Unexpected error"));
-          logger.error(makeProblemLogString(problem, error));
-          return problem;
-        })
-    );
+        }
+      )
+      .with(P.instanceOf(ZodError), (error) => {
+        // Zod errors shall always be catched and handled throwing
+        // an ApiError. If a ZodError arrives here we log it and
+        // return a generic problem
+        const zodError = fromZodError(error);
+        logger.error(makeProblemLogString(genericProblem, zodError));
+        return genericProblem;
+      })
+      .otherwise((error: unknown): Problem => {
+        logger.error(makeProblemLogString(genericProblem, error));
+        return genericProblem;
+      });
   };
 }
 
@@ -167,6 +189,8 @@ const errorCodes = {
   invalidKey: "10003",
   tooManyRequestsError: "10004",
   notAllowedCertificateException: "10005",
+  jwksSigningKeyError: "10006",
+  badBearerToken: "10007",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -328,18 +352,16 @@ export function jwtDecodingError(error: unknown): ApiError<CommonErrorCodes> {
 export function missingHeader(headerName?: string): ApiError<CommonErrorCodes> {
   const title = "Header has not been passed";
   return new ApiError({
-    detail: headerName
-      ? `Header ${headerName} not existing in this request`
-      : title,
+    detail: headerName ? `Missing ${headerName} request header` : title,
     code: "missingHeader",
     title,
   });
 }
 
-export const missingBearer: ApiError<CommonErrorCodes> = new ApiError({
-  detail: `Authorization Illegal header key.`,
-  code: "missingHeader",
-  title: "Bearer token has not been passed",
+export const badBearerToken: ApiError<CommonErrorCodes> = new ApiError({
+  detail: `Bad Bearer Token format in Authorization header`,
+  code: "badBearerToken",
+  title: "Bad Bearer Token format",
 });
 
 export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({
@@ -355,6 +377,14 @@ export function jwkDecodingError(error: unknown): ApiError<CommonErrorCodes> {
     )}`,
     code: "jwkDecodingError",
     title: "JWK decoding error",
+  });
+}
+
+export function jwksSigningKeyError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error getting signing key`,
+    code: "jwksSigningKeyError",
+    title: "JWK signing key error",
   });
 }
 

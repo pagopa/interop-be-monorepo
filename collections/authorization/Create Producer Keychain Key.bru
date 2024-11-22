@@ -1,0 +1,39 @@
+meta {
+  name: Create Producer Keychain Key
+  type: http
+  seq: 25
+}
+
+post {
+  url: {{host-authorization}}/producerKeychains/:producerKeychainId/keys
+  body: json
+  auth: none
+}
+
+params:path {
+  producerKeychainId: {{producerKeychainId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "key": "{{keyEncodedPem}}",
+    "use": "ENC",
+    "alg": "RS256",
+    "name": "{{randomName}}"
+  }
+}
+
+vars:post-response {
+  keyId: res.body.keys.at(-1).kid
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}

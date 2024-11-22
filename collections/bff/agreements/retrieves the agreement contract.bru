@@ -1,0 +1,27 @@
+meta {
+  name: retrieves the agreement contract
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/agreements/:agreementId/contract
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: 700f322c-5019-4cc7-87a2-086d39d53248
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+  Accept: application/octet-stream
+}
+
+
+
+docs {
+  returns the agreement contract for a given agreementId
+}

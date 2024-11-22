@@ -1,0 +1,22 @@
+meta {
+  name: Get eservice descriptor document
+  type: http
+  seq: 23
+}
+
+get {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/documents/:documentId
+  body: json
+  auth: none
+}
+
+params:path {
+  documentId: {{interfaceId}}
+  descriptorId: {{descriptorId}}
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

@@ -1,0 +1,34 @@
+meta {
+  name: Delete Risk Analysis
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{host-catalog}}/eservices/:eserviceId/riskAnalysis/:riskAnalysisId
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  riskAnalysisId: {{riskAnalysisId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "name": "UPDATED RISK ANALYSIS",
+      "riskAnalysisForm": {
+          "version": "3.0",
+          "answers": {
+              "purpose": ["OTHER"],
+              "otherPurpose":["another purpose!"]
+          }
+      }
+  }
+}

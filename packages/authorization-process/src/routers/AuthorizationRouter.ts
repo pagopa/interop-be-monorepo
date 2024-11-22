@@ -84,7 +84,8 @@ const authorizationService = authorizationServiceBuilder(
 const authorizationRouter = (
   ctx: ZodiosContext
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
-  const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } = userRoles;
+  const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE, API_ROLE } =
+    userRoles;
 
   const authorizationClientRouter = ctx.router(authorizationApi.clientApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -105,15 +106,19 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient(client, { showUsers }))
-            .end();
+            .send(
+              authorizationApi.Client.parse(
+                clientToApiClient(client, { showUsers })
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createConsumerClientErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -132,15 +137,19 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient(client, { showUsers }))
-            .end();
+            .send(
+              authorizationApi.Client.parse(
+                clientToApiClient(client, { showUsers })
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createApiClientErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -151,6 +160,7 @@ const authorizationRouter = (
         SECURITY_ROLE,
         M2M_ROLE,
         SUPPORT_ROLE,
+        API_ROLE,
       ]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -179,9 +189,8 @@ const authorizationRouter = (
             limit,
             logger: ctx.logger,
           });
-          return res
-            .status(200)
-            .json({
+          return res.status(200).send(
+            authorizationApi.ClientsWithKeys.parse({
               results: clients.results.map((client) =>
                 clientToApiClientWithKeys(client, {
                   showUsers: ctx.authData.organizationId === client.consumerId,
@@ -189,14 +198,15 @@ const authorizationRouter = (
               ),
               totalCount: clients.totalCount,
             })
-            .end();
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientsWithKeysErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -228,9 +238,8 @@ const authorizationRouter = (
             limit,
             logger: ctx.logger,
           });
-          return res
-            .status(200)
-            .json({
+          return res.status(200).send(
+            authorizationApi.Clients.parse({
               results: clients.results.map((client) =>
                 clientToApiClient(client, {
                   showUsers: ctx.authData.organizationId === client.consumerId,
@@ -238,14 +247,15 @@ const authorizationRouter = (
               ),
               totalCount: clients.totalCount,
             })
-            .end();
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientsErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -268,15 +278,19 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient(client, { showUsers }))
-            .end();
+            .send(
+              authorizationApi.Client.parse(
+                clientToApiClient(client, { showUsers })
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -292,14 +306,15 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteClientErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -319,14 +334,15 @@ const authorizationRouter = (
             organizationId: ctx.authData.organizationId,
             logger: ctx.logger,
           });
-          return res.status(200).json(users).end();
+          return res.status(200).send(authorizationApi.Users.parse(users));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientUsersErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -343,28 +359,29 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             removeClientUserErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
     .post(
-      "/clients/:clientId/users/:userId",
+      "/clients/:clientId/users",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
           const { client, showUsers } =
-            await authorizationService.addClientUser(
+            await authorizationService.addClientUsers(
               {
                 clientId: unsafeBrandId(req.params.clientId),
-                userId: unsafeBrandId(req.params.userId),
+                userIds: req.body.userIds.map(unsafeBrandId<UserId>),
                 authData: req.ctx.authData,
               },
               req.ctx.correlationId,
@@ -372,15 +389,19 @@ const authorizationRouter = (
             );
           return res
             .status(200)
-            .json(clientToApiClient(client, { showUsers }))
-            .end();
+            .send(
+              authorizationApi.Client.parse(
+                clientToApiClient(client, { showUsers })
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             addClientUserErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -397,17 +418,19 @@ const authorizationRouter = (
             correlationId: req.ctx.correlationId,
             logger: ctx.logger,
           });
-          return res
-            .status(200)
-            .json({ keys: client.keys.map((key) => keyToApiKey(key)) })
-            .end();
+          return res.status(200).send(
+            authorizationApi.Keys.parse({
+              keys: client.keys.map((key) => keyToApiKey(key)),
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createKeysErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -429,17 +452,19 @@ const authorizationRouter = (
             logger: ctx.logger,
           });
 
-          return res
-            .status(200)
-            .json({ keys: keys.map((key) => keyToApiKey(key)) })
-            .end();
+          return res.status(200).send(
+            authorizationApi.Keys.parse({
+              keys: keys.map((key) => keyToApiKey(key)),
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientKeysErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -461,14 +486,17 @@ const authorizationRouter = (
             logger: ctx.logger,
           });
 
-          return res.status(200).json(keyToApiKey(key)).end();
+          return res
+            .status(200)
+            .send(authorizationApi.Key.parse(keyToApiKey(key)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientKeyErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -485,14 +513,15 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteClientKeyByIdErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -509,14 +538,15 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             addClientPurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -533,14 +563,15 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             removeClientPurposeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -555,10 +586,15 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          const errorRes = makeApiProblem(
+            error,
+            () => 500,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );
@@ -592,21 +628,21 @@ const authorizationRouter = (
               correlationId: req.ctx.correlationId,
               logger: ctx.logger,
             });
-          return res
-            .status(200)
-            .json(
+          return res.status(200).send(
+            authorizationApi.ProducerKeychain.parse(
               producerKeychainToApiProducerKeychain(producerKeychain, {
                 showUsers,
               })
             )
-            .end();
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createProducerKeychainErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -638,9 +674,8 @@ const authorizationRouter = (
               limit,
               logger: ctx.logger,
             });
-          return res
-            .status(200)
-            .json({
+          return res.status(200).send(
+            authorizationApi.ProducerKeychains.parse({
               results: producerKeychains.results.map((producerKeychain) =>
                 producerKeychainToApiProducerKeychain(producerKeychain, {
                   showUsers:
@@ -649,14 +684,15 @@ const authorizationRouter = (
               ),
               totalCount: producerKeychains.totalCount,
             })
-            .end();
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getProducerKeychainsErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -677,21 +713,21 @@ const authorizationRouter = (
               organizationId: ctx.authData.organizationId,
               logger: ctx.logger,
             });
-          return res
-            .status(200)
-            .json(
+          return res.status(200).send(
+            authorizationApi.ProducerKeychain.parse(
               producerKeychainToApiProducerKeychain(producerKeychain, {
                 showUsers,
               })
             )
-            .end();
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getProducerKeychainErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -707,14 +743,15 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteProducerKeychainErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -734,50 +771,51 @@ const authorizationRouter = (
             organizationId: ctx.authData.organizationId,
             logger: ctx.logger,
           });
-          return res.status(200).json(users).end();
+          return res.status(200).send(authorizationApi.Users.parse(users));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getProducerKeychainUsersErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
     .post(
-      "/producerKeychains/:producerKeychainId/users/:userId",
+      "/producerKeychains/:producerKeychainId/users",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
           const { producerKeychain, showUsers } =
-            await authorizationService.addProducerKeychainUser(
+            await authorizationService.addProducerKeychainUsers(
               {
                 producerKeychainId: unsafeBrandId(
                   req.params.producerKeychainId
                 ),
-                userId: unsafeBrandId(req.params.userId),
+                userIds: req.body.userIds.map(unsafeBrandId<UserId>),
                 authData: req.ctx.authData,
               },
               req.ctx.correlationId,
               ctx.logger
             );
-          return res
-            .status(200)
-            .json(
+          return res.status(200).send(
+            authorizationApi.ProducerKeychain.parse(
               producerKeychainToApiProducerKeychain(producerKeychain, {
                 showUsers,
               })
             )
-            .end();
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             addProducerKeychainUserErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -794,14 +832,15 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             removeProducerKeychainUserErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -819,19 +858,19 @@ const authorizationRouter = (
               correlationId: req.ctx.correlationId,
               logger: ctx.logger,
             });
-          return res
-            .status(200)
-            .json({
+          return res.status(200).send(
+            authorizationApi.Keys.parse({
               keys: producerKeychain.keys.map(keyToApiKey),
             })
-            .end();
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createProducerKeychainKeyErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -855,15 +894,15 @@ const authorizationRouter = (
 
           return res
             .status(200)
-            .json({ keys: keys.map(keyToApiKey) })
-            .end();
+            .send(authorizationApi.Keys.parse({ keys: keys.map(keyToApiKey) }));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getProducerKeychainKeysErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -885,14 +924,17 @@ const authorizationRouter = (
             logger: ctx.logger,
           });
 
-          return res.status(200).json(keyToApiKey(key)).end();
+          return res
+            .status(200)
+            .send(authorizationApi.Key.parse(keyToApiKey(key)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getProducerKeychainKeyErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -909,14 +951,15 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteProducerKeychainKeyByIdErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -933,14 +976,15 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             addPurposeKeychainEServiceErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -957,14 +1001,15 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             removeProducerKeychainEServiceErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );
@@ -993,20 +1038,20 @@ const authorizationRouter = (
             kid: req.params.keyId,
             logger: ctx.logger,
           });
-        return res
-          .status(200)
-          .json({
+        return res.status(200).send(
+          authorizationApi.KeyWithClient.parse({
             key: jwkKey,
             client,
           })
-          .end();
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           getClientKeyWithClientErrorMapper,
-          ctx.logger
+          ctx.logger,
+          ctx.correlationId
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     }
   );

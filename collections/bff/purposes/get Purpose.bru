@@ -1,0 +1,26 @@
+meta {
+  name: get Purpose
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/purposes/:purposeId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: 26d9891f-fe05-4bff-82fd-fc4edad2d076
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  Retrieve the Purpose
+}

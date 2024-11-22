@@ -1,0 +1,32 @@
+meta {
+  name: update an agreement in draft state-
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/agreements/:agreementId/update
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "consumerNotes": "<string>"
+  }
+}
+
+docs {
+  update agreement fields.
+}

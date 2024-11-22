@@ -1,0 +1,21 @@
+meta {
+  name: Suspend Purpose Version
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host-purpose}}/purposes/:id/versions/:versionId/suspend
+  body: none
+  auth: none
+}
+
+params:path {
+  versionId: {{purposeVersionId}}
+  id: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

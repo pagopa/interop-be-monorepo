@@ -1,17 +1,38 @@
-import { TenantEventEnvelopeV1, TenantV1 } from "pagopa-interop-models";
+import {
+  TenantAttributeV1,
+  TenantEventEnvelopeV1,
+  TenantFeatureV1,
+  TenantV1,
+} from "pagopa-interop-models";
 import {
   TenantEvent as OutboundTenantEvent,
   TenantV1 as OutboundTenantV1,
+  TenantFeatureV1 as OutboundTenantFeatureV1,
+  TenantAttributeV1 as OutboundTenantAttributeV1,
 } from "@pagopa/interop-outbound-models";
 import { match } from "ts-pattern";
-import { Exact } from "../utils.js";
+import { Exact } from "pagopa-interop-commons";
 
-function toOutboundTenantV1(tenant: TenantV1): OutboundTenantV1 {
-  const outboundTenant: Exact<OutboundTenantV1, TenantV1> = {
+function toOutboundTenantFeaturesV1(
+  feature: TenantFeatureV1
+): Exact<OutboundTenantFeatureV1, TenantFeatureV1> {
+  return feature as Exact<OutboundTenantFeatureV1, TenantFeatureV1>;
+}
+
+function toOutboundTenantAttributeV1(
+  attribute: TenantAttributeV1
+): Exact<OutboundTenantAttributeV1, TenantAttributeV1> {
+  return attribute as Exact<OutboundTenantAttributeV1, TenantAttributeV1>;
+}
+function toOutboundTenantV1(
+  tenant: TenantV1
+): Exact<OutboundTenantV1, TenantV1> {
+  return {
     ...tenant,
     mails: undefined,
+    features: tenant.features.map(toOutboundTenantFeaturesV1),
+    attributes: tenant.attributes.map(toOutboundTenantAttributeV1),
   };
-  return outboundTenant as OutboundTenantV1;
 }
 
 export function toOutboundEventV1(
@@ -24,7 +45,9 @@ export function toOutboundEventV1(
       type: msg.type,
       version: msg.version,
       data: {
-        tenant: msg.data.tenant && toOutboundTenantV1(msg.data.tenant),
+        tenant:
+          msg.data.tenant &&
+          (toOutboundTenantV1(msg.data.tenant) as OutboundTenantV1),
       },
       stream_id: msg.stream_id,
       timestamp: new Date(),

@@ -1,0 +1,25 @@
+meta {
+  name: Get eservice
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-catalog}}/eservices/:eserviceId
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  riskAnalysisId: res.body.riskAnalysis.at(-1).id
+  descriptorId: res.body.descriptors.at(-1).id
+}

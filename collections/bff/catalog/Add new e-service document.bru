@@ -1,0 +1,28 @@
+meta {
+  name: Add new e-service document
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/eservices/:eServiceId/descriptors/:descriptorId/documents
+  body: multipartForm
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: multipart/form-data
+}
+
+body:multipart-form {
+  kind: INTERFACE
+  prettyName: asdasd
+  doc: @file()
+}

@@ -4,9 +4,12 @@ import {
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { EachMessagePayload } from "kafkajs";
-import { v4 as uuidv4 } from "uuid";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { genericInternalError } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  generateId,
+  genericInternalError,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { TenantProcessClient } from "../clients/tenantProcessClient.js";
 import { InstitutionEventPayload } from "../model/institutionEvent.js";
@@ -24,7 +27,7 @@ export function selfcareOnboardingProcessorBuilder(
       message,
       partition,
     }: EachMessagePayload): Promise<void> {
-      const correlationId = uuidv4();
+      const correlationId: CorrelationId = generateId();
 
       const loggerInstance = logger({
         serviceName: "selfcare-onboarding-consumer",
@@ -60,7 +63,8 @@ export function selfcareOnboardingProcessorBuilder(
         const institution = eventPayload.institution;
         const origin = match(institution.institutionType)
           .with("SCP", () => `${institution.origin}-SCP`)
-          .with("PVT", () => `${institution.origin}-PVT`)
+          .with("PRV", () => `${institution.origin}-PRV`)
+          .with("PT", () => `${institution.origin}-PT`)
           .otherwise(() => institution.origin);
 
         if (!allowedOrigins.includes(origin)) {
