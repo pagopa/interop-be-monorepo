@@ -12,15 +12,12 @@ import {
   DelegationId,
   delegationEventToBinaryDataV2,
   delegationKind,
-  EService,
   delegationState,
   EServiceId,
   generateId,
-  Tenant,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { eserviceNotFound, tenantNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventProducerDelegationSubmitted,
   toCreateEventProducerDelegationRevoked,
@@ -32,16 +29,20 @@ import { ReadModelService } from "./readModelService.js";
 import {
   assertDelegationNotExists,
   assertDelegatorIsNotDelegate,
-  assertDelegatorIsProducer,
-  assertTenantAllowedToReceiveDelegation,
   assertIsDelegate,
   assertIsState,
+  assertDelegatorIsProducer,
+  assertTenantAllowedToReceiveDelegation,
   assertDelegatorAndDelegateIPA,
   assertIsDelegator,
   activeDelegationStates,
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
-import { retrieveDelegationById } from "./delegationService.js";
+import {
+  retrieveDelegationById,
+  retrieveEserviceById,
+  retrieveTenantById,
+} from "./delegationService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationProducerServiceBuilder(
@@ -50,22 +51,6 @@ export function delegationProducerServiceBuilder(
   pdfGenerator: PDFGenerator,
   fileManager: FileManager
 ) {
-  const retrieveTenantById = async (tenantId: TenantId): Promise<Tenant> => {
-    const tenant = await readModelService.getTenantById(tenantId);
-    if (!tenant) {
-      throw tenantNotFound(tenantId);
-    }
-    return tenant;
-  };
-
-  const retrieveEserviceById = async (id: EServiceId): Promise<EService> => {
-    const eservice = await readModelService.getEServiceById(id);
-    if (!eservice) {
-      throw eserviceNotFound(id);
-    }
-    return eservice.data;
-  };
-
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
   return {
     async createProducerDelegation(
@@ -82,8 +67,8 @@ export function delegationProducerServiceBuilder(
 
       assertDelegatorIsNotDelegate(delegatorId, delegateId);
 
-      const delegator = await retrieveTenantById(delegatorId);
-      const delegate = await retrieveTenantById(delegateId);
+      const delegator = await retrieveTenantById(readModelService, delegatorId);
+      const delegate = await retrieveTenantById(readModelService, delegateId);
 
       assertTenantAllowedToReceiveDelegation(
         delegate,
@@ -91,7 +76,7 @@ export function delegationProducerServiceBuilder(
       );
       await assertDelegatorAndDelegateIPA(delegator, delegate);
 
-      const eservice = await retrieveEserviceById(eserviceId);
+      const eservice = await retrieveEserviceById(readModelService, eserviceId);
       assertDelegatorIsProducer(delegatorId, eservice);
       await assertDelegationNotExists(
         delegator,
@@ -142,9 +127,9 @@ export function delegationProducerServiceBuilder(
       assertIsState(activeDelegationStates, delegation);
 
       const [delegator, delegate, eservice] = await Promise.all([
-        retrieveTenantById(delegation.delegatorId),
-        retrieveTenantById(delegation.delegateId),
-        retrieveEserviceById(delegation.eserviceId),
+        retrieveTenantById(readModelService, delegation.delegatorId),
+        retrieveTenantById(readModelService, delegation.delegateId),
+        retrieveEserviceById(readModelService, delegation.eserviceId),
       ]);
 
       const now = new Date();
@@ -207,9 +192,9 @@ export function delegationProducerServiceBuilder(
       assertIsState(delegationState.waitingForApproval, delegation);
 
       const [delegator, delegate, eservice] = await Promise.all([
-        retrieveTenantById(delegation.delegatorId),
-        retrieveTenantById(delegation.delegateId),
-        retrieveEserviceById(delegation.eserviceId),
+        retrieveTenantById(readModelService, delegation.delegatorId),
+        retrieveTenantById(readModelService, delegation.delegateId),
+        retrieveEserviceById(readModelService, delegation.eserviceId),
       ]);
 
       const now = new Date();

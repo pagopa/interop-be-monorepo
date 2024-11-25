@@ -2,7 +2,6 @@ import { ZodiosRouter } from "@zodios/express";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
-  ReadModelRepository,
   ZodiosContext,
   authorizationMiddleware,
   fromAppContext,
@@ -10,8 +9,7 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../config/config.js";
+import { ReadModelService } from "../services/readModelService.js";
 import {
   apiDelegationKindToDelegationKind,
   apiDelegationStateToDelegationState,
@@ -24,21 +22,18 @@ import {
 } from "../utilities/errorMappers.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-
-const delegationService = delegationServiceBuilder(readModelService);
-
 const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } =
   userRoles;
 
 const delegationRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  readModelService: ReadModelService
 ): ZodiosRouter<typeof delegationApi.delegationApi.api, ExpressContext> => {
   const delegationRouter = ctx.router(delegationApi.delegationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
+  const delegationService = delegationServiceBuilder(readModelService);
 
   delegationRouter
     .get(

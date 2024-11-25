@@ -160,6 +160,53 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /consumer/delegations:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      description: Creates a consumer delegation
+      summary: Consumer Delegation Creation
+      tags:
+        - consumer
+      operationId: createConsumerDelegation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationSeed"
+        description: Payload for delegation creation
+        required: true
+      responses:
+        "200":
+          description: Delegation created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /producer/delegations:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

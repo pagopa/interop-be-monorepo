@@ -25,6 +25,7 @@ import {
 } from "pagopa-interop-commons";
 import puppeteer, { Browser } from "puppeteer";
 import { delegationProducerServiceBuilder } from "../src/services/delegationProducerService.js";
+import { delegationConsumerServiceBuilder } from "../src/services/delegationConsumerService.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
@@ -64,6 +65,11 @@ export const delegationProducerService = delegationProducerServiceBuilder(
   readModelService,
   pdfGenerator,
   fileManager
+);
+
+export const delegationConsumerService = delegationConsumerServiceBuilder(
+  postgresDB,
+  readModelService
 );
 
 export const delegationService = delegationServiceBuilder(readModelService);

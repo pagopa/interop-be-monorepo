@@ -78,3 +78,21 @@ export function toCreateEventProducerDelegationRejected(
     correlationId,
   };
 }
+
+export function toCreateEventConsumerDelegationSubmitted(
+  delegation: Delegation,
+  correlationId: CorrelationId
+): CreateEvent<DelegationEventV2> {
+  return {
+    streamId: delegation.id,
+    version: 0,
+    event: {
+      type: "ConsumerDelegationSubmitted",
+      event_version: 2,
+      data: {
+        delegation: toDelegationV2(delegation),
+      },
+    },
+    correlationId,
+  };
+}

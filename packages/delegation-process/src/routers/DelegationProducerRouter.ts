@@ -3,18 +3,16 @@ import { delegationApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   fromAppContext,
-  ReadModelRepository,
   userRoles,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
   authorizationMiddleware,
-  initDB,
-  initPDFGenerator,
-  initFileManager,
+  PDFGenerator,
+  FileManager,
+  DB,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../config/config.js";
+import { ReadModelService } from "../services/readModelService.js";
 import { delegationToApiDelegation } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { delegationProducerServiceBuilder } from "../services/delegationProducerService.js";
@@ -25,36 +23,25 @@ import {
   rejectDelegationErrorMapper,
 } from "../utilities/errorMappers.js";
 
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-
-const pdfGenerator = await initPDFGenerator();
-const fileManager = initFileManager(config);
-
-const delegationProducerService = delegationProducerServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  pdfGenerator,
-  fileManager
-);
-
 const { ADMIN_ROLE } = userRoles;
 
 const delegationProducerRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  eventStore: DB,
+  readModelService: ReadModelService,
+  pdfGenerator: PDFGenerator,
+  fileManager: FileManager
 ): ZodiosRouter<typeof delegationApi.producerApi.api, ExpressContext> => {
   const delegationProducerRouter = ctx.router(delegationApi.producerApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
+  const delegationProducerService = delegationProducerServiceBuilder(
+    eventStore,
+    readModelService,
+    pdfGenerator,
+    fileManager
+  );
 
   delegationProducerRouter
     .post(
