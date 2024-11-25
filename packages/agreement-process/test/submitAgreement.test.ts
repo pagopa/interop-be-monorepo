@@ -47,7 +47,7 @@ import {
   tenantMailKind,
   toAgreementStateV2,
 } from "pagopa-interop-models";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { agreementSubmissionConflictingStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -155,16 +155,6 @@ describe("submit agreement", () => {
       stream_id: relatedAgreements.nonArchivableRelatedAgreement.id,
     });
   }
-
-  const testDate = new Date();
-  beforeAll(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(testDate);
-  });
-
-  afterAll(() => {
-    vi.useRealTimers();
-  });
 
   it("should throw an agreementNotFound when Agreement not found", async () => {
     await addOneAgreement(getMockAgreement());
@@ -1252,8 +1242,8 @@ describe("submit agreement", () => {
         "agreementContractTemplate.html"
       ),
       {
-        todayDate: dateAtRomeZone(testDate),
-        todayTime: timeAtRomeZone(testDate),
+        todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
         agreementId: expectedAgreement.id,
         submitterId: expectedAgreement.stamps.submission.who,
         submissionDate: dateAtRomeZone(

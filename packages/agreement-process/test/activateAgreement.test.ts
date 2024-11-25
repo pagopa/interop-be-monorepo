@@ -335,8 +335,8 @@ describe("activate agreement", () => {
           "agreementContractTemplate.html"
         ),
         {
-          todayDate: expect.any(String),
-          todayTime: expect.any(String),
+          todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+          todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
           agreementId: expectedActivatedAgreement.id,
           submitterId: expectedActivatedAgreement.stamps.submission!.who,
           submissionDate: dateAtRomeZone(
