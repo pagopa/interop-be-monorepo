@@ -162,7 +162,7 @@ describe("integration tests V1 events", async () => {
         ])
       );
     });
-    it("should update the entry if the incoming version is more recent than existing table entry", async () => {
+    it("should update the entry if the incoming version is more recent than the existing table entry", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
