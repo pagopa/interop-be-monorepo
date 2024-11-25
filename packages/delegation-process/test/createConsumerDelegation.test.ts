@@ -136,7 +136,7 @@ describe("create consumer delegation", () => {
       submittedAt: currentExecutionTime,
       stamps: {
         submission: {
-          who: delegatorId,
+          who: authData.userId,
           when: currentExecutionTime,
         },
       },

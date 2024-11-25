@@ -79,7 +79,7 @@ export function delegationConsumerServiceBuilder(
         kind: delegationKind.delegatedConsumer,
         stamps: {
           submission: {
-            who: delegatorId,
+            who: authData.userId,
             when: creationDate,
           },
         },
