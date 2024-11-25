@@ -5,7 +5,7 @@ import {
   randomArrayItem,
   getMockTenant,
   getMockValidRiskAnalysis,
-  getMockDelegationProducer,
+  getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -19,9 +19,9 @@ import {
   Tenant,
   generateId,
   operationForbidden,
-  Delegation,
   delegationState,
   EServiceDescriptorDelegateSubmittedV2,
+  delegationKind,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import {
@@ -198,12 +198,12 @@ describe("publish descriptor", () => {
       kind: producerTenantKind,
     };
 
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       delegateId: delegate.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneTenant(producer);
     await addOneEService(eservice);
@@ -431,11 +431,11 @@ describe("publish descriptor", () => {
       ...mockEService,
       descriptors: [descriptor],
     };
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);

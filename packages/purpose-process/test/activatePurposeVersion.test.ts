@@ -12,7 +12,7 @@ import {
   getMockValidRiskAnalysisForm,
   readLastEventByStreamId,
   decodeProtobufPayload,
-  getMockDelegationProducer,
+  getMockDelegation,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
@@ -34,8 +34,8 @@ import {
   PurposeWaitingForApprovalV2,
   eserviceMode,
   PurposeVersionActivatedV2,
-  Delegation,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -712,12 +712,12 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockProducer);
 
     const delegate = getMockAuthData();
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
       delegateId: delegate.organizationId,
       state: delegationState.active,
-    };
+    });
 
     await addOneDelegation(delegation);
 
@@ -744,12 +744,12 @@ describe("activatePurposeVersion", () => {
       await addOneTenant(mockProducer);
 
       const delegate = getMockAuthData();
-      const delegation: Delegation = {
-        ...getMockDelegationProducer(),
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         eserviceId: mockEService.id,
         delegateId: delegate.organizationId,
         state: delegationState,
-      };
+      });
 
       await addOneDelegation(delegation);
 

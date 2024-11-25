@@ -10,11 +10,11 @@ import {
   eserviceMode,
   Tenant,
   agreementState,
-  Delegation,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
-import { getMockDelegationProducer } from "pagopa-interop-commons-test";
+import { getMockDelegation } from "pagopa-interop-commons-test";
 import {
   addOneEService,
   addOneTenant,
@@ -214,26 +214,31 @@ describe("get eservices", () => {
     const delegatedOrganization1 = generateId<TenantId>();
     const delegatedOrganization2 = generateId<TenantId>();
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
-      eserviceId: eservice4.id,
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       delegateId: delegatedOrganization1,
+      eserviceId: eservice4.id,
       state: delegationState.active,
     });
+    await addOneDelegation(delegation1);
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice5.id,
-      delegateId: delegatedOrganization2,
       state: delegationState.active,
+      delegateId: delegatedOrganization2,
     });
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    await addOneDelegation(delegation2);
+
+    const delegation3 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice6.id,
-      delegateId: delegatedOrganization2,
       state: delegationState.rejected,
+      delegateId: delegatedOrganization2,
     });
+
+    await addOneDelegation(delegation3);
 
     const result = await catalogService.getEServices(
       getMockAuthData(),
@@ -345,26 +350,31 @@ describe("get eservices", () => {
     const delegatedOrganization1 = generateId<TenantId>();
     const delegatedOrganization2 = generateId<TenantId>();
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice4.id,
       delegateId: delegatedOrganization1,
       state: delegationState.active,
     });
+    await addOneDelegation(delegation1);
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice5.id,
       delegateId: delegatedOrganization2,
       state: delegationState.waitingForApproval,
     });
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    await addOneDelegation(delegation2);
+
+    const delegation3 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice6.id,
       delegateId: delegatedOrganization2,
       state: delegationState.rejected,
     });
+
+    await addOneDelegation(delegation3);
 
     const result = await catalogService.getEServices(
       getMockAuthData(),
@@ -387,26 +397,31 @@ describe("get eservices", () => {
     const delegatedOrganization1 = generateId<TenantId>();
     const delegatedOrganization2 = generateId<TenantId>();
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice4.id,
       delegateId: delegatedOrganization1,
       state: delegationState.active,
     });
+    await addOneDelegation(delegation1);
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice5.id,
       delegateId: delegatedOrganization2,
       state: delegationState.waitingForApproval,
     });
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    await addOneDelegation(delegation2);
+
+    const delegation3 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice6.id,
       delegateId: delegatedOrganization2,
       state: delegationState.rejected,
     });
+
+    await addOneDelegation(delegation3);
 
     const result = await catalogService.getEServices(
       getMockAuthData(),
@@ -566,40 +581,49 @@ describe("get eservices", () => {
     await addOneEService(delegatedEService4);
     await addOneEService(delegatedEService5);
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: delegatedEService1.id,
       delegateId: delegatedOrganization1,
       state: delegationState.active,
     });
+    await addOneDelegation(delegation1);
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: delegatedEService2.id,
       delegateId: delegatedOrganization1,
       state: delegationState.active,
     });
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    await addOneDelegation(delegation2);
+
+    const delegation3 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: delegatedEService3.id,
       delegateId: delegatedOrganization1,
       state: delegationState.active,
     });
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    await addOneDelegation(delegation3);
+
+    const delegation4 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: delegatedEService4.id,
       delegateId: delegatedOrganization2,
       state: delegationState.active,
     });
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    await addOneDelegation(delegation4);
+
+    const delegation5 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: delegatedEService5.id,
       delegateId: delegatedOrganization2,
       state: delegationState.waitingForApproval,
     });
+
+    await addOneDelegation(delegation5);
 
     const result = await catalogService.getEServices(
       getMockAuthData(),
@@ -748,19 +772,22 @@ describe("get eservices", () => {
   });
 
   it("should get the eServices if they exist (parameters: producersIds, mode, delegated = true)", async () => {
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice4.id,
+      delegateId: organizationId3,
+      state: delegationState.active,
+    });
+    await addOneDelegation(delegation1);
+
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice4.id,
       delegateId: organizationId3,
       state: delegationState.active,
     });
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
-      eserviceId: eservice5.id,
-      delegateId: organizationId3,
-      state: delegationState.revoked,
-    });
+    await addOneDelegation(delegation2);
 
     const result = await catalogService.getEServices(
       getMockAuthData(),
@@ -852,33 +879,37 @@ describe("get eservices", () => {
     await addOneEService(delegatedEService3);
     await addOneEService(delegatedEService4);
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: delegatedEService1.id,
       delegateId: delegatedOrganization1,
       state: delegationState.active,
     });
+    await addOneDelegation(delegation1);
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: delegatedEService2.id,
       delegateId: delegatedOrganization1,
       state: delegationState.active,
     });
+    await addOneDelegation(delegation2);
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    const delegation3 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: delegatedEService3.id,
       delegateId: delegatedOrganization2,
       state: delegationState.active,
     });
+    await addOneDelegation(delegation3);
 
-    await addOneDelegation({
-      ...getMockDelegationProducer(),
+    const delegation4 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: delegatedEService4.id,
       delegateId: delegatedOrganization2,
       state: delegationState.rejected,
     });
+    await addOneDelegation(delegation4);
 
     const result = await catalogService.getEServices(
       getMockAuthData(),
@@ -1444,12 +1475,12 @@ describe("get eservices", () => {
         producerId: organizationId1,
         descriptors: [descriptor9a, descriptor9b],
       };
-      const delegation: Delegation = {
-        ...getMockDelegationProducer(),
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         delegateId: organizationId2,
         eserviceId: eservice9.id,
         state: delegationState.active,
-      };
+      });
       const authData: AuthData = {
         ...getMockAuthData(organizationId2),
         userRoles: [userRoles.ADMIN_ROLE],

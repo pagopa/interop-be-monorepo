@@ -10,7 +10,7 @@ import {
   getMockAgreementAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
-  getMockDelegationProducer,
+  getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
@@ -31,6 +31,7 @@ import {
   Tenant,
   TenantId,
   agreementState,
+  delegationKind,
   delegationState,
   generateId,
   toAgreementV2,
@@ -434,7 +435,8 @@ describe("suspend agreement", () => {
         suspendedByPlatform: false,
       };
       const authData = getRandomAuthData();
-      const delegation = getMockDelegationProducer({
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         delegateId: authData.organizationId,
         eserviceId: eservice.id,
         state: delegationState.active,
@@ -618,7 +620,8 @@ describe("suspend agreement", () => {
       descriptorId: eservice.descriptors[0].id,
     };
     const authData = getRandomAuthData(agreement.producerId);
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       delegateId: delegate.id,
       eserviceId: eservice.id,
       state: delegationState.active,
@@ -655,7 +658,8 @@ describe("suspend agreement", () => {
       descriptorId: eservice.descriptors[0].id,
     };
     const authData = getRandomAuthData();
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       delegateId: authData.organizationId,
       eserviceId: eservice.id,
       state: delegationState.waitingForApproval,

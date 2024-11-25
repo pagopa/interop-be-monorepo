@@ -5,11 +5,11 @@ import {
   EService,
   generateId,
   descriptorState,
-  Delegation,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { getMockDelegationProducer } from "pagopa-interop-commons-test/index.js";
+import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -107,11 +107,11 @@ describe("get document by id", () => {
       descriptors: [descriptor],
     };
 
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       state: delegationState.active,
-    };
+    });
 
     const authData: AuthData = {
       ...getMockAuthData(delegation.delegateId),

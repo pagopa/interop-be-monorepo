@@ -3,7 +3,7 @@
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockDelegationProducer,
+  getMockDelegation,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
@@ -17,7 +17,7 @@ import {
   operationForbidden,
   EServiceDescriptorDocumentAddedV2,
   delegationState,
-  Delegation,
+  delegationKind,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -267,12 +267,11 @@ describe("create descriptor", async () => {
       ...getMockEService(),
       descriptors: [existingDescriptor],
     };
-
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);
@@ -502,11 +501,11 @@ describe("create descriptor", async () => {
       ...getMockEService(),
       descriptors: [descriptor],
     };
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);

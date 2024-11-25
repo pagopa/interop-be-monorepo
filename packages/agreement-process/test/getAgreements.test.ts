@@ -4,7 +4,7 @@ import {
   getMockDescriptorPublished,
   getMockEService,
   getMockAgreement,
-  getMockDelegationProducer,
+  getMockDelegation,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -18,6 +18,7 @@ import {
   EServiceId,
   agreementState,
   TenantId,
+  delegationKind,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 import {
@@ -172,7 +173,8 @@ describe("get agreements", () => {
     await addOneAgreement(agreement6);
     await addOneAgreement(agreement7);
 
-    const delegation1 = getMockDelegationProducer({
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       delegateId: eservice4.producerId,
       eserviceId: eservice4.id,
       state: agreementState.active,
