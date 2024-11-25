@@ -6,6 +6,7 @@ import {
   getMockAgreement,
   getMockDelegation,
   getMockEService,
+  getMockTenant,
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
@@ -38,6 +39,7 @@ import {
   addOneAgreement,
   addOneDelegation,
   addOneEService,
+  addOneTenant,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -91,7 +93,9 @@ describe("agreement consumer document", () => {
         eserviceId: eservice.id,
         state: delegationState.active,
       });
+      const delegate = getMockTenant(delegation.delegateId);
 
+      await addOneTenant(delegate);
       await addOneEService(eservice);
       await addOneAgreement(agreement);
       await addOneDelegation(delegation);

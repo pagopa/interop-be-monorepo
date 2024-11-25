@@ -8,7 +8,7 @@ import { buildHTMLTemplateService } from "../index.js";
 export interface PDFGenerator {
   generate: (
     templatePath: string,
-    context: Record<string, string>
+    context: Record<string, unknown>
   ) => Promise<Buffer>;
 }
 
@@ -54,7 +54,7 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
   return {
     generate: async (
       templatePath: string,
-      context: Record<string, string>
+      context: Record<string, unknown>
     ): Promise<Buffer> => {
       const filename = fileURLToPath(import.meta.url);
       const dirname = path.dirname(filename);

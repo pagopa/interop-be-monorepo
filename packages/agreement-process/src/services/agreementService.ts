@@ -416,11 +416,13 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const activeDelegation = await retrieveActiveDelegationByEserviceId(
-        agreement.data.eserviceId,
-        readModelService
-      );
-      const delegateId = activeDelegation?.data.delegateId;
+      const activeDelegation = (
+        await retrieveActiveDelegationByEserviceId(
+          agreement.data.eserviceId,
+          readModelService
+        )
+      )?.data;
+      const delegateId = activeDelegation?.delegateId;
 
       const nextStateByAttributes = nextStateByAttributesFSM(
         agreement.data,
@@ -509,7 +511,8 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreement
+        updatedAgreement,
+        activeDelegation
       );
 
       const agreementEvent =
@@ -1101,7 +1104,8 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreementWithoutContract
+        updatedAgreementWithoutContract,
+        activeDelegation?.data
       );
 
       const suspendedByPlatformChanged =
@@ -1283,14 +1287,16 @@ async function addContractOnFirstActivation(
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  agreement: Agreement
+  agreement: Agreement,
+  delegation: Delegation | undefined
 ): Promise<Agreement> {
   if (isFirstActivation) {
     const contract = await contractBuilder.createContract(
       agreement,
       eservice,
       consumer,
-      producer
+      producer,
+      delegation
     );
 
     return {
