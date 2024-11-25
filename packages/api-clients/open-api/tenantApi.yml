@@ -1038,6 +1038,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /tenants/delegatedConsumer:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    delete:
+      tags:
+        - tenant
+      summary: Remove delegated consumer feature to tenant caller
+      operationId: removeTenantDelegatedConsumerFeature
+      responses:
+        "204":
+          description: Delegated consumer feature removed
+        "409":
+          description: Feature not assigned to tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
