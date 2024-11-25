@@ -670,7 +670,7 @@ describe("utils tests", async () => {
       expect(tokenStateEntriesAfterUpdate).toEqual([]);
     });
 
-    it("should update entries with purpose state and version id if corresponding platform states entries don't exist", async () => {
+    it("should update entries with just purpose state and version id, if descriptor and agreement platform states entries don't exist", async () => {
       const purpose: Purpose = {
         ...getMockPurpose(),
         versions: [getMockPurposeVersion()],
@@ -860,137 +860,6 @@ describe("utils tests", async () => {
         GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
         agreementId: mockAgreement.id,
         agreementState: previousAgreementEntry.state,
-      };
-      expect(retrievedTokenStateEntries).toHaveLength(2);
-      expect(retrievedTokenStateEntries).toEqual(
-        expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
-        ])
-      );
-    });
-
-    it("should update entries with purpose state, version id and descriptor data if platform agreement and descriptor entry exist", async () => {
-      const purpose: Purpose = {
-        ...getMockPurpose(),
-        versions: [getMockPurposeVersion()],
-      };
-
-      // platform-states
-      const mockDescriptor = getMockDescriptor();
-      const mockAgreement = {
-        ...getMockAgreement(purpose.eserviceId, purpose.consumerId),
-        descriptorId: mockDescriptor.id,
-      };
-      const catalogAgreementEntryPK = makePlatformStatesAgreementPK(
-        mockAgreement.id
-      );
-      const gsiPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId({
-        consumerId: mockAgreement.consumerId,
-        eserviceId: mockAgreement.eserviceId,
-      });
-      const previousAgreementEntry: PlatformStatesAgreementEntry = {
-        PK: catalogAgreementEntryPK,
-        state: itemState.active,
-        GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
-        GSISK_agreementTimestamp: new Date().toISOString(),
-        agreementDescriptorId: mockAgreement.descriptorId,
-        version: 2,
-        updatedAt: new Date().toISOString(),
-      };
-      await writeAgreementEntry(previousAgreementEntry, dynamoDBClient);
-
-      const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: purpose.eserviceId,
-        descriptorId: mockDescriptor.id,
-      });
-      const previousDescriptorEntry: PlatformStatesCatalogEntry = {
-        PK: catalogEntryPK,
-        state: itemState.active,
-        descriptorAudience: ["pagopa.it"],
-        descriptorVoucherLifespan: mockDescriptor.voucherLifespan,
-        version: 2,
-        updatedAt: new Date().toISOString(),
-      };
-      await writeCatalogEntry(dynamoDBClient, previousDescriptorEntry);
-
-      // token-generation-states
-      const purposeId = purpose.id;
-      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId,
-      });
-      const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
-        GSIPK_purposeId: purposeId,
-        purposeState: itemState.inactive,
-        GSIPK_eserviceId_descriptorId: undefined,
-        descriptorState: undefined,
-        descriptorAudience: undefined,
-        descriptorVoucherLifespan: undefined,
-      };
-      await writeTokenStatesConsumerClient(
-        previousTokenStateEntry1,
-        dynamoDBClient
-      );
-
-      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId,
-      });
-      const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
-        GSIPK_purposeId: purposeId,
-        purposeState: itemState.inactive,
-        GSIPK_eserviceId_descriptorId: undefined,
-        descriptorState: undefined,
-        descriptorAudience: undefined,
-        descriptorVoucherLifespan: undefined,
-        updatedAt: new Date().toISOString(),
-      };
-      await writeTokenStatesConsumerClient(
-        previousTokenStateEntry2,
-        dynamoDBClient
-      );
-
-      const newPurposeVersionId = generateId<PurposeVersionId>();
-      await updateTokenEntriesWithPurposeAndPlatformStatesData(
-        dynamoDBClient,
-        purpose,
-        itemState.active,
-        newPurposeVersionId
-      );
-
-      const retrievedTokenStateEntries =
-        await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
-
-      const gsiPKEserviceIdDescriptorId = makeGSIPKEServiceIdDescriptorId({
-        eserviceId: purpose.eserviceId,
-        descriptorId: mockDescriptor.id,
-      });
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...previousTokenStateEntry1,
-        purposeState: itemState.active,
-        purposeVersionId: newPurposeVersionId,
-        GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-        descriptorState: previousDescriptorEntry.state,
-        descriptorAudience: previousDescriptorEntry.descriptorAudience,
-        descriptorVoucherLifespan:
-          previousDescriptorEntry.descriptorVoucherLifespan,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...previousTokenStateEntry2,
-        purposeState: itemState.active,
-        purposeVersionId: newPurposeVersionId,
-        GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-        descriptorState: previousDescriptorEntry.state,
-        descriptorAudience: previousDescriptorEntry.descriptorAudience,
-        descriptorVoucherLifespan:
-          previousDescriptorEntry.descriptorVoucherLifespan,
-        updatedAt: new Date().toISOString(),
       };
       expect(retrievedTokenStateEntries).toHaveLength(2);
       expect(retrievedTokenStateEntries).toEqual(
