@@ -20,7 +20,7 @@ import {
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import {
   clientKindToTokenGenerationStatesClientKind,
   convertEntriesToClientKidInTokenGenerationStates,
@@ -29,7 +29,6 @@ import {
   deleteEntriesFromTokenStatesByKid,
   deleteEntriesFromTokenStatesByGSIPKClientIdPurposeId,
   readPlatformClientEntry,
-  readClientEntriesInTokenGenerationStates,
   deleteClientEntryFromTokenGenerationStates,
   extractKidFromTokenEntryPK,
   extractAgreementIdFromAgreementPK,
@@ -40,6 +39,7 @@ import {
   setClientPurposeIdsInPlatformStatesEntry,
   updateTokenDataForSecondRetrieval,
   createTokenStatesConsumerClient,
+  readConsumerClientEntriesInTokenGenerationStates,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -234,10 +234,11 @@ export async function handleMessageV2(
 
       // token-generation-states
       const GSIPK_clientId = client.id;
-      const tokenClientEntries = await readClientEntriesInTokenGenerationStates(
-        GSIPK_clientId,
-        dynamoDBClient
-      );
+      const tokenClientEntries =
+        await readConsumerClientEntriesInTokenGenerationStates(
+          GSIPK_clientId,
+          dynamoDBClient
+        );
       if (tokenClientEntries.length === 0) {
         return Promise.resolve();
       } else {
@@ -246,13 +247,11 @@ export async function handleMessageV2(
           await retrievePlatformStatesByPurpose(purposeId, dynamoDBClient);
 
         const seenKids = new Set<string>();
-        const addedTokenClientPurposeEntries = await tokenClientEntries.reduce<
-          Promise<TokenGenerationStatesConsumerClient[]>
-        >(async (accPromise, entry) => {
-          const acc = await accPromise;
+        const addedTokenClientPurposeEntries = [];
 
-          const addedTokenConsumerClient = await match(entry)
-            .with({ clientKind: clientKindTokenStates.api }, async (entry) => {
+        for (const entry of tokenClientEntries) {
+          const addedTokenConsumerClient = await match(client.purposes.length)
+            .with(1, async () => {
               const newTokenClientPurposeEntry =
                 createTokenStatesConsumerClient({
                   tokenStatesClient: entry,
@@ -274,38 +273,36 @@ export async function handleMessageV2(
               );
               return newTokenClientPurposeEntry;
             })
-            .with(
-              { clientKind: clientKindTokenStates.consumer },
-              async (entry) => {
-                const kid = extractKidFromTokenEntryPK(entry.PK);
-                if (!seenKids.has(kid)) {
-                  const newTokenClientPurposeEntry =
-                    createTokenStatesConsumerClient({
-                      tokenStatesClient: entry,
-                      kid,
-                      clientId: client.id,
-                      purposeId,
-                      purposeEntry,
-                      agreementEntry,
-                      catalogEntry,
-                    });
+            .with(P.number.gt(1), async () => {
+              const kid = extractKidFromTokenEntryPK(entry.PK);
+              if (!seenKids.has(kid)) {
+                const newTokenClientPurposeEntry =
+                  createTokenStatesConsumerClient({
+                    tokenStatesClient: entry,
+                    kid,
+                    clientId: client.id,
+                    purposeId,
+                    purposeEntry,
+                    agreementEntry,
+                    catalogEntry,
+                  });
 
-                  await upsertTokenStatesConsumerClient(
-                    newTokenClientPurposeEntry,
-                    dynamoDBClient
-                  );
-                  seenKids.add(kid);
-                  return newTokenClientPurposeEntry;
-                }
-                return null;
+                await upsertTokenStatesConsumerClient(
+                  newTokenClientPurposeEntry,
+                  dynamoDBClient
+                );
+                seenKids.add(kid);
+                return newTokenClientPurposeEntry;
               }
-            )
-            .exhaustive();
+              return null;
+            })
+            .run();
 
-          return addedTokenConsumerClient
-            ? [...acc, addedTokenConsumerClient]
-            : acc;
-        }, Promise.resolve([]));
+          if (addedTokenConsumerClient) {
+            // eslint-disable-next-line functional/immutable-data
+            addedTokenClientPurposeEntries.push(addedTokenConsumerClient);
+          }
+        }
 
         // Second check for updated fields
         await Promise.all(

@@ -73,7 +73,7 @@ import {
   setClientPurposeIdsInPlatformStatesEntry,
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
-  readClientEntriesInTokenGenerationStates,
+  readConsumerClientEntriesInTokenGenerationStates,
   readPlatformAgreementEntryByGSIPKConsumerIdEServiceId,
   retrievePlatformStatesByPurpose,
   updateTokenDataForSecondRetrieval,
@@ -457,7 +457,7 @@ describe("utils", () => {
     });
   });
 
-  it("readClientEntriesInTokenGenerationStates", async () => {
+  it("readConsumerClientEntriesInTokenGenerationStates", async () => {
     const clientId = generateId<ClientId>();
     const pk1 = makeTokenGenerationStatesClientKidPK({ clientId, kid: "" });
     const pk2 = makeTokenGenerationStatesClientKidPurposePK({
@@ -481,7 +481,7 @@ describe("utils", () => {
     await writeTokenStatesApiClient(clientKidEntry, dynamoDBClient);
     await writeTokenStatesConsumerClient(clientKidPurposeEntry, dynamoDBClient);
 
-    const res = await readClientEntriesInTokenGenerationStates(
+    const res = await readConsumerClientEntriesInTokenGenerationStates(
       GSIPK_clientId,
       dynamoDBClient
     );

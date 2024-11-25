@@ -268,19 +268,41 @@ export async function handleMessageV1(
             await retrievePlatformStatesByPurpose(purposeId, dynamoDBClient);
 
           const seenKids = new Set<string>();
-          const addedTokenClientPurposeEntries = await Promise.all(
-            await tokenClientEntries.reduce<
-              Promise<TokenGenerationStatesConsumerClient[]>
-            >(async (accPromise, entry) => {
-              const acc = await accPromise;
-              const addedTokenConsumerClient = await match(
-                clientEntry.clientPurposesIds.length
-              )
-                .with(0, async () => {
+          const addedTokenClientPurposeEntries = [];
+
+          for (const entry of tokenClientEntries) {
+            const addedTokenConsumerClient = await match(
+              clientEntry.clientPurposesIds.length
+            )
+              .with(0, async () => {
+                const newTokenClientPurposeEntry =
+                  createTokenStatesConsumerClient({
+                    tokenStatesClient: entry,
+                    kid: extractKidFromTokenEntryPK(entry.PK),
+                    clientId,
+                    purposeId,
+                    purposeEntry,
+                    agreementEntry,
+                    catalogEntry,
+                  });
+
+                await upsertTokenStatesConsumerClient(
+                  newTokenClientPurposeEntry,
+                  dynamoDBClient
+                );
+                await deleteClientEntryFromTokenGenerationStates(
+                  entry,
+                  dynamoDBClient
+                );
+                return newTokenClientPurposeEntry;
+              })
+              .with(P.number.gt(0), async () => {
+                const kid = extractKidFromTokenEntryPK(entry.PK);
+                if (!seenKids.has(kid)) {
                   const newTokenClientPurposeEntry =
                     createTokenStatesConsumerClient({
                       tokenStatesClient: entry,
-                      kid: extractKidFromTokenEntryPK(entry.PK),
+                      kid,
                       clientId,
                       purposeId,
                       purposeEntry,
@@ -292,42 +314,18 @@ export async function handleMessageV1(
                     newTokenClientPurposeEntry,
                     dynamoDBClient
                   );
-                  await deleteClientEntryFromTokenGenerationStates(
-                    entry,
-                    dynamoDBClient
-                  );
+                  seenKids.add(kid);
                   return newTokenClientPurposeEntry;
-                })
-                .with(P.number.gt(0), async () => {
-                  const kid = extractKidFromTokenEntryPK(entry.PK);
-                  if (!seenKids.has(kid)) {
-                    const newTokenClientPurposeEntry =
-                      createTokenStatesConsumerClient({
-                        tokenStatesClient: entry,
-                        kid,
-                        clientId,
-                        purposeId,
-                        purposeEntry,
-                        agreementEntry,
-                        catalogEntry,
-                      });
+                }
+                return null;
+              })
+              .run();
 
-                    await upsertTokenStatesConsumerClient(
-                      newTokenClientPurposeEntry,
-                      dynamoDBClient
-                    );
-                    seenKids.add(kid);
-                    return newTokenClientPurposeEntry;
-                  }
-                  return null;
-                })
-                .run();
-
-              return addedTokenConsumerClient
-                ? [...acc, addedTokenConsumerClient]
-                : acc;
-            }, Promise.resolve([]))
-          );
+            if (addedTokenConsumerClient) {
+              // eslint-disable-next-line functional/immutable-data
+              addedTokenClientPurposeEntries.push(addedTokenConsumerClient);
+            }
+          }
 
           // Second check for updated fields
           await Promise.all(
