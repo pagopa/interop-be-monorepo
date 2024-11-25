@@ -281,7 +281,7 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
         const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
         const tokenStateEntries = z
-          .array(TokenGenerationStatesClientPurposeEntry)
+          .array(TokenGenerationStatesConsumerClient)
           .safeParse(unmarshalledItems);
 
         if (!tokenStateEntries.success) {
@@ -345,7 +345,7 @@ const updateDescriptorStateEntriesInTokenGenerationStatesTable = async (
 const updateDescriptorVoucherLifespanInTokenGenerationStatesEntries = async (
   voucherLifespan: number,
   dynamoDBClient: DynamoDBClient,
-  entriesToUpdate: TokenGenerationStatesClientPurposeEntry[]
+  entriesToUpdate: TokenGenerationStatesConsumerClient[]
 ): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
