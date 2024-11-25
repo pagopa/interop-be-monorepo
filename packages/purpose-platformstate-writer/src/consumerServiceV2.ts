@@ -29,57 +29,60 @@ export async function handleMessageV2(
   dynamoDBClient: DynamoDBClient
 ): Promise<void> {
   await match(message)
-    .with({ type: "PurposeActivated" }, async (msg) => {
-      const { purpose, primaryKey, purposeState, existingPurposeEntry } =
-        await getPurposeData({
-          dynamoDBClient,
-          purposeV2: msg.data.purpose,
-          msgType: msg.type,
-        });
+    .with(
+      { type: "PurposeActivated" },
+      { type: "PurposeVersionActivated" },
+      async (msg) => {
+        const { purpose, primaryKey, purposeState, existingPurposeEntry } =
+          await getPurposeData({
+            dynamoDBClient,
+            purposeV2: msg.data.purpose,
+            msgType: msg.type,
+          });
 
-      const purposeVersion = getLastSuspendedOrActivatedPurposeVersion(
-        purpose.versions
-      );
+        const purposeVersion = getLastSuspendedOrActivatedPurposeVersion(
+          purpose.versions
+        );
 
-      if (existingPurposeEntry) {
-        if (existingPurposeEntry.version > msg.version) {
-          // Stops processing if the message is older than the purpose entry
-          return Promise.resolve();
+        if (existingPurposeEntry) {
+          if (existingPurposeEntry.version > msg.version) {
+            // Stops processing if the message is older than the purpose entry
+            return Promise.resolve();
+          } else {
+            // platform-states
+            await updatePurposeDataInPlatformStatesEntry({
+              dynamoDBClient,
+              primaryKey,
+              purposeState,
+              purposeVersionId: purposeVersion.id,
+              version: msg.version,
+            });
+          }
         } else {
           // platform-states
-          await updatePurposeDataInPlatformStatesEntry({
-            dynamoDBClient,
-            primaryKey,
-            purposeState,
+          const purposeEntry: PlatformStatesPurposeEntry = {
+            PK: primaryKey,
+            state: purposeState,
             purposeVersionId: purposeVersion.id,
+            purposeEserviceId: purpose.eserviceId,
+            purposeConsumerId: purpose.consumerId,
             version: msg.version,
-          });
+            updatedAt: new Date().toISOString(),
+          };
+          await writePlatformPurposeEntry(dynamoDBClient, purposeEntry);
         }
-      } else {
-        // platform-states
-        const purposeEntry: PlatformStatesPurposeEntry = {
-          PK: primaryKey,
-          state: purposeState,
-          purposeVersionId: purposeVersion.id,
-          purposeEserviceId: purpose.eserviceId,
-          purposeConsumerId: purpose.consumerId,
-          version: msg.version,
-          updatedAt: new Date().toISOString(),
-        };
-        await writePlatformPurposeEntry(dynamoDBClient, purposeEntry);
-      }
 
-      // token-generation-states
-      await updateTokenEntriesWithPurposeAndPlatformStatesData(
-        dynamoDBClient,
-        purpose,
-        purposeState,
-        purposeVersion.id
-      );
-    })
+        // token-generation-states
+        await updateTokenEntriesWithPurposeAndPlatformStatesData(
+          dynamoDBClient,
+          purpose,
+          purposeState,
+          purposeVersion.id
+        );
+      }
+    )
     .with(
       { type: "NewPurposeVersionActivated" },
-      { type: "PurposeVersionActivated" },
       { type: "PurposeVersionSuspendedByConsumer" },
       { type: "PurposeVersionSuspendedByProducer" },
       { type: "PurposeVersionUnsuspendedByConsumer" },
