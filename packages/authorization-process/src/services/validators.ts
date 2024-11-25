@@ -41,7 +41,6 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   correlationId: CorrelationId;
   roles: UserRole[];
 }): Promise<void> => {
-
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const role = () => {
     if (roles.includes(userRoles.ADMIN_ROLE)) {
@@ -49,7 +48,7 @@ export const assertUserSelfcareSecurityPrivileges = async ({
     }
     if (roles.includes(userRoles.SECURITY_ROLE)) {
       return userRoles.SECURITY_ROLE;
-    } 
+    }
     throw userWithoutSecurityPrivileges(consumerId, requesterUserId);
   };
 

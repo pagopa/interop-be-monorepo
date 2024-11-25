@@ -200,11 +200,10 @@ describe("createProducerKeychainKey", () => {
     );
   });
   it("should throw userWithoutSecurityPrivileges if the Security user is not found", async () => {
-
     const authData: AuthData = {
       ...mockAuthData,
-      userRoles: []
-    }
+      userRoles: [],
+    };
 
     await addOneProducerKeychain(mockProducerKeychain);
 
@@ -213,7 +212,7 @@ describe("createProducerKeychainKey", () => {
     expect(
       authorizationService.createProducerKeychainKey({
         producerKeychainId: mockProducerKeychain.id,
-        authData: authData,
+        authData,
         keySeed,
         correlationId: generateId(),
         logger: genericLogger,

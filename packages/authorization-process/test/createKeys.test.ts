@@ -174,7 +174,6 @@ describe("createKeys", () => {
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
-
     const notConsumerClient: Client = {
       ...getMockClient(),
       consumerId: generateId(),
@@ -196,11 +195,10 @@ describe("createKeys", () => {
     );
   });
   it("should throw userWithoutSecurityPrivileges if the Security user is not found", async () => {
-
     const authData: AuthData = {
       ...mockAuthData,
-      userRoles: []
-    }
+      userRoles: [],
+    };
 
     await addOneClient(mockClient);
 
@@ -209,7 +207,7 @@ describe("createKeys", () => {
     expect(
       authorizationService.createKeys({
         clientId: mockClient.id,
-        authData: authData,
+        authData,
         keysSeeds,
         correlationId: generateId(),
         logger: genericLogger,
