@@ -16,6 +16,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
+import { match } from "ts-pattern";
 import {
   eServiceNotFound,
   eServiceDuplicate,
@@ -40,8 +41,10 @@ describe("update eService", () => {
     vi.spyOn(fileManager, "delete");
 
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
-    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
     const isDelegable = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = isDelegable
+      ? randomArrayItem([false, true, undefined])
+      : undefined;
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -79,6 +82,70 @@ describe("update eService", () => {
       isSignalHubEnabled,
       isDelegable,
       isClientAccessDelegable,
+    };
+
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+    expect(writtenEvent.stream_id).toBe(mockEService.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe("DraftEServiceUpdated");
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftEServiceUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(fileManager.delete).not.toHaveBeenCalled();
+  });
+
+  it("should update an eservice correctly handling isClientAccessDelegable when isDelegable is not true", async () => {
+    vi.spyOn(fileManager, "delete");
+
+    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const isDelegable: false | undefined = randomArrayItem([false, undefined]);
+    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
+    const expectedIsClientAccessDelegable = match(isDelegable)
+      .with(false, () => false)
+      .with(undefined, () => undefined)
+      .exhaustive();
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const updatedName = "eservice new name";
+    await addOneEService(eservice);
+    const returnedEService = await catalogService.updateEService(
+      mockEService.id,
+      {
+        name: updatedName,
+        description: mockEService.description,
+        technology: "REST",
+        mode: "DELIVER",
+        isSignalHubEnabled,
+        isDelegable,
+        isClientAccessDelegable,
+      },
+      {
+        authData: getMockAuthData(mockEService.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    const updatedEService: EService = {
+      ...eservice,
+      name: updatedName,
+      isSignalHubEnabled,
+      isDelegable,
+      isClientAccessDelegable: expectedIsClientAccessDelegable,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
