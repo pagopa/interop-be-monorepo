@@ -18,6 +18,7 @@ import {
   deleteCatalogEntry,
   descriptorStateToItemState,
   readCatalogEntry,
+  updateDescriptorInfoInTokenGenerationStatesTable,
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
   updateDescriptorVoucherLifespanInPlatformStateEntry,
@@ -39,8 +40,42 @@ export async function handleMessageV2(
           unsafeBrandId(msg.data.descriptorId),
           message.type
         );
-        const previousDescriptor = eservice.descriptors.find(
-          (d) => d.version === (Number(descriptor.version) - 1).toString()
+        if (existingCatalogEntryCurrent) {
+          if (existingCatalogEntryCurrent.version > msg.version) {
+            // Stops processing if the message is older than the catalog entry
+            return Promise.resolve();
+          } else {
+            await updateDescriptorStateInPlatformStatesEntry(
+              dynamoDBClient,
+              primaryKeyCurrent,
+              descriptorStateToItemState(descriptor.state),
+              msg.version
+            );
+          }
+        } else {
+          const catalogEntry: PlatformStatesCatalogEntry = {
+            PK: primaryKeyCurrent,
+            state: descriptorStateToItemState(descriptor.state),
+            descriptorAudience: descriptor.audience,
+            descriptorVoucherLifespan: descriptor.voucherLifespan,
+            version: msg.version,
+            updatedAt: new Date().toISOString(),
+          };
+
+          await writeCatalogEntry(catalogEntry, dynamoDBClient);
+        }
+
+        // token-generation-states
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        });
+        await updateDescriptorInfoInTokenGenerationStatesTable(
+          eserviceId_descriptorId,
+          descriptorStateToItemState(descriptor.state),
+          descriptor.voucherLifespan,
+          descriptor.audience,
+          dynamoDBClient
         );
 
         // flow for current descriptor

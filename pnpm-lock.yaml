@@ -98,8 +98,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.11a
-        version: 1.0.11-a
+        specifier: 1.0.9
+        version: 1.0.9
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -808,97 +808,6 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
-  packages/authorization-server:
-    dependencies:
-      '@aws-sdk/client-dynamodb':
-        specifier: 3.637.0
-        version: 3.637.0
-      '@aws-sdk/client-kms':
-        specifier: 3.600.0
-        version: 3.600.0
-      '@aws-sdk/util-dynamodb':
-        specifier: 3.637.0
-        version: 3.637.0(@aws-sdk/client-dynamodb@3.637.0)
-      '@zodios/core':
-        specifier: 10.9.6
-        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
-      '@zodios/express':
-        specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.20.0)(zod@3.23.8)
-      axios:
-        specifier: 1.7.4
-        version: 1.7.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      express:
-        specifier: 4.20.0
-        version: 4.20.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
-      pagopa-interop-api-clients:
-        specifier: workspace:*
-        version: link:../api-clients
-      pagopa-interop-client-assertion-validation:
-        specifier: workspace:*
-        version: link:../client-assertion-validation
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(typescript@5.4.5)
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      '@types/express':
-        specifier: 4.17.21
-        version: 4.17.21
-      '@types/node':
-        specifier: 20.14.6
-        version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
-      jose:
-        specifier: 5.9.4
-        version: 5.9.4
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
-      vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
-
   packages/authorization-updater:
     dependencies:
       '@protobuf-ts/runtime':
@@ -1066,8 +975,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.11a
-        version: 1.0.11-a
+        specifier: 1.0.9
+        version: 1.0.9
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -1573,9 +1482,6 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
-      jose:
-        specifier: 5.9.4
-        version: 5.9.4
       jsonwebtoken:
         specifier: 9.0.2
         version: 9.0.2
@@ -2543,8 +2449,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.11a
-        version: 1.0.11-a
+        specifier: 1.0.9
+        version: 1.0.9
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2848,8 +2754,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.11a
-        version: 1.0.11-a
+        specifier: 1.0.9
+        version: 1.0.9
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -3446,28 +3352,28 @@ packages:
       '@aws-sdk/util-endpoints': 3.598.0
       '@aws-sdk/util-user-agent-browser': 3.598.0
       '@aws-sdk/util-user-agent-node': 3.598.0
-      '@smithy/config-resolver': 3.0.5
-      '@smithy/core': 2.4.0
-      '@smithy/fetch-http-handler': 3.2.4
+      '@smithy/config-resolver': 3.0.4
+      '@smithy/core': 2.2.4
+      '@smithy/fetch-http-handler': 3.2.0
       '@smithy/hash-node': 3.0.3
       '@smithy/invalid-dependency': 3.0.3
-      '@smithy/middleware-content-length': 3.0.5
-      '@smithy/middleware-endpoint': 3.1.0
-      '@smithy/middleware-retry': 3.0.15
+      '@smithy/middleware-content-length': 3.0.3
+      '@smithy/middleware-endpoint': 3.0.4
+      '@smithy/middleware-retry': 3.0.7
       '@smithy/middleware-serde': 3.0.3
       '@smithy/middleware-stack': 3.0.3
-      '@smithy/node-config-provider': 3.1.4
-      '@smithy/node-http-handler': 3.1.4
-      '@smithy/protocol-http': 4.1.0
-      '@smithy/smithy-client': 3.2.0
+      '@smithy/node-config-provider': 3.1.3
+      '@smithy/node-http-handler': 3.1.1
+      '@smithy/protocol-http': 4.0.3
+      '@smithy/smithy-client': 3.1.5
       '@smithy/types': 3.3.0
       '@smithy/url-parser': 3.0.3
       '@smithy/util-base64': 3.0.0
       '@smithy/util-body-length-browser': 3.0.0
       '@smithy/util-body-length-node': 3.0.0
-      '@smithy/util-defaults-mode-browser': 3.0.15
-      '@smithy/util-defaults-mode-node': 3.0.15
-      '@smithy/util-endpoints': 2.0.5
+      '@smithy/util-defaults-mode-browser': 3.0.7
+      '@smithy/util-defaults-mode-node': 3.0.7
+      '@smithy/util-endpoints': 2.0.4
       '@smithy/util-middleware': 3.0.3
       '@smithy/util-retry': 3.0.3
       '@smithy/util-utf8': 3.0.0
@@ -6783,8 +6689,8 @@ packages:
       - typescript
     dev: true
 
-  /@pagopa/interop-outbound-models@1.0.11-a:
-    resolution: {integrity: sha512-+hxMAO2ywfH03PZ4iMUn7VHiGEtQUiEa2cEqLp12s6y69b7ClM3dg0ZxTuXnGLUqiiLX4sbSAy26rc8IG0sIdg==}
+  /@pagopa/interop-outbound-models@1.0.9:
+    resolution: {integrity: sha512-I+fr43Ju5nSQllqYEgDf0nrZHtntqp44x4Swrvxz2wIRAXOYEARzrTTJMd2KMoNzhd0P+MlG5bXhDjFL4j/DXQ==}
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
@@ -8336,10 +8242,6 @@ packages:
   /@types/triple-beam@1.3.5:
     resolution: {integrity: sha512-6WaYesThRMCl19iryMYP7/x2OVgCtbIVflDGFpWnb9irXI3UjYE4AzmYuiUKY1AJstGijoY+MgUszMgRxIYTYw==}
     dev: false
-
-  /@types/uuid@9.0.8:
-    resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
-    dev: true
 
   /@types/webidl-conversions@7.0.3:
     resolution: {integrity: sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==}
@@ -11121,6 +11023,7 @@ packages:
 
   /jose@5.9.4:
     resolution: {integrity: sha512-WBBl6au1qg6OHj67yCffCgFR3BADJBXN8MdRvCgJDuMv3driV2nHr7jdGvaKX9IolosAsn+M0XRArqLXUhyJHQ==}
+    dev: false
 
   /js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -13369,11 +13272,6 @@ packages:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
     dev: false
-
-  /uuid@10.0.0:
-    resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
-    hasBin: true
-    dev: true
 
   /uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
