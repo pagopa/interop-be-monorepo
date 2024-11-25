@@ -644,6 +644,18 @@ paths:
         - tenantAttribute
       operationId: revokeVerifiedAttribute
       description: Revoke a Verified attribute to a Tenant by the requester Tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - agreementId
+              properties:
+                agreementId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Updated Tenant
@@ -1343,11 +1355,15 @@ components:
         id:
           type: string
           format: uuid
+        agreementId:
+          type: string
+          format: uuid
         expirationDate:
           type: string
           format: date-time
       required:
         - id
+        - agreementId
     UpdateVerifiedTenantAttributeSeed:
       type: object
       additionalProperties: false

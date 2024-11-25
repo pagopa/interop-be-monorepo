@@ -21,6 +21,9 @@ import {
   TenantReadModel,
   genericInternalError,
   TenantFeatureType,
+  AgreementId,
+  DelegationKind,
+  Delegation,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
@@ -157,7 +160,8 @@ async function getTenant(
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { attributes, eservices, tenants, agreements } = readModelRepository;
+  const { attributes, eservices, tenants, agreements, delegations } =
+    readModelRepository;
   return {
     async getTenants({
       name,
@@ -408,6 +412,24 @@ export function readModelServiceBuilder(
       return result.data;
     },
 
+    async getAgreementById(
+      agreementId: AgreementId
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne({ "data.id": agreementId });
+      if (data) {
+        const result = Agreement.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse agreement item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+      return undefined;
+    },
+
     async getCertifiedAttributes({
       certifierId,
       offset,
@@ -509,6 +531,33 @@ export function readModelServiceBuilder(
         "data.kind": attributeKind.certified,
         "data.origin": certifierId,
       });
+    },
+
+    async getActiveDelegation({
+      eserviceId,
+      kind,
+    }: {
+      eserviceId: EServiceId;
+      kind: DelegationKind;
+    }): Promise<Delegation | undefined> {
+      const data = await delegations.findOne({
+        "data.eserviceId": eserviceId,
+        "data.kind": kind,
+        "data.state": agreementState.active,
+      });
+
+      if (data) {
+        const result = Delegation.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse delegation item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+      return undefined;
     },
   };
 }

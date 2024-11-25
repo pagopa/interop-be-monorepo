@@ -35,6 +35,8 @@ export const errorCodes = {
   tenantNotFoundByExternalId: "0026",
   tenantAlreadyHasDelegatedProducerFeature: "0027",
   tenantHasNoDelegatedProducerFeature: "0028",
+  agreementNotFound: "0029",
+  descriptorNotFoundInEservice: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -312,5 +314,24 @@ export function tenantHasNoDelegatedProducerFeature(
     detail: `Tenant ${tenantId} has no delegated producer feature assigned`,
     code: "tenantHasNoDelegatedProducerFeature",
     title: "Feature not assigned",
+  });
+}
+
+export function agreementNotFound(agreementId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} not found`,
+    code: "agreementNotFound",
+    title: "Agreement not found",
+  });
+}
+
+export function descriptorNotFoundInEservice(
+  descriptorId: string,
+  eservice: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found in EService ${eservice}`,
+    code: "descriptorNotFoundInEservice",
+    title: "Descriptor not found in EService",
   });
 }

@@ -6,7 +6,12 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { AttributeId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  AgreementId,
+  AttributeId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { tenantServiceBuilder } from "../services/tenantService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -308,9 +313,11 @@ const tenantRouter = (
           const attributeId = unsafeBrandId<AttributeId>(
             req.params.attributeId
           );
+          const agreementId = unsafeBrandId<AgreementId>(req.body.agreementId);
           await tenantService.revokeVerifiedAttribute(
             tenantId,
             attributeId,
+            agreementId,
             ctx
           );
 
