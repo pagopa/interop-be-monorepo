@@ -754,15 +754,15 @@ export const writePlatformClientEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const readClientEntriesInTokenGenerationStates = async (
+export const readConsumerClientEntriesInTokenGenerationStates = async (
   GSIPK_clientId: ClientId,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesGenericClient[]> => {
+): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
     GSIPK_clientId: ClientId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesGenericClient[]> => {
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Client",
@@ -786,7 +786,7 @@ export const readClientEntriesInTokenGenerationStates = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const clientEntries = z
-        .array(TokenGenerationStatesGenericClient)
+        .array(TokenGenerationStatesConsumerClient)
         .safeParse(unmarshalledItems);
 
       if (!clientEntries.success) {
@@ -1169,7 +1169,7 @@ export const createTokenStatesConsumerClient = ({
   agreementEntry,
   catalogEntry,
 }: {
-  tokenStatesClient: TokenGenerationStatesGenericClient;
+  tokenStatesClient: TokenGenerationStatesConsumerClient;
   kid: string;
   clientId: ClientId;
   purposeId: PurposeId;

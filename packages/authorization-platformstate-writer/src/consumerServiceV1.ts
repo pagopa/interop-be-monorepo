@@ -1,4 +1,4 @@
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import {
   AuthorizationEventEnvelopeV1,
   Client,
@@ -36,7 +36,7 @@ import {
   deleteEntriesFromTokenStatesByGSIPKClientIdPurposeId,
   extractAgreementIdFromAgreementPK,
   extractKidFromTokenEntryPK,
-  readClientEntriesInTokenGenerationStates,
+  readConsumerClientEntriesInTokenGenerationStates,
   readPlatformClientEntry,
   retrievePlatformStatesByPurpose,
   setClientPurposeIdsInPlatformStatesEntry,
@@ -232,6 +232,7 @@ export async function handleMessageV1(
     })
     .with({ type: "ClientPurposeAdded" }, async (msg) => {
       const clientId = unsafeBrandId<ClientId>(msg.data.clientId);
+
       const unparsedPurposeId = msg.data.statesChain?.purpose?.purposeId;
 
       if (!unparsedPurposeId) {
@@ -253,30 +254,29 @@ export async function handleMessageV1(
           },
           dynamoDBClient
         );
-      }
 
-      const GSIPK_clientId = clientId;
-      const tokenClientEntries = await readClientEntriesInTokenGenerationStates(
-        GSIPK_clientId,
-        dynamoDBClient
-      );
-      if (tokenClientEntries.length === 0) {
-        return Promise.resolve();
-      } else {
-        const { purposeEntry, agreementEntry, catalogEntry } =
-          await retrievePlatformStatesByPurpose(purposeId, dynamoDBClient);
+        const GSIPK_clientId = clientId;
+        const tokenClientEntries =
+          await readConsumerClientEntriesInTokenGenerationStates(
+            GSIPK_clientId,
+            dynamoDBClient
+          );
+        if (tokenClientEntries.length === 0) {
+          return Promise.resolve();
+        } else {
+          const { purposeEntry, agreementEntry, catalogEntry } =
+            await retrievePlatformStatesByPurpose(purposeId, dynamoDBClient);
 
-        const seenKids = new Set<string>();
-        const addedTokenClientPurposeEntries = await Promise.all(
-          await tokenClientEntries.reduce<
-            Promise<TokenGenerationStatesConsumerClient[]>
-          >(async (accPromise, entry) => {
-            const acc = await accPromise;
-
-            const addedTokenConsumerClient = await match(entry)
-              .with(
-                { clientKind: clientKindTokenStates.api },
-                async (entry) => {
+          const seenKids = new Set<string>();
+          const addedTokenClientPurposeEntries = await Promise.all(
+            await tokenClientEntries.reduce<
+              Promise<TokenGenerationStatesConsumerClient[]>
+            >(async (accPromise, entry) => {
+              const acc = await accPromise;
+              const addedTokenConsumerClient = await match(
+                clientEntry.clientPurposesIds.length
+              )
+                .with(0, async () => {
                   const newTokenClientPurposeEntry =
                     createTokenStatesConsumerClient({
                       tokenStatesClient: entry,
@@ -297,11 +297,8 @@ export async function handleMessageV1(
                     dynamoDBClient
                   );
                   return newTokenClientPurposeEntry;
-                }
-              )
-              .with(
-                { clientKind: clientKindTokenStates.consumer },
-                async (entry) => {
+                })
+                .with(P.number.gt(0), async () => {
                   const kid = extractKidFromTokenEntryPK(entry.PK);
                   if (!seenKids.has(kid)) {
                     const newTokenClientPurposeEntry =
@@ -323,37 +320,37 @@ export async function handleMessageV1(
                     return newTokenClientPurposeEntry;
                   }
                   return null;
-                }
-              )
-              .exhaustive();
+                })
+                .run();
 
-            return addedTokenConsumerClient
-              ? [...acc, addedTokenConsumerClient]
-              : acc;
-          }, Promise.resolve([]))
-        );
+              return addedTokenConsumerClient
+                ? [...acc, addedTokenConsumerClient]
+                : acc;
+            }, Promise.resolve([]))
+          );
 
-        // Second check for updated fields
-        await Promise.all(
-          addedTokenClientPurposeEntries.map(async (entry) => {
-            const {
-              purposeEntry: purposeEntry2,
-              agreementEntry: agreementEntry2,
-              catalogEntry: catalogEntry2,
-            } = await retrievePlatformStatesByPurpose(
-              purposeId,
-              dynamoDBClient
-            );
+          // Second check for updated fields
+          await Promise.all(
+            addedTokenClientPurposeEntries.map(async (entry) => {
+              const {
+                purposeEntry: purposeEntry2,
+                agreementEntry: agreementEntry2,
+                catalogEntry: catalogEntry2,
+              } = await retrievePlatformStatesByPurpose(
+                purposeId,
+                dynamoDBClient
+              );
 
-            await updateTokenDataForSecondRetrieval({
-              dynamoDBClient,
-              entry,
-              purposeEntry: purposeEntry2,
-              agreementEntry: agreementEntry2,
-              catalogEntry: catalogEntry2,
-            });
-          })
-        );
+              await updateTokenDataForSecondRetrieval({
+                dynamoDBClient,
+                entry,
+                purposeEntry: purposeEntry2,
+                agreementEntry: agreementEntry2,
+                catalogEntry: catalogEntry2,
+              });
+            })
+          );
+        }
       }
     })
     .with({ type: "ClientPurposeRemoved" }, async (msg) => {
