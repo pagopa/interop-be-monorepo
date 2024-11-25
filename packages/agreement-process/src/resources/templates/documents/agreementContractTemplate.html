@@ -48,7 +48,7 @@
       di fruizione contraddistinta da id <strong>{{agreementId}}</strong> (di
       seguito “richiesta di fruizione”), inviata dall’aderente
       <strong>{{consumerName}}</strong> {{#if consumerIpaCode}}(codice IPA:
-      <strong>{{consumerIpaCode}}</strong> -- di seguito “fruitore”){{else}}(di
+      <strong>{{consumerIpaCode}}</strong> — di seguito “fruitore”){{else}}(di
       seguito “fruitore”){{/if}}, tramite l’operatore amministrativo con
       identificativo Area Riservata <strong>{{submitterId}}</strong>, per
       l’e-service <strong>{{eserviceName}}</strong>, contraddistinto da id
@@ -56,7 +56,7 @@
       contraddistinta da id <strong>{{descriptorId}}</strong> (di seguito
       “e-service”), reso disponibile dall’aderente
       <strong>{{producerName}}</strong> {{#if producerIpaCode}}(codice IPA:
-      <strong>{{producerIpaCode}}</strong> -- di seguito erogatore”){{else}}(di
+      <strong>{{producerIpaCode}}</strong> — di seguito erogatore”){{else}}(di
       seguito "erogatore”){{/if}} di cui il fruitore soddisfa i seguenti
       requisiti di fruizione per lo stesso previsti dall’erogatore.
     </div>
@@ -89,9 +89,9 @@
         la verifica dell'erogatore che il fruitore possegga l’attributo
         verificato <strong>{{this.attributeName}}</strong>, contraddistinto da
         id <strong>{{this.attributeId}}</strong>, {{#if this.expirationDate}} ed
-        avente scadenza il {{this.expirationDate}},{{/if}} necessario a
-        soddisfare il requisito di fruizione stabilito dall’erogatore per
-        l’accesso all’e-service.
+        avente scadenza il <strong>{{this.expirationDate}}</strong>,{{/if}}
+        necessario a soddisfare il requisito di fruizione stabilito
+        dall’erogatore per l’accesso all’e-service.
       </div>
 
       {{/each}} {{/if}} {{#if certifiedAttributes}}
@@ -116,7 +116,7 @@
       <div>
         In data <strong>{{submissionDate}}</strong> alle ore
         <strong>{{submissionTime}}</strong>, l’Infrastruttura ha trasmesso
-        all’erogatore la Richiesta di Fruizione.
+        all’erogatore la richiesta di fruizione.
       </div>
 
       <div>
