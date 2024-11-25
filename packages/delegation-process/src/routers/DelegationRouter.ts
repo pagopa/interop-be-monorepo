@@ -166,7 +166,7 @@ const delegationRouter = (
             getDelegationContractErrorMapper,
             ctx.logger,
             ctx.correlationId,
-            `Error retrieving delegation ${req.params.delegationId} contract ${req.params.contractId}`
+            `Error retrieving contract ${req.params.contractId} of delegation ${req.params.delegationId}`
           );
 
           return res.status(errorRes.status).send(errorRes);
