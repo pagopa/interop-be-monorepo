@@ -379,9 +379,9 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
       const platformPurposeEntry2: PlatformStatesPurposeEntry = {
         PK: purposeEntryPK2,
         state: itemState.active,
-        purposeVersionId: generateId(),
-        purposeEserviceId: generateId(),
-        purposeConsumerId: generateId(),
+        purposeVersionId: purpose2.versions[0].id,
+        purposeEserviceId: purpose2.eserviceId,
+        purposeConsumerId: purpose2.consumerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -442,11 +442,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
           [ComparisonTokenStatesPurposeEntry.parse(wrongTokenStatesEntry)],
           ComparisonPurpose.parse(purpose1),
         ],
-        [
-          ComparisonPlatformStatesPurposeEntry.parse(platformPurposeEntry2),
-          undefined,
-          ComparisonPurpose.parse(purpose2),
-        ],
+        [undefined, undefined, ComparisonPurpose.parse(purpose2)],
       ];
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
       expect(purposeDifferences).toEqual(
