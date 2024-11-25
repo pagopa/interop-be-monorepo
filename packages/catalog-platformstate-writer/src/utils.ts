@@ -297,7 +297,6 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
         descriptorState,
         descriptorVoucherLifespan,
         descriptorAudience,
-        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         dynamoDBClient,
         entriesToUpdate: tokenStateEntries.data,
       });
@@ -420,14 +419,12 @@ const updateDescriptorInfoInTokenGenerationStatesEntries = async ({
   descriptorState,
   descriptorVoucherLifespan,
   descriptorAudience,
-  GSIPK_eserviceId_descriptorId,
   dynamoDBClient,
   entriesToUpdate,
 }: {
   descriptorState: ItemState;
   descriptorVoucherLifespan: number;
   descriptorAudience: string[];
-  GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
   dynamoDBClient: DynamoDBClient;
   entriesToUpdate: TokenGenerationStatesClientPurposeEntry[];
 }): Promise<void> => {
@@ -451,15 +448,12 @@ const updateDescriptorInfoInTokenGenerationStatesEntries = async ({
         ":descriptorVoucherLifespan": {
           N: descriptorVoucherLifespan.toString(),
         },
-        ":gsi": {
-          S: GSIPK_eserviceId_descriptorId,
-        },
         ":newUpdatedAt": {
           S: new Date().toISOString(),
         },
       },
       UpdateExpression:
-        "SET GSI_eservice_id_descriptor_id = :gsi, descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan, updatedAt = :newUpdatedAt",
+        "SET descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan, updatedAt = :newUpdatedAt",
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       ReturnValues: "NONE",
     };
