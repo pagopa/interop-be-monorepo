@@ -9,7 +9,7 @@ import {
   getMockTokenStatesConsumerClient,
   getMockPurpose,
   getMockPurposeVersion,
-  getMockTokenStatesClientEntry,
+  getMockTokenStatesApiClient,
   writeTokenStatesConsumerClient,
   writeTokenStatesApiClient,
   getMockClientAssertion,
@@ -178,7 +178,7 @@ describe("authorization server tests", () => {
     });
 
     const tokenConsumerClient: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenStatesClientEntry(tokenClientKidPK),
+      ...getMockTokenStatesApiClient(tokenClientKidPK),
       clientKind: clientKindTokenStates.consumer,
     };
 
@@ -414,7 +414,7 @@ describe("authorization server tests", () => {
     });
 
     const tokenClientKidEntry: TokenGenerationStatesApiClient = {
-      ...getMockTokenStatesClientEntry(tokenClientKidPK),
+      ...getMockTokenStatesApiClient(tokenClientKidPK),
       clientKind: clientKindTokenStates.api,
       publicKey: publicKeyEncodedPem,
     };
@@ -745,7 +745,7 @@ describe("authorization server tests", () => {
     });
 
     const tokenClientKidEntry: TokenGenerationStatesApiClient = {
-      ...getMockTokenStatesClientEntry(tokenClientKidK),
+      ...getMockTokenStatesApiClient(tokenClientKidK),
       clientKind: clientKindTokenStates.api,
       publicKey: publicKeyEncodedPem,
     };

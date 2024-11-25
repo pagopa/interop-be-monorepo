@@ -14,7 +14,7 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   getMockClient,
-  getMockTokenStatesClientEntry,
+  getMockTokenStatesApiClient,
   getMockTokenStatesConsumerClient,
   readAllPlatformStatesItems,
   readAllTokenStatesItems,
@@ -294,7 +294,7 @@ describe("integration tests V1 events", async () => {
         kid: key.kid,
       });
       const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK),
+        ...getMockTokenStatesApiClient(tokenClientKidPK),
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(key.kid),
       };
@@ -356,7 +356,7 @@ describe("integration tests V1 events", async () => {
         kid: key.kid,
       });
       const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK),
+        ...getMockTokenStatesApiClient(tokenClientKidPK),
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(key.kid),
       };
@@ -1053,7 +1053,7 @@ describe("integration tests V1 events", async () => {
         kid: oldKey.kid,
       });
       const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK),
+        ...getMockTokenStatesApiClient(tokenClientKidPK),
         consumerId: client.consumerId,
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(oldKey.kid),
@@ -1153,13 +1153,13 @@ describe("integration tests V1 events", async () => {
         kid: addedKey.kid,
       });
       const tokenClientEntry1: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK1),
+        ...getMockTokenStatesApiClient(tokenClientKidPK1),
         consumerId: client.consumerId,
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(oldKey.kid),
       };
       const tokenClientEntry2: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK2),
+        ...getMockTokenStatesApiClient(tokenClientKidPK2),
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(addedKey.kid),
       };
@@ -1253,7 +1253,7 @@ describe("integration tests V1 events", async () => {
         kid: kidToRemove,
       });
       const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK),
+        ...getMockTokenStatesApiClient(tokenClientKidPK),
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(kidToRemove),
       };
@@ -1419,7 +1419,7 @@ describe("integration tests V1 events", async () => {
         };
 
       const tokenClientEntryWithOtherKid: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK),
+        ...getMockTokenStatesApiClient(tokenClientKidPK),
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(otherKid),
       };
@@ -1508,7 +1508,7 @@ describe("integration tests V1 events", async () => {
         kid: "KID",
       });
       const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK),
+        ...getMockTokenStatesApiClient(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
       await writeTokenStatesApiClient(tokenClientEntry, dynamoDBClient);
@@ -1571,7 +1571,7 @@ describe("integration tests V1 events", async () => {
         kid: "KID",
       });
       const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK),
+        ...getMockTokenStatesApiClient(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
       await writeTokenStatesApiClient(tokenClientEntry, dynamoDBClient);
@@ -1644,7 +1644,7 @@ describe("integration tests V1 events", async () => {
       const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient =
         getMockTokenStatesConsumerClient();
       const tokenClientEntry: TokenGenerationStatesApiClient =
-        getMockTokenStatesClientEntry();
+        getMockTokenStatesApiClient();
       await writeTokenStatesConsumerClient(
         tokenClientPurposeEntry,
         dynamoDBClient
@@ -2073,7 +2073,7 @@ describe("integration tests V1 events", async () => {
         GSIPK_kid: makeGSIPKKid(kid2),
         GSIPK_purposeId: purpose1.id,
       };
-      const tokenClientEntryWithOtherClient = getMockTokenStatesClientEntry();
+      const tokenClientEntryWithOtherClient = getMockTokenStatesApiClient();
 
       await writeTokenStatesConsumerClient(
         tokenClientPurposeEntry1,
@@ -2379,7 +2379,7 @@ describe("integration tests V1 events", async () => {
         GSIPK_kid: makeGSIPKKid(kid2),
         GSIPK_purposeId: purpose2.id,
       };
-      const tokenClientEntryWithOtherClient = getMockTokenStatesClientEntry();
+      const tokenClientEntryWithOtherClient = getMockTokenStatesApiClient();
 
       await writeTokenStatesConsumerClient(
         tokenClientPurposeEntry1,
@@ -2525,7 +2525,7 @@ describe("integration tests V1 events", async () => {
         kid: "KID",
       });
       const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK),
+        ...getMockTokenStatesApiClient(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
       await writeTokenStatesApiClient(tokenClientEntry, dynamoDBClient);
@@ -2581,7 +2581,7 @@ describe("integration tests V1 events", async () => {
         kid: "KID",
       });
       const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK),
+        ...getMockTokenStatesApiClient(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
       await writeTokenStatesApiClient(tokenClientEntry, dynamoDBClient);
@@ -2667,7 +2667,7 @@ describe("integration tests V1 events", async () => {
         purposeId: purposeId2,
       });
 
-      const tokenClientEntry = getMockTokenStatesClientEntry();
+      const tokenClientEntry = getMockTokenStatesApiClient();
 
       const tokenClientPurposeEntry1: TokenGenerationStatesConsumerClient = {
         ...getMockTokenStatesConsumerClient(tokenClientKidPurposePK1),

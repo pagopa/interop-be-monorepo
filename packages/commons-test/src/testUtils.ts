@@ -515,7 +515,7 @@ export const getMockPlatformStatesAgreementEntry = (
   agreementDescriptorId: generateId<DescriptorId>(),
 });
 
-export const getMockTokenStatesClientEntry = (
+export const getMockTokenStatesApiClient = (
   tokenStateEntryPK?: TokenGenerationStatesClientKidPK
 ): TokenGenerationStatesApiClient => {
   const clientId = tokenStateEntryPK

@@ -14,7 +14,7 @@ import * as jsonwebtoken from "jsonwebtoken";
 import {
   generateKeySet,
   getMockClientAssertion,
-  getMockTokenStatesClientEntry,
+  getMockTokenStatesApiClient,
   getMockTokenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import { dateToSeconds } from "pagopa-interop-commons";
@@ -819,7 +819,7 @@ describe("validation test", async () => {
 
     it("success (clientEntry with api client kind)", async () => {
       const mockApiKey: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(),
+        ...getMockTokenStatesApiClient(),
         clientKind: clientKindTokenStates.api,
       };
       const { data: mockClientAssertion } = verifyClientAssertion(

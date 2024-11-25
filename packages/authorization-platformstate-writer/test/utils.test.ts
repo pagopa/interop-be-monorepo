@@ -8,7 +8,7 @@ import {
   getMockKey,
   getMockPlatformStatesClientEntry,
   getMockPurposeVersion,
-  getMockTokenStatesClientEntry,
+  getMockTokenStatesApiClient,
   getMockTokenStatesConsumerClient,
   getMockPurpose,
   getMockClient,
@@ -115,7 +115,7 @@ describe("utils", () => {
   it("deleteEntriesFromTokenStatesByKid", async () => {
     const kid = unsafeBrandId<GSIPKKid>("mock kid");
     const clientEntry: TokenGenerationStatesApiClient = {
-      ...getMockTokenStatesClientEntry(),
+      ...getMockTokenStatesApiClient(),
       GSIPK_kid: kid,
     };
 
@@ -166,7 +166,7 @@ describe("utils", () => {
     const GSIPK_clientId = generateId<ClientId>();
 
     const clientEntry: TokenGenerationStatesApiClient = {
-      ...getMockTokenStatesClientEntry(),
+      ...getMockTokenStatesApiClient(),
       GSIPK_clientId,
     };
 
@@ -197,7 +197,7 @@ describe("utils", () => {
   describe("deleteClientEntryFromTokenGenerationStates", () => {
     it("clientKid entry", async () => {
       const clientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(),
+        ...getMockTokenStatesApiClient(),
       };
 
       const clientPurposeEntry: TokenGenerationStatesConsumerClient = {
@@ -217,7 +217,7 @@ describe("utils", () => {
     });
     it("clientKidPurpose entry", async () => {
       const clientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(),
+        ...getMockTokenStatesApiClient(),
       };
 
       const clientPurposeEntry: TokenGenerationStatesConsumerClient = {
@@ -367,7 +367,7 @@ describe("utils", () => {
 
   describe("writeTokenStatesApiClient", () => {
     it("should succeed if the entry doesn't exist", async () => {
-      const clientEntry = getMockTokenStatesClientEntry();
+      const clientEntry = getMockTokenStatesApiClient();
       await writeTokenStatesApiClient(clientEntry, dynamoDBClient);
 
       const result = await readAllTokenStatesItems(dynamoDBClient);
@@ -375,7 +375,7 @@ describe("utils", () => {
     });
 
     it("should throw error if the entry already exists", async () => {
-      const clientEntry = getMockTokenStatesClientEntry();
+      const clientEntry = getMockTokenStatesApiClient();
       await writeTokenStatesApiClient(clientEntry, dynamoDBClient);
 
       expect(
@@ -621,7 +621,7 @@ describe("utils", () => {
 
   describe("upsertTokenApiClient", () => {
     it("write", async () => {
-      const clientKidEntry = getMockTokenStatesClientEntry();
+      const clientKidEntry = getMockTokenStatesApiClient();
 
       const resultBefore = await readAllTokenStatesItems(dynamoDBClient);
       expect(resultBefore).toEqual([]);
@@ -633,7 +633,7 @@ describe("utils", () => {
     });
     it("update", async () => {
       const clientKidEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(),
+        ...getMockTokenStatesApiClient(),
         clientKind: clientKindTokenStates.api,
       };
       await writeTokenStatesApiClient(clientKidEntry, dynamoDBClient);
@@ -651,7 +651,7 @@ describe("utils", () => {
 
   it("parsing TokenGenerationStatesGenericClient", () => {
     const clientKidEntry: TokenGenerationStatesApiClient = {
-      ...getMockTokenStatesClientEntry(),
+      ...getMockTokenStatesApiClient(),
     };
     const entries1 = z
       .array(TokenGenerationStatesGenericClient)
