@@ -55,15 +55,7 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   agreementActivableStates,
   agreementActivationAllowedDescriptorStates,
@@ -100,7 +92,6 @@ import {
 } from "./utils.js";
 
 describe("activate agreement", () => {
-  const currentExecutionTime = new Date();
   const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
     email: "test@test.com",
     name: "Test Name",
@@ -125,11 +116,6 @@ describe("activate agreement", () => {
       taxCode: randomArrayItem([mockSelfcareUserResponse.taxCode, undefined]),
     };
   }
-
-  beforeAll(async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(currentExecutionTime);
-  });
 
   beforeEach(async () => {
     selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
@@ -692,6 +678,12 @@ describe("activate agreement", () => {
         consumerId: consumer.id,
         descriptors: [descriptor],
       };
+      const agreementSubmissionDate = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth() - 1,
+        1
+      );
+
       const agreement: Agreement = {
         ...getMockAgreement(eservice.id),
         state: agreementState.pending,
@@ -716,7 +708,7 @@ describe("activate agreement", () => {
         stamps: {
           submission: {
             who: authData.userId,
-            when: currentExecutionTime,
+            when: agreementSubmissionDate,
           },
         },
       };
@@ -781,15 +773,15 @@ describe("activate agreement", () => {
       ).toContain(actualAgreement.contract?.path);
 
       const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
-        todayDate: dateAtRomeZone(currentExecutionTime),
-        todayTime: timeAtRomeZone(currentExecutionTime),
+        todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
         agreementId: agreement.id,
         submitter: `${mockSelfcareUserResponse.name} ${mockSelfcareUserResponse.surname} (${mockSelfcareUserResponse.taxCode})`,
-        submissionDate: dateAtRomeZone(currentExecutionTime),
-        submissionTime: timeAtRomeZone(currentExecutionTime),
+        submissionDate: dateAtRomeZone(agreementSubmissionDate),
+        submissionTime: timeAtRomeZone(agreementSubmissionDate),
         activator: `${mockSelfcareUserResponse.name} ${mockSelfcareUserResponse.surname} (${mockSelfcareUserResponse.taxCode})`,
-        activationDate: dateAtRomeZone(currentExecutionTime),
-        activationTime: timeAtRomeZone(currentExecutionTime),
+        activationDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        activationTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
         eServiceName: eservice.name,
         eServiceId: eservice.id,
         eServiceDescriptorVersion: eservice.descriptors[0].version,

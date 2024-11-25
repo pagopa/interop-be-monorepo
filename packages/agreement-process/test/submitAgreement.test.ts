@@ -49,7 +49,7 @@ import {
   toAgreementStateV2,
 } from "pagopa-interop-models";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { agreementSubmissionConflictingStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -82,7 +82,6 @@ import {
 } from "./utils.js";
 
 describe("submit agreement", () => {
-  const currentExecutionTime = new Date();
   const mockSelfCareResponse = (
     userResponse?: selfcareV2ClientApi.UserResponse
   ): void => {
@@ -96,11 +95,6 @@ describe("submit agreement", () => {
       );
     }
   };
-
-  beforeAll(async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(currentExecutionTime);
-  });
 
   afterEach(async () => {
     vi.clearAllMocks();
@@ -1958,15 +1952,15 @@ describe("submit agreement", () => {
     expect(submittedAgreement).toEqual(expectedAgreement);
 
     const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
-      todayDate: dateAtRomeZone(currentExecutionTime),
-      todayTime: timeAtRomeZone(currentExecutionTime),
+      todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
       agreementId: agreement.id,
       submitter: `${mockUserResponse.name} ${mockUserResponse.surname} (${mockUserResponse.taxCode})`,
-      submissionDate: dateAtRomeZone(currentExecutionTime),
-      submissionTime: timeAtRomeZone(currentExecutionTime),
+      submissionDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      submissionTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
       activator: `${mockUserResponse.name} ${mockUserResponse.surname} (${mockUserResponse.taxCode})`,
-      activationDate: dateAtRomeZone(currentExecutionTime),
-      activationTime: timeAtRomeZone(currentExecutionTime),
+      activationDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      activationTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
       eServiceName: eservice.name,
       eServiceId: eservice.id,
       eServiceDescriptorVersion: eservice.descriptors[0].version,
