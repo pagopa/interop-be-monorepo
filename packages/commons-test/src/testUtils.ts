@@ -70,7 +70,6 @@ import {
   DelegationKind,
   unsafeBrandId,
   UserId,
-  clientKidPurposePrefix,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
