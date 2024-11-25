@@ -38,7 +38,6 @@ import {
   assertIsState,
   assertDelegatorAndDelegateIPA,
   assertIsDelegator,
-  assertIsOneOfStates,
   activeDelegationStates,
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
@@ -140,7 +139,7 @@ export function delegationProducerServiceBuilder(
       );
 
       assertIsDelegator(delegation, delegatorId);
-      assertIsOneOfStates(activeDelegationStates, delegation);
+      assertIsState(activeDelegationStates, delegation);
 
       const [delegator, delegate, eservice] = await Promise.all([
         retrieveTenantById(delegation.delegatorId),

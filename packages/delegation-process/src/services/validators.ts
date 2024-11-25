@@ -124,20 +124,14 @@ export const assertIsDelegator = (
 };
 
 export const assertIsState = (
-  state: DelegationState,
+  expected: DelegationState | DelegationState[],
   delegation: Delegation
 ): void => {
-  if (delegation.state !== state) {
-    throw incorrectState(delegation.id, delegation.state, state);
-  }
-};
-
-export const assertIsOneOfStates = (
-  states: DelegationState[],
-  delegation: Delegation
-): void => {
-  if (!states.includes(delegation.state)) {
-    throw incorrectState(delegation.id, delegation.state, states);
+  if (
+    (!Array.isArray(expected) && delegation.state !== expected) ||
+    (Array.isArray(expected) && !expected.includes(delegation.state))
+  ) {
+    throw incorrectState(delegation.id, delegation.state, expected);
   }
 };
 
