@@ -1289,30 +1289,34 @@ describe("integration tests V2 events", async () => {
         eserviceId: eservice.id,
         descriptorId: descriptor.id,
       });
-      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
-          descriptorState: itemState.active,
-          descriptorAudience: descriptor.audience,
-          descriptorVoucherLifespan: descriptor.voucherLifespan,
-          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        };
-      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+      const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
+        descriptorState: itemState.active,
+        descriptorAudience: descriptor.audience,
+        descriptorVoucherLifespan: descriptor.voucherLifespan,
+        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+      };
+      await writeTokenStatesConsumerClient(
+        previousTokenStateEntry1,
+        dynamoDBClient
+      );
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
         kid: `kid ${Math.random()}`,
         purposeId: generateId(),
       });
-      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
-          descriptorState: itemState.active,
-          descriptorAudience: descriptor.audience,
-          descriptorVoucherLifespan: descriptor.voucherLifespan,
-          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        };
-      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+      const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
+        descriptorState: itemState.active,
+        descriptorAudience: descriptor.audience,
+        descriptorVoucherLifespan: descriptor.voucherLifespan,
+        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+      };
+      await writeTokenStatesConsumerClient(
+        previousTokenStateEntry2,
+        dynamoDBClient
+      );
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -1322,7 +1326,7 @@ describe("integration tests V2 events", async () => {
 
       // token-generation-states
       const retrievedTokenStateEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+        await readTokenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
@@ -1397,30 +1401,34 @@ describe("integration tests V2 events", async () => {
         eserviceId: eservice.id,
         descriptorId: descriptor.id,
       });
-      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
-          descriptorState: itemState.active,
-          descriptorAudience: descriptor.audience,
-          descriptorVoucherLifespan: descriptor.voucherLifespan,
-          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        };
-      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+      const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
+        descriptorState: itemState.active,
+        descriptorAudience: descriptor.audience,
+        descriptorVoucherLifespan: descriptor.voucherLifespan,
+        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+      };
+      await writeTokenStatesConsumerClient(
+        previousTokenStateEntry1,
+        dynamoDBClient
+      );
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
         kid: `kid ${Math.random()}`,
         purposeId: generateId(),
       });
-      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
-          descriptorState: itemState.active,
-          descriptorAudience: descriptor.audience,
-          descriptorVoucherLifespan: descriptor.voucherLifespan,
-          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        };
-      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+      const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
+        descriptorState: itemState.active,
+        descriptorAudience: descriptor.audience,
+        descriptorVoucherLifespan: descriptor.voucherLifespan,
+        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+      };
+      await writeTokenStatesConsumerClient(
+        previousTokenStateEntry2,
+        dynamoDBClient
+      );
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -1435,22 +1443,20 @@ describe("integration tests V2 events", async () => {
 
       // token-generation-states
       const retrievedTokenStateEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+        await readTokenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...previousTokenStateEntry1,
-          descriptorVoucherLifespan: updatedDescriptor.voucherLifespan,
-          updatedAt: new Date().toISOString(),
-        };
-      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...previousTokenStateEntry2,
-          descriptorVoucherLifespan: updatedDescriptor.voucherLifespan,
-          updatedAt: new Date().toISOString(),
-        };
+      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
+        ...previousTokenStateEntry1,
+        descriptorVoucherLifespan: updatedDescriptor.voucherLifespan,
+        updatedAt: new Date().toISOString(),
+      };
+      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
+        ...previousTokenStateEntry2,
+        descriptorVoucherLifespan: updatedDescriptor.voucherLifespan,
+        updatedAt: new Date().toISOString(),
+      };
 
       expect(retrievedTokenStateEntries).toHaveLength(2);
       expect(retrievedTokenStateEntries).toEqual(
@@ -1513,30 +1519,34 @@ describe("integration tests V2 events", async () => {
         eserviceId: eservice.id,
         descriptorId: descriptor.id,
       });
-      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
-          descriptorState: itemState.active,
-          descriptorAudience: descriptor.audience,
-          descriptorVoucherLifespan: descriptor.voucherLifespan,
-          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        };
-      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+      const previousTokenStateEntry1: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
+        descriptorState: itemState.active,
+        descriptorAudience: descriptor.audience,
+        descriptorVoucherLifespan: descriptor.voucherLifespan,
+        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+      };
+      await writeTokenStatesConsumerClient(
+        previousTokenStateEntry1,
+        dynamoDBClient
+      );
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
         kid: `kid ${Math.random()}`,
         purposeId: generateId(),
       });
-      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
-          descriptorState: itemState.active,
-          descriptorAudience: descriptor.audience,
-          descriptorVoucherLifespan: descriptor.voucherLifespan,
-          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        };
-      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+      const previousTokenStateEntry2: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
+        descriptorState: itemState.active,
+        descriptorAudience: descriptor.audience,
+        descriptorVoucherLifespan: descriptor.voucherLifespan,
+        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+      };
+      await writeTokenStatesConsumerClient(
+        previousTokenStateEntry2,
+        dynamoDBClient
+      );
 
       expect(
         handleMessageV2(message, dynamoDBClient)
@@ -1551,7 +1561,7 @@ describe("integration tests V2 events", async () => {
 
       // token-generation-states
       const retrievedTokenStateEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+        await readTokenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
