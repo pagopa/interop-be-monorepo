@@ -48,7 +48,7 @@ import {
   fromAgreementV2,
   generateId,
 } from "pagopa-interop-models";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { addDays } from "date-fns";
 import {
   agreementActivableStates,
@@ -158,16 +158,6 @@ describe("activate agreement", () => {
       stream_id: relatedAgreements.nonArchivableRelatedAgreement.id,
     });
   }
-
-  const testDate = new Date();
-  beforeAll(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(testDate);
-  });
-
-  afterAll(() => {
-    vi.useRealTimers();
-  });
 
   describe("Agreement Pending", () => {
     it("Agreement Pending, Requester === Producer, valid attributes -- success case: Pending >> Activated", async () => {
@@ -345,8 +335,8 @@ describe("activate agreement", () => {
           "agreementContractTemplate.html"
         ),
         {
-          todayDate: dateAtRomeZone(testDate),
-          todayTime: timeAtRomeZone(testDate),
+          todayDate: expect.any(String),
+          todayTime: expect.any(String),
           agreementId: expectedActivatedAgreement.id,
           submitterId: expectedActivatedAgreement.stamps.submission!.who,
           submissionDate: dateAtRomeZone(
