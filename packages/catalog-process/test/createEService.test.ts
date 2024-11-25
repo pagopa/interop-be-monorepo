@@ -43,9 +43,11 @@ describe("create eservice", () => {
   it("should write on event-store for the creation of an eservice", async () => {
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
     const isDelegable = randomArrayItem([false, true, undefined]);
-    const isClientAccessDelegable = isDelegable
-      ? randomArrayItem([false, true, undefined])
-      : undefined;
+    const isClientAccessDelegable = match(isDelegable)
+      .with(undefined, () => undefined)
+      .with(true, () => randomArrayItem([false, true, undefined]))
+      .with(false, () => false)
+      .exhaustive();
 
     const eservice = await catalogService.createEService(
       {
