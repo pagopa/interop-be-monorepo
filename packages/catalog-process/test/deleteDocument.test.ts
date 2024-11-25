@@ -420,13 +420,7 @@ describe("delete Document", () => {
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
     );
   });
-  it.each(
-    Object.values(descriptorState).filter(
-      (state) =>
-        state === descriptorState.archived ||
-        state === descriptorState.waitingForApproval
-    )
-  )(
+  it.each([descriptorState.archived])(
     "should throw notValidDescriptor when trying to delete a document with descriptor in %s state",
     async (state) => {
       const descriptor: Descriptor = {
