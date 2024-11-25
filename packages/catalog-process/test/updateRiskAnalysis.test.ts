@@ -10,7 +10,7 @@ import {
   getMockTenant,
   getMockValidRiskAnalysis,
   decodeProtobufPayload,
-  getMockDelegationProducer,
+  getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
   TenantKind,
@@ -28,8 +28,8 @@ import {
   generateId,
   operationForbidden,
   RiskAnalysisId,
-  Delegation,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
@@ -200,11 +200,11 @@ describe("update risk analysis", () => {
       riskAnalysis: [riskAnalysis],
     };
 
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneTenant(producer);
     await addOneEService(eservice);
@@ -333,11 +333,11 @@ describe("update risk analysis", () => {
     ).rejects.toThrowError(operationForbidden);
   });
   it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(mockEService);
     await addOneDelegation(delegation);

@@ -10,14 +10,14 @@ import {
   unsafeBrandId,
   operationForbidden,
   Document,
-  Delegation,
   delegationState,
   generateId,
+  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   decodeProtobufPayload,
-  getMockDelegationProducer,
+  getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
   eServiceNotFound,
@@ -127,11 +127,11 @@ describe("upload Document", () => {
         ...mockEService,
         descriptors: [descriptor],
       };
-      const delegation: Delegation = {
-        ...getMockDelegationProducer(),
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         eserviceId: eservice.id,
         state: delegationState.active,
-      };
+      });
 
       await addOneEService(eservice);
       await addOneDelegation(delegation);
@@ -258,11 +258,11 @@ describe("upload Document", () => {
       ...mockEService,
       descriptors: [descriptor],
     };
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
-      eserviceId: mockEService.id,
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(mockEService);
     await addOneDelegation(delegation);

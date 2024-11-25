@@ -4,8 +4,9 @@ import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
-  getMockDelegationProducer,
+  getMockDelegation,
   getMockEService,
+  getMockTenant,
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
@@ -19,6 +20,8 @@ import {
   EServiceId,
   TenantId,
   agreementState,
+  delegationKind,
+  delegationState,
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
@@ -36,6 +39,7 @@ import {
   addOneAgreement,
   addOneDelegation,
   addOneEService,
+  addOneTenant,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -83,12 +87,15 @@ describe("agreement consumer document", () => {
         ...getMockAgreement(eservice.id),
         consumerDocuments: [generateMock(AgreementDocument)],
       };
-      const delegation = getMockDelegationProducer({
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         delegateId: eservice.producerId,
         eserviceId: eservice.id,
-        state: "Active",
+        state: delegationState.active,
       });
+      const delegate = getMockTenant(delegation.delegateId);
 
+      await addOneTenant(delegate);
       await addOneEService(eservice);
       await addOneAgreement(agreement);
       await addOneDelegation(delegation);

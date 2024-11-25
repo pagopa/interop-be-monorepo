@@ -90,9 +90,30 @@ export type AgreementContractPDFPayload = {
   activationDate: string;
   activationTime: string;
   eServiceName: string;
+  eServiceId: string;
+  eServiceDescriptorVersion: string;
   producerText: string;
   consumerText: string;
-  certifiedAttributes: string;
-  declaredAttributes: string;
-  verifiedAttributes: string;
+  certifiedAttributes: Array<{
+    assignmentDate: string;
+    assignmentTime: string;
+    attributeName: string;
+    attributeId: string;
+  }>;
+  declaredAttributes: Array<{
+    assignmentDate: string;
+    assignmentTime: string;
+    attributeName: string;
+    attributeId: string;
+  }>;
+  verifiedAttributes: Array<{
+    assignmentDate: string;
+    assignmentTime: string;
+    attributeName: string;
+    attributeId: string;
+    expirationDate: string | undefined;
+  }>;
+  delegationId?: string;
+  delegatorText?: string;
+  delegateText?: string;
 };

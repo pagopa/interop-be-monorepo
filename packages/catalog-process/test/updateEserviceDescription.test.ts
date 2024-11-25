@@ -2,7 +2,7 @@
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockDelegationProducer,
+  getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -11,9 +11,9 @@ import {
   toEServiceV2,
   operationForbidden,
   EServiceDescriptionUpdatedV2,
-  Delegation,
   delegationState,
   generateId,
+  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -84,11 +84,11 @@ describe("update eService description", () => {
       ...getMockEService(),
       descriptors: [descriptor],
     };
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);
@@ -161,11 +161,11 @@ describe("update eService description", () => {
   });
   it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
     const eservice = getMockEService();
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);

@@ -5,7 +5,7 @@ import {
   getMockPurpose,
   writeInReadmodel,
   getMockAuthData,
-  getMockDelegationProducer,
+  getMockDelegation,
 } from "pagopa-interop-commons-test";
 import {
   Purpose,
@@ -15,8 +15,8 @@ import {
   PurposeVersionId,
   PurposeVersionDocumentId,
   TenantId,
-  Delegation,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -100,12 +100,12 @@ describe("getRiskAnalysisDocument", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     const delegate = getMockAuthData();
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
       delegateId: delegate.organizationId,
       state: delegationState.active,
-    };
+    });
 
     await writeInReadmodel(delegation, delegations);
 
@@ -243,12 +243,12 @@ describe("getRiskAnalysisDocument", () => {
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
       const delegate = getMockAuthData();
-      const delegation: Delegation = {
-        ...getMockDelegationProducer(),
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         eserviceId: mockEService.id,
         delegateId: delegate.organizationId,
         state: delegationState,
-      };
+      });
 
       await writeInReadmodel(delegation, delegations);
 

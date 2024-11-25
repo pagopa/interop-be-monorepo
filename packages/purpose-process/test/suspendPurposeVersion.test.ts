@@ -6,7 +6,7 @@ import {
   writeInReadmodel,
   decodeProtobufPayload,
   getMockAuthData,
-  getMockDelegationProducer,
+  getMockDelegation,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -21,8 +21,8 @@ import {
   PurposeVersionId,
   TenantId,
   toPurposeVersionV2,
-  Delegation,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -183,12 +183,12 @@ describe("suspendPurposeVersion", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     const delegate = getMockAuthData();
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
       delegateId: delegate.organizationId,
       state: delegationState.active,
-    };
+    });
 
     await writeInReadmodel(delegation, delegations);
 
@@ -382,12 +382,12 @@ describe("suspendPurposeVersion", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     const delegate = getMockAuthData();
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
       delegateId: delegate.organizationId,
       state: delegationState.active,
-    };
+    });
 
     await writeInReadmodel(delegation, delegations);
 
@@ -422,12 +422,12 @@ describe("suspendPurposeVersion", () => {
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
       const delegate = getMockAuthData();
-      const delegation: Delegation = {
-        ...getMockDelegationProducer(),
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         eserviceId: mockEService.id,
         delegateId: delegate.organizationId,
         state: delegationState,
-      };
+      });
 
       await writeInReadmodel(delegation, delegations);
 
@@ -457,12 +457,12 @@ describe("suspendPurposeVersion", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     const delegate = getMockAuthData();
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
       delegateId: delegate.organizationId,
       state: delegationState.active,
-    };
+    });
 
     await writeInReadmodel(delegation, delegations);
 

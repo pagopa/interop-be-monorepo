@@ -2,7 +2,7 @@
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockDelegationProducer,
+  getMockDelegation,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -15,8 +15,8 @@ import {
   DescriptorId,
   generateId,
   EServiceDeletedV2,
-  Delegation,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import { config } from "../src/config/config.js";
@@ -306,11 +306,11 @@ describe("delete draft descriptor", () => {
       ...getMockEService(),
       descriptors: [draftDescriptor],
     };
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);
@@ -475,11 +475,11 @@ describe("delete draft descriptor", () => {
       ...getMockEService(),
       descriptors: [publishedDescriptor, descriptorToDelete],
     };
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);

@@ -32,12 +32,12 @@ import { ReadModelService } from "./readModelService.js";
 import {
   assertDelegationIsRevokable,
   assertDelegationNotExists,
-  assertDelegatorIsIPA,
   assertDelegatorIsNotDelegate,
-  assertEserviceExists,
-  assertTenantAllowedToReceiveProducerDelegation,
+  assertDelegatorIsProducer,
+  assertTenantAllowedToReceiveDelegation,
   assertIsDelegate,
   assertIsState,
+  assertDelegatorAndDelegateIPA,
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
 import { retrieveDelegationById } from "./delegationService.js";
@@ -84,9 +84,14 @@ export function delegationProducerServiceBuilder(
       const delegator = await retrieveTenantById(delegatorId);
       const delegate = await retrieveTenantById(delegateId);
 
-      assertTenantAllowedToReceiveProducerDelegation(delegate);
-      await assertDelegatorIsIPA(delegator);
-      await assertEserviceExists(delegatorId, eserviceId, readModelService);
+      assertTenantAllowedToReceiveDelegation(
+        delegate,
+        delegationKind.delegatedProducer
+      );
+      await assertDelegatorAndDelegateIPA(delegator, delegate);
+
+      const eservice = await retrieveEserviceById(eserviceId);
+      assertDelegatorIsProducer(delegatorId, eservice);
       await assertDelegationNotExists(
         delegator,
         eserviceId,
@@ -106,7 +111,7 @@ export function delegationProducerServiceBuilder(
         kind: delegationKind.delegatedProducer,
         stamps: {
           submission: {
-            who: delegatorId,
+            who: authData.userId,
             when: creationDate,
           },
         },
@@ -161,7 +166,7 @@ export function delegationProducerServiceBuilder(
         stamps: {
           ...currentDelegation.data.stamps,
           revocation: {
-            who: delegatorId,
+            who: authData.userId,
             when: now,
           },
         },
@@ -227,7 +232,7 @@ export function delegationProducerServiceBuilder(
               stamps: {
                 ...delegation.stamps,
                 activation: {
-                  who: delegateId,
+                  who: authData.userId,
                   when: now,
                 },
               },
@@ -257,19 +262,20 @@ export function delegationProducerServiceBuilder(
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
+      const now = new Date();
       await repository.createEvent(
         toCreateEventProducerDelegationRejected(
           {
             data: {
               ...delegation,
               state: delegationState.rejected,
-              rejectedAt: new Date(),
+              rejectedAt: now,
               rejectionReason,
               stamps: {
                 ...delegation.stamps,
                 rejection: {
-                  who: delegateId,
-                  when: new Date(),
+                  who: authData.userId,
+                  when: now,
                 },
               },
             },

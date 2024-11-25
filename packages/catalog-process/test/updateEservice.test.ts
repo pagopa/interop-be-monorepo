@@ -2,7 +2,7 @@
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockDelegationProducer,
+  getMockDelegation,
   getMockValidRiskAnalysis,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
@@ -15,8 +15,8 @@ import {
   eserviceMode,
   operationForbidden,
   generateId,
-  Delegation,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import {
@@ -260,11 +260,11 @@ describe("update eService", () => {
   });
   it("should write on event-store for the update of an eService (delegate)", async () => {
     const updatedDescription = "eservice new description";
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(mockEService);
     await addOneDelegation(delegation);
@@ -396,11 +396,11 @@ describe("update eService", () => {
   });
 
   it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
-    const delegation: Delegation = {
-      ...getMockDelegationProducer(),
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
       state: delegationState.active,
-    };
+    });
 
     await addOneEService(mockEService);
     await addOneDelegation(delegation);

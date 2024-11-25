@@ -2,7 +2,7 @@
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockDelegationProducer,
+  getMockDelegation,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -14,8 +14,8 @@ import {
   EServiceDraftDescriptorDeletedV2,
   toEServiceV2,
   delegationState,
-  Delegation,
   generateId,
+  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi } from "vitest";
 import {
@@ -215,11 +215,11 @@ describe("delete eservice", () => {
   it.each([delegationState.active, delegationState.waitingForApproval])(
     "should throw eserviceWithActiveOrPendingDelegation if the eservice is associated with a delegation with state %s",
     async (delegationState) => {
-      const delegation: Delegation = {
-        ...getMockDelegationProducer(),
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         eserviceId: mockEService.id,
         state: delegationState,
-      };
+      });
 
       await addOneEService(mockEService);
       await addOneDelegation(delegation);
@@ -239,11 +239,11 @@ describe("delete eservice", () => {
   it.each([delegationState.revoked, delegationState.rejected])(
     "should not throw eserviceWithActiveOrPendingDelegation if the eservice is associated with a delegation with state %s",
     async (delegationState) => {
-      const delegation: Delegation = {
-        ...getMockDelegationProducer(),
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
         eserviceId: mockEService.id,
         state: delegationState,
-      };
+      });
 
       await addOneEService(mockEService);
       await addOneDelegation(delegation);
