@@ -5,9 +5,10 @@ import {
   makeApiProblemBuilder,
   TenantId,
   DelegationState,
+  DelegationId,
+  DelegationContractId,
   DelegationKind,
   Tenant,
-  DelegationId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -24,6 +25,7 @@ export const errorCodes = {
   operationRestrictedToDelegate: "0010",
   incorrectState: "0011",
   differentEserviceProducer: "0012",
+  delegationContractNotFound: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -145,6 +147,17 @@ export function differentEServiceProducer(
     detail: `Eservice producer if different from requester with id ${requesterId}`,
     code: "differentEserviceProducer",
     title: "Operation not allowed",
+  });
+}
+
+export function delegationContractNotFound(
+  delegationId: DelegationId,
+  contractId: DelegationContractId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract ${contractId} of delegation ${delegationId} not found`,
+    code: "delegationContractNotFound",
+    title: "Delegation contract not found",
   });
 }
 
