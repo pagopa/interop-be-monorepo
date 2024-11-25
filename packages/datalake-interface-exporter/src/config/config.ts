@@ -16,11 +16,13 @@ export const DatalakeInterfaceExporterConfig = LoggerConfig.and(
       .object({
         ESERVICE_DOCUMENTS_S3_BUCKET: z.string(),
         DATALAKE_INTERFACES_EXPORT_S3_BUCKET: z.string(),
+        DATALAKE_INTERFACES_EXPORT_PATH: z.string(),
       })
       .transform((c) => ({
         eserviceDocumentsS3Bucket: c.ESERVICE_DOCUMENTS_S3_BUCKET,
         datalakeInterfacesExportS3Bucket:
           c.DATALAKE_INTERFACES_EXPORT_S3_BUCKET,
+        datalakeInterfacesExportPath: c.DATALAKE_INTERFACES_EXPORT_PATH,
       }))
   );
 
