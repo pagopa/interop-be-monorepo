@@ -441,6 +441,7 @@ export const getMockTokenStatesConsumerClient = (
   const kid = `kid ${Math.random()}`;
 
   if (
+    !tokenStateEntryPK ||
     TokenGenerationStatesClientKidPurposePK.safeParse(tokenStateEntryPK).success
   ) {
     return {

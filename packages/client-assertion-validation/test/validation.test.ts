@@ -697,9 +697,7 @@ describe("validation test", async () => {
 
   describe("validatePlatformState", async () => {
     it("success", async () => {
-      const mockKey: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesConsumerClient(),
-      };
+      const mockKey = getMockTokenStatesConsumerClient();
       validatePlatformState(mockKey);
       const { errors } = validatePlatformState(mockKey);
       expect(errors).toBeUndefined();
