@@ -299,7 +299,7 @@ describe("delete Document", () => {
       (state) => state === descriptorState.archived
     )
   )(
-    "should throw notValidDescriptor we are trying to delete a document with descriptor in %s state",
+    "should throw notValidDescriptor when trying to delete a document with descriptor in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
@@ -330,7 +330,7 @@ describe("delete Document", () => {
       (state) => state !== descriptorState.draft
     )
   )(
-    "should throw notValidDescriptor we are trying to delete an interface with descriptor in %s state",
+    "should throw notValidDescriptor when trying to delete an interface with descriptor in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
