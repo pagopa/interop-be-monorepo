@@ -13,9 +13,9 @@ import {
   Tenant,
   TenantKind,
   Descriptor,
-  DescriptorState,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import {
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -26,21 +26,6 @@ import {
   riskAnalysisNotValid,
   notValidDescriptor,
 } from "../model/domain/errors.js";
-
-/* ========= STATES ========= */
-
-export const interfaceDeletableDescriptorStates: DescriptorState[] = [
-  descriptorState.draft,
-];
-
-export const documentDeletableDescriptorStates: DescriptorState[] = [
-  descriptorState.draft,
-  descriptorState.deprecated,
-  descriptorState.published,
-  descriptorState.suspended,
-];
-
-/* ========= ASSERTIONS ========= */
 
 export function assertRequesterAllowed(
   producerId: TenantId,
@@ -121,15 +106,33 @@ export function assertRiskAnalysisIsValidForPublication(
 export function assertInterfaceDeletableDescriptorState(
   descriptor: Descriptor
 ): void {
-  if (!interfaceDeletableDescriptorStates.includes(descriptor.state)) {
-    throw notValidDescriptor(descriptor.id, descriptor.state);
-  }
+  match(descriptor.state)
+    .with(descriptorState.draft, () => void 0)
+    .with(
+      descriptorState.archived,
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => {
+        throw notValidDescriptor(descriptor.id, descriptor.state);
+      }
+    )
+    .exhaustive();
 }
 
 export function assertDocumentDeletableDescriptorState(
   descriptor: Descriptor
 ): void {
-  if (!documentDeletableDescriptorStates.includes(descriptor.state)) {
-    throw notValidDescriptor(descriptor.id, descriptor.state);
-  }
+  match(descriptor.state)
+    .with(
+      descriptorState.draft,
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => void 0
+    )
+    .with(descriptorState.archived, () => {
+      throw notValidDescriptor(descriptor.id, descriptor.state);
+    })
+    .exhaustive();
 }
