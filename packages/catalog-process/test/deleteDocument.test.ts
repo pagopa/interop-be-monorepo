@@ -20,6 +20,10 @@ import {
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
+  descriptorDocumentDeletableStates,
+  descriptorInterfaceDeletableStates,
+} from "../src/services/validators.js";
+import {
   fileManager,
   addOneEService,
   catalogService,
@@ -296,14 +300,45 @@ describe("delete Document", () => {
   });
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state === descriptorState.archived
+      (state) => !descriptorDocumentDeletableStates.includes(state)
     )
   )(
-    "should throw notValidDescriptor if the descriptor is in s% state",
+    "should throw notValidDescriptor we are trying to delete a document with descriptor in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
         docs: [mockDocument],
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+      expect(
+        catalogService.deleteDocument(
+          eservice.id,
+          descriptor.id,
+          mockDocument.id,
+          {
+            authData: getMockAuthData(eservice.producerId),
+            correlationId: generateId(),
+            serviceName: "",
+            logger: genericLogger,
+          }
+        )
+      ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
+    }
+  );
+  it.each(
+    Object.values(descriptorState).filter(
+      (state) => !descriptorInterfaceDeletableStates.includes(state)
+    )
+  )(
+    "should throw notValidDescriptor we are trying to delete an interface with descriptor in %s state",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(state),
+        interface: mockDocument,
       };
       const eservice: EService = {
         ...mockEService,

@@ -13,6 +13,7 @@ import {
   Tenant,
   TenantKind,
   Descriptor,
+  DescriptorState,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
@@ -23,7 +24,23 @@ import {
   draftDescriptorAlreadyExists,
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
+  notValidDescriptor,
 } from "../model/domain/errors.js";
+
+/* ========= STATES ========= */
+
+export const descriptorInterfaceDeletableStates: DescriptorState[] = [
+  descriptorState.draft,
+];
+
+export const descriptorDocumentDeletableStates: DescriptorState[] = [
+  descriptorState.draft,
+  descriptorState.deprecated,
+  descriptorState.published,
+  descriptorState.suspended,
+];
+
+/* ========= ASSERTIONS ========= */
 
 export function assertRequesterAllowed(
   producerId: TenantId,
@@ -99,4 +116,20 @@ export function assertRiskAnalysisIsValidForPublication(
       throw riskAnalysisNotValid();
     }
   });
+}
+
+export function assertInterfaceDeletableDescriptorState(
+  descriptor: Descriptor
+): void {
+  if (!descriptorInterfaceDeletableStates.includes(descriptor.state)) {
+    throw notValidDescriptor(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertDocumentDeletableDescriptorState(
+  descriptor: Descriptor
+): void {
+  if (!descriptorDocumentDeletableStates.includes(descriptor.state)) {
+    throw notValidDescriptor(descriptor.id, descriptor.state);
+  }
 }
