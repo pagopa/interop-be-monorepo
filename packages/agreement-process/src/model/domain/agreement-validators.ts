@@ -15,6 +15,7 @@ import {
   unsafeBrandId,
   TenantId,
   AgreementStamp,
+  AgreementStamps,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
@@ -410,10 +411,10 @@ export const matchingVerifiedAttributes = (
   ).map((id) => ({ id } as VerifiedAgreementAttribute));
 };
 
-export function assertStampExists<S extends keyof Agreement["stamps"]>(
-  stamps: Agreement["stamps"],
+export function assertStampExists<S extends keyof AgreementStamps>(
+  stamps: AgreementStamps,
   stamp: S
-): asserts stamps is Agreement["stamps"] & {
+): asserts stamps is AgreementStamps & {
   [key in S]: AgreementStamp;
 } {
   if (!stamps[stamp]) {

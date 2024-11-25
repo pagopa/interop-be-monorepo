@@ -28,13 +28,11 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { getVerifiedAttributeExpirationDate } from "pagopa-interop-agreement-lifecycle";
-import {
-  attributeNotFound,
-  descriptorNotFound,
-} from "../model/domain/errors.js";
+import { attributeNotFound } from "../model/domain/errors.js";
 import { AgreementProcessConfig } from "../config/config.js";
 import { assertStampExists } from "../model/domain/agreement-validators.js";
 import { ReadModelService } from "./readModelService.js";
+import { retrieveDescriptor } from "./agreementService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
@@ -152,13 +150,7 @@ const getPdfPayload = async (
     readModelService
   );
 
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === agreement.descriptorId
-  );
-
-  if (!descriptor) {
-    throw descriptorNotFound(eservice.id, agreement.descriptorId);
-  }
+  const descriptor = retrieveDescriptor(agreement.descriptorId, eservice);
 
   assertStampExists(agreement.stamps, "submission");
   assertStampExists(agreement.stamps, "activation");

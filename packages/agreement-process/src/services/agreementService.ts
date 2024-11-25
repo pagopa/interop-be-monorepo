@@ -169,7 +169,7 @@ export const retrieveTenant = async (
   return tenant;
 };
 
-const retrieveDescriptor = (
+export const retrieveDescriptor = (
   descriptorId: DescriptorId,
   eservice: EService
 ): Descriptor => {
