@@ -1,9 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/immutable-data */
+import { fileURLToPath } from "url";
+import path from "path";
 import { fail } from "assert";
 import {
+  dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
   genericLogger,
+  timeAtRomeZone,
 } from "pagopa-interop-commons";
 import { addDays, subDays } from "date-fns";
 import {
@@ -43,7 +47,7 @@ import {
   tenantMailKind,
   toAgreementStateV2,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { agreementSubmissionConflictingStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -66,6 +70,7 @@ import {
   addOneTenant,
   agreementService,
   fileManager,
+  pdfGenerator,
   readLastAgreementEvent,
 } from "./utils.js";
 
@@ -150,6 +155,16 @@ describe("submit agreement", () => {
       stream_id: relatedAgreements.nonArchivableRelatedAgreement.id,
     });
   }
+
+  const testDate = new Date();
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(testDate);
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
 
   it("should throw an agreementNotFound when Agreement not found", async () => {
     await addOneAgreement(getMockAgreement());
@@ -1026,8 +1041,8 @@ describe("submit agreement", () => {
   });
 
   it("should create a new agreement contract for first activation with new state ACTIVE when producer is equal to consumer, generates AgreementActivated event", async () => {
+    vi.spyOn(pdfGenerator, "generate");
     const producerAndConsumerId = generateId<TenantId>();
-    const producer = getMockTenant(producerAndConsumerId);
     const consumerNotesText = "This is a test";
 
     const validVerifiedTenantAttribute: TenantAttribute = {
@@ -1053,7 +1068,7 @@ describe("submit agreement", () => {
       revocationTimestamp: undefined,
     };
 
-    const consumer = {
+    const producerAndConsumer = {
       ...getMockTenant(producerAndConsumerId, [
         validVerifiedTenantAttribute,
         validCertifiedTenantAttribute,
@@ -1082,14 +1097,16 @@ describe("submit agreement", () => {
       },
     };
 
-    const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
-      descriptor,
-    ]);
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      producerAndConsumer.id,
+      [descriptor]
+    );
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getRandomAuthData(producerAndConsumer.id);
     const agreement: Agreement = {
-      ...getMockAgreement(eservice.id, consumer.id),
-      producerId: producer.id,
+      ...getMockAgreement(eservice.id, producerAndConsumer.id),
+      producerId: producerAndConsumer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
       suspendedByConsumer: randomBoolean(),
@@ -1101,7 +1118,7 @@ describe("submit agreement", () => {
       suspendedAt: new Date(),
     };
 
-    const validAttribute: Attribute = {
+    const verifiedAttribute: Attribute = {
       id: validVerifiedTenantAttribute.id,
       kind: attributeKind.verified,
       description: "A verified attribute",
@@ -1126,9 +1143,8 @@ describe("submit agreement", () => {
     };
 
     await addOneEService(eservice);
-    await addOneTenant(consumer);
-    await addOneTenant(producer);
-    await addOneAttribute(validAttribute);
+    await addOneTenant(producerAndConsumer);
+    await addOneAttribute(verifiedAttribute);
     await addOneAttribute(declaredAttribute);
     await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
@@ -1181,8 +1197,8 @@ describe("submit agreement", () => {
 
     const contractDocumentId = submittedAgreement.contract!.id;
     const contractCreatedAt = submittedAgreement.contract!.createdAt;
-    const contractDocumentName = `${consumer.id}_${
-      producer.id
+    const contractDocumentName = `${producerAndConsumer.id}_${
+      producerAndConsumer.id
     }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
 
     const expectedContract = {
@@ -1227,6 +1243,81 @@ describe("submit agreement", () => {
         },
       },
     };
+
+    expect(pdfGenerator.generate).toHaveBeenCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents/",
+        "agreementContractTemplate.html"
+      ),
+      {
+        todayDate: dateAtRomeZone(testDate),
+        todayTime: timeAtRomeZone(testDate),
+        agreementId: expectedAgreement.id,
+        submitterId: expectedAgreement.stamps.submission.who,
+        submissionDate: dateAtRomeZone(
+          expectedAgreement.stamps.submission.when!
+        ),
+        submissionTime: timeAtRomeZone(
+          expectedAgreement.stamps.submission.when!
+        ),
+        activatorId: expectedAgreement.stamps.activation.who,
+        activationDate: dateAtRomeZone(
+          expectedAgreement.stamps.activation.when!
+        ),
+        activationTime: timeAtRomeZone(
+          expectedAgreement.stamps.activation.when!
+        ),
+        eserviceId: eservice.id,
+        eserviceName: eservice.name,
+        descriptorId: eservice.descriptors[0].id,
+        descriptorVersion: eservice.descriptors[0].version,
+        producerName: producerAndConsumer.name,
+        producerIpaCode: producerAndConsumer.externalId.value,
+        consumerName: producerAndConsumer.name,
+        consumerIpaCode: producerAndConsumer.externalId.value,
+        certifiedAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              validCertifiedTenantAttribute.assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              validCertifiedTenantAttribute.assignmentTimestamp
+            ),
+            attributeName: certifiedAttribute.name,
+            attributeId: validCertifiedTenantAttribute.id,
+          },
+        ],
+        declaredAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              validDeclaredTenantAttribute.assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              validDeclaredTenantAttribute.assignmentTimestamp
+            ),
+            attributeName: declaredAttribute.name,
+            attributeId: validDeclaredTenantAttribute.id,
+          },
+        ],
+        verifiedAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              validVerifiedTenantAttribute.assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              validVerifiedTenantAttribute.assignmentTimestamp
+            ),
+            attributeName: verifiedAttribute.name,
+            attributeId: validVerifiedTenantAttribute.id,
+            expirationDate: dateAtRomeZone(
+              validVerifiedTenantAttribute.verifiedBy[0].expirationDate!
+            ),
+          },
+        ],
+      }
+    );
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)

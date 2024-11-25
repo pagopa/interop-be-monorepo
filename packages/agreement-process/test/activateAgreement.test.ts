@@ -1,9 +1,13 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { fileURLToPath } from "url";
+import path from "path";
 import {
+  dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
   genericLogger,
+  timeAtRomeZone,
 } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
@@ -44,7 +48,7 @@ import {
   fromAgreementV2,
   generateId,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { addDays } from "date-fns";
 import {
   agreementActivableStates,
@@ -71,6 +75,7 @@ import {
   addOneTenant,
   agreementService,
   fileManager,
+  pdfGenerator,
   readAgreementEventByVersion,
   readLastAgreementEvent,
 } from "./utils.js";
@@ -154,8 +159,19 @@ describe("activate agreement", () => {
     });
   }
 
+  const testDate = new Date();
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(testDate);
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   describe("Agreement Pending", () => {
     it("Agreement Pending, Requester === Producer, valid attributes -- success case: Pending >> Activated", async () => {
+      vi.spyOn(pdfGenerator, "generate");
       const producer: Tenant = getMockTenant();
 
       const certifiedAttribute: Attribute = {
@@ -319,6 +335,82 @@ describe("activate agreement", () => {
 
       expect(actualAgreementActivated).toMatchObject(
         expectedActivatedAgreement
+      );
+
+      expect(pdfGenerator.generate).toHaveBeenCalledWith(
+        path.resolve(
+          path.dirname(fileURLToPath(import.meta.url)),
+          "../src",
+          "resources/templates/documents/",
+          "agreementContractTemplate.html"
+        ),
+        {
+          todayDate: dateAtRomeZone(testDate),
+          todayTime: timeAtRomeZone(testDate),
+          agreementId: expectedActivatedAgreement.id,
+          submitterId: expectedActivatedAgreement.stamps.submission!.who,
+          submissionDate: dateAtRomeZone(
+            expectedActivatedAgreement.stamps.submission!.when
+          ),
+          submissionTime: timeAtRomeZone(
+            expectedActivatedAgreement.stamps.submission!.when
+          ),
+          activatorId: expectedActivatedAgreement.stamps.activation!.who,
+          activationDate: dateAtRomeZone(
+            expectedActivatedAgreement.stamps.activation!.when
+          ),
+          activationTime: timeAtRomeZone(
+            expectedActivatedAgreement.stamps.activation!.when
+          ),
+          eserviceId: eservice.id,
+          eserviceName: eservice.name,
+          descriptorId: eservice.descriptors[0].id,
+          descriptorVersion: eservice.descriptors[0].version,
+          producerName: producer.name,
+          producerIpaCode: producer.externalId.value,
+
+          consumerName: consumer.name,
+          consumerIpaCode: consumer.externalId.value,
+          certifiedAttributes: [
+            {
+              assignmentDate: dateAtRomeZone(
+                validTenantCertifiedAttribute.assignmentTimestamp
+              ),
+              assignmentTime: timeAtRomeZone(
+                validTenantCertifiedAttribute.assignmentTimestamp
+              ),
+              attributeName: certifiedAttribute.name,
+              attributeId: validTenantCertifiedAttribute.id,
+            },
+          ],
+          declaredAttributes: [
+            {
+              assignmentDate: dateAtRomeZone(
+                validTenantDeclaredAttribute.assignmentTimestamp
+              ),
+              assignmentTime: timeAtRomeZone(
+                validTenantDeclaredAttribute.assignmentTimestamp
+              ),
+              attributeName: declaredAttribute.name,
+              attributeId: validTenantDeclaredAttribute.id,
+            },
+          ],
+          verifiedAttributes: [
+            {
+              assignmentDate: dateAtRomeZone(
+                validTenantVerifiedAttribute.assignmentTimestamp
+              ),
+              assignmentTime: timeAtRomeZone(
+                validTenantVerifiedAttribute.assignmentTimestamp
+              ),
+              attributeName: verifiedAttribute.name,
+              attributeId: validTenantVerifiedAttribute.id,
+              expirationDate: dateAtRomeZone(
+                validTenantVerifiedAttribute.verifiedBy[0].extensionDate!
+              ),
+            },
+          ],
+        }
       );
 
       expect(
