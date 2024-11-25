@@ -427,11 +427,42 @@ describe("delete Document", () => {
         state === descriptorState.waitingForApproval
     )
   )(
-    "should throw notValidDescriptor if the descriptor is in s% state",
+    "should throw notValidDescriptor when trying to delete a document with descriptor in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
         docs: [mockDocument],
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+      expect(
+        catalogService.deleteDocument(
+          eservice.id,
+          descriptor.id,
+          mockDocument.id,
+          {
+            authData: getMockAuthData(eservice.producerId),
+            correlationId: generateId(),
+            serviceName: "",
+            logger: genericLogger,
+          }
+        )
+      ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
+    }
+  );
+  it.each(
+    Object.values(descriptorState).filter(
+      (state) => state !== descriptorState.draft
+    )
+  )(
+    "should throw notValidDescriptor when trying to delete an interface with descriptor in %s state",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(state),
+        interface: mockDocument,
       };
       const eservice: EService = {
         ...mockEService,

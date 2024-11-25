@@ -17,6 +17,7 @@ import {
   delegationState,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import {
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -26,6 +27,7 @@ import {
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
   eserviceWithActiveOrPendingDelegation,
+  notValidDescriptor,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -149,4 +151,40 @@ export function assertRiskAnalysisIsValidForPublication(
       throw riskAnalysisNotValid();
     }
   });
+}
+
+export function assertInterfaceDeletableDescriptorState(
+  descriptor: Descriptor
+): void {
+  match(descriptor.state)
+    .with(descriptorState.draft, () => void 0)
+    .with(
+      descriptorState.archived,
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      descriptorState.waitingForApproval,
+      () => {
+        throw notValidDescriptor(descriptor.id, descriptor.state);
+      }
+    )
+    .exhaustive();
+}
+
+export function assertDocumentDeletableDescriptorState(
+  descriptor: Descriptor
+): void {
+  match(descriptor.state)
+    .with(
+      descriptorState.draft,
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      descriptorState.waitingForApproval,
+      () => void 0
+    )
+    .with(descriptorState.archived, () => {
+      throw notValidDescriptor(descriptor.id, descriptor.state);
+    })
+    .exhaustive();
 }
