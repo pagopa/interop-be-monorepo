@@ -169,6 +169,49 @@ export function delegationConsumerServiceBuilder(
         )
       );
     },
+    async rejectConsumerDelegation(
+      delegationId: DelegationId,
+      rejectionReason: string,
+      { logger, correlationId, authData }: WithLogger<AppContext>
+    ): Promise<void> {
+      const delegateId = unsafeBrandId<TenantId>(authData.organizationId);
+
+      logger.info(
+        `Rejecting delegation ${delegationId} by delegate ${delegateId}`
+      );
+
+      const { data: delegation, metadata } = await retrieveDelegationById(
+        readModelService,
+        delegationId
+      );
+
+      assertIsDelegate(delegation, delegateId);
+      assertIsState(delegationState.waitingForApproval, delegation);
+
+      const now = new Date();
+
+      await repository.createEvent(
+        toCreateEventConsumerDelegationApproved(
+          {
+            data: {
+              ...delegation,
+              state: delegationState.rejected,
+              rejectedAt: now,
+              rejectionReason,
+              stamps: {
+                ...delegation.stamps,
+                rejection: {
+                  who: delegateId,
+                  when: now,
+                },
+              },
+            },
+            metadata,
+          },
+          correlationId
+        )
+      );
+    },
   };
 }
 

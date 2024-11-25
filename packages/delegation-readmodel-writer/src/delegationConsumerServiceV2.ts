@@ -17,6 +17,7 @@ export async function handleMessageV2(
       { type: "ProducerDelegationSubmitted" },
       { type: "ConsumerDelegationSubmitted" },
       { type: "ConsumerDelegationApproved" },
+      { type: "ConsumerDelegationRejected" },
       async (message) => {
         const delegation = message.data.delegation;
         await delegations.updateOne(
