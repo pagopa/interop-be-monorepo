@@ -16,7 +16,7 @@ import {
   getMockAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
-  getMockDelegationProducer,
+  getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
@@ -41,6 +41,7 @@ import {
   TenantId,
   agreementState,
   attributeKind,
+  delegationKind,
   delegationState,
   descriptorState,
   fromAgreementV2,
@@ -662,7 +663,8 @@ describe("upgrade Agreement", () => {
     };
     await addOneEService(eservice);
 
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       state: delegationState.active,
       eserviceId: eservice.id,
       delegateId: delegate.id,

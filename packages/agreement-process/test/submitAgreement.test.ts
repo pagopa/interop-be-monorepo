@@ -12,7 +12,7 @@ import {
   getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
-  getMockDelegationProducer,
+  getMockDelegation,
   getMockDescriptor,
   getMockEService,
   getMockEServiceAttribute,
@@ -40,6 +40,7 @@ import {
   agreementApprovalPolicy,
   agreementState,
   attributeKind,
+  delegationKind,
   delegationState,
   descriptorState,
   fromAgreementV2,
@@ -1826,7 +1827,8 @@ describe("submit agreement", () => {
     };
 
     const delegate = getMockTenant(generateId<TenantId>());
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       state: delegationState.active,
       delegatorId: producer.id,
       delegateId: delegate.id,
