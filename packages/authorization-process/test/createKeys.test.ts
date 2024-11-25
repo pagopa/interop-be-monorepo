@@ -80,10 +80,10 @@ describe("createKeys", () => {
 
   function mockSelfcareV2ClientCall(
     value: Awaited<
-      ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
+      ReturnType<typeof selfcareV2Client.getInstitutionUsersByProductUsingGET>
     >
   ): void {
-    selfcareV2Client.getInstitutionProductUsersUsingGET = vi.fn(
+    selfcareV2Client.getInstitutionUsersByProductUsingGET = vi.fn(
       async () => value
     );
   }
@@ -104,7 +104,7 @@ describe("createKeys", () => {
       origin: "",
     },
     userId,
-    userRoles: [],
+    userRoles: ["admin"],
   };
 
   const mockClient: Client = {
@@ -174,6 +174,7 @@ describe("createKeys", () => {
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
+
     const notConsumerClient: Client = {
       ...getMockClient(),
       consumerId: generateId(),
@@ -195,6 +196,12 @@ describe("createKeys", () => {
     );
   });
   it("should throw userWithoutSecurityPrivileges if the Security user is not found", async () => {
+
+    const authData: AuthData = {
+      ...mockAuthData,
+      userRoles: []
+    }
+
     await addOneClient(mockClient);
 
     mockSelfcareV2ClientCall([]);
@@ -202,7 +209,7 @@ describe("createKeys", () => {
     expect(
       authorizationService.createKeys({
         clientId: mockClient.id,
-        authData: mockAuthData,
+        authData: authData,
         keysSeeds,
         correlationId: generateId(),
         logger: genericLogger,

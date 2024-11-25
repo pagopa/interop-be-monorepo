@@ -19,32 +19,37 @@ export const toBffApiCompactUser = (
     }));
 
 export const toApiSelfcareInstitution = (
-  input: selfcareV2ClientApi.InstitutionResource
+  input: selfcareV2ClientApi.UserInstitutionResource
 ): bffApi.SelfcareInstitution =>
   match(input)
     .with(
       {
         id: P.nonNullable,
-        description: P.nonNullable,
-        userProductRoles: P.nonNullable,
+        institutionDescription: P.nonNullable,
+        products: P.array(P.nonNullable),
       },
       (institution) => ({
         id: institution.id,
-        description: institution.description,
-        userProductRoles: institution.userProductRoles,
+        description: institution.institutionDescription,
+        userProductRoles: institution.products.flatMap((product) =>
+          product.role ? [product.role] : []
+        ),
       })
     )
     .with({ id: P.nullish }, () => {
-      throw selfcareEntityNotFilled("InstitutionResource", "id");
+      throw selfcareEntityNotFilled("UserInstitutionResource", "id");
     })
-    .with({ description: P.nullish }, () => {
-      throw selfcareEntityNotFilled("InstitutionResource", "description");
+    .with({ institutionDescription: P.nullish }, () => {
+      throw selfcareEntityNotFilled(
+        "UserInstitutionResource",
+        "institutionDescription"
+      );
     })
-    .with({ userProductRoles: P.nullish }, () => {
-      throw selfcareEntityNotFilled("InstitutionResource", "userProductRoles");
+    .with({ products: P.nullish }, () => {
+      throw selfcareEntityNotFilled("UserInstitutionResource", "products");
     })
     .otherwise(() => {
-      throw selfcareEntityNotFilled("InstitutionResource", "unkown");
+      throw selfcareEntityNotFilled("UserInstitutionResource", "unknown");
     });
 
 export const toApiSelfcareProduct = (
@@ -55,11 +60,11 @@ export const toApiSelfcareProduct = (
       id: product.id,
       name: product.title,
     }))
-    .with({ id: P.nullish }, () => {
-      throw selfcareEntityNotFilled("ProductResource", "id");
+    .with(P.nullish, (id) => {
+      throw selfcareEntityNotFilled("ProductResource", `${id}`);
     })
-    .with({ title: P.nullish }, () => {
-      throw selfcareEntityNotFilled("ProductResource", "title");
+    .with(P.nullish, (title) => {
+      throw selfcareEntityNotFilled("ProductResource", `${title}`);
     })
     .otherwise(() => {
       throw selfcareEntityNotFilled("ProductResource", "unknown");

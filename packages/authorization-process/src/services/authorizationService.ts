@@ -518,6 +518,7 @@ export function authorizationServiceBuilder(
             selfcareV2InstitutionClient,
             userIdToCheck: userId,
             correlationId,
+            roles: authData.userRoles,
           })
         )
       );
@@ -676,6 +677,7 @@ export function authorizationServiceBuilder(
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
         correlationId,
+        roles: authData.userRoles,
       });
 
       if (keysSeeds.length !== 1) {
@@ -936,6 +938,7 @@ export function authorizationServiceBuilder(
             userIdToCheck: userId,
             selfcareV2InstitutionClient,
             correlationId,
+            roles: authData.userRoles,
           })
         )
       );
@@ -1056,6 +1059,7 @@ export function authorizationServiceBuilder(
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
         correlationId,
+        roles: authData.userRoles,
       });
 
       const jwk = createJWK(keySeed.key);

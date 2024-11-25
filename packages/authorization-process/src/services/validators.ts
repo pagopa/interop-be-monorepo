@@ -1,4 +1,4 @@
-import { userRoles } from "pagopa-interop-commons";
+import { UserRole, userRoles } from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
@@ -31,6 +31,7 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareV2InstitutionClient,
   userIdToCheck,
   correlationId,
+  roles,
 }: {
   selfcareId: string;
   requesterUserId: UserId;
@@ -38,22 +39,39 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   userIdToCheck: UserId;
   correlationId: CorrelationId;
+  roles: UserRole[];
 }): Promise<void> => {
-  const users =
-    await selfcareV2InstitutionClient.getInstitutionProductUsersUsingGET({
-      params: { institutionId: selfcareId },
-      queries: {
-        userIdForAuth: requesterUserId,
-        userId: userIdToCheck,
-        productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
-      },
-      headers: {
-        "X-Correlation-Id": correlationId,
-      },
-    });
-  if (users.length === 0) {
+
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const role = () => {
+    if (roles.includes(userRoles.ADMIN_ROLE)) {
+      return userRoles.ADMIN_ROLE;
+    }
+    if (roles.includes(userRoles.SECURITY_ROLE)) {
+      return userRoles.SECURITY_ROLE;
+    } 
     throw userWithoutSecurityPrivileges(consumerId, requesterUserId);
-  }
+  };
+
+  await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
+    params: { institutionId: selfcareId },
+    queries: {
+      userId: userIdToCheck,
+      productRoles: role(), // At this point productRoles is a string and not a string[], which is why I preferred to bring the value out
+    },
+    headers: {
+      "X-Correlation-Id": correlationId,
+    },
+  });
+
+  /*
+    In my opinion, it would be better to move this error inside role() 
+    so that if the roles are not the pre-established ones, 
+    it doesn't make the call to selfcare but goes straight to error
+    */
+  // if (users.length === 0) {
+  //   throw userWithoutSecurityPrivileges(consumerId, requesterUserId);
+  // }
 };
 
 export const assertOrganizationIsClientConsumer = (

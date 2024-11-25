@@ -77,10 +77,10 @@ describe("createProducerKeychainKey", () => {
 
   function mockSelfcareV2ClientCall(
     value: Awaited<
-      ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
+      ReturnType<typeof selfcareV2Client.getInstitutionUsersByProductUsingGET>
     >
   ): void {
-    selfcareV2Client.getInstitutionProductUsersUsingGET = vi.fn(
+    selfcareV2Client.getInstitutionUsersByProductUsingGET = vi.fn(
       async () => value
     );
   }
@@ -101,7 +101,7 @@ describe("createProducerKeychainKey", () => {
       origin: "",
     },
     userId,
-    userRoles: [],
+    userRoles: ["admin"],
   };
 
   const mockProducerKeychain: ProducerKeychain = {
@@ -200,6 +200,12 @@ describe("createProducerKeychainKey", () => {
     );
   });
   it("should throw userWithoutSecurityPrivileges if the Security user is not found", async () => {
+
+    const authData: AuthData = {
+      ...mockAuthData,
+      userRoles: []
+    }
+
     await addOneProducerKeychain(mockProducerKeychain);
 
     mockSelfcareV2ClientCall([]);
@@ -207,7 +213,7 @@ describe("createProducerKeychainKey", () => {
     expect(
       authorizationService.createProducerKeychainKey({
         producerKeychainId: mockProducerKeychain.id,
-        authData: mockAuthData,
+        authData: authData,
         keySeed,
         correlationId: generateId(),
         logger: genericLogger,
