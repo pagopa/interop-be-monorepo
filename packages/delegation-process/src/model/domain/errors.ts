@@ -160,7 +160,7 @@ export function delegationContractNotFound(
   contractId: DelegationContractId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegation ${delegationId} contract ${contractId} not found`,
+    detail: `Contract ${contractId} of delegation ${delegationId} not found`,
     code: "delegationContractNotFound",
     title: "Delegation contract not found",
   });
