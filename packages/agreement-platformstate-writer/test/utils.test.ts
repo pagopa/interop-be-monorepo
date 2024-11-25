@@ -442,6 +442,7 @@ describe("utils", async () => {
 
   describe("updateAgreementStateAndDescriptorInfoOnTokenStates", async () => {
     it("should do nothing if previous entry doesn't exist", async () => {
+      const agreementId = generateId<AgreementId>();
       const eserviceId = generateId<EServiceId>();
       const descriptorId = generateId<DescriptorId>();
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
@@ -473,6 +474,7 @@ describe("utils", async () => {
       expect(
         updateAgreementStateAndDescriptorInfoOnTokenStates({
           GSIPK_consumerId_eserviceId,
+          agreementId,
           agreementState: agreementState.archived,
           dynamoDBClient,
           GSIPK_eserviceId_descriptorId,
@@ -486,6 +488,7 @@ describe("utils", async () => {
     });
 
     it("should update state if previous entries exist", async () => {
+      const agreementId = generateId<AgreementId>();
       const eserviceId = generateId<EServiceId>();
       const descriptorId = generateId<DescriptorId>();
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
@@ -548,6 +551,7 @@ describe("utils", async () => {
       );
       await updateAgreementStateAndDescriptorInfoOnTokenStates({
         GSIPK_consumerId_eserviceId,
+        agreementId,
         agreementState: agreementState.active,
         dynamoDBClient,
         GSIPK_eserviceId_descriptorId,
@@ -560,6 +564,8 @@ describe("utils", async () => {
         );
       const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry1,
+        GSIPK_eserviceId_descriptorId,
+        agreementId,
         agreementState: itemState.active,
         updatedAt: new Date().toISOString(),
         descriptorState: catalogEntry.state,
@@ -568,6 +574,8 @@ describe("utils", async () => {
       };
       const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry2,
+        GSIPK_eserviceId_descriptorId,
+        agreementId,
         agreementState: itemState.active,
         updatedAt: new Date().toISOString(),
         descriptorState: catalogEntry.state,

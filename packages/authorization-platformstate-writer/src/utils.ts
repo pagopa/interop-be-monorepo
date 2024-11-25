@@ -843,12 +843,12 @@ export const setClientPurposeIdsInPlatformStatesEntry = async (
       ":newVersion": {
         N: version.toString(),
       },
-      ":newUpdateAt": {
+      ":newUpdatedAt": {
         S: new Date().toISOString(),
       },
     },
     UpdateExpression:
-      "SET clientPurposesIds = :clientPurposesIds, updatedAt = :newUpdateAt, version = :newVersion",
+      "SET clientPurposesIds = :clientPurposesIds, updatedAt = :newUpdatedAt, version = :newVersion",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
   };
@@ -1135,7 +1135,7 @@ const convertToExpressionAttributeValues = (
 
   return {
     ...expressionAttributeValues,
-    ":newUpdateAt": { S: new Date().toISOString() },
+    ":newUpdatedAt": { S: new Date().toISOString() },
   };
 };
 
@@ -1152,7 +1152,7 @@ const generateUpdateItemInputData = (
     .map((key) => `${key} = :${key}`)
     .join(", ");
 
-  const updateExpression = `SET updatedAt = :newUpdateAt, ${updateExpressionTmp}`;
+  const updateExpression = `SET updatedAt = :newUpdatedAt, ${updateExpressionTmp}`;
 
   return {
     updateExpression,

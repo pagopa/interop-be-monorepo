@@ -32,6 +32,7 @@ import {
   generateId,
   itemState,
   makeGSIPKConsumerIdEServiceId,
+  makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesAgreementPK,
   makePlatformStatesEServiceDescriptorPK,
   makeTokenGenerationStatesClientKidPurposePK,
@@ -50,7 +51,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { readAgreementEntry, writeAgreementEntry } from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { config, sleep } from "./utils.js";
+import { config } from "./utils.js";
 
 describe("integration tests V2 events", async () => {
   if (!config) {
@@ -142,7 +143,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       // platform-states
@@ -214,6 +214,7 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         agreementState: itemState.inactive,
         GSIPK_consumerId_eserviceId,
+        GSIPK_eserviceId_descriptorId: undefined,
       };
       await writeTokenStatesConsumerClient(
         previousTokenStateEntry1,
@@ -229,13 +230,13 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         agreementState: itemState.inactive,
         GSIPK_consumerId_eserviceId,
+        GSIPK_eserviceId_descriptorId: undefined,
       };
       await writeTokenStatesConsumerClient(
         previousTokenStateEntry2,
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       // platform-states
@@ -252,6 +253,10 @@ describe("integration tests V2 events", async () => {
       expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);
 
       // token-generation-states
+      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: agreement.eserviceId,
+        descriptorId: agreement.descriptorId,
+      });
       const retrievedTokenStateEntries =
         await readTokenStatesEntriesByGSIPKConsumerIdEServiceId(
           GSIPK_consumerId_eserviceId,
@@ -259,12 +264,16 @@ describe("integration tests V2 events", async () => {
         );
       const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry1,
+        agreementId: agreement.id,
         agreementState: itemState.active,
+        GSIPK_eserviceId_descriptorId,
         updatedAt: new Date().toISOString(),
       };
       const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry2,
+        agreementId: agreement.id,
         agreementState: itemState.active,
+        GSIPK_eserviceId_descriptorId,
         updatedAt: new Date().toISOString(),
       };
 
@@ -317,6 +326,7 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         agreementState: itemState.inactive,
         GSIPK_consumerId_eserviceId,
+        GSIPK_eserviceId_descriptorId: undefined,
       };
       await writeTokenStatesConsumerClient(
         previousTokenStateEntry1,
@@ -332,13 +342,13 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         agreementState: itemState.inactive,
         GSIPK_consumerId_eserviceId,
+        GSIPK_eserviceId_descriptorId: undefined,
       };
       await writeTokenStatesConsumerClient(
         previousTokenStateEntry2,
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       // platform-states
@@ -363,6 +373,10 @@ describe("integration tests V2 events", async () => {
       expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);
 
       // token-generation-states
+      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: agreement.eserviceId,
+        descriptorId: agreement.descriptorId,
+      });
       const retrievedTokenStateEntries =
         await readTokenStatesEntriesByGSIPKConsumerIdEServiceId(
           GSIPK_consumerId_eserviceId,
@@ -370,11 +384,15 @@ describe("integration tests V2 events", async () => {
         );
       const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry1,
+        GSIPK_eserviceId_descriptorId,
+        agreementId: agreement.id,
         agreementState: itemState.active,
         updatedAt: new Date().toISOString(),
       };
       const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry2,
+        GSIPK_eserviceId_descriptorId,
+        agreementId: agreement.id,
         agreementState: itemState.active,
         updatedAt: new Date().toISOString(),
       };
@@ -471,7 +489,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       // platform-states
@@ -496,6 +513,10 @@ describe("integration tests V2 events", async () => {
       expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);
 
       // token-generation-states
+      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: agreement.eserviceId,
+        descriptorId: agreement.descriptorId,
+      });
       const retrievedTokenStateEntries =
         await readTokenStatesEntriesByGSIPKConsumerIdEServiceId(
           GSIPK_consumerId_eserviceId,
@@ -503,6 +524,8 @@ describe("integration tests V2 events", async () => {
         );
       const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry1,
+        GSIPK_eserviceId_descriptorId,
+        agreementId: agreement.id,
         agreementState: itemState.active,
         descriptorState: catalogEntry.state,
         descriptorAudience: catalogEntry.descriptorAudience,
@@ -511,6 +534,8 @@ describe("integration tests V2 events", async () => {
       };
       const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry2,
+        GSIPK_eserviceId_descriptorId,
+        agreementId: agreement.id,
         agreementState: itemState.active,
         descriptorState: catalogEntry.state,
         descriptorAudience: catalogEntry.descriptorAudience,
@@ -645,7 +670,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       // platform-states
@@ -712,7 +736,6 @@ describe("integration tests V2 events", async () => {
         agreement.id
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const retrievedAgreementEntry = await readAgreementEntry(
@@ -830,7 +853,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
@@ -968,7 +990,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
@@ -1037,7 +1058,6 @@ describe("integration tests V2 events", async () => {
         agreement.id
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const retrievedAgreementEntry = await readAgreementEntry(
@@ -1155,7 +1175,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
@@ -1293,7 +1312,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
@@ -1362,7 +1380,6 @@ describe("integration tests V2 events", async () => {
         agreement.id
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const retrievedAgreementEntry = await readAgreementEntry(
@@ -1480,7 +1497,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
@@ -1618,7 +1634,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
@@ -1687,7 +1702,6 @@ describe("integration tests V2 events", async () => {
         agreement.id
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const retrievedAgreementEntry = await readAgreementEntry(
@@ -1805,7 +1819,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
@@ -1943,7 +1956,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
@@ -2013,7 +2025,6 @@ describe("integration tests V2 events", async () => {
         agreement.id
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const retrievedAgreementEntry = await readAgreementEntry(
@@ -2131,7 +2142,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
@@ -2269,7 +2279,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
@@ -2394,7 +2403,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       // platform-states
@@ -2518,6 +2526,7 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         agreementId: previousAgreement.id,
         agreementState: itemState.inactive,
+        GSIPK_eserviceId_descriptorId: undefined,
         GSIPK_consumerId_eserviceId,
       };
       await writeTokenStatesConsumerClient(
@@ -2534,6 +2543,7 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         agreementId: previousAgreement.id,
         agreementState: itemState.inactive,
+        GSIPK_eserviceId_descriptorId: undefined,
         GSIPK_consumerId_eserviceId,
       };
       await writeTokenStatesConsumerClient(
@@ -2541,7 +2551,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const retrievedEntry = await readAgreementEntry(
@@ -2557,6 +2566,10 @@ describe("integration tests V2 events", async () => {
       expect(retrievedEntry).toEqual(expectedAgreementEntry);
 
       // token-generation-states
+      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId,
+        descriptorId: latestAgreement.descriptorId,
+      });
       const retrievedTokenStateEntries =
         await readTokenStatesEntriesByGSIPKConsumerIdEServiceId(
           GSIPK_consumerId_eserviceId,
@@ -2565,11 +2578,15 @@ describe("integration tests V2 events", async () => {
 
       const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry1,
+        GSIPK_eserviceId_descriptorId,
+        agreementId: latestAgreement.id,
         agreementState: itemState.active,
         updatedAt: new Date().toISOString(),
       };
       const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry2,
+        GSIPK_eserviceId_descriptorId,
+        agreementId: latestAgreement.id,
         agreementState: itemState.active,
         updatedAt: new Date().toISOString(),
       };
@@ -2704,7 +2721,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const retrievedEntry = await readAgreementEntry(
@@ -2789,6 +2805,10 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenStatesConsumerClient(tokenStateEntryPK1),
         agreementState: itemState.active,
         GSIPK_consumerId_eserviceId,
+        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+          eserviceId: agreement.eserviceId,
+          descriptorId: generateId(),
+        }),
       };
       await writeTokenStatesConsumerClient(
         previousTokenStateEntry1,
@@ -2804,13 +2824,16 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenStatesConsumerClient(tokenStateEntryPK2),
         agreementState: itemState.active,
         GSIPK_consumerId_eserviceId,
+        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+          eserviceId: agreement.eserviceId,
+          descriptorId: generateId(),
+        }),
       };
       await writeTokenStatesConsumerClient(
         previousTokenStateEntry2,
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       // platform-states
@@ -2835,17 +2858,33 @@ describe("integration tests V2 events", async () => {
       expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);
 
       // token-generation-states
+      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: agreement.eserviceId,
+        descriptorId: agreement.descriptorId,
+      });
       const retrievedTokenStateEntries =
         await readTokenStatesEntriesByGSIPKConsumerIdEServiceId(
           GSIPK_consumerId_eserviceId,
           dynamoDBClient
         );
+      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
+        ...previousTokenStateEntry1,
+        GSIPK_eserviceId_descriptorId,
+        agreementId: agreement.id,
+        updatedAt: new Date().toISOString(),
+      };
+      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
+        ...previousTokenStateEntry2,
+        GSIPK_eserviceId_descriptorId,
+        agreementId: agreement.id,
+        updatedAt: new Date().toISOString(),
+      };
 
       expect(retrievedTokenStateEntries).toHaveLength(2);
       expect(retrievedTokenStateEntries).toEqual(
         expect.arrayContaining([
-          previousTokenStateEntry1,
-          previousTokenStateEntry2,
+          expectedTokenStateEntry1,
+          expectedTokenStateEntry2,
         ])
       );
     });
@@ -2934,7 +2973,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const retrievedEntry = await readAgreementEntry(
@@ -3066,7 +3104,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const retrievedEntry = await readAgreementEntry(
@@ -3205,7 +3242,6 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       const retrievedEntry = await readAgreementEntry(

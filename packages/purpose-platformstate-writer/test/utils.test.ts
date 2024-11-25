@@ -731,17 +731,23 @@ describe("utils tests", async () => {
         newPurposeVersionId
       );
 
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: purpose.consumerId,
+        eserviceId: purpose.eserviceId,
+      });
       const retrievedTokenStateEntries =
         await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
 
       const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry1,
+        GSIPK_consumerId_eserviceId,
         purposeState: itemState.active,
         purposeVersionId: newPurposeVersionId,
         updatedAt: new Date().toISOString(),
       };
       const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry2,
+        GSIPK_consumerId_eserviceId,
         purposeState: itemState.active,
         purposeVersionId: newPurposeVersionId,
         updatedAt: new Date().toISOString(),
@@ -831,10 +837,15 @@ describe("utils tests", async () => {
         newPurposeVersionId
       );
 
+      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: purpose.eserviceId,
+        descriptorId: mockDescriptor.id,
+      });
       const retrievedTokenStateEntries =
         await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
       const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry1,
+        GSIPK_eserviceId_descriptorId,
         purposeState: itemState.active,
         purposeVersionId: newPurposeVersionId,
         GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
@@ -843,6 +854,7 @@ describe("utils tests", async () => {
       };
       const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
         ...previousTokenStateEntry2,
+        GSIPK_eserviceId_descriptorId,
         purposeState: itemState.active,
         purposeVersionId: newPurposeVersionId,
         GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
@@ -989,7 +1001,7 @@ describe("utils tests", async () => {
       );
     });
 
-    it("should update entries with purpose state, version id, agreement and descriptor data if platform agreement and descriptor entry exist", async () => {
+    it("should update entries with purpose state, version id, agreement and descriptor data if platform agreement and descriptor entries exist", async () => {
       const purpose: Purpose = {
         ...getMockPurpose(),
         versions: [getMockPurposeVersion()],
