@@ -14,6 +14,7 @@ import {
   attributeKind,
   Agreement,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -23,7 +24,7 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockTenant,
-  getMockDelegationProducer,
+  getMockDelegation,
 } from "pagopa-interop-commons-test";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
@@ -89,7 +90,8 @@ describe("verifyVerifiedAttribute", async () => {
     agreementId: agreementEservice1.id,
   };
 
-  const delegation = getMockDelegationProducer({
+  const delegation = getMockDelegation({
+    kind: delegationKind.delegatedProducer,
     eserviceId: eService1.id,
     delegateId: requesterTenant.id,
     state: delegationState.active,

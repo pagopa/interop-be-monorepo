@@ -11,6 +11,7 @@ import {
   TenantVerifiedAttributeRevokedV2,
   Agreement,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -20,7 +21,7 @@ import {
   getMockDescriptor,
   getMockTenant,
   getMockEService,
-  getMockDelegationProducer,
+  getMockDelegation,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -75,7 +76,8 @@ describe("revokeVerifiedAttribute", async () => {
     consumerId: targetTenant.id,
   });
 
-  const delegation = getMockDelegationProducer({
+  const delegation = getMockDelegation({
+    kind: delegationKind.delegatedProducer,
     eserviceId: eService.id,
     delegateId: revokerTenant.id,
     state: delegationState.active,
