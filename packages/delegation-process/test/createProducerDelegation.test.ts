@@ -137,7 +137,7 @@ describe("create producer delegation", () => {
       submittedAt: currentExecutionTime,
       stamps: {
         submission: {
-          who: delegatorId,
+          who: authData.userId,
           when: currentExecutionTime,
         },
       },
@@ -216,7 +216,7 @@ describe("create producer delegation", () => {
         submittedAt: currentExecutionTime,
         stamps: {
           submission: {
-            who: delegatorId,
+            who: authData.userId,
             when: currentExecutionTime,
           },
         },

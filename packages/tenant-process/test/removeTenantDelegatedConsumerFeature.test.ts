@@ -4,7 +4,7 @@ import {
   Tenant,
   protobufDecoder,
   toTenantV2,
-  TenantDelegatedProducerFeatureAddedV2,
+  TenantDelegatedConsumerFeatureRemovedV2,
   TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
@@ -12,13 +12,13 @@ import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
 import {
-  tenantAlreadyHasFeature,
+  tenantDoesNotHaveFeature,
   tenantIsNotIPA,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
-describe("assignTenantDelegatedProducerFeature", async () => {
+describe("removeTenantDelegatedConsumerFeature", async () => {
   beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -28,13 +28,21 @@ describe("assignTenantDelegatedProducerFeature", async () => {
     vi.useRealTimers();
   });
 
-  it("Should correctly assign the feature", async () => {
-    const mockTenant = getMockTenant();
+  it("Should correctly remove the feature", async () => {
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "DelegatedConsumer",
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
     await addOneTenant(mockTenant);
-    await tenantService.assignTenantDelegatedProducerFeature({
+    await tenantService.removeTenantDelegatedConsumerFeature({
       organizationId: mockTenant.id,
       correlationId: generateId(),
-      authData: getMockAuthData(),
+      authData: getMockAuthData(mockTenant.id),
       logger: genericLogger,
     });
     const writtenEvent = await readLastEventByStreamId(
@@ -46,57 +54,26 @@ describe("assignTenantDelegatedProducerFeature", async () => {
     expect(writtenEvent).toMatchObject({
       stream_id: mockTenant.id,
       version: "1",
-      type: "TenantDelegatedProducerFeatureAdded",
+      type: "TenantDelegatedConsumerFeatureRemoved",
       event_version: 2,
     });
 
-    const writtenPayload: TenantDelegatedProducerFeatureAddedV2 | undefined =
-      protobufDecoder(TenantDelegatedProducerFeatureAddedV2).parse(
+    const writtenPayload: TenantDelegatedConsumerFeatureRemovedV2 | undefined =
+      protobufDecoder(TenantDelegatedConsumerFeatureRemovedV2).parse(
         writtenEvent.data
       );
 
     const updatedTenant: Tenant = {
       ...mockTenant,
-      features: [
-        ...mockTenant.features,
-        {
-          type: "DelegatedProducer",
-          availabilityTimestamp: new Date(),
-        },
-      ],
+      features: [],
       updatedAt: new Date(),
     };
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
-
-  it("Should throw tenantAlreadyHasDelegatedProducerFeature if the requester tenant already has the delegated producer feature", async () => {
-    const tenant: Tenant = {
-      ...getMockTenant(),
-      features: [
-        {
-          type: "DelegatedProducer",
-          availabilityTimestamp: new Date(),
-        },
-      ],
-    };
-
-    await addOneTenant(tenant);
-
-    expect(
-      tenantService.assignTenantDelegatedProducerFeature({
-        organizationId: tenant.id,
-        correlationId: generateId(),
-        authData: getMockAuthData(),
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      tenantAlreadyHasFeature(tenant.id, "DelegatedProducer")
-    );
-  });
   it("Should throw tenantNotFound if the requester tenant doesn't exist", async () => {
     const organizationId = generateId<TenantId>();
     expect(
-      tenantService.assignTenantDelegatedProducerFeature({
+      tenantService.removeTenantDelegatedConsumerFeature({
         organizationId,
         correlationId: generateId(),
         authData: getMockAuthData(),
@@ -104,13 +81,39 @@ describe("assignTenantDelegatedProducerFeature", async () => {
       })
     ).rejects.toThrowError(tenantNotFound(organizationId));
   });
-  it("Should throw tenantIsNotIPA if the requester tenant is not a public administration", async () => {
-    const tenant = getMockTenant();
+  it("Should throw tenantDoesNotHaveFeature if the requester tenant doesn't have the delegated consumer feature", async () => {
+    const tenant: Tenant = {
+      ...getMockTenant(),
+      features: [],
+    };
 
     await addOneTenant(tenant);
 
     expect(
-      tenantService.assignTenantDelegatedProducerFeature({
+      tenantService.removeTenantDelegatedConsumerFeature({
+        organizationId: tenant.id,
+        correlationId: generateId(),
+        authData: getMockAuthData(tenant.id),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      tenantDoesNotHaveFeature(tenant.id, "DelegatedConsumer")
+    );
+  });
+  it("Should throw tenantIsNotIPA if the requester tenant is not a public administration", async () => {
+    const tenant: Tenant = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "DelegatedConsumer",
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
+    await addOneTenant(tenant);
+
+    expect(
+      tenantService.removeTenantDelegatedConsumerFeature({
         organizationId: tenant.id,
         correlationId: generateId(),
         authData: {

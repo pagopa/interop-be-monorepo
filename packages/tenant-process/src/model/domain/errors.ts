@@ -2,6 +2,7 @@ import {
   ApiError,
   AttributeId,
   EServiceId,
+  TenantFeature,
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
@@ -13,7 +14,7 @@ export const errorCodes = {
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
   tenantNotFoundBySelfcareId: "0006",
-  operationForbidden: "0007",
+  tenantIsNotIPA: "0007",
   selfcareIdConflict: "0008",
   verifiedAttributeNotFoundInTenant: "0009",
   expirationDateCannotBeInThePast: "0010",
@@ -33,8 +34,8 @@ export const errorCodes = {
   certifierWithExistingAttributes: "0024",
   attributeNotFoundInTenant: "0025",
   tenantNotFoundByExternalId: "0026",
-  tenantAlreadyHasDelegatedProducerFeature: "0027",
-  tenantHasNoDelegatedProducerFeature: "0028",
+  tenantAlreadyHasFeature: "0027",
+  tenantDoesNotHaveFeature: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -295,22 +296,32 @@ export function attributeNotFoundInTenant(
   });
 }
 
-export function tenantAlreadyHasDelegatedProducerFeature(
-  tenantId: TenantId
+export function tenantAlreadyHasFeature(
+  tenantId: TenantId,
+  featureType: TenantFeature["type"]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId} already has delegated producer feature assigned`,
-    code: "tenantAlreadyHasDelegatedProducerFeature",
+    detail: `Tenant ${tenantId} already has ${featureType} feature assigned`,
+    code: "tenantAlreadyHasFeature",
     title: "Feature already assigned",
   });
 }
 
-export function tenantHasNoDelegatedProducerFeature(
-  tenantId: TenantId
+export function tenantDoesNotHaveFeature(
+  tenantId: TenantId,
+  featureType: TenantFeature["type"]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId} has no delegated producer feature assigned`,
-    code: "tenantHasNoDelegatedProducerFeature",
+    detail: `Tenant ${tenantId} doesn't have ${featureType} feature assigned`,
+    code: "tenantDoesNotHaveFeature",
     title: "Feature not assigned",
+  });
+}
+
+export function tenantIsNotIPA(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} does not have IPA origin`,
+    code: "tenantIsNotIPA",
+    title: "Tenant is not an IPA",
   });
 }

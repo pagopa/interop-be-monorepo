@@ -7,6 +7,7 @@ import {
   DelegationState,
   DelegationKind,
   Tenant,
+  DelegationId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -18,8 +19,8 @@ export const errorCodes = {
   invalidDelegatorAndDelegateIds: "0005",
   tenantIsNotIPAError: "0006",
   tenantNotAllowedToDelegation: "0007",
-  delegationNotRevokable: "0008",
-  operationNotAllowOnDelegation: "0009",
+  stampNotFound: "0008",
+  operationRestrictedToDelegator: "0009",
   operationRestrictedToDelegate: "0010",
   incorrectState: "0011",
   differentEserviceProducer: "0012",
@@ -29,7 +30,9 @@ export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
-export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
+export function delegationNotFound(
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Delegation ${delegationId} not found`,
     code: "delegationNotFound",
@@ -38,9 +41,9 @@ export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
 }
 
 export function delegationAlreadyExists(
-  delegatorId: string,
-  eserviceId: string,
-  delegationKind: string
+  delegatorId: TenantId,
+  eserviceId: EServiceId,
+  delegationKind: DelegationKind
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Delegation type ${delegationKind} already exists for EService ${eserviceId} by delegator ${delegatorId}`,
@@ -89,7 +92,7 @@ export function tenantIsNotIPAError(
 }
 
 export function tenantNotAllowedToDelegation(
-  tenantId: string,
+  tenantId: TenantId,
   kind: DelegationKind
 ): ApiError<ErrorCodes> {
   return new ApiError({
@@ -99,29 +102,9 @@ export function tenantNotAllowedToDelegation(
   });
 }
 
-export function delegationNotRevokable(
-  delegation: Delegation
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Delegation ${delegation.id} is not revokable. State: ${delegation.state}`,
-    code: "delegationNotRevokable",
-    title: "Delegation not revokable",
-  });
-}
-
-export function delegatorNotAllowToRevoke(
-  delegation: Delegation
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Requester ${delegation.id} is not delegator for the current delegation with id ${delegation.id}`,
-    code: "operationNotAllowOnDelegation",
-    title: "Requester and delegator are differents",
-  });
-}
-
 export function operationRestrictedToDelegate(
-  tenantId: string,
-  delegationId: string
+  tenantId: TenantId,
+  delegationId: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} is not a delegate for delegation ${delegationId}`,
@@ -130,24 +113,47 @@ export function operationRestrictedToDelegate(
   });
 }
 
-export function incorrectState(
-  delegationId: string,
-  actualState: DelegationState,
-  expectedState: DelegationState
+export function operationRestrictedToDelegator(
+  tenantId: TenantId,
+  delegationId: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegation ${delegationId} is in state ${actualState} but expected ${expectedState}`,
+    detail: `Tenant ${tenantId} is not a delegator for delegation ${delegationId}`,
+    code: "operationRestrictedToDelegator",
+    title: "Operation restricted to delegator",
+  });
+}
+
+export function incorrectState(
+  delegationId: DelegationId,
+  actualState: DelegationState,
+  expected: DelegationState | DelegationState[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} is in state ${actualState} but expected ${
+      Array.isArray(expected) ? expected.join(",") : expected
+    }`,
     code: "incorrectState",
     title: "Incorrect state",
   });
 }
 
 export function differentEServiceProducer(
-  requesterId: string
+  requesterId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Eservice producer if different from requester with id ${requesterId}`,
     code: "differentEserviceProducer",
     title: "Operation not allowed",
+  });
+}
+
+export function delegationStampNotFound(
+  stamp: keyof Delegation["stamps"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${stamp} stamp not found`,
+    code: "stampNotFound",
+    title: "Stamp not found",
   });
 }
