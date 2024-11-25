@@ -148,7 +148,7 @@ describe("create producer delegation", () => {
   });
 
   it.each(inactiveDelegationStates)(
-    "should create a delegation the same delegation exists and is in state %s",
+    "should create a new delegation if the same delegation exists and is in state %s",
     async (inactiveDelegationState) => {
       const currentExecutionTime = new Date();
       vi.useFakeTimers();
@@ -223,6 +223,8 @@ describe("create producer delegation", () => {
       };
 
       await expectedDelegationCreation(actualDelegation, expectedDelegation);
+      expect(actualDelegation.id).not.toEqual(existentDelegation.id);
+
       vi.useRealTimers();
     }
   );
