@@ -554,7 +554,7 @@ describe("authorization server tests", () => {
     const correlationId = generateId();
     const response = await tokenService.generateToken(
       request,
-      correlationId,
+      unsafeBrandId(correlationId),
       genericLogger
     );
 
@@ -684,7 +684,7 @@ describe("authorization server tests", () => {
     const correlationId = generateId();
     const result = await tokenService.generateToken(
       request,
-      correlationId,
+      unsafeBrandId(correlationId),
       genericLogger
     );
 
