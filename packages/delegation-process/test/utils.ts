@@ -24,6 +24,7 @@ import {
   launchPuppeteerBrowser,
 } from "pagopa-interop-commons";
 import puppeteer, { Browser } from "puppeteer";
+import { PDFDocument } from "pdf-lib";
 import { delegationProducerServiceBuilder } from "../src/services/delegationProducerService.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
