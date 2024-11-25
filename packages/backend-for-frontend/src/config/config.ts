@@ -102,9 +102,11 @@ export type AuthorizationProcessServerConfig = z.infer<
 export const DelegationProcessServerConfig = z
   .object({
     DELEGATION_PROCESS_URL: APIEndpoint,
+    DELEGATION_CONTRACTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     delegationProcessUrl: c.DELEGATION_PROCESS_URL,
+    delegationContractsContainer: c.DELEGATION_CONTRACTS_CONTAINER,
   }));
 export type DelegationProcessServerConfig = z.infer<
   typeof DelegationProcessServerConfig
