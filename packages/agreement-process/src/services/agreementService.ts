@@ -416,11 +416,13 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const activeDelegation = await retrieveActiveDelegationByEserviceId(
-        agreement.data.eserviceId,
-        readModelService
-      );
-      const delegateId = activeDelegation?.data.delegateId;
+      const activeDelegation = (
+        await retrieveActiveDelegationByEserviceId(
+          agreement.data.eserviceId,
+          readModelService
+        )
+      )?.data;
+      const delegateId = activeDelegation?.delegateId;
 
       const nextStateByAttributes = nextStateByAttributesFSM(
         agreement.data,
@@ -502,13 +504,6 @@ export function agreementServiceBuilder(
       const isFirstActivation =
         updatedAgreement.state === agreementState.active &&
         !hasRelatedAgreements;
-
-      const activeDelegation = (
-        await retrieveActiveDelegationByEserviceId(
-          agreement.data.eserviceId,
-          readModelService
-        )
-      )?.data;
 
       const submittedAgreement = await addContractOnFirstActivation(
         isFirstActivation,
