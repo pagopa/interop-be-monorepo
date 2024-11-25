@@ -29,11 +29,11 @@ import {
 
 /* ========= STATES ========= */
 
-export const descriptorInterfaceDeletableStates: DescriptorState[] = [
+export const interfaceDeletableDescriptorStates: DescriptorState[] = [
   descriptorState.draft,
 ];
 
-export const descriptorDocumentDeletableStates: DescriptorState[] = [
+export const documentDeletableDescriptorStates: DescriptorState[] = [
   descriptorState.draft,
   descriptorState.deprecated,
   descriptorState.published,
@@ -121,7 +121,7 @@ export function assertRiskAnalysisIsValidForPublication(
 export function assertInterfaceDeletableDescriptorState(
   descriptor: Descriptor
 ): void {
-  if (!descriptorInterfaceDeletableStates.includes(descriptor.state)) {
+  if (!interfaceDeletableDescriptorStates.includes(descriptor.state)) {
     throw notValidDescriptor(descriptor.id, descriptor.state);
   }
 }
@@ -129,7 +129,7 @@ export function assertInterfaceDeletableDescriptorState(
 export function assertDocumentDeletableDescriptorState(
   descriptor: Descriptor
 ): void {
-  if (!descriptorDocumentDeletableStates.includes(descriptor.state)) {
+  if (!documentDeletableDescriptorStates.includes(descriptor.state)) {
     throw notValidDescriptor(descriptor.id, descriptor.state);
   }
 }

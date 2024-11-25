@@ -20,8 +20,8 @@ import {
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
-  descriptorDocumentDeletableStates,
-  descriptorInterfaceDeletableStates,
+  documentDeletableDescriptorStates,
+  interfaceDeletableDescriptorStates,
 } from "../src/services/validators.js";
 import {
   fileManager,
@@ -300,7 +300,7 @@ describe("delete Document", () => {
   });
   it.each(
     Object.values(descriptorState).filter(
-      (state) => !descriptorDocumentDeletableStates.includes(state)
+      (state) => !documentDeletableDescriptorStates.includes(state)
     )
   )(
     "should throw notValidDescriptor we are trying to delete a document with descriptor in %s state",
@@ -331,7 +331,7 @@ describe("delete Document", () => {
   );
   it.each(
     Object.values(descriptorState).filter(
-      (state) => !descriptorInterfaceDeletableStates.includes(state)
+      (state) => !interfaceDeletableDescriptorStates.includes(state)
     )
   )(
     "should throw notValidDescriptor we are trying to delete an interface with descriptor in %s state",
