@@ -70,6 +70,7 @@ import {
   DelegationKind,
   unsafeBrandId,
   UserId,
+  clientKidPurposePrefix,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -425,7 +426,9 @@ export const getMockDelegationDocument = (
 });
 
 export const getMockTokenStatesConsumerClient = (
-  tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
+  tokenStateEntryPK?:
+    | TokenGenerationStatesClientKidPurposePK
+    | TokenGenerationStatesClientKidPK
 ): TokenGenerationStatesConsumerClient => {
   const clientId = tokenStateEntryPK
     ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
@@ -438,41 +441,61 @@ export const getMockTokenStatesConsumerClient = (
   const purposeVersionId = generateId<PurposeVersionId>();
   const kid = `kid ${Math.random()}`;
 
-  return {
-    PK:
-      tokenStateEntryPK ||
-      makeTokenGenerationStatesClientKidPurposePK({
+  if (
+    TokenGenerationStatesClientKidPurposePK.safeParse(tokenStateEntryPK).success
+  ) {
+    return {
+      PK:
+        tokenStateEntryPK ||
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId,
+          kid,
+          purposeId,
+        }),
+      descriptorState: itemState.active,
+      descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+      descriptorVoucherLifespan: 60,
+      updatedAt: new Date().toISOString(),
+      consumerId,
+      agreementId,
+      purposeVersionId,
+      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      }),
+      clientKind: clientKindTokenStates.consumer,
+      publicKey: "PEM",
+      GSIPK_clientId: clientId,
+      GSIPK_kid: makeGSIPKKid(kid),
+      agreementState: itemState.active,
+      GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+        eserviceId,
+        descriptorId,
+      }),
+      GSIPK_purposeId: purposeId,
+      purposeState: itemState.active,
+      GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
         clientId,
-        kid,
         purposeId,
       }),
-    descriptorState: itemState.active,
-    descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-    descriptorVoucherLifespan: 60,
-    updatedAt: new Date().toISOString(),
-    consumerId,
-    agreementId,
-    purposeVersionId,
-    GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+    };
+  } else {
+    return {
+      PK:
+        tokenStateEntryPK ||
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId,
+          kid,
+          purposeId,
+        }),
+      updatedAt: new Date().toISOString(),
       consumerId,
-      eserviceId,
-    }),
-    clientKind: clientKindTokenStates.consumer,
-    publicKey: "PEM",
-    GSIPK_clientId: clientId,
-    GSIPK_kid: makeGSIPKKid(kid),
-    agreementState: itemState.active,
-    GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-      eserviceId,
-      descriptorId,
-    }),
-    GSIPK_purposeId: purposeId,
-    purposeState: itemState.active,
-    GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-      clientId,
-      purposeId,
-    }),
-  };
+      clientKind: clientKindTokenStates.consumer,
+      publicKey: "PEM",
+      GSIPK_clientId: clientId,
+      GSIPK_kid: makeGSIPKKid(kid),
+    };
+  }
 };
 
 export const getMockPlatformStatesAgreementEntry = (

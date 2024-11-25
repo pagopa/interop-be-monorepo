@@ -468,8 +468,8 @@ describe("utils", () => {
 
     const GSIPK_clientId = clientId;
 
-    const clientKidEntry: TokenGenerationStatesApiClient = {
-      ...getMockTokenStatesClientEntry(pk1),
+    const clientKidEntry: TokenGenerationStatesConsumerClient = {
+      ...getMockTokenStatesConsumerClient(pk1),
       GSIPK_clientId,
     };
 
@@ -478,7 +478,7 @@ describe("utils", () => {
       GSIPK_clientId,
     };
 
-    await writeTokenStatesApiClient(clientKidEntry, dynamoDBClient);
+    await writeTokenStatesConsumerClient(clientKidEntry, dynamoDBClient);
     await writeTokenStatesConsumerClient(clientKidPurposeEntry, dynamoDBClient);
 
     const res = await readConsumerClientEntriesInTokenGenerationStates(
