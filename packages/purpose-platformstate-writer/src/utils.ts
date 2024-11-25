@@ -205,7 +205,7 @@ export const updatePurposeDataInPlatformStatesEntry = async ({
       ":newVersion": {
         N: version.toString(),
       },
-      ":newUpdateAt": {
+      ":newUpdatedAt": {
         S: new Date().toISOString(),
       },
     },
@@ -213,7 +213,7 @@ export const updatePurposeDataInPlatformStatesEntry = async ({
       "#state": "state",
     },
     UpdateExpression:
-      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt, purposeVersionId = :newPurposeVersionId",
+      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdatedAt, purposeVersionId = :newPurposeVersionId",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
   };
@@ -261,50 +261,47 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
       const tokenEntryPK = entry.PK;
       const isAgreementMissingInTokenTable =
         platformAgreementEntry &&
-        (!entry.GSIPK_consumerId_eserviceId ||
-          !entry.agreementId ||
-          !entry.agreementState);
+        (!entry.agreementId ||
+          !entry.agreementState ||
+          !entry.GSIPK_eserviceId_descriptorId);
 
       // Agreement data from platform-states
       const agreementExpressionAttributeValues: Record<string, AttributeValue> =
         isAgreementMissingInTokenTable
           ? {
-              ":GSIPK_consumerId_eserviceId": {
-                S: platformAgreementEntry.GSIPK_consumerId_eserviceId,
-              },
               ":agreementId": {
                 S: extractAgreementIdFromAgreementPK(platformAgreementEntry.PK),
               },
               ":agreementState": {
                 S: platformAgreementEntry.state,
               },
+              ":GSIPK_eserviceId_descriptorId": {
+                S: makeGSIPKEServiceIdDescriptorId({
+                  eserviceId: purpose.eserviceId,
+                  descriptorId: platformAgreementEntry.agreementDescriptorId,
+                }),
+              },
             }
           : {};
       const agreementUpdateExpression = isAgreementMissingInTokenTable
-        ? `, GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId, 
-      agreementId = :agreementId, 
-      agreementState = :agreementState`
+        ? `, agreementId = :agreementId, 
+      agreementState = :agreementState, 
+      GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId`
         : "";
 
       // Descriptor data from platform-states
       const isDescriptorDataMissingInTokenTable =
         platformAgreementEntry &&
         catalogEntry &&
-        (!entry.GSIPK_eserviceId_descriptorId ||
-          !entry.descriptorAudience ||
-          !entry.descriptorState);
+        (!entry.descriptorAudience ||
+          !entry.descriptorState ||
+          !entry.descriptorVoucherLifespan);
 
       const descriptorExpressionAttributeValues: Record<
         string,
         AttributeValue
       > = isDescriptorDataMissingInTokenTable
         ? {
-            ":GSIPK_eserviceId_descriptorId": {
-              S: makeGSIPKEServiceIdDescriptorId({
-                eserviceId: purpose.eserviceId,
-                descriptorId: platformAgreementEntry.agreementDescriptorId,
-              }),
-            },
             ":descriptorState": {
               S: catalogEntry.state,
             },
@@ -318,15 +315,14 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
             },
           }
         : {};
-      const descriptorUpdateExpression = catalogEntry
-        ? `, GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId, 
-        descriptorState = :descriptorState, 
+      const descriptorUpdateExpression = isDescriptorDataMissingInTokenTable
+        ? `, descriptorState = :descriptorState, 
         descriptorAudience = :descriptorAudience, 
         descriptorVoucherLifespan = :descriptorVoucherLifespan`
         : "";
 
       const input: UpdateItemInput = {
-        ConditionExpression: "attribute_exists(GSIPK_purposeId)",
+        ConditionExpression: "attribute_exists(PK)",
         Key: {
           PK: {
             S: tokenEntryPK,
@@ -341,12 +337,18 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
           ":newPurposeVersionId": {
             S: purposeVersionId,
           },
-          ":newUpdateAt": {
+          ":GSIPK_consumerId_eserviceId": {
+            S: makeGSIPKConsumerIdEServiceId({
+              consumerId: purpose.consumerId,
+              eserviceId: purpose.eserviceId,
+            }),
+          },
+          ":newUpdatedAt": {
             S: new Date().toISOString(),
           },
         },
         UpdateExpression:
-          "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, updatedAt = :newUpdateAt" +
+          "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId, updatedAt = :newUpdatedAt" +
           agreementUpdateExpression +
           descriptorUpdateExpression,
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
@@ -401,7 +403,7 @@ export const updatePurposeDataInTokenEntries = async ({
 
     for (const entry of result.tokenStateEntries) {
       const input: UpdateItemInput = {
-        ConditionExpression: "attribute_exists(GSIPK_purposeId)",
+        ConditionExpression: "attribute_exists(PK)",
         Key: {
           PK: {
             S: entry.PK,
@@ -414,12 +416,12 @@ export const updatePurposeDataInTokenEntries = async ({
           ":newPurposeVersionId": {
             S: purposeVersionId,
           },
-          ":newUpdateAt": {
+          ":newUpdatedAt": {
             S: new Date().toISOString(),
           },
         },
         UpdateExpression:
-          "SET purposeState = :newState, updatedAt = :newUpdateAt, purposeVersionId = :newPurposeVersionId",
+          "SET purposeState = :newState, updatedAt = :newUpdatedAt, purposeVersionId = :newPurposeVersionId",
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
         ReturnValues: "NONE",
       };
