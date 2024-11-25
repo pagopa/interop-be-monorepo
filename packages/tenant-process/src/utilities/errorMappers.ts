@@ -254,6 +254,9 @@ export const removeTenantDelegatedProducerFeatureErrorMapper = (
     .with("tenantDoesNotHaveFeature", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const assignTenantDelegatedConsumerFeatureErrorMapper =
+  assignTenantDelegatedProducerFeatureErrorMapper;
+
 export const removeTenantDelegatedConsumerFeatureErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

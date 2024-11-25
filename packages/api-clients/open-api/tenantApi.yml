@@ -1041,6 +1041,26 @@ paths:
   /tenants/delegatedConsumer:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      tags:
+        - tenant
+      summary: Assign delegated consumer feature to tenant caller
+      operationId: assignTenantDelegatedConsumerFeature
+      responses:
+        "204":
+          description: Delegated consumer feature assigned
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Feature already assigned to tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     delete:
       tags:
         - tenant

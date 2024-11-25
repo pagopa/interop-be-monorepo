@@ -28,6 +28,7 @@ import {
   TenantDelegatedProducerFeatureAddedV2,
   TenantDelegatedProducerFeatureRemovedV2,
   MaintenanceTenantUpdatedV2,
+  TenantDelegatedConsumerFeatureAddedV2,
   TenantDelegatedConsumerFeatureRemovedV2,
 } from "../gen/v2/tenant/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
@@ -121,6 +122,9 @@ export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
     )
     .with({ type: "TenantDelegatedProducerFeatureRemoved" }, ({ data }) =>
       TenantDelegatedProducerFeatureRemovedV2.toBinary(data)
+    )
+    .with({ type: "TenantDelegatedConsumerFeatureAdded" }, ({ data }) =>
+      TenantDelegatedConsumerFeatureAddedV2.toBinary(data)
     )
     .with({ type: "TenantDelegatedConsumerFeatureRemoved" }, ({ data }) =>
       TenantDelegatedConsumerFeatureRemovedV2.toBinary(data)
@@ -258,6 +262,11 @@ export const TenantEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("TenantDelegatedProducerFeatureRemoved"),
     data: protobufDecoder(TenantDelegatedProducerFeatureRemovedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("TenantDelegatedConsumerFeatureAdded"),
+    data: protobufDecoder(TenantDelegatedConsumerFeatureAddedV2),
   }),
   z.object({
     event_version: z.literal(2),

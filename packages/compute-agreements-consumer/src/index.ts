@@ -98,6 +98,7 @@ async function processMessage({
           "MaintenanceTenantPromotedToCertifier",
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
+          "TenantDelegatedConsumerFeatureAdded",
           "TenantDelegatedConsumerFeatureRemoved"
         ),
       },

@@ -55,6 +55,7 @@ import {
   toCreateEventTenantDelegatedProducerFeatureAdded,
   toCreateEventTenantDelegatedProducerFeatureRemoved,
   toCreateEventTenantDelegatedConsumerFeatureRemoved,
+  toCreateEventTenantDelegatedConsumerFeatureAdded,
 } from "../model/domain/toEvent.js";
 import {
   attributeAlreadyRevoked,
@@ -1706,6 +1707,41 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         toCreateEventTenantDelegatedProducerFeatureRemoved(
+          requesterTenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+    },
+    async assignTenantDelegatedConsumerFeature({
+      authData,
+      correlationId,
+      logger,
+    }: WithLogger<AppContext>): Promise<void> {
+      logger.info(
+        `Assigning delegated consumer feature to tenant ${authData.organizationId}`
+      );
+
+      assertRequesterIPAOrigin(authData);
+
+      const requesterTenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+
+      assertFeatureNotAssigned(requesterTenant.data, "DelegatedConsumer");
+
+      const updatedTenant: Tenant = {
+        ...requesterTenant.data,
+        features: [
+          ...requesterTenant.data.features,
+          { type: "DelegatedConsumer", availabilityTimestamp: new Date() },
+        ],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantDelegatedConsumerFeatureAdded(
           requesterTenant.metadata.version,
           updatedTenant,
           correlationId

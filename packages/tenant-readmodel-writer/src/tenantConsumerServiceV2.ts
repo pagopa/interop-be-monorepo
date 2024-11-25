@@ -37,6 +37,7 @@ export async function handleMessageV2(
       { type: "TenantKindUpdated" },
       { type: "TenantDelegatedProducerFeatureAdded" },
       { type: "TenantDelegatedProducerFeatureRemoved" },
+      { type: "TenantDelegatedConsumerFeatureAdded" },
       { type: "TenantDelegatedConsumerFeatureRemoved" },
       async (message) =>
         await tenants.updateOne(
