@@ -3,7 +3,7 @@
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
-  getMockTokenStatesClientEntry,
+  getMockTokenStatesApiClient,
   getMockTokenStatesConsumerClient,
   writeTokenStatesApiClient,
   writeTokenStatesConsumerClient,
@@ -101,7 +101,7 @@ describe("unit tests", () => {
       });
 
       const tokenClientEntry1: TokenGenerationStatesApiClient =
-        getMockTokenStatesClientEntry(tokenClientKidPK1);
+        getMockTokenStatesApiClient(tokenClientKidPK1);
 
       await writeTokenStatesApiClient(tokenClientEntry1, dynamoDBClient);
 
@@ -178,7 +178,7 @@ describe("unit tests", () => {
       });
 
       const tokenClientEntry: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK),
+        ...getMockTokenStatesApiClient(tokenClientKidPK),
         clientKind: clientKindTokenStates.consumer,
       };
 
@@ -200,7 +200,7 @@ describe("unit tests", () => {
       });
 
       const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesClientEntry(tokenClientKidPK),
+        ...getMockTokenStatesApiClient(tokenClientKidPK),
         clientKind: clientKindTokenStates.api,
       };
 
