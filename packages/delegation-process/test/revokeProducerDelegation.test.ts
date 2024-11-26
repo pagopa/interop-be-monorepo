@@ -211,7 +211,7 @@ describe("revoke producer delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationProducerService.approveProducerDelegation(delegation.id, {
+      delegationProducerService.revokeProducerDelegation(delegation.id, {
         authData: getRandomAuthData(delegate.id),
         serviceName: "",
         correlationId: generateId(),

@@ -103,13 +103,19 @@ describe("reject producer delegation", () => {
     });
     await addOneDelegation(delegation);
 
+    const rejectionReason = "I don't like computers, please send me a pigeon";
+
     await expect(
-      delegationProducerService.approveProducerDelegation(delegation.id, {
-        authData: getRandomAuthData(delegate.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      delegationProducerService.rejectProducerDelegation(
+        delegation.id,
+        rejectionReason,
+        {
+          authData: getRandomAuthData(delegate.id),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrow(
       invalidDelegationKind(delegation, delegationKind.delegatedProducer)
     );
