@@ -35,6 +35,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import { isAxiosError } from "axios";
+import { getVerifiedAttributeExpirationDate } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementMissingUserInfo,
   agreementSelfcareIdNotFound,
@@ -338,26 +339,6 @@ const getPdfPayload = async (
     }),
   };
 };
-
-function getVerifiedAttributeExpirationDate(
-  tenantAttribute: VerifiedTenantAttribute,
-  producerId: TenantId
-): Date | undefined {
-  const activeProducerVerification = tenantAttribute.verifiedBy
-    .filter((verification) => verification.id === producerId)
-    .sort((a, b) => a.verificationDate.getTime() - b.verificationDate.getTime())
-    .find(
-      (verification) =>
-        !tenantAttribute.revokedBy.find(
-          (revocation) => revocation.id === verification.id
-        )
-    );
-
-  return (
-    activeProducerVerification?.extensionDate ??
-    activeProducerVerification?.expirationDate
-  );
-}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const contractBuilder = (

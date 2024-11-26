@@ -10,7 +10,7 @@ import {
 } from "pagopa-interop-models";
 
 export const filterVerifiedAttributes = (
-  producerId: TenantId,
+  verifiedId: TenantId,
   tenantAttributes: TenantAttribute[]
 ): VerifiedTenantAttribute[] =>
   tenantAttributes.filter(
@@ -18,7 +18,7 @@ export const filterVerifiedAttributes = (
       att.type === tenantAttributeType.VERIFIED &&
       att.verifiedBy.find(
         (v) =>
-          v.id === producerId &&
+          v.id === verifiedId &&
           !att.revokedBy.find((revocation) => revocation.id === v.id) &&
           ((!v.extensionDate && !v.expirationDate) ||
             (v.extensionDate &&
