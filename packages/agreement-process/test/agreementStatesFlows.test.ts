@@ -29,8 +29,7 @@ import {
   toReadModelEService,
   toReadModelTenant,
 } from "pagopa-interop-models";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { addDays, subDays } from "date-fns";
 import {
   addOneAttribute,
@@ -39,24 +38,10 @@ import {
   agreementService,
   agreements,
   eservices,
-  selfcareV2ClientMock,
   tenants,
 } from "./utils.js";
 
 describe("Agreeement states flows", () => {
-  const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
-    email: "test@test.com",
-    name: "Test Name",
-    surname: "Test Surname",
-    id: generateId(),
-    taxCode: "TSTTSTTSTTSTTSTT",
-  };
-  beforeEach(async () => {
-    selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-      async () => mockSelfcareUserResponse
-    );
-  });
-
   async function updateAgreementInReadModel(
     agreement: Agreement
   ): Promise<void> {

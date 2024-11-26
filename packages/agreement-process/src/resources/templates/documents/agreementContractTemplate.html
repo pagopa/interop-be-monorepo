@@ -46,13 +46,19 @@
       In data <strong>{{todayDate}}</strong> alle ore
       <strong>{{todayTime}}</strong>, l’Infrastruttura ha ricevuto la richiesta
       di fruizione contraddistinta da id <strong>{{agreementId}}</strong> (di
-      seguito “Richiesta di Fruizione”), inviata dall’aderente
-      <strong>{{consumerText}}</strong> (di seguito “Fruitore”), tramite
-      l’operatore amministrativo <strong>{{submitter}}</strong>, per l’E-service
-      <strong>{{eServiceName}}</strong> reso disponibile dall’aderente
-      <strong>{{producerText}}</strong>
-      (di seguito “Erogatore”) di cui il Fruitore soddisfa i seguenti requisiti
-      di fruizione per lo stesso previsti dall’Erogatore.
+      seguito “richiesta di fruizione”), inviata dall’aderente
+      <strong>{{consumerName}}</strong> {{#if consumerIpaCode}}(codice IPA:
+      <strong>{{consumerIpaCode}}</strong> — di seguito “fruitore”){{else}}(di
+      seguito “fruitore”){{/if}}, tramite l’operatore amministrativo con
+      identificativo Area Riservata <strong>{{submitterId}}</strong>, per
+      l’e-service <strong>{{eserviceName}}</strong>, contraddistinto da id
+      <strong>{{eserviceId}}</strong>, versione {{descriptorVersion}},
+      contraddistinta da id <strong>{{descriptorId}}</strong> (di seguito
+      “e-service”), reso disponibile dall’aderente
+      <strong>{{producerName}}</strong> {{#if producerIpaCode}}(codice IPA:
+      <strong>{{producerIpaCode}}</strong> — di seguito erogatore”){{else}}(di
+      seguito "erogatore”){{/if}} di cui il fruitore soddisfa i seguenti
+      requisiti di fruizione per lo stesso previsti dall’erogatore.
     </div>
     <div class="content">
       {{#if declaredAttributes}}
@@ -83,9 +89,9 @@
         la verifica dell'erogatore che il fruitore possegga l’attributo
         verificato <strong>{{this.attributeName}}</strong>, contraddistinto da
         id <strong>{{this.attributeId}}</strong>, {{#if this.expirationDate}} ed
-        avente scadenza il {{this.expirationDate}},{{/if}} necessario a
-        soddisfare il requisito di fruizione stabilito dall’erogatore per
-        l’accesso all’e-service.
+        avente scadenza il <strong>{{this.expirationDate}}</strong>,{{/if}}
+        necessario a soddisfare il requisito di fruizione stabilito
+        dall’erogatore per l’accesso all’e-service.
       </div>
 
       {{/each}} {{/if}} {{#if certifiedAttributes}}
@@ -110,27 +116,28 @@
       <div>
         In data <strong>{{submissionDate}}</strong> alle ore
         <strong>{{submissionTime}}</strong>, l’Infrastruttura ha trasmesso
-        all’Erogatore la Richiesta di Fruizione.
+        all’erogatore la richiesta di fruizione.
       </div>
 
       <div>
         In data <strong>{{activationDate}}</strong> alle ore
         <strong>{{activationTime}}</strong>, l’Infrastruttura ha ricevuto la
-        dichiarazione di accettazione della Richiesta di Fruizione (di seguito
-        “Dichiarazione Accettazione”) inviata dall’Erogatore, tramite
-        l’operatore amministrativo <strong>{{activator}}</strong>.
+        dichiarazione di accettazione della richiesta di fruizione (di seguito
+        “dichiarazione di accettazione”) inviata dall’erogatore, tramite
+        l’operatore amministrativo con identificativo Area Riservata
+        <strong>{{activatorId}}</strong>.
       </div>
 
       <div>
         In data <strong>{{activationDate}}</strong> alle ore
         <strong>{{activationTime}}</strong>, l’Infrastruttura ha comunicato al
-        Fruitore la Dichiarazione Accettazione inviata dall’Erogatore.
+        fruitore la dichiarazione di accettazione inviata dall’erogatore.
       </div>
 
       <div>
         In data <strong>{{activationDate}}</strong> alle ore
         <strong>{{activationTime}}</strong>, l’Infrastruttura ha registrato il
-        Fruitore quale soggetto titolato ad accedere all’E-service.
+        fruitore quale soggetto titolato ad accedere all’e-service.
       </div>
     </div>
   </body>
