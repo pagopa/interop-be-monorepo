@@ -24,7 +24,7 @@ import {
   verifyClientAssertion,
   verifyClientAssertionSignature,
 } from "../src/validation.js";
-import { validatePlatformState } from "../src/utils.js";
+import { validateAudience, validatePlatformState } from "../src/utils.js";
 import {
   algorithmNotAllowed,
   algorithmNotFound,
@@ -896,6 +896,140 @@ describe("validation test", async () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(2);
       expect(errors).toEqual([inactiveAgreement(), purposeIdNotProvided()]);
+    });
+  });
+
+  describe("validateAudience", () => {
+    describe("expectedAudience is a one item array", () => {
+      it("one item string", () => {
+        const input = "abc";
+        const expectedAudiences = ["abc"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("one item string, wrong", () => {
+        const input = "123";
+        const expectedAudiences = ["abc"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("undefined", () => {
+        const input = undefined;
+        const expectedAudiences = ["abc"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("two items string", () => {
+        const input = "abc, 123";
+        const expectedAudiences = ["abc"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("one item array", () => {
+        const input = ["abc"];
+        const expectedAudiences = ["abc"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("one item array, wrong", () => {
+        const input = ["123"];
+        const expectedAudiences = ["abc"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("two items array", () => {
+        const input = ["abc", "123"];
+        const expectedAudiences = ["abc"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+    });
+
+    describe("expectedAudience is a two items array", () => {
+      it("one item string", () => {
+        const input = "abc";
+        const expectedAudiences = ["abc", "123"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("one item string, wrong", () => {
+        const input = "123";
+        const expectedAudiences = ["abc", "123"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("undefined", () => {
+        const input = undefined;
+        const expectedAudiences = ["abc", "123"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("two items string", () => {
+        const input = "abc, 123";
+        const expectedAudiences = ["abc", "123"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("two items string, intersection", () => {
+        const input = "abc, 456";
+        const expectedAudiences = ["abc", "123"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("one item array", () => {
+        const input = ["abc"];
+        const expectedAudiences = ["abc", "123"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("one item array, wrong", () => {
+        const input = ["123"];
+        const expectedAudiences = ["abc", "123"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("two items array", () => {
+        const input = ["abc", "123"];
+        const expectedAudiences = ["abc", "123"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
+
+      it("two items array, intersection", () => {
+        const input = ["abc", "456"];
+        const expectedAudiences = ["abc", "123"];
+        validateAudience(input, expectedAudiences);
+
+        // TODO
+      });
     });
   });
 });
