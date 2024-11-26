@@ -9,7 +9,6 @@ import {
   VerifiedTenantAttribute,
   tenantAttributeType,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
 import { isVerificationRevoked } from "../utils/verifiedAttributes.js";
 
 export const filterVerifiedAttributes = (
@@ -18,25 +17,23 @@ export const filterVerifiedAttributes = (
 ): VerifiedTenantAttribute[] => {
   const now = new Date();
 
-  const isVerificationExpired = (verification: TenantVerifier): boolean =>
-    match(verification)
-      .with(
-        { extensionDate: P.nonNullable, expirationDate: P.nonNullable },
-        (v) => v.extensionDate <= now || v.expirationDate <= now
-      )
-      .with(
-        { extensionDate: P.nonNullable, expirationDate: P.nullish },
-        (v) => v.extensionDate <= now
-      )
-      .with(
-        { expirationDate: P.nonNullable, extensionDate: P.nullish },
-        (v) => v.expirationDate <= now
-      )
-      .with(
-        { expirationDate: P.nullish, extensionDate: P.nullish },
-        () => false
-      )
-      .exhaustive();
+  const isVerificationExpired = (verification: TenantVerifier): boolean => {
+    if (verification.extensionDate && verification.expirationDate) {
+      return (
+        verification.extensionDate <= now && verification.expirationDate <= now
+      );
+    }
+
+    if (verification.extensionDate) {
+      return verification.extensionDate <= now;
+    }
+
+    if (verification.expirationDate) {
+      return verification.expirationDate <= now;
+    }
+
+    return false;
+  };
 
   return tenantAttributes.filter(
     (att) =>

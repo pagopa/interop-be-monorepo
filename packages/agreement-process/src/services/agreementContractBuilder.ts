@@ -324,8 +324,8 @@ const getPdfPayload = async (
     })),
     verifiedAttributes: verified.map(({ attribute, tenantAttribute }) => {
       const expirationDate = getVerifiedAttributeExpirationDate(
-        tenantAttribute,
-        producer.id
+        producer.id,
+        tenantAttribute
       );
       return {
         assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),

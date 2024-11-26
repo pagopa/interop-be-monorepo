@@ -3,7 +3,6 @@ import {
   TenantVerifier,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
 
 export const isVerificationRevoked = (
   verifierId: TenantId,
@@ -25,28 +24,22 @@ export function getVerifiedAttributeExpirationDate(
         (verification) => !isVerificationRevoked(verification.id, attribute)
       );
 
+  if (!activeProducerVerification) {
+    return undefined;
+  }
+
+  if (
+    activeProducerVerification.extensionDate &&
+    activeProducerVerification.expirationDate
+  ) {
+    return activeProducerVerification.extensionDate >=
+      activeProducerVerification.expirationDate
+      ? activeProducerVerification.extensionDate
+      : activeProducerVerification.expirationDate;
+  }
+
   return (
-    activeProducerVerification &&
-    match(activeProducerVerification)
-      .with(
-        { extensionDate: P.nonNullable, expirationDate: P.nonNullable },
-        (v) =>
-          v.extensionDate >= v.expirationDate
-            ? v.expirationDate
-            : v.extensionDate
-      )
-      .with(
-        { extensionDate: P.nonNullable, expirationDate: P.nullish },
-        (v) => v.extensionDate
-      )
-      .with(
-        { expirationDate: P.nonNullable, extensionDate: P.nullish },
-        (v) => v.expirationDate
-      )
-      .with(
-        { expirationDate: P.nullish, extensionDate: P.nullish },
-        () => undefined
-      )
-      .exhaustive()
+    activeProducerVerification.extensionDate ??
+    activeProducerVerification.expirationDate
   );
 }

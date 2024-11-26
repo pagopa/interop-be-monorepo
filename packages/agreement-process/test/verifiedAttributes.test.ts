@@ -99,6 +99,22 @@ describe("verified attributes utilities", () => {
     revokedBy: mockRevokedBy,
   };
 
+  // Theoretically, this case should not happen.
+  const verifiedWithFutureExpirationAndExtensionSwapped: VerifiedTenantAttribute =
+    {
+      ...getMockVerifiedTenantAttribute(),
+      verifiedBy: [
+        ...mockVerifiedBy,
+        {
+          id: verifier.id,
+          verificationDate: new Date(),
+          expirationDate: addDays(new Date(), 40),
+          extensionDate: addDays(new Date(), 30),
+        },
+      ],
+      revokedBy: mockRevokedBy,
+    };
+
   const verifiedWithPastExpirationAndExtension: VerifiedTenantAttribute = {
     ...getMockVerifiedTenantAttribute(),
     verifiedBy: [
@@ -106,13 +122,30 @@ describe("verified attributes utilities", () => {
       {
         id: verifier.id,
         verificationDate: new Date(),
-        expirationDate: addDays(new Date(), -30),
-        extensionDate: addDays(new Date(), -40),
+        expirationDate: addDays(new Date(), -40),
+        extensionDate: addDays(new Date(), -30),
       },
     ],
     revokedBy: mockRevokedBy,
   };
 
+  // Theoretically, this case should not happen.
+  const verifiedWithPastExpirationAndExtensionSwapped: VerifiedTenantAttribute =
+    {
+      ...getMockVerifiedTenantAttribute(),
+      verifiedBy: [
+        ...mockVerifiedBy,
+        {
+          id: verifier.id,
+          verificationDate: new Date(),
+          expirationDate: addDays(new Date(), -30),
+          extensionDate: addDays(new Date(), -40),
+        },
+      ],
+      revokedBy: mockRevokedBy,
+    };
+
+  // Theoretically, this case should not happen.
   const verifiedWithFutureExpirationAndPastExtension: VerifiedTenantAttribute =
     {
       ...getMockVerifiedTenantAttribute(),
@@ -192,7 +225,9 @@ describe("verified attributes utilities", () => {
           verifiedWithFutureExtension,
           verifiedWithPastExtension,
           verifiedWithFutureExpirationAndExtension,
+          verifiedWithFutureExpirationAndExtensionSwapped,
           verifiedWithPastExpirationAndExtension,
+          verifiedWithPastExpirationAndExtensionSwapped,
           verifiedWithFutureExpirationAndPastExtension,
           verifiedWithPastExpirationAndFutureExtension,
           notVerified,
@@ -211,6 +246,8 @@ describe("verified attributes utilities", () => {
         verifiedWithFutureExpiration,
         verifiedWithFutureExtension,
         verifiedWithFutureExpirationAndExtension,
+        verifiedWithFutureExpirationAndExtensionSwapped,
+        verifiedWithFutureExpirationAndPastExtension,
         verifiedWithPastExpirationAndFutureExtension,
       ]);
     });
@@ -220,15 +257,15 @@ describe("verified attributes utilities", () => {
     it("should get the expiration date of verified attributes", () => {
       expect(
         getVerifiedAttributeExpirationDate(
-          verifiedWithoutExpiration,
-          verifier.id
+          verifier.id,
+          verifiedWithoutExpiration
         )
       ).toBeUndefined();
 
       expect(
         getVerifiedAttributeExpirationDate(
-          verifiedWithFutureExpiration,
-          verifier.id
+          verifier.id,
+          verifiedWithFutureExpiration
         )
       ).toEqual(
         verifiedWithFutureExpiration.verifiedBy.find(
@@ -238,8 +275,8 @@ describe("verified attributes utilities", () => {
 
       expect(
         getVerifiedAttributeExpirationDate(
-          verifiedWithPastExpiration,
-          verifier.id
+          verifier.id,
+          verifiedWithPastExpiration
         )
       ).toEqual(
         verifiedWithPastExpiration.verifiedBy.find((v) => v.id === verifier.id)
@@ -248,8 +285,8 @@ describe("verified attributes utilities", () => {
 
       expect(
         getVerifiedAttributeExpirationDate(
-          verifiedWithFutureExtension,
-          verifier.id
+          verifier.id,
+          verifiedWithFutureExtension
         )
       ).toEqual(
         verifiedWithFutureExtension.verifiedBy.find((v) => v.id === verifier.id)
@@ -258,8 +295,8 @@ describe("verified attributes utilities", () => {
 
       expect(
         getVerifiedAttributeExpirationDate(
-          verifiedWithPastExtension,
-          verifier.id
+          verifier.id,
+          verifiedWithPastExtension
         )
       ).toEqual(
         verifiedWithPastExtension.verifiedBy.find((v) => v.id === verifier.id)
@@ -268,8 +305,8 @@ describe("verified attributes utilities", () => {
 
       expect(
         getVerifiedAttributeExpirationDate(
-          verifiedWithFutureExpirationAndExtension,
-          verifier.id
+          verifier.id,
+          verifiedWithFutureExpirationAndExtension
         )
       ).toEqual(
         verifiedWithFutureExpirationAndExtension.verifiedBy.find(
@@ -279,8 +316,19 @@ describe("verified attributes utilities", () => {
 
       expect(
         getVerifiedAttributeExpirationDate(
-          verifiedWithPastExpirationAndExtension,
-          verifier.id
+          verifier.id,
+          verifiedWithFutureExpirationAndExtensionSwapped
+        )
+      ).toEqual(
+        verifiedWithFutureExpirationAndExtensionSwapped.verifiedBy.find(
+          (v) => v.id === verifier.id
+        )?.expirationDate
+      );
+
+      expect(
+        getVerifiedAttributeExpirationDate(
+          verifier.id,
+          verifiedWithPastExpirationAndExtension
         )
       ).toEqual(
         verifiedWithPastExpirationAndExtension.verifiedBy.find(
@@ -290,8 +338,19 @@ describe("verified attributes utilities", () => {
 
       expect(
         getVerifiedAttributeExpirationDate(
-          verifiedWithPastExpirationAndFutureExtension,
-          verifier.id
+          verifier.id,
+          verifiedWithPastExpirationAndExtensionSwapped
+        )
+      ).toEqual(
+        verifiedWithPastExpirationAndExtensionSwapped.verifiedBy.find(
+          (v) => v.id === verifier.id
+        )?.expirationDate
+      );
+
+      expect(
+        getVerifiedAttributeExpirationDate(
+          verifier.id,
+          verifiedWithPastExpirationAndFutureExtension
         )
       ).toEqual(
         verifiedWithPastExpirationAndFutureExtension.verifiedBy.find(
@@ -301,25 +360,25 @@ describe("verified attributes utilities", () => {
 
       expect(
         getVerifiedAttributeExpirationDate(
-          verifiedWithFutureExpirationAndPastExtension,
-          verifier.id
+          verifier.id,
+          verifiedWithFutureExpirationAndPastExtension
         )
       ).toEqual(
         verifiedWithFutureExpirationAndPastExtension.verifiedBy.find(
           (v) => v.id === verifier.id
-        )?.extensionDate
+        )?.expirationDate
       );
 
       expect(
-        getVerifiedAttributeExpirationDate(notVerified, verifier.id)
+        getVerifiedAttributeExpirationDate(verifier.id, notVerified)
       ).toBeUndefined();
 
       expect(
-        getVerifiedAttributeExpirationDate(verifiedByAnotherTenant, verifier.id)
+        getVerifiedAttributeExpirationDate(verifier.id, verifiedByAnotherTenant)
       ).toBeUndefined();
 
       expect(
-        getVerifiedAttributeExpirationDate(verifiedAndRevoked, verifier.id)
+        getVerifiedAttributeExpirationDate(verifier.id, verifiedAndRevoked)
       ).toBeUndefined();
     });
   });
