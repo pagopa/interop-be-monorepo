@@ -1078,13 +1078,13 @@ describe("integration tests V1 events", async () => {
       const retrievedTokenEntries = await readAllTokenStatesItems(
         dynamoDBClient
       );
-      const expectedTokenClientEntry: TokenGenerationStatesApiClient = {
+      const expectedTokenClientEntry: TokenGenerationStatesConsumerClient = {
         PK: makeTokenGenerationStatesClientKidPK({
           clientId: client.id,
           kid: addedKey.kid,
         }),
         consumerId: client.consumerId,
-        clientKind: clientKindTokenStates.api,
+        clientKind: clientKindTokenStates.consumer,
         publicKey: addedKey.encodedPem,
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(addedKey.kid),
@@ -1184,13 +1184,13 @@ describe("integration tests V1 events", async () => {
       const retrievedTokenEntries = await readAllTokenStatesItems(
         dynamoDBClient
       );
-      const expectedTokenClientEntry: TokenGenerationStatesApiClient = {
+      const expectedTokenClientEntry: TokenGenerationStatesConsumerClient = {
         PK: makeTokenGenerationStatesClientKidPK({
           clientId: client.id,
           kid: addedKey.kid,
         }),
         consumerId: client.consumerId,
-        clientKind: clientKindTokenStates.api,
+        clientKind: clientKindTokenStates.consumer,
         publicKey: addedKey.encodedPem,
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(addedKey.kid),
