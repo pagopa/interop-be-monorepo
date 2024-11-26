@@ -902,16 +902,16 @@ describe("validation test", async () => {
   describe("validateAudience", () => {
     describe("expectedAudience is a one item array", () => {
       it("one item string", () => {
-        const input = "abc";
-        const expectedAudiences = ["abc"];
+        const input = "aud1";
+        const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
         // TODO
       });
 
       it("one item string, wrong", () => {
-        const input = "123";
-        const expectedAudiences = ["abc"];
+        const input = "aud2";
+        const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
         // TODO
@@ -919,39 +919,39 @@ describe("validation test", async () => {
 
       it("undefined", () => {
         const input = undefined;
-        const expectedAudiences = ["abc"];
+        const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
         // TODO
       });
 
       it("two items string", () => {
-        const input = "abc, 123";
-        const expectedAudiences = ["abc"];
+        const input = "aud1, aud2";
+        const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
         // TODO
       });
 
       it("one item array", () => {
-        const input = ["abc"];
-        const expectedAudiences = ["abc"];
+        const input = ["aud1"];
+        const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
         // TODO
       });
 
       it("one item array, wrong", () => {
-        const input = ["123"];
-        const expectedAudiences = ["abc"];
+        const input = ["aud2"];
+        const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
         // TODO
       });
 
       it("two items array", () => {
-        const input = ["abc", "123"];
-        const expectedAudiences = ["abc"];
+        const input = ["aud1", "aud2"];
+        const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
         // TODO
@@ -960,16 +960,16 @@ describe("validation test", async () => {
 
     describe("expectedAudience is a two items array", () => {
       it("one item string", () => {
-        const input = "abc";
-        const expectedAudiences = ["abc", "123"];
+        const input = "aud1";
+        const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
         // TODO
       });
 
       it("one item string, wrong", () => {
-        const input = "123";
-        const expectedAudiences = ["abc", "123"];
+        const input = "aud3";
+        const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
         // TODO
@@ -977,55 +977,55 @@ describe("validation test", async () => {
 
       it("undefined", () => {
         const input = undefined;
-        const expectedAudiences = ["abc", "123"];
+        const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
         // TODO
       });
 
       it("two items string", () => {
-        const input = "abc, 123";
-        const expectedAudiences = ["abc", "123"];
+        const input = "aud1, aud2";
+        const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
         // TODO
       });
 
       it("two items string, intersection", () => {
-        const input = "abc, 456";
-        const expectedAudiences = ["abc", "123"];
+        const input = "aud1, aud3";
+        const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
         // TODO
       });
 
       it("one item array", () => {
-        const input = ["abc"];
-        const expectedAudiences = ["abc", "123"];
+        const input = ["aud1"];
+        const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
         // TODO
       });
 
       it("one item array, wrong", () => {
-        const input = ["123"];
-        const expectedAudiences = ["abc", "123"];
+        const input = ["aud3"];
+        const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
         // TODO
       });
 
       it("two items array", () => {
-        const input = ["abc", "123"];
-        const expectedAudiences = ["abc", "123"];
+        const input = ["aud1", "aud2"];
+        const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
         // TODO
       });
 
       it("two items array, intersection", () => {
-        const input = ["abc", "456"];
-        const expectedAudiences = ["abc", "123"];
+        const input = ["aud1", "aud3"];
+        const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
         // TODO
