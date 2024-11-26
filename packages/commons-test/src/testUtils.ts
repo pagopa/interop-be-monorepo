@@ -481,13 +481,7 @@ export const getMockTokenStatesConsumerClient = (
     };
   } else {
     return {
-      PK:
-        tokenStateEntryPK ||
-        makeTokenGenerationStatesClientKidPurposePK({
-          clientId,
-          kid,
-          purposeId,
-        }),
+      PK: tokenStateEntryPK,
       updatedAt: new Date().toISOString(),
       consumerId,
       clientKind: clientKindTokenStates.consumer,
