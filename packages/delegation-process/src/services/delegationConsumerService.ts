@@ -38,6 +38,8 @@ import {
   assertIsState,
   assertTenantAllowedToReceiveDelegation,
   assertDelegatorAndDelegateIPA,
+  activeDelegationStates,
+  assertIsDelegator,
 } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -175,18 +177,20 @@ export function delegationConsumerServiceBuilder(
     async revokeConsumerDelegation(
       delegationId: DelegationId,
       { authData, logger, correlationId }: WithLogger<AppContext>
-    ): Promise<Delegation> {
+    ): Promise<void> {
       const delegatorId = unsafeBrandId<TenantId>(authData.organizationId);
       logger.info(
         `Revoking delegation ${delegationId} by consumer ${delegatorId}`
       );
 
-      const { data: delegation, metadata } = await retrieveDelegationById(
+      const { data: delegation, metadata } = await retrieveDelegation(
         readModelService,
-        delegationId
+        delegationId,
+        delegationKind.delegatedConsumer
       );
 
-      // TODO Add validations after https://github.com/pagopa/interop-be-monorepo/pull/1217 is merged
+      assertIsDelegator(delegation, delegatorId);
+      assertIsState(activeDelegationStates, delegation);
 
       const [delegator, delegate, eservice] = await Promise.all([
         retrieveTenantById(readModelService, delegation.delegatorId),
@@ -202,7 +206,7 @@ export function delegationConsumerServiceBuilder(
         stamps: {
           ...delegation.stamps,
           revocation: {
-            who: delegatorId,
+            who: authData.userId,
             when: now,
           },
         },
@@ -235,8 +239,6 @@ export function delegationConsumerServiceBuilder(
           correlationId
         )
       );
-
-      return revokedDelegation;
     },
   };
 }
