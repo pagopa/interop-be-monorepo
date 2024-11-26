@@ -135,7 +135,7 @@ export function delegationConsumerServiceBuilder(
         stamps: {
           ...delegation.stamps,
           activation: {
-            who: delegateId,
+            who: authData.userId,
             when: now,
           },
         },
