@@ -33,7 +33,7 @@ export const createProducerDelegationErrorMapper = (
     .with(
       "eserviceNotFound",
       "tenantNotFound",
-      "delegatorAndDelegateSameId",
+      "invalidDelegatorAndDelegateIds",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -49,7 +49,12 @@ export const createConsumerDelegationErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eserviceNotFound", "tenantNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "eserviceNotFound",
+      "tenantNotFound",
+      "invalidDelegatorAndDelegateIds",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with(
       "tenantIsNotIPAError",
       "tenantNotAllowedToDelegation",
