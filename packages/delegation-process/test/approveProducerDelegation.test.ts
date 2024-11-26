@@ -32,6 +32,7 @@ import {
   delegationNotFound,
   operationRestrictedToDelegate,
   incorrectState,
+  invalidDelegationKind,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -178,6 +179,28 @@ describe("approve producer delegation", () => {
         }
       )
     ).rejects.toThrow(delegationNotFound(nonExistentDelegationId));
+  });
+
+  it("should throw invalidDelegationKind when delegation kind is not DelegatedProducer", async () => {
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      state: "WaitingForApproval",
+      delegateId: delegate.id,
+      delegatorId: delegator.id,
+      eserviceId: eservice.id,
+    });
+    await addOneDelegation(delegation);
+
+    await expect(
+      delegationProducerService.approveProducerDelegation(delegation.id, {
+        authData: getRandomAuthData(delegate.id),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrow(
+      invalidDelegationKind(delegation, delegationKind.delegatedProducer)
+    );
   });
 
   it("should throw operationRestrictedToDelegate when approver is not the delegate", async () => {

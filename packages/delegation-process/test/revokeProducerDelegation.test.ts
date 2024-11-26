@@ -31,6 +31,7 @@ import {
 import {
   delegationNotFound,
   incorrectState,
+  invalidDelegationKind,
   operationRestrictedToDelegator,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
@@ -198,6 +199,27 @@ describe("revoke producer delegation", () => {
         serviceName: "DelegationServiceTest",
       })
     ).rejects.toThrow(delegationNotFound(delegationId));
+  });
+
+  it("should throw invalidDelegationKind when delegation kind is not DelegatedProducer", async () => {
+    const delegate = getMockTenant();
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      state: "WaitingForApproval",
+      delegateId: delegate.id,
+    });
+    await addOneDelegation(delegation);
+
+    await expect(
+      delegationProducerService.approveProducerDelegation(delegation.id, {
+        authData: getRandomAuthData(delegate.id),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrow(
+      invalidDelegationKind(delegation, delegationKind.delegatedProducer)
+    );
   });
 
   it("should throw a delegatorNotAllowToRevoke if Requester is not Delegator", async () => {
