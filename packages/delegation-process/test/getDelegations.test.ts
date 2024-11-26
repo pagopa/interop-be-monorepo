@@ -1,13 +1,19 @@
 /* eslint-disable functional/no-let */
-import { getMockDelegationProducer } from "pagopa-interop-commons-test/index.js";
+import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
+import { delegationKind } from "pagopa-interop-models";
 import { addOneDelegation, delegationService } from "./utils.js";
 
 describe("get delegations", () => {
   it("should get delegations", async () => {
-    const delegation1 = getMockDelegationProducer({ state: "Active" });
-    const delegation2 = getMockDelegationProducer();
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      state: "Active",
+    });
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+    });
     await addOneDelegation(delegation1);
     await addOneDelegation(delegation2);
 
