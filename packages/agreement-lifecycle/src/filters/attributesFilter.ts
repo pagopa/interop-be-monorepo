@@ -5,33 +5,50 @@ import {
   DeclaredTenantAttribute,
   TenantAttribute,
   TenantId,
+  TenantVerifier,
   VerifiedTenantAttribute,
   tenantAttributeType,
 } from "pagopa-interop-models";
+import { P, match } from "ts-pattern";
+import { isVerificationRevoked } from "../utils/verifiedAttributes.js";
 
 export const filterVerifiedAttributes = (
-  verifiedId: TenantId,
+  verifierId: TenantId,
   tenantAttributes: TenantAttribute[]
-): VerifiedTenantAttribute[] =>
-  tenantAttributes.filter(
+): VerifiedTenantAttribute[] => {
+  const now = new Date();
+
+  const isVerificationExpired = (verification: TenantVerifier): boolean =>
+    match(verification)
+      .with(
+        { extensionDate: P.nonNullable, expirationDate: P.nonNullable },
+        (v) => v.extensionDate <= now || v.expirationDate <= now
+      )
+      .with(
+        { extensionDate: P.nonNullable, expirationDate: P.nullish },
+        (v) => v.extensionDate <= now
+      )
+      .with(
+        { expirationDate: P.nonNullable, extensionDate: P.nullish },
+        (v) => v.expirationDate <= now
+      )
+      .with(
+        { expirationDate: P.nullish, extensionDate: P.nullish },
+        () => false
+      )
+      .exhaustive();
+
+  return tenantAttributes.filter(
     (att) =>
       att.type === tenantAttributeType.VERIFIED &&
-      att.verifiedBy.find(
+      att.verifiedBy.some(
         (v) =>
-          v.id === verifiedId &&
-          !att.revokedBy.find((revocation) => revocation.id === v.id) &&
-          ((!v.extensionDate && !v.expirationDate) ||
-            (v.extensionDate &&
-              v.expirationDate &&
-              v.extensionDate > new Date() &&
-              v.expirationDate > new Date()) ||
-            (v.extensionDate
-              ? v.extensionDate > new Date()
-              : v.expirationDate
-              ? v.expirationDate > new Date()
-              : false))
+          v.id === verifierId &&
+          !isVerificationRevoked(verifierId, att) &&
+          !isVerificationExpired(v)
       )
   ) as VerifiedTenantAttribute[];
+};
 
 export const filterCertifiedAttributes = (
   tenantAttributes: TenantAttribute[]
