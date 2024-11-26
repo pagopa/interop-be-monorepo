@@ -69,6 +69,7 @@ import {
   makePlatformStatesClientPK,
   DelegationKind,
   unsafeBrandId,
+  UserId,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -376,6 +377,7 @@ export const getMockDelegation = ({
   delegateId = generateId<TenantId>(),
   eserviceId = generateId<EServiceId>(),
   state = "WaitingForApproval",
+  submitterId = generateId<UserId>(),
   activationContract = undefined,
   revocationContract = undefined,
 }: {
@@ -385,6 +387,7 @@ export const getMockDelegation = ({
   delegateId?: TenantId;
   eserviceId?: EServiceId;
   state?: DelegationState;
+  submitterId?: UserId;
   activationContract?: DelegationContractDocument;
   revocationContract?: DelegationContractDocument;
 }): Delegation => {
@@ -403,7 +406,7 @@ export const getMockDelegation = ({
     kind,
     stamps: {
       submission: {
-        who: delegatorId,
+        who: submitterId,
         when: creationTime,
       },
     },

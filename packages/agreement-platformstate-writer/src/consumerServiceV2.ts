@@ -99,6 +99,7 @@ export async function handleMessageV2(
         // token-generation-states
         await updateAgreementStateAndDescriptorInfoOnTokenStates({
           GSIPK_consumerId_eserviceId,
+          agreementId: agreement.id,
           agreementState: agreement.state,
           dynamoDBClient,
           GSIPK_eserviceId_descriptorId,
@@ -223,6 +224,7 @@ export async function handleMessageV2(
 
           await updateAgreementStateAndDescriptorInfoOnTokenStates({
             GSIPK_consumerId_eserviceId,
+            agreementId: agreement.id,
             agreementState: agreement.state,
             dynamoDBClient,
             GSIPK_eserviceId_descriptorId,

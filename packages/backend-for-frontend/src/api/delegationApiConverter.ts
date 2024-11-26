@@ -11,6 +11,7 @@ import {
   DelegationState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { toCompactDescriptor } from "./catalogApiConverter.js";
 
 export type DelegationsQueryParams = {
   delegatorIds?: string[];
@@ -67,6 +68,7 @@ export function toBffDelegationApiDelegation(
       description: eservice.description,
       producerId: eservice.producerId,
       producerName: producer.name,
+      descriptors: eservice.descriptors.map(toCompactDescriptor),
     },
     delegate: {
       id: delegate.id,

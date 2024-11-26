@@ -109,35 +109,38 @@ export async function handleMessageV2(
                   purposeId,
                 }),
                 GSIPK_purposeId: purposeId,
-                ...((purposeEntry && {
-                  GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-                    consumerId: client.consumerId,
-                    eserviceId: purposeEntry.purposeEserviceId,
-                  }),
-                  purposeState: purposeEntry.state,
-                  purposeVersionId: purposeEntry.purposeVersionId,
-                }) ||
-                  {}),
-                ...((purposeEntry &&
-                  agreementEntry && {
-                    agreementId: extractAgreementIdFromAgreementPK(
-                      agreementEntry.PK
-                    ),
-                    agreementState: agreementEntry.state,
-                    GSIPK_eserviceId_descriptorId:
-                      makeGSIPKEServiceIdDescriptorId({
-                        eserviceId: purposeEntry.purposeEserviceId,
-                        descriptorId: agreementEntry.agreementDescriptorId,
-                      }),
-                  }) ||
-                  {}),
-                ...((catalogEntry && {
-                  descriptorState: catalogEntry.state,
-                  descriptorAudience: catalogEntry.descriptorAudience,
-                  descriptorVoucherLifespan:
-                    catalogEntry.descriptorVoucherLifespan,
-                }) ||
-                  {}),
+                ...(purposeEntry
+                  ? {
+                      GSIPK_consumerId_eserviceId:
+                        makeGSIPKConsumerIdEServiceId({
+                          consumerId: client.consumerId,
+                          eserviceId: purposeEntry.purposeEserviceId,
+                        }),
+                      purposeState: purposeEntry.state,
+                      purposeVersionId: purposeEntry.purposeVersionId,
+                    }
+                  : {}),
+                ...(purposeEntry && agreementEntry
+                  ? {
+                      agreementId: extractAgreementIdFromAgreementPK(
+                        agreementEntry.PK
+                      ),
+                      agreementState: agreementEntry.state,
+                      GSIPK_eserviceId_descriptorId:
+                        makeGSIPKEServiceIdDescriptorId({
+                          eserviceId: purposeEntry.purposeEserviceId,
+                          descriptorId: agreementEntry.agreementDescriptorId,
+                        }),
+                    }
+                  : {}),
+                ...(catalogEntry
+                  ? {
+                      descriptorState: catalogEntry.state,
+                      descriptorAudience: catalogEntry.descriptorAudience,
+                      descriptorVoucherLifespan:
+                        catalogEntry.descriptorVoucherLifespan,
+                    }
+                  : {}),
               };
 
             await upsertTokenStateClientPurposeEntry(
