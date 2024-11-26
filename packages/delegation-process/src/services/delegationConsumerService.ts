@@ -187,6 +187,7 @@ export function delegationConsumerServiceBuilder(
         delegationId
       );
 
+      assertDelegationKindIs(delegationKind.delegatedConsumer, delegation);
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
