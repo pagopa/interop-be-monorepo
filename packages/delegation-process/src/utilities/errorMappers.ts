@@ -68,6 +68,7 @@ export const revokeDelegationErrorMapper = (
 ): number =>
   match(error.code)
     .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("invalidDelegationKind", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationRestrictedToDelegator", () => HTTP_STATUS_FORBIDDEN)
     .with("incorrectState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -77,6 +78,7 @@ export const approveDelegationErrorMapper = (
 ): number =>
   match(error.code)
     .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("invalidDelegationKind", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationRestrictedToDelegate", () => HTTP_STATUS_FORBIDDEN)
     .with("incorrectState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
