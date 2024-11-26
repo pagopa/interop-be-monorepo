@@ -169,6 +169,7 @@ describe("revoke consumer delegation", () => {
         "delegationRevokedTemplate.html"
       ),
       {
+        delegationKindText: "alla fruizione",
         todayDate: dateAtRomeZone(currentExecutionTime),
         todayTime: timeAtRomeZone(currentExecutionTime),
         delegationId: revokedDelegationWithoutContract.id,

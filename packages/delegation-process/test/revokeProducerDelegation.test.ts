@@ -169,6 +169,7 @@ describe("revoke producer delegation", () => {
         "delegationRevokedTemplate.html"
       ),
       {
+        delegationKindText: "all'erogazione",
         todayDate: dateAtRomeZone(currentExecutionTime),
         todayTime: timeAtRomeZone(currentExecutionTime),
         delegationId: revokedDelegationWithoutContract.id,
