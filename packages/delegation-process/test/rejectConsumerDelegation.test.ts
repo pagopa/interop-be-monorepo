@@ -4,6 +4,7 @@ import {
   getMockAuthData,
   getMockDelegation,
   getMockTenant,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -34,6 +35,7 @@ describe("reject consumer delegation", () => {
     vi.setSystemTime(currentExecutionTime);
 
     const delegate = getMockTenant();
+    const authData = getRandomAuthData(delegate.id);
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       state: "WaitingForApproval",
@@ -47,7 +49,7 @@ describe("reject consumer delegation", () => {
       delegation.id,
       rejectionReason,
       {
-        authData: getMockAuthData(delegate.id),
+        authData,
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
@@ -67,7 +69,7 @@ describe("reject consumer delegation", () => {
       rejectionReason,
       stamps: {
         ...delegation.stamps,
-        rejection: { who: delegate.id, when: currentExecutionTime },
+        rejection: { who: authData.userId, when: currentExecutionTime },
       },
     });
     expect(actualDelegation).toEqual(expectedDelegation);

@@ -201,7 +201,7 @@ export function delegationConsumerServiceBuilder(
               stamps: {
                 ...delegation.stamps,
                 rejection: {
-                  who: delegateId,
+                  who: authData.userId,
                   when: now,
                 },
               },
