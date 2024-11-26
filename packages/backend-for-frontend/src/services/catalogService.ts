@@ -538,7 +538,17 @@ export function catalogServiceBuilder(
         descriptor
       );
 
-      const requesterTenants = await getTenantsFromDelegation(
+      const requesterTenant = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: requesterId,
+        },
+      });
+      if (!requesterTenant) {
+        throw tenantNotFound(requesterId);
+      }
+
+      const delegationTenantsSet = await getTenantsFromDelegation(
         tenantProcessClient,
         await getAllDelegations(delegationProcessClient, headers, {
           delegateIds: [requesterId],
@@ -549,15 +559,7 @@ export function catalogServiceBuilder(
         headers
       );
 
-      const delegationTenants = Array.from(requesterTenants.values());
-      const requesterTenant = delegationTenants.find(
-        (t) => t.id === requesterId
-      );
-
-      if (!requesterTenant) {
-        throw tenantNotFound(requesterId);
-      }
-
+      const delegationTenants = Array.from(delegationTenantsSet.values());
       const consumerDelegators = delegationTenants.filter(
         (t) => t.id !== requesterId
       );
