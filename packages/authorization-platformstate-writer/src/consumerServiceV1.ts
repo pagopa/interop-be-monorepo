@@ -268,7 +268,8 @@ export async function handleMessageV1(
             await retrievePlatformStatesByPurpose(purposeId, dynamoDBClient);
 
           const seenKids = new Set<string>();
-          const addedTokenClientPurposeEntries = [];
+          const addedTokenClientPurposeEntries: TokenGenerationStatesConsumerClient[] =
+            [];
 
           for (const entry of tokenClientEntries) {
             const addedTokenConsumerClient = await match(
