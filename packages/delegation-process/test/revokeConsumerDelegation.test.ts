@@ -124,7 +124,7 @@ describe("revoke consumer delegation", () => {
     });
 
     const expectedContractId = unsafeBrandId<DelegationContractId>(
-      actualDelegation.revocationContract!.id
+      actualDelegation!.revocationContract!.id
     );
     const expectedContractName = `${formatDateyyyyMMddHHmmss(
       currentExecutionTime
@@ -211,7 +211,7 @@ describe("revoke consumer delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationConsumerService.approveConsumerDelegation(delegation.id, {
+      delegationConsumerService.revokeConsumerDelegation(delegation.id, {
         authData: getRandomAuthData(delegate.id),
         serviceName: "",
         correlationId: generateId(),
