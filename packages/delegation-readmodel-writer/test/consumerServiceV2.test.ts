@@ -12,6 +12,7 @@ import {
   delegationKind,
   ConsumerDelegationSubmittedV2,
   ConsumerDelegationApprovedV2,
+  ConsumerDelegationRevokedV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/delegationConsumerServiceV2.js";
