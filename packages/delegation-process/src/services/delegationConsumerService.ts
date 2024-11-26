@@ -37,6 +37,7 @@ import {
   assertIsState,
   assertTenantAllowedToReceiveDelegation,
   assertDelegatorAndDelegateIPA,
+  assertDelegationKindIs,
 } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -91,7 +92,7 @@ export function delegationConsumerServiceBuilder(
         kind: delegationKind.delegatedConsumer,
         stamps: {
           submission: {
-            who: delegatorId,
+            who: authData.userId,
             when: creationDate,
           },
         },
@@ -118,6 +119,7 @@ export function delegationConsumerServiceBuilder(
         delegationId
       );
 
+      assertDelegationKindIs(delegationKind.delegatedConsumer, delegation);
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
@@ -135,7 +137,7 @@ export function delegationConsumerServiceBuilder(
         stamps: {
           ...delegation.stamps,
           activation: {
-            who: delegateId,
+            who: authData.userId,
             when: now,
           },
         },

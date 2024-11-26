@@ -41,6 +41,8 @@ describe("create eservice", () => {
   });
   it("should write on event-store for the creation of an eservice", async () => {
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const isDelegable = randomArrayItem([false, true, undefined]);
+
     const eservice = await catalogService.createEService(
       {
         name: mockEService.name,
@@ -49,6 +51,7 @@ describe("create eservice", () => {
         mode: "DELIVER",
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
+        isDelegable,
       },
       {
         authData: getMockAuthData(mockEService.producerId),
@@ -96,12 +99,14 @@ describe("create eservice", () => {
       id: eservice.id,
       descriptors: [],
       isSignalHubEnabled,
+      isDelegable,
     };
     const expectedEserviceWithDescriptor: EService = {
       ...mockEService,
       createdAt: new Date(),
       id: eservice.id,
       isSignalHubEnabled,
+      isDelegable,
       descriptors: [
         {
           ...mockDescriptor,

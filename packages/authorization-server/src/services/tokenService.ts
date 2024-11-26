@@ -26,6 +26,7 @@ import {
   GSIPKEServiceIdDescriptorId,
   ClientAssertion,
   FullTokenGenerationStatesClientPurposeEntry,
+  CorrelationId,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -91,7 +92,7 @@ export function tokenServiceBuilder({
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest,
-      correlationId: string,
+      correlationId: CorrelationId,
       logger: Logger
     ): Promise<GenerateTokenReturnType> {
       const { errors: parametersErrors } = validateRequestParameters({
@@ -299,7 +300,7 @@ export const publishAudit = async ({
   generatedToken: InteropConsumerToken | InteropApiToken;
   key: FullTokenGenerationStatesClientPurposeEntry;
   clientAssertion: ClientAssertion;
-  correlationId: string;
+  correlationId: CorrelationId;
   fileManager: FileManager;
   logger: Logger;
 }): Promise<void> => {

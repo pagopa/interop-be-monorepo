@@ -12,11 +12,18 @@ import {
   Delegation,
   DelegationContractDocument,
   DelegationContractId,
+  delegationKind,
   EService,
   generateId,
   Tenant,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { DelegationProcessConfig } from "../config/config.js";
+import {
+  DelegationActivationPDFPayload,
+  DelegationRevocationPDFPayload,
+} from "../model/domain/models.js";
+import { assertStampExists } from "./validators.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 const DELEGATION_ACTIVATION_CONTRACT_PRETTY_NAME = "Delega";
@@ -60,6 +67,11 @@ export const contractBuilder = {
       "resources/templates",
       "delegationApprovedTemplate.html"
     );
+    const delegationKindText = match(delegation.kind)
+      .with(delegationKind.delegatedProducer, () => "all'erogazione")
+      .with(delegationKind.delegatedConsumer, () => "alla fruizione")
+      .exhaustive();
+
     const documentCreatedAt = new Date();
     const todayDate = dateAtRomeZone(documentCreatedAt);
     const todayTime = timeAtRomeZone(documentCreatedAt);
@@ -70,10 +82,14 @@ export const contractBuilder = {
       "activation"
     );
 
+    assertStampExists(delegation.stamps, "activation");
+
     const submissionDate = dateAtRomeZone(delegation.stamps.submission.when);
     const submissionTime = timeAtRomeZone(delegation.stamps.submission.when);
-
-    const pdfBuffer = await pdfGenerator.generate(templateFilePath, {
+    const activationDate = dateAtRomeZone(delegation.stamps.activation.when);
+    const activationTime = timeAtRomeZone(delegation.stamps.activation.when);
+    const activationContractPayload: DelegationActivationPDFPayload = {
+      delegationKindText,
       todayDate,
       todayTime,
       delegationId: delegation.id,
@@ -81,15 +97,19 @@ export const contractBuilder = {
       delegatorCode: delegator.externalId.value,
       delegateName: delegate.name,
       delegateCode: delegate.externalId.value,
+      eserviceId: eservice.id,
+      eserviceName: eservice.name,
       submitterId: delegation.stamps.submission.who,
-      eServiceName: eservice.name,
-      eServiceId: eservice.id,
       submissionDate,
       submissionTime,
-      activationDate: todayDate,
-      activationTime: todayTime,
-      activatorId: delegate.id,
-    });
+      activatorId: delegation.stamps.activation.who,
+      activationDate,
+      activationTime,
+    };
+    const pdfBuffer = await pdfGenerator.generate(
+      templateFilePath,
+      activationContractPayload
+    );
 
     const documentPath = await fileManager.storeBytes(
       {
@@ -146,7 +166,11 @@ export const contractBuilder = {
       "revocation"
     );
 
-    const pdfBuffer = await pdfGenerator.generate(templateFilePath, {
+    assertStampExists(delegation.stamps, "revocation");
+    const revocationDate = dateAtRomeZone(delegation.stamps.revocation.when);
+    const revocationTime = timeAtRomeZone(delegation.stamps.revocation.when);
+
+    const revocationContractPayload: DelegationRevocationPDFPayload = {
       todayDate,
       todayTime,
       delegationId: delegation.id,
@@ -154,13 +178,17 @@ export const contractBuilder = {
       delegatorCode: delegator.externalId.value,
       delegateName: delegate.name,
       delegateCode: delegate.externalId.value,
+      eserviceId: eservice.id,
+      eserviceName: eservice.name,
       submitterId: delegation.stamps.submission.who,
-      eServiceName: eservice.name,
-      eServiceId: eservice.id,
-      revocationDate: todayDate,
-      revocationTime: todayTime,
-      activatorId: delegate.id,
-    });
+      revokerId: delegation.stamps.revocation.who,
+      revocationDate,
+      revocationTime,
+    };
+    const pdfBuffer = await pdfGenerator.generate(
+      templateFilePath,
+      revocationContractPayload
+    );
 
     const documentPath = await fileManager.storeBytes(
       {

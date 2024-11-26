@@ -11,7 +11,6 @@ const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_FORBIDDEN,
-  HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_CONFLICT,
 } = constants;
 
@@ -50,12 +49,7 @@ export const createConsumerDelegationErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with(
-      "eserviceNotFound",
-      "tenantNotFound",
-      "delegatorAndDelegateSameId",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
+    .with("eserviceNotFound", "tenantNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "tenantIsNotIPAError",
       "tenantNotAllowedToDelegation",
@@ -69,9 +63,9 @@ export const revokeDelegationErrorMapper = (
 ): number =>
   match(error.code)
     .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("delegationNotRevokable", () => HTTP_STATUS_FORBIDDEN)
-    .with("operationNotAllowOnDelegation", () => HTTP_STATUS_UNAUTHORIZED)
+    .with("invalidDelegationKind", () => HTTP_STATUS_BAD_REQUEST)
+    .with("operationRestrictedToDelegator", () => HTTP_STATUS_FORBIDDEN)
+    .with("incorrectState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const approveDelegationErrorMapper = (
@@ -79,8 +73,9 @@ export const approveDelegationErrorMapper = (
 ): number =>
   match(error.code)
     .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("invalidDelegationKind", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationRestrictedToDelegate", () => HTTP_STATUS_FORBIDDEN)
-    .with("incorrectState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("incorrectState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const rejectDelegationErrorMapper = approveDelegationErrorMapper;

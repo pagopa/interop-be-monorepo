@@ -33,6 +33,8 @@ describe("get eservice by id", () => {
       id: generateId(),
       name: "eservice 001",
       descriptors: [descriptor1],
+      isSignalHubEnabled: true,
+      isDelegable: true,
     };
     await addOneEService(eservice1);
     const authData: AuthData = {
