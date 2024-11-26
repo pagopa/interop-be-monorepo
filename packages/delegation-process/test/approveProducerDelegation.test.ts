@@ -142,6 +142,7 @@ describe("approve producer delegation", () => {
         "delegationApprovedTemplate.html"
       ),
       {
+        delegationKindText: "all'erogazione",
         todayDate: dateAtRomeZone(currentExecutionTime),
         todayTime: timeAtRomeZone(currentExecutionTime),
         delegationId: approvedDelegationWithoutContract.id,

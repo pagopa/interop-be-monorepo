@@ -12,10 +12,12 @@ import {
   Delegation,
   DelegationContractDocument,
   DelegationContractId,
+  delegationKind,
   EService,
   generateId,
   Tenant,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { DelegationProcessConfig } from "../config/config.js";
 import {
   DelegationActivationPDFPayload,
@@ -65,6 +67,11 @@ export const contractBuilder = {
       "resources/templates",
       "delegationApprovedTemplate.html"
     );
+    const delegationKindText = match(delegation.kind)
+      .with(delegationKind.delegatedProducer, () => "all'erogazione")
+      .with(delegationKind.delegatedConsumer, () => "alla fruizione")
+      .exhaustive();
+
     const documentCreatedAt = new Date();
     const todayDate = dateAtRomeZone(documentCreatedAt);
     const todayTime = timeAtRomeZone(documentCreatedAt);
@@ -82,6 +89,7 @@ export const contractBuilder = {
     const activationDate = dateAtRomeZone(delegation.stamps.activation.when);
     const activationTime = timeAtRomeZone(delegation.stamps.activation.when);
     const activationContractPayload: DelegationActivationPDFPayload = {
+      delegationKindText,
       todayDate,
       todayTime,
       delegationId: delegation.id,

@@ -142,6 +142,7 @@ describe("approve consumer delegation", () => {
         "delegationApprovedTemplate.html"
       ),
       {
+        delegationKindText: "alla fruizione",
         todayDate: dateAtRomeZone(currentExecutionTime),
         todayTime: timeAtRomeZone(currentExecutionTime),
         delegationId: approvedDelegationWithoutContract.id,
