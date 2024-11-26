@@ -326,6 +326,7 @@ export function catalogServiceBuilder(
           toBffCatalogApiEserviceRiskAnalysis
         ),
         isSignalHubEnabled: eservice.isSignalHubEnabled,
+        isDelegable: eservice.isDelegable,
       };
     },
     updateEServiceDescription: async (
@@ -1131,6 +1132,7 @@ export function catalogServiceBuilder(
             importedEservice.descriptor.agreementApprovalPolicy,
         },
         isSignalHubEnabled: importedEservice.isSignalHubEnabled,
+        isDelegable: importedEservice.isDelegable,
       };
 
       const pollEServiceById = createPollingByCondition(() =>
