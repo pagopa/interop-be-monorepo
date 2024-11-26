@@ -317,34 +317,12 @@ describe("verified attributes utilities", () => {
       expect(
         getVerifiedAttributeExpirationDate(
           verifier.id,
-          verifiedWithFutureExpirationAndExtensionSwapped
-        )
-      ).toEqual(
-        verifiedWithFutureExpirationAndExtensionSwapped.verifiedBy.find(
-          (v) => v.id === verifier.id
-        )?.expirationDate
-      );
-
-      expect(
-        getVerifiedAttributeExpirationDate(
-          verifier.id,
           verifiedWithPastExpirationAndExtension
         )
       ).toEqual(
         verifiedWithPastExpirationAndExtension.verifiedBy.find(
           (v) => v.id === verifier.id
         )?.extensionDate
-      );
-
-      expect(
-        getVerifiedAttributeExpirationDate(
-          verifier.id,
-          verifiedWithPastExpirationAndExtensionSwapped
-        )
-      ).toEqual(
-        verifiedWithPastExpirationAndExtensionSwapped.verifiedBy.find(
-          (v) => v.id === verifier.id
-        )?.expirationDate
       );
 
       expect(
@@ -359,17 +337,6 @@ describe("verified attributes utilities", () => {
       );
 
       expect(
-        getVerifiedAttributeExpirationDate(
-          verifier.id,
-          verifiedWithFutureExpirationAndPastExtension
-        )
-      ).toEqual(
-        verifiedWithFutureExpirationAndPastExtension.verifiedBy.find(
-          (v) => v.id === verifier.id
-        )?.expirationDate
-      );
-
-      expect(
         getVerifiedAttributeExpirationDate(verifier.id, notVerified)
       ).toBeUndefined();
 
@@ -380,6 +347,40 @@ describe("verified attributes utilities", () => {
       expect(
         getVerifiedAttributeExpirationDate(verifier.id, verifiedAndRevoked)
       ).toBeUndefined();
+
+      // Cases that should never happen
+      expect(
+        getVerifiedAttributeExpirationDate(
+          verifier.id,
+          verifiedWithFutureExpirationAndExtensionSwapped
+        )
+      ).toEqual(
+        verifiedWithFutureExpirationAndExtensionSwapped.verifiedBy.find(
+          (v) => v.id === verifier.id
+        )?.extensionDate
+      );
+
+      expect(
+        getVerifiedAttributeExpirationDate(
+          verifier.id,
+          verifiedWithPastExpirationAndExtensionSwapped
+        )
+      ).toEqual(
+        verifiedWithPastExpirationAndExtensionSwapped.verifiedBy.find(
+          (v) => v.id === verifier.id
+        )?.extensionDate
+      );
+
+      expect(
+        getVerifiedAttributeExpirationDate(
+          verifier.id,
+          verifiedWithFutureExpirationAndPastExtension
+        )
+      ).toEqual(
+        verifiedWithFutureExpirationAndPastExtension.verifiedBy.find(
+          (v) => v.id === verifier.id
+        )?.extensionDate
+      );
     });
   });
 });

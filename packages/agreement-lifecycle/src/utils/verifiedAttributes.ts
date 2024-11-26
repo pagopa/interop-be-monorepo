@@ -24,22 +24,10 @@ export function getVerifiedAttributeExpirationDate(
         (verification) => !isVerificationRevoked(verification.id, attribute)
       );
 
-  if (!activeProducerVerification) {
-    return undefined;
-  }
-
-  if (
-    activeProducerVerification.extensionDate &&
-    activeProducerVerification.expirationDate
-  ) {
-    return activeProducerVerification.extensionDate >=
-      activeProducerVerification.expirationDate
-      ? activeProducerVerification.extensionDate
-      : activeProducerVerification.expirationDate;
-  }
-
+  // We assume that if the extensionDate is defined, it is always
+  // after the expirationDate, so we return the extensionDate if it's defined
   return (
-    activeProducerVerification.extensionDate ??
-    activeProducerVerification.expirationDate
+    activeProducerVerification?.extensionDate ??
+    activeProducerVerification?.expirationDate
   );
 }
