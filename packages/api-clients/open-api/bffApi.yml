@@ -13656,6 +13656,9 @@ components:
         descriptorId:
           type: string
           format: uuid
+        delegationId:
+          type: string
+          format: uuid
       required:
         - eserviceId
         - descriptorId

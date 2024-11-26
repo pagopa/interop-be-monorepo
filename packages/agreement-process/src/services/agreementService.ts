@@ -34,9 +34,9 @@ import {
   agreementState,
   descriptorState,
   generateId,
-  unsafeBrandId,
   CompactTenant,
   CorrelationId,
+  DelegationId,
 } from "pagopa-interop-models";
 import {
   declaredAttributesSatisfied,
@@ -228,18 +228,19 @@ export function agreementServiceBuilder(
       return agreement.data;
     },
     async createAgreement(
-      agreementPayload: agreementApi.AgreementPayload,
+      {
+        eserviceId,
+        descriptorId,
+        delegationId,
+      }: {
+        eserviceId: EServiceId;
+        descriptorId: DescriptorId;
+        delegationId?: DelegationId;
+      },
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(
-        `Creating agreement for EService ${agreementPayload.eserviceId} and Descriptor ${agreementPayload.descriptorId}`
-      );
-
-      const eserviceId: EServiceId = unsafeBrandId<EServiceId>(
-        agreementPayload.eserviceId
-      );
-      const descriptorId: DescriptorId = unsafeBrandId<DescriptorId>(
-        agreementPayload.descriptorId
+        `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
