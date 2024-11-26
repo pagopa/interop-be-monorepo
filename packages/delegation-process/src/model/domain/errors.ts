@@ -24,6 +24,7 @@ export const errorCodes = {
   operationRestrictedToDelegate: "0010",
   incorrectState: "0011",
   differentEserviceProducer: "0012",
+  invalidDelegationKind: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -155,5 +156,16 @@ export function delegationStampNotFound(
     detail: `Delegation ${stamp} stamp not found`,
     code: "stampNotFound",
     title: "Stamp not found",
+  });
+}
+
+export function invalidDelegationKind(
+  delegation: Delegation,
+  expectedKind: DelegationKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegation.id} is of kind ${delegation.kind} but expected ${expectedKind}`,
+    code: "invalidDelegationKind",
+    title: "Invalidd delegation kind",
   });
 }

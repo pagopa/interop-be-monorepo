@@ -36,6 +36,7 @@ import {
   assertDelegatorAndDelegateIPA,
   assertIsDelegator,
   activeDelegationStates,
+  assertDelegationKindIs,
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
 import {
@@ -123,6 +124,7 @@ export function delegationProducerServiceBuilder(
         delegationId
       );
 
+      assertDelegationKindIs(delegationKind.delegatedProducer, delegation);
       assertIsDelegator(delegation, delegatorId);
       assertIsState(activeDelegationStates, delegation);
 
@@ -188,6 +190,7 @@ export function delegationProducerServiceBuilder(
         delegationId
       );
 
+      assertDelegationKindIs(delegationKind.delegatedProducer, delegation);
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
@@ -255,6 +258,7 @@ export function delegationProducerServiceBuilder(
         delegationId
       );
 
+      assertDelegationKindIs(delegationKind.delegatedProducer, delegation);
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
