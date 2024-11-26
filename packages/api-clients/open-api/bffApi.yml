@@ -13094,6 +13094,8 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+        isDelegable:
+          type: boolean
     EServiceSeed:
       type: object
       additionalProperties: false
@@ -13112,6 +13114,8 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
+          type: boolean
+        isDelegable:
           type: boolean
     UpdateEServiceDescriptorQuotas:
       required:
@@ -13360,6 +13364,8 @@ components:
           $ref: "#/components/schemas/Mail"
         isSignalHubEnabled:
           type: boolean
+        isDelegable:
+          type: boolean
     ProducerEServiceDetails:
       type: object
       additionalProperties: false
@@ -13387,6 +13393,8 @@ components:
           items:
             $ref: "#/components/schemas/EServiceRiskAnalysis"
         isSignalHubEnabled:
+          type: boolean
+        isDelegable:
           type: boolean
     EServiceMode:
       type: string
@@ -13514,6 +13522,8 @@ components:
         mail:
           $ref: "#/components/schemas/Mail"
         isSignalHubEnabled:
+          type: boolean
+        isDelegable:
           type: boolean
     EServiceDoc:
       type: object
