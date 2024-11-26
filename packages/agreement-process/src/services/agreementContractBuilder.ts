@@ -35,6 +35,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import { isAxiosError } from "axios";
+import { getVerifiedAttributeExpirationDate } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementMissingUserInfo,
   agreementSelfcareIdNotFound,
@@ -77,23 +78,37 @@ const createAgreementDocumentName = (
     documentCreatedAt
   )}_agreement_contract.pdf`;
 
-const getAttributeInvolved = async (
+const getAttributesData = async (
   consumer: Tenant,
   agreement: Agreement,
   readModelService: ReadModelService
 ): Promise<{
-  certified: Array<[Attribute, CertifiedTenantAttribute]>;
-  declared: Array<[Attribute, DeclaredTenantAttribute]>;
-  verified: Array<[Attribute, VerifiedTenantAttribute]>;
+  certified: Array<{
+    attribute: Attribute;
+    tenantAttribute: CertifiedTenantAttribute;
+  }>;
+  declared: Array<{
+    attribute: Attribute;
+    tenantAttribute: DeclaredTenantAttribute;
+  }>;
+  verified: Array<{
+    attribute: Attribute;
+    tenantAttribute: VerifiedTenantAttribute;
+  }>;
 }> => {
-  const getAgreementAttributeByType = async <
+  const getAttributesDataByType = async <
     T extends
       | CertifiedTenantAttribute
       | DeclaredTenantAttribute
       | VerifiedTenantAttribute
   >(
     type: TenantAttributeType
-  ): Promise<Array<[Attribute, T]>> => {
+  ): Promise<
+    Array<{
+      attribute: Attribute;
+      tenantAttribute: T;
+    }>
+  > => {
     const seedAttributes = match(type)
       .with(
         tenantAttributeType.CERTIFIED,
@@ -122,18 +137,21 @@ const getAttributeInvolved = async (
         if (!attribute) {
           throw attributeNotFound(tenantAttribute.id);
         }
-        return [attribute, tenantAttribute as unknown as T];
+        return {
+          attribute,
+          tenantAttribute: tenantAttribute as T,
+        };
       })
     );
   };
 
-  const certified = await getAgreementAttributeByType<CertifiedTenantAttribute>(
+  const certified = await getAttributesDataByType<CertifiedTenantAttribute>(
     tenantAttributeType.CERTIFIED
   );
-  const declared = await getAgreementAttributeByType<DeclaredTenantAttribute>(
+  const declared = await getAttributesDataByType<DeclaredTenantAttribute>(
     tenantAttributeType.DECLARED
   );
-  const verified = await getAgreementAttributeByType<VerifiedTenantAttribute>(
+  const verified = await getAttributesDataByType<VerifiedTenantAttribute>(
     tenantAttributeType.VERIFIED
   );
 
@@ -244,69 +262,7 @@ const getPdfPayload = async (
   correlationId: CorrelationId
 ): Promise<AgreementContractPDFPayload> => {
   const getTenantText = (name: string, origin: string, value: string): string =>
-    origin === "IPA" ? `"${name} (codice IPA: ${value})` : name;
-
-  const getCertifiedAttributeHtml = (
-    certifiedAttributes: Array<[Attribute, CertifiedTenantAttribute]>
-  ): string =>
-    certifiedAttributes
-      .map(
-        (attTuple: [Attribute, CertifiedTenantAttribute]) => `
-        <div>
-          In data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
-          )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,l’Infrastruttura ha registrato il possesso da parte del Fruitore del seguente attributo <strong>${
-          attTuple[0].name
-        }</strong> certificato,necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-        </div>`
-      )
-      .join("");
-
-  const getDeclaredAttributeHtml = (
-    declaredAttributes: Array<[Attribute, DeclaredTenantAttribute]>
-  ): string =>
-    declaredAttributes
-      .map(
-        (attTuple: [Attribute, DeclaredTenantAttribute]) => `
-      <div>
-         In data <strong>${dateAtRomeZone(
-           attTuple[1].assignmentTimestamp
-         )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,
-         l’Infrastruttura ha registrato la dichiarazione del Fruitore di possedere il seguente attributo <strong>${
-           attTuple[0].name
-         }</strong> dichiarato
-         ed avente il seguente periodo di validità ________,
-         necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-      </div>`
-      )
-      .join("");
-
-  const getVerifiedAttributeHtml = (
-    verifiedAttributes: Array<[Attribute, VerifiedTenantAttribute]>
-  ): string =>
-    verifiedAttributes
-      .map(
-        (attTuple: [Attribute, VerifiedTenantAttribute]) => `
-        <div>
-          In data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
-          )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,
-          l’Infrastruttura ha registrato la dichiarazione del Fruitore di possedere il seguente attributo <strong>${
-            attTuple[0].name
-          }</strong>,
-          verificata dall’aderente ________ OPPURE dall’Erogatore stesso in data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
-          )}</strong>,
-          necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-        </div>`
-      )
-      .join();
+    origin === "IPA" ? `${name} (codice IPA: ${value})` : name;
 
   const today = new Date();
   const producerText = getTenantText(
@@ -334,7 +290,7 @@ const getPdfPayload = async (
     correlationId
   );
 
-  const { certified, declared, verified } = await getAttributeInvolved(
+  const { certified, declared, verified } = await getAttributesData(
     consumer,
     agreement,
     readModelService
@@ -353,9 +309,34 @@ const getPdfPayload = async (
     eServiceName: eservice.name,
     producerText,
     consumerText,
-    certifiedAttributes: getCertifiedAttributeHtml(certified),
-    declaredAttributes: getDeclaredAttributeHtml(declared),
-    verifiedAttributes: getVerifiedAttributeHtml(verified),
+    certifiedAttributes: certified.map(({ attribute, tenantAttribute }) => ({
+      assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+      assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+      attributeName: attribute.name,
+      attributeId: attribute.id,
+    })),
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    declaredAttributes: declared.map(({ attribute, tenantAttribute }) => ({
+      assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+      assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+      attributeName: attribute.name,
+      attributeId: attribute.id,
+    })),
+    verifiedAttributes: verified.map(({ attribute, tenantAttribute }) => {
+      const expirationDate = getVerifiedAttributeExpirationDate(
+        producer.id,
+        tenantAttribute
+      );
+      return {
+        assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+        assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+        attributeName: attribute.name,
+        attributeId: attribute.id,
+        expirationDate: expirationDate
+          ? dateAtRomeZone(expirationDate)
+          : undefined,
+      };
+    }),
   };
 };
 
@@ -371,6 +352,12 @@ export const contractBuilder = (
 ) => {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
+  const templateFilePath = path.resolve(
+    dirname,
+    "..",
+    "resources/templates/documents",
+    "agreementContractTemplate.html"
+  );
 
   return {
     createContract: async (
@@ -379,13 +366,6 @@ export const contractBuilder = (
       consumer: Tenant,
       producer: Tenant
     ): Promise<AgreementDocument> => {
-      const templateFilePath = path.resolve(
-        dirname,
-        "..",
-        "resources/templates/documents",
-        "agreementContractTemplate.html"
-      );
-
       const pdfPayload = await getPdfPayload(
         agreement,
         eservice,

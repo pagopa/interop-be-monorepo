@@ -5,6 +5,7 @@ import {
   formatDateyyyyMMddHHmmss,
   genericLogger,
 } from "pagopa-interop-commons";
+import { addDays, subDays } from "date-fns";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -969,11 +970,12 @@ describe("submit agreement", () => {
       verifiedBy: [
         {
           id: consumerId,
-          verificationDate: new Date(new Date().getFullYear() - 1),
-          expirationDate: new Date(new Date().getFullYear() + 1),
+          verificationDate: subDays(new Date(), 1),
+          expirationDate: addDays(new Date(), 30),
           extensionDate: undefined,
         },
       ],
+      revokedBy: [],
     };
 
     const consumer = {
@@ -1016,7 +1018,7 @@ describe("submit agreement", () => {
       kind: attributeKind.verified,
       description: "A verified attribute",
       name: "A verified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     };
 
     await addOneEService(eservice);
@@ -1247,11 +1249,12 @@ describe("submit agreement", () => {
       verifiedBy: [
         {
           id: producerAndConsumerId,
-          verificationDate: new Date(new Date().getFullYear() - 1),
-          expirationDate: new Date(new Date().getFullYear() + 1),
+          verificationDate: subDays(new Date(), 1),
+          expirationDate: addDays(new Date(), 30),
           extensionDate: undefined,
         },
       ],
+      revokedBy: [],
     };
 
     const validCertifiedTenantAttribute: TenantAttribute = {
@@ -1317,7 +1320,7 @@ describe("submit agreement", () => {
       kind: attributeKind.verified,
       description: "A verified attribute",
       name: "A verified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     };
 
     const declaredAttribute: Attribute = {
@@ -1325,7 +1328,7 @@ describe("submit agreement", () => {
       kind: attributeKind.declared,
       description: "A declared attribute",
       name: "A declared attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     };
 
     const certifiedAttribute: Attribute = {
@@ -1333,7 +1336,7 @@ describe("submit agreement", () => {
       kind: attributeKind.certified,
       description: "A certified attribute",
       name: "A certified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     };
 
     await addOneEService(eservice);
@@ -1467,11 +1470,12 @@ describe("submit agreement", () => {
       verifiedBy: [
         {
           id: producer.id,
-          verificationDate: new Date(new Date().getFullYear() - 1),
-          expirationDate: new Date(new Date().getFullYear() + 1),
+          verificationDate: subDays(new Date(), 1),
+          expirationDate: addDays(new Date(), 30),
           extensionDate: undefined,
         },
       ],
+      revokedBy: [],
     };
 
     const validCertifiedTenantAttribute: TenantAttribute = {
@@ -1659,11 +1663,12 @@ describe("submit agreement", () => {
       verifiedBy: [
         {
           id: producer.id,
-          verificationDate: new Date(new Date().getFullYear() - 1),
-          expirationDate: new Date(new Date().getFullYear() + 1),
+          verificationDate: subDays(new Date(), 1),
+          expirationDate: addDays(new Date(), 30),
           extensionDate: undefined,
         },
       ],
+      revokedBy: [],
     };
 
     const validCertifiedTenantAttribute: TenantAttribute = {
@@ -1735,7 +1740,7 @@ describe("submit agreement", () => {
       kind: attributeKind.verified,
       description: "A verified attribute",
       name: "A verified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     };
 
     const declareAttribute: Attribute = {
@@ -1743,7 +1748,7 @@ describe("submit agreement", () => {
       kind: attributeKind.declared,
       description: "A declared attribute",
       name: "A declared attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     };
 
     const certifiedAttribute: Attribute = {
@@ -1751,7 +1756,7 @@ describe("submit agreement", () => {
       kind: attributeKind.certified,
       description: "A certified attribute",
       name: "A certified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     };
 
     await addOneEService(eservice);

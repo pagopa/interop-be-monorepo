@@ -53,6 +53,7 @@ import {
   vi,
 } from "vitest";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { addDays } from "date-fns";
 import { agreementUpgradableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -127,10 +128,11 @@ describe("upgrade Agreement", () => {
         {
           id: producerAndConsumerId,
           verificationDate: new Date(),
-          expirationDate: new Date(new Date().getFullYear() + 1),
+          expirationDate: addDays(new Date(), 30),
           extensionDate: undefined,
         },
       ],
+      revokedBy: [],
     };
     await addOneAttribute(
       getMockAttribute(attributeKind.verified, validVerifiedTenantAttribute.id)
@@ -350,10 +352,11 @@ describe("upgrade Agreement", () => {
         {
           id: producer.id,
           verificationDate: new Date(),
-          expirationDate: new Date(new Date().getFullYear() + 1),
+          expirationDate: addDays(new Date(), 30),
           extensionDate: undefined,
         },
       ],
+      revokedBy: [],
     };
     await addOneAttribute(
       getMockAttribute(attributeKind.verified, validVerifiedTenantAttribute.id)
@@ -580,7 +583,7 @@ describe("upgrade Agreement", () => {
         {
           id: producer.id,
           verificationDate: new Date(),
-          expirationDate: new Date(new Date().getFullYear() + 1),
+          expirationDate: addDays(new Date(), 30),
           extensionDate: new Date(), // invalid because of this
         },
       ],
