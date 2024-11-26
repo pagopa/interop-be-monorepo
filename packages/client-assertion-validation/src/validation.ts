@@ -57,6 +57,7 @@ import {
   clientAssertionSignatureVerificationError,
   missingPlatformStates,
 } from "./errors.js";
+import { config } from "./config.js";
 
 export const validateRequestParameters = (
   request: ClientAssertionValidationRequest
@@ -108,7 +109,8 @@ export const verifyClientAssertion = (
       decodedHeader.kid
     );
     const { errors: audErrors, data: validatedAud } = validateAudience(
-      decodedPayload.aud
+      decodedPayload.aud,
+      config.clientAssertionAudience
     );
     const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
       decodedHeader.alg
