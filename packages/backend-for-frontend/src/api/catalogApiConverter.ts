@@ -92,7 +92,8 @@ export function toBffCatalogDescriptorEService(
   descriptor: catalogApi.EServiceDescriptor,
   producerTenant: tenantApi.Tenant,
   agreement: agreementApi.Agreement | undefined,
-  requesterTenant: tenantApi.Tenant
+  requesterTenant: tenantApi.Tenant,
+  consumerDelegators: tenantApi.Tenant[]
 ): bffApi.CatalogDescriptorEService {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   return {
@@ -108,7 +109,13 @@ export function toBffCatalogDescriptorEService(
     descriptors: getNotDraftDescriptor(eservice).map(toCompactDescriptor),
     agreement: agreement && toBffCompactAgreement(agreement, eservice),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
-    hasCertifiedAttributes: hasCertifiedAttributes(descriptor, requesterTenant),
+    hasCertifiedAttributes: [requesterTenant, ...consumerDelegators].some(
+      (t) => hasCertifiedAttributes(descriptor, t)
+      /* True in case:
+      - the requester has the certified attributes required to consume the eservice, or
+      - the requester is the delegated consumer for the eservice and 
+        the delegator has the certified attributes required to consume the eservice */
+    ),
     isSubscribed: isAgreementSubscribed(agreement),
     activeDescriptor: activeDescriptor
       ? toCompactDescriptor(activeDescriptor)
