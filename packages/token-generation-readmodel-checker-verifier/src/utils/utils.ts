@@ -491,26 +491,35 @@ export function zipPurposeDataById(
     Purpose | undefined
   ]
 > {
+  const platformStatesMap = new Map<PurposeId, PlatformStatesPurposeEntry>(
+    platformStates.map((platformEntry) => [
+      unsafeBrandId<PurposeId>(getIdFromPlatformStatesPK(platformEntry.PK).id),
+      platformEntry,
+    ])
+  );
+
+  const tokenStatesMap = tokenStates.reduce((tokenStatesMap, entry) => {
+    if (entry.GSIPK_purposeId === undefined) {
+      return tokenStatesMap;
+    }
+    return tokenStatesMap.set(entry.GSIPK_purposeId, [
+      ...(tokenStatesMap.get(entry.GSIPK_purposeId) || []),
+      entry,
+    ]);
+  }, new Map<PurposeId, TokenGenerationStatesClientPurposeEntry[]>());
+
+  const purposesMap = new Map(purposes.map((purpose) => [purpose.id, purpose]));
+
   const allIds = new Set([
-    ...platformStates.map(
-      (platformEntry) => getIdFromPlatformStatesPK(platformEntry.PK).id
-    ),
-    ...tokenStates.map((tokenEntry) =>
-      getPurposeIdFromTokenStatesPK(tokenEntry.PK)
-    ),
-    ...purposes.map((purpose) => purpose.id),
+    ...platformStatesMap.keys(),
+    ...tokenStatesMap.keys(),
+    ...purposesMap.keys(),
   ]);
 
   return Array.from(allIds).map((id) => [
-    platformStates.find(
-      (platformEntry: PlatformStatesPurposeEntry) =>
-        getIdFromPlatformStatesPK(platformEntry.PK).id === id
-    ),
-    tokenStates.filter(
-      (tokenEntry: TokenGenerationStatesClientPurposeEntry) =>
-        getPurposeIdFromTokenStatesPK(tokenEntry.PK) === id
-    ),
-    purposes.find((purpose: Purpose) => purpose.id === id),
+    platformStatesMap.get(id),
+    tokenStatesMap.get(id) || [],
+    purposesMap.get(id),
   ]);
 }
 
@@ -722,23 +731,39 @@ export function zipAgreementDataById(
     Agreement | undefined
   ]
 > {
+  const platformStatesMap = new Map<AgreementId, PlatformStatesAgreementEntry>(
+    platformStates.map((platformEntry) => [
+      unsafeBrandId<AgreementId>(
+        getIdFromPlatformStatesPK(platformEntry.PK).id
+      ),
+      platformEntry,
+    ])
+  );
+
+  const tokenStatesMap = tokenStates.reduce((tokenStatesMap, entry) => {
+    const agreementId = entry.agreementId;
+    if (agreementId === undefined) {
+      return tokenStatesMap;
+    }
+    return tokenStatesMap.set(agreementId, [
+      ...(tokenStatesMap.get(agreementId) || []),
+      entry,
+    ]);
+  }, new Map<AgreementId, TokenGenerationStatesClientPurposeEntry[]>());
+
+  const agreementsMap = new Map(
+    agreements.map((agreement) => [agreement.id, agreement])
+  );
+
   const allIds = new Set([
-    ...platformStates.map(
-      (platformEntry) => getIdFromPlatformStatesPK(platformEntry.PK).id
-    ),
-    ...tokenStates.map((tokenEntry) => tokenEntry.agreementId),
-    ...agreements.map((agreement) => agreement.id),
+    ...platformStatesMap.keys(),
+    ...tokenStatesMap.keys(),
+    ...agreementsMap.keys(),
   ]);
   return Array.from(allIds).map((id) => [
-    platformStates.find(
-      (platformEntry: PlatformStatesAgreementEntry) =>
-        getIdFromPlatformStatesPK(platformEntry.PK).id === id
-    ),
-    tokenStates.filter(
-      (tokenEntry: TokenGenerationStatesClientPurposeEntry) =>
-        tokenEntry.agreementId === id
-    ),
-    agreements.find((agreement: Agreement) => agreement.id === id),
+    platformStatesMap.get(id),
+    tokenStatesMap.get(id) || [],
+    agreementsMap.get(id),
   ]);
 }
 
@@ -977,42 +1002,49 @@ export function zipEServiceDataById(
     EService | undefined
   ]
 > {
+  const platformStatesMap = new Map<EServiceId, PlatformStatesCatalogEntry>(
+    platformStates.map((platformEntry) => [
+      getIdFromPlatformStatesPK<EServiceId>(platformEntry.PK).id,
+      platformEntry,
+    ])
+  );
+
+  const tokenStatesMap = tokenStates.reduce((tokenStatesMap, entry) => {
+    const eserviceId = entry.GSIPK_eserviceId_descriptorId
+      ? getIdsFromGSIPKEServiceIdDescriptorId(
+          entry.GSIPK_eserviceId_descriptorId
+        )?.eserviceId
+      : entry.GSIPK_consumerId_eserviceId
+      ? getIdsFromGSIPKConsumerIdEServiceId(entry.GSIPK_consumerId_eserviceId)
+          ?.eserviceId
+      : undefined;
+
+    if (!eserviceId) {
+      return tokenStatesMap;
+    }
+
+    tokenStatesMap.set(eserviceId, [
+      ...(tokenStatesMap.get(eserviceId) || []),
+      entry,
+    ]);
+
+    return tokenStatesMap;
+  }, new Map<EServiceId, TokenGenerationStatesClientPurposeEntry[]>());
+
+  const eservicesMap = new Map<EServiceId, EService>(
+    eservices.map((eservice) => [eservice.id, eservice])
+  );
+
   const allIds = new Set([
-    ...platformStates.map(
-      (platformEntry) => getIdFromPlatformStatesPK(platformEntry.PK).id
-    ),
-    ...tokenStates.flatMap((tokenEntry) =>
-      tokenEntry.GSIPK_eserviceId_descriptorId
-        ? [
-            getIdsFromGSIPKEServiceIdDescriptorId(
-              tokenEntry.GSIPK_eserviceId_descriptorId
-            )?.eserviceId,
-          ]
-        : tokenEntry.GSIPK_consumerId_eserviceId
-        ? [
-            getIdsFromGSIPKConsumerIdEServiceId(
-              tokenEntry.GSIPK_consumerId_eserviceId
-            )?.eserviceId,
-          ]
-        : []
-    ),
-    ...eservices.map((eservice) => eservice.id),
+    ...platformStatesMap.keys(),
+    ...tokenStatesMap.keys(),
+    ...eservicesMap.keys(),
   ]);
+
   return Array.from(allIds).map((id) => [
-    platformStates.find(
-      (platformEntry: PlatformStatesCatalogEntry) =>
-        getIdFromPlatformStatesPK(platformEntry.PK).id === id
-    ),
-    tokenStates.filter(
-      (tokenEntry: TokenGenerationStatesClientPurposeEntry) =>
-        getIdsFromGSIPKEServiceIdDescriptorId(
-          tokenEntry.GSIPK_eserviceId_descriptorId
-        )?.eserviceId === id ||
-        getIdsFromGSIPKConsumerIdEServiceId(
-          tokenEntry.GSIPK_consumerId_eserviceId
-        )?.eserviceId === id
-    ),
-    eservices.find((eservice: EService) => eservice.id === id),
+    platformStatesMap.get(id),
+    tokenStatesMap.get(id) || [],
+    eservicesMap.get(id),
   ]);
 }
 
@@ -1242,25 +1274,38 @@ export function zipClientDataById(
     Client | undefined
   ]
 > {
+  const platformStatesMap = new Map<ClientId, PlatformStatesClientEntry>(
+    platformStates.map((platformEntry) => [
+      unsafeBrandId<ClientId>(getIdFromPlatformStatesPK(platformEntry.PK).id),
+      platformEntry,
+    ])
+  );
+
+  const tokenStatesMap = tokenStates.reduce((tokenStatesMap, entry) => {
+    const clientId = getClientIdFromTokenStatesPK(entry.PK);
+    if (clientId === undefined) {
+      return tokenStatesMap;
+    }
+    return tokenStatesMap.set(clientId, [
+      ...(tokenStatesMap.get(clientId) || []),
+      entry,
+    ]);
+  }, new Map<ClientId, TokenGenerationStatesGenericEntry[]>());
+
+  const clientMap = new Map<ClientId, Client>(
+    clients.map((client) => [unsafeBrandId<ClientId>(client.id), client])
+  );
+
   const allIds = new Set([
-    ...platformStates.map(
-      (platformEntry) => getIdFromPlatformStatesPK(platformEntry.PK).id
-    ),
-    ...tokenStates.map((tokenEntry) =>
-      getClientIdFromTokenStatesPK(tokenEntry.PK)
-    ),
-    ...clients.map((client) => client.id),
+    ...platformStatesMap.keys(),
+    ...tokenStatesMap.keys(),
+    ...clientMap.keys(),
   ]);
+
   return Array.from(allIds).map((id) => [
-    platformStates.find(
-      (platformEntry: PlatformStatesClientEntry) =>
-        getIdFromPlatformStatesPK(platformEntry.PK).id === id
-    ),
-    tokenStates.filter(
-      (tokenEntry: TokenGenerationStatesGenericEntry) =>
-        getClientIdFromTokenStatesPK(tokenEntry.PK) === id
-    ),
-    clients.find((client: Client) => client.id === id),
+    platformStatesMap.get(id),
+    tokenStatesMap.get(id) || [],
+    clientMap.get(id),
   ]);
 }
 
