@@ -279,6 +279,7 @@ describe("create agreement", () => {
     await addOneTenant(delegator);
     await addOneTenant(delegate);
     await addOneEService(eservice);
+    await addOneDelegation(delegation);
 
     const createdAgreement = await agreementService.createAgreement(
       {
