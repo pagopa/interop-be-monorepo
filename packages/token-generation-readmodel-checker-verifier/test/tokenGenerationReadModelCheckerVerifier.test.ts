@@ -91,7 +91,6 @@ import {
   addOneEService,
   addOnePurpose,
   config,
-  readModelService,
   writeClientEntry,
 } from "./utils.js";
 
@@ -346,7 +345,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [platformPurposeEntry1, platformPurposeEntry2],
           tokenGenerationStatesEntries: [tokenStatesEntry1, tokenStatesEntry2],
-          readModelService,
+          purposes: [purpose1, purpose2],
         });
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
     });
@@ -434,7 +433,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
             correctTokenStatesEntry,
             wrongTokenStatesEntry,
           ],
-          readModelService,
+          purposes: [purpose1, purpose2],
         });
       const expectedPurposeDifferences: PurposeDifferencesResult = [
         [
@@ -461,7 +460,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
-          readModelService,
+          purposes: [purpose],
         });
       const expectedPurposeDifferences: PurposeDifferencesResult = [
         [undefined, undefined, ComparisonPurpose.parse(purpose)],
@@ -501,7 +500,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          purposes: [purpose],
         });
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
     });
@@ -544,7 +543,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [platformPurposeEntry],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          purposes: [],
         });
       const expectedPurposeDifferences: PurposeDifferencesResult = [
         [
@@ -657,7 +656,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
             platformAgreementEntry2,
           ],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          agreements: [agreement1, agreement2],
         });
       expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
     });
@@ -755,7 +754,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
             platformAgreementEntry2,
           ],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          agreements: [agreement1, agreement2],
         });
       const expectedAgreementDifferences: AgreementDifferencesResult = [
         [
@@ -793,7 +792,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelAgreementsWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
-          readModelService,
+          agreements: [agreement],
         });
       const expectedAgreementDifferences: AgreementDifferencesResult = [
         [undefined, undefined, ComparisonAgreement.parse(agreement)],
@@ -820,7 +819,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelAgreementsWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
-          readModelService,
+          agreements: [agreement],
         });
       expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
     });
@@ -884,7 +883,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelAgreementsWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          agreements: [],
         });
       const expectedAgreementDifferences: AgreementDifferencesResult = [
         [
@@ -977,7 +976,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelEServicesWithTokenGenReadModel({
           platformStatesEntries: [platformCatalogEntry1, platformCatalogEntry2],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          eservices: [eservice1, eservice2],
         });
       expect(catalogDifferences).toHaveLength(expectedDifferencesLength);
     });
@@ -1060,7 +1059,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelEServicesWithTokenGenReadModel({
           platformStatesEntries: [platformCatalogEntry1, platformCatalogEntry2],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          eservices: [eservice1, eservice2],
         });
       const expectedCatalogDifferences: CatalogDifferencesResult = [
         [
@@ -1097,7 +1096,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelEServicesWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
-          readModelService,
+          eservices: [eservice],
         });
       const expectedCatalogDifferences: CatalogDifferencesResult = [
         [undefined, undefined, ComparisonEService.parse(eservice)],
@@ -1144,7 +1143,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelEServicesWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          eservices: [eservice],
         });
       expect(catalogDifferences).toHaveLength(expectedDifferencesLength);
     });
@@ -1197,7 +1196,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelEServicesWithTokenGenReadModel({
           platformStatesEntries: [platformCatalogEntry],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          eservices: [],
         });
       const expectedAgreementDifferences: CatalogDifferencesResult = [
         [
@@ -1300,7 +1299,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry1, platformClientEntry2],
           tokenGenerationStatesEntries: [tokenStatesEntry1, tokenStatesEntry2],
-          readModelService,
+          clients: [client1, client2],
         });
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
     });
@@ -1374,7 +1373,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry1, platformClientEntry2],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          clients: [client1, client2],
         });
       const expectedClientDifferences: ClientDifferencesResult = [
         [
@@ -1469,61 +1468,61 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          clients: [client],
         });
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
     });
 
     it("should detect differences if the token entry is client kid but should be client kid purpose", async () => {
-      const purpose1 = getMockPurpose();
-      const client1: Client = {
+      const purpose = getMockPurpose();
+      const client: Client = {
         ...getMockClient(),
-        purposes: [purpose1.id],
-        consumerId: purpose1.consumerId,
+        purposes: [purpose.id],
+        consumerId: purpose.consumerId,
         keys: [getMockKey()],
       };
-      await addOneClient(client1);
+      await addOneClient(client);
 
       // platform-states
-      const clientEntryPK1 = makePlatformStatesClientPK(client1.id);
-      const platformClientEntry1: PlatformStatesClientEntry = {
-        PK: clientEntryPK1,
+      const clientEntryPK = makePlatformStatesClientPK(client.id);
+      const platformClientEntry: PlatformStatesClientEntry = {
+        PK: clientEntryPK,
         state: itemState.active,
-        clientKind: clientKindToTokenGenerationStatesClientKind(client1.kind),
-        clientConsumerId: client1.consumerId,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         clientPurposesIds: [],
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry1, dynamoDBClient);
+      await writeClientEntry(platformClientEntry, dynamoDBClient);
 
       // token-generation-states
       const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPK({
-        clientId: client1.id,
-        kid: client1.keys[0].kid,
+        clientId: client.id,
+        kid: client.keys[0].kid,
       });
       const tokenStatesEntry: TokenGenerationStatesClientEntry = {
         ...getMockTokenStatesClientEntry(tokenStatesEntryPK),
-        consumerId: client1.consumerId,
-        GSIPK_clientId: client1.id,
-        GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
-        clientKind: platformClientEntry1.clientKind,
-        publicKey: client1.keys[0].encodedPem,
+        consumerId: client.consumerId,
+        GSIPK_clientId: client.id,
+        GSIPK_kid: makeGSIPKKid(client.keys[0].kid),
+        clientKind: platformClientEntry.clientKind,
+        publicKey: client.keys[0].encodedPem,
       };
       await writeTokenStateClientEntry(tokenStatesEntry, dynamoDBClient);
 
       const expectedDifferencesLength = 1;
       const clientDifferences =
         await compareReadModelClientsWithTokenGenReadModel({
-          platformStatesEntries: [platformClientEntry1],
+          platformStatesEntries: [platformClientEntry],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          clients: [client],
         });
       const expectedClientDifferences: ClientDifferencesResult = [
         [
           undefined,
           [ComparisonTokenStatesClientEntry.parse(tokenStatesEntry)],
-          ComparisonClient.parse(client1),
+          ComparisonClient.parse(client),
         ],
       ];
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
@@ -1601,7 +1600,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry1, platformClientEntry2],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          clients: [client1, client2],
         });
       const expectedClientDifferences: ClientDifferencesResult = [
         [
@@ -1636,7 +1635,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [],
           tokenGenerationStatesEntries: [],
-          readModelService,
+          clients: [client],
         });
       const expectedClientDifferences: ClientDifferencesResult = [
         [undefined, undefined, ComparisonClient.parse(client)],
@@ -1675,7 +1674,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry],
           tokenGenerationStatesEntries: [],
-          readModelService,
+          clients: [client],
         });
       const expectedClientDifferences: ClientDifferencesResult = [
         [undefined, undefined, ComparisonClient.parse(client)],
@@ -1713,7 +1712,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry],
           tokenGenerationStatesEntries: [],
-          readModelService,
+          clients: [client],
         });
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
     });
@@ -1744,7 +1743,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry],
           tokenGenerationStatesEntries: [],
-          readModelService,
+          clients: [client],
         });
       const expectedClientDifferences: ClientDifferencesResult = [
         [undefined, undefined, ComparisonClient.parse(client)],
@@ -1801,7 +1800,7 @@ describe("Token Generation Read Model Checker Verifier tests", () => {
         await compareReadModelClientsWithTokenGenReadModel({
           platformStatesEntries: [platformClientEntry],
           tokenGenerationStatesEntries: [tokenStatesEntry],
-          readModelService,
+          clients: [],
         });
       const expectedClientDifferences: ClientDifferencesResult = [
         [

@@ -282,24 +282,24 @@ export async function compareTokenGenerationReadModel(
     await compareReadModelPurposesWithTokenGenReadModel({
       platformStatesEntries: platformPurposeEntries,
       tokenGenerationStatesEntries: tokenGenerationStatesClientPurposeEntries,
-      readModelService,
+      purposes: await readModelService.getAllReadModelPurposes(),
     });
   const agreementDifferences =
     await compareReadModelAgreementsWithTokenGenReadModel({
       platformStatesEntries: platformAgreementEntries,
       tokenGenerationStatesEntries: tokenGenerationStatesClientPurposeEntries,
-      readModelService,
+      agreements: await readModelService.getAllReadModelAgreements(),
     });
   const catalogDifferences =
     await compareReadModelEServicesWithTokenGenReadModel({
       platformStatesEntries: platformCatalogEntries,
       tokenGenerationStatesEntries: tokenGenerationStatesClientPurposeEntries,
-      readModelService,
+      eservices: await readModelService.getAllReadModelEServices(),
     });
   const clientDifferences = await compareReadModelClientsWithTokenGenReadModel({
     platformStatesEntries: platformClientEntries,
     tokenGenerationStatesEntries,
-    readModelService,
+    clients: await readModelService.getAllReadModelClients(),
   });
 
   return (
@@ -314,11 +314,11 @@ export async function compareTokenGenerationReadModel(
 export async function compareReadModelPurposesWithTokenGenReadModel({
   platformStatesEntries,
   tokenGenerationStatesEntries,
-  readModelService,
+  purposes,
 }: {
   platformStatesEntries: PlatformStatesPurposeEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
-  readModelService: ReturnType<typeof readModelServiceBuilder>;
+  purposes: Purpose[];
 }): Promise<PurposeDifferencesResult> {
   const platformStatesMap = new Map<PurposeId, PlatformStatesPurposeEntry>(
     platformStatesEntries.map((platformEntry) => [
@@ -340,7 +340,6 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
     new Map<PurposeId, TokenGenerationStatesClientPurposeEntry[]>()
   );
 
-  const purposes = await readModelService.getAllReadModelPurposes();
   const purposesMap = new Map(purposes.map((purpose) => [purpose.id, purpose]));
 
   const allIds = new Set([
@@ -543,11 +542,11 @@ export function countPurposeDifferences(
 export async function compareReadModelAgreementsWithTokenGenReadModel({
   platformStatesEntries,
   tokenGenerationStatesEntries,
-  readModelService,
+  agreements,
 }: {
   platformStatesEntries: PlatformStatesAgreementEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
-  readModelService: ReturnType<typeof readModelServiceBuilder>;
+  agreements: Agreement[];
 }): Promise<AgreementDifferencesResult> {
   const platformStatesMap = new Map<AgreementId, PlatformStatesAgreementEntry>(
     platformStatesEntries.map((platformEntry) => [
@@ -572,7 +571,6 @@ export async function compareReadModelAgreementsWithTokenGenReadModel({
     new Map<AgreementId, TokenGenerationStatesClientPurposeEntry[]>()
   );
 
-  const agreements = await readModelService.getAllReadModelAgreements();
   const agreementsMap = new Map(
     agreements.map((agreement) => [agreement.id, agreement])
   );
@@ -770,11 +768,11 @@ export function countAgreementDifferences(
 export async function compareReadModelEServicesWithTokenGenReadModel({
   platformStatesEntries,
   tokenGenerationStatesEntries,
-  readModelService,
+  eservices,
 }: {
   platformStatesEntries: PlatformStatesCatalogEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesClientPurposeEntry[];
-  readModelService: ReturnType<typeof readModelServiceBuilder>;
+  eservices: EService[];
 }): Promise<CatalogDifferencesResult> {
   const platformStatesMap = new Map<EServiceId, PlatformStatesCatalogEntry>(
     platformStatesEntries.map((platformEntry) => [
@@ -808,7 +806,6 @@ export async function compareReadModelEServicesWithTokenGenReadModel({
     new Map<EServiceId, TokenGenerationStatesClientPurposeEntry[]>()
   );
 
-  const eservices = await readModelService.getAllReadModelEServices();
   const eservicesMap = new Map<EServiceId, EService>(
     eservices.map((eservice) => [eservice.id, eservice])
   );
@@ -1035,11 +1032,11 @@ export function countCatalogDifferences(
 export async function compareReadModelClientsWithTokenGenReadModel({
   platformStatesEntries,
   tokenGenerationStatesEntries,
-  readModelService,
+  clients,
 }: {
   platformStatesEntries: PlatformStatesClientEntry[];
   tokenGenerationStatesEntries: TokenGenerationStatesGenericEntry[];
-  readModelService: ReturnType<typeof readModelServiceBuilder>;
+  clients: Client[];
 }): Promise<ClientDifferencesResult> {
   const platformStatesMap = new Map<ClientId, PlatformStatesClientEntry>(
     platformStatesEntries.map((platformEntry) => [
@@ -1062,7 +1059,6 @@ export async function compareReadModelClientsWithTokenGenReadModel({
     new Map<ClientId, TokenGenerationStatesGenericEntry[]>()
   );
 
-  const clients = await readModelService.getAllReadModelClients();
   const clientsMap = new Map<ClientId, Client>(
     clients.map((client) => [unsafeBrandId<ClientId>(client.id), client])
   );
