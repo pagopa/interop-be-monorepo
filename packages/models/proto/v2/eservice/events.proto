@@ -132,3 +132,9 @@ message EServiceDescriptorDelegatorRejectedV2 {
     string descriptorId = 1;
     EServiceV2 eservice = 2;
 }
+
+message EServiceDescriptorAttributesUpdatedV2 {
+  string descriptorId = 1;
+  repeated string attributeIds = 2;
+  EServiceV2 eservice = 3;
+}

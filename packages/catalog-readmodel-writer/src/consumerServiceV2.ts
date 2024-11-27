@@ -44,6 +44,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorDelegateSubmitted" },
       { type: "EServiceDescriptorDelegatorApproved" },
       { type: "EServiceDescriptorDelegatorRejected" },
+      { type: "EServiceDescriptorAttributesUpdated" },
       async (message) =>
         await eservices.updateOne(
           {

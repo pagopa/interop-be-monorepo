@@ -245,6 +245,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptionUpdated" },
       { type: "EServiceDescriptorDelegatorRejected" },
       { type: "EServiceDescriptorDelegateSubmitted" },
+      { type: "EServiceDescriptorAttributesUpdated" },
       () => Promise.resolve()
     )
     .exhaustive();

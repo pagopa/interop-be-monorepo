@@ -80,6 +80,7 @@ import {
   toCreateEventEServiceDescriptorDelegateSubmitted,
   toCreateEventEServiceDescriptorDelegatorApproved,
   toCreateEventEServiceDescriptorDelegatorRejected,
+  toCreateEventEServiceDescriptorAttributesUpdated,
   toCreateEventEServiceDescriptorPublished,
   toCreateEventEServiceDescriptorQuotasUpdated,
   toCreateEventEServiceDescriptorSuspended,
@@ -105,6 +106,7 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
+  assertRequesterAllowed,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
@@ -1883,6 +1885,41 @@ export function catalogServiceBuilder(
           correlationId
         )
       );
+    },
+    async updateDescriptorAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(
+        `Updating attributes of Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        descriptors: [descriptor],
+      };
+
+      const attributesIds = descriptor.attributes.certified.flatMap((c) =>
+        c.map((a) => a.id)
+      );
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptorAttributesUpdated(
+          eservice.metadata.version,
+          descriptor.id,
+          descriptor.attributes.certified.flatMap((c) => c.map((a) => a.id)),
+          updatedEService,
+          correlationId
+        )
+      );
+
+      return updatedEService;
     },
   };
 }

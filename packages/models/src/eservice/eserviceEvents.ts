@@ -44,6 +44,7 @@ import {
   EServiceDescriptorDelegateSubmittedV2,
   EServiceDescriptorDelegatorApprovedV2,
   EServiceDescriptorDelegatorRejectedV2,
+  EServiceDescriptorAttributesUpdatedV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -176,6 +177,9 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceDescriptorDelegatorRejected" }, ({ data }) =>
       EServiceDescriptorDelegatorRejectedV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorAttributesUpdated" }, ({ data }) =>
+      EServiceDescriptorAttributesUpdatedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -379,6 +383,11 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceDescriptorDelegatorRejected"),
     data: protobufDecoder(EServiceDescriptorDelegatorRejectedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorAttributesUpdated"),
+    data: protobufDecoder(EServiceDescriptorAttributesUpdatedV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;
