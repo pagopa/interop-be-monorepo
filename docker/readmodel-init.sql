@@ -74,19 +74,19 @@ CREATE TABLE readmodel.eservice_risk_analysis(
   risk_analysis_form_version varchar
 );
 
-CREATE TABLE readmodel.risk_analysis_single_answer(
-  id uuid,
-  risk_analysis_form_id uuid,
-  key varchar,
-  value varchar
-);
-
-CREATE TABLE readmodel.risk_analysis_multi_answer(
-  id uuid,
-  risk_analysis_form_id uuid,
-  key varchar,
-  value varchar ARRAY
-);
+-- CREATE TABLE readmodel.risk_analysis_single_answer(
+--   id uuid,
+--   risk_analysis_form_id uuid,
+--   key varchar,
+--   value varchar
+-- );
+-- 
+-- CREATE TABLE readmodel.risk_analysis_multi_answer(
+--   id uuid,
+--   risk_analysis_form_id uuid,
+--   key varchar,
+--   value varchar ARRAY
+-- );
 
 
 
