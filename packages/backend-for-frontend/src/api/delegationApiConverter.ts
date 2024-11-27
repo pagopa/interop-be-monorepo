@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { toCompactDescriptor } from "./catalogApiConverter.js";
+import { toCompactEserviceLight } from "./agreementApiConverter.js";
 
 export type DelegationsQueryParams = {
   delegatorIds?: string[];
@@ -95,7 +96,7 @@ export function toBffDelegationApiCompactDelegation(
 ): bffApi.CompactDelegation {
   return {
     id: delegation.id,
-    eserviceName: eservice.name,
+    eservice: toCompactEserviceLight(eservice),
     delegate: {
       name: delegate.name,
       id: delegate.id,
