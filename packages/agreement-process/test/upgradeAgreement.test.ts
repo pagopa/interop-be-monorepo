@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable fp/no-delete */
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import {
   dateAtRomeZone,
   FileManagerError,
@@ -37,6 +36,7 @@ import {
   Descriptor,
   EService,
   EServiceId,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
   agreementState,
@@ -49,17 +49,8 @@ import {
   toAgreementV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
-import { config } from "../src/config/config.js";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { addDays } from "date-fns";
 import { agreementUpgradableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -74,6 +65,7 @@ import {
   tenantNotFound,
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
 import {
   addOneAgreement,
@@ -87,7 +79,6 @@ import {
   getMockContract,
   pdfGenerator,
   readAgreementEventByVersion,
-  selfcareV2ClientMock,
   uploadDocument,
 } from "./utils.js";
 
@@ -99,25 +90,6 @@ describe("upgrade Agreement", () => {
   });
   afterAll(() => {
     vi.useRealTimers();
-  });
-
-  const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
-    email: "test@test.com",
-    name: "Test Name",
-    surname: "Test Surname",
-    taxCode: "TSTTSTTSTTSTTSTT",
-    id: generateId(),
-  };
-
-  beforeEach(async () => {
-    // eslint-disable-next-line functional/immutable-data
-    selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-      async () => mockSelfcareUserResponse
-    );
-  });
-
-  afterEach(async () => {
-    vi.clearAllMocks();
   });
 
   it("should succeed with valid Verified and Declared attributes when consumer and producer are the same", async () => {
@@ -136,10 +108,11 @@ describe("upgrade Agreement", () => {
         {
           id: producerAndConsumerId,
           verificationDate: new Date(),
-          expirationDate: new Date(new Date().getFullYear() + 1),
+          expirationDate: addDays(new Date(), 30),
           extensionDate: undefined,
         },
       ],
+      revokedBy: [],
     };
     await addOneAttribute(
       getMockAttribute(attributeKind.verified, validVerifiedTenantAttribute.id)
@@ -359,10 +332,11 @@ describe("upgrade Agreement", () => {
         {
           id: producer.id,
           verificationDate: new Date(),
-          expirationDate: new Date(new Date().getFullYear() + 1),
+          expirationDate: addDays(new Date(), 30),
           extensionDate: undefined,
         },
       ],
+      revokedBy: [],
     };
     await addOneAttribute(
       getMockAttribute(attributeKind.verified, validVerifiedTenantAttribute.id)
@@ -679,6 +653,8 @@ describe("upgrade Agreement", () => {
       getMockConsumerDocument(agreementId)
     );
 
+    const submitterId = authData.userId;
+    const activatorId = authData.userId;
     const agreement: Agreement = {
       ...getMockAgreement(
         eservice.id,
@@ -693,8 +669,8 @@ describe("upgrade Agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        submission: createStamp(authData.userId),
-        activation: createStamp(authData.userId),
+        submission: createStamp(submitterId),
+        activation: createStamp(activatorId),
         suspensionByConsumer: createStamp(authData.userId),
         suspensionByProducer: createStamp(authData.userId),
       },
@@ -821,24 +797,37 @@ describe("upgrade Agreement", () => {
     // expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
     expect(actualAgreementUpgraded).toEqual(returnedAgreement);
 
+    expect(submitterId).toEqual(actualAgreementUpgraded.stamps.submission);
+    expect(activatorId).toEqual(actualAgreementUpgraded.stamps.activation?.who);
+
+    const getIpaCode = (tenant: Tenant): string | undefined =>
+      tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
+        ? tenant.externalId.value
+        : undefined;
+
     const expectedAgreementContractPDFPayload: AgreementContractPDFPayload = {
       todayDate: dateAtRomeZone(currentExecutionTime),
       todayTime: timeAtRomeZone(currentExecutionTime),
       agreementId: newAgreementId,
-      submitter: `${mockSelfcareUserResponse.name} ${mockSelfcareUserResponse.surname} (${mockSelfcareUserResponse.taxCode})`,
+      submitterId,
       submissionDate: dateAtRomeZone(currentExecutionTime),
       submissionTime: timeAtRomeZone(currentExecutionTime),
-      activator: `${mockSelfcareUserResponse.name} ${mockSelfcareUserResponse.surname} (${mockSelfcareUserResponse.taxCode})`,
+      activatorId,
       activationDate: dateAtRomeZone(currentExecutionTime),
       activationTime: timeAtRomeZone(currentExecutionTime),
-      eServiceName: eservice.name,
-      eServiceId: eservice.id,
-      eServiceDescriptorVersion: eservice.descriptors[0].version,
-      producerText: `${producer.name} (codice IPA: ${producer.externalId.value})`,
-      consumerText: `${consumer.name} (codice IPA: ${consumer.externalId.value})`,
+      eserviceName: eservice.name,
+      eserviceId: eservice.id,
+      descriptorId: eservice.descriptors[0].id,
+      descriptorVersion: eservice.descriptors[0].version,
+      producerName: `${producer.name}`,
+      producerIpaCode: getIpaCode(producer),
+      consumerName: `${consumer.name}`,
+      consumerIpaCode: getIpaCode(consumer),
       delegationId: delegation.id,
-      delegatorText: `${producer.name} (codice IPA: ${producer.externalId.value})`,
-      delegateText: `${delegate.name} (codice IPA: ${delegate.externalId.value})`,
+      delegatorName: producer.name,
+      delegatorIpaCode: getIpaCode(producer),
+      delegateName: delegate.name,
+      delegateIpaCode: getIpaCode(delegate),
       certifiedAttributes: [
         {
           assignmentDate: dateAtRomeZone(
@@ -902,7 +891,7 @@ describe("upgrade Agreement", () => {
         {
           id: producer.id,
           verificationDate: new Date(),
-          expirationDate: new Date(new Date().getFullYear() + 1),
+          expirationDate: addDays(new Date(), 30),
           extensionDate: new Date(), // invalid because of this
         },
       ],
