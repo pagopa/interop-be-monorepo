@@ -19,14 +19,12 @@ import {
   toReadModelPurpose,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const config = inject("tokenGenerationReadModelConfig");
 
 export const { cleanup, readModelRepository } = await setupTestContainersVitest(
   inject("readModelConfig")
 );
-export const readModelService = readModelServiceBuilder(readModelRepository);
 
 afterEach(cleanup);
 
