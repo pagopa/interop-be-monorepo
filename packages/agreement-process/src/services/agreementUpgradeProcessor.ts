@@ -69,9 +69,10 @@ export async function createUpgradeOrNewDraft({
     // with the same state of the old agreement, and archives the old agreement.
 
     // If current eservice has an active delegation the new contract will be created with the delation data
-    const activeDelegation = (
-      await retrieveActiveDelegationByEserviceId(eservice.id, readModelService)
-    )?.data;
+    const activeDelegation = await retrieveActiveDelegationByEserviceId(
+      eservice.id,
+      readModelService
+    );
 
     const stamp =
       authData.organizationId === activeDelegation?.delegateId

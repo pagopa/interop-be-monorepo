@@ -33,6 +33,7 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+import { addDays } from "date-fns";
 import { agreementRejectableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
@@ -92,7 +93,7 @@ describe("reject agreement", () => {
           {
             id: producerId,
             verificationDate: new Date(),
-            extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+            extensionDate: addDays(new Date(), 30),
           },
         ],
       };
@@ -112,7 +113,7 @@ describe("reject agreement", () => {
             {
               id: producerId,
               verificationDate: new Date(),
-              extensionDate: new Date(),
+              extensionDate: addDays(new Date(), 300),
             },
           ],
         };
