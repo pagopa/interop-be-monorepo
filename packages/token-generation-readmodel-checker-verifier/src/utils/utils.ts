@@ -452,7 +452,7 @@ function validatePurposeTokenGenerationStates({
     };
   }
 
-  const foundWrongTokenStatesEntries = tokenStatesEntries.filter(
+  const wrongTokenStatesEntries = tokenStatesEntries.filter(
     (e) =>
       getPurposeIdFromTokenStatesPK(e.PK) !== purpose.id ||
       e.consumerId !== purpose.consumerId ||
@@ -464,11 +464,10 @@ function validatePurposeTokenGenerationStates({
   );
 
   return {
-    isTokenGenerationStatesPurposeCorrect:
-      foundWrongTokenStatesEntries.length === 0,
+    isTokenGenerationStatesPurposeCorrect: wrongTokenStatesEntries.length === 0,
     data:
-      foundWrongTokenStatesEntries.length > 0
-        ? foundWrongTokenStatesEntries.map((entry) => ({
+      wrongTokenStatesEntries.length > 0
+        ? wrongTokenStatesEntries.map((entry) => ({
             PK: entry.PK,
             consumerId: entry.consumerId,
             GSIPK_purposeId: entry.GSIPK_purposeId,
@@ -689,7 +688,7 @@ function validateAgreementTokenGenerationStates({
     };
   }
 
-  const foundWrongTokenStatesEntries = tokenStatesEntries.filter(
+  const wrongTokenStatesEntries = tokenStatesEntries.filter(
     (e) =>
       e.consumerId !== agreement.consumerId ||
       e.agreementId !== agreement.id ||
@@ -705,10 +704,10 @@ function validateAgreementTokenGenerationStates({
 
   return {
     isTokenGenerationStatesAgreementCorrect:
-      foundWrongTokenStatesEntries.length === 0,
+      wrongTokenStatesEntries.length === 0,
     data:
-      foundWrongTokenStatesEntries.length > 0
-        ? foundWrongTokenStatesEntries.map((entry) => ({
+      wrongTokenStatesEntries.length > 0
+        ? wrongTokenStatesEntries.map((entry) => ({
             PK: entry.PK,
             consumerId: entry.consumerId,
             agreementId: entry.agreementId,
@@ -944,7 +943,7 @@ function validateCatalogTokenGenerationStates({
     };
   }
 
-  const foundWrongTokenStatesEntries = tokenStatesEntries.filter((e) => {
+  const wrongTokenStatesEntries = tokenStatesEntries.filter((e) => {
     const entryDescriptor = eservice.descriptors.find(
       (d) =>
         d.id ===
@@ -972,11 +971,10 @@ function validateCatalogTokenGenerationStates({
     );
   });
   return {
-    isTokenGenerationStatesCatalogCorrect:
-      foundWrongTokenStatesEntries.length === 0,
+    isTokenGenerationStatesCatalogCorrect: wrongTokenStatesEntries.length === 0,
     data:
-      foundWrongTokenStatesEntries.length > 0
-        ? foundWrongTokenStatesEntries.map(
+      wrongTokenStatesEntries.length > 0
+        ? wrongTokenStatesEntries.map(
             (entry): ComparisonTokenStatesCatalogEntry => ({
               PK: entry.PK,
               GSIPK_consumerId_eserviceId: entry.GSIPK_consumerId_eserviceId,
@@ -1209,7 +1207,7 @@ function validateClientTokenGenerationStates({
     };
   }
 
-  const foundWrongTokenStatesEntries = tokenStatesEntries.reduce<
+  const wrongTokenStatesEntries = tokenStatesEntries.reduce<
     ComparisonTokenStatesClientEntry[]
   >((acc, e) => {
     const parsedTokenClientPurposeEntry =
@@ -1254,12 +1252,10 @@ function validateClientTokenGenerationStates({
 
   return {
     isTokenGenerationStatesClientCorrect:
-      foundWrongTokenStatesEntries.length === 0 &&
+      wrongTokenStatesEntries.length === 0 &&
       tokenStatesEntries.length === client.keys.length * client.purposes.length,
     data:
-      foundWrongTokenStatesEntries.length > 0
-        ? foundWrongTokenStatesEntries
-        : undefined,
+      wrongTokenStatesEntries.length > 0 ? wrongTokenStatesEntries : undefined,
   };
 }
 
