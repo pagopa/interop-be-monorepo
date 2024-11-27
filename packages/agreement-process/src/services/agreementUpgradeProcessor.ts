@@ -68,12 +68,11 @@ export async function createUpgradeOrNewDraft({
     // Creates a new Agreement linked to the new descriptor version,
     // with the same state of the old agreement, and archives the old agreement.
 
-    // If curremt eservice has an active delegation the new contract will be created with the delation data
+    // If current eservice has an active delegation the new contract will be created with the delation data
     const activeDelegation = (
       await retrieveActiveDelegationByEserviceId(eservice.id, readModelService)
     )?.data;
 
-    // If requester is delegate the stamp will be created with the delegateId
     const stamp =
       authData.organizationId === activeDelegation?.delegateId
         ? createStamp(authData.userId, activeDelegation?.delegateId)
