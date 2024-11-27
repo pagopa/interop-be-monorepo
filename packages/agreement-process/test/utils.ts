@@ -27,6 +27,7 @@ import {
   Attribute,
   toReadModelAttribute,
   TenantId,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   agreementApi,
@@ -64,10 +65,8 @@ vi.spyOn(puppeteer, "launch").mockImplementation(
   async () => testBrowserInstance
 );
 
-export const agreements = readModelRepository.agreements;
-export const eservices = readModelRepository.eservices;
-export const tenants = readModelRepository.tenants;
-export const attributes = readModelRepository.attributes;
+export const { agreements, attributes, eservices, tenants, delegations } =
+  readModelRepository;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
@@ -116,6 +115,13 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await writeInReadmodel(delegation, delegations);
+};
+
 export const readLastAgreementEvent = async (
   agreementId: AgreementId
 ): Promise<ReadEvent<AgreementEvent>> =>
