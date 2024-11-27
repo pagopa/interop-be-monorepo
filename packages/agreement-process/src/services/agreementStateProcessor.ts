@@ -47,7 +47,7 @@ const nextStateFromDraft = (
 ): AgreementState => {
   if (
     agreement.consumerId === agreement.producerId ||
-    (delegateId && delegateId === agreement.consumerId)
+    agreement.consumerId === delegateId
   ) {
     return active;
   }
@@ -103,7 +103,7 @@ const nextStateFromActiveOrSuspended = (
 ): AgreementState => {
   if (
     agreement.consumerId === agreement.producerId ||
-    (delegateId && agreement.consumerId === delegateId)
+    agreement.consumerId === delegateId
   ) {
     return active;
   }
