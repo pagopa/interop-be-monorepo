@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   DescriptorAttributeSQL,
   DescriptorId,
@@ -27,14 +26,18 @@ export const prepareInsertEservice = (
     ],
   });
 
-export const prepareReadEservice = (id: EServiceId): any =>
+export const prepareReadEservice = (
+  id: EServiceId
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "read-eservice",
     text: "SELECT * FROM readmodel.eservice WHERE id = $1",
     values: [id],
   });
 
-export const prepareUpdateEservice = (eservice: EServiceSQL): any =>
+export const prepareUpdateEservice = (
+  eservice: EServiceSQL
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "update-eservice",
     text: "UPDATE readmodel.eservice SET producer_id = $1, name = $2, description = $3, technology = $4, created_at = $5, mode = $6 WHERE id = $7",
@@ -49,13 +52,14 @@ export const prepareUpdateEservice = (eservice: EServiceSQL): any =>
     ],
   });
 
-export const prepareDeleteEservice = (id: EServiceId): any => {
+export const prepareDeleteEservice = (
+  id: EServiceId
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "delete-eservice",
     text: "DELETE FROM readmodel.eservice WHERE id = $1",
     values: [id],
   });
-};
 
 export const prepareInsertDescriptor = (
   descriptorSQL: DescriptorSQL
@@ -109,15 +113,18 @@ export const prepareUpdateDescriptor = (
     ],
   });
 
-export const prepareDeleteDescriptor = (id: DescriptorId): any => {
+export const prepareDeleteDescriptor = (
+  id: DescriptorId
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "delete-descriptor",
     text: "DELETE FROM readmodel.descriptor WHERE id = $1",
     values: [id],
   });
-};
 
-export const prepareReadDescriptorsByEserviceId = (id: EServiceId): any =>
+export const prepareReadDescriptorsByEserviceId = (
+  id: EServiceId
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "read-descriptors-by-eservice-id",
     text: "SELECT * FROM readmodel.descriptor WHERE eservice_id = $1",
@@ -162,29 +169,36 @@ export const prepareUpdateDescriptorDocument = (
     ],
   });
 
-export const prepareDeleteDocument = (id: EServiceDocumentId): any => {
+export const prepareDeleteDocument = (
+  id: EServiceDocumentId
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "delete-descriptor",
     text: "DELETE FROM readmodel.descriptor_document WHERE id = $1",
     values: [id],
   });
-};
 
-export const prepareReadDocumentsByDescriptorId = (id: DescriptorId): any =>
+export const prepareReadDocumentsByDescriptorId = (
+  id: DescriptorId
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "read-descriptor-documents-by-descriptor-id",
     text: "SELECT * FROM readmodel.descriptor_document WHERE descriptor_id = $1",
     values: [id],
   });
 
-export const prepareReadDocumentsByEserviceId = (id: EServiceId): any =>
+export const prepareReadDocumentsByEserviceId = (
+  id: EServiceId
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "read-documents-by-eservice-id",
     text: "SELECT * FROM readmodel.descriptor_document WHERE descriptor_document.descriptor_id IN (SELECT id FROM readmodel.descriptor WHERE descriptor.eservice_id = $1)",
     values: [id],
   });
 
-export const prepareReadDocumentsByDescriptorIds = (ids: DescriptorId[]): any =>
+export const prepareReadDocumentsByDescriptorIds = (
+  ids: DescriptorId[]
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "read-descriptor-documents-by-descriptors-ids",
     text: "SELECT * FROM readmodel.document WHERE descriptor_id ANY ($1)",
@@ -208,7 +222,7 @@ export const prepareInsertDescriptorAttribute = (
 
 export const prepareReadDescriptorAttributesByDescriptorId = (
   id: DescriptorId
-): any =>
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "read-descriptor-attributes",
     text: "SELECT * FROM readmodel.descriptor_attribute WHERE descriptor_id = $1",
@@ -217,14 +231,16 @@ export const prepareReadDescriptorAttributesByDescriptorId = (
 
 export const prepareReadDescriptorAttributesByEserviceId = (
   id: EServiceId
-): any =>
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "read-descriptor-attributes-by-eservice-id",
     text: "SELECT * FROM readmodel.descriptor_attribute as attribute WHERE attribute.descriptor_id IN (SELECT id FROM readmodel.descriptor WHERE descriptor.eservice_id = $1)",
     values: [id],
   });
 
-export const prepareReadDescriptorsByEserviceIds = (ids: EServiceId[]): any =>
+export const prepareReadDescriptorsByEserviceIds = (
+  ids: EServiceId[]
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "read-descriptors-by-eservices-ids",
     text: "SELECT * FROM readmodel.descriptor WHERE eservice_id = ANY ($1)",
@@ -233,7 +249,7 @@ export const prepareReadDescriptorsByEserviceIds = (ids: EServiceId[]): any =>
 
 export const prepareReadDescriptorAttributesByDescriptorIds = (
   ids: DescriptorId[]
-): any =>
+): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "read-descriptor-attributes",
     text: "SELECT * FROM readmodel.descriptor_attribute WHERE descriptor_id = ANY ($1)",
