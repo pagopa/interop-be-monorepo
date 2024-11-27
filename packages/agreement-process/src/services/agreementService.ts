@@ -178,14 +178,14 @@ export const retrieveTenant = async (
 export const retrieveDelegationByDelegateId = async (
   delegateId: TenantId,
   readModelService: ReadModelService
-): Promise<WithMetadata<Delegation> | undefined> =>
-  await readModelService.getDelegationByDelegateId(delegateId);
+): Promise<Delegation | undefined> =>
+  (await readModelService.getDelegationByDelegateId(delegateId))?.data;
 
 export const retrieveActiveDelegationByEserviceId = async (
   eserviceId: EServiceId,
   readModelService: ReadModelService
-): Promise<WithMetadata<Delegation> | undefined> =>
-  await readModelService.getActiveDelegationByEserviceId(eserviceId);
+): Promise<Delegation | undefined> =>
+  (await readModelService.getActiveDelegationByEserviceId(eserviceId))?.data;
 
 export const retrieveDescriptor = (
   descriptorId: DescriptorId,
@@ -416,12 +416,10 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const activeDelegation = (
-        await retrieveActiveDelegationByEserviceId(
-          agreement.data.eserviceId,
-          readModelService
-        )
-      )?.data;
+      const activeDelegation = await retrieveActiveDelegationByEserviceId(
+        agreement.data.eserviceId,
+        readModelService
+      );
       const delegateId = activeDelegation?.delegateId;
 
       const nextStateByAttributes = nextStateByAttributesFSM(
@@ -803,7 +801,7 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const delegateId = activeDelegation?.data.delegateId;
+      const delegateId = activeDelegation?.delegateId;
 
       assertRequesterCanSuspend(agreement.data, delegateId, authData);
 
@@ -915,7 +913,7 @@ export function agreementServiceBuilder(
         agreementToBeRejected.data.eserviceId,
         readModelService
       );
-      const delegateId = activeDelegation?.data.delegateId;
+      const delegateId = activeDelegation?.delegateId;
 
       assertRequesterIsProducerOrDelegate(
         agreementToBeRejected.data,
@@ -995,7 +993,7 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const delegateId = activeDelegation?.data.delegateId;
+      const delegateId = activeDelegation?.delegateId;
 
       assertRequesterCanActivate(agreement.data, delegateId, authData);
 
@@ -1105,7 +1103,7 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreementWithoutContract,
-        activeDelegation?.data
+        activeDelegation
       );
 
       const suspendedByPlatformChanged =
