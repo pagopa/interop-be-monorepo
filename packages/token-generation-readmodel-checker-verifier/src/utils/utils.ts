@@ -86,7 +86,7 @@ export function getLastPurposeVersion(
 
 export function getLastEServiceDescriptor(
   descriptors: Descriptor[]
-): Descriptor | undefined {
+): Descriptor {
   return descriptors.toSorted(
     (descriptor1, descriptor2) =>
       descriptor2.createdAt.getTime() - descriptor1.createdAt.getTime()
@@ -326,7 +326,9 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
     await readModelService.getAllReadModelPurposes()
   ).reduce<PurposeDifferencesResult>(
     (acc, [platformStatesEntry, tokenStatesEntries, purpose]) => {
-      if (!purpose) {
+      if (!platformStatesEntry && !tokenStatesEntries.length && !purpose) {
+        return acc;
+      } else if (!purpose) {
         return [
           ...acc,
           [
@@ -342,6 +344,7 @@ export async function compareReadModelPurposesWithTokenGenReadModel({
           ],
         ];
       }
+
       const purposeState = getPurposeStateFromPurposeVersions(purpose.versions);
       const lastPurposeVersion = getLastPurposeVersion(purpose.versions);
 
@@ -437,6 +440,12 @@ function validatePurposeTokenGenerationStates({
   data: ComparisonTokenStatesPurposeEntry[] | undefined;
 } {
   if (!tokenStatesEntries || tokenStatesEntries.length === 0) {
+    if (lastPurposeVersion.state === purposeVersionState.archived) {
+      return {
+        isTokenGenerationStatesPurposeCorrect: true,
+        data: undefined,
+      };
+    }
     return {
       isTokenGenerationStatesPurposeCorrect: false,
       data: undefined,
@@ -491,6 +500,7 @@ export function zipPurposeDataById(
     ),
     ...purposes.map((purpose) => purpose.id),
   ]);
+
   return Array.from(allIds).map((id) => [
     platformStates.find(
       (platformEntry: PlatformStatesPurposeEntry) =>
@@ -510,32 +520,24 @@ export function countPurposeDifferences(
 ): number {
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
-  differences.forEach(([platformPurpose, tokenPurpose, readModelPurpose]) => {
-    if (!readModelPurpose) {
-      if (platformPurpose) {
-        logger.error(
-          `Read model purpose not found for id: ${
-            getIdFromPlatformStatesPK(platformPurpose.PK).id
-          }`
-        );
-      } else if (tokenPurpose?.[0].GSIPK_purposeId) {
-        logger.error(
-          `Read model purpose not found for id: ${getPurposeIdFromTokenStatesPK(
-            tokenPurpose[0].PK
-          )}`
-        );
-      } else {
-        throw genericInternalError(
-          "Unexpected error while counting purpose differences"
-        );
+  differences.forEach(([platformStatesEntry, tokenStatesEntries, purpose]) => {
+    if (!purpose) {
+      const id = platformStatesEntry
+        ? getIdFromPlatformStatesPK(platformStatesEntry.PK).id
+        : tokenStatesEntries?.[0]
+        ? getPurposeIdFromTokenStatesPK(tokenStatesEntries[0].PK)
+        : undefined;
+
+      if (id) {
+        logger.error(`Read model purpose not found for id: ${id}`);
+        differencesCount++;
       }
-      differencesCount++;
-    } else if (readModelPurpose) {
+    } else if (purpose) {
       logger.error(
         `Purpose states are not equal:
-  platform-states entry: ${JSON.stringify(platformPurpose)}
-  token-generation-states entries: ${JSON.stringify(tokenPurpose)}
-  purpose read-model: ${JSON.stringify(readModelPurpose)}`
+  platform-states entry: ${JSON.stringify(platformStatesEntry)}
+  token-generation-states entries: ${JSON.stringify(tokenStatesEntries)}
+  purpose read-model: ${JSON.stringify(purpose)}`
       );
       differencesCount++;
     }
@@ -560,7 +562,9 @@ export async function compareReadModelAgreementsWithTokenGenReadModel({
     await readModelService.getAllReadModelAgreements()
   ).reduce<AgreementDifferencesResult>(
     (acc, [platformStatesEntry, tokenStatesEntries, agreement]) => {
-      if (!agreement) {
+      if (!platformStatesEntry && !tokenStatesEntries.length && !agreement) {
+        return acc;
+      } else if (!agreement) {
         return [
           ...acc,
           [
@@ -745,30 +749,22 @@ export function countAgreementDifferences(
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
   differences.forEach(
-    ([platformAgreement, tokenAgreement, readModelAgreement]) => {
-      if (!readModelAgreement) {
-        if (platformAgreement) {
-          logger.error(
-            `Read model agreement not found for id: ${
-              getIdFromPlatformStatesPK(platformAgreement.PK).id
-            }`
-          );
-        } else if (tokenAgreement?.[0].agreementId) {
-          logger.error(
-            `Read model agreement not found for id: ${tokenAgreement[0].agreementId}`
-          );
-        } else {
-          throw genericInternalError(
-            "Unexpected error while counting agreement differences"
-          );
+    ([platformStatesEntry, tokenStatesEntries, agreement]) => {
+      if (!agreement) {
+        const id = platformStatesEntry
+          ? getIdFromPlatformStatesPK(platformStatesEntry.PK).id
+          : tokenStatesEntries?.[0].agreementId ?? undefined;
+
+        if (id) {
+          logger.error(`Read model agreement not found for id: ${id}`);
+          differencesCount++;
         }
-        differencesCount++;
-      } else if (readModelAgreement) {
+      } else if (agreement) {
         logger.error(
           `Agreement states are not equal:
-    platform-states entry: ${JSON.stringify(platformAgreement)}
-    token-generation-states entries: ${JSON.stringify(tokenAgreement)}
-    agreement read-model: ${JSON.stringify(readModelAgreement)}`
+    platform-states entry: ${JSON.stringify(platformStatesEntry)}
+    token-generation-states entries: ${JSON.stringify(tokenStatesEntries)}
+    agreement read-model: ${JSON.stringify(agreement)}`
         );
         differencesCount++;
       }
@@ -794,10 +790,9 @@ export async function compareReadModelEServicesWithTokenGenReadModel({
     await readModelService.getAllReadModelEServices()
   ).reduce<CatalogDifferencesResult>(
     (acc, [platformStatesEntry, tokenStatesEntries, eservice]) => {
-      const lastEServiceDescriptor = eservice
-        ? getLastEServiceDescriptor(eservice.descriptors)
-        : undefined;
-      if (!eservice || !lastEServiceDescriptor) {
+      if (!platformStatesEntry && !tokenStatesEntries.length && !eservice) {
+        return acc;
+      } else if (!eservice) {
         return [
           ...acc,
           [
@@ -809,11 +804,14 @@ export async function compareReadModelEServicesWithTokenGenReadModel({
                   tokenStatesEntries
                 )
               : undefined,
-            eservice ? ComparisonEService.parse(eservice) : undefined,
+            undefined,
           ],
         ];
       }
 
+      const lastEServiceDescriptor = getLastEServiceDescriptor(
+        eservice.descriptors
+      );
       const {
         isPlatformStatesCatalogCorrect: isPlatformStatesCorrect,
         data: platformCatalogEntryDiff,
@@ -1024,34 +1022,26 @@ export function countCatalogDifferences(
 ): number {
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
-  differences.forEach(([platformCatalog, tokenCatalog, readModelEService]) => {
-    if (!readModelEService) {
-      if (platformCatalog) {
-        logger.error(
-          `Read model eservice not found for ${
-            getIdFromPlatformStatesPK(platformCatalog.PK).id
-          }`
-        );
-      } else if (tokenCatalog?.[0].GSIPK_eserviceId_descriptorId) {
-        logger.error(
-          `Read model eservice not found for ${
-            getIdsFromGSIPKEServiceIdDescriptorId(
-              tokenCatalog[0].GSIPK_eserviceId_descriptorId
-            )?.eserviceId
-          }`
-        );
-      } else {
-        throw genericInternalError(
-          "Unexpected error while counting catalog differences"
-        );
+  differences.forEach(([platformStatesEntry, tokenStatesEntries, eservice]) => {
+    if (!eservice) {
+      const id = platformStatesEntry
+        ? getIdFromPlatformStatesPK(platformStatesEntry.PK).id
+        : tokenStatesEntries?.[0].GSIPK_eserviceId_descriptorId
+        ? getIdsFromGSIPKEServiceIdDescriptorId(
+            tokenStatesEntries[0].GSIPK_eserviceId_descriptorId
+          )?.eserviceId
+        : undefined;
+
+      if (id) {
+        logger.error(`Read model eservice not found for id: ${id}`);
+        differencesCount++;
       }
-      differencesCount++;
-    } else if (readModelEService) {
+    } else if (eservice) {
       logger.error(
         `Catalog states are not equal:
-  platform-states entry: ${JSON.stringify(platformCatalog)}
-  token-generation-states entries: ${JSON.stringify(tokenCatalog)}
-  purpose read-model: ${JSON.stringify(readModelEService)}`
+  platform-states entry: ${JSON.stringify(platformStatesEntry)}
+  token-generation-states entries: ${JSON.stringify(tokenStatesEntries)}
+  purpose read-model: ${JSON.stringify(eservice)}`
       );
       differencesCount++;
     }
@@ -1076,22 +1066,23 @@ export async function compareReadModelClientsWithTokenGenReadModel({
     await readModelService.getAllReadModelClients()
   ).reduce<ClientDifferencesResult>(
     (acc, [platformStatesEntry, tokenStatesEntries, client]) => {
-      if (!client) {
-        const entry: [
-          ComparisonPlatformStatesClientEntry | undefined,
-          ComparisonTokenStatesClientEntry[] | undefined,
-          ComparisonClient | undefined
-        ] = [
-          platformStatesEntry
-            ? ComparisonPlatformStatesClientEntry.parse(platformStatesEntry)
-            : undefined,
-          tokenStatesEntries && tokenStatesEntries.length > 0
-            ? ComparisonTokenStatesClientEntry.array().parse(tokenStatesEntries)
-            : undefined,
-          client ? ComparisonClient.parse(client) : undefined,
+      if (!platformStatesEntry && !tokenStatesEntries?.length && !client) {
+        return acc;
+      } else if (!client) {
+        return [
+          ...acc,
+          [
+            platformStatesEntry
+              ? ComparisonPlatformStatesClientEntry.parse(platformStatesEntry)
+              : undefined,
+            tokenStatesEntries && tokenStatesEntries.length > 0
+              ? ComparisonTokenStatesClientEntry.array().parse(
+                  tokenStatesEntries
+                )
+              : undefined,
+            undefined,
+          ],
         ];
-
-        return entry.some((item) => item !== undefined) ? [...acc, entry] : acc;
       }
 
       const {
@@ -1247,7 +1238,7 @@ export function zipClientDataById(
 ): Array<
   [
     PlatformStatesClientEntry | undefined,
-    TokenGenerationStatesGenericEntry[] | undefined,
+    TokenGenerationStatesGenericEntry[],
     Client | undefined
   ]
 > {
@@ -1279,32 +1270,24 @@ export function countClientDifferences(
 ): number {
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
-  differences.forEach(([platformClient, tokenClient, readModelClient]) => {
-    if (!readModelClient) {
-      if (platformClient) {
-        logger.error(
-          `Read model client not found for ${
-            getIdFromPlatformStatesPK(platformClient.PK).id
-          }`
-        );
-      } else if (tokenClient && tokenClient.length > 0) {
-        logger.error(
-          `Read model client not found for ${getClientIdFromTokenStatesPK(
-            tokenClient[0].PK
-          )}`
-        );
-      } else {
-        throw genericInternalError(
-          "Unexpected error while counting client differences"
-        );
+  differences.forEach(([platformStatesEntry, tokenStatesEntries, client]) => {
+    if (!client) {
+      const id = platformStatesEntry
+        ? getIdFromPlatformStatesPK(platformStatesEntry.PK).id
+        : tokenStatesEntries && tokenStatesEntries.length > 0
+        ? getClientIdFromTokenStatesPK(tokenStatesEntries[0].PK)
+        : undefined;
+
+      if (id) {
+        logger.error(`Read model client not found for id: ${id}`);
+        differencesCount++;
       }
-      differencesCount++;
     } else {
       logger.error(
         `Client states are not equal.
-        platform-states entry: ${JSON.stringify(platformClient)}
-        token-generation-states entries: ${JSON.stringify(tokenClient)}
-        purpose read-model: ${JSON.stringify(readModelClient)}`
+        platform-states entry: ${JSON.stringify(platformStatesEntry)}
+        token-generation-states entries: ${JSON.stringify(tokenStatesEntries)}
+        purpose read-model: ${JSON.stringify(client)}`
       );
       differencesCount++;
     }
