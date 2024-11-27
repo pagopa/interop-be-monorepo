@@ -187,7 +187,7 @@ export const retrieveActiveDelegationByEserviceId = async (
 ): Promise<WithMetadata<Delegation> | undefined> =>
   await readModelService.getActiveDelegationByEserviceId(eserviceId);
 
-const retrieveDescriptor = (
+export const retrieveDescriptor = (
   descriptorId: DescriptorId,
   eservice: EService
 ): Descriptor => {

@@ -17,7 +17,6 @@ import {
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   EService,
-  Descriptor,
   SelfcareId,
   Tenant,
   TenantAttributeType,
@@ -30,7 +29,6 @@ import {
   AgreementDocument,
   CorrelationId,
   Delegation,
-  DescriptorId,
 } from "pagopa-interop-models";
 import {
   selfcareV2ClientApi,
@@ -43,12 +41,11 @@ import {
   agreementSelfcareIdNotFound,
   agreementStampNotFound,
   attributeNotFound,
-  publishedDescriptorNotFound,
-  tenantNotFound,
   userNotFound,
 } from "../model/domain/errors.js";
 import { AgreementProcessConfig } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
+import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
@@ -77,17 +74,6 @@ const retrieveUser = async (
     throw userNotFound(selfcareId, id);
   }
   return user;
-};
-
-const retrieveTenant = async (
-  tenantId: TenantId,
-  readModelService: ReadModelService
-): Promise<Tenant> => {
-  const tenant = await readModelService.getTenantById(tenantId);
-  if (!tenant) {
-    throw tenantNotFound(tenantId);
-  }
-  return tenant;
 };
 
 const createAgreementDocumentName = (
@@ -273,18 +259,6 @@ const getActivationInfo = async (
   throw agreementMissingUserInfo(activation.who);
 };
 
-export function getDescriptor(
-  eservice: EService,
-  descriptorId: DescriptorId
-): Descriptor {
-  const descriptor = eservice.descriptors.find(({ id }) => descriptorId === id);
-
-  if (!descriptor) {
-    throw publishedDescriptorNotFound(eservice.id);
-  }
-  return descriptor;
-}
-
 const getPdfPayload = async (
   agreement: Agreement,
   eservice: EService,
@@ -330,7 +304,7 @@ const getPdfPayload = async (
     readModelService
   );
 
-  const activeDescriptor = getDescriptor(eservice, agreement.descriptorId);
+  const activeDescriptor = retrieveDescriptor(agreement.descriptorId, eservice);
 
   return {
     todayDate: dateAtRomeZone(today),
