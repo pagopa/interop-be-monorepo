@@ -13,7 +13,6 @@ import {
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
-import { agreementApi } from "pagopa-interop-api-clients";
 import {
   Agreement,
   AgreementAddedV2,
@@ -138,12 +137,11 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneTenant(tenant);
 
-    const agreementData: agreementApi.AgreementPayload = {
-      eserviceId,
-      descriptorId,
-    };
     const createdAgreement = await agreementService.createAgreement(
-      agreementData,
+      {
+        eserviceId,
+        descriptorId,
+      },
       {
         authData,
         correlationId: generateId(),
@@ -201,13 +199,11 @@ describe("create agreement", () => {
     await addOneTenant(consumer);
     await addOneEService(eservice);
 
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: eservice.descriptors[0].id,
-    };
-
     const createdAgreement = await agreementService.createAgreement(
-      apiAgreementPayload,
+      {
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+      },
       {
         authData,
         correlationId: generateId(),
@@ -243,13 +239,12 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(consumer.id); // different from eserviceProducer
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: eservice.descriptors[0].id,
-    };
 
     const createdAgreement = await agreementService.createAgreement(
-      apiAgreementPayload,
+      {
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+      },
       {
         authData,
         correlationId: generateId(),
@@ -293,13 +288,12 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(tenant.id);
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: descriptor0.id,
-    };
 
     const createdAgreement = await agreementService.createAgreement(
-      apiAgreementPayload,
+      {
+        eserviceId: eservice.id,
+        descriptorId: descriptor0.id,
+      },
       {
         authData,
         correlationId: generateId(),
@@ -340,13 +334,12 @@ describe("create agreement", () => {
     await addOneAgreement(otherAgreement);
 
     const authData = getRandomAuthData(tenant.id);
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-    };
 
     const createdAgreement = await agreementService.createAgreement(
-      apiAgreementPayload,
+      {
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      },
       {
         authData,
         correlationId: generateId(),
@@ -369,47 +362,46 @@ describe("create agreement", () => {
     const eserviceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
 
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId,
-      descriptorId,
-    };
-
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      eServiceNotFound(unsafeBrandId(apiAgreementPayload.eserviceId))
-    );
+      agreementService.createAgreement(
+        {
+          eserviceId,
+          descriptorId,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(eServiceNotFound(unsafeBrandId(eserviceId)));
   });
 
   it("should throw a notLatestEServiceDescriptor error when the EService has no Descriptor", async () => {
     const authData = getRandomAuthData();
     const eserviceId = generateId<EServiceId>();
+    const descriptorId = generateId<DescriptorId>();
 
     const eservice = getMockEService(eserviceId, authData.organizationId, []);
 
     await addOneEService(eservice);
 
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId,
-      descriptorId: generateId<DescriptorId>(),
-    };
-
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      notLatestEServiceDescriptor(
-        unsafeBrandId(apiAgreementPayload.descriptorId)
+      agreementService.createAgreement(
+        {
+          eserviceId,
+          descriptorId,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
+    ).rejects.toThrowError(
+      notLatestEServiceDescriptor(unsafeBrandId(descriptorId))
     );
   });
 
@@ -439,22 +431,21 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneTenant(getMockTenant(authData.organizationId));
 
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId,
-      descriptorId: descriptor0.id,
-    };
-
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      notLatestEServiceDescriptor(
-        unsafeBrandId(apiAgreementPayload.descriptorId)
+      agreementService.createAgreement(
+        {
+          eserviceId,
+          descriptorId: descriptor0.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
+    ).rejects.toThrowError(
+      notLatestEServiceDescriptor(unsafeBrandId(descriptor0.id))
     );
   });
 
@@ -481,18 +472,19 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneTenant(getMockTenant(authData.organizationId));
 
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId,
-      descriptorId: descriptor.id,
-    };
-
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      agreementService.createAgreement(
+        {
+          eserviceId,
+          descriptorId: descriptor.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(
       descriptorNotInExpectedState(eservice.id, descriptor.id, [
         descriptorState.published,
@@ -519,18 +511,20 @@ describe("create agreement", () => {
     await addOneAgreement(conflictingAgreement);
 
     const authData = getRandomAuthData(consumer.id);
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-    };
 
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
   });
 
@@ -547,18 +541,20 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(consumer.id);
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-    };
 
     await expect(() =>
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(tenantNotFound(consumer.id));
   });
 
@@ -596,18 +592,19 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(consumer.id);
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: eservice.descriptors[0].id,
-    };
-
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: eservice.descriptors[0].id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(
       missingCertifiedAttributesError(descriptor.id, consumer.id)
     );
@@ -655,18 +652,20 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(consumer.id);
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: eservice.descriptors[0].id,
-    };
 
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: eservice.descriptors[0].id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(
       missingCertifiedAttributesError(descriptor.id, consumer.id)
     );
