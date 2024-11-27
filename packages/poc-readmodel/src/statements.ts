@@ -5,7 +5,11 @@ import {
   DocumentSQL,
   EServiceDocumentId,
   EServiceId,
+  EserviceRiskAnalysisSQL,
   EServiceSQL,
+  RiskAnalysisAnswerSQL,
+  RiskAnalysisFormId,
+  RiskAnalysisId,
 } from "pagopa-interop-models";
 import pgPromise from "pg-promise";
 
@@ -254,4 +258,62 @@ export const prepareReadDescriptorAttributesByDescriptorIds = (
     name: "read-descriptor-attributes",
     text: "SELECT * FROM readmodel.descriptor_attribute WHERE descriptor_id = ANY ($1)",
     values: [ids],
+  });
+
+export const prepareInsertRiskAnalysis = (
+  riskAnalysisSQL: EserviceRiskAnalysisSQL
+): pgPromise.PreparedStatement =>
+  new pgPromise.PreparedStatement({
+    name: "insert-risk-analysis",
+    text: "INSERT INTO readmodel.eservice_risk_analysis(risk_analysis_id, eservice_id, name, created_at, risk_analysis_form_id, risk_analysis_form_version) VALUES($1, $2, $3, $4, $5, $6)",
+    values: [
+      riskAnalysisSQL.risk_analysis_id,
+      riskAnalysisSQL.eservice_id,
+      riskAnalysisSQL.name,
+      riskAnalysisSQL.created_at,
+      riskAnalysisSQL.risk_analysis_form_id,
+      riskAnalysisSQL.risk_analysis_form_version,
+    ],
+  });
+
+export const prepareDeleteRiskAnalysis = (
+  riskAnalysisId: RiskAnalysisId
+): pgPromise.PreparedStatement =>
+  new pgPromise.PreparedStatement({
+    name: "delete-risk-analysis",
+    text: "DELETE FROM readmodel.eservice_risk_analysis WHERE id = $1",
+    values: [riskAnalysisId],
+  });
+
+export const prepareInsertRiskAnalysisAnswer = (
+  riskAnalysisAnswerSQL: RiskAnalysisAnswerSQL
+): pgPromise.PreparedStatement =>
+  new pgPromise.PreparedStatement({
+    name: "insert-risk-analysis",
+    text: "INSERT INTO readmodel.eservice_risk_analysis(id, risk_analysis_form_id, kind, key, value) VALUES($1, $2, $3, $4, $5)",
+    values: [
+      riskAnalysisAnswerSQL.id,
+      riskAnalysisAnswerSQL.risk_analysis_form_id,
+      riskAnalysisAnswerSQL.kind,
+      riskAnalysisAnswerSQL.key,
+      riskAnalysisAnswerSQL.value,
+    ],
+  });
+
+export const prepareReadRiskAnalysesByEserviceIds = (
+  eserviceIds: EServiceId[]
+): pgPromise.PreparedStatement =>
+  new pgPromise.PreparedStatement({
+    name: "read-risk-analysis-by-eservice-ids",
+    text: "SELECT * FROM readmodel.eservice_risk_analysis WHERE eservice_id = ANY ($1)",
+    values: [eserviceIds],
+  });
+
+export const prepareReadRiskAnalysesAnswersByFormIds = (
+  formIds: RiskAnalysisFormId[]
+): pgPromise.PreparedStatement =>
+  new pgPromise.PreparedStatement({
+    name: "read-risk-analysis-answers-by-form-ids",
+    text: "SELECT * FROM readmodel.risk_analysis_answer WHERE risk_analysis_form_id = ANY ($1)",
+    values: [formIds],
   });
