@@ -49,7 +49,7 @@ export function assertVerifiedAttributeExistsInTenant(
 
 export async function assertVerifiedAttributeOperationAllowed({
   requesterId,
-  delegateId,
+  delegateProducerId,
   consumerId,
   attributeId,
   agreement,
@@ -57,14 +57,14 @@ export async function assertVerifiedAttributeOperationAllowed({
   error,
 }: {
   requesterId: TenantId;
-  delegateId: TenantId | undefined;
+  delegateProducerId: TenantId | undefined;
   consumerId: TenantId;
   attributeId: AttributeId;
   agreement: Agreement;
   readModelService: ReadModelService;
   error: Error;
 }): Promise<void> {
-  if ([requesterId, delegateId].includes(consumerId)) {
+  if ([requesterId, delegateProducerId].includes(consumerId)) {
     throw verifiedAttributeSelfVerificationNotAllowed();
   }
 
@@ -95,11 +95,11 @@ export async function assertVerifiedAttributeOperationAllowed({
     throw error;
   }
 
-  if (delegateId && delegateId !== requesterId) {
+  if (delegateProducerId && delegateProducerId !== requesterId) {
     throw error;
   }
 
-  if (!delegateId && requesterId !== agreement.producerId) {
+  if (!delegateProducerId && requesterId !== agreement.producerId) {
     throw error;
   }
 }

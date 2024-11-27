@@ -31,6 +31,7 @@ import {
   AgreementReadModel,
   DescriptorReadModel,
   EServiceReadModel,
+  DelegationKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -612,10 +613,15 @@ export function readModelServiceBuilder(
     },
     async getDelegationByDelegateId(
       delegateId: TenantId,
+      kind: DelegationKind,
       state: DelegationState = delegationState.active
     ): Promise<WithMetadata<Delegation> | undefined> {
       const data = await delegations.findOne(
-        { "data.delegateId": delegateId, "data.state": state },
+        {
+          "data.delegateId": delegateId,
+          "data.state": state,
+          "data.kind": kind,
+        },
         { projection: { data: true, metadata: true } }
       );
 
@@ -638,10 +644,15 @@ export function readModelServiceBuilder(
       return result.data;
     },
     async getActiveDelegationByEserviceId(
-      eserviceId: EServiceId
+      eserviceId: EServiceId,
+      kind: DelegationKind
     ): Promise<WithMetadata<Delegation> | undefined> {
       const data = await delegations.findOne(
-        { "data.eserviceId": eserviceId, "data.state": delegationState.active },
+        {
+          "data.eserviceId": eserviceId,
+          "data.state": delegationState.active,
+          "data.kind": kind,
+        },
         { projection: { data: true, metadata: true } }
       );
 

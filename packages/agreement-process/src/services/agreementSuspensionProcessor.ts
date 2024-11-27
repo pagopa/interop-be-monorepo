@@ -32,13 +32,13 @@ export function createSuspensionUpdatedAgreement({
   authData,
   descriptor,
   consumer,
-  delegateId,
+  delegateProducerId,
 }: {
   agreement: Agreement;
   authData: AuthData;
   descriptor: Descriptor;
   consumer: Tenant;
-  delegateId: TenantId | undefined;
+  delegateProducerId: TenantId | undefined;
 }): Agreement {
   /* nextAttributesState VS targetDestinationState
   -- targetDestinationState is the state where the caller wants to go (suspended, in this case)
@@ -49,7 +49,7 @@ export function createSuspensionUpdatedAgreement({
     agreement,
     descriptor,
     consumer,
-    delegateId
+    delegateProducerId
   );
 
   const suspendedByConsumer = suspendedByConsumerFlag(
@@ -61,7 +61,7 @@ export function createSuspensionUpdatedAgreement({
     agreement,
     authData.organizationId,
     targetDestinationState,
-    delegateId
+    delegateProducerId
   );
 
   const newState = agreementStateByFlags(
@@ -71,14 +71,14 @@ export function createSuspensionUpdatedAgreement({
     agreement.suspendedByPlatform
   );
 
-  const stamp = createStamp(authData.userId, delegateId);
+  const stamp = createStamp(authData.userId, delegateProducerId);
 
   const suspensionByProducerStamp = suspendedByProducerStamp(
     agreement,
     authData.organizationId,
     agreementState.suspended,
     stamp,
-    delegateId
+    delegateProducerId
   );
 
   const suspensionByConsumerStamp = suspendedByConsumerStamp(
@@ -111,19 +111,19 @@ export function createAgreementSuspendedEvent(
   correlationId: CorrelationId,
   updatedAgreement: Agreement,
   agreement: WithMetadata<Agreement>,
-  delegateId: TenantId | undefined
+  delegateProducerId: TenantId | undefined
 ): CreateEvent<AgreementEventV2> {
   const isProducer = organizationId === agreement.data.producerId;
   const isConsumer = organizationId === agreement.data.consumerId;
-  const isDelegate = delegateId === organizationId;
+  const isProducerDelegate = delegateProducerId === organizationId;
 
-  if (!isProducer && !isConsumer && !isDelegate) {
+  if (!isProducer && !isConsumer && !isProducerDelegate) {
     throw genericError(
-      "Agreement can only be suspended by the consumer or producer/delegate."
+      "Agreement can only be suspended by the consumer or producer/delegate producer."
     );
   }
 
-  return isProducer || isDelegate
+  return isProducer || isProducerDelegate
     ? toCreateEventAgreementSuspendedByProducer(
         updatedAgreement,
         agreement.metadata.version,

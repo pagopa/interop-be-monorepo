@@ -34,7 +34,7 @@ export const suspendedByProducerStamp = (
   requesterOrgId: TenantId,
   destinationState: AgreementState,
   stamp: AgreementStamp,
-  delegateId?: TenantId | undefined
+  delegateProducerId?: TenantId | undefined
 ): AgreementStamp | undefined =>
   match<[TenantId | undefined, AgreementState]>([
     requesterOrgId,
@@ -42,7 +42,7 @@ export const suspendedByProducerStamp = (
   ])
     .with(
       [agreement.producerId, agreementState.suspended],
-      [delegateId, agreementState.suspended],
+      [delegateProducerId, agreementState.suspended],
       () => stamp
     )
     .with([agreement.producerId, P.any], () => undefined)

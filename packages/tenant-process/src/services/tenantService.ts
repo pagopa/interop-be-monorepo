@@ -745,7 +745,7 @@ export function tenantServiceBuilder(
         throw error;
       }
 
-      const delegation = await retrieveActiveDelegation(
+      const producerDelegation = await retrieveActiveDelegation(
         {
           eserviceId: agreement.eserviceId,
           kind: delegationKind.delegatedProducer,
@@ -753,12 +753,12 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const delegateId = delegation?.delegateId;
-      const delegatorId = delegation?.delegatorId;
+      const delegateProducerId = producerDelegation?.delegateId;
+      const delegatorId = producerDelegation?.delegatorId;
 
       await assertVerifiedAttributeOperationAllowed({
         requesterId: organizationId,
-        delegateId,
+        delegateProducerId,
         consumerId: tenantId,
         attributeId,
         agreement,
@@ -786,13 +786,13 @@ export function tenantServiceBuilder(
               targetTenant.data.attributes,
               verifiedTenantAttribute,
               delegatorId ?? organizationId,
-              delegateId,
+              delegateProducerId,
               tenantAttributeSeed
             )
           : assignVerifiedAttribute(
               targetTenant.data.attributes,
               delegatorId ?? organizationId,
-              delegateId,
+              delegateProducerId,
               tenantAttributeSeed
             ),
 
@@ -844,7 +844,7 @@ export function tenantServiceBuilder(
         throw error;
       }
 
-      const delegation = await retrieveActiveDelegation(
+      const producerDelegation = await retrieveActiveDelegation(
         {
           eserviceId: agreement.eserviceId,
           kind: delegationKind.delegatedProducer,
@@ -852,12 +852,12 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const delegateId = delegation?.delegateId;
-      const delegatorId = delegation?.delegatorId;
+      const delegateProducerId = producerDelegation?.delegateId;
+      const delegatorId = producerDelegation?.delegatorId;
 
       await assertVerifiedAttributeOperationAllowed({
         requesterId: authData.organizationId,
-        delegateId,
+        delegateProducerId,
         consumerId: tenantId,
         attributeId,
         agreement,
@@ -909,7 +909,7 @@ export function tenantServiceBuilder(
                   {
                     ...verifier,
                     id: delegatorId ?? verifier.id,
-                    delegateId,
+                    delegateId: delegateProducerId,
                     revocationDate: new Date(),
                   },
                 ],
@@ -1849,7 +1849,7 @@ function assignCertifiedAttribute({
 function buildVerifiedBy(
   verifiers: TenantVerifier[],
   organizationId: TenantId,
-  delegateId: TenantId | undefined,
+  delegateProducerId: TenantId | undefined,
   expirationDate: string | undefined
 ): TenantVerifier[] {
   const hasPreviouslyVerified = verifiers.find((i) => i.id === organizationId);
@@ -1858,7 +1858,7 @@ function buildVerifiedBy(
         verification.id === organizationId
           ? {
               id: organizationId,
-              delegateId,
+              delegateId: delegateProducerId,
               verificationDate: new Date(),
               expirationDate: expirationDate
                 ? new Date(expirationDate)
@@ -1873,7 +1873,7 @@ function buildVerifiedBy(
         ...verifiers,
         {
           id: organizationId,
-          delegateId,
+          delegateId: delegateProducerId,
           verificationDate: new Date(),
           expirationDate: expirationDate ? new Date(expirationDate) : undefined,
           extensionDate: expirationDate ? new Date(expirationDate) : undefined,
@@ -1914,7 +1914,7 @@ function reassignDeclaredAttribute(
 function assignVerifiedAttribute(
   attributes: TenantAttribute[],
   organizationId: TenantId,
-  delegateId: TenantId | undefined,
+  delegateProducerId: TenantId | undefined,
   tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed
 ): TenantAttribute[] {
   return [
@@ -1926,7 +1926,7 @@ function assignVerifiedAttribute(
       verifiedBy: [
         {
           id: organizationId,
-          delegateId,
+          delegateId: delegateProducerId,
           verificationDate: new Date(),
           expirationDate: tenantAttributeSeed.expirationDate
             ? new Date(tenantAttributeSeed.expirationDate)

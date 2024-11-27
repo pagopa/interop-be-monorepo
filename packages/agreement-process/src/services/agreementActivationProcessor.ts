@@ -48,7 +48,7 @@ export function createActivationUpdateAgreementSeed({
   suspendedByConsumer,
   suspendedByProducer,
   suspendedByPlatform,
-  delegateId,
+  delegateProducerId,
 }: {
   isFirstActivation: boolean;
   newState: AgreementState;
@@ -60,9 +60,9 @@ export function createActivationUpdateAgreementSeed({
   suspendedByConsumer: boolean | undefined;
   suspendedByProducer: boolean | undefined;
   suspendedByPlatform: boolean | undefined;
-  delegateId?: TenantId | undefined;
+  delegateProducerId?: TenantId | undefined;
 }): UpdateAgreementSeed {
-  const stamp = createStamp(authData.userId, delegateId);
+  const stamp = createStamp(authData.userId, delegateProducerId);
 
   return isFirstActivation
     ? {
@@ -117,7 +117,7 @@ export async function createActivationEvent(
   agreementEventStoreVersion: number,
   authData: AuthData,
   correlationId: CorrelationId,
-  delegateId?: TenantId
+  delegateProducerId?: TenantId
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (isFirstActivation) {
     // Pending >>> Active
@@ -160,7 +160,7 @@ export async function createActivationEvent(
     ])
       .with(
         [updatedAgreement.producerId, agreementState.active],
-        [delegateId, agreementState.active],
+        [delegateProducerId, agreementState.active],
         () => [
           toCreateEventAgreementUnsuspendedByProducer(
             updatedAgreement,
@@ -171,7 +171,7 @@ export async function createActivationEvent(
       )
       .with(
         [updatedAgreement.producerId, agreementState.suspended],
-        [delegateId, agreementState.suspended],
+        [delegateProducerId, agreementState.suspended],
         () => [
           toCreateEventAgreementUnsuspendedByProducer(
             {

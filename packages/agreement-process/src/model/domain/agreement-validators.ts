@@ -16,6 +16,7 @@ import {
   TenantId,
   AgreementStamp,
   AgreementStamps,
+  delegationKind,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
@@ -159,7 +160,7 @@ export const assertRequesterIsConsumerOrProducer = (
   }
 };
 
-export const assertRequesterIsConsumerOrProducerOrDelegate = async (
+export const assertRequesterIsConsumerOrProducerOrDelegateProducer = async (
   agreement: Agreement,
   authData: AuthData,
   readModelService: ReadModelService
@@ -170,21 +171,23 @@ export const assertRequesterIsConsumerOrProducerOrDelegate = async (
     try {
       assertRequesterIsProducer(agreement, authData);
     } catch (error) {
-      const delegation = await readModelService.getDelegationByDelegateId(
-        authData.organizationId
-      );
-      assertRequesterIsDelegate(delegation?.data.delegateId, authData);
+      const producerDelegation =
+        await readModelService.getDelegationByDelegateId(
+          authData.organizationId,
+          delegationKind.delegatedProducer
+        );
+      assertRequesterIsDelegate(producerDelegation?.data.delegateId, authData);
     }
   }
 };
 
-export const assertRequesterIsProducerOrDelegate = (
+export const assertRequesterIsProducerOrDelegateProducer = (
   agreement: Agreement,
-  delegateIdActiveDelegation: TenantId | undefined,
+  delegateProducerId: TenantId | undefined,
   authData: AuthData
 ): void => {
-  if (delegateIdActiveDelegation) {
-    assertRequesterIsDelegate(delegateIdActiveDelegation, authData);
+  if (delegateProducerId) {
+    assertRequesterIsDelegate(delegateProducerId, authData);
   } else {
     assertRequesterIsProducer(agreement, authData);
   }
@@ -201,14 +204,14 @@ export const assertRequesterIsDelegate = (
 
 export const assertRequesterCanActivate = (
   agreement: Agreement,
-  delegateIdActiveDelegation: TenantId | undefined,
+  delegateProducerId: TenantId | undefined,
   authData: AuthData
 ): void => {
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (e) {
-    if (delegateIdActiveDelegation) {
-      assertRequesterIsDelegate(delegateIdActiveDelegation, authData);
+    if (delegateProducerId) {
+      assertRequesterIsDelegate(delegateProducerId, authData);
     } else {
       assertRequesterIsProducer(agreement, authData);
     }

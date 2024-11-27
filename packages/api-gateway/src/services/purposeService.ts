@@ -20,8 +20,8 @@ import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import { purposeNotFound } from "../models/errors.js";
 import {
   assertIsEserviceProducer,
-  assertIsEserviceProducerDelegate,
-  assertOnlyOneActiveDelegationForEserviceExists,
+  assertIsEserviceDelegateProducer,
+  assertOnlyOneActiveProducerDelegationForEserviceExists,
   assertOnlyOneAgreementForEserviceAndConsumerExists,
 } from "./validators.js";
 import { getAllAgreements } from "./agreementService.js";
@@ -69,7 +69,7 @@ const retrievePurpose = async (
       });
     });
 
-const retrieveActiveDelegationByEServiceId = async (
+const retrieveActiveProducerDelegationByEServiceId = async (
   delegationProcessClient: DelegationProcessClient,
   headers: ApiGatewayAppContext["headers"],
   eserviceId: catalogApi.EService["id"],
@@ -86,7 +86,7 @@ const retrieveActiveDelegationByEServiceId = async (
     },
   });
 
-  assertOnlyOneActiveDelegationForEserviceExists(result, eserviceId);
+  assertOnlyOneActiveProducerDelegationForEserviceExists(result, eserviceId);
 
   return result.results.at(0);
 };
@@ -126,14 +126,15 @@ export function purposeServiceBuilder(
         try {
           assertIsEserviceProducer(eservice, organizationId);
         } catch {
-          const delegation = await retrieveActiveDelegationByEServiceId(
-            delegationProcessClient,
-            headers,
-            eservice.id,
-            delegationApi.DelegationKind.Values.DELEGATED_PRODUCER
-          );
+          const producerDelegation =
+            await retrieveActiveProducerDelegationByEServiceId(
+              delegationProcessClient,
+              headers,
+              eservice.id,
+              delegationApi.DelegationKind.Values.DELEGATED_PRODUCER
+            );
 
-          assertIsEserviceProducerDelegate(delegation, organizationId);
+          assertIsEserviceDelegateProducer(producerDelegation, organizationId);
         }
       }
 

@@ -9,6 +9,7 @@ import {
   TenantKind,
   purposeVersionState,
   EServiceId,
+  delegationKind,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -268,11 +269,15 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async ({
     return;
   }
 
-  const activeDelegation = await readModelService.getActiveDelegation(
-    eserviceId
+  const activeProducerDelegation = await readModelService.getActiveDelegation(
+    eserviceId,
+    delegationKind.delegatedProducer
   );
 
-  if (activeDelegation && organizationId === activeDelegation.delegateId) {
+  if (
+    activeProducerDelegation &&
+    organizationId === activeProducerDelegation.delegateId
+  ) {
     return;
   }
 
@@ -290,13 +295,15 @@ export const assertRequesterIsProducer = async ({
   producerId: TenantId;
   readModelService: ReadModelService;
 }): Promise<void> => {
-  const activeDelegation = await readModelService.getActiveDelegation(
-    eserviceId
+  const activeProducerDelegation = await readModelService.getActiveDelegation(
+    eserviceId,
+    delegationKind.delegatedProducer
   );
 
   if (
-    (activeDelegation && organizationId === activeDelegation.delegateId) ||
-    (!activeDelegation && organizationId === producerId)
+    (activeProducerDelegation &&
+      organizationId === activeProducerDelegation.delegateId) ||
+    (!activeProducerDelegation && organizationId === producerId)
   ) {
     return;
   }

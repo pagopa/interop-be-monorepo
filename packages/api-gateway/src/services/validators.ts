@@ -16,7 +16,7 @@ import {
   missingAvailableDescriptor,
   multipleAgreementForEserviceAndConsumer,
   unexpectedDescriptorState,
-  multipleActiveDelegationsForEservice,
+  multipleActiveProducerDelegationsForEservice,
 } from "../models/errors.js";
 import { NonDraftCatalogApiDescriptor } from "../api/catalogApiConverter.js";
 
@@ -96,20 +96,20 @@ export function assertRegistryAttributeExists(
   }
 }
 
-export function assertIsEserviceProducerDelegate(
-  delegation: delegationApi.Delegation | undefined,
+export function assertIsEserviceDelegateProducer(
+  producerDelegation: delegationApi.Delegation | undefined,
   organizationId: TenantId
 ): void {
-  if (!delegation || delegation.delegateId !== organizationId) {
+  if (!producerDelegation || producerDelegation.delegateId !== organizationId) {
     throw operationForbidden;
   }
 }
 
-export function assertOnlyOneActiveDelegationForEserviceExists(
-  delegations: delegationApi.Delegations,
+export function assertOnlyOneActiveProducerDelegationForEserviceExists(
+  producerDelegations: delegationApi.Delegations,
   eserviceId: apiGatewayApi.EService["id"]
 ): void {
-  if (delegations.totalCount > 1) {
-    throw multipleActiveDelegationsForEservice(eserviceId);
+  if (producerDelegations.totalCount > 1) {
+    throw multipleActiveProducerDelegationsForEservice(eserviceId);
   }
 }

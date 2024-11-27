@@ -25,6 +25,7 @@ import {
   TenantReadModel,
   delegationState,
   Delegation,
+  DelegationKind,
 } from "pagopa-interop-models";
 import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
@@ -337,10 +338,12 @@ export function readModelServiceBuilder(
       return result.data;
     },
     async getActiveDelegation(
-      eserviceId: EServiceId
+      eserviceId: EServiceId,
+      kind: DelegationKind
     ): Promise<Delegation | undefined> {
       const data = await delegations.findOne({
         "data.eserviceId": eserviceId,
+        "data.kind": kind,
         "data.state": delegationState.active,
       });
       if (!data) {

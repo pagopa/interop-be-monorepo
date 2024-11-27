@@ -41,6 +41,7 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
+  delegationKind,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -1364,13 +1365,15 @@ const getOrganizationRole = async ({
     return ownership.CONSUMER;
   }
 
-  const activeDelegation = await readModelService.getActiveDelegation(
-    eserviceId
+  const activeProducerDelegation = await readModelService.getActiveDelegation(
+    eserviceId,
+    delegationKind.delegatedProducer
   );
 
   if (
-    (activeDelegation && organizationId === activeDelegation.delegateId) ||
-    (!activeDelegation && organizationId === producerId)
+    (activeProducerDelegation &&
+      organizationId === activeProducerDelegation.delegateId) ||
+    (!activeProducerDelegation && organizationId === producerId)
   ) {
     return ownership.PRODUCER;
   }

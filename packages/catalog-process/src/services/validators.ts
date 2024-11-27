@@ -12,6 +12,7 @@ import {
   Tenant,
   TenantId,
   TenantKind,
+  delegationKind,
   delegationState,
   descriptorState,
   eserviceMode,
@@ -31,7 +32,7 @@ import {
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
-export async function assertRequesterIsDelegateOrProducer(
+export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
   authData: AuthData,
@@ -41,22 +42,23 @@ export async function assertRequesterIsDelegateOrProducer(
     return;
   }
 
-  // Search for active delegation
-  const delegation = await readModelService.getLatestDelegation({
+  // Search for active producer delegation
+  const producerDelegation = await readModelService.getLatestDelegation({
     eserviceId,
+    kind: delegationKind.delegatedProducer,
     states: [delegationState.active],
   });
 
-  // If an active delegation exists, check if the requester is the delegate
-  if (delegation) {
-    const isRequesterDelegate =
-      authData.organizationId === delegation.delegateId;
+  // If an active producer delegation exists, check if the requester is the delegate
+  if (producerDelegation) {
+    const isRequesterDelegateProducer =
+      authData.organizationId === producerDelegation.delegateId;
 
-    if (!isRequesterDelegate) {
+    if (!isRequesterDelegateProducer) {
       throw operationForbidden;
     }
   } else {
-    // If no active delegation exists, ensure the requester is the producer
+    // If no active producer delegation exists, ensure the requester is the producer
     assertRequesterIsProducer(producerId, authData);
   }
 }
@@ -73,17 +75,21 @@ export function assertRequesterIsProducer(
   }
 }
 
-export async function assertNoExistingDelegationInActiveOrPendingState(
+export async function assertNoExistingProducerDelegationInActiveOrPendingState(
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<void> {
-  const delegation = await readModelService.getLatestDelegation({
+  const producerDelegation = await readModelService.getLatestDelegation({
     eserviceId,
+    kind: delegationKind.delegatedProducer,
     states: [delegationState.active, delegationState.waitingForApproval],
   });
 
-  if (delegation) {
-    throw eserviceWithActiveOrPendingDelegation(eserviceId, delegation.id);
+  if (producerDelegation) {
+    throw eserviceWithActiveOrPendingDelegation(
+      eserviceId,
+      producerDelegation.id
+    );
   }
 }
 
