@@ -277,6 +277,9 @@ importers:
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
+      date-fns:
+        specifier: 3.6.0
+        version: 3.6.0
       openapi-zod-client:
         specifier: 1.18.1
         version: 1.18.1
