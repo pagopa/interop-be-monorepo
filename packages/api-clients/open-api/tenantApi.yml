@@ -533,8 +533,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tenant"
-        "409":
-          description: Attribute already assigned to Tenant
+        "404":
+          description: Not found
           content:
             application/json:
               schema:
