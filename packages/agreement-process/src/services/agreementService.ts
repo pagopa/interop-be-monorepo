@@ -37,6 +37,7 @@ import {
   CompactTenant,
   CorrelationId,
   DelegationId,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   declaredAttributesSatisfied,
@@ -50,8 +51,11 @@ import {
   agreementDocumentNotFound,
   agreementNotFound,
   agreementSubmissionFailed,
+  delegationNotFound,
   descriptorNotFound,
   eServiceNotFound,
+  missingDelegationId,
+  noActiveDelegations,
   noNewerDescriptor,
   publishedDescriptorNotFound,
   tenantNotFound,
@@ -89,6 +93,7 @@ import {
   assertExpectedState,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
+  assertRequesterIsDelegate,
   assertRequesterIsProducer,
   assertSubmittableState,
   failOnActivationFailure,
@@ -187,6 +192,19 @@ const retrieveDescriptor = (
   return descriptor;
 };
 
+const retrieveDelegation = (
+  delegations: Delegation[],
+  delegationId: DelegationId
+): Delegation => {
+  const delegation = delegations.find((d) => d.id === delegationId);
+
+  if (!delegation) {
+    throw delegationNotFound(delegationId);
+  }
+
+  return delegation;
+};
+
 function retrieveAgreementDocument(
   agreement: Agreement,
   documentId: AgreementDocumentId
@@ -249,13 +267,17 @@ export function agreementServiceBuilder(
 
       await verifyCreationConflictingAgreements(
         authData.organizationId,
-        agreementPayload,
+        eserviceId,
         readModelService
       );
-      const consumer = await retrieveTenant(
+
+      const consumer = await getConsumerFromDelegations(
+        eserviceId,
+        delegationId,
         authData.organizationId,
         readModelService
       );
+
       if (eservice.producerId !== consumer.id) {
         validateCertifiedAttributes({ descriptor, consumer });
       }
@@ -1248,4 +1270,30 @@ async function addContractOnFirstActivation(
   }
 
   return agreement;
+}
+
+async function getConsumerFromDelegations(
+  eserviceId: EServiceId,
+  delegationId: DelegationId | undefined,
+  organizationId: TenantId,
+  readModelService: ReadModelService
+): Promise<Tenant> {
+  const delegations =
+    await readModelService.getActiveConsumerDelegationsByEserviceId(eserviceId);
+
+  if (delegations.length > 0) {
+    if (!delegationId) {
+      throw missingDelegationId(organizationId, eserviceId);
+    }
+
+    const delegation = retrieveDelegation(delegations, delegationId);
+    assertRequesterIsDelegate(delegation.delegateId, organizationId);
+    return await retrieveTenant(delegation.delegatorId, readModelService);
+  }
+
+  if (delegationId) {
+    throw noActiveDelegations(eserviceId);
+  }
+
+  return await retrieveTenant(organizationId, readModelService);
 }

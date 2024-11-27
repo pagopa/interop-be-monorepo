@@ -15,7 +15,6 @@ import {
   unsafeBrandId,
   TenantId,
 } from "pagopa-interop-models";
-import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
 import {
   certifiedAttributesSatisfied,
@@ -189,6 +188,15 @@ export const assertActivableState = (agreement: Agreement): void => {
   }
 };
 
+export const assertRequesterIsDelegate = (
+  delegateId: TenantId | undefined,
+  organizationId: TenantId
+): void => {
+  if (organizationId !== delegateId) {
+    throw operationNotAllowed(organizationId);
+  }
+};
+
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
@@ -239,12 +247,12 @@ export const validateCreationOnDescriptor = (
 
 export const verifyCreationConflictingAgreements = async (
   organizationId: TenantId,
-  agreement: agreementApi.AgreementPayload,
+  eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(
     organizationId,
-    unsafeBrandId(agreement.eserviceId),
+    eserviceId,
     agreementCreationConflictingStates,
     readModelService
   );

@@ -22,8 +22,12 @@ export const createAgreementErrorMapper = (
       "descriptorNotInExpectedState",
       "missingCertifiedAttributesError",
       "eServiceNotFound",
+      "delegationNotFound",
+      "missingDelegationId",
+      "noActiveDelegations",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
