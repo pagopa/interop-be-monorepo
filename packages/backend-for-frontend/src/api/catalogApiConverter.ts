@@ -120,6 +120,7 @@ export function toBffCatalogDescriptorEService(
     ),
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isDelegable: eservice.isDelegable,
+    isClientAccessDelegable: eservice.isClientAccessDelegable,
   };
 }
 
@@ -267,6 +268,7 @@ export function toBffCatalogApiProducerDescriptorEService(
     descriptors: notDraftDecriptors,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isDelegable: eservice.isDelegable,
+    isClientAccessDelegable: eservice.isClientAccessDelegable,
   };
 }
 

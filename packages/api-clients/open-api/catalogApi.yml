@@ -1130,6 +1130,8 @@ components:
           type: boolean
         isDelegable:
           type: boolean
+        isClientAccessDelegable:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -1154,6 +1156,8 @@ components:
         isSignalHubEnabled:
           type: boolean
         isDelegable:
+          type: boolean
+        isClientAccessDelegable:
           type: boolean
     DescriptorSeedForEServiceCreation:
       required:
@@ -1464,6 +1468,8 @@ components:
         isSignalHubEnabled:
           type: boolean
         isDelegable:
+          type: boolean
+        isClientAccessDelegable:
           type: boolean
     EServiceMode:
       type: string

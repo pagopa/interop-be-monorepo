@@ -327,6 +327,7 @@ export function catalogServiceBuilder(
         ),
         isSignalHubEnabled: eservice.isSignalHubEnabled,
         isDelegable: eservice.isDelegable,
+        isClientAccessDelegable: eservice.isClientAccessDelegable,
       };
     },
     updateEServiceDescription: async (
@@ -1133,6 +1134,7 @@ export function catalogServiceBuilder(
         },
         isSignalHubEnabled: importedEservice.isSignalHubEnabled,
         isDelegable: importedEservice.isDelegable,
+        isClientAccessDelegable: importedEservice.isClientAccessDelegable,
       };
 
       const pollEServiceById = createPollingByCondition(() =>
