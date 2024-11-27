@@ -26,7 +26,7 @@ export const toApiSelfcareInstitution = (
       {
         id: P.nonNullable,
         institutionDescription: P.nonNullable,
-        products: P.array(P.nonNullable),
+        products: P.nonNullable,
       },
       (institution) => ({
         id: institution.id,
@@ -54,21 +54,10 @@ export const toApiSelfcareInstitution = (
 
 export const toApiSelfcareProduct = (
   input: selfcareV2ClientApi.ProductResource
-): bffApi.SelfcareProduct =>
-  match(input)
-    .with({ id: P.nonNullable, title: P.nonNullable }, (product) => ({
-      id: product.id,
-      name: product.title,
-    }))
-    .with(P.nullish, (id) => {
-      throw selfcareEntityNotFilled("ProductResource", `${id}`);
-    })
-    .with(P.nullish, (title) => {
-      throw selfcareEntityNotFilled("ProductResource", `${title}`);
-    })
-    .otherwise(() => {
-      throw selfcareEntityNotFilled("ProductResource", "unknown");
-    });
+): bffApi.SelfcareProduct => ({
+  id: input.id,
+  name: input.title,
+});
 
 export const toApiSelfcareUser = (
   input: selfcareV2ClientApi.UserResource,
