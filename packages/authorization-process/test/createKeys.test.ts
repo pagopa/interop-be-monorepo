@@ -104,7 +104,7 @@ describe("createKeys", () => {
       origin: "",
     },
     userId,
-    userRoles: ["admin"],
+    userRoles: [],
   };
 
   const mockClient: Client = {
@@ -195,11 +195,6 @@ describe("createKeys", () => {
     );
   });
   it("should throw userWithoutSecurityPrivileges if the Security user is not found", async () => {
-    const authData: AuthData = {
-      ...mockAuthData,
-      userRoles: [],
-    };
-
     await addOneClient(mockClient);
 
     mockSelfcareV2ClientCall([]);
@@ -207,7 +202,7 @@ describe("createKeys", () => {
     expect(
       authorizationService.createKeys({
         clientId: mockClient.id,
-        authData,
+        authData: mockAuthData,
         keysSeeds,
         correlationId: generateId(),
         logger: genericLogger,
