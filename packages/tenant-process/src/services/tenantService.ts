@@ -785,13 +785,13 @@ export function tenantServiceBuilder(
           ? reassignVerifiedAttribute(
               targetTenant.data.attributes,
               verifiedTenantAttribute,
-              delegatorId ?? organizationId,
+              producerDelegator ?? organizationId,
               delegateProducerId,
               tenantAttributeSeed
             )
           : assignVerifiedAttribute(
               targetTenant.data.attributes,
-              delegatorId ?? organizationId,
+              producerDelegator ?? organizationId,
               delegateProducerId,
               tenantAttributeSeed
             ),
@@ -908,7 +908,7 @@ export function tenantServiceBuilder(
                   ...verifiedTenantAttribute.revokedBy,
                   {
                     ...verifier,
-                    id: delegatorId ?? verifier.id,
+                    id: producerDelegator ?? verifier.id,
                     delegateId: delegateProducerId,
                     revocationDate: new Date(),
                   },
