@@ -5,13 +5,13 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const TokenReadModelCheckerVerifierConfig = LoggerConfig.and(
-  ReadModelDbConfig
-).and(TokenGenerationReadModelDbConfig);
+const TokenReadModelCheckerConfig = LoggerConfig.and(ReadModelDbConfig).and(
+  TokenGenerationReadModelDbConfig
+);
 
 export type TokenReadModelCheckerConfig = z.infer<
-  typeof TokenReadModelCheckerVerifierConfig
+  typeof TokenReadModelCheckerConfig
 >;
 
 export const config: TokenReadModelCheckerConfig =
-  TokenReadModelCheckerVerifierConfig.parse(process.env);
+  TokenReadModelCheckerConfig.parse(process.env);

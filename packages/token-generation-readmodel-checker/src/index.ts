@@ -10,7 +10,7 @@ import { compareTokenGenerationReadModel } from "./utils/utils.js";
 
 const dynamoDBClient = new DynamoDBClient({});
 const loggerInstance = logger({
-  serviceName: "token-generation-readmodel-checker-verifier",
+  serviceName: "token-generation-readmodel-checker",
   correlationId: generateId<CorrelationId>(),
 });
 

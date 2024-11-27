@@ -94,7 +94,7 @@ import {
   writeClientEntry,
 } from "./utils.js";
 
-describe("Token Generation Read Model Checker Verifier tests", () => {
+describe("Token Generation Read Model Checker tests", () => {
   if (!config) {
     fail();
   }

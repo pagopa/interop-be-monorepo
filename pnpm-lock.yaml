@@ -3077,7 +3077,7 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
-  packages/token-generation-readmodel-checker-verifier:
+  packages/token-generation-readmodel-checker:
     dependencies:
       '@aws-sdk/client-dynamodb':
         specifier: 3.693.0
