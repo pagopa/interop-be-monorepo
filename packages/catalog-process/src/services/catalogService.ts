@@ -1,51 +1,72 @@
 /* eslint-disable max-params */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  AppContext,
   AuthData,
   DB,
   FileManager,
   Logger,
   WithLogger,
-  AppContext,
   eventRepository,
+  formatDateddMMyyyyHHmmss,
   hasPermission,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
-  formatDateddMMyyyyHHmmss,
 } from "pagopa-interop-commons";
 import {
+  AttributeId,
+  Delegation,
   Descriptor,
   DescriptorId,
+  DescriptorRejectionReason,
   DescriptorState,
   Document,
   EService,
   EServiceDocumentId,
   EServiceId,
-  TenantId,
-  WithMetadata,
-  catalogEventToBinaryData,
-  descriptorState,
-  generateId,
-  unsafeBrandId,
-  ListResult,
-  AttributeId,
-  agreementState,
   EserviceAttributes,
-  Tenant,
+  ListResult,
   RiskAnalysis,
   RiskAnalysisId,
-  eserviceMode,
+  Tenant,
+  TenantId,
+  WithMetadata,
+  agreementState,
+  catalogEventToBinaryData,
   delegationState,
+  descriptorState,
+  eserviceMode,
+  generateId,
   operationForbidden,
-  DescriptorRejectionReason,
+  unsafeBrandId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
+import { RejectDelegatedEServiceDescriptorSeed } from "../../../api-clients/dist/catalogApi.js";
+import { config } from "../config/config.js";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
+import {
+  attributeNotFound,
+  audienceCannotBeEmpty,
+  eServiceDescriptorNotFound,
+  eServiceDescriptorWithoutInterface,
+  eServiceDocumentNotFound,
+  eServiceDuplicate,
+  eServiceNotFound,
+  eServiceRiskAnalysisNotFound,
+  eserviceWithoutValidDescriptors,
+  inconsistentDailyCalls,
+  interfaceAlreadyExists,
+  notValidDescriptorState,
+  originNotCompliant,
+  prettyNameDuplicate,
+  riskAnalysisDuplicated,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -74,40 +95,20 @@ import {
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
-import { config } from "../config/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
-import {
-  eServiceDescriptorNotFound,
-  eServiceDocumentNotFound,
-  eServiceDuplicate,
-  notValidDescriptor,
-  eServiceNotFound,
-  eServiceDescriptorWithoutInterface,
-  interfaceAlreadyExists,
-  attributeNotFound,
-  inconsistentDailyCalls,
-  originNotCompliant,
-  tenantNotFound,
-  eServiceRiskAnalysisNotFound,
-  prettyNameDuplicate,
-  riskAnalysisDuplicated,
-  eserviceWithoutValidDescriptors,
-  audienceCannotBeEmpty,
-} from "../model/domain/errors.js";
-import { RejectDelegatedEServiceDescriptorSeed } from "../../../api-clients/dist/catalogApi.js";
 import { ReadModelService } from "./readModelService.js";
 import {
-  assertRequesterIsDelegateOrProducer,
+  assertDocumentDeletableDescriptorState,
+  assertHasNoDraftDescriptor,
+  assertInterfaceDeletableDescriptorState,
   assertIsDraftEservice,
   assertIsReceiveEservice,
+  assertNoExistingDelegationInActiveOrPendingState,
+  assertRequesterIsDelegateOrProducer,
+  assertRequesterIsProducer,
+  assertRiskAnalysisIsValidForPublication,
   assertTenantKindExists,
   validateRiskAnalysisSchemaOrThrow,
-  assertHasNoDraftDescriptor,
-  assertRiskAnalysisIsValidForPublication,
-  assertRequesterIsProducer,
-  assertNoExistingDelegationInActiveOrPendingState,
-  assertInterfaceDeletableDescriptorState,
-  assertDocumentDeletableDescriptorState,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -175,6 +176,29 @@ const retrieveRiskAnalysis = (
 
   return riskAnalysis;
 };
+
+const assertRequesterCanPublish = (
+  delegation: Delegation | undefined,
+  eservice: EService,
+  authData: AuthData
+): void => {
+  if (delegation) {
+    if (authData.organizationId !== delegation.delegateId) {
+      throw operationForbidden;
+    }
+  } else {
+    assertRequesterIsProducer(eservice.producerId, authData);
+  }
+};
+
+const retrieveActiveDelegation = async (
+  eservice: EService,
+  readModelService: ReadModelService
+): Promise<Delegation | undefined> =>
+  await readModelService.getLatestDelegation({
+    eserviceId: eservice.id,
+    states: [delegationState.active],
+  });
 
 const updateDescriptorState = (
   descriptor: Descriptor,
@@ -679,7 +703,7 @@ export function catalogServiceBuilder(
         descriptor.state !== descriptorState.published &&
         descriptor.state !== descriptorState.suspended
       ) {
-        throw notValidDescriptor(descriptor.id, descriptor.state);
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
@@ -846,7 +870,7 @@ export function catalogServiceBuilder(
         descriptor.state !== descriptorState.published &&
         descriptor.state !== descriptorState.suspended
       ) {
-        throw notValidDescriptor(descriptor.id, descriptor.state);
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       const document = retrieveDocument(eserviceId, descriptor, documentId);
@@ -1046,7 +1070,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptor(descriptorId, descriptor.state);
+        throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
       await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
@@ -1102,7 +1126,10 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+        throw notValidDescriptorState(
+          descriptorId,
+          descriptor.state.toString()
+        );
       }
 
       if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
@@ -1157,22 +1184,19 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const delegation = await readModelService.getLatestDelegation({
-        eserviceId,
-        states: [delegationState.active],
-      });
+      const delegation = await retrieveActiveDelegation(
+        eservice.data,
+        readModelService
+      );
 
-      if (delegation) {
-        if (authData.organizationId !== delegation.delegateId) {
-          throw operationForbidden;
-        }
-      } else {
-        assertRequesterIsProducer(eservice.data.producerId, authData);
-      }
+      assertRequesterCanPublish(delegation, eservice.data, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptor(descriptor.id, descriptor.state.toString());
+        throw notValidDescriptorState(
+          descriptor.id,
+          descriptor.state.toString()
+        );
       }
 
       if (descriptor.interface === undefined) {
@@ -1247,7 +1271,10 @@ export function catalogServiceBuilder(
         descriptor.state !== descriptorState.deprecated &&
         descriptor.state !== descriptorState.published
       ) {
-        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+        throw notValidDescriptorState(
+          descriptorId,
+          descriptor.state.toString()
+        );
       }
 
       const updatedDescriptor = updateDescriptorState(
@@ -1286,7 +1313,10 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (descriptor.state !== descriptorState.suspended) {
-        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+        throw notValidDescriptorState(
+          descriptorId,
+          descriptor.state.toString()
+        );
       }
 
       const updatedDescriptor = updateDescriptorState(
@@ -1519,7 +1549,10 @@ export function catalogServiceBuilder(
         descriptor.state !== descriptorState.suspended &&
         descriptor.state !== descriptorState.deprecated
       ) {
-        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+        throw notValidDescriptorState(
+          descriptorId,
+          descriptor.state.toString()
+        );
       }
 
       if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
@@ -1774,7 +1807,10 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.waitingForApproval) {
-        throw notValidDescriptor(descriptor.id, descriptor.state.toString());
+        throw notValidDescriptorState(
+          descriptor.id,
+          descriptor.state.toString()
+        );
       }
 
       const updatedEService = await processDescriptorPublication(
@@ -1807,7 +1843,10 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.waitingForApproval) {
-        throw notValidDescriptor(descriptor.id, descriptor.state.toString());
+        throw notValidDescriptorState(
+          descriptor.id,
+          descriptor.state.toString()
+        );
       }
 
       const newRejectionReason: DescriptorRejectionReason = {

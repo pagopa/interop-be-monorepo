@@ -1,3 +1,4 @@
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   AuthData,
   RiskAnalysisValidatedForm,
@@ -5,29 +6,28 @@ import {
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
-  TenantId,
-  operationForbidden,
+  Descriptor,
   EService,
+  EServiceId,
+  Tenant,
+  TenantId,
+  TenantKind,
+  delegationState,
   descriptorState,
   eserviceMode,
-  Tenant,
-  TenantKind,
-  Descriptor,
-  EServiceId,
-  delegationState,
+  operationForbidden,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
-  eserviceNotInDraftState,
-  eserviceNotInReceiveMode,
-  tenantKindNotFound,
-  riskAnalysisValidationFailed,
   draftDescriptorAlreadyExists,
   eServiceRiskAnalysisIsRequired,
-  riskAnalysisNotValid,
+  eserviceNotInDraftState,
+  eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
-  notValidDescriptor,
+  notValidDescriptorState,
+  riskAnalysisNotValid,
+  riskAnalysisValidationFailed,
+  tenantKindNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -165,7 +165,7 @@ export function assertInterfaceDeletableDescriptorState(
       descriptorState.suspended,
       descriptorState.waitingForApproval,
       () => {
-        throw notValidDescriptor(descriptor.id, descriptor.state);
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
     )
     .exhaustive();
@@ -184,7 +184,7 @@ export function assertDocumentDeletableDescriptorState(
       () => void 0
     )
     .with(descriptorState.archived, () => {
-      throw notValidDescriptor(descriptor.id, descriptor.state);
+      throw notValidDescriptorState(descriptor.id, descriptor.state);
     })
     .exhaustive();
 }

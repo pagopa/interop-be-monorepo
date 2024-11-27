@@ -1,3 +1,4 @@
+import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
   DelegationId,
@@ -8,7 +9,6 @@ import {
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 
 export const errorCodes = {
   eServiceDescriptorNotFound: "0001",
@@ -91,7 +91,7 @@ export function eServiceDocumentNotFound(
   });
 }
 
-export function notValidDescriptor(
+export function notValidDescriptorState(
   descriptorId: DescriptorId,
   descriptorStatus: string
 ): ApiError<ErrorCodes> {
