@@ -258,7 +258,9 @@ export function agreementServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(
-        `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}`
+        `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
