@@ -754,7 +754,7 @@ export function tenantServiceBuilder(
       );
 
       const delegateProducerId = producerDelegation?.delegateId;
-      const delegatorId = producerDelegation?.delegatorId;
+      const producerDelegator = producerDelegation?.delegatorId;
 
       await assertVerifiedAttributeOperationAllowed({
         requesterId: organizationId,
@@ -853,7 +853,7 @@ export function tenantServiceBuilder(
       );
 
       const delegateProducerId = producerDelegation?.delegateId;
-      const delegatorId = producerDelegation?.delegatorId;
+      const producerDelegator = producerDelegation?.delegatorId;
 
       await assertVerifiedAttributeOperationAllowed({
         requesterId: authData.organizationId,
