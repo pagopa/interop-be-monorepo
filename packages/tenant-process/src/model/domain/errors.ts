@@ -327,10 +327,10 @@ export function agreementNotFound(agreementId: string): ApiError<ErrorCodes> {
 
 export function descriptorNotFoundInEservice(
   descriptorId: string,
-  eservice: string
+  eserviceId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} not found in EService ${eservice}`,
+    detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
     code: "descriptorNotFoundInEservice",
     title: "Descriptor not found in EService",
   });
