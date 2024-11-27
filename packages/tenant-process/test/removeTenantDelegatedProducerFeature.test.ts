@@ -5,13 +5,15 @@ import {
   protobufDecoder,
   toTenantV2,
   TenantDelegatedProducerFeatureRemovedV2,
-  operationForbidden,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
-import { tenantHasNoDelegatedProducerFeature } from "../src/model/domain/errors.js";
+import {
+  tenantDoesNotHaveFeature,
+  tenantIsNotIPA,
+} from "../src/model/domain/errors.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("removeTenantDelegatedProducerFeature", async () => {
@@ -67,7 +69,7 @@ describe("removeTenantDelegatedProducerFeature", async () => {
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
 
-  it("Should throw tenantHasNoDelegatedProducerFeature if the requester tenant already has the delegated producer feature", async () => {
+  it("Should throw tenantDoesNotHaveFeature if the requester tenant already has the delegated producer feature", async () => {
     const tenant: Tenant = {
       ...getMockTenant(),
       features: [],
@@ -82,9 +84,11 @@ describe("removeTenantDelegatedProducerFeature", async () => {
         authData: getMockAuthData(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(tenantHasNoDelegatedProducerFeature(tenant.id));
+    ).rejects.toThrowError(
+      tenantDoesNotHaveFeature(tenant.id, "DelegatedProducer")
+    );
   });
-  it("Should throw operationForbidden if the requester tenant is not a public administration", async () => {
+  it("Should throw tenantIsNotIPA if the requester tenant is not a public administration", async () => {
     const tenant: Tenant = {
       ...getMockTenant(),
       features: [
@@ -101,11 +105,11 @@ describe("removeTenantDelegatedProducerFeature", async () => {
         organizationId: tenant.id,
         correlationId: generateId(),
         authData: {
-          ...getMockAuthData(),
+          ...getMockAuthData(tenant.id),
           externalId: { origin: "UNKNOWN", value: "test" },
         },
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationForbidden);
+    ).rejects.toThrowError(tenantIsNotIPA(tenant.id));
   });
 });

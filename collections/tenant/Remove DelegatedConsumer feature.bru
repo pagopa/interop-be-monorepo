@@ -1,11 +1,11 @@
 meta {
-  name: Revoke a delegation
+  name: Remove DelegatedConsumer feature
   type: http
-  seq: 6
+  seq: 26
 }
 
 delete {
-  url: {{host-delegation}}/producer/delegations/:delegationId
+  url: {{host-tenant}}/tenants/delegatedConsumer
   body: none
   auth: none
 }
