@@ -546,7 +546,9 @@ describe("delete draft descriptor", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(notValidDescriptorState(descriptorToDelete.id, state));
+      ).rejects.toThrowError(
+        notValidDescriptorState(descriptorToDelete.id, state)
+      );
     }
   );
 });
