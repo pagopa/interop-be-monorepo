@@ -27,6 +27,7 @@ import {
   ClientAssertion,
   FullTokenGenerationStatesClientPurposeEntry,
   CorrelationId,
+  ClientKindTokenStates,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -123,6 +124,14 @@ export function tokenServiceBuilder({
       const kid = jwt.header.kid;
       const purposeId = jwt.payload.purposeId;
 
+      logTokenGenerationInfo({
+        validatedJwt: jwt,
+        clientKind: undefined,
+        tokenJti: undefined,
+        message: "Client assertion validated",
+        logger,
+      });
+
       const pk = purposeId
         ? makeTokenGenerationStatesClientKidPurposePK({
             clientId,
@@ -132,6 +141,14 @@ export function tokenServiceBuilder({
         : makeTokenGenerationStatesClientKidPK({ clientId, kid });
 
       const key = await retrieveKey(dynamoDBClient, pk);
+
+      logTokenGenerationInfo({
+        validatedJwt: jwt,
+        clientKind: key.clientKind,
+        tokenJti: undefined,
+        message: "Client assertion validated",
+        logger,
+      });
 
       const { errors: clientAssertionSignatureErrors } =
         await verifyClientAssertionSignature(
@@ -189,6 +206,14 @@ export function tokenServiceBuilder({
               logger,
             });
 
+            logTokenGenerationInfo({
+              validatedJwt: jwt,
+              clientKind: key.clientKind,
+              tokenJti: token.payload.jti,
+              message: "Token generated",
+              logger,
+            });
+
             return {
               limitReached: false as const,
               token,
@@ -201,6 +226,14 @@ export function tokenServiceBuilder({
           const token = await tokenGenerator.generateInteropApiToken({
             sub: jwt.payload.sub,
             consumerId: key.consumerId,
+          });
+
+          logTokenGenerationInfo({
+            validatedJwt: jwt,
+            clientKind: key.clientKind,
+            tokenJti: token.payload.jti,
+            message: "Token generated",
+            logger,
           });
 
           return {
@@ -417,4 +450,25 @@ const deconstructGSIPK_eserviceId_descriptorId = (
     eserviceId: parsedEserviceId.data,
     descriptorId: parsedDescriptorId.data,
   };
+};
+
+export const logTokenGenerationInfo = ({
+  validatedJwt,
+  clientKind,
+  tokenJti,
+  message,
+  logger,
+}: {
+  validatedJwt: ClientAssertion;
+  clientKind: ClientKindTokenStates | undefined;
+  tokenJti: string | undefined;
+  message: string;
+  logger: Logger;
+}): void => {
+  const clientId = `[CLIENTID=${validatedJwt.payload.sub}`;
+  const kid = `[KID=${validatedJwt.header.kid}]`;
+  const purposeId = `[PURPOSEID=${validatedJwt.payload.purposeId}]`;
+  const tokenType = `[TYPE=${clientKind}]`;
+  const jti = `[JTI=${tokenJti}]`;
+  logger.info(`${clientId}${kid}${purposeId}${tokenType}${jti} - ${message}`);
 };
