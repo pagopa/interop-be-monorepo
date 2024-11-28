@@ -89,10 +89,6 @@ export async function handleMessageV2(
           descriptorId: agreement.descriptorId,
         });
 
-        logger.info(
-          `Retrieving catalog entry ${pkCatalogEntry} to add descriptor info in token-generation-states`
-        );
-
         const catalogEntry = await readCatalogEntry(
           pkCatalogEntry,
           dynamoDBClient
@@ -111,6 +107,7 @@ export async function handleMessageV2(
           dynamoDBClient,
           GSIPK_eserviceId_descriptorId,
           catalogEntry,
+          logger,
         });
       }
     })
@@ -236,6 +233,7 @@ export async function handleMessageV2(
             dynamoDBClient,
             GSIPK_eserviceId_descriptorId,
             catalogEntry,
+            logger,
           });
         }
       };

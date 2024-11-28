@@ -47,7 +47,8 @@ export async function handleMessageV1(
       await handleActivationOrSuspension(
         agreement,
         dynamoDBClient,
-        msg.version
+        msg.version,
+        logger
       );
     })
     .with({ type: "AgreementUpdated" }, async (msg) => {
@@ -60,7 +61,8 @@ export async function handleMessageV1(
           await handleActivationOrSuspension(
             agreement,
             dynamoDBClient,
-            msg.version
+            msg.version,
+            logger
           );
         })
         .with(agreementState.archived, async () => {
@@ -193,6 +195,7 @@ const handleFirstActivation = async (
       dynamoDBClient,
       GSIPK_eserviceId_descriptorId,
       catalogEntry,
+      logger,
     });
   }
 };
@@ -200,7 +203,8 @@ const handleFirstActivation = async (
 const handleActivationOrSuspension = async (
   agreement: Agreement,
   dynamoDBClient: DynamoDBClient,
-  incomingVersion: number
+  incomingVersion: number,
+  logger: Logger
 ): Promise<void> => {
   const primaryKey = makePlatformStatesAgreementPK(agreement.id);
 
@@ -253,6 +257,7 @@ const handleActivationOrSuspension = async (
       dynamoDBClient,
       GSIPK_eserviceId_descriptorId,
       catalogEntry,
+      logger,
     });
   }
 };
@@ -361,6 +366,7 @@ const handleUpgrade = async (
         dynamoDBClient,
         GSIPK_eserviceId_descriptorId,
         catalogEntry,
+        logger,
       });
     }
   };

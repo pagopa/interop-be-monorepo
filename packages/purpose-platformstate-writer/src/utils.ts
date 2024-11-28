@@ -19,6 +19,7 @@ import {
   AgreementId,
   genericInternalError,
   GSIPKConsumerIdEServiceId,
+  GSIPKEServiceIdDescriptorId,
   itemState,
   ItemState,
   makeGSIPKConsumerIdEServiceId,
@@ -235,6 +236,7 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
     purposeState: ItemState,
     purposeVersionId: PurposeVersionId,
     exclusiveStartKey?: Record<string, AttributeValue>
+    // eslint-disable-next-line sonarjs/cognitive-complexity
   ): Promise<void> => {
     const result = await readTokenEntriesByGSIPKPurposeId(
       dynamoDBClient,
@@ -245,10 +247,6 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
       consumerId: purpose.consumerId,
       eserviceId: purpose.eserviceId,
     });
-
-    logger.info(
-      `Retrieving agreement entry with GSIPK_consumerId_eserviceId ${gsiPKConsumerIdEServiceId} to add agreement info in token-generation-states`
-    );
 
     const platformAgreementEntry = await readPlatformAgreementEntry(
       dynamoDBClient,
@@ -280,6 +278,11 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
           !entry.agreementState ||
           !entry.GSIPK_eserviceId_descriptorId);
 
+      if (isAgreementMissingInTokenTable) {
+        logger.info(
+          `Adding also agreement info token-generation-states in entry with GSIPK_consumerId_eserviceId ${gsiPKConsumerIdEServiceId}`
+        );
+      }
       // Agreement data from platform-states
       const agreementExpressionAttributeValues: Record<string, AttributeValue> =
         isAgreementMissingInTokenTable
@@ -311,6 +314,12 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
         (!entry.descriptorAudience ||
           !entry.descriptorState ||
           !entry.descriptorVoucherLifespan);
+
+      if (isDescriptorDataMissingInTokenTable) {
+        logger.info(
+          `Adding also descriptor info token-generation-states in entry with GSIPK_eserviceId_descriptorId ${GSIPKEServiceIdDescriptorId}`
+        );
+      }
 
       const descriptorExpressionAttributeValues: Record<
         string,
