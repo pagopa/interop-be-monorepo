@@ -78,7 +78,6 @@ export const validateRequestParameters = (
   return failedValidation([assertionTypeError, grantTypeError]);
 };
 
-// eslint-disable-next-line complexity
 export const verifyClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined
