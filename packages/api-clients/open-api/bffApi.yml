@@ -13701,6 +13701,10 @@ components:
           $ref: "#/components/schemas/ProducerDescriptorEService"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributes"
+        rejectionReasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/DescriptorRejectionReason"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -13764,6 +13768,18 @@ components:
       properties:
         prettyName:
           type: string
+    DescriptorRejectionReason:
+      type: object
+      additionalProperties: false
+      properties:
+        rejectionReason:
+          type: string
+        rejectedAt:
+          type: string
+          format: date-time
+      required:
+        - rejectionReason
+        - rejectedAt 
     AgreementApprovalPolicy:
       type: string
       description: |
@@ -14263,6 +14279,28 @@ components:
           format: uri
       required:
         - url
+    CompactProducerDescriptor:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - state
+        - version
+        - audience
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: "#/components/schemas/EServiceDescriptorState"
+        version:
+          type: string
+        audience:
+          type: array
+          items:
+            type: string
+        requireCorrections:
+          type: boolean
     ProducerEService:
       type: object
       additionalProperties: false
@@ -14279,9 +14317,9 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         activeDescriptor:
-          $ref: "#/components/schemas/CompactDescriptor"
+          $ref: "#/components/schemas/CompactProducerDescriptor"
         draftDescriptor:
-          $ref: "#/components/schemas/CompactDescriptor"
+          $ref: "#/components/schemas/CompactProducerDescriptor"
     ProducerEServices:
       type: object
       additionalProperties: false

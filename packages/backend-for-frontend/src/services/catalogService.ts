@@ -50,7 +50,7 @@ import {
   toCatalogCreateEServiceSeed,
   toBffCatalogDescriptorEService,
   toBffCatalogApiEserviceRiskAnalysisSeed,
-  toCompactDescriptor,
+  toCompactProducerDescriptor,
 } from "../api/catalogApiConverter.js";
 import {
   catalogApiDescriptorState,
@@ -112,22 +112,31 @@ const enhanceCatalogEService =
   };
 
 const enhanceProducerEService = (
-  eservice: catalogApi.EService
+  eservice: catalogApi.EService,
+  requesterId: TenantId
 ): bffApi.ProducerEService => {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   const draftDescriptor = eservice.descriptors.find(
     (d) => d.state === catalogApiDescriptorState.DRAFT
   );
 
+  const isRequesterDelegateProducer = requesterId !== eservice.producerId;
+
   return {
     id: eservice.id,
     name: eservice.name,
     mode: eservice.mode,
     activeDescriptor: activeDescriptor
-      ? toCompactDescriptor(activeDescriptor)
+      ? toCompactProducerDescriptor(
+          activeDescriptor,
+          isRequesterDelegateProducer
+        )
       : undefined,
     draftDescriptor: draftDescriptor
-      ? toCompactDescriptor(draftDescriptor)
+      ? toCompactProducerDescriptor(
+          draftDescriptor,
+          isRequesterDelegateProducer
+        )
       : undefined,
   };
 };
@@ -439,7 +448,7 @@ export function catalogServiceBuilder(
           consumersIds
         )}`
       );
-      const producerId = authData.organizationId;
+      const requesterId = authData.organizationId;
       const res: {
         results: catalogApi.EService[];
         totalCount: number;
@@ -454,7 +463,7 @@ export function catalogServiceBuilder(
             headers,
             queries: {
               name: eserviceName,
-              producersIds: producerId,
+              producersIds: requesterId,
               delegated,
               offset,
               limit,
@@ -468,7 +477,7 @@ export function catalogServiceBuilder(
         const eserviceIds = (
           await getAllAgreements(agreementProcessClient, headers, {
             consumersIds,
-            producersIds: [producerId],
+            producersIds: [requesterId],
             eservicesIds: [],
             states: [],
           })
@@ -480,7 +489,7 @@ export function catalogServiceBuilder(
             queries: {
               name: eserviceName,
               eservicesIds: eserviceIds,
-              producersIds: producerId,
+              producersIds: requesterId,
               delegated,
               offset,
               limit,
@@ -493,7 +502,9 @@ export function catalogServiceBuilder(
       }
 
       return {
-        results: res.results.map(enhanceProducerEService),
+        results: res.results.map((result) =>
+          enhanceProducerEService(result, requesterId)
+        ),
         pagination: {
           offset,
           limit,
