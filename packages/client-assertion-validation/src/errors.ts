@@ -77,7 +77,6 @@ export function invalidGrantType(grantType: string): ApiError<ErrorCodes> {
   });
 }
 
-// TODO: maybe add the wrong audience?
 export function invalidAudience(
   aud: string | string[] | undefined
 ): ApiError<ErrorCodes> {
