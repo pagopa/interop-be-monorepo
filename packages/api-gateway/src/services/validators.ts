@@ -116,7 +116,7 @@ export function assertOnlyOneActiveProducerDelegationForEserviceExists(
 ): void {
   if (
     producerDelegations.results.filter(
-      (d) => d.kind !== delegationApi.DelegationKind.Values.DELEGATED_PRODUCER
+      (d) => d.kind === delegationApi.DelegationKind.Values.DELEGATED_PRODUCER
     ).length > 1
   ) {
     throw multipleActiveProducerDelegationsForEservice(eserviceId);
