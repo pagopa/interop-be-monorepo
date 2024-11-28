@@ -72,14 +72,13 @@ const retrievePurpose = async (
 const retrieveActiveProducerDelegationByEServiceId = async (
   delegationProcessClient: DelegationProcessClient,
   headers: ApiGatewayAppContext["headers"],
-  eserviceId: catalogApi.EService["id"],
-  kind: delegationApi.DelegationKind
+  eserviceId: catalogApi.EService["id"]
 ): Promise<delegationApi.Delegation | undefined> => {
   const result = await delegationProcessClient.getDelegations({
     headers,
     queries: {
       eserviceIds: [eserviceId],
-      kind,
+      kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
       delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
       limit: 1,
       offset: 0,
@@ -130,8 +129,7 @@ export function purposeServiceBuilder(
             await retrieveActiveProducerDelegationByEServiceId(
               delegationProcessClient,
               headers,
-              eservice.id,
-              delegationApi.DelegationKind.Values.DELEGATED_PRODUCER
+              eservice.id
             );
 
           assertIsEserviceDelegateProducer(producerDelegation, organizationId);

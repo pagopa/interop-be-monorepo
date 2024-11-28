@@ -184,7 +184,10 @@ const assertRequesterCanPublish = (
   authData: AuthData
 ): void => {
   if (producerDelegation) {
-    if (authData.organizationId !== producerDelegation.delegateId) {
+    if (
+      producerDelegation.kind !== delegationKind.delegatedProducer ||
+      authData.organizationId !== producerDelegation.delegateId
+    ) {
       throw operationForbidden;
     }
   } else {

@@ -100,7 +100,12 @@ export function assertIsEserviceDelegateProducer(
   producerDelegation: delegationApi.Delegation | undefined,
   organizationId: TenantId
 ): void {
-  if (!producerDelegation || producerDelegation.delegateId !== organizationId) {
+  if (
+    !producerDelegation ||
+    producerDelegation.kind !==
+      delegationApi.DelegationKind.Values.DELEGATED_PRODUCER ||
+    producerDelegation.delegateId !== organizationId
+  ) {
     throw operationForbidden;
   }
 }
@@ -109,7 +114,11 @@ export function assertOnlyOneActiveProducerDelegationForEserviceExists(
   producerDelegations: delegationApi.Delegations,
   eserviceId: apiGatewayApi.EService["id"]
 ): void {
-  if (producerDelegations.totalCount > 1) {
+  if (
+    producerDelegations.results.filter(
+      (d) => d.kind !== delegationApi.DelegationKind.Values.DELEGATED_PRODUCER
+    ).length > 1
+  ) {
     throw multipleActiveProducerDelegationsForEservice(eserviceId);
   }
 }

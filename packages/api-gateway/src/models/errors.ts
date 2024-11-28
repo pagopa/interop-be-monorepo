@@ -274,7 +274,7 @@ export function multipleActiveProducerDelegationsForEservice(
   eserviceId: catalogApi.EService["id"]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Unexpected multiple active producer delegatios for EService ${eserviceId}`,
+    detail: `Unexpected multiple active producer delegations for EService ${eserviceId}`,
     code: "multipleActiveProducerDelegationsForEservice",
     title: "Multiple active producer delegation found",
   });
