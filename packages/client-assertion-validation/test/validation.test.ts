@@ -54,9 +54,9 @@ import {
   invalidAssertionType,
   invalidSignature,
   clientAssertionInvalidClaims,
-  invalidAudienceFormat,
   unexpectedClientAssertionSignatureVerificationError,
   missingPlatformStates,
+  audienceNotFound,
 } from "../src/errors.js";
 import { ClientAssertionValidationRequest } from "../src/types.js";
 import { getMockAccessTokenRequest, value64chars } from "./utils.js";
@@ -221,31 +221,9 @@ describe("validation test", async () => {
       expect(errors![0]).toEqual(invalidAudience());
     });
 
-    it("invalidAudienceFormat - comma-separated strings", async () => {
-      const { jws } = await getMockClientAssertion({
-        standardClaimsOverride: { aud: "test.interop.pagopa.it, other-aud" },
-      });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudienceFormat());
-    });
-
     it("invalidAudience - wrong entries", async () => {
       const { jws } = await getMockClientAssertion({
         standardClaimsOverride: { aud: ["wrong-audience1, wrong-audience2"] },
-      });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudience());
-    });
-
-    it("invalidAudience - missing entry", async () => {
-      const { jws } = await getMockClientAssertion({
-        standardClaimsOverride: {
-          aud: ["test.interop.pagopa.it"],
-        },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
@@ -899,137 +877,151 @@ describe("validation test", async () => {
     });
   });
 
-  // TODO remove comment. Overall, intersect not empty is ok. Also, no longer handling comma separated string
   describe("validateAudience", () => {
-    describe("expectedAudience is a one item array", () => {
-      it("one item string", () => {
-        const input = "aud1";
+    describe("expectedAudiences is a one item array", () => {
+      it("should succeed if the expected audiences contain the received audience (string)", () => {
+        const receivedAudiences = "aud1";
         const expectedAudiences = ["aud1"];
-        validateAudience(input, expectedAudiences);
-
-        // OK
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: receivedAudiences,
+          errors: undefined,
+        });
       });
 
-      it("one item string, wrong", () => {
-        const input = "aud2";
+      it("should return error if the expected audiences don't contain the received audience (string)", () => {
+        const receivedAudiences = "aud2";
         const expectedAudiences = ["aud1"];
-        validateAudience(input, expectedAudiences);
-
-        // FAIL
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [invalidAudience()],
+        });
       });
 
-      it("undefined", () => {
-        const input = undefined;
+      it("should return error if the received audience is undefined", () => {
+        const receivedAudiences = undefined;
         const expectedAudiences = ["aud1"];
-        validateAudience(input, expectedAudiences);
-
-        // FAIL
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [audienceNotFound()],
+        });
       });
 
-      it("two items string", () => {
-        const input = "aud1, aud2";
+      it("should return error if the expected audiences don't contain the received audience (comma separated string)", () => {
+        const receivedAudiences = "aud1, aud2";
         const expectedAudiences = ["aud1"];
-        validateAudience(input, expectedAudiences);
-
-        // FAIL
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [invalidAudience()],
+        });
       });
 
-      it("one item array", () => {
-        const input = ["aud1"];
+      it("should return error if the intersection between the expected audiences and the received audiences is empty (array)", () => {
+        const receivedAudiences = ["aud2"];
         const expectedAudiences = ["aud1"];
-        validateAudience(input, expectedAudiences);
-
-        // OK
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [invalidAudience()],
+        });
       });
 
-      it("one item array, wrong", () => {
-        const input = ["aud2"];
+      it("should succeed if the intersection between the expected audiences and the received audiences is not empty (array)", () => {
+        const receivedAudiences = ["aud1", "aud2"];
         const expectedAudiences = ["aud1"];
-        validateAudience(input, expectedAudiences);
-
-        // FAIL
-      });
-
-      it("two items array", () => {
-        const input = ["aud1", "aud2"];
-        const expectedAudiences = ["aud1"];
-        validateAudience(input, expectedAudiences);
-
-        // OK
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: receivedAudiences,
+          errors: undefined,
+        });
       });
     });
 
-    describe("expectedAudience is a two items array", () => {
-      it("one item string", () => {
-        const input = "aud1";
+    describe("expectedAudiences is a two items array", () => {
+      it("should succeed if the expected audiences contain the received audience (string)", () => {
+        const receivedAudiences = "aud1";
         const expectedAudiences = ["aud1", "aud2"];
-        validateAudience(input, expectedAudiences);
-
-        // OK
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: receivedAudiences,
+          errors: undefined,
+        });
       });
 
-      it("one item string, wrong", () => {
-        const input = "aud3";
+      it("should return error if the expected audiences don't contain the received audience (string)", () => {
+        const receivedAudiences = "aud3";
         const expectedAudiences = ["aud1", "aud2"];
-        validateAudience(input, expectedAudiences);
-
-        // FAIL
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [invalidAudience()],
+        });
       });
 
-      it("undefined", () => {
-        const input = undefined;
+      it("should return error if the expected audiences don't contain the received audience (comma separated string)", () => {
+        const receivedAudiences = "aud1, aud2";
         const expectedAudiences = ["aud1", "aud2"];
-        validateAudience(input, expectedAudiences);
-
-        // FAIL
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [invalidAudience()],
+        });
       });
 
-      it("two items string", () => {
-        const input = "aud1, aud2";
+      it("should succeed if the expected audiences contain the received audiences (array)", () => {
+        const receivedAudiences = ["aud1"];
         const expectedAudiences = ["aud1", "aud2"];
-        validateAudience(input, expectedAudiences);
-
-        // FAIL no longer handling comma separated strings
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: receivedAudiences,
+          errors: undefined,
+        });
       });
 
-      it("two items string, intersection", () => {
-        const input = "aud1, aud3";
+      it("should return error if the intersection between the expected audiences and the received audiences (array) is empty", () => {
+        const receivedAudiences = ["aud3"];
         const expectedAudiences = ["aud1", "aud2"];
-        validateAudience(input, expectedAudiences);
-
-        // FAIL
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [invalidAudience()],
+        });
       });
 
-      it("one item array", () => {
-        const input = ["aud1"];
+      it("should succeed if the expected audiences match the received audiences (array)", () => {
+        const receivedAudiences = ["aud1", "aud2"];
         const expectedAudiences = ["aud1", "aud2"];
-        validateAudience(input, expectedAudiences);
-
-        // OK
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: receivedAudiences,
+          errors: undefined,
+        });
       });
 
-      it("one item array, wrong", () => {
-        const input = ["aud3"];
+      it("should succeed if the intersection between the expected audiences and the received audiences (array) is not empty", () => {
+        const receivedAudiences = ["aud1", "aud3"];
         const expectedAudiences = ["aud1", "aud2"];
-        validateAudience(input, expectedAudiences);
-
-        // FAIL
-      });
-
-      it("two items array", () => {
-        const input = ["aud1", "aud2"];
-        const expectedAudiences = ["aud1", "aud2"];
-        validateAudience(input, expectedAudiences);
-
-        // OK
-      });
-
-      it("two items array, intersection", () => {
-        const input = ["aud1", "aud3"];
-        const expectedAudiences = ["aud1", "aud2"];
-        validateAudience(input, expectedAudiences);
-
-        // OK
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: receivedAudiences,
+          errors: undefined,
+        });
       });
     });
   });
