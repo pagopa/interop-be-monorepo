@@ -622,18 +622,13 @@ export function readModelServiceBuilder(
           "data.state": state,
           "data.kind": kind,
         },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true } }
       );
 
       if (!data) {
         return undefined;
       }
-      const result = z
-        .object({
-          data: Delegation,
-          metadata: z.object({ version: z.number() }),
-        })
-        .safeParse(data);
+      const result = z.object({ data: Delegation }).safeParse(data);
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse delegation item: result ${JSON.stringify(
@@ -653,18 +648,13 @@ export function readModelServiceBuilder(
           "data.state": delegationState.active,
           "data.kind": kind,
         },
-        { projection: { data: true, metadata: false } }
+        { projection: { data: true } }
       );
 
       if (!data) {
         return undefined;
       }
-      const result = z
-        .object({
-          data: Delegation,
-          metadata: z.object({ version: z.number() }),
-        })
-        .safeParse(data);
+      const result = z.object({ data: Delegation }).safeParse(data);
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse delegation item: result ${JSON.stringify(
