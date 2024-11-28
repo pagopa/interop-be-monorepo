@@ -34,6 +34,12 @@ import {
 } from "pagopa-interop-models";
 import { formatDateyyyyMMdd, genericLogger } from "pagopa-interop-commons";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
+import {
+  inactiveEService,
+  invalidAssertionType,
+  invalidSignature,
+  issuedAtNotFound,
+} from "pagopa-interop-client-assertion-validation";
 import { config } from "../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -45,13 +51,6 @@ import {
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
-import {
-  inactiveEService,
-  invalidAssertionType,
-  invalidSignature,
-  issuedAtNotFound,
-  unexpectedClientAssertionSignatureVerificationError,
-} from "../../client-assertion-validation/dist/errors.js";
 import {
   configTokenGenerationStates,
   dynamoDBClient,
