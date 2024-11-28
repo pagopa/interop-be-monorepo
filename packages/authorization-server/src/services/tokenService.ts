@@ -96,6 +96,8 @@ export function tokenServiceBuilder({
       correlationId: CorrelationId,
       logger: Logger
     ): Promise<GenerateTokenReturnType> {
+      logger.info(`CLIENTID=${request.client_id} Token requested`);
+
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: request.client_assertion,
         client_assertion_type: request.client_assertion_type,
