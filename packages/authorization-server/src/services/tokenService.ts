@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-client-assertion-validation";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
-  clientKindTokenStates,
+  clientKindTokenGenStates,
   DescriptorId,
   EServiceId,
   generateId,
@@ -155,32 +155,35 @@ export function tokenServiceBuilder({
       }
 
       return await match(key)
-        .with({ clientKind: clientKindTokenStates.consumer }, async (key) => {
-          const token = await tokenGenerator.generateInteropConsumerToken({
-            sub: jwt.payload.sub,
-            audience: key.descriptorAudience,
-            purposeId: key.GSIPK_purposeId,
-            tokenDurationInSeconds: key.descriptorVoucherLifespan,
-            digest: jwt.payload.digest,
-          });
+        .with(
+          { clientKind: clientKindTokenGenStates.consumer },
+          async (key) => {
+            const token = await tokenGenerator.generateInteropConsumerToken({
+              sub: jwt.payload.sub,
+              audience: key.descriptorAudience,
+              purposeId: key.GSIPK_purposeId,
+              tokenDurationInSeconds: key.descriptorVoucherLifespan,
+              digest: jwt.payload.digest,
+            });
 
-          await publishAudit({
-            producer,
-            generatedToken: token,
-            key,
-            clientAssertion: jwt,
-            correlationId,
-            fileManager,
-            logger,
-          });
+            await publishAudit({
+              producer,
+              generatedToken: token,
+              key,
+              clientAssertion: jwt,
+              correlationId,
+              fileManager,
+              logger,
+            });
 
-          return {
-            limitReached: false as const,
-            token,
-            rateLimiterStatus,
-          };
-        })
-        .with({ clientKind: clientKindTokenStates.api }, async (key) => {
+            return {
+              limitReached: false as const,
+              token,
+              rateLimiterStatus,
+            };
+          }
+        )
+        .with({ clientKind: clientKindTokenGenStates.api }, async (key) => {
           const token = await tokenGenerator.generateInteropApiToken({
             sub: jwt.payload.sub,
             consumerId: key.consumerId,
@@ -229,7 +232,7 @@ export const retrieveKey = async (
     }
 
     return match(tokenGenerationEntry.data)
-      .with({ clientKind: clientKindTokenStates.consumer }, (entry) => {
+      .with({ clientKind: clientKindTokenGenStates.consumer }, (entry) => {
         const consumerClient =
           FullTokenGenerationStatesConsumerClient.safeParse(entry);
         if (!consumerClient.success) {
@@ -238,7 +241,7 @@ export const retrieveKey = async (
 
         return consumerClient.data;
       })
-      .with({ clientKind: clientKindTokenStates.api }, (entry) => entry)
+      .with({ clientKind: clientKindTokenGenStates.api }, (entry) => entry)
       .exhaustive();
   }
 };

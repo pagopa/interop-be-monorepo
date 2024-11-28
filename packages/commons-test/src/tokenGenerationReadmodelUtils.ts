@@ -25,33 +25,33 @@ import {
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
 
-export const writeTokenStatesApiClient = async (
-  tokenStateEntry: TokenGenerationStatesApiClient,
+export const writeTokenGenStatesApiClient = async (
+  tokenGenStatesEntry: TokenGenerationStatesApiClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: {
-        S: tokenStateEntry.PK,
+        S: tokenGenStatesEntry.PK,
       },
       updatedAt: {
-        S: tokenStateEntry.updatedAt,
+        S: tokenGenStatesEntry.updatedAt,
       },
       consumerId: {
-        S: tokenStateEntry.consumerId,
+        S: tokenGenStatesEntry.consumerId,
       },
       clientKind: {
-        S: tokenStateEntry.clientKind,
+        S: tokenGenStatesEntry.clientKind,
       },
       publicKey: {
-        S: tokenStateEntry.publicKey,
+        S: tokenGenStatesEntry.publicKey,
       },
       GSIPK_clientId: {
-        S: tokenStateEntry.GSIPK_clientId,
+        S: tokenGenStatesEntry.GSIPK_clientId,
       },
       GSIPK_kid: {
-        S: tokenStateEntry.GSIPK_kid,
+        S: tokenGenStatesEntry.GSIPK_kid,
       },
     },
     TableName: "token-generation-states",
@@ -60,110 +60,110 @@ export const writeTokenStatesApiClient = async (
   await dynamoDBClient.send(command);
 };
 
-export const writeTokenStatesConsumerClient = async (
-  tokenStateEntry: TokenGenerationStatesConsumerClient,
+export const writeTokenGenStatesConsumerClient = async (
+  tokenGenStatesEntry: TokenGenerationStatesConsumerClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: {
-        S: tokenStateEntry.PK,
+        S: tokenGenStatesEntry.PK,
       },
-      ...(tokenStateEntry.descriptorState
+      ...(tokenGenStatesEntry.descriptorState
         ? {
             descriptorState: {
-              S: tokenStateEntry.descriptorState,
+              S: tokenGenStatesEntry.descriptorState,
             },
           }
         : {}),
-      ...(tokenStateEntry.descriptorAudience
+      ...(tokenGenStatesEntry.descriptorAudience
         ? {
             descriptorAudience: {
-              L: tokenStateEntry.descriptorAudience.map((item) => ({
+              L: tokenGenStatesEntry.descriptorAudience.map((item) => ({
                 S: item,
               })),
             },
           }
         : {}),
-      ...(tokenStateEntry.descriptorVoucherLifespan
+      ...(tokenGenStatesEntry.descriptorVoucherLifespan
         ? {
             descriptorVoucherLifespan: {
-              N: tokenStateEntry.descriptorVoucherLifespan.toString(),
+              N: tokenGenStatesEntry.descriptorVoucherLifespan.toString(),
             },
           }
         : {}),
       updatedAt: {
-        S: tokenStateEntry.updatedAt,
+        S: tokenGenStatesEntry.updatedAt,
       },
       consumerId: {
-        S: tokenStateEntry.consumerId,
+        S: tokenGenStatesEntry.consumerId,
       },
-      ...(tokenStateEntry.agreementId
+      ...(tokenGenStatesEntry.agreementId
         ? {
             agreementId: {
-              S: tokenStateEntry.agreementId,
+              S: tokenGenStatesEntry.agreementId,
             },
           }
         : {}),
-      ...(tokenStateEntry.purposeVersionId
+      ...(tokenGenStatesEntry.purposeVersionId
         ? {
             purposeVersionId: {
-              S: tokenStateEntry.purposeVersionId,
+              S: tokenGenStatesEntry.purposeVersionId,
             },
           }
         : {}),
-      ...(tokenStateEntry.GSIPK_consumerId_eserviceId
+      ...(tokenGenStatesEntry.GSIPK_consumerId_eserviceId
         ? {
             GSIPK_consumerId_eserviceId: {
-              S: tokenStateEntry.GSIPK_consumerId_eserviceId,
+              S: tokenGenStatesEntry.GSIPK_consumerId_eserviceId,
             },
           }
         : {}),
       clientKind: {
-        S: tokenStateEntry.clientKind,
+        S: tokenGenStatesEntry.clientKind,
       },
       publicKey: {
-        S: tokenStateEntry.publicKey,
+        S: tokenGenStatesEntry.publicKey,
       },
       GSIPK_clientId: {
-        S: tokenStateEntry.GSIPK_clientId,
+        S: tokenGenStatesEntry.GSIPK_clientId,
       },
       GSIPK_kid: {
-        S: tokenStateEntry.GSIPK_kid,
+        S: tokenGenStatesEntry.GSIPK_kid,
       },
-      ...(tokenStateEntry.GSIPK_clientId_purposeId
+      ...(tokenGenStatesEntry.GSIPK_clientId_purposeId
         ? {
             GSIPK_clientId_purposeId: {
-              S: tokenStateEntry.GSIPK_clientId_purposeId,
+              S: tokenGenStatesEntry.GSIPK_clientId_purposeId,
             },
           }
         : {}),
-      ...(tokenStateEntry.agreementState
+      ...(tokenGenStatesEntry.agreementState
         ? {
             agreementState: {
-              S: tokenStateEntry.agreementState,
+              S: tokenGenStatesEntry.agreementState,
             },
           }
         : {}),
-      ...(tokenStateEntry.GSIPK_eserviceId_descriptorId
+      ...(tokenGenStatesEntry.GSIPK_eserviceId_descriptorId
         ? {
             GSIPK_eserviceId_descriptorId: {
-              S: tokenStateEntry.GSIPK_eserviceId_descriptorId,
+              S: tokenGenStatesEntry.GSIPK_eserviceId_descriptorId,
             },
           }
         : {}),
-      ...(tokenStateEntry.GSIPK_purposeId
+      ...(tokenGenStatesEntry.GSIPK_purposeId
         ? {
             GSIPK_purposeId: {
-              S: tokenStateEntry.GSIPK_purposeId,
+              S: tokenGenStatesEntry.GSIPK_purposeId,
             },
           }
         : {}),
-      ...(tokenStateEntry.purposeState
+      ...(tokenGenStatesEntry.purposeState
         ? {
             purposeState: {
-              S: tokenStateEntry.purposeState,
+              S: tokenGenStatesEntry.purposeState,
             },
           }
         : {}),
@@ -174,7 +174,7 @@ export const writeTokenStatesConsumerClient = async (
   await dynamoDBClient.send(command);
 };
 
-export const readAllTokenStatesItems = async (
+export const readAllTokenGenStatesItems = async (
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesGenericClient[]> => {
   const readInput: ScanInput = {
@@ -190,18 +190,18 @@ export const readAllTokenStatesItems = async (
   } else {
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-    const tokenStateEntries = z
+    const tokenGenStatesEntries = z
       .array(TokenGenerationStatesGenericClient)
       .safeParse(unmarshalledItems);
 
-    if (!tokenStateEntries.success) {
+    if (!tokenGenStatesEntries.success) {
       throw genericInternalError(
         `Unable to parse token state entry item: result ${JSON.stringify(
-          tokenStateEntries
+          tokenGenStatesEntries
         )} - data ${JSON.stringify(data)} `
       );
     }
-    return tokenStateEntries.data;
+    return tokenGenStatesEntries.data;
   }
 };
 
@@ -236,7 +236,7 @@ export const readAllPlatformStatesItems = async (
   }
 };
 
-export const readTokenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
+export const readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
   gsiPKEServiceIdDescriptorId: GSIPKEServiceIdDescriptorId,
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesConsumerClient[]> => {
@@ -264,23 +264,23 @@ export const readTokenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
     } else {
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-      const tokenStateEntries = z
+      const tokenGenStatesEntries = z
         .array(TokenGenerationStatesConsumerClient)
         .safeParse(unmarshalledItems);
 
-      if (!tokenStateEntries.success) {
+      if (!tokenGenStatesEntries.success) {
         throw genericInternalError(
           `Unable to parse token state entry item: result ${JSON.stringify(
-            tokenStateEntries
+            tokenGenStatesEntries
           )} - data ${JSON.stringify(data)} `
         );
       }
 
       if (!data.LastEvaluatedKey) {
-        return tokenStateEntries.data;
+        return tokenGenStatesEntries.data;
       } else {
         return [
-          ...tokenStateEntries.data,
+          ...tokenGenStatesEntries.data,
           ...(await runPaginatedQuery(
             gsiPKEServiceIdDescriptorId,
             dynamoDBClient,
@@ -298,7 +298,7 @@ export const readTokenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
   );
 };
 
-export const readTokenStatesEntriesByGSIPKConsumerIdEServiceId = async (
+export const readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId = async (
   gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId,
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesConsumerClient[]> => {
@@ -326,23 +326,23 @@ export const readTokenStatesEntriesByGSIPKConsumerIdEServiceId = async (
     } else {
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-      const tokenStateEntries = z
+      const tokenGenStatesEntries = z
         .array(TokenGenerationStatesConsumerClient)
         .safeParse(unmarshalledItems);
 
-      if (!tokenStateEntries.success) {
+      if (!tokenGenStatesEntries.success) {
         throw genericInternalError(
           `Unable to parse token state entry item: result ${JSON.stringify(
-            tokenStateEntries
+            tokenGenStatesEntries
           )} - data ${JSON.stringify(data)} `
         );
       }
 
       if (!data.LastEvaluatedKey) {
-        return tokenStateEntries.data;
+        return tokenGenStatesEntries.data;
       } else {
         return [
-          ...tokenStateEntries.data,
+          ...tokenGenStatesEntries.data,
           ...(await runPaginatedQuery(
             gsiPKConsumerIdEServiceId,
             dynamoDBClient,

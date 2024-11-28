@@ -3,15 +3,15 @@
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
-  getMockTokenStatesApiClient,
-  getMockTokenStatesConsumerClient,
-  writeTokenStatesApiClient,
-  writeTokenStatesConsumerClient,
+  getMockTokenGenStatesApiClient,
+  getMockTokenGenStatesConsumerClient,
+  writeTokenGenStatesApiClient,
+  writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ClientId,
-  clientKindTokenStates,
+  clientKindTokenGenStates,
   generateId,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
@@ -71,9 +71,9 @@ describe("unit tests", () => {
         });
 
       const tokenClientPurposeEntry1: TokenGenerationStatesConsumerClient =
-        getMockTokenStatesConsumerClient(tokenClientKidPurposePK1);
+        getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK1);
 
-      await writeTokenStatesConsumerClient(
+      await writeTokenGenStatesConsumerClient(
         tokenClientPurposeEntry1,
         dynamoDBClient
       );
@@ -101,9 +101,9 @@ describe("unit tests", () => {
       });
 
       const tokenClientEntry1: TokenGenerationStatesApiClient =
-        getMockTokenStatesApiClient(tokenClientKidPK1);
+        getMockTokenGenStatesApiClient(tokenClientKidPK1);
 
-      await writeTokenStatesApiClient(tokenClientEntry1, dynamoDBClient);
+      await writeTokenGenStatesApiClient(tokenClientEntry1, dynamoDBClient);
 
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPK2)
@@ -125,11 +125,11 @@ describe("unit tests", () => {
         });
 
       const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesConsumerClient(tokenClientKidPurposePK),
+        ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
         agreementId: undefined,
       };
 
-      await writeTokenStatesConsumerClient(
+      await writeTokenGenStatesConsumerClient(
         tokenClientPurposeEntry,
         dynamoDBClient
       );
@@ -155,11 +155,11 @@ describe("unit tests", () => {
         });
 
       const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesConsumerClient(tokenClientKidPurposePK),
-        clientKind: clientKindTokenStates.consumer,
+        ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
+        clientKind: clientKindTokenGenStates.consumer,
       };
 
-      await writeTokenStatesConsumerClient(
+      await writeTokenGenStatesConsumerClient(
         tokenClientPurposeEntry,
         dynamoDBClient
       );
@@ -178,11 +178,11 @@ describe("unit tests", () => {
       });
 
       const tokenClientEntry: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenStatesApiClient(tokenClientKidPK),
-        clientKind: clientKindTokenStates.consumer,
+        ...getMockTokenGenStatesApiClient(tokenClientKidPK),
+        clientKind: clientKindTokenGenStates.consumer,
       };
 
-      await writeTokenStatesConsumerClient(tokenClientEntry, dynamoDBClient);
+      await writeTokenGenStatesConsumerClient(tokenClientEntry, dynamoDBClient);
       expect(
         retrieveKey(dynamoDBClient, tokenClientKidPK)
       ).rejects.toThrowError(
@@ -200,11 +200,11 @@ describe("unit tests", () => {
       });
 
       const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenStatesApiClient(tokenClientKidPK),
-        clientKind: clientKindTokenStates.api,
+        ...getMockTokenGenStatesApiClient(tokenClientKidPK),
+        clientKind: clientKindTokenGenStates.api,
       };
 
-      await writeTokenStatesApiClient(tokenClientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(tokenClientEntry, dynamoDBClient);
       const key = await retrieveKey(dynamoDBClient, tokenClientKidPK);
 
       expect(key).toEqual(tokenClientEntry);

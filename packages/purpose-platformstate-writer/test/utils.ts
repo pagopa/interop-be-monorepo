@@ -146,10 +146,10 @@ export const readAllTokenEntriesByGSIPKPurposeId = async (
       exclusiveStartKey
     );
     if (!result.lastEvaluatedKey) {
-      return result.tokenStateEntries;
+      return result.tokenGenStatesEntries;
     } else {
       return [
-        ...result.tokenStateEntries,
+        ...result.tokenGenStatesEntries,
         ...(await runPaginatedQuery(
           dynamoDBClient,
           purposeId,

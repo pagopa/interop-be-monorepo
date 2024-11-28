@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import {
-  clientKindTokenStates,
+  clientKindTokenGenStates,
   ClientAssertion,
   ClientAssertionHeader,
   ClientAssertionPayload,
@@ -246,10 +246,10 @@ export const validateClientKindAndPlatformState = (
   jwt: ClientAssertion
 ): ValidationResult<ClientAssertion> =>
   match(key)
-    .with({ clientKind: clientKindTokenStates.api }, () =>
+    .with({ clientKind: clientKindTokenGenStates.api }, () =>
       successfulValidation(jwt)
     )
-    .with({ clientKind: clientKindTokenStates.consumer }, (key) => {
+    .with({ clientKind: clientKindTokenGenStates.consumer }, (key) => {
       const { errors: platformStateErrors } = validatePlatformState(key);
       const purposeIdError = jwt.payload.purposeId
         ? undefined

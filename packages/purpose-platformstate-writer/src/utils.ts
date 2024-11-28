@@ -134,7 +134,7 @@ export const readTokenEntriesByGSIPKPurposeId = async (
   purposeId: PurposeId,
   exclusiveStartKey?: Record<string, AttributeValue>
 ): Promise<{
-  tokenStateEntries: TokenGenerationStatesConsumerClient[];
+  tokenGenStatesEntries: TokenGenerationStatesConsumerClient[];
   lastEvaluatedKey?: Record<string, AttributeValue>;
 }> => {
   const input: QueryInput = {
@@ -156,20 +156,20 @@ export const readTokenEntriesByGSIPKPurposeId = async (
   } else {
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-    const tokenStateEntries = z
+    const tokenGenStatesEntries = z
       .array(TokenGenerationStatesConsumerClient)
       .safeParse(unmarshalledItems);
 
-    if (!tokenStateEntries.success) {
+    if (!tokenGenStatesEntries.success) {
       throw genericInternalError(
         `Unable to parse token state entry item: result ${JSON.stringify(
-          tokenStateEntries
+          tokenGenStatesEntries
         )} - data ${JSON.stringify(data)} `
       );
     }
 
     return {
-      tokenStateEntries: tokenStateEntries.data,
+      tokenGenStatesEntries: tokenGenStatesEntries.data,
       lastEvaluatedKey: data.LastEvaluatedKey,
     };
   }
@@ -257,7 +257,7 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
         )
       : undefined;
 
-    for (const entry of result.tokenStateEntries) {
+    for (const entry of result.tokenGenStatesEntries) {
       const tokenEntryPK = entry.PK;
       const isAgreementMissingInTokenTable =
         platformAgreementEntry &&
@@ -401,7 +401,7 @@ export const updatePurposeDataInTokenEntries = async ({
       exclusiveStartKey
     );
 
-    for (const entry of result.tokenStateEntries) {
+    for (const entry of result.tokenGenStatesEntries) {
       const input: UpdateItemInput = {
         ConditionExpression: "attribute_exists(PK)",
         Key: {

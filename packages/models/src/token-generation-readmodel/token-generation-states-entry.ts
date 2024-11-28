@@ -13,7 +13,7 @@ import {
   TokenGenerationStatesClientKidPurposePK,
 } from "../brandedIds.js";
 import { ItemState } from "./platform-states-entry.js";
-import { clientKindTokenStates } from "./commons.js";
+import { clientKindTokenGenStates } from "./commons.js";
 
 const TokenGenerationStatesBaseEntry = z.object({
   consumerId: TenantId,
@@ -31,7 +31,7 @@ export const TokenGenerationStatesConsumerClient =
     PK: TokenGenerationStatesClientKidPurposePK.or(
       TokenGenerationStatesClientKidPK
     ),
-    clientKind: z.literal(clientKindTokenStates.consumer),
+    clientKind: z.literal(clientKindTokenGenStates.consumer),
     GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId.optional(),
     agreementId: AgreementId.optional(),
     agreementState: ItemState.optional(),
@@ -59,7 +59,7 @@ export type FullTokenGenerationStatesConsumerClient = z.infer<
 export const TokenGenerationStatesApiClient =
   TokenGenerationStatesBaseEntry.extend({
     PK: TokenGenerationStatesClientKidPK,
-    clientKind: z.literal(clientKindTokenStates.api),
+    clientKind: z.literal(clientKindTokenGenStates.api),
   });
 export type TokenGenerationStatesApiClient = z.infer<
   typeof TokenGenerationStatesApiClient
