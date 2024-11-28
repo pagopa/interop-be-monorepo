@@ -176,7 +176,7 @@ export const assertRequesterIsConsumerOrProducerOrDelegateProducer = async (
           authData.organizationId,
           delegationKind.delegatedProducer
         );
-      assertRequesterIsDelegate(producerDelegation?.data.delegateId, authData);
+      assertRequesterIsDelegate(producerDelegation?.delegateId, authData);
     }
   }
 };

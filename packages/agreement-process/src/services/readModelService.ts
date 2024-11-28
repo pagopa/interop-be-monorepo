@@ -615,7 +615,7 @@ export function readModelServiceBuilder(
       delegateId: TenantId,
       kind: DelegationKind,
       state: DelegationState = delegationState.active
-    ): Promise<WithMetadata<Delegation> | undefined> {
+    ): Promise<Delegation | undefined> {
       const data = await delegations.findOne(
         {
           "data.delegateId": delegateId,
@@ -641,19 +641,19 @@ export function readModelServiceBuilder(
           )} - data ${JSON.stringify(data)} `
         );
       }
-      return result.data;
+      return result.data.data;
     },
     async getActiveDelegationByEserviceId(
       eserviceId: EServiceId,
       kind: DelegationKind
-    ): Promise<WithMetadata<Delegation> | undefined> {
+    ): Promise<Delegation | undefined> {
       const data = await delegations.findOne(
         {
           "data.eserviceId": eserviceId,
           "data.state": delegationState.active,
           "data.kind": kind,
         },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true, metadata: false } }
       );
 
       if (!data) {
@@ -672,7 +672,7 @@ export function readModelServiceBuilder(
           )} - data ${JSON.stringify(data)} `
         );
       }
-      return result.data;
+      return result.data.data;
     },
   };
 }
