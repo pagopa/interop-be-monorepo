@@ -41,6 +41,7 @@ import {
   DeclaredTenantAttribute,
   Descriptor,
   EService,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantAttribute,
   TenantId,
@@ -721,6 +722,8 @@ describe("activate agreement", () => {
         1
       );
 
+      const submitterId = authData.userId;
+      const activatorId = authData.userId;
       const agreement: Agreement = {
         ...getMockAgreement(eservice.id),
         state: agreementState.pending,
@@ -744,13 +747,13 @@ describe("activate agreement", () => {
         })),
         stamps: {
           submission: {
-            who: authData.userId,
+            who: submitterId,
             when: agreementSubmissionDate,
           },
         },
       };
 
-      const delegator = getMockTenant();
+      const delegator = getMockTenant(producer.id);
       const delegate = getMockTenant(authData.organizationId);
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedProducer,
@@ -809,21 +812,32 @@ describe("activate agreement", () => {
         await fileManager.listFiles(config.s3Bucket, genericLogger)
       ).toContain(actualAgreement.contract?.path);
 
+      expect(submitterId).toEqual(actualAgreement.stamps.submission?.who);
+      expect(activatorId).toEqual(actualAgreement.stamps.activation?.who);
+
+      const getIpaCode = (tenant: Tenant): string | undefined =>
+        tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
+          ? tenant.externalId.value
+          : undefined;
+
       const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
         todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
         todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
         agreementId: agreement.id,
-        submitter: `${mockSelfcareUserResponse.name} ${mockSelfcareUserResponse.surname} (${mockSelfcareUserResponse.taxCode})`,
+        submitterId,
         submissionDate: dateAtRomeZone(agreementSubmissionDate),
         submissionTime: timeAtRomeZone(agreementSubmissionDate),
-        activator: `${mockSelfcareUserResponse.name} ${mockSelfcareUserResponse.surname} (${mockSelfcareUserResponse.taxCode})`,
+        activatorId,
         activationDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
         activationTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
-        eServiceName: eservice.name,
-        eServiceId: eservice.id,
-        eServiceDescriptorVersion: eservice.descriptors[0].version,
-        producerText: `${producer.name} (codice IPA: ${producer.externalId.value})`,
-        consumerText: `${consumer.name} (codice IPA: ${consumer.externalId.value})`,
+        eserviceName: eservice.name,
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+        descriptorVersion: eservice.descriptors[0].version,
+        producerName: producer.name,
+        producerIpaCode: getIpaCode(producer),
+        consumerName: consumer.name,
+        consumerIpaCode: getIpaCode(consumer),
         certifiedAttributes: [
           {
             assignmentDate: dateAtRomeZone(
@@ -862,8 +876,10 @@ describe("activate agreement", () => {
           },
         ],
         delegationId: delegation.id,
-        delegatorText: `${delegator.name} (codice IPA: ${delegator.externalId.value})`,
-        delegateText: `${delegate.name} (codice IPA: ${delegate.externalId.value})`,
+        delegatorName: producer.name,
+        delegatorIpaCode: getIpaCode(producer),
+        delegateName: delegate.name,
+        delegateIpaCode: getIpaCode(delegate),
       };
 
       expect(pdfGenerator.generate).toHaveBeenCalledWith(
