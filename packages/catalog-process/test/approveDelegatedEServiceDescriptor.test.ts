@@ -21,7 +21,7 @@ import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -333,7 +333,7 @@ describe("publish descriptor", () => {
       (s) => s !== descriptorState.waitingForApproval
     )
   )(
-    "should throw notValidDescriptor if the descriptor is in %s state",
+    "should throw notValidDescriptorState if the descriptor is in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...mockDescriptor,
@@ -356,7 +356,7 @@ describe("publish descriptor", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
+      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
 });

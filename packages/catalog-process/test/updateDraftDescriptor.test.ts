@@ -21,7 +21,7 @@ import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
   inconsistentDailyCalls,
   attributeNotFound,
 } from "../src/model/domain/errors.js";
@@ -237,7 +237,7 @@ describe("update draft descriptor", () => {
     );
   });
 
-  it("should throw notValidDescriptor if the descriptor is in published state", async () => {
+  it("should throw notValidDescriptorState if the descriptor is in published state", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -262,11 +262,11 @@ describe("update draft descriptor", () => {
         }
       )
     ).rejects.toThrowError(
-      notValidDescriptor(mockDescriptor.id, descriptorState.published)
+      notValidDescriptorState(mockDescriptor.id, descriptorState.published)
     );
   });
 
-  it("should throw notValidDescriptor if the descriptor is in deprecated state", async () => {
+  it("should throw notValidDescriptorState if the descriptor is in deprecated state", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -291,11 +291,11 @@ describe("update draft descriptor", () => {
         }
       )
     ).rejects.toThrowError(
-      notValidDescriptor(mockDescriptor.id, descriptorState.deprecated)
+      notValidDescriptorState(mockDescriptor.id, descriptorState.deprecated)
     );
   });
 
-  it("should throw notValidDescriptor if the descriptor is in suspended state", async () => {
+  it("should throw notValidDescriptorState if the descriptor is in suspended state", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -320,11 +320,11 @@ describe("update draft descriptor", () => {
         }
       )
     ).rejects.toThrowError(
-      notValidDescriptor(mockDescriptor.id, descriptorState.suspended)
+      notValidDescriptorState(mockDescriptor.id, descriptorState.suspended)
     );
   });
 
-  it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
+  it("should throw notValidDescriptorState if the descriptor is in archived state", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -349,7 +349,7 @@ describe("update draft descriptor", () => {
         }
       )
     ).rejects.toThrowError(
-      notValidDescriptor(mockDescriptor.id, descriptorState.archived)
+      notValidDescriptorState(mockDescriptor.id, descriptorState.archived)
     );
   });
 

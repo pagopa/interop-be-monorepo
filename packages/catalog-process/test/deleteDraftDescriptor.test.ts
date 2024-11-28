@@ -23,7 +23,7 @@ import { config } from "../src/config/config.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
 } from "../src/model/domain/errors.js";
 import {
   fileManager,
@@ -494,7 +494,7 @@ describe("delete draft descriptor", () => {
   });
 
   it.each([descriptorState.published, descriptorState.suspended])(
-    "should throw notValidDescriptor if the eservice is in %s state",
+    "should throw notValidDescriptorState if the eservice is in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
@@ -513,12 +513,12 @@ describe("delete draft descriptor", () => {
           serviceName: "",
           logger: genericLogger,
         })
-      ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
+      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
 
   it.each([descriptorState.deprecated, descriptorState.archived])(
-    "should throw notValidDescriptor if the eservice is in %s state",
+    "should throw notValidDescriptorState if the eservice is in %s state",
     async (state) => {
       const descriptorToDelete: Descriptor = {
         ...getMockDescriptor(state),
@@ -546,7 +546,7 @@ describe("delete draft descriptor", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(notValidDescriptor(descriptorToDelete.id, state));
+      ).rejects.toThrowError(notValidDescriptorState(descriptorToDelete.id, state));
     }
   );
 });

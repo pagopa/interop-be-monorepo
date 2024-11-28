@@ -20,7 +20,7 @@ import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
   eServiceDocumentNotFound,
   prettyNameDuplicate,
 } from "../src/model/domain/errors.js";
@@ -294,7 +294,7 @@ describe("update Document", () => {
         state === descriptorState.waitingForApproval
     )
   )(
-    "should throw notValidDescriptor if the descriptor is in s% state",
+    "should throw notValidDescriptorState if the descriptor is in s% state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
@@ -318,7 +318,7 @@ describe("update Document", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
+      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
   it("should throw eServiceDocumentNotFound if the document doesn't exist", async () => {

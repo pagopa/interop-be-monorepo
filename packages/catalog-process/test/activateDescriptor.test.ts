@@ -19,7 +19,7 @@ import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -218,7 +218,7 @@ describe("activate descriptor", () => {
     descriptorState.archived,
     descriptorState.waitingForApproval,
   ])(
-    "should throw notValidDescriptor if the descriptor is in state %s",
+    "should throw notValidDescriptorState if the descriptor is in state %s",
     async (state) => {
       const descriptor: Descriptor = {
         ...mockDescriptor,
@@ -236,7 +236,7 @@ describe("activate descriptor", () => {
           serviceName: "",
           logger: genericLogger,
         })
-      ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
+      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
 });
