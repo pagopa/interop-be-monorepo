@@ -1,41 +1,40 @@
 import { ApiError } from "pagopa-interop-models";
 
 export const errorCodes = {
-  unexpectedClientAssertionSignatureVerificationError: "0001",
-  invalidAssertionType: "0002",
-  invalidGrantType: "0003",
-  invalidAudienceFormat: "0004",
-  invalidAudience: "0005",
-  audienceNotFound: "0006",
-  invalidClientAssertionFormat: "0007",
-  unexpectedClientAssertionPayload: "0008",
-  jtiNotFound: "0009",
-  issuedAtNotFound: "0010",
-  expNotFound: "0011",
-  issuerNotFound: "0012",
-  subjectNotFound: "0013",
-  invalidSubject: "0014",
-  invalidPurposeIdClaimFormat: "0015",
-  kidNotFound: "0016",
-  clientAssertionSignatureVerificationError: "0017",
-  tokenExpiredError: "0018",
-  jsonWebTokenError: "0019",
-  notBeforeError: "0020",
-  inactivePurpose: "0021",
-  inactiveAgreement: "0022",
-  inactiveEService: "0023",
-  invalidClientIdFormat: "0024",
-  invalidSubjectFormat: "0025",
-  digestClaimNotFound: "0026",
-  invalidHashLength: "0027",
-  invalidHashAlgorithm: "0028",
-  algorithmNotFound: "0029",
-  algorithmNotAllowed: "0030",
-  purposeIdNotProvided: "0031",
-  invalidKidFormat: "0032",
-  clientAssertionInvalidClaims: "0033",
-  invalidSignature: "0034",
-  missingPlatformStates: "0035",
+  unexpectedClientAssertionSignatureVerificationError: "001",
+  invalidAssertionType: "002",
+  invalidGrantType: "003",
+  invalidAudience: "004",
+  audienceNotFound: "005",
+  invalidClientAssertionFormat: "006",
+  unexpectedClientAssertionPayload: "007",
+  jtiNotFound: "008",
+  issuedAtNotFound: "009",
+  expNotFound: "0010",
+  issuerNotFound: "0011",
+  subjectNotFound: "0012",
+  invalidSubject: "0013",
+  invalidPurposeIdClaimFormat: "0014",
+  kidNotFound: "0015",
+  clientAssertionSignatureVerificationError: "0016",
+  tokenExpiredError: "0017",
+  jsonWebTokenError: "0018",
+  notBeforeError: "0019",
+  inactivePurpose: "0020",
+  inactiveAgreement: "0021",
+  inactiveEService: "0022",
+  invalidClientIdFormat: "0023",
+  invalidSubjectFormat: "0024",
+  digestClaimNotFound: "0025",
+  invalidHashLength: "0026",
+  invalidHashAlgorithm: "0027",
+  algorithmNotFound: "0028",
+  algorithmNotAllowed: "0029",
+  purposeIdNotProvided: "0030",
+  invalidKidFormat: "0031",
+  clientAssertionInvalidClaims: "0032",
+  invalidSignature: "0033",
+  missingPlatformStates: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -78,14 +77,7 @@ export function invalidGrantType(grantType: string): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidAudienceFormat(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: "Audience must be an array or a string in case of single value",
-    code: "invalidAudienceFormat",
-    title: "Invalid audience format",
-  });
-}
-
+// TODO: maybe add the wrong audience?
 export function invalidAudience(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: "Unexpected client assertion audience",

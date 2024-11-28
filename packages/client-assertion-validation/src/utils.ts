@@ -35,7 +35,6 @@ import {
   invalidKidFormat,
   digestClaimNotFound,
   audienceNotFound,
-  invalidAudienceFormat,
 } from "./errors.js";
 
 export const EXPECTED_CLIENT_ASSERTION_TYPE =
@@ -136,17 +135,12 @@ export const validateAudience = (
   }
 
   if (Array.isArray(receivedAudiences)) {
-    if (expectedAudiences.every((entry) => receivedAudiences.includes(entry))) {
+    if (expectedAudiences.some((entry) => receivedAudiences.includes(entry))) {
       return successfulValidation(receivedAudiences);
     }
     return failedValidation([invalidAudience()]);
   } else {
-    const split = receivedAudiences.split(",").map((s) => s.trim());
-    if (split.length > 1) {
-      return failedValidation([invalidAudienceFormat()]);
-    }
-    const audEntry = split[0];
-    if (expectedAudiences.every((entry) => audEntry === entry)) {
+    if (expectedAudiences.some((entry) => receivedAudiences === entry)) {
       return successfulValidation(receivedAudiences);
     }
     return failedValidation([invalidAudience()]);
