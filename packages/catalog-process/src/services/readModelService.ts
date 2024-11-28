@@ -276,7 +276,6 @@ export function readModelServiceBuilder(
           "delegation.data.state": {
             $nin: [delegationState.active, delegationState.waitingForApproval],
           },
-          "delegation.data.kind": delegationKind.delegatedProducer,
         }))
         .otherwise(() => ({}));
 
