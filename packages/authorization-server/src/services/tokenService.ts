@@ -107,7 +107,11 @@ export function tokenServiceBuilder({
       }
 
       const { data: jwt, errors: clientAssertionErrors } =
-        verifyClientAssertion(request.client_assertion, request.client_id);
+        verifyClientAssertion(
+          request.client_assertion,
+          request.client_id,
+          config.clientAssertionAudience
+        );
 
       if (clientAssertionErrors) {
         // TODO double check if errors have to be logged or put inside the error below (check the same for parameters errors)

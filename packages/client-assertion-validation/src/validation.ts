@@ -57,7 +57,6 @@ import {
   clientAssertionSignatureVerificationError,
   missingPlatformStates,
 } from "./errors.js";
-import { config } from "./config.js";
 
 export const validateRequestParameters = (
   request: ClientAssertionValidationRequest
@@ -80,7 +79,8 @@ export const validateRequestParameters = (
 
 export const verifyClientAssertion = (
   clientAssertionJws: string,
-  clientId: string | undefined
+  clientId: string | undefined,
+  expectedAudiences: string[]
 ): ValidationResult<ClientAssertion> => {
   try {
     const decodedPayload = jose.decodeJwt(clientAssertionJws);
@@ -109,7 +109,7 @@ export const verifyClientAssertion = (
     );
     const { errors: audErrors, data: validatedAud } = validateAudience(
       decodedPayload.aud,
-      config.clientAssertionAudience
+      expectedAudiences
     );
     const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
       decodedHeader.alg
