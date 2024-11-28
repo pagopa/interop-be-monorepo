@@ -514,6 +514,7 @@ export function getDeclaredTenantAttribute(
     description: registryAttribute.description,
     assignmentTimestamp: attribute.declared.assignmentTimestamp,
     revocationTimestamp: attribute.declared.revocationTimestamp,
+    delegationId: attribute.declared.delegationId,
   };
 }
 
