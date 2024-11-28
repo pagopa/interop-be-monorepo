@@ -126,7 +126,7 @@ export function selfcareServiceBuilder(
           params: { institutionId: selfcareId },
           queries: {
             userId,
-            productRoles: roles[0], // At this point the type has changed from string[] to string, so the query should only return one value
+            productRoles: roles.join(","), // At this point the type has changed from string[] to string, so the query should only return one value
           },
           headers: {
             "X-Correlation-Id": correlationId,
