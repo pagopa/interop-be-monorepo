@@ -68,7 +68,7 @@ export async function createUpgradeOrNewDraft({
     // Creates a new Agreement linked to the new descriptor version,
     // with the same state of the old agreement, and archives the old agreement.
 
-    // If current eservice has an active producer delegation the new contract will be created with the delation data
+    // If current eservice has an active producer delegation the new contract will be created with the delegation data
     const activeProducerDelegation =
       await retrieveActiveProducerDelegationByEserviceId(
         eservice.id,
