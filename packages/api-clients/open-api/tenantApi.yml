@@ -650,6 +650,7 @@ paths:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required:
                 - agreementId
               properties:
