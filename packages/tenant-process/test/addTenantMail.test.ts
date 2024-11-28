@@ -81,7 +81,7 @@ describe("addTenantMail", async () => {
   it("Should correctly add email by cleaning the address from unwanted characters", async () => {
     const mailSeedWithStrangeCharacters: tenantApi.MailSeed = {
       kind: "CONTACT_EMAIL",
-      address: "         test#°¶^            Mail@test.$%*it",
+      address: "         test         Mail@test.it",
       description: "mail description",
     };
     await addOneTenant(mockTenant);

@@ -1890,14 +1890,9 @@ function validateAddress(address: string): string {
   );
 
   // Here I am removing the extra spaces and tabs
-  const removeExtraSpace = removeNonPrintingcontrolCharacters
+  const sanitizedMail = removeNonPrintingcontrolCharacters
     .replace(/\s+/g, "")
     .trim();
-
-  // Here I am removing strange characters or special symbols
-  const sanitizedMail = removeExtraSpace
-    .replace(/[^\w.@-_]/g, "")
-    .replace(/\^/g, "");
 
   // same path used by the frontend
   // Taken from HTML spec: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
