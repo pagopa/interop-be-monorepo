@@ -88,7 +88,6 @@ export async function handleMessageV2(
           eserviceId: agreement.eserviceId,
           descriptorId: agreement.descriptorId,
         });
-
         const catalogEntry = await readCatalogEntry(
           pkCatalogEntry,
           dynamoDBClient
