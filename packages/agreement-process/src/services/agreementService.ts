@@ -177,12 +177,10 @@ export const retrieveActiveProducerDelegationByEserviceId = async (
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<Delegation | undefined> =>
-  (
-    await readModelService.getActiveDelegationByEserviceId(
-      eserviceId,
-      delegationKind.delegatedProducer
-    )
-  )?.data;
+  await readModelService.getActiveDelegationByEserviceId(
+    eserviceId,
+    delegationKind.delegatedProducer
+  );
 
 export const retrieveDescriptor = (
   descriptorId: DescriptorId,
