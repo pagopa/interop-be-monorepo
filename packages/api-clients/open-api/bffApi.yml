@@ -1890,6 +1890,7 @@ paths:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required:
                 - tenantId
                 - descriptorId
@@ -13073,8 +13074,9 @@ components:
         maxLength:
           type: integer
           format: int32
-    hasCertifiedAttributes:
+    HasCertifiedAttributes:
       type: object
+      additionalProperties: false
       properties:
         hasCertifiedAttributes:
           type: boolean
