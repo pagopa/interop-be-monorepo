@@ -825,7 +825,7 @@ export function agreementServiceBuilder(
         authData,
         descriptor,
         consumer,
-        delegateProducerId,
+        producerDelegation: activeProducerDelegation,
       });
 
       await repository.createEvent(
@@ -953,7 +953,7 @@ export function agreementServiceBuilder(
         suspendedByPlatform: undefined,
         stamps: {
           ...agreementToBeRejected.data.stamps,
-          rejection: createStamp(authData.userId, delegateProducerId),
+          rejection: createStamp(authData.userId, activeProducerDelegation?.id),
         },
       };
 
@@ -1082,7 +1082,7 @@ export function agreementServiceBuilder(
           suspendedByConsumer,
           suspendedByProducer,
           suspendedByPlatform,
-          delegateProducerId,
+          producerDelegationId: activeProducerDelegation?.id,
         });
 
       const updatedAgreementWithoutContract: Agreement = {

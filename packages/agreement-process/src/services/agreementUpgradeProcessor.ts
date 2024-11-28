@@ -77,7 +77,7 @@ export async function createUpgradeOrNewDraft({
 
     const stamp =
       authData.organizationId === activeProducerDelegation?.delegateId
-        ? createStamp(authData.userId, activeProducerDelegation?.delegateId)
+        ? createStamp(authData.userId, activeProducerDelegation?.id)
         : createStamp(authData.userId);
 
     const archived: Agreement = {

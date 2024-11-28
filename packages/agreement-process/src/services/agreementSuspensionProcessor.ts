@@ -3,6 +3,7 @@ import {
   Agreement,
   AgreementEventV2,
   CorrelationId,
+  Delegation,
   Descriptor,
   Tenant,
   TenantId,
@@ -32,13 +33,13 @@ export function createSuspensionUpdatedAgreement({
   authData,
   descriptor,
   consumer,
-  delegateProducerId,
+  producerDelegation,
 }: {
   agreement: Agreement;
   authData: AuthData;
   descriptor: Descriptor;
   consumer: Tenant;
-  delegateProducerId: TenantId | undefined;
+  producerDelegation: Delegation | undefined;
 }): Agreement {
   /* nextAttributesState VS targetDestinationState
   -- targetDestinationState is the state where the caller wants to go (suspended, in this case)
@@ -49,7 +50,7 @@ export function createSuspensionUpdatedAgreement({
     agreement,
     descriptor,
     consumer,
-    delegateProducerId
+    producerDelegation?.delegateId
   );
 
   const suspendedByConsumer = suspendedByConsumerFlag(
@@ -61,7 +62,7 @@ export function createSuspensionUpdatedAgreement({
     agreement,
     authData.organizationId,
     targetDestinationState,
-    delegateProducerId
+    producerDelegation?.delegateId
   );
 
   const newState = agreementStateByFlags(
@@ -71,14 +72,14 @@ export function createSuspensionUpdatedAgreement({
     agreement.suspendedByPlatform
   );
 
-  const stamp = createStamp(authData.userId, delegateProducerId);
+  const stamp = createStamp(authData.userId, producerDelegation?.id);
 
   const suspensionByProducerStamp = suspendedByProducerStamp(
     agreement,
     authData.organizationId,
     agreementState.suspended,
     stamp,
-    delegateProducerId
+    producerDelegation?.delegateId
   );
 
   const suspensionByConsumerStamp = suspendedByConsumerStamp(

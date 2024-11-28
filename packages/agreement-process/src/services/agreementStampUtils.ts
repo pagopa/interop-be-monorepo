@@ -2,6 +2,7 @@ import {
   Agreement,
   AgreementStamp,
   AgreementState,
+  DelegationId,
   TenantId,
   UserId,
   agreementState,
@@ -11,10 +12,10 @@ import { P, match } from "ts-pattern";
 
 export const createStamp = (
   userId: UserId,
-  delegateProducerId?: TenantId | undefined
+  delegationId?: DelegationId | undefined
 ): AgreementStamp => ({
   who: unsafeBrandId(userId),
-  delegateProducerId,
+  delegationId,
   when: new Date(),
 });
 

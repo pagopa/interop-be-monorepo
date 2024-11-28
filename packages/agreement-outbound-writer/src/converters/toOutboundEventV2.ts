@@ -20,7 +20,6 @@ function toOutboundStampV2(
 ): Exact<OutboundAgreementStampV2, AgreementStampV2> {
   return {
     ...stamp,
-    delegateProducerId: undefined,
     who: undefined,
   };
 }

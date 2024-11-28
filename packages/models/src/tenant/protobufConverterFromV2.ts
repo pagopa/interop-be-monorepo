@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { match } from "ts-pattern";
-import { TenantId, unsafeBrandId } from "../brandedIds.js";
+import { DelegationId, unsafeBrandId } from "../brandedIds.js";
 import { genericError } from "../errors.js";
 import {
   TenantKindV2,
@@ -84,8 +84,8 @@ export const fromTenantVerifierV2 = (
 ): TenantVerifier => ({
   ...input,
   id: unsafeBrandId(input.id),
-  delegateId: input.delegateId
-    ? unsafeBrandId<TenantId>(input.delegateId)
+  delegationId: input.delegationId
+    ? unsafeBrandId<DelegationId>(input.delegationId)
     : undefined,
   verificationDate: bigIntToDate(input.verificationDate),
   expirationDate: bigIntToDate(input.expirationDate),
@@ -95,8 +95,8 @@ export const fromTenantVerifierV2 = (
 export const fromTenantRevokerV2 = (input: TenantRevokerV2): TenantRevoker => ({
   ...input,
   id: unsafeBrandId(input.id),
-  delegateId: input.delegateId
-    ? unsafeBrandId<TenantId>(input.delegateId)
+  delegationId: input.delegationId
+    ? unsafeBrandId<DelegationId>(input.delegationId)
     : undefined,
   expirationDate: bigIntToDate(input.expirationDate),
   extensionDate: bigIntToDate(input.extensionDate),

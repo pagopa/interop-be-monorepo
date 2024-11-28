@@ -1,5 +1,5 @@
 import z from "zod";
-import { AttributeId, TenantId } from "../brandedIds.js";
+import { AttributeId, DelegationId, TenantId } from "../brandedIds.js";
 
 export const tenantKind = {
   PA: "PA",
@@ -70,7 +70,7 @@ export type TenantAttributeType = z.infer<typeof TenantAttributeType>;
 
 export const TenantVerifier = z.object({
   id: TenantId,
-  delegateId: TenantId.optional(),
+  delegationId: DelegationId.optional(),
   verificationDate: z.coerce.date(),
   expirationDate: z.coerce.date().optional(),
   extensionDate: z.coerce.date().optional(),
@@ -81,7 +81,7 @@ export const TenantRevoker = z.object({
   expirationDate: z.coerce.date().optional(),
   extensionDate: z.coerce.date().optional(),
   id: TenantId,
-  delegateId: TenantId.optional(),
+  delegationId: DelegationId.optional(),
   revocationDate: z.coerce.date(),
   verificationDate: z.coerce.date(),
 });

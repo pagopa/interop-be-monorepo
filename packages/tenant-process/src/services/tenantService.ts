@@ -40,6 +40,7 @@ import {
   DelegationKind,
   AgreementState,
   EServiceId,
+  DelegationId,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -786,13 +787,13 @@ export function tenantServiceBuilder(
               targetTenant.data.attributes,
               verifiedTenantAttribute,
               producerDelegator ?? organizationId,
-              delegateProducerId,
+              producerDelegation?.id,
               tenantAttributeSeed
             )
           : assignVerifiedAttribute(
               targetTenant.data.attributes,
               producerDelegator ?? organizationId,
-              delegateProducerId,
+              producerDelegation?.id,
               tenantAttributeSeed
             ),
 
@@ -909,7 +910,7 @@ export function tenantServiceBuilder(
                   {
                     ...verifier,
                     id: producerDelegator ?? verifier.id,
-                    delegateId: delegateProducerId,
+                    delegationId: producerDelegation?.id,
                     revocationDate: new Date(),
                   },
                 ],
@@ -1849,7 +1850,7 @@ function assignCertifiedAttribute({
 function buildVerifiedBy(
   verifiers: TenantVerifier[],
   organizationId: TenantId,
-  delegateProducerId: TenantId | undefined,
+  producerDelegation: DelegationId | undefined,
   expirationDate: string | undefined
 ): TenantVerifier[] {
   const hasPreviouslyVerified = verifiers.find((i) => i.id === organizationId);
@@ -1858,7 +1859,7 @@ function buildVerifiedBy(
         verification.id === organizationId
           ? {
               id: organizationId,
-              delegateId: delegateProducerId,
+              delegationId: producerDelegation,
               verificationDate: new Date(),
               expirationDate: expirationDate
                 ? new Date(expirationDate)
@@ -1873,7 +1874,7 @@ function buildVerifiedBy(
         ...verifiers,
         {
           id: organizationId,
-          delegateId: delegateProducerId,
+          delegationId: producerDelegation,
           verificationDate: new Date(),
           expirationDate: expirationDate ? new Date(expirationDate) : undefined,
           extensionDate: expirationDate ? new Date(expirationDate) : undefined,
@@ -1914,7 +1915,7 @@ function reassignDeclaredAttribute(
 function assignVerifiedAttribute(
   attributes: TenantAttribute[],
   organizationId: TenantId,
-  delegateProducerId: TenantId | undefined,
+  producerDelegationId: DelegationId | undefined,
   tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed
 ): TenantAttribute[] {
   return [
@@ -1926,7 +1927,7 @@ function assignVerifiedAttribute(
       verifiedBy: [
         {
           id: organizationId,
-          delegateId: delegateProducerId,
+          delegationId: producerDelegationId,
           verificationDate: new Date(),
           expirationDate: tenantAttributeSeed.expirationDate
             ? new Date(tenantAttributeSeed.expirationDate)
@@ -1945,7 +1946,7 @@ function reassignVerifiedAttribute(
   attributes: TenantAttribute[],
   verifiedTenantAttribute: VerifiedTenantAttribute,
   organizationId: TenantId,
-  delegateId: TenantId | undefined,
+  producerDelegationId: DelegationId | undefined,
   tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed
 ): TenantAttribute[] {
   return attributes.map((attr) =>
@@ -1955,7 +1956,7 @@ function reassignVerifiedAttribute(
           verifiedBy: buildVerifiedBy(
             verifiedTenantAttribute.verifiedBy,
             organizationId,
-            delegateId,
+            producerDelegationId,
             tenantAttributeSeed.expirationDate
           ),
           revokedBy: verifiedTenantAttribute.revokedBy.filter(
