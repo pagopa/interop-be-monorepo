@@ -794,10 +794,6 @@ export const retrievePlatformStatesByPurpose = async (
     dynamoDBClient
   );
 
-  logger.info(
-    `Retrieving purpose entry ${purposePK} to add purpose info in token-generation-states`
-  );
-
   if (!purposeEntry) {
     return {
       purposeEntry: undefined,
