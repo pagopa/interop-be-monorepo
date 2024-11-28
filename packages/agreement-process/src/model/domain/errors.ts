@@ -8,9 +8,8 @@ import {
   EServiceId,
   TenantId,
   makeApiProblemBuilder,
-  UserId,
-  SelfcareId,
   AttributeId,
+  Agreement,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -29,17 +28,14 @@ export const errorCodes = {
   unexpectedVersionFormat: "0013",
   descriptorNotFound: "0014",
   stampNotFound: "0015",
-  missingUserInfo: "0016",
   documentNotFound: "0017",
   documentsChangeNotAllowed: "0018",
-  selfcareIdNotFound: "0019",
   tenantNotFound: "0020",
   notLatestEServiceDescriptor: "0021",
   attributeNotFound: "0022",
   invalidAttributeStructure: "0023",
   consumerWithNotValidEmail: "0024",
   agreementDocumentAlreadyExists: "0025",
-  userNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -220,29 +216,13 @@ export function consumerWithNotValidEmail(
   });
 }
 
-export function agreementStampNotFound(stamp: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Agreement stamp ${stamp} not found`,
-    code: "stampNotFound",
-    title: "Stamp not found",
-  });
-}
-
-export function agreementMissingUserInfo(userId: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Some mandatory info are missing for user ${userId}`,
-    code: "missingUserInfo",
-    title: "Some mandatory info are missing for user",
-  });
-}
-
-export function agreementSelfcareIdNotFound(
-  tenantId: TenantId
+export function agreementStampNotFound(
+  stamp: keyof Agreement["stamps"]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Selfcare id not found for tenant ${tenantId}`,
-    code: "selfcareIdNotFound",
-    title: "Selfcare id not found for tenant",
+    detail: `Agreement ${stamp} stamp not found`,
+    code: "stampNotFound",
+    title: "Stamp not found",
   });
 }
 
@@ -285,17 +265,6 @@ export function documentChangeNotAllowed(
     detail: `The requested operation on consumer documents is not allowed on agreement with state ${state}`,
     code: "documentsChangeNotAllowed",
     title: "Document change not allowed",
-  });
-}
-
-export function userNotFound(
-  selfcareId: SelfcareId,
-  userId: UserId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `User ${userId} not found for selfcare institution ${selfcareId}`,
-    code: "userNotFound",
-    title: "User not found",
   });
 }
 

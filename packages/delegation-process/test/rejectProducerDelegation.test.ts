@@ -1,14 +1,15 @@
 /* eslint-disable functional/no-let */
 import {
   decodeProtobufPayload,
-  getMockAuthData,
-  getMockDelegationProducer,
+  getMockDelegation,
   getMockTenant,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import { describe, expect, it, vi } from "vitest";
 import {
   DelegationId,
   ProducerDelegationRejectedV2,
+  delegationKind,
   generateId,
   toDelegationV2,
   unsafeBrandId,
@@ -26,14 +27,16 @@ import {
   readLastDelegationEvent,
 } from "./utils.js";
 
-describe("reject delegation", () => {
+describe("reject producer delegation", () => {
   it("should reject delegation if all validations succed", async () => {
     const currentExecutionTime = new Date();
     vi.useFakeTimers();
     vi.setSystemTime(currentExecutionTime);
 
     const delegate = getMockTenant();
-    const delegation = getMockDelegationProducer({
+    const authData = getRandomAuthData(delegate.id);
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       state: "WaitingForApproval",
       delegateId: delegate.id,
     });
@@ -45,7 +48,7 @@ describe("reject delegation", () => {
       delegation.id,
       rejectionReason,
       {
-        authData: getMockAuthData(delegate.id),
+        authData,
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
@@ -65,7 +68,7 @@ describe("reject delegation", () => {
       rejectionReason,
       stamps: {
         ...delegation.stamps,
-        rejection: { who: delegate.id, when: currentExecutionTime },
+        rejection: { who: authData.userId, when: currentExecutionTime },
       },
     });
     expect(actualDelegation).toEqual(expectedDelegation);
@@ -81,7 +84,7 @@ describe("reject delegation", () => {
         nonExistentDelegationId,
         "",
         {
-          authData: getMockAuthData(delegateId),
+          authData: getRandomAuthData(delegateId),
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
@@ -93,7 +96,8 @@ describe("reject delegation", () => {
   it("should throw operationRestrictedToDelegate when rejecter is not the delegate", async () => {
     const delegate = getMockTenant();
     const wrongDelegate = getMockTenant();
-    const delegation = getMockDelegationProducer({
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
       state: "WaitingForApproval",
       delegateId: delegate.id,
     });
@@ -101,7 +105,7 @@ describe("reject delegation", () => {
 
     await expect(
       delegationProducerService.rejectProducerDelegation(delegation.id, "", {
-        authData: getMockAuthData(wrongDelegate.id),
+        authData: getRandomAuthData(wrongDelegate.id),
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
@@ -111,27 +115,31 @@ describe("reject delegation", () => {
     );
   });
 
-  it("should throw incorrectState when delegation is not in WaitingForApproval state", async () => {
-    const delegate = getMockTenant();
-    const delegation = getMockDelegationProducer({
-      state: "Active",
-      delegateId: delegate.id,
-    });
-    await addOneDelegation(delegation);
+  it.each(
+    Object.values(delegationState).filter(
+      (state) => state !== delegationState.waitingForApproval
+    )
+  )(
+    "should throw incorrectState when delegation is in %s state",
+    async (state) => {
+      const delegate = getMockTenant();
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        state,
+        delegateId: delegate.id,
+      });
+      await addOneDelegation(delegation);
 
-    await expect(
-      delegationProducerService.rejectProducerDelegation(delegation.id, "", {
-        authData: getMockAuthData(delegate.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
-    ).rejects.toThrow(
-      incorrectState(
-        delegation.id,
-        delegationState.active,
-        delegationState.waitingForApproval
-      )
-    );
-  });
+      await expect(
+        delegationProducerService.rejectProducerDelegation(delegation.id, "", {
+          authData: getRandomAuthData(delegate.id),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrow(
+        incorrectState(delegation.id, state, delegationState.waitingForApproval)
+      );
+    }
+  );
 });

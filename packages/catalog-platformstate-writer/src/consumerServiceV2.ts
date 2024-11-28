@@ -18,8 +18,11 @@ import {
   deleteCatalogEntry,
   descriptorStateToItemState,
   readCatalogEntry,
+  updateDescriptorInfoInTokenGenerationStatesTable,
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
+  updateDescriptorVoucherLifespanInPlatformStateEntry,
+  updateDescriptorVoucherLifespanInTokenGenerationStatesTable,
   writeCatalogEntry,
 } from "./utils.js";
 
@@ -78,9 +81,11 @@ export async function handleMessageV2(
           eserviceId: eservice.id,
           descriptorId: descriptor.id,
         });
-        await updateDescriptorStateInTokenGenerationStatesTable(
+        await updateDescriptorInfoInTokenGenerationStatesTable(
           eserviceId_descriptorId,
           descriptorStateToItemState(descriptor.state),
+          descriptor.voucherLifespan,
+          descriptor.audience,
           dynamoDBClient
         );
       };
@@ -178,6 +183,44 @@ export async function handleMessageV2(
         dynamoDBClient
       );
     })
+    .with({ type: "EServiceDescriptorQuotasUpdated" }, async (msg) => {
+      const { eservice, descriptor } = parseEServiceAndDescriptor(
+        msg.data.eservice,
+        unsafeBrandId(msg.data.descriptorId),
+        message.type
+      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      });
+      const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
+
+      if (!catalogEntry || catalogEntry.version > msg.version) {
+        return Promise.resolve();
+      } else {
+        if (
+          descriptor.voucherLifespan !== catalogEntry.descriptorVoucherLifespan
+        ) {
+          await updateDescriptorVoucherLifespanInPlatformStateEntry(
+            dynamoDBClient,
+            primaryKey,
+            descriptor.voucherLifespan,
+            msg.version
+          );
+
+          // token-generation-states
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          });
+          await updateDescriptorVoucherLifespanInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptor.voucherLifespan,
+            dynamoDBClient
+          );
+        }
+      }
+    })
     .with(
       { type: "EServiceDeleted" },
       { type: "EServiceAdded" },
@@ -186,7 +229,6 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorAdded" },
       { type: "EServiceDraftDescriptorDeleted" },
       { type: "EServiceDraftDescriptorUpdated" },
-      { type: "EServiceDescriptorQuotasUpdated" },
       { type: "EServiceDescriptorInterfaceAdded" },
       { type: "EServiceDescriptorDocumentAdded" },
       { type: "EServiceDescriptorInterfaceUpdated" },
