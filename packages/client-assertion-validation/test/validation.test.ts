@@ -899,6 +899,7 @@ describe("validation test", async () => {
     });
   });
 
+  // TODO remove comment. Overall, intersect not empty is ok. Also, no longer handling comma separated string
   describe("validateAudience", () => {
     describe("expectedAudience is a one item array", () => {
       it("one item string", () => {
@@ -906,7 +907,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // OK
       });
 
       it("one item string, wrong", () => {
@@ -914,7 +915,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // FAIL
       });
 
       it("undefined", () => {
@@ -922,7 +923,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // FAIL
       });
 
       it("two items string", () => {
@@ -930,7 +931,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // FAIL
       });
 
       it("one item array", () => {
@@ -938,7 +939,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // OK
       });
 
       it("one item array, wrong", () => {
@@ -946,7 +947,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // FAIL
       });
 
       it("two items array", () => {
@@ -954,7 +955,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // OK
       });
     });
 
@@ -964,7 +965,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // OK
       });
 
       it("one item string, wrong", () => {
@@ -972,7 +973,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // FAIL
       });
 
       it("undefined", () => {
@@ -980,7 +981,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // FAIL
       });
 
       it("two items string", () => {
@@ -988,7 +989,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // FAIL no longer handling comma separated strings
       });
 
       it("two items string, intersection", () => {
@@ -996,7 +997,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // FAIL
       });
 
       it("one item array", () => {
@@ -1004,7 +1005,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // OK
       });
 
       it("one item array, wrong", () => {
@@ -1012,7 +1013,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // FAIL
       });
 
       it("two items array", () => {
@@ -1020,7 +1021,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // OK
       });
 
       it("two items array, intersection", () => {
@@ -1028,7 +1029,7 @@ describe("validation test", async () => {
         const expectedAudiences = ["aud1", "aud2"];
         validateAudience(input, expectedAudiences);
 
-        // TODO
+        // OK
       });
     });
   });
