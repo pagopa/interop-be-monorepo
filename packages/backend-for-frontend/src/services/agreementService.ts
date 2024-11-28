@@ -529,7 +529,7 @@ export function agreementServiceBuilder(
     async verifyTenantCertifiedAttributes(
       body: bffApi.verifyTenantCertifiedAttributes_Body,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.hasCertifiedAttributes> {
+    ): Promise<bffApi.HasCertifiedAttributes> {
       logger.info(
         `Veryfing tenant ${body.tenantId} has required certified attributes for descriptor ${body.descriptorId} of eservice ${body.eserviceId}`
       );

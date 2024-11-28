@@ -513,14 +513,14 @@ const agreementRouter = (
         );
         return res
           .status(200)
-          .send(bffApi.hasCertifiedAttributes.parse(result));
+          .send(bffApi.HasCertifiedAttributes.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx.logger,
           ctx.correlationId,
-          `Error verifying agreement`
+          `Error verifying certified attributes`
         );
         return res.status(errorRes.status).send(errorRes);
       }
