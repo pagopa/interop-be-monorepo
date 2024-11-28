@@ -202,33 +202,36 @@ describe("validation test", async () => {
     });
 
     it("invalidAudience - wrong entry as string", async () => {
+      const aud = "random";
       const { jws } = await getMockClientAssertion({
-        standardClaimsOverride: { aud: "random" },
+        standardClaimsOverride: { aud },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudience());
+      expect(errors![0]).toEqual(invalidAudience(aud));
     });
 
     it("invalidAudience - wrong entry as 1-item array", async () => {
+      const aud = ["random"];
       const { jws } = await getMockClientAssertion({
-        standardClaimsOverride: { aud: ["random"] },
+        standardClaimsOverride: { aud },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudience());
+      expect(errors![0]).toEqual(invalidAudience(aud));
     });
 
     it("invalidAudience - wrong entries", async () => {
+      const aud = ["wrong-audience1", "wrong-audience2"];
       const { jws } = await getMockClientAssertion({
-        standardClaimsOverride: { aud: ["wrong-audience1, wrong-audience2"] },
+        standardClaimsOverride: { aud },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudience());
+      expect(errors![0]).toEqual(invalidAudience(aud));
     });
 
     it("unexpectedClientAssertionPayload", async () => {
@@ -897,7 +900,7 @@ describe("validation test", async () => {
           validateAudience(receivedAudiences, expectedAudiences)
         ).toMatchObject({
           data: undefined,
-          errors: [invalidAudience()],
+          errors: [invalidAudience(receivedAudiences)],
         });
       });
 
@@ -919,7 +922,7 @@ describe("validation test", async () => {
           validateAudience(receivedAudiences, expectedAudiences)
         ).toMatchObject({
           data: undefined,
-          errors: [invalidAudience()],
+          errors: [invalidAudience(receivedAudiences)],
         });
       });
 
@@ -930,7 +933,7 @@ describe("validation test", async () => {
           validateAudience(receivedAudiences, expectedAudiences)
         ).toMatchObject({
           data: undefined,
-          errors: [invalidAudience()],
+          errors: [invalidAudience(receivedAudiences)],
         });
       });
 
@@ -965,7 +968,7 @@ describe("validation test", async () => {
           validateAudience(receivedAudiences, expectedAudiences)
         ).toMatchObject({
           data: undefined,
-          errors: [invalidAudience()],
+          errors: [invalidAudience(receivedAudiences)],
         });
       });
 
@@ -976,7 +979,7 @@ describe("validation test", async () => {
           validateAudience(receivedAudiences, expectedAudiences)
         ).toMatchObject({
           data: undefined,
-          errors: [invalidAudience()],
+          errors: [invalidAudience(receivedAudiences)],
         });
       });
 
@@ -998,7 +1001,7 @@ describe("validation test", async () => {
           validateAudience(receivedAudiences, expectedAudiences)
         ).toMatchObject({
           data: undefined,
-          errors: [invalidAudience()],
+          errors: [invalidAudience(receivedAudiences)],
         });
       });
 

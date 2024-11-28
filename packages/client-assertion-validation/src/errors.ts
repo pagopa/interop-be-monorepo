@@ -78,9 +78,11 @@ export function invalidGrantType(grantType: string): ApiError<ErrorCodes> {
 }
 
 // TODO: maybe add the wrong audience?
-export function invalidAudience(): ApiError<ErrorCodes> {
+export function invalidAudience(
+  aud: string | string[] | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Unexpected client assertion audience",
+    detail: `Unexpected client assertion audience: ${aud}`,
     code: "invalidAudience",
     title: "Invalid audience",
   });

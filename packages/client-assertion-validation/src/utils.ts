@@ -138,12 +138,12 @@ export const validateAudience = (
     if (expectedAudiences.some((entry) => receivedAudiences.includes(entry))) {
       return successfulValidation(receivedAudiences);
     }
-    return failedValidation([invalidAudience()]);
+    return failedValidation([invalidAudience(receivedAudiences)]);
   } else {
     if (expectedAudiences.some((entry) => receivedAudiences === entry)) {
       return successfulValidation(receivedAudiences);
     }
-    return failedValidation([invalidAudience()]);
+    return failedValidation([invalidAudience(receivedAudiences)]);
   }
 };
 
