@@ -454,7 +454,7 @@ describe("suspend agreement", () => {
         stamps: {
           ...agreement.stamps,
           suspensionByProducer: {
-            delegateId: authData.organizationId,
+            delegationId: delegation.id,
             who: authData.userId,
             when: new Date(),
           },

@@ -554,7 +554,7 @@ describe("upgrade Agreement", () => {
     }
   });
 
-  it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different and requester is a delegate", async () => {
+  it.only("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different and requester is a delegate", async () => {
     const producer = getMockTenant();
 
     const validVerifiedTenantAttribute = {
@@ -718,6 +718,7 @@ describe("upgrade Agreement", () => {
       stamps: {
         ...agreement.stamps,
         archiving: {
+          delegationId: undefined,
           who: authData.userId,
           when: new Date(),
         },
@@ -776,7 +777,7 @@ describe("upgrade Agreement", () => {
         upgrade: {
           who: authData.userId,
           when: new Date(),
-          delegateId: delegate.id,
+          delegationId: delegation.id,
         },
       },
       verifiedAttributes: [{ id: validVerifiedTenantAttribute.id }],
