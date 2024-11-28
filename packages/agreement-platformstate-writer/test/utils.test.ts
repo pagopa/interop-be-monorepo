@@ -41,6 +41,7 @@ import {
   it,
   vi,
 } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   updateAgreementStateInPlatformStatesEntry,
   readAgreementEntry,
@@ -474,6 +475,7 @@ describe("utils", async () => {
           dynamoDBClient,
           GSIPK_eserviceId_descriptorId,
           catalogEntry,
+          logger: genericLogger,
         })
       ).resolves.not.toThrowError();
       const tokenStateEntriesAfterUpdate = await readAllTokenStateItems(
@@ -547,6 +549,7 @@ describe("utils", async () => {
         dynamoDBClient,
         GSIPK_eserviceId_descriptorId,
         catalogEntry,
+        logger: genericLogger,
       });
       const retrievedTokenStateEntries =
         await readTokenStateEntriesByConsumerIdEserviceId(
