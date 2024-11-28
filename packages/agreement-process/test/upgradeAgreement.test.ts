@@ -797,7 +797,7 @@ describe("upgrade Agreement", () => {
     // expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
     expect(actualAgreementUpgraded).toEqual(returnedAgreement);
 
-    expect(submitterId).toEqual(actualAgreementUpgraded.stamps.submission);
+    expect(submitterId).toEqual(actualAgreementUpgraded.stamps.submission?.who);
     expect(activatorId).toEqual(actualAgreementUpgraded.stamps.activation?.who);
 
     const getIpaCode = (tenant: Tenant): string | undefined =>
@@ -819,9 +819,9 @@ describe("upgrade Agreement", () => {
       eserviceId: eservice.id,
       descriptorId: eservice.descriptors[0].id,
       descriptorVersion: eservice.descriptors[0].version,
-      producerName: `${producer.name}`,
+      producerName: producer.name,
       producerIpaCode: getIpaCode(producer),
-      consumerName: `${consumer.name}`,
+      consumerName: consumer.name,
       consumerIpaCode: getIpaCode(consumer),
       delegationId: delegation.id,
       delegatorName: producer.name,
@@ -917,6 +917,12 @@ describe("upgrade Agreement", () => {
     };
     await addOneTenant(consumer);
     await addOneTenant(producer);
+    await addOneAttribute(
+      getMockAttribute(
+        attributeKind.certified,
+        validCertifiedTenantAttribute.id
+      )
+    );
 
     const authData = getRandomAuthData(consumer.id);
 

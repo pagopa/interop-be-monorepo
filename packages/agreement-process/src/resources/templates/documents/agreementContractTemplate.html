@@ -57,9 +57,9 @@
       “e-service”), reso disponibile dall’aderente
       {{#if delegationId}}
       <strong>{{delegatorName}}</strong> {{#if delegatorIpaCode}}(codice IPA:
-      <strong>{{delegatorIpaCode}}</strong> - di seguito “erogatore”){{else}}(di seguito “erogatore”), per tramite dell’aderente
+      <strong>{{delegatorIpaCode}}</strong> - di seguito “erogatore”){{else}}(di seguito “erogatore”), per tramite dell’aderente{{/if}}
       <strong>{{delegateName}}</strong> {{#if delegateIpaCode}}(codice IPA: 
-      <strong>{{delegateIpaCode}}</strong> - di seguito “delegato all’erogazione”){{else}}(di seguito “delegato all’erogazione”)
+      <strong>{{delegateIpaCode}}</strong> - di seguito “delegato all’erogazione”){{else}}(di seguito “delegato all’erogazione”){{/if}}
       {{else}}
       <strong>{{producerName}}</strong> {{#if producerIpaCode}}(codice IPA: 
       <strong>{{producerIpaCode}}</strong> — di seguito “erogatore”){{else}}(di
@@ -82,7 +82,8 @@
         requisito di fruizione stabilito dall’erogatore per l’accesso
         all’e-service.
       </div>
-      {{/each}} {{/if}} {{#if verifiedAttributes}}
+      {{/each}} {{/if}} 
+      {{#if verifiedAttributes}}
 
       <h2>Attributi verificati</h2>
 
@@ -100,7 +101,8 @@
         dall’erogatore per l’accesso all’e-service.
       </div>
 
-      {{/each}} {{/if}} {{#if certifiedAttributes}}
+      {{/each}} {{/if}} 
+      {{#if certifiedAttributes}}
       <h2>Attributi certificati</h2>
 
       {{#each certifiedAttributes}}

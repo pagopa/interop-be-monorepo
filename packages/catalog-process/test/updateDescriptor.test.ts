@@ -20,7 +20,7 @@ import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
   inconsistentDailyCalls,
 } from "../src/model/domain/errors.js";
 import {
@@ -231,7 +231,7 @@ describe("update descriptor", () => {
     descriptorState.waitingForApproval,
     descriptorState.archived,
   ])(
-    "should throw notValidDescriptor if the descriptor is in %s state",
+    "should throw notValidDescriptorState if the descriptor is in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...mockDescriptor,
@@ -262,7 +262,7 @@ describe("update descriptor", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(notValidDescriptor(mockDescriptor.id, state));
+      ).rejects.toThrowError(notValidDescriptorState(mockDescriptor.id, state));
     }
   );
 

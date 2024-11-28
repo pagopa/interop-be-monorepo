@@ -1,6 +1,5 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { randomUUID } from "crypto";
 import {
   StoredEvent,
   readLastEventByStreamId,
@@ -29,7 +28,6 @@ import {
   toReadModelAttribute,
   TenantId,
   Delegation,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -79,10 +77,8 @@ export const agreementContractBuilder = contractBuilder(
   readModelService,
   pdfGenerator,
   fileManager,
-  selfcareV2ClientMock,
   config,
-  genericLogger,
-  unsafeBrandId(randomUUID())
+  genericLogger
 );
 
 export const agreementService = agreementServiceBuilder(

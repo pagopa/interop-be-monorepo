@@ -22,7 +22,7 @@ import {
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
   interfaceAlreadyExists,
   prettyNameDuplicate,
 } from "../src/model/domain/errors.js";
@@ -311,7 +311,7 @@ describe("upload Document", () => {
         state === descriptorState.waitingForApproval
     )
   )(
-    "should throw notValidDescriptor if the descriptor is in %s state",
+    "should throw notValidDescriptorState if the descriptor is in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
@@ -333,7 +333,7 @@ describe("upload Document", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
+      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
   it("should throw interfaceAlreadyExists if the descriptor already contains an interface", async () => {

@@ -37,7 +37,9 @@ import {
   DescriptorId,
   DescriptorState,
   EServiceId,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   SelfcareId,
+  Tenant,
   TenantAttribute,
   TenantId,
   agreementApprovalPolicy,
@@ -1565,16 +1567,14 @@ describe("submit agreement", () => {
     const consumerId = generateId<TenantId>();
     const producer = getMockTenant();
     const consumerNotesText = "This is a test";
-    const verifiedAttributeExpirationDate = new Date(
-      new Date().getFullYear() + 1
-    );
+
     const validVerifiedTenantAttribute: TenantAttribute = {
       ...getMockVerifiedTenantAttribute(),
       verifiedBy: [
         {
           id: producer.id,
           verificationDate: new Date(new Date().getFullYear() - 1),
-          expirationDate: verifiedAttributeExpirationDate,
+          expirationDate: undefined,
           extensionDate: undefined,
         },
       ],
@@ -1687,15 +1687,6 @@ describe("submit agreement", () => {
     await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
-      email: "selfcare.test.submitagreement@test.org",
-      name: "Test Name",
-      surname: "Test Surname",
-      id: generateId(),
-      taxCode: "TAXCODE",
-    };
-
-    mockSelfCareResponse(mockUserResponse);
     const submittedAgreement = await agreementService.submitAgreement(
       agreement.id,
       {
@@ -1757,6 +1748,8 @@ describe("submit agreement", () => {
       name: contractDocumentName,
     };
 
+    const expectedSubmitterId = authData.userId;
+    const expectedActivatorId = authData.userId;
     const expectedAgreement = {
       ...agreement,
       state: agreementState.active,
@@ -1781,16 +1774,15 @@ describe("submit agreement", () => {
       stamps: {
         ...agreement.stamps,
         submission: {
-          who: authData.userId,
+          who: expectedSubmitterId,
           when: submittedAgreement.stamps?.submission?.when,
         },
         activation: {
-          who: authData.userId,
+          who: expectedActivatorId,
           when: submittedAgreement.stamps?.activation?.when,
         },
       },
     };
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).toHaveBeenCalled();
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
@@ -1799,21 +1791,29 @@ describe("submit agreement", () => {
     expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
 
+    const getIpaCode = (tenant: Tenant): string | undefined =>
+      tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
+        ? tenant.externalId.value
+        : undefined;
+
     const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
       todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
       todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
       agreementId: agreement.id,
-      submitter: `${mockUserResponse.name} ${mockUserResponse.surname} (${mockUserResponse.taxCode})`,
+      submitterId: expectedSubmitterId,
       submissionDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
       submissionTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
-      activator: `${mockUserResponse.name} ${mockUserResponse.surname} (${mockUserResponse.taxCode})`,
+      activatorId: expectedActivatorId,
       activationDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
       activationTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
-      eServiceName: eservice.name,
-      eServiceId: eservice.id,
-      eServiceDescriptorVersion: eservice.descriptors[0].version,
-      producerText: `${producer.name} (codice IPA: ${producer.externalId.value})`,
-      consumerText: `${consumer.name} (codice IPA: ${consumer.externalId.value})`,
+      eserviceName: eservice.name,
+      eserviceId: eservice.id,
+      descriptorId: eservice.descriptors[0].id,
+      descriptorVersion: eservice.descriptors[0].version,
+      producerName: producer.name,
+      producerIpaCode: getIpaCode(producer),
+      consumerName: consumer.name,
+      consumerIpaCode: getIpaCode(consumer),
       certifiedAttributes: [
         {
           assignmentDate: dateAtRomeZone(
@@ -1848,12 +1848,14 @@ describe("submit agreement", () => {
           ),
           attributeName: verifiedAttribute.name,
           attributeId: validVerifiedTenantAttribute.id,
-          expirationDate: dateAtRomeZone(verifiedAttributeExpirationDate),
+          expirationDate: undefined,
         },
       ],
       delegationId: delegation.id,
-      delegatorText: `${producer.name} (codice IPA: ${producer.externalId.value})`,
-      delegateText: `${delegate.name} (codice IPA: ${delegate.externalId.value})`,
+      delegatorName: producer.name,
+      delegatorIpaCode: getIpaCode(producer),
+      delegateName: delegate.name,
+      delegateIpaCode: getIpaCode(delegate),
     };
 
     expect(pdfGenerator.generate).toHaveBeenCalledWith(

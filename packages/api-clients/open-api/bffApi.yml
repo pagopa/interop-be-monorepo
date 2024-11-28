@@ -15691,8 +15691,8 @@ components:
         id:
           type: string
           format: uuid
-        eserviceName:
-          type: string
+        eservice:
+          $ref: "#/components/schemas/CompactEServiceLight"
         delegate:
           $ref: "#/components/schemas/DelegationTenant"
         delegator:
