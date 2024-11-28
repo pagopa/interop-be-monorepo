@@ -1,5 +1,5 @@
 meta {
-  name: List producer delegations
+  name: List delegations
   type: http
   seq: 1
 }
@@ -23,4 +23,8 @@ params:query {
 headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  delegationId: res.body.results.at(-1).id
 }

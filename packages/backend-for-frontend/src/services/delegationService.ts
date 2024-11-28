@@ -5,8 +5,16 @@ import {
   delegationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import { DelegationId, delegationKind } from "pagopa-interop-models";
+import {
+  FileManager,
+  getAllFromPaginated,
+  WithLogger,
+} from "pagopa-interop-commons";
+import {
+  DelegationContractId,
+  DelegationId,
+  delegationKind,
+} from "pagopa-interop-models";
 import {
   DelegationsQueryParams,
   toBffDelegationApiCompactDelegation,
@@ -20,6 +28,7 @@ import {
 } from "../clients/clientsProvider.js";
 import { delegationNotFound } from "../model/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
+import { config } from "../config/config.js";
 
 // eslint-disable-next-line max-params
 async function enhanceDelegation<
@@ -151,7 +160,8 @@ export async function getAllDelegations(
 export function delegationServiceBuilder(
   delegationClients: DelegationProcessClient,
   tenantClient: TenantProcessClient,
-  catalogClient: CatalogProcessClient
+  catalogClient: CatalogProcessClient,
+  fileManager: FileManager
 ) {
   return {
     async getDelegationById(
@@ -237,6 +247,31 @@ export function delegationServiceBuilder(
         },
       };
     },
+    async getDelegationContract(
+      delegationId: DelegationId,
+      contractId: DelegationContractId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      logger.info(
+        `Retrieving delegation contract ${contractId} from delegation ${delegationId}`
+      );
+
+      const contract = await delegationClients.delegation.getDelegationContract(
+        {
+          params: { delegationId, contractId },
+          headers,
+        }
+      );
+
+      const contractBytes = await fileManager.get(
+        config.delegationContractsContainer,
+        contract.path,
+        logger
+      );
+
+      return Buffer.from(contractBytes);
+    },
+
     async createDelegation(
       createDelegationBody: bffApi.DelegationSeed,
       { headers }: WithLogger<BffAppContext>

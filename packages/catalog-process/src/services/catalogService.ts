@@ -97,6 +97,8 @@ import {
   validateRiskAnalysisSchemaOrThrow,
   assertHasNoDraftDescriptor,
   assertRiskAnalysisIsValidForPublication,
+  assertInterfaceDeletableDescriptorState,
+  assertDocumentDeletableDescriptorState,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -727,21 +729,17 @@ export function catalogServiceBuilder(
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      if (
-        descriptor.state !== descriptorState.draft &&
-        descriptor.state !== descriptorState.deprecated &&
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended
-      ) {
-        throw notValidDescriptor(descriptor.id, descriptor.state);
-      }
-
       const document = retrieveDocument(eserviceId, descriptor, documentId);
+      const isInterface = document.id === descriptor?.interface?.id;
+
+      if (isInterface) {
+        assertInterfaceDeletableDescriptorState(descriptor);
+      } else {
+        assertDocumentDeletableDescriptorState(descriptor);
+      }
 
       await fileManager.delete(config.s3Bucket, document.path, logger);
 
-      const isInterface = document.id === descriptor?.interface?.id;
       const newEservice: EService = {
         ...eservice.data,
         descriptors: eservice.data.descriptors.map((d: Descriptor) =>
