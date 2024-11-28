@@ -238,10 +238,6 @@ export async function handleMessageV2(
         }
       };
 
-      logger.info(
-        `Retrieving catalog entry ${pkCatalogEntry} to add descriptor info in token-generation-states`
-      );
-
       const catalogEntry = await readCatalogEntry(
         pkCatalogEntry,
         dynamoDBClient

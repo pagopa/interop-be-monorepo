@@ -176,10 +176,6 @@ const handleFirstActivation = async (
       descriptorId: agreement.descriptorId,
     });
 
-    logger.info(
-      `Retrieving catalog entry ${pkCatalogEntry} to add descriptor info in token-generation-states`
-    );
-
     const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
 
     const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
@@ -304,10 +300,6 @@ const handleUpgrade = async (
     eserviceId: agreement.eserviceId,
     descriptorId: agreement.descriptorId,
   });
-
-  logger.info(
-    `Retrieving catalog entry ${pkCatalogEntry} to add descriptor info in token-generation-states`
-  );
 
   const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
 
