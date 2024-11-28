@@ -148,7 +148,7 @@ export function tokenServiceBuilder({
         validatedJwt: jwt,
         clientKind: key.clientKind,
         tokenJti: undefined,
-        message: "Client assertion validated",
+        message: "Key retrieved",
         logger,
       });
 
