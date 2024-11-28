@@ -300,7 +300,6 @@ const handleUpgrade = async (
     eserviceId: agreement.eserviceId,
     descriptorId: agreement.descriptorId,
   });
-
   const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
 
   const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
