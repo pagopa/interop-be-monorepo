@@ -103,16 +103,20 @@ export function tokenServiceBuilder({
       });
 
       if (parametersErrors) {
-        throw clientAssertionRequestValidationFailed(request.client_id);
+        throw clientAssertionRequestValidationFailed(
+          request.client_id,
+          parametersErrors.map((error) => error.detail).join(", ")
+        );
       }
 
       const { data: jwt, errors: clientAssertionErrors } =
         verifyClientAssertion(request.client_assertion, request.client_id);
 
       if (clientAssertionErrors) {
-        // TODO double check if errors have to be logged or put inside the error below (check the same for parameters errors)
-        logger.warn(clientAssertionErrors.map((error) => error.detail));
-        throw clientAssertionValidationFailed(request.client_id);
+        throw clientAssertionValidationFailed(
+          request.client_id,
+          clientAssertionErrors.map((error) => error.detail).join(", ")
+        );
       }
 
       const clientId = jwt.payload.sub;
@@ -137,14 +141,17 @@ export function tokenServiceBuilder({
         );
 
       if (clientAssertionSignatureErrors) {
-        throw clientAssertionSignatureValidationFailed(request.client_id);
+        throw clientAssertionSignatureValidationFailed(
+          request.client_id,
+          clientAssertionSignatureErrors.map((error) => error.detail).join(", ")
+        );
       }
 
       const { errors: platformStateErrors } =
         validateClientKindAndPlatformState(key, jwt);
       if (platformStateErrors) {
         throw platformStateValidationFailed(
-          platformStateErrors.map((error) => error.detail)
+          platformStateErrors.map((error) => error.detail).join(", ")
         );
       }
 

@@ -25,30 +25,33 @@ export type ErrorCodes = keyof typeof errorCodes;
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function clientAssertionRequestValidationFailed(
-  clientId: string | undefined
+  clientId: string | undefined,
+  details: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion request validation failed for request by client ${clientId}`,
+    detail: `Client assertion request validation failed for request by client ${clientId} - ${details}`,
     code: "clientAssertionRequestValidationFailed",
     title: "Client assertion request validation failed",
   });
 }
 
 export function clientAssertionValidationFailed(
-  clientId: string | undefined
+  clientId: string | undefined,
+  details: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion validation failed for clientId: ${clientId}`,
+    detail: `Client assertion validation failed for clientId: ${clientId} - ${details}`,
     code: "clientAssertionValidationFailed",
     title: "Client assertion validation failed",
   });
 }
 
 export function clientAssertionSignatureValidationFailed(
-  clientId: string | undefined
+  clientId: string | undefined,
+  details: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion signature validation failed for client ${clientId}`,
+    detail: `Client assertion signature validation failed for client ${clientId} - ${details}`,
     code: "clientAssertionSignatureValidationFailed",
     title: "Client assertion signature validation failed",
   });
@@ -114,10 +117,10 @@ export function unexpectedTokenGenerationStatesEntry(
 }
 
 export function platformStateValidationFailed(
-  details: string[]
+  details: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Platform state validation failed - reasons: ${details}`,
+    detail: `Platform state validation failed - ${details}`,
     code: "platformStateValidationFailed",
     title: "Platform state validation failed",
   });
