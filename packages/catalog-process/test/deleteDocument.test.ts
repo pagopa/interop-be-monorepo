@@ -20,7 +20,7 @@ import { vi, expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
   eServiceDocumentNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
@@ -421,7 +421,7 @@ describe("delete Document", () => {
     );
   });
   it.each([descriptorState.archived])(
-    "should throw notValidDescriptor when trying to delete a document with descriptor in %s state",
+    "should throw notValidDescriptorState when trying to delete a document with descriptor in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
@@ -444,7 +444,7 @@ describe("delete Document", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
+      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
   it.each(
@@ -452,7 +452,7 @@ describe("delete Document", () => {
       (state) => state !== descriptorState.draft
     )
   )(
-    "should throw notValidDescriptor when trying to delete an interface with descriptor in %s state",
+    "should throw notValidDescriptorState when trying to delete an interface with descriptor in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
@@ -475,7 +475,7 @@ describe("delete Document", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
+      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
   it("should throw eServiceDocumentNotFound if the document doesn't exist", async () => {

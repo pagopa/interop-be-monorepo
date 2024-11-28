@@ -232,12 +232,15 @@ describe("reject agreement", () => {
       delete agreement.suspendedByConsumer;
       delete agreement.suspendedByProducer;
       delete agreement.suspendedByPlatform;
-      const expectedAgreemenentRejected: Agreement = {
+      const expectedAgreementRejected: Agreement = {
         ...agreement,
         state: agreementState.rejected,
         rejectionReason: "Rejected by producer due to test reasons",
         // Keeps only not revoked attributes that are matching in descriptor and tenant
-        verifiedAttributes: [{ id: tenantVerifiedAttribute.id }],
+        verifiedAttributes: [
+          { id: tenantVerifiedAttribute.id },
+          { id: tenantVerfiedAttributeWithExpiredExtension.id },
+        ],
         declaredAttributes: [{ id: tenantDeclaredAttribute.id }],
         certifiedAttributes: [{ id: tenantCertifiedAttribute.id }],
         stamps: {
@@ -252,7 +255,7 @@ describe("reject agreement", () => {
         },
       };
       expect(actualAgreementRejected).toMatchObject(
-        toAgreementV2(expectedAgreemenentRejected)
+        toAgreementV2(expectedAgreementRejected)
       );
       expect(actualAgreementRejected).toEqual(toAgreementV2(returnedAgreement));
       vi.useRealTimers();

@@ -27,7 +27,7 @@ import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
   eServiceDescriptorWithoutInterface,
   tenantNotFound,
   tenantKindNotFound,
@@ -450,7 +450,7 @@ describe("publish descriptor", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw notValidDescriptor if the descriptor is in published state", async () => {
+  it("should throw notValidDescriptorState if the descriptor is in published state", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -469,11 +469,11 @@ describe("publish descriptor", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      notValidDescriptor(descriptor.id, descriptorState.published)
+      notValidDescriptorState(descriptor.id, descriptorState.published)
     );
   });
 
-  it("should throw notValidDescriptor if the descriptor is in deprecated state", async () => {
+  it("should throw notValidDescriptorState if the descriptor is in deprecated state", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -492,11 +492,11 @@ describe("publish descriptor", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      notValidDescriptor(descriptor.id, descriptorState.deprecated)
+      notValidDescriptorState(descriptor.id, descriptorState.deprecated)
     );
   });
 
-  it("should throw notValidDescriptor if the descriptor is in suspended state", async () => {
+  it("should throw notValidDescriptorState if the descriptor is in suspended state", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -515,11 +515,11 @@ describe("publish descriptor", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      notValidDescriptor(descriptor.id, descriptorState.suspended)
+      notValidDescriptorState(descriptor.id, descriptorState.suspended)
     );
   });
 
-  it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
+  it("should throw notValidDescriptorState if the descriptor is in archived state", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -538,7 +538,7 @@ describe("publish descriptor", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      notValidDescriptor(descriptor.id, descriptorState.archived)
+      notValidDescriptorState(descriptor.id, descriptorState.archived)
     );
   });
 
