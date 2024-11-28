@@ -229,13 +229,13 @@ export const getMockTenantMail = (
 
 export const getMockAgreementStamps = (): AgreementStamps => {
   const stamps = generateMock(AgreementStamps);
-  delete stamps.submission?.delegateId;
-  delete stamps.activation?.delegateId;
-  delete stamps.rejection?.delegateId;
-  delete stamps.suspensionByConsumer?.delegateId;
-  delete stamps.suspensionByProducer?.delegateId;
-  delete stamps.upgrade?.delegateId;
-  delete stamps.archiving?.delegateId;
+  delete stamps.submission?.delegationId;
+  delete stamps.activation?.delegationId;
+  delete stamps.rejection?.delegationId;
+  delete stamps.suspensionByConsumer?.delegationId;
+  delete stamps.suspensionByProducer?.delegationId;
+  delete stamps.upgrade?.delegationId;
+  delete stamps.archiving?.delegationId;
   return stamps;
 };
 

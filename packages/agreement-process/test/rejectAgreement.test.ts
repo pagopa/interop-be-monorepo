@@ -191,13 +191,13 @@ describe("reject agreement", () => {
           ? getRandomAuthData(agreement.producerId)
           : getRandomAuthData();
 
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegateId: authData.organizationId,
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      });
       if (type === "delegate") {
-        const delegation = getMockDelegation({
-          kind: delegationKind.delegatedProducer,
-          delegateId: authData.organizationId,
-          eserviceId: eservice.id,
-          state: delegationState.active,
-        });
         await addOneDelegation(delegation);
       }
 
@@ -248,9 +248,7 @@ describe("reject agreement", () => {
           rejection: {
             who: authData.userId,
             when: new Date(),
-            ...(type === "delegate"
-              ? { delegateId: authData.organizationId }
-              : {}),
+            ...(type === "delegate" ? { delegationId: delegation.id } : {}),
           },
         },
       };

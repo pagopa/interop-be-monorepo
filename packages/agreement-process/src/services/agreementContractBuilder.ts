@@ -260,17 +260,18 @@ export const contractBuilder = (
       eservice: EService,
       consumer: Tenant,
       producer: Tenant,
-      delegation: Delegation | undefined
+      producerDelegation: Delegation | undefined
     ): Promise<AgreementDocument> => {
-      const delegationdData =
-        delegation && (await buildDelegationData(delegation, readModelService));
+      const delegationData =
+        producerDelegation &&
+        (await buildDelegationData(producerDelegation, readModelService));
 
       const pdfPayload = await getPdfPayload(
         agreement,
         eservice,
         consumer,
         producer,
-        delegationdData,
+        delegationData,
         readModelService
       );
 

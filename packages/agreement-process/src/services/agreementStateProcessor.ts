@@ -43,11 +43,11 @@ const nextStateFromDraft = (
   agreement: Agreement,
   descriptor: Descriptor,
   tenant: Tenant | CompactTenant,
-  delegateId: TenantId | undefined
+  delegateProducerId: TenantId | undefined
 ): AgreementState => {
   if (
     agreement.consumerId === agreement.producerId ||
-    agreement.consumerId === delegateId
+    agreement.consumerId === delegateProducerId
   ) {
     return active;
   }
@@ -99,11 +99,11 @@ const nextStateFromActiveOrSuspended = (
   agreement: Agreement,
   descriptor: Descriptor,
   tenant: Tenant | CompactTenant,
-  delegateId: TenantId | undefined
+  delegateProducerId: TenantId | undefined
 ): AgreementState => {
   if (
     agreement.consumerId === agreement.producerId ||
-    agreement.consumerId === delegateId
+    agreement.consumerId === delegateProducerId
   ) {
     return active;
   }
@@ -135,17 +135,22 @@ export const nextStateByAttributesFSM = (
   agreement: Agreement,
   descriptor: Descriptor,
   tenant: Tenant | CompactTenant,
-  delegateId?: TenantId | undefined
+  delegateProducerId?: TenantId | undefined
 ): AgreementState =>
   match(agreement.state)
     .with(agreementState.draft, () =>
-      nextStateFromDraft(agreement, descriptor, tenant, delegateId)
+      nextStateFromDraft(agreement, descriptor, tenant, delegateProducerId)
     )
     .with(agreementState.pending, () =>
       nextStateFromPending(agreement, descriptor, tenant)
     )
     .with(agreementState.active, agreementState.suspended, () =>
-      nextStateFromActiveOrSuspended(agreement, descriptor, tenant, delegateId)
+      nextStateFromActiveOrSuspended(
+        agreement,
+        descriptor,
+        tenant,
+        delegateProducerId
+      )
     )
     .with(agreementState.archived, () => archived)
     .with(agreementState.missingCertifiedAttributes, () =>
@@ -193,9 +198,10 @@ export const suspendedByProducerFlag = (
   agreement: Agreement,
   requesterOrgId: Tenant["id"],
   targetDestinationState: AgreementState,
-  delegateId?: TenantId | undefined
+  delegateProducerId?: TenantId | undefined
 ): boolean | undefined =>
-  requesterOrgId === agreement.producerId || requesterOrgId === delegateId
+  requesterOrgId === agreement.producerId ||
+  requesterOrgId === delegateProducerId
     ? targetDestinationState === agreementState.suspended
     : agreement.suspendedByProducer;
 

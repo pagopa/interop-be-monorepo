@@ -718,6 +718,7 @@ describe("upgrade Agreement", () => {
       stamps: {
         ...agreement.stamps,
         archiving: {
+          delegationId: undefined,
           who: authData.userId,
           when: new Date(),
         },
@@ -776,7 +777,7 @@ describe("upgrade Agreement", () => {
         upgrade: {
           who: authData.userId,
           when: new Date(),
-          delegateId: delegate.id,
+          delegationId: delegation.id,
         },
       },
       verifiedAttributes: [{ id: validVerifiedTenantAttribute.id }],

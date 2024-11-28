@@ -30,6 +30,8 @@ import {
   Delegation,
   DelegationState,
   delegationState,
+  delegationKind,
+  DelegationKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -160,6 +162,7 @@ export function readModelServiceBuilder(
             {
               "delegation.data.delegateId": { $in: producersIds },
               "delegation.data.state": { $eq: delegationState.active },
+              "delegation.data.kind": { $eq: delegationKind.delegatedProducer },
             },
           ],
         }
@@ -267,6 +270,7 @@ export function readModelServiceBuilder(
           "delegation.data.state": {
             $in: [delegationState.active, delegationState.waitingForApproval],
           },
+          "delegation.data.kind": delegationKind.delegatedProducer,
         }))
         .with(false, () => ({
           "delegation.data.state": {
@@ -550,15 +554,18 @@ export function readModelServiceBuilder(
     async getLatestDelegation({
       eserviceId,
       states,
+      kind,
       delegateId,
     }: {
       eserviceId: EServiceId;
       states: DelegationState[];
+      kind: DelegationKind;
       delegateId?: TenantId;
     }): Promise<Delegation | undefined> {
       const data = await delegations.findOne(
         {
           "data.eserviceId": eserviceId,
+          "data.kind": kind,
           ...(states.length > 0 ? { "data.state": { $in: states } } : {}),
           ...(delegateId ? { "data.delegateId": delegateId } : {}),
         },

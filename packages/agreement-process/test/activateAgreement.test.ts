@@ -797,7 +797,7 @@ describe("activate agreement", () => {
           activation: {
             who: authData.userId,
             when: expect.any(Date),
-            delegateId: delegation.delegateId,
+            delegationId: delegation.id,
           },
         },
       };

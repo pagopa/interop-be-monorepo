@@ -34,6 +34,7 @@ import {
   WithMetadata,
   agreementState,
   catalogEventToBinaryData,
+  delegationKind,
   delegationState,
   descriptorState,
   eserviceMode,
@@ -103,8 +104,8 @@ import {
   assertInterfaceDeletableDescriptorState,
   assertIsDraftEservice,
   assertIsReceiveEservice,
-  assertNoExistingDelegationInActiveOrPendingState,
-  assertRequesterIsDelegateOrProducer,
+  assertNoExistingProducerDelegationInActiveOrPendingState,
+  assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
   assertTenantKindExists,
@@ -178,12 +179,15 @@ const retrieveRiskAnalysis = (
 };
 
 const assertRequesterCanPublish = (
-  delegation: Delegation | undefined,
+  producerDelegation: Delegation | undefined,
   eservice: EService,
   authData: AuthData
 ): void => {
-  if (delegation) {
-    if (authData.organizationId !== delegation.delegateId) {
+  if (producerDelegation) {
+    if (
+      producerDelegation.kind !== delegationKind.delegatedProducer ||
+      authData.organizationId !== producerDelegation.delegateId
+    ) {
       throw operationForbidden;
     }
   } else {
@@ -191,12 +195,13 @@ const assertRequesterCanPublish = (
   }
 };
 
-const retrieveActiveDelegation = async (
+const retrieveActiveProducerDelegation = async (
   eservice: EService,
   readModelService: ReadModelService
 ): Promise<Delegation | undefined> =>
   await readModelService.getLatestDelegation({
     eserviceId: eservice.id,
+    kind: delegationKind.delegatedProducer,
     states: [delegationState.active],
   });
 
@@ -548,7 +553,7 @@ export function catalogServiceBuilder(
       logger.info(`Updating EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -631,7 +636,7 @@ export function catalogServiceBuilder(
       assertRequesterIsProducer(eservice.data.producerId, authData);
       assertIsDraftEservice(eservice.data);
 
-      await assertNoExistingDelegationInActiveOrPendingState(
+      await assertNoExistingProducerDelegationInActiveOrPendingState(
         eserviceId,
         readModelService
       );
@@ -688,7 +693,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -783,7 +788,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -855,7 +860,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -944,7 +949,7 @@ export function catalogServiceBuilder(
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -1060,7 +1065,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -1116,7 +1121,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -1184,12 +1189,12 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const delegation = await retrieveActiveDelegation(
+      const producerDelegation = await retrieveActiveProducerDelegation(
         eservice.data,
         readModelService
       );
 
-      assertRequesterCanPublish(delegation, eservice.data, authData);
+      assertRequesterCanPublish(producerDelegation, eservice.data, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (descriptor.state !== descriptorState.draft) {
@@ -1216,7 +1221,7 @@ export function catalogServiceBuilder(
         throw audienceCannotBeEmpty(descriptor.id);
       }
 
-      if (delegation) {
+      if (producerDelegation) {
         const eserviceWithWaitingForApprovalDescriptor = replaceDescriptor(
           eservice.data,
           updateDescriptorState(descriptor, descriptorState.waitingForApproval)
@@ -1259,7 +1264,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -1304,7 +1309,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -1382,7 +1387,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
-      await assertNoExistingDelegationInActiveOrPendingState(
+      await assertNoExistingProducerDelegationInActiveOrPendingState(
         eservice.data.id,
         readModelService
       );
@@ -1499,7 +1504,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -1535,7 +1540,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -1591,7 +1596,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -1656,7 +1661,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -1727,7 +1732,7 @@ export function catalogServiceBuilder(
       );
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -1763,7 +1768,7 @@ export function catalogServiceBuilder(
       logger.info(`Updating EService ${eserviceId} description`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      await assertRequesterIsDelegateOrProducer(
+      await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         authData,
@@ -1900,13 +1905,14 @@ async function isUserAllowedToSeeDraft(
     return true;
   }
 
-  const activeDelegation = await readModelService.getLatestDelegation({
+  const activeProducerDelegation = await readModelService.getLatestDelegation({
     eserviceId: eservice.id,
     delegateId: authData.organizationId,
+    kind: delegationKind.delegatedProducer,
     states: [delegationState.active],
   });
 
-  return activeDelegation !== undefined;
+  return activeProducerDelegation !== undefined;
 }
 
 async function applyVisibilityToEService(

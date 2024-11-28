@@ -163,7 +163,7 @@ describe("verifyVerifiedAttribute", async () => {
             verifiedBy: [
               {
                 id: hasDelegation ? delegation.delegatorId : requesterTenant.id,
-                delegateId: hasDelegation ? requesterTenant.id : undefined,
+                delegationId: hasDelegation ? delegation.id : undefined,
                 verificationDate: new Date(),
                 expirationDate: tenantAttributeSeed.expirationDate
                   ? new Date(tenantAttributeSeed.expirationDate)
@@ -260,7 +260,7 @@ describe("verifyVerifiedAttribute", async () => {
               {
                 ...mockVerifiedBy,
                 id: hasDelegation ? delegation.delegatorId : requesterTenant.id,
-                delegateId: hasDelegation ? requesterTenant.id : undefined,
+                delegationId: hasDelegation ? delegation.id : undefined,
                 verificationDate: new Date(),
               },
             ],

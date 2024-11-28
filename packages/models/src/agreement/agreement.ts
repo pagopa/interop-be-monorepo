@@ -3,6 +3,7 @@ import {
   AgreementDocumentId,
   AgreementId,
   AttributeId,
+  DelegationId,
   DescriptorId,
   EServiceId,
   TenantId,
@@ -39,7 +40,7 @@ export type AgreementDocument = z.infer<typeof AgreementDocument>;
 
 export const AgreementStamp = z.object({
   who: UserId,
-  delegateId: TenantId.optional(),
+  delegationId: DelegationId.optional(),
   when: z.coerce.date(),
 });
 export type AgreementStamp = z.infer<typeof AgreementStamp>;
