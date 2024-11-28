@@ -45,7 +45,13 @@ import {
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
-import { inactiveEService } from "../../client-assertion-validation/dist/errors.js";
+import {
+  inactiveEService,
+  invalidAssertionType,
+  invalidSignature,
+  issuedAtNotFound,
+  unexpectedClientAssertionSignatureVerificationError,
+} from "../../client-assertion-validation/dist/errors.js";
 import {
   configTokenGenerationStates,
   dynamoDBClient,
@@ -83,15 +89,21 @@ describe("authorization server tests", () => {
     };
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(clientAssertionRequestValidationFailed(clientId));
+    ).rejects.toThrowError(
+      clientAssertionRequestValidationFailed(
+        clientId,
+        invalidAssertionType("wrong-client-assertion-type").detail
+      )
+    );
   });
 
   it("should throw clientAssertionValidationFailed", async () => {
+    const clientId = generateId<ClientId>();
+
     const { jws } = await getMockClientAssertion({
-      standardClaimsOverride: { iat: undefined },
+      standardClaimsOverride: { iat: undefined, sub: clientId },
     });
 
-    const clientId = generateId<ClientId>();
     const request: authorizationServerApi.AccessTokenRequest = {
       ...(await getMockAccessTokenRequest()),
       client_assertion: jws,
@@ -99,7 +111,9 @@ describe("authorization server tests", () => {
     };
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
-    ).rejects.toThrowError(clientAssertionValidationFailed(clientId));
+    ).rejects.toThrowError(
+      clientAssertionValidationFailed(clientId, issuedAtNotFound().detail)
+    );
   });
 
   it("should throw tokenGenerationStatesEntryNotFound", async () => {
@@ -235,10 +249,11 @@ describe("authorization server tests", () => {
     const purposeId = generateId<PurposeId>();
     const clientId = generateId<ClientId>();
 
-    const { jws, clientAssertion } = await getMockClientAssertion({
-      standardClaimsOverride: { sub: clientId },
-      customClaims: { purposeId },
-    });
+    const { jws, clientAssertion, publicKeyEncodedPem } =
+      await getMockClientAssertion({
+        standardClaimsOverride: { sub: clientId },
+        customClaims: { purposeId },
+      });
 
     const splitJws = jws.split(".");
     const jwsWithWrongSignature = `${splitJws[0]}.${splitJws[1]}.wrong-singature`;
@@ -258,14 +273,20 @@ describe("authorization server tests", () => {
     );
 
     const tokenClientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
-      getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK);
+      {
+        ...getMockTokenStatesClientPurposeEntry(tokenClientKidPurposePK),
+        publicKey: publicKeyEncodedPem,
+      };
 
     await writeTokenStateEntry(tokenClientKidPurposeEntry, dynamoDBClient);
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      clientAssertionSignatureValidationFailed(request.client_id)
+      clientAssertionSignatureValidationFailed(
+        request.client_id,
+        invalidSignature().detail
+      )
     );
   });
 
@@ -305,7 +326,7 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      platformStateValidationFailed([inactiveEService().detail])
+      platformStateValidationFailed(inactiveEService().detail)
     );
   });
 
