@@ -83,8 +83,8 @@ app.use(
   clientRouter(zodiosCtx, clients),
   privacyNoticeRouter(zodiosCtx),
   producerKeychainRouter(zodiosCtx, clients),
-  delegationRouter(zodiosCtx, clients),
-  producerDelegationRouter(zodiosCtx, clients)
+  delegationRouter(zodiosCtx, clients, fileManager),
+  producerDelegationRouter(zodiosCtx, clients, fileManager)
 );
 
 export default app;
