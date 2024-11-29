@@ -154,6 +154,8 @@ describe("activatePurposeVersion", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
+      suspendedByConsumer: false,
+      suspendedByProducer: false,
       versions: [purposeVersion],
       updatedAt: new Date(),
     };
@@ -319,9 +321,18 @@ describe("activatePurposeVersion", () => {
       event_version: 2,
     });
 
+    const expectedPurposeVersion: PurposeVersion = {
+      id: purposeVersion.id,
+      createdAt: new Date(),
+      state: purposeVersionState.waitingForApproval,
+      dailyCalls: 9999,
+    };
+
+    expect(purposeVersion).toEqual(expectedPurposeVersion);
+
     const expectedPurpose: Purpose = {
       ...mockPurpose,
-      versions: [purposeVersionMock, purposeVersion],
+      versions: [purposeVersionMock, expectedPurposeVersion],
       suspendedByConsumer: true,
       suspendedByProducer: false,
       updatedAt: new Date(),
