@@ -513,13 +513,13 @@ describe("utils tests", async () => {
           eserviceId_descriptorId,
           dynamoDBClient
         );
-      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+      const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
           descriptorState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
-      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+      const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
           descriptorState: itemState.active,
@@ -529,8 +529,8 @@ describe("utils tests", async () => {
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenGenStatesEntry2,
-          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesConsumeClient2,
+          expectedTokenGenStatesConsumeClient1,
         ])
       );
     });

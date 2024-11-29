@@ -274,26 +274,24 @@ describe("integration tests V2 events", async () => {
           eserviceId_descriptorId,
           dynamoDBClient
         );
-      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+      const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
           descriptorState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
-      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+      const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
           descriptorState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
 
-      // TODO: this works, but arrayContaining must have the exact objects
-      // expect.arrayContaining([expectedTokenGenStatesEntry2, expectedTokenGenStatesEntry2]) also passes the test
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenGenStatesEntry2,
-          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesConsumeClient2,
+          expectedTokenGenStatesConsumeClient1,
         ])
       );
     });
@@ -490,13 +488,13 @@ describe("integration tests V2 events", async () => {
           eserviceId_descriptorId,
           dynamoDBClient
         );
-      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+      const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
           descriptorState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
-      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+      const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
           descriptorState: itemState.inactive,
@@ -504,8 +502,8 @@ describe("integration tests V2 events", async () => {
         };
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenGenStatesEntry1,
-          expectedTokenGenStatesEntry2,
+          expectedTokenGenStatesConsumeClient1,
+          expectedTokenGenStatesConsumeClient2,
         ])
       );
     });
@@ -607,13 +605,13 @@ describe("integration tests V2 events", async () => {
             eserviceId_descriptorId,
             dynamoDBClient
           );
-        const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
           {
             ...tokenGenStatesConsumerClient1,
             descriptorState: itemState.active,
             updatedAt: new Date().toISOString(),
           };
-        const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
           {
             ...tokenGenStatesConsumerClient2,
             descriptorState: itemState.active,
@@ -621,8 +619,8 @@ describe("integration tests V2 events", async () => {
           };
         expect(retrievedTokenGenStatesEntries).toEqual(
           expect.arrayContaining([
-            expectedTokenGenStatesEntry1,
-            expectedTokenGenStatesEntry2,
+            expectedTokenGenStatesConsumeClient1,
+            expectedTokenGenStatesConsumeClient2,
           ])
         );
       });
@@ -817,13 +815,13 @@ describe("integration tests V2 events", async () => {
             eserviceId_descriptorId,
             dynamoDBClient
           );
-        const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
           {
             ...tokenGenStatesConsumerClient1,
             descriptorState: itemState.active,
             updatedAt: new Date().toISOString(),
           };
-        const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
           {
             ...tokenGenStatesConsumerClient2,
             descriptorState: itemState.active,
@@ -831,8 +829,8 @@ describe("integration tests V2 events", async () => {
           };
         expect(retrievedTokenGenStatesEntries).toEqual(
           expect.arrayContaining([
-            expectedTokenGenStatesEntry2,
-            expectedTokenGenStatesEntry1,
+            expectedTokenGenStatesConsumeClient2,
+            expectedTokenGenStatesConsumeClient1,
           ])
         );
       });
@@ -935,13 +933,13 @@ describe("integration tests V2 events", async () => {
             eserviceId_descriptorId,
             dynamoDBClient
           );
-        const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
           {
             ...tokenGenStatesConsumerClient1,
             descriptorState: itemState.inactive,
             updatedAt: new Date().toISOString(),
           };
-        const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
           {
             ...tokenGenStatesConsumerClient2,
             descriptorState: itemState.inactive,
@@ -949,8 +947,8 @@ describe("integration tests V2 events", async () => {
           };
         expect(retrievedTokenGenStatesEntries).toEqual(
           expect.arrayContaining([
-            expectedTokenGenStatesEntry2,
-            expectedTokenGenStatesEntry1,
+            expectedTokenGenStatesConsumeClient2,
+            expectedTokenGenStatesConsumeClient1,
           ])
         );
       });
@@ -1160,13 +1158,13 @@ describe("integration tests V2 events", async () => {
           eserviceId_descriptorId,
           dynamoDBClient
         );
-      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+      const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
           descriptorState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
-      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+      const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
           descriptorState: itemState.inactive,
@@ -1176,8 +1174,8 @@ describe("integration tests V2 events", async () => {
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenGenStatesEntry2,
-          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesConsumeClient2,
+          expectedTokenGenStatesConsumeClient1,
         ])
       );
     });
@@ -1511,13 +1509,13 @@ describe("integration tests V2 events", async () => {
           eserviceId_descriptorId,
           dynamoDBClient
         );
-      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+      const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
           descriptorVoucherLifespan: updatedDescriptor.voucherLifespan,
           updatedAt: new Date().toISOString(),
         };
-      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+      const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
           descriptorVoucherLifespan: updatedDescriptor.voucherLifespan,
@@ -1527,8 +1525,8 @@ describe("integration tests V2 events", async () => {
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenGenStatesEntry2,
-          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesConsumeClient2,
+          expectedTokenGenStatesConsumeClient1,
         ])
       );
     });
