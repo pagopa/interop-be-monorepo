@@ -174,6 +174,10 @@ export const descriptorToApiDescriptor = (
     declared: descriptor.attributes.declared,
     verified: descriptor.attributes.verified,
   },
+  rejectionReasons: descriptor.rejectionReasons?.map((reason) => ({
+    rejectionReason: reason.rejectionReason,
+    rejectedAt: reason.rejectedAt.toJSON(),
+  })),
 });
 
 export const eServiceToApiEService = (
