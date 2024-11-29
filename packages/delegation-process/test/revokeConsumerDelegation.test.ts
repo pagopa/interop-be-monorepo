@@ -198,7 +198,9 @@ describe("revoke consumer delegation", () => {
         correlationId: generateId(),
         serviceName: "DelegationServiceTest",
       })
-    ).rejects.toThrow(delegationNotFound(delegationId));
+    ).rejects.toThrow(
+      delegationNotFound(delegationId, delegationKind.delegatedConsumer)
+    );
   });
 
   it("should throw delegationNotFound when delegation kind is not DelegatedConsumer", async () => {
