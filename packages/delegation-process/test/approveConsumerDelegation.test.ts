@@ -97,7 +97,7 @@ describe("approve consumer delegation", () => {
     });
 
     const expectedContractId = unsafeBrandId<DelegationContractId>(
-      actualDelegation.activationContract!.id
+      actualDelegation!.activationContract!.id
     );
     const expectedContractName = `${formatDateyyyyMMddHHmmss(
       currentExecutionTime
