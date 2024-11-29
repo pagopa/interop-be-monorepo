@@ -35,6 +35,7 @@ export const errorCodes = {
   tenantNotFoundByExternalId: "0026",
   tenantAlreadyHasDelegatedProducerFeature: "0027",
   tenantHasNoDelegatedProducerFeature: "0028",
+  notValidMailAddress: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -312,5 +313,13 @@ export function tenantHasNoDelegatedProducerFeature(
     detail: `Tenant ${tenantId} has no delegated producer feature assigned`,
     code: "tenantHasNoDelegatedProducerFeature",
     title: "Feature not assigned",
+  });
+}
+
+export function notValidMailAddress(address: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail address ${address} not valid`,
+    code: "notValidMailAddress",
+    title: "Not valid mail address",
   });
 }
