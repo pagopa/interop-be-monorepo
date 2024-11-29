@@ -695,15 +695,12 @@ const agreementRouter = (
             tenantId: unsafeBrandId<TenantId>(req.body.tenantId),
             descriptorId: unsafeBrandId<DescriptorId>(req.body.descriptorId),
             eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
-            delegationId: req.body.delegationId
-              ? unsafeBrandId<DelegationId>(req.body.delegationId)
-              : undefined,
           },
           ctx
         );
         return res
           .status(200)
-          .send(agreementApi.hasCertifiedAttributes.parse(result));
+          .send(agreementApi.HasCertifiedAttributes.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

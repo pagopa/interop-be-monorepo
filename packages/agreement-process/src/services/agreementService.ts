@@ -206,9 +206,10 @@ function retrieveAgreementDocument(
   return document;
 }
 
-export const retrieveDelegationById = async (
+export const retrieveActiveConsumerDelegation = async (
   readModelService: ReadModelService,
-  delegationId: DelegationId
+  tenantId: TenantId,
+  eserviceId: EServiceId,
 ): Promise<Delegation> => {
   const delegation = await readModelService.getDelegationById(delegationId);
   if (!delegation) {
@@ -1154,26 +1155,24 @@ export function agreementServiceBuilder(
         tenantId,
         descriptorId,
         eserviceId,
-        delegationId,
       }: {
         tenantId: TenantId;
         descriptorId: DescriptorId;
         eserviceId: EServiceId;
-        delegationId?: DelegationId;
       },
       { logger, authData }: WithLogger<AppContext>
-    ): Promise<agreementApi.hasCertifiedAttributes> {
+    ): Promise<agreementApi.HasCertifiedAttributes> {
       logger.info(
         `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
       );
 
-      if (delegationId) {
-        const delegation = await retrieveDelegationById(
-          readModelService,
-          delegationId
-        );
+      const delegation =
+        authData.organizationId !== tenantId
+          ? await retrieveDelegationById(readModelService, delegationId)
+          : undefined;
 
-        assertDelegationIsActive(delegation);
+      if (authData.organizationId === tenantId) {
+        const delegation = assertDelegationIsActive(delegation);
         assertIsDelegate(delegation, authData.organizationId);
       } else {
         assertTenantIsRequester(authData.organizationId, tenantId);

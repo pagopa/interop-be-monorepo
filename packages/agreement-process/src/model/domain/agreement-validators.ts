@@ -194,30 +194,6 @@ export const assertActivableState = (agreement: Agreement): void => {
   }
 };
 
-export const assertIsDelegate = (
-  delegation: Delegation,
-  delegateId: TenantId
-): void => {
-  if (delegation.delegateId !== delegateId) {
-    throw operationRestrictedToDelegate(delegateId, delegation.id);
-  }
-};
-
-export const assertDelegationIsActive = (delegation: Delegation): void => {
-  if (delegation.state !== delegationState.active) {
-    throw delegationNotActive(delegation.id);
-  }
-};
-
-export const assertTenantIsRequester = (
-  organizationId: TenantId,
-  tenantId: TenantId
-): void => {
-  if (organizationId !== tenantId) {
-    throw tenantIsNotRequester(organizationId, tenantId);
-  }
-};
-
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (

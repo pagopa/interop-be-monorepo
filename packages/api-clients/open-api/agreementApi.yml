@@ -879,17 +879,13 @@ paths:
                   type: string
                   format: uuid
                   description: The E-Service descriptor id
-                delegationId:
-                  type: string
-                  format: uuid
-                  description: The E-Service delegation id
       responses:
         "200":
           description: Tenant has required certified attributes
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/hasCertifiedAttributes"
+                $ref: "#/components/schemas/HasCertifiedAttributes"
         "400":
           description: Bad Request
           content:
