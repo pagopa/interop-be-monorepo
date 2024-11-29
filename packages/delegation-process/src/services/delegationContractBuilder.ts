@@ -68,7 +68,7 @@ export const contractBuilder = {
       "delegationApprovedTemplate.html"
     );
     const delegationKindText = match(delegation.kind)
-      .with(delegationKind.delegatedProducer, () => "all'erogazione")
+      .with(delegationKind.delegatedProducer, () => "all’erogazione")
       .with(delegationKind.delegatedConsumer, () => "alla fruizione")
       .exhaustive();
 
