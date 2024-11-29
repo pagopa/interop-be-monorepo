@@ -1793,6 +1793,10 @@ components:
           format: date-time
         attributes:
           $ref: "#/components/schemas/Attributes"
+        rejectionReasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/RejectionReason"
     Attribute:
       type: object
       additionalProperties: false
@@ -1862,6 +1866,18 @@ components:
         - ARCHIVED
         - MISSING_CERTIFIED_ATTRIBUTES
         - REJECTED
+    RejectionReason:
+      type: object
+      additionalProperties: false
+      properties:
+        rejectionReason:
+          type: string
+        rejectedAt:
+          type: string
+          format: date-time
+      required:
+        - rejectionReason
+        - rejectedAt
     RejectDelegatedEServiceDescriptorSeed:
       type: object
       additionalProperties: false
