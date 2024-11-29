@@ -423,6 +423,15 @@ describe("get eservices", () => {
 
     await addOneDelegation(delegation3);
 
+    const delegation4 = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice6.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation(delegation4);
+
     const result = await catalogService.getEServices(
       getMockAuthData(),
       {

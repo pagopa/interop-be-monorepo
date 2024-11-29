@@ -824,11 +824,11 @@ describe("upgrade Agreement", () => {
       producerIpaCode: getIpaCode(producer),
       consumerName: consumer.name,
       consumerIpaCode: getIpaCode(consumer),
-      delegationId: delegation.id,
-      delegatorName: producer.name,
-      delegatorIpaCode: getIpaCode(producer),
-      delegateName: delegate.name,
-      delegateIpaCode: getIpaCode(delegate),
+      producerDelegationId: delegation.id,
+      producerDelegatorName: producer.name,
+      producerDelegatorIpaCode: getIpaCode(producer),
+      producerDelegateName: delegate.name,
+      producerDelegateIpaCode: getIpaCode(delegate),
       certifiedAttributes: [
         {
           assignmentDate: dateAtRomeZone(
@@ -886,14 +886,15 @@ describe("upgrade Agreement", () => {
   it("should succeed with invalid Declared or Verified attributes, creating a new Draft agreement", async () => {
     const producer = getMockTenant();
 
+    const invalidVerifiedAttribute = getMockAttribute(attributeKind.verified);
     const invalidVerifiedTenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
+      ...getMockVerifiedTenantAttribute(invalidVerifiedAttribute.id),
       verifiedBy: [
         {
           id: producer.id,
           verificationDate: new Date(),
-          expirationDate: addDays(new Date(), 30),
-          extensionDate: new Date(), // invalid because of this
+          expirationDate: new Date(),
+          extensionDate: new Date(),
         },
       ],
     };
@@ -903,8 +904,9 @@ describe("upgrade Agreement", () => {
       revocationTimestamp: new Date(),
     };
 
+    const validCertifiedAttribute = getMockAttribute(attributeKind.certified);
     const validCertifiedTenantAttribute = {
-      ...getMockCertifiedTenantAttribute(),
+      ...getMockCertifiedTenantAttribute(validCertifiedAttribute.id),
       revocationTimestamp: undefined,
     };
 
@@ -912,18 +914,15 @@ describe("upgrade Agreement", () => {
       invalidDeclaredTenantAttribute,
       invalidVerifiedTenantAttribute,
     ]);
+
     const consumer: Tenant = {
       ...getMockTenant(),
       attributes: [validCertifiedTenantAttribute, invalidAttribute],
     };
     await addOneTenant(consumer);
     await addOneTenant(producer);
-    await addOneAttribute(
-      getMockAttribute(
-        attributeKind.certified,
-        validCertifiedTenantAttribute.id
-      )
-    );
+    await addOneAttribute(validCertifiedAttribute);
+    await addOneAttribute(invalidVerifiedAttribute);
 
     const authData = getRandomAuthData(consumer.id);
 

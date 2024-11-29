@@ -100,7 +100,7 @@ import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertDocumentDeletableDescriptorState,
-  assertHasNoDraftDescriptor,
+  assertHasNoDraftOrWaitingForApprovalDescriptor,
   assertInterfaceDeletableDescriptorState,
   assertIsDraftEservice,
   assertIsReceiveEservice,
@@ -955,7 +955,7 @@ export function catalogServiceBuilder(
         authData,
         readModelService
       );
-      assertHasNoDraftDescriptor(eservice.data);
+      assertHasNoDraftOrWaitingForApprovalDescriptor(eservice.data);
 
       const newVersion = nextDescriptorVersion(eservice.data);
 

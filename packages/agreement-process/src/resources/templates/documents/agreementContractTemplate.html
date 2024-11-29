@@ -55,11 +55,12 @@
       <strong>{{eserviceId}}</strong>, versione {{descriptorVersion}},
       contraddistinta da id <strong>{{descriptorId}}</strong> (di seguito
       “e-service”), reso disponibile dall’aderente
-      {{#if delegationId}}
-      <strong>{{delegatorName}}</strong> {{#if delegatorIpaCode}}(codice IPA:
-      <strong>{{delegatorIpaCode}}</strong> - di seguito “erogatore”){{else}}(di seguito “erogatore”), per tramite dell’aderente{{/if}}
-      <strong>{{delegateName}}</strong> {{#if delegateIpaCode}}(codice IPA: 
-      <strong>{{delegateIpaCode}}</strong> - di seguito “delegato all’erogazione”){{else}}(di seguito “delegato all’erogazione”){{/if}}
+      {{#if producerDelegationId}}
+      <strong>{{producerDelegatorName}}</strong>{{#if producerDelegatorIpaCode}} (codice IPA:
+      <strong>{{producerDelegatorIpaCode}}</strong> - di seguito “erogatore”){{else}}
+      (di seguito “erogatore”){{/if}}, per tramite dell’aderente
+      <strong>{{producerDelegateName}}</strong> {{#if producerDelegateIpaCode}}(codice IPA: 
+      <strong>{{producerDelegateIpaCode}}</strong> - di seguito “delegato all’erogazione”){{else}}(di seguito “delegato all’erogazione”){{/if}}
       {{else}}
       <strong>{{producerName}}</strong> {{#if producerIpaCode}}(codice IPA: 
       <strong>{{producerIpaCode}}</strong> — di seguito “erogatore”){{else}}(di
@@ -126,14 +127,14 @@
         <strong>{{submissionTime}}</strong>, l’Infrastruttura ha trasmesso
         all’erogatore la richiesta di fruizione.
       </div>
-      {{#if delegationId}}
+      {{#if producerDelegationId}}
       <div>
         In data <strong>{{activationDate}}</strong> alle ore
         <strong>{{activationTime}}</strong>, l’infrastruttura ha ricevuto
         la dichiarazione di accettazione della richiesta di fruizione
         (di seguito “dichiarazione di accettazione”) inviata dal delegato all’erogazione,
         tramite l’operatore amministrativo con identificativo Area Riservata
-        <strong>{{delegateId}}</strong>.
+        <strong>{{producerDelegateId}}</strong>.
       </div>
       {{else}}
       <div>

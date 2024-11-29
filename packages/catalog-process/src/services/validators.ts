@@ -113,13 +113,15 @@ export function assertTenantKindExists(
   }
 }
 
-export function assertHasNoDraftDescriptor(eservice: EService): void {
-  const hasDraftDescriptor = eservice.descriptors.some(
+export function assertHasNoDraftOrWaitingForApprovalDescriptor(
+  eservice: EService
+): void {
+  const hasInvalidDescriptor = eservice.descriptors.some(
     (d: Descriptor) =>
       d.state === descriptorState.draft ||
       d.state === descriptorState.waitingForApproval
   );
-  if (hasDraftDescriptor) {
+  if (hasInvalidDescriptor) {
     throw draftDescriptorAlreadyExists(eservice.id);
   }
 }

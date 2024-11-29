@@ -154,20 +154,6 @@ export function readModelServiceBuilder(
           "data.id": { $in: ids },
         });
 
-      const producersIdsFilter = ReadModelRepository.arrayToFilter(
-        producersIds,
-        {
-          $or: [
-            { "data.producerId": { $in: producersIds } },
-            {
-              "delegation.data.delegateId": { $in: producersIds },
-              "delegation.data.state": { $eq: delegationState.active },
-              "delegation.data.kind": { $eq: delegationKind.delegatedProducer },
-            },
-          ],
-        }
-      );
-
       const delegationLookup =
         producersIds.length > 0 || delegated !== undefined
           ? [
@@ -176,11 +162,27 @@ export function readModelServiceBuilder(
                   from: "delegations",
                   localField: "data.id",
                   foreignField: "data.eserviceId",
-                  as: "delegation",
+                  as: "delegations",
                 },
               },
             ]
           : [];
+
+      const producersIdsFilter = ReadModelRepository.arrayToFilter(
+        producersIds,
+        {
+          $or: [
+            { "data.producerId": { $in: producersIds } },
+            {
+              "delegations.data.delegateId": { $in: producersIds },
+              "delegations.data.state": { $eq: delegationState.active },
+              "delegations.data.kind": {
+                $eq: delegationKind.delegatedProducer,
+              },
+            },
+          ],
+        }
+      );
 
       const descriptorsStateFilter: ReadModelFilter<EService> =
         ReadModelRepository.arrayToFilter(states, {
@@ -267,14 +269,24 @@ export function readModelServiceBuilder(
 
       const delegatedFilter: ReadModelFilter<EService> = match(delegated)
         .with(true, () => ({
-          "delegation.data.state": {
+          "delegations.data.state": {
             $in: [delegationState.active, delegationState.waitingForApproval],
           },
-          "delegation.data.kind": delegationKind.delegatedProducer,
+          "delegations.data.kind": delegationKind.delegatedProducer,
         }))
         .with(false, () => ({
-          "delegation.data.state": {
-            $nin: [delegationState.active, delegationState.waitingForApproval],
+          delegations: {
+            $not: {
+              $elemMatch: {
+                "data.state": {
+                  $in: [
+                    delegationState.active,
+                    delegationState.waitingForApproval,
+                  ],
+                },
+                "data.kind": delegationKind.delegatedProducer,
+              },
+            },
           },
         }))
         .otherwise(() => ({}));

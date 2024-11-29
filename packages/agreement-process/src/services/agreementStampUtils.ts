@@ -46,5 +46,9 @@ export const suspendedByProducerStamp = (
       [delegateProducerId, agreementState.suspended],
       () => stamp
     )
-    .with([agreement.producerId, P.any], () => undefined)
+    .with(
+      [agreement.producerId, P.any],
+      [delegateProducerId, P.any],
+      () => undefined
+    )
     .otherwise(() => agreement.stamps.suspensionByProducer);
