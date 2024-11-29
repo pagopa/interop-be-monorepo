@@ -192,10 +192,9 @@ export const verifyTenantCertifiedAttributesErrorMapper = (
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "delegationNotFound",
       "eServiceNotFound",
       "descriptorNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("operationRestrictedToDelegate", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
