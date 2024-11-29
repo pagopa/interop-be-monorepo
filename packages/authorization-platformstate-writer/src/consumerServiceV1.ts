@@ -187,10 +187,10 @@ export async function handleMessageV1(
                     dynamoDBClient
                   );
 
-                  const addedConsumerClient = addedEntries[index];
+                  const addedTokenGenStatesConsumerClient = addedEntries[index];
                   await updateTokenGenStatesDataForSecondRetrieval({
                     dynamoDBClient,
-                    entry: addedConsumerClient,
+                    entry: addedTokenGenStatesConsumerClient,
                     purposeEntry: purposeEntry2,
                     agreementEntry: agreementEntry2,
                     catalogEntry: catalogEntry2,
@@ -198,26 +198,27 @@ export async function handleMessageV1(
                 })
               );
             } else {
-              const clientKidEntry: TokenGenerationStatesConsumerClient = {
-                PK: makeTokenGenerationStatesClientKidPK({
-                  clientId,
-                  kid,
-                }),
-                consumerId: platformClientEntry.clientConsumerId,
-                clientKind: clientKindTokenGenStates.consumer,
-                publicKey: pem,
-                GSIPK_clientId: clientId,
-                GSIPK_kid: makeGSIPKKid(kid),
-                updatedAt: new Date().toISOString(),
-              };
+              const tokenGenStatesConsumerClientWithoutPurpose: TokenGenerationStatesConsumerClient =
+                {
+                  PK: makeTokenGenerationStatesClientKidPK({
+                    clientId,
+                    kid,
+                  }),
+                  consumerId: platformClientEntry.clientConsumerId,
+                  clientKind: clientKindTokenGenStates.consumer,
+                  publicKey: pem,
+                  GSIPK_clientId: clientId,
+                  GSIPK_kid: makeGSIPKKid(kid),
+                  updatedAt: new Date().toISOString(),
+                };
               await upsertTokenGenStatesConsumerClient(
-                clientKidEntry,
+                tokenGenStatesConsumerClientWithoutPurpose,
                 dynamoDBClient
               );
             }
           })
           .with(clientKindTokenGenStates.api, async () => {
-            const clientKidEntry: TokenGenerationStatesApiClient = {
+            const tokenGenStatesApiClient: TokenGenerationStatesApiClient = {
               PK: makeTokenGenerationStatesClientKidPK({
                 clientId,
                 kid,
@@ -229,7 +230,10 @@ export async function handleMessageV1(
               GSIPK_kid: makeGSIPKKid(kid),
               updatedAt: new Date().toISOString(),
             };
-            await upsertTokenGenStatesApiClient(clientKidEntry, dynamoDBClient);
+            await upsertTokenGenStatesApiClient(
+              tokenGenStatesApiClient,
+              dynamoDBClient
+            );
           })
           .exhaustive();
       }

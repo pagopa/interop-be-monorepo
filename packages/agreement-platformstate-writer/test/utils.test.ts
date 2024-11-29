@@ -281,14 +281,15 @@ describe("utils", async () => {
         consumerId: generateId(),
         eserviceId: generateId(),
       });
-      const tokenGenStatesEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
-        descriptorState: itemState.inactive,
-        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-        GSIPK_consumerId_eserviceId,
-      };
+      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+          GSIPK_consumerId_eserviceId,
+        };
       await writeTokenGenStatesConsumerClient(
-        tokenGenStatesEntry1,
+        tokenGenStatesConsumerClient1,
         dynamoDBClient
       );
 
@@ -298,14 +299,15 @@ describe("utils", async () => {
           kid: `kid ${Math.random()}`,
           purposeId: generateId(),
         });
-      const tokenGenStatesEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
-        descriptorState: itemState.inactive,
-        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-        GSIPK_consumerId_eserviceId,
-      };
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+          GSIPK_consumerId_eserviceId,
+        };
       await writeTokenGenStatesConsumerClient(
-        tokenGenStatesEntry2,
+        tokenGenStatesConsumerClient2,
         dynamoDBClient
       );
 
@@ -316,7 +318,10 @@ describe("utils", async () => {
         );
 
       expect(retrievedTokenGenStatesEntries).toEqual(
-        expect.arrayContaining([tokenGenStatesEntry1, tokenGenStatesEntry2])
+        expect.arrayContaining([
+          tokenGenStatesConsumerClient1,
+          tokenGenStatesConsumerClient2,
+        ])
       );
     });
 
@@ -328,7 +333,8 @@ describe("utils", async () => {
 
       const tokenEntriesLength = 10;
 
-      const writtenEntries = [];
+      const writtenTokenGenStatesConsumerClients: TokenGenerationStatesConsumerClient[] =
+        [];
       // eslint-disable-next-line functional/no-let
       for (let i = 0; i < tokenEntriesLength; i++) {
         const tokenGenStatesEntryPK =
@@ -337,30 +343,33 @@ describe("utils", async () => {
             kid: `kid ${Math.random()}`,
             purposeId: generateId(),
           });
-        const tokenGenStatesEntry: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
-          descriptorState: itemState.inactive,
-          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-          GSIPK_consumerId_eserviceId,
-          publicKey: crypto.randomBytes(100000).toString("hex"),
-        };
+        const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+          {
+            ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
+            descriptorState: itemState.inactive,
+            descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+            GSIPK_consumerId_eserviceId,
+            publicKey: crypto.randomBytes(100000).toString("hex"),
+          };
         await writeTokenGenStatesConsumerClient(
-          tokenGenStatesEntry,
+          tokenGenStatesConsumerClient,
           dynamoDBClient
         );
         // eslint-disable-next-line functional/immutable-data
-        writtenEntries.push(tokenGenStatesEntry);
+        writtenTokenGenStatesConsumerClients.push(tokenGenStatesConsumerClient);
       }
       vi.spyOn(dynamoDBClient, "send");
-      const tokenEntries =
+      const tokenGenStatesConsumerClients =
         await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
           GSIPK_consumerId_eserviceId,
           dynamoDBClient
         );
 
       expect(dynamoDBClient.send).toHaveBeenCalledTimes(2);
-      expect(tokenEntries).toHaveLength(tokenEntriesLength);
-      expect(tokenEntries).toEqual(expect.arrayContaining(writtenEntries));
+      expect(tokenGenStatesConsumerClients).toHaveLength(tokenEntriesLength);
+      expect(tokenGenStatesConsumerClients).toEqual(
+        expect.arrayContaining(writtenTokenGenStatesConsumerClients)
+      );
     });
   });
 

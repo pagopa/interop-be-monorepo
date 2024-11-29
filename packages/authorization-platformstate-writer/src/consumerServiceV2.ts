@@ -100,57 +100,59 @@ export async function handleMessageV2(
                     purposeId,
                   });
 
-                const consumerClient: TokenGenerationStatesConsumerClient = {
-                  PK: tokenClientKidPurposePK,
-                  consumerId: client.consumerId,
-                  clientKind: clientKindTokenGenStates.consumer,
-                  publicKey: pem,
-                  updatedAt: new Date().toISOString(),
-                  GSIPK_clientId: client.id,
-                  GSIPK_kid: makeGSIPKKid(msg.data.kid),
-                  GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-                    clientId: client.id,
-                    purposeId,
-                  }),
-                  GSIPK_purposeId: purposeId,
-                  ...(purposeEntry
-                    ? {
-                        GSIPK_consumerId_eserviceId:
-                          makeGSIPKConsumerIdEServiceId({
-                            consumerId: client.consumerId,
-                            eserviceId: purposeEntry.purposeEserviceId,
-                          }),
-                        purposeState: purposeEntry.state,
-                        purposeVersionId: purposeEntry.purposeVersionId,
-                      }
-                    : {}),
-                  ...(purposeEntry && agreementEntry
-                    ? {
-                        agreementId: extractAgreementIdFromAgreementPK(
-                          agreementEntry.PK
-                        ),
-                        agreementState: agreementEntry.state,
-                        GSIPK_eserviceId_descriptorId:
-                          makeGSIPKEServiceIdDescriptorId({
-                            eserviceId: purposeEntry.purposeEserviceId,
-                            descriptorId: agreementEntry.agreementDescriptorId,
-                          }),
-                      }
-                    : {}),
-                  ...(catalogEntry
-                    ? {
-                        descriptorState: catalogEntry.state,
-                        descriptorAudience: catalogEntry.descriptorAudience,
-                        descriptorVoucherLifespan:
-                          catalogEntry.descriptorVoucherLifespan,
-                      }
-                    : {}),
-                };
+                const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+                  {
+                    PK: tokenClientKidPurposePK,
+                    consumerId: client.consumerId,
+                    clientKind: clientKindTokenGenStates.consumer,
+                    publicKey: pem,
+                    updatedAt: new Date().toISOString(),
+                    GSIPK_clientId: client.id,
+                    GSIPK_kid: makeGSIPKKid(msg.data.kid),
+                    GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+                      clientId: client.id,
+                      purposeId,
+                    }),
+                    GSIPK_purposeId: purposeId,
+                    ...(purposeEntry
+                      ? {
+                          GSIPK_consumerId_eserviceId:
+                            makeGSIPKConsumerIdEServiceId({
+                              consumerId: client.consumerId,
+                              eserviceId: purposeEntry.purposeEserviceId,
+                            }),
+                          purposeState: purposeEntry.state,
+                          purposeVersionId: purposeEntry.purposeVersionId,
+                        }
+                      : {}),
+                    ...(purposeEntry && agreementEntry
+                      ? {
+                          agreementId: extractAgreementIdFromAgreementPK(
+                            agreementEntry.PK
+                          ),
+                          agreementState: agreementEntry.state,
+                          GSIPK_eserviceId_descriptorId:
+                            makeGSIPKEServiceIdDescriptorId({
+                              eserviceId: purposeEntry.purposeEserviceId,
+                              descriptorId:
+                                agreementEntry.agreementDescriptorId,
+                            }),
+                        }
+                      : {}),
+                    ...(catalogEntry
+                      ? {
+                          descriptorState: catalogEntry.state,
+                          descriptorAudience: catalogEntry.descriptorAudience,
+                          descriptorVoucherLifespan:
+                            catalogEntry.descriptorVoucherLifespan,
+                        }
+                      : {}),
+                  };
                 await upsertTokenGenStatesConsumerClient(
-                  consumerClient,
+                  tokenGenStatesConsumerClient,
                   dynamoDBClient
                 );
-                return consumerClient;
+                return tokenGenStatesConsumerClient;
               })
             );
 
@@ -166,10 +168,10 @@ export async function handleMessageV2(
                   dynamoDBClient
                 );
 
-                const addedConsumerClient = addedEntries[index];
+                const addedTokenGenStatesConsumerClient = addedEntries[index];
                 await updateTokenGenStatesDataForSecondRetrieval({
                   dynamoDBClient,
-                  entry: addedConsumerClient,
+                  entry: addedTokenGenStatesConsumerClient,
                   purposeEntry: purposeEntry2,
                   agreementEntry: agreementEntry2,
                   catalogEntry: catalogEntry2,
@@ -177,26 +179,27 @@ export async function handleMessageV2(
               })
             );
           } else {
-            const clientKidEntry: TokenGenerationStatesConsumerClient = {
-              PK: makeTokenGenerationStatesClientKidPK({
-                clientId: client.id,
-                kid: msg.data.kid,
-              }),
-              consumerId: client.consumerId,
-              clientKind: clientKindTokenGenStates.consumer,
-              publicKey: pem,
-              GSIPK_clientId: client.id,
-              GSIPK_kid: makeGSIPKKid(msg.data.kid),
-              updatedAt: new Date().toISOString(),
-            };
+            const tokenGenStatesConsumerClientWithoutPurpose: TokenGenerationStatesConsumerClient =
+              {
+                PK: makeTokenGenerationStatesClientKidPK({
+                  clientId: client.id,
+                  kid: msg.data.kid,
+                }),
+                consumerId: client.consumerId,
+                clientKind: clientKindTokenGenStates.consumer,
+                publicKey: pem,
+                GSIPK_clientId: client.id,
+                GSIPK_kid: makeGSIPKKid(msg.data.kid),
+                updatedAt: new Date().toISOString(),
+              };
             await upsertTokenGenStatesConsumerClient(
-              clientKidEntry,
+              tokenGenStatesConsumerClientWithoutPurpose,
               dynamoDBClient
             );
           }
         })
         .with(clientKind.api, async () => {
-          const clientKidEntry: TokenGenerationStatesApiClient = {
+          const tokenGenStatesApiClient: TokenGenerationStatesApiClient = {
             PK: makeTokenGenerationStatesClientKidPK({
               clientId: client.id,
               kid: msg.data.kid,
@@ -208,7 +211,10 @@ export async function handleMessageV2(
             GSIPK_kid: makeGSIPKKid(msg.data.kid),
             updatedAt: new Date().toISOString(),
           };
-          await upsertTokenGenStatesApiClient(clientKidEntry, dynamoDBClient);
+          await upsertTokenGenStatesApiClient(
+            tokenGenStatesApiClient,
+            dynamoDBClient
+          );
         })
         .exhaustive();
     })

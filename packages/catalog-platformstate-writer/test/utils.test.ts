@@ -263,18 +263,22 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const tokenGenStatesEntry: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
-        descriptorState: itemState.inactive,
-        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-      };
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
       await writeTokenGenStatesConsumerClient(
-        tokenGenStatesEntry,
+        tokenGenStatesConsumerClient,
         dynamoDBClient
       );
       expect(
-        writeTokenGenStatesConsumerClient(tokenGenStatesEntry, dynamoDBClient)
+        writeTokenGenStatesConsumerClient(
+          tokenGenStatesConsumerClient,
+          dynamoDBClient
+        )
       ).rejects.toThrowError(ConditionalCheckFailedException);
     });
 
@@ -296,14 +300,15 @@ describe("utils tests", async () => {
           dynamoDBClient
         );
       expect(previousTokenGenStatesEntries).toEqual([]);
-      const tokenGenStatesEntry: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
-        descriptorState: itemState.inactive,
-        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-      };
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
       await writeTokenGenStatesConsumerClient(
-        tokenGenStatesEntry,
+        tokenGenStatesConsumerClient,
         dynamoDBClient
       );
       const retrievedTokenGenStatesEntries =
@@ -312,7 +317,9 @@ describe("utils tests", async () => {
           dynamoDBClient
         );
 
-      expect(retrievedTokenGenStatesEntries).toEqual([tokenGenStatesEntry]);
+      expect(retrievedTokenGenStatesEntries).toEqual([
+        tokenGenStatesConsumerClient,
+      ]);
     });
   });
 
@@ -341,14 +348,15 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const tokenGenStatesEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
-        descriptorState: itemState.inactive,
-        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-      };
+      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
       await writeTokenGenStatesConsumerClient(
-        tokenGenStatesEntry1,
+        tokenGenStatesConsumerClient1,
         dynamoDBClient
       );
 
@@ -358,25 +366,29 @@ describe("utils tests", async () => {
           kid: `kid ${Math.random()}`,
           purposeId: generateId(),
         });
-      const tokenGenStatesEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
-        descriptorState: itemState.inactive,
-        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-      };
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
       await writeTokenGenStatesConsumerClient(
-        tokenGenStatesEntry2,
+        tokenGenStatesConsumerClient2,
         dynamoDBClient
       );
 
-      const tokenEntries =
+      const tokenGenStatesConsumerClients =
         await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
 
-      expect(tokenEntries).toEqual(
-        expect.arrayContaining([tokenGenStatesEntry1, tokenGenStatesEntry2])
+      expect(tokenGenStatesConsumerClients).toEqual(
+        expect.arrayContaining([
+          tokenGenStatesConsumerClient1,
+          tokenGenStatesConsumerClient2,
+        ])
       );
     });
 
@@ -388,7 +400,8 @@ describe("utils tests", async () => {
 
       const tokenEntriesLength = 10;
 
-      const writtenEntries: TokenGenerationStatesConsumerClient[] = [];
+      const writtenTokenGenStatesConsumerClients: TokenGenerationStatesConsumerClient[] =
+        [];
       // eslint-disable-next-line functional/no-let
       for (let i = 0; i < tokenEntriesLength; i++) {
         const tokenGenStatesEntryPK =
@@ -397,30 +410,33 @@ describe("utils tests", async () => {
             kid: `kid ${Math.random()}`,
             purposeId: generateId(),
           });
-        const tokenGenStatesEntry: TokenGenerationStatesConsumerClient = {
-          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
-          descriptorState: itemState.inactive,
-          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-          publicKey: crypto.randomBytes(100000).toString("hex"),
-        };
+        const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+          {
+            ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
+            descriptorState: itemState.inactive,
+            descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+            publicKey: crypto.randomBytes(100000).toString("hex"),
+          };
         await writeTokenGenStatesConsumerClient(
-          tokenGenStatesEntry,
+          tokenGenStatesConsumerClient,
           dynamoDBClient
         );
         // eslint-disable-next-line functional/immutable-data
-        writtenEntries.push(tokenGenStatesEntry);
+        writtenTokenGenStatesConsumerClients.push(tokenGenStatesConsumerClient);
       }
       vi.spyOn(dynamoDBClient, "send");
-      const tokenEntries =
+      const tokenGenStatesConsumerClients =
         await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
 
       expect(dynamoDBClient.send).toHaveBeenCalledTimes(2);
-      expect(tokenEntries).toHaveLength(tokenEntriesLength);
-      expect(tokenEntries).toEqual(expect.arrayContaining(writtenEntries));
+      expect(tokenGenStatesConsumerClients).toHaveLength(tokenEntriesLength);
+      expect(tokenGenStatesConsumerClients).toEqual(
+        expect.arrayContaining(writtenTokenGenStatesConsumerClients)
+      );
     });
   });
 
