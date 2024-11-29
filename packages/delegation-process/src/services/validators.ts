@@ -23,7 +23,6 @@ import {
   operationRestrictedToDelegator,
   tenantIsNotIPAError,
   tenantNotAllowedToDelegation,
-  invalidDelegationKind,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -157,14 +156,5 @@ export function assertStampExists<S extends keyof Delegation["stamps"]>(
 } {
   if (!stamps[stamp]) {
     throw delegationStampNotFound(stamp);
-  }
-}
-
-export function assertDelegationKindIs(
-  expectedKind: DelegationKind,
-  delegation: Delegation
-): void {
-  if (delegation.kind !== expectedKind) {
-    throw invalidDelegationKind(delegation, expectedKind);
   }
 }

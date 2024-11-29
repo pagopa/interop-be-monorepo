@@ -32,7 +32,6 @@ import {
   delegationNotFound,
   operationRestrictedToDelegate,
   incorrectState,
-  invalidDelegationKind,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -98,7 +97,7 @@ describe("approve consumer delegation", () => {
     });
 
     const expectedContractId = unsafeBrandId<DelegationContractId>(
-      actualDelegation!.activationContract!.id
+      actualDelegation.activationContract!.id
     );
     const expectedContractName = `${formatDateyyyyMMddHHmmss(
       currentExecutionTime
@@ -178,10 +177,15 @@ describe("approve consumer delegation", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrow(delegationNotFound(nonExistentDelegationId));
+    ).rejects.toThrow(
+      delegationNotFound(
+        nonExistentDelegationId,
+        delegationKind.delegatedConsumer
+      )
+    );
   });
 
-  it("should throw invalidDelegationKind when delegation kind is not DelegatedConsumer", async () => {
+  it("should throw delegationNotFound when delegation kind is not DelegatedConsumer", async () => {
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       state: "WaitingForApproval",
@@ -199,7 +203,7 @@ describe("approve consumer delegation", () => {
         logger: genericLogger,
       })
     ).rejects.toThrow(
-      invalidDelegationKind(delegation, delegationKind.delegatedConsumer)
+      delegationNotFound(delegation.id, delegationKind.delegatedConsumer)
     );
   });
 

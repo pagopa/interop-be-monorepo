@@ -36,11 +36,10 @@ import {
   assertDelegatorAndDelegateIPA,
   assertIsDelegator,
   activeDelegationStates,
-  assertDelegationKindIs,
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
 import {
-  retrieveDelegationById,
+  retrieveDelegation,
   retrieveEserviceById,
   retrieveTenantById,
 } from "./delegationService.js";
@@ -119,12 +118,12 @@ export function delegationProducerServiceBuilder(
         `Revoking delegation ${delegationId} by producer ${delegatorId}`
       );
 
-      const { data: delegation, metadata } = await retrieveDelegationById(
+      const { data: delegation, metadata } = await retrieveDelegation(
         readModelService,
-        delegationId
+        delegationId,
+        delegationKind.delegatedProducer
       );
 
-      assertDelegationKindIs(delegationKind.delegatedProducer, delegation);
       assertIsDelegator(delegation, delegatorId);
       assertIsState(activeDelegationStates, delegation);
 
@@ -185,12 +184,12 @@ export function delegationProducerServiceBuilder(
         `Approving delegation ${delegationId} by delegate ${delegateId}`
       );
 
-      const { data: delegation, metadata } = await retrieveDelegationById(
+      const { data: delegation, metadata } = await retrieveDelegation(
         readModelService,
-        delegationId
+        delegationId,
+        delegationKind.delegatedProducer
       );
 
-      assertDelegationKindIs(delegationKind.delegatedProducer, delegation);
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
@@ -253,12 +252,12 @@ export function delegationProducerServiceBuilder(
         `Rejecting delegation ${delegationId} by delegate ${delegateId}`
       );
 
-      const { data: delegation, metadata } = await retrieveDelegationById(
+      const { data: delegation, metadata } = await retrieveDelegation(
         readModelService,
-        delegationId
+        delegationId,
+        delegationKind.delegatedProducer
       );
 
-      assertDelegationKindIs(delegationKind.delegatedProducer, delegation);
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 

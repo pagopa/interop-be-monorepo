@@ -31,7 +31,6 @@ import {
 import {
   delegationNotFound,
   incorrectState,
-  invalidDelegationKind,
   operationRestrictedToDelegator,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
@@ -198,10 +197,12 @@ describe("revoke producer delegation", () => {
         correlationId: generateId(),
         serviceName: "DelegationServiceTest",
       })
-    ).rejects.toThrow(delegationNotFound(delegationId));
+    ).rejects.toThrow(
+      delegationNotFound(delegationId, delegationKind.delegatedProducer)
+    );
   });
 
-  it("should throw invalidDelegationKind when delegation kind is not DelegatedProducer", async () => {
+  it("should throw delegationNotFound when delegation kind is not DelegatedProducer", async () => {
     const delegate = getMockTenant();
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
@@ -218,7 +219,7 @@ describe("revoke producer delegation", () => {
         logger: genericLogger,
       })
     ).rejects.toThrow(
-      invalidDelegationKind(delegation, delegationKind.delegatedProducer)
+      delegationNotFound(delegation.id, delegationKind.delegatedProducer)
     );
   });
 
