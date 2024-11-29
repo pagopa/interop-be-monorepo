@@ -42,8 +42,7 @@ export const errorCodes = {
   agreementDocumentAlreadyExists: "0025",
   userNotFound: "0026",
   delegationNotFound: "0027",
-  noActiveDelegations: "0028",
-  missingDelegationId: "0029",
+  missingDelegationId: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
