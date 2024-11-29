@@ -54,6 +54,7 @@ import {
   eServiceNotFound,
   missingDelegationId,
   noNewerDescriptor,
+  operationRestrictedToDelegate,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -87,15 +88,12 @@ import {
   agreementUpgradableStates,
   assertActivableState,
   assertCanWorkOnConsumerDocuments,
-  assertDelegationIsActive,
   assertExpectedState,
-  assertIsDelegate,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsDelegate,
   assertRequesterIsProducer,
   assertSubmittableState,
-  assertTenantIsRequester,
   failOnActivationFailure,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
@@ -192,6 +190,28 @@ export const retrieveDescriptor = (
   return descriptor;
 };
 
+const isConsumerDelegationByEserviceIdAndIdsValid = async (
+  {
+    eserviceId,
+    delegatorId,
+    delegateId,
+  }: {
+    eserviceId: EServiceId;
+    delegatorId: TenantId;
+    delegateId: TenantId;
+  },
+  readModelService: ReadModelService
+): Promise<boolean> => {
+  const delegation =
+    await readModelService.getActiveConsumerDelegationByEserviceIdAndIds({
+      eserviceId,
+      delegatorId,
+      delegateId,
+    });
+
+  return delegation !== undefined;
+};
+
 const retrieveDelegation = (
   delegations: Delegation[],
   delegationId: DelegationId
@@ -216,18 +236,6 @@ function retrieveAgreementDocument(
   }
   return document;
 }
-
-export const retrieveActiveConsumerDelegation = async (
-  readModelService: ReadModelService,
-  tenantId: TenantId,
-  eserviceId: EServiceId,
-): Promise<Delegation> => {
-  const delegation = await readModelService.getDelegationById(delegationId);
-  if (!delegation) {
-    throw delegationNotFound(delegationId);
-  }
-  return delegation;
-};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
@@ -1177,16 +1185,22 @@ export function agreementServiceBuilder(
         `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
       );
 
-      const delegation =
-        authData.organizationId !== tenantId
-          ? await retrieveDelegationById(readModelService, delegationId)
-          : undefined;
+      const isAuthorized =
+        authData.organizationId === tenantId ||
+        (await isConsumerDelegationByEserviceIdAndIdsValid(
+          {
+            eserviceId,
+            delegateId: authData.organizationId,
+            delegatorId: tenantId,
+          },
+          readModelService
+        ));
 
-      if (authData.organizationId === tenantId) {
-        const delegation = assertDelegationIsActive(delegation);
-        assertIsDelegate(delegation, authData.organizationId);
-      } else {
-        assertTenantIsRequester(authData.organizationId, tenantId);
+      if (!isAuthorized) {
+        throw operationRestrictedToDelegate({
+          delegatorId: tenantId,
+          delegateId: authData.organizationId,
+        });
       }
       const consumer = await retrieveTenant(tenantId, readModelService);
       const eservice = await retrieveEService(eserviceId, readModelService);

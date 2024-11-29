@@ -16,8 +16,6 @@ import {
   TenantId,
   AgreementStamp,
   AgreementStamps,
-  Delegation,
-  delegationState,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import {
@@ -33,15 +31,12 @@ import {
   agreementNotInExpectedState,
   agreementStampNotFound,
   agreementSubmissionFailed,
-  delegationNotActive,
   descriptorNotFound,
   descriptorNotInExpectedState,
   documentChangeNotAllowed,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
-  operationRestrictedToDelegate,
-  tenantIsNotRequester,
 } from "./errors.js";
 import {
   CertifiedAgreementAttribute,

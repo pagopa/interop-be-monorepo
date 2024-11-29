@@ -7,6 +7,7 @@ import {
   RemoveDataPrefix,
   Metadata,
   AttributeCollection,
+  DelegationCollection,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -23,12 +24,12 @@ import {
   descriptorState,
   EServiceId,
   AttributeReadmodel,
+  DelegationReadModel,
   TenantId,
   genericInternalError,
   Delegation,
   delegationState,
   delegationKind,
-  DelegationId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -244,6 +245,27 @@ async function getAttribute(
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return result.data;
+  }
+  return undefined;
+}
+
+async function getDelegation(
+  delegations: DelegationCollection,
+  filter: Filter<{ data: DelegationReadModel }>
+): Promise<Delegation | undefined> {
+  const data = await delegations.findOne(filter, {
+    projection: { data: true },
+  });
+  if (data) {
+    const result = Delegation.safeParse(data.data);
+    if (!result.success) {
+      throw genericInternalError(
+        `Unable to parse delegation item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
@@ -588,26 +610,22 @@ export function readModelServiceBuilder(
       }
       return result.data;
     },
-    async getDelegationById(id: DelegationId): Promise<Delegation | undefined> {
-      const data = await delegations.findOne(
-        { "data.id": id },
-        {
-          projection: { data: true },
-        }
-      );
-      if (!data) {
-        return undefined;
-      }
-
-      const result = Delegation.safeParse(data.data);
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse delegation item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-      return data.data;
+    async getActiveConsumerDelegationByEserviceIdAndIds({
+      eserviceId,
+      delegatorId,
+      delegateId,
+    }: {
+      eserviceId: EServiceId;
+      delegatorId: TenantId;
+      delegateId: TenantId;
+    }): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.eserviceId": eserviceId,
+        "data.delegatorId": delegatorId,
+        "data.delegateId": delegateId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedConsumer,
+      });
     },
   };
 }
