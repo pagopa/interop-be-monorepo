@@ -117,9 +117,9 @@ export type AgreementContractPDFPayload = {
     attributeId: string;
     expirationDate: string | undefined;
   }>;
-  delegationId?: string;
-  delegatorName?: string;
-  delegatorIpaCode?: string;
-  delegateName?: string;
-  delegateIpaCode?: string;
+  producerDelegationId?: string;
+  producerDelegatorName?: string;
+  producerDelegatorIpaCode?: string;
+  producerDelegateName?: string;
+  producerDelegateIpaCode?: string;
 };

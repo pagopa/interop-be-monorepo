@@ -39,7 +39,7 @@ const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
 
 export type DelegationData = {
-  delegation: Delegation;
+  producerDelegation: Delegation;
   delegator: Tenant;
   delegate: Tenant;
 };
@@ -142,7 +142,7 @@ const getPdfPayload = async (
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  delegationData: DelegationData | undefined,
+  producerDelegationData: DelegationData | undefined,
   readModelService: ReadModelService
 ): Promise<AgreementContractPDFPayload> => {
   const getIpaCode = (tenant: Tenant): string | undefined =>
@@ -209,29 +209,31 @@ const getPdfPayload = async (
           : undefined,
       };
     }),
-    delegationId: delegationData?.delegation.id,
-    delegatorName: delegationData?.delegator.name,
-    delegatorIpaCode: delegationData && getIpaCode(delegationData?.delegator),
-    delegateName: delegationData?.delegate.name,
-    delegateIpaCode: delegationData && getIpaCode(delegationData?.delegate),
+    producerDelegationId: producerDelegationData?.producerDelegation.id,
+    producerDelegatorName: producerDelegationData?.delegator.name,
+    producerDelegatorIpaCode:
+      producerDelegationData && getIpaCode(producerDelegationData?.delegator),
+    producerDelegateName: producerDelegationData?.delegate.name,
+    producerDelegateIpaCode:
+      producerDelegationData && getIpaCode(producerDelegationData?.delegate),
   };
 };
 
-const buildDelegationData = async (
-  delegation: Delegation,
+const buildProducerDelegationData = async (
+  producerDelegation: Delegation,
   readModelService: ReadModelService
 ): Promise<DelegationData> => {
   const delegator = await retrieveTenant(
-    delegation.delegatorId,
+    producerDelegation.delegatorId,
     readModelService
   );
   const delegate = await retrieveTenant(
-    delegation.delegateId,
+    producerDelegation.delegateId,
     readModelService
   );
 
   return {
-    delegation,
+    producerDelegation,
     delegator,
     delegate,
   };
@@ -262,16 +264,19 @@ export const contractBuilder = (
       producer: Tenant,
       producerDelegation: Delegation | undefined
     ): Promise<AgreementDocument> => {
-      const delegationData =
+      const producerDelegationData =
         producerDelegation &&
-        (await buildDelegationData(producerDelegation, readModelService));
+        (await buildProducerDelegationData(
+          producerDelegation,
+          readModelService
+        ));
 
       const pdfPayload = await getPdfPayload(
         agreement,
         eservice,
         consumer,
         producer,
-        delegationData,
+        producerDelegationData,
         readModelService
       );
 
