@@ -18,6 +18,7 @@ import {
   deleteCatalogEntry,
   descriptorStateToItemState,
   readCatalogEntry,
+  updateDescriptorInfoInTokenGenerationStatesTable,
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
   updateDescriptorVoucherLifespanInPlatformStateEntry,
@@ -80,9 +81,11 @@ export async function handleMessageV2(
           eserviceId: eservice.id,
           descriptorId: descriptor.id,
         });
-        await updateDescriptorStateInTokenGenerationStatesTable(
+        await updateDescriptorInfoInTokenGenerationStatesTable(
           eserviceId_descriptorId,
           descriptorStateToItemState(descriptor.state),
+          descriptor.voucherLifespan,
+          descriptor.audience,
           dynamoDBClient
         );
       };

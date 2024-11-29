@@ -81,17 +81,38 @@ export type Agreement = z.infer<typeof Agreement>;
 export type AgreementContractPDFPayload = {
   todayDate: string;
   todayTime: string;
-  agreementId: string;
-  submitter: string;
+  agreementId: AgreementId;
+  submitterId: UserId;
   submissionDate: string;
   submissionTime: string;
-  activator: string;
+  activatorId: UserId;
   activationDate: string;
   activationTime: string;
-  eServiceName: string;
-  producerText: string;
-  consumerText: string;
-  certifiedAttributes: string;
-  declaredAttributes: string;
-  verifiedAttributes: string;
+  eserviceId: EServiceId;
+  eserviceName: string;
+  descriptorId: DescriptorId;
+  descriptorVersion: string;
+  producerName: string;
+  producerIpaCode: string | undefined;
+  consumerName: string;
+  consumerIpaCode: string | undefined;
+  certifiedAttributes: Array<{
+    assignmentDate: string;
+    assignmentTime: string;
+    attributeName: string;
+    attributeId: string;
+  }>;
+  declaredAttributes: Array<{
+    assignmentDate: string;
+    assignmentTime: string;
+    attributeName: string;
+    attributeId: string;
+  }>;
+  verifiedAttributes: Array<{
+    assignmentDate: string;
+    assignmentTime: string;
+    attributeName: string;
+    attributeId: string;
+    expirationDate: string | undefined;
+  }>;
 };

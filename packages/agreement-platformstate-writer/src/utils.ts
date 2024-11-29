@@ -132,7 +132,7 @@ export const updateAgreementStateInPlatformStatesEntry = async (
       ":newVersion": {
         N: version.toString(),
       },
-      ":newUpdateAt": {
+      ":newUpdatedAt": {
         S: new Date().toISOString(),
       },
     },
@@ -140,7 +140,7 @@ export const updateAgreementStateInPlatformStatesEntry = async (
       "#state": "state",
     },
     UpdateExpression:
-      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt",
+      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdatedAt",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
   };
@@ -163,7 +163,7 @@ export const updateAgreementStateOnTokenStatesEntries = async ({
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
       // ConditionExpression to avoid upsert
-      ConditionExpression: "attribute_exists(GSIPK_eserviceId_descriptorId)",
+      ConditionExpression: "attribute_exists(PK)",
       Key: {
         PK: {
           S: entry.PK,
@@ -173,12 +173,12 @@ export const updateAgreementStateOnTokenStatesEntries = async ({
         ":newState": {
           S: agreementStateToItemState(agreementState),
         },
-        ":newUpdateAt": {
+        ":newUpdatedAt": {
           S: new Date().toISOString(),
         },
       },
       UpdateExpression:
-        "SET agreementState = :newState, updatedAt = :newUpdateAt",
+        "SET agreementState = :newState, updatedAt = :newUpdatedAt",
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       ReturnValues: "NONE",
     };
@@ -190,12 +190,14 @@ export const updateAgreementStateOnTokenStatesEntries = async ({
 export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
   async ({
     entriesToUpdate,
+    agreementId,
     agreementState,
     dynamoDBClient,
     GSIPK_eserviceId_descriptorId,
     catalogEntry,
   }: {
     entriesToUpdate: TokenGenerationStatesClientPurposeEntry[];
+    agreementId: AgreementId;
     agreementState: AgreementState;
     dynamoDBClient: DynamoDBClient;
     GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
@@ -204,7 +206,9 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
     for (const entry of entriesToUpdate) {
       const additionalDescriptorInfo =
         catalogEntry &&
-        (!entry.GSIPK_eserviceId_descriptorId || !entry.descriptorState);
+        (!entry.descriptorState ||
+          !entry.descriptorAudience ||
+          !entry.descriptorVoucherLifespan);
 
       const additionalAttributesToSet: Record<string, AttributeValue> =
         additionalDescriptorInfo
@@ -220,9 +224,6 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
               ":descriptorVoucherLifespan": {
                 N: catalogEntry.descriptorVoucherLifespan.toString(),
               },
-              ":gsi": {
-                S: GSIPK_eserviceId_descriptorId,
-              },
             }
           : {};
       const input: UpdateItemInput = {
@@ -234,18 +235,24 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
           },
         },
         ExpressionAttributeValues: {
+          ":agreementId": {
+            S: agreementId,
+          },
+          ":gsiEServiceIdDescriptorId": {
+            S: GSIPK_eserviceId_descriptorId,
+          },
           ":newState": {
             S: agreementStateToItemState(agreementState),
           },
-          ":newUpdateAt": {
+          ":newUpdatedAt": {
             S: new Date().toISOString(),
           },
           ...additionalAttributesToSet,
         },
         UpdateExpression:
-          "SET agreementState = :newState, updatedAt = :newUpdateAt".concat(
+          "SET agreementId = :agreementId, agreementState = :newState, GSIPK_eserviceId_descriptorId = :gsiEServiceIdDescriptorId, updatedAt = :newUpdatedAt".concat(
             additionalDescriptorInfo
-              ? ", GSI_eservice_id_descriptor_id = :gsi, descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan"
+              ? ", descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan"
               : ""
           ),
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
@@ -323,12 +330,14 @@ export const readPlatformStateAgreementEntriesByConsumerIdEserviceId = async (
 
 export const updateAgreementStateAndDescriptorInfoOnTokenStates = async ({
   GSIPK_consumerId_eserviceId,
+  agreementId,
   agreementState,
   dynamoDBClient,
   GSIPK_eserviceId_descriptorId,
   catalogEntry,
 }: {
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId;
+  agreementId: AgreementId;
   agreementState: AgreementState;
   dynamoDBClient: DynamoDBClient;
   GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
@@ -372,6 +381,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStates = async ({
 
       await updateAgreementStateAndDescriptorInfoOnTokenStatesEntries({
         entriesToUpdate: tokenStateEntries.data,
+        agreementId,
         agreementState,
         dynamoDBClient,
         GSIPK_eserviceId_descriptorId,

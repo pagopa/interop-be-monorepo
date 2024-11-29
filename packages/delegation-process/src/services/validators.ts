@@ -7,6 +7,7 @@ import {
   delegationState,
   EService,
   EServiceId,
+  operationForbidden,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
@@ -133,6 +134,18 @@ export const assertIsState = (
     (Array.isArray(expected) && !expected.includes(delegation.state))
   ) {
     throw incorrectState(delegation.id, delegation.state, expected);
+  }
+};
+
+export const assertRequesterIsDelegateOrDelegator = (
+  delegation: Delegation,
+  requesterId: TenantId
+): void => {
+  if (
+    delegation.delegateId !== requesterId &&
+    delegation.delegatorId !== requesterId
+  ) {
+    throw operationForbidden;
   }
 };
 
