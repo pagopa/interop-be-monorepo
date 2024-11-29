@@ -2,6 +2,7 @@ import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import {
   ExpressContext,
+  FileManager,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -18,7 +19,8 @@ const producerDelegationRouter = (
     delegationProcessClient,
     tenantProcessClient,
     catalogProcessClient,
-  }: PagoPAInteropBeClients
+  }: PagoPAInteropBeClients,
+  fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const producerDelegationRouter = ctx.router(
     bffApi.producerDelegationsApi.api,
@@ -29,7 +31,8 @@ const producerDelegationRouter = (
   const delegationService = delegationServiceBuilder(
     delegationProcessClient,
     tenantProcessClient,
-    catalogProcessClient
+    catalogProcessClient,
+    fileManager
   );
 
   producerDelegationRouter

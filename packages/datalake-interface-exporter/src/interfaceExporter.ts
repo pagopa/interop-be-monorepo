@@ -31,7 +31,7 @@ export async function exportInterface(
   await fileManager.storeBytes(
     {
       bucket: config.datalakeInterfacesExportS3Bucket,
-      path: eserviceId,
+      path: `${config.datalakeInterfacesExportPath}/${eserviceId}`,
       resourceId: latestDescriptor.id,
       name: latestDescriptor.interface.name,
       content: Buffer.from(interfaceFile),
