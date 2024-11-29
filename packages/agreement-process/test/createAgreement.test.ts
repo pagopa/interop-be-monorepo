@@ -752,7 +752,7 @@ describe("create agreement", () => {
       missingCertifiedAttributesError(descriptor.id, consumer.id)
     );
   });
-  it("should throw missingDelegationId error when there are active delegations but no delegation id is provided", async () => {
+  it("should throw missingDelegationId error when there is an active delegation but no delegation id is provided", async () => {
     const authData = getRandomAuthData();
 
     const eservice = getMockEService(
@@ -767,6 +767,7 @@ describe("create agreement", () => {
         kind: delegationKind.delegatedConsumer,
         eserviceId: eservice.id,
         state: delegationState.active,
+        delegateId: authData.organizationId,
       })
     );
 
