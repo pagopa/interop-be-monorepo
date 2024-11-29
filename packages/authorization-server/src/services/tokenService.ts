@@ -220,26 +220,26 @@ export const retrieveKey = async (
     throw tokenGenerationStatesEntryNotFound(pk);
   } else {
     const unmarshalled = unmarshall(data.Item);
-    const tokenGenerationEntry =
+    const tokenGenStatesClient =
       TokenGenerationStatesGenericClient.safeParse(unmarshalled);
 
-    if (!tokenGenerationEntry.success) {
+    if (!tokenGenStatesClient.success) {
       throw genericInternalError(
-        `Unable to parse token generation entry item: result ${JSON.stringify(
-          tokenGenerationEntry
+        `Unable to parse token-generation-states client: result ${JSON.stringify(
+          tokenGenStatesClient
         )} - data ${JSON.stringify(data)} `
       );
     }
 
-    return match(tokenGenerationEntry.data)
+    return match(tokenGenStatesClient.data)
       .with({ clientKind: clientKindTokenGenStates.consumer }, (entry) => {
-        const consumerClient =
+        const tokenGenStatesConsumerClient =
           FullTokenGenerationStatesConsumerClient.safeParse(entry);
-        if (!consumerClient.success) {
+        if (!tokenGenStatesConsumerClient.success) {
           throw incompleteTokenGenerationStatesConsumerClient(entry.PK);
         }
 
-        return consumerClient.data;
+        return tokenGenStatesConsumerClient.data;
       })
       .with({ clientKind: clientKindTokenGenStates.api }, (entry) => entry)
       .exhaustive();
