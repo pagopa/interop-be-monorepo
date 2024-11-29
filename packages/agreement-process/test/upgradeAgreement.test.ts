@@ -886,15 +886,14 @@ describe("upgrade Agreement", () => {
   it("should succeed with invalid Declared or Verified attributes, creating a new Draft agreement", async () => {
     const producer = getMockTenant();
 
-    const invalidVerifiedAttribute = getMockAttribute(attributeKind.verified);
     const invalidVerifiedTenantAttribute = {
-      ...getMockVerifiedTenantAttribute(invalidVerifiedAttribute.id),
+      ...getMockVerifiedTenantAttribute(),
       verifiedBy: [
         {
           id: producer.id,
           verificationDate: new Date(),
-          expirationDate: new Date(),
-          extensionDate: new Date(),
+          expirationDate: addDays(new Date(), 30),
+          extensionDate: new Date(), // invalid because of this
         },
       ],
     };
@@ -904,9 +903,8 @@ describe("upgrade Agreement", () => {
       revocationTimestamp: new Date(),
     };
 
-    const validCertifiedAttribute = getMockAttribute(attributeKind.certified);
     const validCertifiedTenantAttribute = {
-      ...getMockCertifiedTenantAttribute(validCertifiedAttribute.id),
+      ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: undefined,
     };
 
@@ -914,15 +912,18 @@ describe("upgrade Agreement", () => {
       invalidDeclaredTenantAttribute,
       invalidVerifiedTenantAttribute,
     ]);
-
     const consumer: Tenant = {
       ...getMockTenant(),
       attributes: [validCertifiedTenantAttribute, invalidAttribute],
     };
     await addOneTenant(consumer);
     await addOneTenant(producer);
-    await addOneAttribute(validCertifiedAttribute);
-    await addOneAttribute(invalidVerifiedAttribute);
+    await addOneAttribute(
+      getMockAttribute(
+        attributeKind.certified,
+        validCertifiedTenantAttribute.id
+      )
+    );
 
     const authData = getRandomAuthData(consumer.id);
 
