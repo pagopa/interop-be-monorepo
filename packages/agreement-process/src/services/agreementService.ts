@@ -55,7 +55,6 @@ import {
   descriptorNotFound,
   eServiceNotFound,
   missingDelegationId,
-  noActiveDelegations,
   noNewerDescriptor,
   publishedDescriptorNotFound,
   tenantNotFound,
@@ -273,7 +272,7 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const consumer = await getConsumerFromDelegations(
+      const consumer = await getConsumerFromDelegationOrRequester(
         eserviceId,
         delegationId,
         authData.organizationId,
@@ -1274,7 +1273,7 @@ async function addContractOnFirstActivation(
   return agreement;
 }
 
-async function getConsumerFromDelegations(
+async function getConsumerFromDelegationOrRequester(
   eserviceId: EServiceId,
   delegationId: DelegationId | undefined,
   organizationId: TenantId,
@@ -1283,19 +1282,20 @@ async function getConsumerFromDelegations(
   const delegations =
     await readModelService.getActiveConsumerDelegationsByEserviceId(eserviceId);
 
-  if (delegations.length > 0) {
-    if (!delegationId) {
+  if (delegationId) {
+    const delegation = retrieveDelegation(delegations, delegationId);
+
+    assertRequesterIsDelegate(delegation.delegateId, organizationId);
+    return retrieveTenant(delegation.delegatorId, readModelService);
+  } else {
+    const hasDelegation = delegations.some(
+      (d) => d.delegateId === organizationId || d.delegatorId === organizationId
+    );
+
+    if (hasDelegation) {
       throw missingDelegationId(organizationId, eserviceId);
     }
 
-    const delegation = retrieveDelegation(delegations, delegationId);
-    assertRequesterIsDelegate(delegation.delegateId, organizationId);
-    return await retrieveTenant(delegation.delegatorId, readModelService);
+    return retrieveTenant(organizationId, readModelService);
   }
-
-  if (delegationId) {
-    throw noActiveDelegations(eserviceId);
-  }
-
-  return await retrieveTenant(organizationId, readModelService);
 }

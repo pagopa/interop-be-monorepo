@@ -333,13 +333,3 @@ export function missingDelegationId(
     title: "Missing delegation id",
   });
 }
-
-export function noActiveDelegations(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `No active delegations for EService ${eserviceId}`,
-    code: "noActiveDelegations",
-    title: "No active delegations",
-  });
-}

@@ -46,7 +46,6 @@ import {
   eServiceNotFound,
   missingCertifiedAttributesError,
   missingDelegationId,
-  noActiveDelegations,
   notLatestEServiceDescriptor,
   operationNotAllowed,
   tenantNotFound,
@@ -853,30 +852,5 @@ describe("create agreement", () => {
         }
       )
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
-  });
-  it("should throw noActiveDelegations error when the delegationId is provided but there are no active delegations", async () => {
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [getMockDescriptorPublished()]
-    );
-
-    await addOneEService(eservice);
-
-    await expect(
-      agreementService.createAgreement(
-        {
-          eserviceId: eservice.id,
-          descriptorId: eservice.descriptors[0].id,
-          delegationId: generateId<DelegationId>(),
-        },
-        {
-          authData: getRandomAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(noActiveDelegations(eservice.id));
   });
 });
