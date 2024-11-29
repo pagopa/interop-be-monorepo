@@ -270,26 +270,28 @@ describe("integration tests V2 events", async () => {
           GSIPK_consumerId_eserviceId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        agreementId: agreement.id,
-        agreementState: itemState.active,
-        GSIPK_eserviceId_descriptorId,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        agreementId: agreement.id,
-        agreementState: itemState.active,
-        GSIPK_eserviceId_descriptorId,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          agreementId: agreement.id,
+          agreementState: itemState.active,
+          GSIPK_eserviceId_descriptorId,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          agreementId: agreement.id,
+          agreementState: itemState.active,
+          GSIPK_eserviceId_descriptorId,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
+          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesEntry2,
         ])
       );
     });
@@ -394,26 +396,28 @@ describe("integration tests V2 events", async () => {
           GSIPK_consumerId_eserviceId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        GSIPK_eserviceId_descriptorId,
-        agreementId: agreement.id,
-        agreementState: itemState.active,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        GSIPK_eserviceId_descriptorId,
-        agreementId: agreement.id,
-        agreementState: itemState.active,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          GSIPK_eserviceId_descriptorId,
+          agreementId: agreement.id,
+          agreementState: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          GSIPK_eserviceId_descriptorId,
+          agreementId: agreement.id,
+          agreementState: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
+          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesEntry2,
         ])
       );
     });
@@ -538,32 +542,34 @@ describe("integration tests V2 events", async () => {
           GSIPK_consumerId_eserviceId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        GSIPK_eserviceId_descriptorId,
-        agreementId: agreement.id,
-        agreementState: itemState.active,
-        descriptorState: catalogEntry.state,
-        descriptorAudience: catalogEntry.descriptorAudience,
-        descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        GSIPK_eserviceId_descriptorId,
-        agreementId: agreement.id,
-        agreementState: itemState.active,
-        descriptorState: catalogEntry.state,
-        descriptorAudience: catalogEntry.descriptorAudience,
-        descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          GSIPK_eserviceId_descriptorId,
+          agreementId: agreement.id,
+          agreementState: itemState.active,
+          descriptorState: catalogEntry.state,
+          descriptorAudience: catalogEntry.descriptorAudience,
+          descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          GSIPK_eserviceId_descriptorId,
+          agreementId: agreement.id,
+          agreementState: itemState.active,
+          descriptorState: catalogEntry.state,
+          descriptorAudience: catalogEntry.descriptorAudience,
+          descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
+          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesEntry2,
         ])
       );
     });
@@ -1038,22 +1044,24 @@ describe("integration tests V2 events", async () => {
           GSIPK_consumerId_eserviceId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        agreementState: itemState.inactive,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        agreementState: itemState.inactive,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry2,
-          expectedTokenStateEntry1,
+          expectedTokenGenStatesEntry2,
+          expectedTokenGenStatesEntry1,
         ])
       );
     });
@@ -1368,22 +1376,24 @@ describe("integration tests V2 events", async () => {
           GSIPK_consumerId_eserviceId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        agreementState: itemState.inactive,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        agreementState: itemState.inactive,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry2,
-          expectedTokenStateEntry1,
+          expectedTokenGenStatesEntry2,
+          expectedTokenGenStatesEntry1,
         ])
       );
     });
@@ -1698,22 +1708,24 @@ describe("integration tests V2 events", async () => {
           GSIPK_consumerId_eserviceId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        agreementState: itemState.inactive,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        agreementState: itemState.inactive,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry2,
-          expectedTokenStateEntry1,
+          expectedTokenGenStatesEntry2,
+          expectedTokenGenStatesEntry1,
         ])
       );
     });
@@ -2028,22 +2040,24 @@ describe("integration tests V2 events", async () => {
           GSIPK_consumerId_eserviceId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        agreementState: itemState.active,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        agreementState: itemState.active,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          agreementState: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          agreementState: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry2,
-          expectedTokenStateEntry1,
+          expectedTokenGenStatesEntry2,
+          expectedTokenGenStatesEntry1,
         ])
       );
     });
@@ -2359,22 +2373,24 @@ describe("integration tests V2 events", async () => {
           GSIPK_consumerId_eserviceId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        agreementState: itemState.active,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        agreementState: itemState.active,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          agreementState: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          agreementState: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry2,
-          expectedTokenStateEntry1,
+          expectedTokenGenStatesEntry2,
+          expectedTokenGenStatesEntry1,
         ])
       );
     });
@@ -2644,26 +2660,28 @@ describe("integration tests V2 events", async () => {
           dynamoDBClient
         );
 
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        GSIPK_eserviceId_descriptorId,
-        agreementId: latestAgreement.id,
-        agreementState: itemState.active,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        GSIPK_eserviceId_descriptorId,
-        agreementId: latestAgreement.id,
-        agreementState: itemState.active,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          GSIPK_eserviceId_descriptorId,
+          agreementId: latestAgreement.id,
+          agreementState: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          GSIPK_eserviceId_descriptorId,
+          agreementId: latestAgreement.id,
+          agreementState: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
+          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesEntry2,
         ])
       );
     });
@@ -2943,24 +2961,26 @@ describe("integration tests V2 events", async () => {
           GSIPK_consumerId_eserviceId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        GSIPK_eserviceId_descriptorId,
-        agreementId: agreement.id,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        GSIPK_eserviceId_descriptorId,
-        agreementId: agreement.id,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          GSIPK_eserviceId_descriptorId,
+          agreementId: agreement.id,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          GSIPK_eserviceId_descriptorId,
+          agreementId: agreement.id,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
+          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesEntry2,
         ])
       );
     });
@@ -3202,22 +3222,24 @@ describe("integration tests V2 events", async () => {
           GSIPK_consumerId_eserviceId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        agreementState: itemState.inactive,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        agreementState: itemState.inactive,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
+          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesEntry2,
         ])
       );
     });

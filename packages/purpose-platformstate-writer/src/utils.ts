@@ -129,7 +129,7 @@ export const deletePlatformPurposeEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const readTokenEntriesByGSIPKPurposeId = async (
+export const readTokenGenStatesEntriesByGSIPKPurposeId = async (
   dynamoDBClient: DynamoDBClient,
   purposeId: PurposeId,
   exclusiveStartKey?: Record<string, AttributeValue>
@@ -221,53 +221,56 @@ export const updatePurposeDataInPlatformStatesEntry = async ({
   await dynamoDBClient.send(command);
 };
 
-export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
-  dynamoDBClient: DynamoDBClient,
-  purpose: Purpose,
-  purposeState: ItemState,
-  purposeVersionId: PurposeVersionId
-): Promise<void> => {
-  const runPaginatedUpdateQuery = async (
+export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
+  async (
     dynamoDBClient: DynamoDBClient,
     purpose: Purpose,
     purposeState: ItemState,
-    purposeVersionId: PurposeVersionId,
-    exclusiveStartKey?: Record<string, AttributeValue>
+    purposeVersionId: PurposeVersionId
   ): Promise<void> => {
-    const result = await readTokenEntriesByGSIPKPurposeId(
-      dynamoDBClient,
-      purpose.id,
-      exclusiveStartKey
-    );
-    const gsiPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId({
-      consumerId: purpose.consumerId,
-      eserviceId: purpose.eserviceId,
-    });
-    const platformAgreementEntry = await readPlatformAgreementEntry(
-      dynamoDBClient,
-      gsiPKConsumerIdEServiceId
-    );
-    const catalogEntry = platformAgreementEntry
-      ? await readCatalogEntry(
-          dynamoDBClient,
-          makePlatformStatesEServiceDescriptorPK({
-            eserviceId: purpose.eserviceId,
-            descriptorId: platformAgreementEntry.agreementDescriptorId,
-          })
-        )
-      : undefined;
+    const runPaginatedUpdateQuery = async (
+      dynamoDBClient: DynamoDBClient,
+      purpose: Purpose,
+      purposeState: ItemState,
+      purposeVersionId: PurposeVersionId,
+      exclusiveStartKey?: Record<string, AttributeValue>
+    ): Promise<void> => {
+      const result = await readTokenGenStatesEntriesByGSIPKPurposeId(
+        dynamoDBClient,
+        purpose.id,
+        exclusiveStartKey
+      );
+      const gsiPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: purpose.consumerId,
+        eserviceId: purpose.eserviceId,
+      });
+      const platformAgreementEntry = await readPlatformAgreementEntry(
+        dynamoDBClient,
+        gsiPKConsumerIdEServiceId
+      );
+      const catalogEntry = platformAgreementEntry
+        ? await readCatalogEntry(
+            dynamoDBClient,
+            makePlatformStatesEServiceDescriptorPK({
+              eserviceId: purpose.eserviceId,
+              descriptorId: platformAgreementEntry.agreementDescriptorId,
+            })
+          )
+        : undefined;
 
-    for (const entry of result.tokenGenStatesEntries) {
-      const tokenEntryPK = entry.PK;
-      const isAgreementMissingInTokenTable =
-        platformAgreementEntry &&
-        (!entry.agreementId ||
-          !entry.agreementState ||
-          !entry.GSIPK_eserviceId_descriptorId);
+      for (const entry of result.tokenGenStatesEntries) {
+        const tokenEntryPK = entry.PK;
+        const isAgreementMissingInTokenTable =
+          platformAgreementEntry &&
+          (!entry.agreementId ||
+            !entry.agreementState ||
+            !entry.GSIPK_eserviceId_descriptorId);
 
-      // Agreement data from platform-states
-      const agreementExpressionAttributeValues: Record<string, AttributeValue> =
-        isAgreementMissingInTokenTable
+        // Agreement data from platform-states
+        const agreementExpressionAttributeValues: Record<
+          string,
+          AttributeValue
+        > = isAgreementMissingInTokenTable
           ? {
               ":agreementId": {
                 S: extractAgreementIdFromAgreementPK(platformAgreementEntry.PK),
@@ -283,101 +286,101 @@ export const updateTokenEntriesWithPurposeAndPlatformStatesData = async (
               },
             }
           : {};
-      const agreementUpdateExpression = isAgreementMissingInTokenTable
-        ? `, agreementId = :agreementId, 
+        const agreementUpdateExpression = isAgreementMissingInTokenTable
+          ? `, agreementId = :agreementId, 
       agreementState = :agreementState, 
       GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId`
-        : "";
+          : "";
 
-      // Descriptor data from platform-states
-      const isDescriptorDataMissingInTokenTable =
-        platformAgreementEntry &&
-        catalogEntry &&
-        (!entry.descriptorAudience ||
-          !entry.descriptorState ||
-          !entry.descriptorVoucherLifespan);
+        // Descriptor data from platform-states
+        const isDescriptorDataMissingInTokenTable =
+          platformAgreementEntry &&
+          catalogEntry &&
+          (!entry.descriptorAudience ||
+            !entry.descriptorState ||
+            !entry.descriptorVoucherLifespan);
 
-      const descriptorExpressionAttributeValues: Record<
-        string,
-        AttributeValue
-      > = isDescriptorDataMissingInTokenTable
-        ? {
-            ":descriptorState": {
-              S: catalogEntry.state,
-            },
-            ":descriptorAudience": {
-              L: catalogEntry.descriptorAudience.map((item) => ({
-                S: item,
-              })),
-            },
-            ":descriptorVoucherLifespan": {
-              N: catalogEntry.descriptorVoucherLifespan.toString(),
-            },
-          }
-        : {};
-      const descriptorUpdateExpression = isDescriptorDataMissingInTokenTable
-        ? `, descriptorState = :descriptorState, 
+        const descriptorExpressionAttributeValues: Record<
+          string,
+          AttributeValue
+        > = isDescriptorDataMissingInTokenTable
+          ? {
+              ":descriptorState": {
+                S: catalogEntry.state,
+              },
+              ":descriptorAudience": {
+                L: catalogEntry.descriptorAudience.map((item) => ({
+                  S: item,
+                })),
+              },
+              ":descriptorVoucherLifespan": {
+                N: catalogEntry.descriptorVoucherLifespan.toString(),
+              },
+            }
+          : {};
+        const descriptorUpdateExpression = isDescriptorDataMissingInTokenTable
+          ? `, descriptorState = :descriptorState, 
         descriptorAudience = :descriptorAudience, 
         descriptorVoucherLifespan = :descriptorVoucherLifespan`
-        : "";
+          : "";
 
-      const input: UpdateItemInput = {
-        ConditionExpression: "attribute_exists(PK)",
-        Key: {
-          PK: {
-            S: tokenEntryPK,
+        const input: UpdateItemInput = {
+          ConditionExpression: "attribute_exists(PK)",
+          Key: {
+            PK: {
+              S: tokenEntryPK,
+            },
           },
-        },
-        ExpressionAttributeValues: {
-          ...agreementExpressionAttributeValues,
-          ...descriptorExpressionAttributeValues,
-          ":newState": {
-            S: purposeState,
+          ExpressionAttributeValues: {
+            ...agreementExpressionAttributeValues,
+            ...descriptorExpressionAttributeValues,
+            ":newState": {
+              S: purposeState,
+            },
+            ":newPurposeVersionId": {
+              S: purposeVersionId,
+            },
+            ":GSIPK_consumerId_eserviceId": {
+              S: makeGSIPKConsumerIdEServiceId({
+                consumerId: purpose.consumerId,
+                eserviceId: purpose.eserviceId,
+              }),
+            },
+            ":newUpdatedAt": {
+              S: new Date().toISOString(),
+            },
           },
-          ":newPurposeVersionId": {
-            S: purposeVersionId,
-          },
-          ":GSIPK_consumerId_eserviceId": {
-            S: makeGSIPKConsumerIdEServiceId({
-              consumerId: purpose.consumerId,
-              eserviceId: purpose.eserviceId,
-            }),
-          },
-          ":newUpdatedAt": {
-            S: new Date().toISOString(),
-          },
-        },
-        UpdateExpression:
-          "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId, updatedAt = :newUpdatedAt" +
-          agreementUpdateExpression +
-          descriptorUpdateExpression,
-        TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-        ReturnValues: "NONE",
-      };
-      const command = new UpdateItemCommand(input);
-      await dynamoDBClient.send(command);
-    }
+          UpdateExpression:
+            "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId, updatedAt = :newUpdatedAt" +
+            agreementUpdateExpression +
+            descriptorUpdateExpression,
+          TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+          ReturnValues: "NONE",
+        };
+        const command = new UpdateItemCommand(input);
+        await dynamoDBClient.send(command);
+      }
 
-    if (result.lastEvaluatedKey) {
-      await runPaginatedUpdateQuery(
-        dynamoDBClient,
-        purpose,
-        purposeState,
-        purposeVersionId,
-        result.lastEvaluatedKey
-      );
-    }
+      if (result.lastEvaluatedKey) {
+        await runPaginatedUpdateQuery(
+          dynamoDBClient,
+          purpose,
+          purposeState,
+          purposeVersionId,
+          result.lastEvaluatedKey
+        );
+      }
+    };
+
+    await runPaginatedUpdateQuery(
+      dynamoDBClient,
+      purpose,
+      purposeState,
+      purposeVersionId
+    );
   };
 
-  await runPaginatedUpdateQuery(
-    dynamoDBClient,
-    purpose,
-    purposeState,
-    purposeVersionId
-  );
-};
-
-export const updatePurposeDataInTokenEntries = async ({
+export const updatePurposeDataInTokenGenStatesEntries = async ({
   dynamoDBClient,
   purposeId,
   purposeState,
@@ -395,7 +398,7 @@ export const updatePurposeDataInTokenEntries = async ({
     purposeVersionId: PurposeVersionId,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<void> => {
-    const result = await readTokenEntriesByGSIPKPurposeId(
+    const result = await readTokenGenStatesEntriesByGSIPKPurposeId(
       dynamoDBClient,
       purposeId,
       exclusiveStartKey

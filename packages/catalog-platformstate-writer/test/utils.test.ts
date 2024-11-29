@@ -250,7 +250,7 @@ describe("utils tests", async () => {
   });
 
   // token-generation-states
-  describe("writeTokenStateEntry", async () => {
+  describe("writeTokenGenStatesEntry", async () => {
     it("should throw error if previous entry exists", async () => {
       const tokenGenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK(
         {
@@ -290,12 +290,12 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const previousTokenStateEntries =
+      const previousTokenGenStatesEntries =
         await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
-      expect(previousTokenStateEntries).toEqual([]);
+      expect(previousTokenGenStatesEntries).toEqual([]);
       const tokenGenStatesEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
         descriptorState: itemState.inactive,
@@ -316,7 +316,7 @@ describe("utils tests", async () => {
     });
   });
 
-  describe("readTokenStateEntriesByEserviceIdAndDescriptorId", async () => {
+  describe("readTokenGenStatesEntriesByEserviceIdAndDescriptorId", async () => {
     it("should return empty array if entries do not exist", async () => {
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: generateId(),
@@ -497,22 +497,24 @@ describe("utils tests", async () => {
           eserviceId_descriptorId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        descriptorState: itemState.active,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        descriptorState: itemState.active,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          descriptorState: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          descriptorState: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry2,
-          expectedTokenStateEntry1,
+          expectedTokenGenStatesEntry2,
+          expectedTokenGenStatesEntry1,
         ])
       );
     });

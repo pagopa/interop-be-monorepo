@@ -50,17 +50,17 @@ import {
   getPurposeStateFromPurposeVersions,
   readPlatformAgreementEntry,
   readPlatformPurposeEntry,
-  readTokenEntriesByGSIPKPurposeId,
+  readTokenGenStatesEntriesByGSIPKPurposeId,
   updatePurposeDataInPlatformStatesEntry,
-  updatePurposeDataInTokenEntries,
-  updateTokenEntriesWithPurposeAndPlatformStatesData,
+  updatePurposeDataInTokenGenStatesEntries,
+  updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData,
   writePlatformPurposeEntry,
 } from "../src/utils.js";
 import {
   config,
   writeAgreementEntry,
   writeCatalogEntry,
-  readAllTokenEntriesByGSIPKPurposeId,
+  readAllTokenGenStatesEntriesByGSIPKPurposeId,
 } from "./utils.js";
 
 describe("utils tests", async () => {
@@ -219,10 +219,10 @@ describe("utils tests", async () => {
     });
   });
 
-  describe("readTokenEntriesByGSIPKPurposeId", async () => {
+  describe("readTokenGenStatesEntriesByGSIPKPurposeId", async () => {
     it("should return empty array if entries do not exist", async () => {
       const purposeId: PurposeId = generateId();
-      const result = await readTokenEntriesByGSIPKPurposeId(
+      const result = await readTokenGenStatesEntriesByGSIPKPurposeId(
         dynamoDBClient,
         purposeId
       );
@@ -268,7 +268,7 @@ describe("utils tests", async () => {
         dynamoDBClient
       );
 
-      const result = await readTokenEntriesByGSIPKPurposeId(
+      const result = await readTokenGenStatesEntriesByGSIPKPurposeId(
         dynamoDBClient,
         purposeId
       );
@@ -303,7 +303,7 @@ describe("utils tests", async () => {
         );
       }
       vi.spyOn(dynamoDBClient, "send");
-      const result = await readTokenEntriesByGSIPKPurposeId(
+      const result = await readTokenGenStatesEntriesByGSIPKPurposeId(
         dynamoDBClient,
         purposeId
       );
@@ -316,10 +316,10 @@ describe("utils tests", async () => {
     });
   });
 
-  describe("readAllTokenEntriesByGSIPKPurposeId", async () => {
+  describe("readAllTokenGenStatesEntriesByGSIPKPurposeId", async () => {
     it("should return empty array if entries do not exist", async () => {
       const purposeId: PurposeId = generateId();
-      const tokenEntries = await readAllTokenEntriesByGSIPKPurposeId(
+      const tokenEntries = await readAllTokenGenStatesEntriesByGSIPKPurposeId(
         dynamoDBClient,
         purposeId
       );
@@ -362,7 +362,7 @@ describe("utils tests", async () => {
         dynamoDBClient
       );
 
-      const tokenEntries = await readAllTokenEntriesByGSIPKPurposeId(
+      const tokenEntries = await readAllTokenGenStatesEntriesByGSIPKPurposeId(
         dynamoDBClient,
         purposeId
       );
@@ -399,7 +399,7 @@ describe("utils tests", async () => {
         writtenEntries.push(tokenGenStatesEntry);
       }
       vi.spyOn(dynamoDBClient, "send");
-      const tokenEntries = await readAllTokenEntriesByGSIPKPurposeId(
+      const tokenEntries = await readAllTokenGenStatesEntriesByGSIPKPurposeId(
         dynamoDBClient,
         purposeId
       );
@@ -593,7 +593,7 @@ describe("utils tests", async () => {
       };
 
       await expect(
-        updatePurposeDataInTokenEntries({
+        updatePurposeDataInTokenGenStatesEntries({
           dynamoDBClient,
           purposeId: purpose.id,
           purposeState: itemState.inactive,
@@ -648,32 +648,37 @@ describe("utils tests", async () => {
         dynamoDBClient
       );
       const newPurposeVersionId = generateId<PurposeVersionId>();
-      await updatePurposeDataInTokenEntries({
+      await updatePurposeDataInTokenGenStatesEntries({
         dynamoDBClient,
         purposeId: purpose.id,
         purposeState: itemState.active,
         purposeVersionId: newPurposeVersionId,
       });
       const retrievedTokenGenStatesEntries =
-        await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purpose.id);
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        purposeState: itemState.active,
-        purposeVersionId: newPurposeVersionId,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        purposeState: itemState.active,
-        purposeVersionId: newPurposeVersionId,
-        updatedAt: new Date().toISOString(),
-      };
+        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
+          dynamoDBClient,
+          purpose.id
+        );
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          purposeState: itemState.active,
+          purposeVersionId: newPurposeVersionId,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          purposeState: itemState.active,
+          purposeVersionId: newPurposeVersionId,
+          updatedAt: new Date().toISOString(),
+        };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
+          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesEntry2,
         ])
       );
     });
@@ -691,7 +696,7 @@ describe("utils tests", async () => {
       };
 
       await expect(
-        updateTokenEntriesWithPurposeAndPlatformStatesData(
+        updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData(
           dynamoDBClient,
           purpose,
           itemState.inactive,
@@ -762,7 +767,7 @@ describe("utils tests", async () => {
       );
 
       const newPurposeVersionId = generateId<PurposeVersionId>();
-      await updateTokenEntriesWithPurposeAndPlatformStatesData(
+      await updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData(
         dynamoDBClient,
         purpose,
         itemState.active,
@@ -774,27 +779,32 @@ describe("utils tests", async () => {
         eserviceId: purpose.eserviceId,
       });
       const retrievedTokenGenStatesEntries =
-        await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
+          dynamoDBClient,
+          purposeId
+        );
 
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        GSIPK_consumerId_eserviceId,
-        purposeState: itemState.active,
-        purposeVersionId: newPurposeVersionId,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        GSIPK_consumerId_eserviceId,
-        purposeState: itemState.active,
-        purposeVersionId: newPurposeVersionId,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          GSIPK_consumerId_eserviceId,
+          purposeState: itemState.active,
+          purposeVersionId: newPurposeVersionId,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          GSIPK_consumerId_eserviceId,
+          purposeState: itemState.active,
+          purposeVersionId: newPurposeVersionId,
+          updatedAt: new Date().toISOString(),
+        };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
+          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesEntry2,
         ])
       );
     });
@@ -872,7 +882,7 @@ describe("utils tests", async () => {
       );
 
       const newPurposeVersionId = generateId<PurposeVersionId>();
-      await updateTokenEntriesWithPurposeAndPlatformStatesData(
+      await updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData(
         dynamoDBClient,
         purpose,
         itemState.active,
@@ -884,30 +894,35 @@ describe("utils tests", async () => {
         descriptorId: mockDescriptor.id,
       });
       const retrievedTokenGenStatesEntries =
-        await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        GSIPK_eserviceId_descriptorId,
-        purposeState: itemState.active,
-        purposeVersionId: newPurposeVersionId,
-        GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
-        agreementId: mockAgreement.id,
-        agreementState: previousAgreementEntry.state,
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        GSIPK_eserviceId_descriptorId,
-        purposeState: itemState.active,
-        purposeVersionId: newPurposeVersionId,
-        GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
-        agreementId: mockAgreement.id,
-        agreementState: previousAgreementEntry.state,
-      };
+        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
+          dynamoDBClient,
+          purposeId
+        );
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          GSIPK_eserviceId_descriptorId,
+          purposeState: itemState.active,
+          purposeVersionId: newPurposeVersionId,
+          GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
+          agreementId: mockAgreement.id,
+          agreementState: previousAgreementEntry.state,
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          GSIPK_eserviceId_descriptorId,
+          purposeState: itemState.active,
+          purposeVersionId: newPurposeVersionId,
+          GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
+          agreementId: mockAgreement.id,
+          agreementState: previousAgreementEntry.state,
+        };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
+          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesEntry2,
         ])
       );
     });
@@ -1008,7 +1023,7 @@ describe("utils tests", async () => {
       );
 
       const newPurposeVersionId = generateId<PurposeVersionId>();
-      await updateTokenEntriesWithPurposeAndPlatformStatesData(
+      await updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData(
         dynamoDBClient,
         purpose,
         itemState.active,
@@ -1016,45 +1031,50 @@ describe("utils tests", async () => {
       );
 
       const retrievedTokenGenStatesEntries =
-        await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
+          dynamoDBClient,
+          purposeId
+        );
 
       const gsiPKEserviceIdDescriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: purpose.eserviceId,
         descriptorId: mockDescriptor.id,
       });
-      const expectedTokenStateEntry1: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient1,
-        purposeState: itemState.active,
-        purposeVersionId: newPurposeVersionId,
-        GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
-        agreementId: mockAgreement.id,
-        agreementState: previousAgreementEntry.state,
-        GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-        descriptorState: previousDescriptorEntry.state,
-        descriptorAudience: previousDescriptorEntry.descriptorAudience,
-        descriptorVoucherLifespan:
-          previousDescriptorEntry.descriptorVoucherLifespan,
-        updatedAt: new Date().toISOString(),
-      };
-      const expectedTokenStateEntry2: TokenGenerationStatesConsumerClient = {
-        ...tokenGenStatesConsumerClient2,
-        purposeState: itemState.active,
-        purposeVersionId: newPurposeVersionId,
-        GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
-        agreementId: mockAgreement.id,
-        agreementState: previousAgreementEntry.state,
-        GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-        descriptorState: previousDescriptorEntry.state,
-        descriptorAudience: previousDescriptorEntry.descriptorAudience,
-        descriptorVoucherLifespan:
-          previousDescriptorEntry.descriptorVoucherLifespan,
-        updatedAt: new Date().toISOString(),
-      };
+      const expectedTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          purposeState: itemState.active,
+          purposeVersionId: newPurposeVersionId,
+          GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
+          agreementId: mockAgreement.id,
+          agreementState: previousAgreementEntry.state,
+          GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
+          descriptorState: previousDescriptorEntry.state,
+          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorVoucherLifespan:
+            previousDescriptorEntry.descriptorVoucherLifespan,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          purposeState: itemState.active,
+          purposeVersionId: newPurposeVersionId,
+          GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
+          agreementId: mockAgreement.id,
+          agreementState: previousAgreementEntry.state,
+          GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
+          descriptorState: previousDescriptorEntry.state,
+          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorVoucherLifespan:
+            previousDescriptorEntry.descriptorVoucherLifespan,
+          updatedAt: new Date().toISOString(),
+        };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
+          expectedTokenGenStatesEntry1,
+          expectedTokenGenStatesEntry2,
         ])
       );
     });

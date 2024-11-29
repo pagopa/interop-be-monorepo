@@ -17,7 +17,7 @@ import {
 } from "pagopa-interop-models";
 import { inject } from "vitest";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
-import { readTokenEntriesByGSIPKPurposeId } from "../src/utils.js";
+import { readTokenGenStatesEntriesByGSIPKPurposeId } from "../src/utils.js";
 
 export const config = inject("tokenGenerationReadModelConfig");
 
@@ -131,7 +131,7 @@ export const writeCatalogEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const readAllTokenEntriesByGSIPKPurposeId = async (
+export const readAllTokenGenStatesEntriesByGSIPKPurposeId = async (
   dynamoDBClient: DynamoDBClient,
   purposeId: PurposeId
 ): Promise<TokenGenerationStatesConsumerClient[]> => {
@@ -140,7 +140,7 @@ export const readAllTokenEntriesByGSIPKPurposeId = async (
     purposeId: PurposeId,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<TokenGenerationStatesConsumerClient[]> => {
-    const result = await readTokenEntriesByGSIPKPurposeId(
+    const result = await readTokenGenStatesEntriesByGSIPKPurposeId(
       dynamoDBClient,
       purposeId,
       exclusiveStartKey

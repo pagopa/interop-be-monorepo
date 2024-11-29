@@ -147,19 +147,21 @@ describe("authorization server tests", () => {
       }
     );
 
-    const tokenConsumerClient: TokenGenerationStatesConsumerClient = {
+    const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient = {
       ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
       agreementId: undefined,
     };
 
     await writeTokenGenStatesConsumerClient(
-      tokenConsumerClient,
+      tokenGenStatesConsumerClient,
       dynamoDBClient
     );
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      incompleteTokenGenerationStatesConsumerClient(tokenConsumerClient.PK)
+      incompleteTokenGenerationStatesConsumerClient(
+        tokenGenStatesConsumerClient.PK
+      )
     );
   });
 
@@ -180,20 +182,22 @@ describe("authorization server tests", () => {
       kid: clientAssertion.header.kid!,
     });
 
-    const tokenConsumerClient: TokenGenerationStatesConsumerClient = {
+    const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient = {
       ...getMockTokenGenStatesApiClient(tokenClientKidPK),
       clientKind: clientKindTokenGenStates.consumer,
     };
 
     await writeTokenGenStatesConsumerClient(
-      tokenConsumerClient,
+      tokenGenStatesConsumerClient,
       dynamoDBClient
     );
 
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      incompleteTokenGenerationStatesConsumerClient(tokenConsumerClient.PK)
+      incompleteTokenGenerationStatesConsumerClient(
+        tokenGenStatesConsumerClient.PK
+      )
     );
   });
 
@@ -263,14 +267,14 @@ describe("authorization server tests", () => {
     );
 
     const descriptorState = itemState.inactive;
-    const tokenConsumerClient: TokenGenerationStatesConsumerClient = {
+    const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient = {
       ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
       descriptorState,
       publicKey: publicKeyEncodedPem,
     };
 
     await writeTokenGenStatesConsumerClient(
-      tokenConsumerClient,
+      tokenGenStatesConsumerClient,
       dynamoDBClient
     );
 

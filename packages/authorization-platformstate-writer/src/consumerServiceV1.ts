@@ -283,12 +283,12 @@ export async function handleMessageV1(
         );
 
         const GSIPK_clientId = clientId;
-        const tokenClientEntries =
+        const tokenGenStatesConsumerClients =
           await readConsumerClientEntriesInTokenGenerationStates(
             GSIPK_clientId,
             dynamoDBClient
           );
-        if (tokenClientEntries.length === 0) {
+        if (tokenGenStatesConsumerClients.length === 0) {
           return Promise.resolve();
         } else {
           const { purposeEntry, agreementEntry, catalogEntry } =
@@ -298,8 +298,8 @@ export async function handleMessageV1(
           const addedTokenClientPurposeEntries: TokenGenerationStatesConsumerClient[] =
             [];
 
-          for (const entry of tokenClientEntries) {
-            const addedTokenConsumerClient = await match(
+          for (const entry of tokenGenStatesConsumerClients) {
+            const addedTokenGenStatesConsumerClient = await match(
               clientEntry.clientPurposesIds.length
             )
               .with(0, async () => {
@@ -349,9 +349,11 @@ export async function handleMessageV1(
               })
               .run();
 
-            if (addedTokenConsumerClient) {
+            if (addedTokenGenStatesConsumerClient) {
               // eslint-disable-next-line functional/immutable-data
-              addedTokenClientPurposeEntries.push(addedTokenConsumerClient);
+              addedTokenClientPurposeEntries.push(
+                addedTokenGenStatesConsumerClient
+              );
             }
           }
 

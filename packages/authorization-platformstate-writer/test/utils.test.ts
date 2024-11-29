@@ -810,7 +810,7 @@ describe("utils", () => {
       catalogEntry: platformCatalogEntry,
     });
 
-    const retrievedTokenEntries = await readAllTokenGenStatesItems(
+    const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
       dynamoDBClient
     );
     const expectedTokenClientPurposeEntry: TokenGenerationStatesConsumerClient =
@@ -820,7 +820,9 @@ describe("utils", () => {
         agreementState: itemState.inactive,
         descriptorState: itemState.inactive,
       };
-    expect(retrievedTokenEntries).toHaveLength(1);
-    expect(retrievedTokenEntries[0]).toEqual(expectedTokenClientPurposeEntry);
+    expect(retrievedTokenGenStatesEntries).toHaveLength(1);
+    expect(retrievedTokenGenStatesEntries[0]).toEqual(
+      expectedTokenClientPurposeEntry
+    );
   });
 });

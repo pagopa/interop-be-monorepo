@@ -264,12 +264,12 @@ export async function handleMessageV2(
 
       // token-generation-states
       const GSIPK_clientId = client.id;
-      const tokenClientEntries =
+      const tokenGenStatesConsumerClients =
         await readConsumerClientEntriesInTokenGenerationStates(
           GSIPK_clientId,
           dynamoDBClient
         );
-      if (tokenClientEntries.length === 0) {
+      if (tokenGenStatesConsumerClients.length === 0) {
         return Promise.resolve();
       } else {
         const purposeId = unsafeBrandId<PurposeId>(msg.data.purposeId);
@@ -280,8 +280,10 @@ export async function handleMessageV2(
         const addedTokenClientPurposeEntries: TokenGenerationStatesConsumerClient[] =
           [];
 
-        for (const entry of tokenClientEntries) {
-          const addedTokenConsumerClient = await match(client.purposes.length)
+        for (const entry of tokenGenStatesConsumerClients) {
+          const addedTokenGenStatesConsumerClient = await match(
+            client.purposes.length
+          )
             .with(1, async () => {
               const newTokenClientPurposeEntry =
                 createTokenGenStatesConsumerClient({
@@ -329,9 +331,11 @@ export async function handleMessageV2(
             })
             .run();
 
-          if (addedTokenConsumerClient) {
+          if (addedTokenGenStatesConsumerClient) {
             // eslint-disable-next-line functional/immutable-data
-            addedTokenClientPurposeEntries.push(addedTokenConsumerClient);
+            addedTokenClientPurposeEntries.push(
+              addedTokenGenStatesConsumerClient
+            );
           }
         }
 
