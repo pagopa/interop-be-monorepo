@@ -58,6 +58,7 @@ export function toApiTenantVerifier(
     verificationDate: verifier.verificationDate.toJSON(),
     expirationDate: verifier.expirationDate?.toJSON(),
     extensionDate: verifier.extensionDate?.toJSON(),
+    delegationId: verifier.delegationId,
   };
 }
 
@@ -70,6 +71,7 @@ export function toApiTenantRevoker(
     expirationDate: revoker.expirationDate?.toJSON(),
     extensionDate: revoker.extensionDate?.toJSON(),
     revocationDate: revoker.revocationDate.toJSON(),
+    delegationId: revoker.delegationId,
   };
 }
 
