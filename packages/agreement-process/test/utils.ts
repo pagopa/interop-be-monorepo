@@ -29,10 +29,7 @@ import {
   TenantId,
   Delegation,
 } from "pagopa-interop-models";
-import {
-  agreementApi,
-  SelfcareV2UsersClient,
-} from "pagopa-interop-api-clients";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   formatDateyyyyMMddHHmmss,
   genericLogger,
@@ -65,24 +62,18 @@ vi.spyOn(puppeteer, "launch").mockImplementation(
   async () => testBrowserInstance
 );
 
-export const agreements = readModelRepository.agreements;
-export const eservices = readModelRepository.eservices;
-export const tenants = readModelRepository.tenants;
-export const attributes = readModelRepository.attributes;
-export const delegations = readModelRepository.delegations;
+export const { agreements, attributes, eservices, tenants, delegations } =
+  readModelRepository;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-export const selfcareV2ClientMock: SelfcareV2UsersClient =
-  {} as SelfcareV2UsersClient;
 export const pdfGenerator = await initPDFGenerator();
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
   readModelService,
   fileManager,
-  pdfGenerator,
-  selfcareV2ClientMock
+  pdfGenerator
 );
 export const writeAgreementInEventstore = async (
   agreement: Agreement

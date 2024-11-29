@@ -6,6 +6,7 @@ import {
   getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
+  getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
@@ -13,13 +14,13 @@ import {
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
-import { agreementApi } from "pagopa-interop-api-clients";
 import {
   Agreement,
   AgreementAddedV2,
   AgreementId,
   AgreementV2,
   AttributeId,
+  DelegationId,
   Descriptor,
   DescriptorId,
   EServiceAttribute,
@@ -28,6 +29,8 @@ import {
   TenantAttribute,
   TenantId,
   agreementState,
+  delegationKind,
+  delegationState,
   descriptorState,
   generateId,
   toAgreementStateV2,
@@ -38,14 +41,18 @@ import { describe, expect, it } from "vitest";
 import { agreementCreationConflictingStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
+  delegationNotFound,
   descriptorNotInExpectedState,
   eServiceNotFound,
   missingCertifiedAttributesError,
+  missingDelegationId,
   notLatestEServiceDescriptor,
+  operationNotAllowed,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
+  addOneDelegation,
   addOneEService,
   addOneTenant,
   agreementService,
@@ -138,12 +145,11 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneTenant(tenant);
 
-    const agreementData: agreementApi.AgreementPayload = {
-      eserviceId,
-      descriptorId,
-    };
     const createdAgreement = await agreementService.createAgreement(
-      agreementData,
+      {
+        eserviceId,
+        descriptorId,
+      },
       {
         authData,
         correlationId: generateId(),
@@ -201,13 +207,11 @@ describe("create agreement", () => {
     await addOneTenant(consumer);
     await addOneEService(eservice);
 
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: eservice.descriptors[0].id,
-    };
-
     const createdAgreement = await agreementService.createAgreement(
-      apiAgreementPayload,
+      {
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+      },
       {
         authData,
         correlationId: generateId(),
@@ -222,6 +226,80 @@ describe("create agreement", () => {
       descriptor.id,
       eserviceProducer.id,
       consumer.id
+    );
+  });
+  it("should succeed when the delegationId is provided, the requester is the delegated and the delegator has all Descriptor certified Attributes not revoked", async () => {
+    const authData = getRandomAuthData();
+    const eserviceProducer: Tenant = getMockTenant();
+
+    const certifiedDescriptorAttribute1: EServiceAttribute =
+      getMockEServiceAttribute();
+    const certifiedDescriptorAttribute2: EServiceAttribute =
+      getMockEServiceAttribute();
+
+    const descriptor = getMockDescriptorPublished(generateId<DescriptorId>(), [
+      [certifiedDescriptorAttribute1],
+      [certifiedDescriptorAttribute2],
+    ]);
+
+    const certifiedTenantAttribute1: TenantAttribute = {
+      ...getMockCertifiedTenantAttribute(certifiedDescriptorAttribute1.id),
+      revocationTimestamp: undefined,
+    };
+
+    const certifiedTenantAttribute2: TenantAttribute = {
+      ...getMockCertifiedTenantAttribute(certifiedDescriptorAttribute2.id),
+      revocationTimestamp: undefined,
+    };
+
+    const delegator = getMockTenant(authData.organizationId, [
+      getMockDeclaredTenantAttribute(),
+      certifiedTenantAttribute1,
+      certifiedTenantAttribute2,
+    ]);
+
+    const delegate = getMockTenant(authData.organizationId);
+
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      eserviceProducer.id,
+      [descriptor]
+    );
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      state: delegationState.active,
+      eserviceId: eservice.id,
+      delegatorId: delegator.id,
+      delegateId: delegate.id,
+    });
+
+    await addOneTenant(eserviceProducer);
+    await addOneTenant(delegator);
+    await addOneTenant(delegate);
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    const createdAgreement = await agreementService.createAgreement(
+      {
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+        delegationId: delegation.id,
+      },
+      {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    await expectedAgreementCreation(
+      createdAgreement,
+      eservice.id,
+      descriptor.id,
+      eserviceProducer.id,
+      delegator.id
     );
   });
 
@@ -243,13 +321,12 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(consumer.id); // different from eserviceProducer
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: eservice.descriptors[0].id,
-    };
 
     const createdAgreement = await agreementService.createAgreement(
-      apiAgreementPayload,
+      {
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+      },
       {
         authData,
         correlationId: generateId(),
@@ -293,13 +370,12 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(tenant.id);
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: descriptor0.id,
-    };
 
     const createdAgreement = await agreementService.createAgreement(
-      apiAgreementPayload,
+      {
+        eserviceId: eservice.id,
+        descriptorId: descriptor0.id,
+      },
       {
         authData,
         correlationId: generateId(),
@@ -340,13 +416,12 @@ describe("create agreement", () => {
     await addOneAgreement(otherAgreement);
 
     const authData = getRandomAuthData(tenant.id);
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-    };
 
     const createdAgreement = await agreementService.createAgreement(
-      apiAgreementPayload,
+      {
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      },
       {
         authData,
         correlationId: generateId(),
@@ -369,47 +444,46 @@ describe("create agreement", () => {
     const eserviceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
 
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId,
-      descriptorId,
-    };
-
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      eServiceNotFound(unsafeBrandId(apiAgreementPayload.eserviceId))
-    );
+      agreementService.createAgreement(
+        {
+          eserviceId,
+          descriptorId,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(eServiceNotFound(unsafeBrandId(eserviceId)));
   });
 
   it("should throw a notLatestEServiceDescriptor error when the EService has no Descriptor", async () => {
     const authData = getRandomAuthData();
     const eserviceId = generateId<EServiceId>();
+    const descriptorId = generateId<DescriptorId>();
 
     const eservice = getMockEService(eserviceId, authData.organizationId, []);
 
     await addOneEService(eservice);
 
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId,
-      descriptorId: generateId<DescriptorId>(),
-    };
-
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      notLatestEServiceDescriptor(
-        unsafeBrandId(apiAgreementPayload.descriptorId)
+      agreementService.createAgreement(
+        {
+          eserviceId,
+          descriptorId,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
+    ).rejects.toThrowError(
+      notLatestEServiceDescriptor(unsafeBrandId(descriptorId))
     );
   });
 
@@ -439,22 +513,21 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneTenant(getMockTenant(authData.organizationId));
 
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId,
-      descriptorId: descriptor0.id,
-    };
-
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      notLatestEServiceDescriptor(
-        unsafeBrandId(apiAgreementPayload.descriptorId)
+      agreementService.createAgreement(
+        {
+          eserviceId,
+          descriptorId: descriptor0.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
+    ).rejects.toThrowError(
+      notLatestEServiceDescriptor(unsafeBrandId(descriptor0.id))
     );
   });
 
@@ -481,18 +554,19 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneTenant(getMockTenant(authData.organizationId));
 
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId,
-      descriptorId: descriptor.id,
-    };
-
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      agreementService.createAgreement(
+        {
+          eserviceId,
+          descriptorId: descriptor.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(
       descriptorNotInExpectedState(eservice.id, descriptor.id, [
         descriptorState.published,
@@ -519,18 +593,20 @@ describe("create agreement", () => {
     await addOneAgreement(conflictingAgreement);
 
     const authData = getRandomAuthData(consumer.id);
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-    };
 
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
   });
 
@@ -547,18 +623,20 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(consumer.id);
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-    };
 
     await expect(() =>
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(tenantNotFound(consumer.id));
   });
 
@@ -596,18 +674,19 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(consumer.id);
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: eservice.descriptors[0].id,
-    };
-
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: eservice.descriptors[0].id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(
       missingCertifiedAttributesError(descriptor.id, consumer.id)
     );
@@ -655,20 +734,124 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(consumer.id);
-    const apiAgreementPayload: agreementApi.AgreementPayload = {
-      eserviceId: eservice.id,
-      descriptorId: eservice.descriptors[0].id,
-    };
 
     await expect(
-      agreementService.createAgreement(apiAgreementPayload, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: eservice.descriptors[0].id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(
       missingCertifiedAttributesError(descriptor.id, consumer.id)
     );
+  });
+  it("should throw missingDelegationId error when there is an active delegation but no delegation id is provided", async () => {
+    const authData = getRandomAuthData();
+
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      [getMockDescriptorPublished()]
+    );
+
+    await addOneEService(eservice);
+    await addOneDelegation(
+      getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        eserviceId: eservice.id,
+        state: delegationState.active,
+        delegateId: authData.organizationId,
+      })
+    );
+
+    await expect(
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: eservice.descriptors[0].id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(
+      missingDelegationId(authData.organizationId, eservice.id)
+    );
+  });
+  it("should throw delegationNotFound error when the provided delegation id does not exist", async () => {
+    const delegationId = generateId<DelegationId>();
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      [getMockDescriptorPublished()]
+    );
+
+    await addOneEService(eservice);
+    await addOneDelegation(
+      getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      })
+    );
+
+    await expect(
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: eservice.descriptors[0].id,
+          delegationId,
+        },
+        {
+          authData: getRandomAuthData(),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(delegationNotFound(delegationId));
+  });
+  it("should throw operationNotAllowed error when the requester is not the delegated if delegationId is provided", async () => {
+    const authData = getRandomAuthData();
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      [getMockDescriptorPublished()]
+    );
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    await expect(
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: eservice.descriptors[0].id,
+          delegationId: delegation.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
   });
 });

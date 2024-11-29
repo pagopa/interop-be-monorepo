@@ -160,6 +160,99 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /delegations/{delegationId}/contracts/{contractId}:
+    get:
+      description: Retrieves a delegation contract
+      summary: Retrieves a delegation contract
+      tags:
+        - delegation
+      operationId: getDelegationContract
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: delegationId
+          in: path
+          description: The delegation id
+          required: true
+          schema:
+            type: string
+        - name: contractId
+          in: path
+          description: The delegation contract id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Delegation contract retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DelegationContractDocument"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation contract not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /consumer/delegations:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      description: Creates a consumer delegation
+      summary: Consumer Delegation Creation
+      tags:
+        - consumer
+      operationId: createConsumerDelegation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationSeed"
+        description: Payload for delegation creation
+        required: true
+      responses:
+        "200":
+          description: Delegation created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /producer/delegations:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -197,6 +290,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/json:
               schema:

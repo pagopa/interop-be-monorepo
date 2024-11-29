@@ -9,10 +9,7 @@ import {
   WithLogger,
   eventRepository,
 } from "pagopa-interop-commons";
-import {
-  agreementApi,
-  SelfcareV2UsersClient,
-} from "pagopa-interop-api-clients";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   Agreement,
   AgreementDocument,
@@ -34,7 +31,6 @@ import {
   agreementState,
   descriptorState,
   generateId,
-  unsafeBrandId,
   CompactTenant,
   CorrelationId,
   DelegationId,
@@ -56,6 +52,7 @@ import {
   delegationNotFound,
   descriptorNotFound,
   eServiceNotFound,
+  missingDelegationId,
   noNewerDescriptor,
   publishedDescriptorNotFound,
   tenantNotFound,
@@ -95,6 +92,7 @@ import {
   assertIsDelegate,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
+  assertRequesterIsDelegate,
   assertRequesterIsProducer,
   assertSubmittableState,
   assertTenantIsRequester,
@@ -179,7 +177,7 @@ export const retrieveTenant = async (
   return tenant;
 };
 
-const retrieveDescriptor = (
+export const retrieveDescriptor = (
   descriptorId: DescriptorId,
   eservice: EService
 ): Descriptor => {
@@ -192,6 +190,19 @@ const retrieveDescriptor = (
   }
 
   return descriptor;
+};
+
+const retrieveDelegation = (
+  delegations: Delegation[],
+  delegationId: DelegationId
+): Delegation => {
+  const delegation = delegations.find((d) => d.id === delegationId);
+
+  if (!delegation) {
+    throw delegationNotFound(delegationId);
+  }
+
+  return delegation;
 };
 
 function retrieveAgreementDocument(
@@ -223,8 +234,7 @@ export function agreementServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
   fileManager: FileManager,
-  pdfGenerator: PDFGenerator,
-  selfcareV2Client: SelfcareV2UsersClient
+  pdfGenerator: PDFGenerator
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -247,18 +257,21 @@ export function agreementServiceBuilder(
       return agreement.data;
     },
     async createAgreement(
-      agreementPayload: agreementApi.AgreementPayload,
+      {
+        eserviceId,
+        descriptorId,
+        delegationId,
+      }: {
+        eserviceId: EServiceId;
+        descriptorId: DescriptorId;
+        delegationId?: DelegationId;
+      },
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(
-        `Creating agreement for EService ${agreementPayload.eserviceId} and Descriptor ${agreementPayload.descriptorId}`
-      );
-
-      const eserviceId: EServiceId = unsafeBrandId<EServiceId>(
-        agreementPayload.eserviceId
-      );
-      const descriptorId: DescriptorId = unsafeBrandId<DescriptorId>(
-        agreementPayload.descriptorId
+        `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -267,13 +280,17 @@ export function agreementServiceBuilder(
 
       await verifyCreationConflictingAgreements(
         authData.organizationId,
-        agreementPayload,
+        eserviceId,
         readModelService
       );
-      const consumer = await retrieveTenant(
+
+      const consumer = await getConsumerFromDelegationOrRequester(
+        eserviceId,
+        delegationId,
         authData.organizationId,
         readModelService
       );
+
       if (eservice.producerId !== consumer.id) {
         validateCertifiedAttributes({ descriptor, consumer });
       }
@@ -490,10 +507,8 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
-        selfcareV2Client,
         config,
-        logger,
-        correlationId
+        logger
       );
 
       const isFirstActivation =
@@ -634,10 +649,8 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
-        selfcareV2Client,
         config,
-        logger,
-        correlationId
+        logger
       );
 
       const [agreement, events] = await createUpgradeOrNewDraft({
@@ -955,10 +968,8 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
-        selfcareV2Client,
         config,
-        logger,
-        correlationId
+        logger
       );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -1306,4 +1317,31 @@ async function addContractOnFirstActivation(
   }
 
   return agreement;
+}
+
+async function getConsumerFromDelegationOrRequester(
+  eserviceId: EServiceId,
+  delegationId: DelegationId | undefined,
+  organizationId: TenantId,
+  readModelService: ReadModelService
+): Promise<Tenant> {
+  const delegations =
+    await readModelService.getActiveConsumerDelegationsByEserviceId(eserviceId);
+
+  if (delegationId) {
+    const delegation = retrieveDelegation(delegations, delegationId);
+
+    assertRequesterIsDelegate(delegation.delegateId, organizationId);
+    return retrieveTenant(delegation.delegatorId, readModelService);
+  } else {
+    const hasDelegation = delegations.some(
+      (d) => d.delegateId === organizationId || d.delegatorId === organizationId
+    );
+
+    if (hasDelegation) {
+      throw missingDelegationId(organizationId, eserviceId);
+    }
+
+    return retrieveTenant(organizationId, readModelService);
+  }
 }

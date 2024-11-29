@@ -137,7 +137,7 @@ describe("create producer delegation", () => {
       submittedAt: currentExecutionTime,
       stamps: {
         submission: {
-          who: delegatorId,
+          who: authData.userId,
           when: currentExecutionTime,
         },
       },
@@ -148,7 +148,7 @@ describe("create producer delegation", () => {
   });
 
   it.each(inactiveDelegationStates)(
-    "should create a delegation the same delegation exists and is in state %s",
+    "should create a new delegation if the same delegation exists and is in state %s",
     async (inactiveDelegationState) => {
       const currentExecutionTime = new Date();
       vi.useFakeTimers();
@@ -216,13 +216,15 @@ describe("create producer delegation", () => {
         submittedAt: currentExecutionTime,
         stamps: {
           submission: {
-            who: delegatorId,
+            who: authData.userId,
             when: currentExecutionTime,
           },
         },
       };
 
       await expectedDelegationCreation(actualDelegation, expectedDelegation);
+      expect(actualDelegation.id).not.toEqual(existentDelegation.id);
+
       vi.useRealTimers();
     }
   );
@@ -276,8 +278,8 @@ describe("create producer delegation", () => {
   });
 
   it.each(activeDelegationStates)(
-    "should throw a delegationAlreadyExists error when a producer Delegation in state %s already exists with for same delegator, delegate and eservice",
-    async (validDelegationState) => {
+    "should throw a delegationAlreadyExists error when a producer Delegation in state %s already exists with same delegator, delegate and eservice",
+    async (activeDelegationState) => {
       const delegatorId = generateId<TenantId>();
       const authData = getRandomAuthData(delegatorId);
       const delegator = {
@@ -306,7 +308,7 @@ describe("create producer delegation", () => {
           delegateId: delegate.id,
           eserviceId: eservice.id,
         }),
-        state: validDelegationState,
+        state: activeDelegationState,
       };
 
       await addOneTenant(delegate);
@@ -451,7 +453,7 @@ describe("create producer delegation", () => {
     ).rejects.toThrowError(delegatorAndDelegateSameIdError());
   });
 
-  it("should throw an tenantIsNotIPAError error if delegator has externalId origin different from IPA", async () => {
+  it("should throw a tenantIsNotIPAError error if delegator has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegator = {
@@ -491,7 +493,7 @@ describe("create producer delegation", () => {
     ).rejects.toThrowError(tenantIsNotIPAError(delegator, "Delegator"));
   });
 
-  it("should throw an tenantIsNotIPAError error if delegate has externalId origin different from IPA", async () => {
+  it("should throw a tenantIsNotIPAError error if delegate has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegator = {

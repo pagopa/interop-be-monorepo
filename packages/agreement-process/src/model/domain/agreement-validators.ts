@@ -14,10 +14,11 @@ import {
   EServiceId,
   unsafeBrandId,
   TenantId,
+  AgreementStamp,
+  AgreementStamps,
   Delegation,
   delegationState,
 } from "pagopa-interop-models";
-import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
 import {
   certifiedAttributesSatisfied,
@@ -30,6 +31,7 @@ import {
   agreementActivationFailed,
   agreementAlreadyExists,
   agreementNotInExpectedState,
+  agreementStampNotFound,
   agreementSubmissionFailed,
   delegationNotActive,
   descriptorNotFound,
@@ -194,6 +196,15 @@ export const assertActivableState = (agreement: Agreement): void => {
   }
 };
 
+export const assertRequesterIsDelegate = (
+  delegateId: TenantId | undefined,
+  organizationId: TenantId
+): void => {
+  if (organizationId !== delegateId) {
+    throw operationNotAllowed(organizationId);
+  }
+};
+
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
@@ -244,12 +255,12 @@ export const validateCreationOnDescriptor = (
 
 export const verifyCreationConflictingAgreements = async (
   organizationId: TenantId,
-  agreement: agreementApi.AgreementPayload,
+  eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(
     organizationId,
-    unsafeBrandId(agreement.eserviceId),
+    eserviceId,
     agreementCreationConflictingStates,
     readModelService
   );
@@ -412,3 +423,14 @@ export const matchingVerifiedAttributes = (
     verifiedAttributes
   ).map((id) => ({ id } as VerifiedAgreementAttribute));
 };
+
+export function assertStampExists<S extends keyof AgreementStamps>(
+  stamps: AgreementStamps,
+  stamp: S
+): asserts stamps is AgreementStamps & {
+  [key in S]: AgreementStamp;
+} {
+  if (!stamps[stamp]) {
+    throw agreementStampNotFound(stamp);
+  }
+}

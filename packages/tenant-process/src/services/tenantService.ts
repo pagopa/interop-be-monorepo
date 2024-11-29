@@ -54,6 +54,8 @@ import {
   toCreateEventMaintenanceTenantUpdated,
   toCreateEventTenantDelegatedProducerFeatureAdded,
   toCreateEventTenantDelegatedProducerFeatureRemoved,
+  toCreateEventTenantDelegatedConsumerFeatureRemoved,
+  toCreateEventTenantDelegatedConsumerFeatureAdded,
 } from "../model/domain/toEvent.js";
 import {
   attributeAlreadyRevoked,
@@ -72,6 +74,7 @@ import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
   verifiedAttributeSelfRevocationNotAllowed,
+  notValidMailAddress,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -86,9 +89,9 @@ import {
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
   assertRequesterIPAOrigin,
-  assertDelegatedProducerFeatureNotAssigned,
   getTenantKind,
-  assertDelegatedProducerFeatureAssigned,
+  assertFeatureAssigned,
+  assertFeatureNotAssigned,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -346,20 +349,6 @@ export function tenantServiceBuilder(
         logger.info(
           `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
         );
-        const mails = tenantSeed.digitalAddress
-          ? [
-              {
-                id: crypto
-                  .createHash("sha256")
-                  .update(tenantSeed.digitalAddress.address)
-                  .digest("hex"),
-                kind: tenantMailKind.DigitalAddress,
-                address: tenantSeed.digitalAddress.address,
-                description: tenantSeed.digitalAddress.description,
-                createdAt: new Date(),
-              },
-            ]
-          : [];
 
         const newTenant: Tenant = {
           id: generateId(),
@@ -367,7 +356,7 @@ export function tenantServiceBuilder(
           attributes: [],
           externalId: tenantSeed.externalId,
           features: [],
-          mails,
+          mails: formatTenantMail(tenantSeed.digitalAddress),
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
@@ -1151,15 +1140,17 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      if (tenant.data.mails.find((m) => m.address === mailSeed.address)) {
+      const validatedAddress = validateAddress(mailSeed.address);
+
+      if (tenant.data.mails.find((m) => m.address === validatedAddress)) {
         throw mailAlreadyExists();
       }
 
       const newMail: TenantMail = {
         kind: mailSeed.kind,
-        address: mailSeed.address,
+        address: validatedAddress,
         description: mailSeed.description,
-        id: crypto.createHash("sha256").update(mailSeed.address).digest("hex"),
+        id: crypto.createHash("sha256").update(validatedAddress).digest("hex"),
         createdAt: new Date(),
       };
 
@@ -1652,7 +1643,7 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      assertDelegatedProducerFeatureNotAssigned(requesterTenant.data);
+      assertFeatureNotAssigned(requesterTenant.data, "DelegatedProducer");
 
       const updatedTenant: Tenant = {
         ...requesterTenant.data,
@@ -1693,7 +1684,7 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      assertDelegatedProducerFeatureAssigned(requesterTenant.data);
+      assertFeatureAssigned(requesterTenant.data, "DelegatedProducer");
 
       const updatedTenant: Tenant = {
         ...requesterTenant.data,
@@ -1705,6 +1696,81 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         toCreateEventTenantDelegatedProducerFeatureRemoved(
+          requesterTenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+    },
+    async assignTenantDelegatedConsumerFeature({
+      authData,
+      correlationId,
+      logger,
+    }: WithLogger<AppContext>): Promise<void> {
+      logger.info(
+        `Assigning delegated consumer feature to tenant ${authData.organizationId}`
+      );
+
+      assertRequesterIPAOrigin(authData);
+
+      const requesterTenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+
+      assertFeatureNotAssigned(requesterTenant.data, "DelegatedConsumer");
+
+      const updatedTenant: Tenant = {
+        ...requesterTenant.data,
+        features: [
+          ...requesterTenant.data.features,
+          { type: "DelegatedConsumer", availabilityTimestamp: new Date() },
+        ],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantDelegatedConsumerFeatureAdded(
+          requesterTenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+    },
+    async removeTenantDelegatedConsumerFeature({
+      organizationId,
+      correlationId,
+      authData,
+      logger,
+    }: {
+      organizationId: TenantId;
+      correlationId: CorrelationId;
+      authData: AuthData;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing delegated consumer feature to tenant ${organizationId}`
+      );
+
+      assertRequesterIPAOrigin(authData);
+
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      assertFeatureAssigned(requesterTenant.data, "DelegatedConsumer");
+
+      const updatedTenant: Tenant = {
+        ...requesterTenant.data,
+        features: requesterTenant.data.features.filter(
+          (f) => f.type !== "DelegatedConsumer"
+        ),
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantDelegatedConsumerFeatureRemoved(
           requesterTenant.metadata.version,
           updatedTenant,
           correlationId
@@ -1890,6 +1956,48 @@ async function revokeCertifiedAttribute(
         : attr
     ),
   } satisfies Tenant;
+}
+
+function validateAddress(address: string): string {
+  // Here I am removing the non-printing control characters
+  const removeNonPrintingcontrolCharacters = address.replace(
+    // eslint-disable-next-line no-control-regex
+    /[\x00-\x1F\x7F]/g,
+    ""
+  );
+
+  // Here I am removing the extra spaces and tabs
+  const sanitizedMail = removeNonPrintingcontrolCharacters
+    .replace(/\s+/g, "")
+    .trim();
+
+  // same path used by the frontend
+  // Taken from HTML spec: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
+  const emailPattern =
+    // eslint-disable-next-line no-useless-escape
+    /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  if (!emailPattern.test(sanitizedMail)) {
+    throw notValidMailAddress(address);
+  }
+  return sanitizedMail;
+}
+
+function formatTenantMail(
+  digitalAddress: tenantApi.MailSeed | undefined
+): TenantMail[] {
+  if (!digitalAddress) {
+    return [];
+  }
+  const validatedAddress = validateAddress(digitalAddress.address);
+  return [
+    {
+      id: crypto.createHash("sha256").update(validatedAddress).digest("hex"),
+      kind: tenantMailKind.DigitalAddress,
+      address: validatedAddress,
+      description: digitalAddress.description,
+      createdAt: new Date(),
+    },
+  ];
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;

@@ -8,9 +8,9 @@ import {
   EServiceId,
   TenantId,
   makeApiProblemBuilder,
-  UserId,
-  SelfcareId,
   AttributeId,
+  Agreement,
+  DelegationId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -29,10 +29,8 @@ export const errorCodes = {
   unexpectedVersionFormat: "0013",
   descriptorNotFound: "0014",
   stampNotFound: "0015",
-  missingUserInfo: "0016",
   documentNotFound: "0017",
   documentsChangeNotAllowed: "0018",
-  selfcareIdNotFound: "0019",
   tenantNotFound: "0020",
   notLatestEServiceDescriptor: "0021",
   attributeNotFound: "0022",
@@ -41,9 +39,7 @@ export const errorCodes = {
   agreementDocumentAlreadyExists: "0025",
   userNotFound: "0026",
   delegationNotFound: "0027",
-  operationRestrictedToDelegate: "0028",
-  delegationNotActive: "0029",
-  tenantIsNotRequester: "0030",
+  missingDelegationId: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -224,29 +220,13 @@ export function consumerWithNotValidEmail(
   });
 }
 
-export function agreementStampNotFound(stamp: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Agreement stamp ${stamp} not found`,
-    code: "stampNotFound",
-    title: "Stamp not found",
-  });
-}
-
-export function agreementMissingUserInfo(userId: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Some mandatory info are missing for user ${userId}`,
-    code: "missingUserInfo",
-    title: "Some mandatory info are missing for user",
-  });
-}
-
-export function agreementSelfcareIdNotFound(
-  tenantId: TenantId
+export function agreementStampNotFound(
+  stamp: keyof Agreement["stamps"]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Selfcare id not found for tenant ${tenantId}`,
-    code: "selfcareIdNotFound",
-    title: "Selfcare id not found for tenant",
+    detail: `Agreement ${stamp} stamp not found`,
+    code: "stampNotFound",
+    title: "Stamp not found",
   });
 }
 
@@ -292,17 +272,6 @@ export function documentChangeNotAllowed(
   });
 }
 
-export function userNotFound(
-  selfcareId: SelfcareId,
-  userId: UserId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `User ${userId} not found for selfcare institution ${selfcareId}`,
-    code: "userNotFound",
-    title: "User not found",
-  });
-}
-
 export function attributeNotFound(
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
@@ -313,7 +282,9 @@ export function attributeNotFound(
   });
 }
 
-export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
+export function delegationNotFound(
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Delegation ${delegationId} not found`,
     code: "delegationNotFound",
@@ -321,34 +292,13 @@ export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
   });
 }
 
-export function operationRestrictedToDelegate(
-  tenantId: string,
-  delegationId: string
+export function missingDelegationId(
+  organizationId: TenantId,
+  eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId} is not a delegate for delegation ${delegationId}`,
-    code: "operationRestrictedToDelegate",
-    title: "Operation restricted to delegate",
-  });
-}
-
-export function delegationNotActive(
-  delegationId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Delegation ${delegationId} is not active`,
-    code: "delegationNotActive",
-    title: "Delegation not active",
-  });
-}
-
-export function tenantIsNotRequester(
-  organizationId: string,
-  tenantId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Requester ${organizationId} is not the same as tenant ${tenantId}`,
-    code: "tenantIsNotRequester",
-    title: "Tenant is not requester",
+    detail: `Missing delegation id for organization ${organizationId} and EService ${eserviceId}`,
+    code: "missingDelegationId",
+    title: "Missing delegation id",
   });
 }

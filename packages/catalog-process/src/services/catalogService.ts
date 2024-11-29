@@ -37,7 +37,7 @@ import {
   eserviceMode,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiEServiceModeToEServiceMode,
@@ -97,6 +97,8 @@ import {
   validateRiskAnalysisSchemaOrThrow,
   assertHasNoDraftDescriptor,
   assertRiskAnalysisIsValidForPublication,
+  assertInterfaceDeletableDescriptorState,
+  assertDocumentDeletableDescriptorState,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -437,6 +439,12 @@ export function catalogServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
+        isDelegable: seed.isDelegable,
+        isClientAccessDelegable: match(seed.isDelegable)
+          .with(P.nullish, () => undefined)
+          .with(false, () => false)
+          .with(true, () => seed.isClientAccessDelegable)
+          .exhaustive(),
       };
 
       const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -558,6 +566,12 @@ export function catalogServiceBuilder(
             }))
           : eservice.data.descriptors,
         isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
+        isDelegable: eserviceSeed.isDelegable,
+        isClientAccessDelegable: match(eserviceSeed.isDelegable)
+          .with(P.nullish, () => undefined)
+          .with(false, () => false)
+          .with(true, () => eserviceSeed.isClientAccessDelegable)
+          .exhaustive(),
       };
 
       const event = toCreateEventEServiceUpdated(
@@ -727,21 +741,17 @@ export function catalogServiceBuilder(
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      if (
-        descriptor.state !== descriptorState.draft &&
-        descriptor.state !== descriptorState.deprecated &&
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended
-      ) {
-        throw notValidDescriptor(descriptor.id, descriptor.state);
-      }
-
       const document = retrieveDocument(eserviceId, descriptor, documentId);
+      const isInterface = document.id === descriptor?.interface?.id;
+
+      if (isInterface) {
+        assertInterfaceDeletableDescriptorState(descriptor);
+      } else {
+        assertDocumentDeletableDescriptorState(descriptor);
+      }
 
       await fileManager.delete(config.s3Bucket, document.path, logger);
 
-      const isInterface = document.id === descriptor?.interface?.id;
       const newEservice: EService = {
         ...eservice.data,
         descriptors: eservice.data.descriptors.map((d: Descriptor) =>

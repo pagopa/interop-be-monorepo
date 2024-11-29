@@ -438,6 +438,26 @@ export function tenantServiceBuilder(
         { headers }
       );
     },
+    async assignTenantDelegatedConsumerFeature(
+      tenantId: TenantId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Assigning delegated consumer feature to tenant ${tenantId}`);
+      await tenantProcessClient.tenant.assignTenantDelegatedConsumerFeature(
+        undefined,
+        { headers }
+      );
+    },
+    async removeTenantDelegatedConsumerFeature(
+      tenantId: TenantId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Removing delegated consumer feature to tenant ${tenantId}`);
+      await tenantProcessClient.tenant.removeTenantDelegatedConsumerFeature(
+        undefined,
+        { headers }
+      );
+    },
   };
 }
 
