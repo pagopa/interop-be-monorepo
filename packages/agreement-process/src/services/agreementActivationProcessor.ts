@@ -137,7 +137,7 @@ export async function createActivationEvent(
     /* Not a first activation, meaning that the agreement was already active
     and it was then suspended. If the requester is the producer (or producer === consumer),
     the updatedAgreement was updated setting the suspendedByProducer flag to false,
-    and here we create the unsuspension by producer event, it works in the same way for if requester is delegate.
+    and here we create the unsuspension by producer event, it works in the same way if requester is delegate producer.
     Otherwise, the requester is the consumer, and the updatedAgreement was updated setting
     the suspendedByConsumer flag to false, so we create the unsuspension by consumer event.
 
