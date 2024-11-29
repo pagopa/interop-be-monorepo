@@ -824,11 +824,11 @@ describe("upgrade Agreement", () => {
       producerIpaCode: getIpaCode(producer),
       consumerName: consumer.name,
       consumerIpaCode: getIpaCode(consumer),
-      delegationId: delegation.id,
-      delegatorName: producer.name,
-      delegatorIpaCode: getIpaCode(producer),
-      delegateName: delegate.name,
-      delegateIpaCode: getIpaCode(delegate),
+      producerDelegationId: delegation.id,
+      producerDelegatorName: producer.name,
+      producerDelegatorIpaCode: getIpaCode(producer),
+      producerDelegateName: delegate.name,
+      producerDelegateIpaCode: getIpaCode(delegate),
       certifiedAttributes: [
         {
           assignmentDate: dateAtRomeZone(

@@ -875,11 +875,11 @@ describe("activate agreement", () => {
             expirationDate: undefined,
           },
         ],
-        delegationId: delegation.id,
-        delegatorName: producer.name,
-        delegatorIpaCode: getIpaCode(producer),
-        delegateName: delegate.name,
-        delegateIpaCode: getIpaCode(delegate),
+        producerDelegationId: delegation.id,
+        producerDelegatorName: producer.name,
+        producerDelegatorIpaCode: getIpaCode(producer),
+        producerDelegateName: delegate.name,
+        producerDelegateIpaCode: getIpaCode(delegate),
       };
 
       expect(pdfGenerator.generate).toHaveBeenCalledWith(
