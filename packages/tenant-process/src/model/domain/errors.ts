@@ -36,6 +36,7 @@ export const errorCodes = {
   tenantNotFoundByExternalId: "0026",
   tenantAlreadyHasFeature: "0027",
   tenantDoesNotHaveFeature: "0028",
+  notValidMailAddress: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -135,7 +136,7 @@ export function attributeVerificationNotAllowed(
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization is not allowed to verify attribute ${attributeId} 
+    detail: `Organization is not allowed to verify attribute ${attributeId}
     for tenant ${consumerId}`,
     code: "attributeVerificationNotAllowed",
     title: "Attribute verification is not allowed",
@@ -147,7 +148,7 @@ export function attributeRevocationNotAllowed(
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization is not allowed to revoke attribute ${attributeId} 
+    detail: `Organization is not allowed to revoke attribute ${attributeId}
     for tenant ${consumerId}`,
     code: "attributeRevocationNotAllowed",
     title: "Attribute revocation is not allowed",
@@ -323,5 +324,13 @@ export function tenantIsNotIPA(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant ${tenantId} does not have IPA origin`,
     code: "tenantIsNotIPA",
     title: "Tenant is not an IPA",
+  });
+}
+
+export function notValidMailAddress(address: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail address ${address} not valid`,
+    code: "notValidMailAddress",
+    title: "Not valid mail address",
   });
 }
