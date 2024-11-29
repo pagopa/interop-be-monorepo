@@ -32,6 +32,7 @@ import {
   DescriptorReadModel,
   EServiceReadModel,
   DelegationKind,
+  delegationKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -318,6 +319,9 @@ function getDelegateAgreementsFilters(producerIds: TenantId[] | undefined) {
             $or: [
               {
                 $and: [
+                  {
+                    "delegations.data.kind": delegationKind.delegatedProducer,
+                  },
                   {
                     "delegations.data.state": agreementState.active,
                   },
