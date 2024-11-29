@@ -35,8 +35,9 @@ export const errorCodes = {
   tenantNotFoundByExternalId: "0026",
   tenantAlreadyHasDelegatedProducerFeature: "0027",
   tenantHasNoDelegatedProducerFeature: "0028",
-  agreementNotFound: "0029",
-  descriptorNotFoundInEservice: "0030",
+  notValidMailAddress: "0029",
+  agreementNotFound: "0030",
+  descriptorNotFoundInEservice: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -333,5 +334,13 @@ export function descriptorNotFoundInEservice(
     detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
     code: "descriptorNotFoundInEservice",
     title: "Descriptor not found in EService",
+  });
+}
+
+export function notValidMailAddress(address: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail address ${address} not valid`,
+    code: "notValidMailAddress",
+    title: "Not valid mail address",
   });
 }
