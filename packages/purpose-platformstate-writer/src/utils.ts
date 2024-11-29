@@ -260,7 +260,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
 
       for (const entry of result.tokenGenStatesEntries) {
         const tokenEntryPK = entry.PK;
-        const isAgreementMissingInTokenTable =
+        const isAgreementMissingInTokenGenStates =
           platformAgreementEntry &&
           (!entry.agreementId ||
             !entry.agreementState ||
@@ -270,7 +270,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
         const agreementExpressionAttributeValues: Record<
           string,
           AttributeValue
-        > = isAgreementMissingInTokenTable
+        > = isAgreementMissingInTokenGenStates
           ? {
               ":agreementId": {
                 S: extractAgreementIdFromAgreementPK(platformAgreementEntry.PK),
@@ -286,14 +286,14 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
               },
             }
           : {};
-        const agreementUpdateExpression = isAgreementMissingInTokenTable
+        const agreementUpdateExpression = isAgreementMissingInTokenGenStates
           ? `, agreementId = :agreementId, 
       agreementState = :agreementState, 
       GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId`
           : "";
 
         // Descriptor data from platform-states
-        const isDescriptorDataMissingInTokenTable =
+        const isDescriptorDataMissingInTokenGenStates =
           platformAgreementEntry &&
           catalogEntry &&
           (!entry.descriptorAudience ||
@@ -303,7 +303,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
         const descriptorExpressionAttributeValues: Record<
           string,
           AttributeValue
-        > = isDescriptorDataMissingInTokenTable
+        > = isDescriptorDataMissingInTokenGenStates
           ? {
               ":descriptorState": {
                 S: catalogEntry.state,
@@ -318,11 +318,12 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
               },
             }
           : {};
-        const descriptorUpdateExpression = isDescriptorDataMissingInTokenTable
-          ? `, descriptorState = :descriptorState, 
+        const descriptorUpdateExpression =
+          isDescriptorDataMissingInTokenGenStates
+            ? `, descriptorState = :descriptorState, 
         descriptorAudience = :descriptorAudience, 
         descriptorVoucherLifespan = :descriptorVoucherLifespan`
-          : "";
+            : "";
 
         const input: UpdateItemInput = {
           ConditionExpression: "attribute_exists(PK)",

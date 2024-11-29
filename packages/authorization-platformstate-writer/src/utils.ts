@@ -223,7 +223,7 @@ export const readPlatformClientEntry = async (
   }
 };
 
-const readTokenStateEntriesByGSIPKClientPurpose = async (
+const readTokenGenStatesConsumerClientsByGSIPKClientPurpose = async (
   GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
   dynamoDBClient: DynamoDBClient,
   exclusiveStartKey?: Record<string, AttributeValue>
@@ -277,7 +277,7 @@ export const deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId = async (
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<void> => {
-    const res = await readTokenStateEntriesByGSIPKClientPurpose(
+    const res = await readTokenGenStatesConsumerClientsByGSIPKClientPurpose(
       GSIPK_clientId_purposeId,
       dynamoDBClient,
       exclusiveStartKey
@@ -307,7 +307,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<TokenGenerationStatesConsumerClient[]> => {
-    const res = await readTokenStateEntriesByGSIPKClientPurpose(
+    const res = await readTokenGenStatesConsumerClientsByGSIPKClientPurpose(
       GSIPK_clientId_purposeId,
       dynamoDBClient,
       exclusiveStartKey
@@ -856,7 +856,7 @@ export const setClientPurposeIdsInPlatformStatesEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const extractKidFromTokenEntryPK = (
+export const extractKidFromTokenGenStatesEntryPK = (
   pk: TokenGenerationStatesClientKidPK | TokenGenerationStatesClientKidPurposePK
 ): string => pk.split("#")[2];
 
@@ -974,7 +974,7 @@ export const upsertPlatformClientEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const upsertTokenApiClient = async (
+export const upsertTokenGenStatesApiClient = async (
   entry: TokenGenerationStatesApiClient,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
@@ -1008,7 +1008,7 @@ export const upsertTokenApiClient = async (
   await dynamoDBClient.send(command);
 };
 
-export const updateTokenDataForSecondRetrieval = async ({
+export const updateTokenGenStatesDataForSecondRetrieval = async ({
   dynamoDBClient,
   entry,
   purposeEntry,
