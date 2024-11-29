@@ -360,3 +360,20 @@ export function toCompactDescriptor(
     version: descriptor.version,
   };
 }
+
+export function toCompactProducerDescriptor(
+  descriptor: catalogApi.EServiceDescriptor,
+  isRequesterProducerDelegate: boolean
+): bffApi.CompactProducerDescriptor {
+  return {
+    id: descriptor.id,
+    audience: descriptor.audience,
+    state: descriptor.state,
+    version: descriptor.version,
+    requireCorrections:
+      isRequesterProducerDelegate &&
+      descriptor.state === catalogApi.EServiceDescriptorState.Values.DRAFT &&
+      descriptor.rejectionReasons &&
+      descriptor.rejectionReasons.length > 0,
+  };
+}
