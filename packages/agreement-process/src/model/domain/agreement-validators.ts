@@ -14,6 +14,8 @@ import {
   EServiceId,
   unsafeBrandId,
   TenantId,
+  AgreementStamp,
+  AgreementStamps,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import {
@@ -27,6 +29,7 @@ import {
   agreementActivationFailed,
   agreementAlreadyExists,
   agreementNotInExpectedState,
+  agreementStampNotFound,
   agreementSubmissionFailed,
   descriptorNotFound,
   descriptorNotInExpectedState,
@@ -415,3 +418,14 @@ export const matchingVerifiedAttributes = (
     verifiedAttributes
   ).map((id) => ({ id } as VerifiedAgreementAttribute));
 };
+
+export function assertStampExists<S extends keyof AgreementStamps>(
+  stamps: AgreementStamps,
+  stamp: S
+): asserts stamps is AgreementStamps & {
+  [key in S]: AgreementStamp;
+} {
+  if (!stamps[stamp]) {
+    throw agreementStampNotFound(stamp);
+  }
+}

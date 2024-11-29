@@ -29,10 +29,7 @@ import {
   TenantId,
   Delegation,
 } from "pagopa-interop-models";
-import {
-  agreementApi,
-  SelfcareV2UsersClient,
-} from "pagopa-interop-api-clients";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   formatDateyyyyMMddHHmmss,
   genericLogger,
@@ -70,16 +67,13 @@ export const { agreements, attributes, eservices, tenants, delegations } =
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-export const selfcareV2ClientMock: SelfcareV2UsersClient =
-  {} as SelfcareV2UsersClient;
 export const pdfGenerator = await initPDFGenerator();
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
   readModelService,
   fileManager,
-  pdfGenerator,
-  selfcareV2ClientMock
+  pdfGenerator
 );
 export const writeAgreementInEventstore = async (
   agreement: Agreement

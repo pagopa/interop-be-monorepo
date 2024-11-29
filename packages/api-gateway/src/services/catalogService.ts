@@ -256,5 +256,6 @@ export async function enhanceEservice(
     producer: producerOrganization,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isDelegable: eservice.isDelegable,
+    isClientAccessDelegable: eservice.isClientAccessDelegable,
   };
 }

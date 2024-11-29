@@ -62,6 +62,7 @@ describe("get eservices", () => {
       producerId: organizationId1,
       isSignalHubEnabled: true,
       isDelegable: true,
+      isClientAccessDelegable: true,
     };
     await addOneEService(eservice1);
 
