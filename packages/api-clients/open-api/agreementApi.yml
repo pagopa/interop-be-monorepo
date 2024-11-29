@@ -1343,8 +1343,9 @@ components:
       required:
         - results
         - totalCount
-    hasCertifiedAttributes:
+    HasCertifiedAttributes:
       type: object
+      additionalProperties: false
       properties:
         hasCertifiedAttributes:
           type: boolean
