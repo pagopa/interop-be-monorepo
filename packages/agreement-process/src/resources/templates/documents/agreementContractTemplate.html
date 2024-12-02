@@ -94,7 +94,7 @@
         <strong>{{this.assignmentDate}}</strong>
         alle ore
         <strong>{{this.assignmentTime}}</strong>, l’infrastruttura ha registrato
-        la verifica {{#if delegationId}}del delegato all’erogazione{{else}}dell’erogatore{{/if}}
+        la verifica {{#if producerDelegationId}}del delegato all’erogazione{{else}}dell’erogatore{{/if}}
         che il fruitore possegga l’attributo verificato <strong>{{this.attributeName}}</strong>, 
         contraddistinto da id <strong>{{this.attributeId}}</strong>, {{#if this.expirationDate}} ed
         avente scadenza il <strong>{{this.expirationDate}}</strong>,{{/if}}
@@ -133,7 +133,7 @@
         la dichiarazione di accettazione della richiesta di fruizione
         (di seguito “dichiarazione di accettazione”) inviata {{#if producerDelegationId}}dal delegato all’erogazione,{{else}}inviata dall’erogatore,{{/if}}
         tramite l’operatore amministrativo con identificativo Area Riservata
-        {{#if producerDelegationId}}<strong>{{producerDelegateId}}</strong>.{{else}}<strong>{{activatorId}}</strong>.{{/if}}
+        {{#if producerDelegationId}}<strong>{{activatorId}}</strong>.{{else}}<strong>{{activatorId}}</strong>.{{/if}}
       </div>
       <div>
         In data <strong>{{activationDate}}</strong> alle ore
