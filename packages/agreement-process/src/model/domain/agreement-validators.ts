@@ -17,6 +17,7 @@ import {
   AgreementStamp,
   AgreementStamps,
   delegationKind,
+  Delegation,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
@@ -137,63 +138,7 @@ export const assertRequesterIsConsumer = (
   }
 };
 
-export function assertRequesterIsProducer(
-  agreement: Agreement,
-  authData: AuthData
-): void {
-  if (
-    !authData.userRoles.includes("internal") &&
-    authData.organizationId !== agreement.producerId
-  ) {
-    throw operationNotAllowed(authData.organizationId);
-  }
-}
-
-export const assertRequesterIsConsumerOrProducer = (
-  agreement: Agreement,
-  authData: AuthData
-): void => {
-  try {
-    assertRequesterIsConsumer(agreement, authData);
-  } catch (error) {
-    assertRequesterIsProducer(agreement, authData);
-  }
-};
-
-export const assertRequesterIsConsumerOrProducerOrDelegateProducer = async (
-  agreement: Agreement,
-  authData: AuthData,
-  readModelService: ReadModelService
-): Promise<void> => {
-  try {
-    assertRequesterIsConsumer(agreement, authData);
-  } catch (error) {
-    try {
-      assertRequesterIsProducer(agreement, authData);
-    } catch (error) {
-      const producerDelegation =
-        await readModelService.getDelegationByDelegateId(
-          authData.organizationId,
-          delegationKind.delegatedProducer
-        );
-      assertRequesterIsDelegate(producerDelegation?.delegateId, authData);
-    }
-  }
-};
-
-export const assertRequesterIsProducerOrDelegateProducer = (
-  agreement: Agreement,
-  delegateProducerId: TenantId | undefined,
-  authData: AuthData
-): void => {
-  if (delegateProducerId) {
-    assertRequesterIsDelegate(delegateProducerId, authData);
-  } else {
-    assertRequesterIsProducer(agreement, authData);
-  }
-};
-
-export const assertRequesterIsDelegate = (
+const assertRequesterIsDelegate = (
   delegateId: TenantId | undefined,
   authData: AuthData
 ): void => {
@@ -202,23 +147,45 @@ export const assertRequesterIsDelegate = (
   }
 };
 
-export const assertRequesterCanActivate = (
+export const assertRequesterIsProducer = async (
   agreement: Agreement,
-  delegateProducerId: TenantId | undefined,
-  authData: AuthData
-): void => {
-  try {
-    assertRequesterIsConsumer(agreement, authData);
-  } catch (e) {
-    if (delegateProducerId) {
-      assertRequesterIsDelegate(delegateProducerId, authData);
-    } else {
-      assertRequesterIsProducer(agreement, authData);
+  authData: AuthData,
+  activeProducerDelegation: Delegation | undefined
+): Promise<void> => {
+  if (!activeProducerDelegation) {
+    if (
+      !authData.userRoles.includes("internal") &&
+      authData.organizationId !== agreement.producerId
+    ) {
+      throw operationNotAllowed(authData.organizationId);
+    }
+  } else {
+    assertRequesterIsDelegate(activeProducerDelegation?.delegateId, authData);
+    if (
+      activeProducerDelegation?.delegatorId !== agreement.producerId ||
+      activeProducerDelegation?.kind !== delegationKind.delegatedProducer ||
+      activeProducerDelegation?.eserviceId !== agreement.eserviceId
+    ) {
+      throw operationNotAllowed(authData.organizationId);
     }
   }
 };
 
-export const assertRequesterCanSuspend = assertRequesterCanActivate;
+export async function assertRequesterIsConsumerOrProducer(
+  agreement: Agreement,
+  authData: AuthData,
+  activeProducerDelegation: Delegation | undefined
+): Promise<void> {
+  try {
+    assertRequesterIsConsumer(agreement, authData);
+  } catch (error) {
+    await assertRequesterIsProducer(
+      agreement,
+      authData,
+      activeProducerDelegation
+    );
+  }
+}
 
 export const assertSubmittableState = (
   state: AgreementState,

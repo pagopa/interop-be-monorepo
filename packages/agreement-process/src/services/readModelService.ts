@@ -25,13 +25,11 @@ import {
   AttributeReadmodel,
   TenantId,
   genericInternalError,
-  DelegationState,
   Delegation,
   delegationState,
   AgreementReadModel,
   DescriptorReadModel,
   EServiceReadModel,
-  DelegationKind,
   delegationKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -615,42 +613,14 @@ export function readModelServiceBuilder(
         ),
       };
     },
-    async getDelegationByDelegateId(
-      delegateId: TenantId,
-      kind: DelegationKind,
-      state: DelegationState = delegationState.active
-    ): Promise<Delegation | undefined> {
-      const data = await delegations.findOne(
-        {
-          "data.delegateId": delegateId,
-          "data.state": state,
-          "data.kind": kind,
-        },
-        { projection: { data: true } }
-      );
-
-      if (!data) {
-        return undefined;
-      }
-      const result = z.object({ data: Delegation }).safeParse(data);
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse delegation item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-      return result.data.data;
-    },
-    async getActiveDelegationByEserviceId(
-      eserviceId: EServiceId,
-      kind: DelegationKind
+    async getActiveProducerDelegationByEserviceId(
+      eserviceId: EServiceId
     ): Promise<Delegation | undefined> {
       const data = await delegations.findOne(
         {
           "data.eserviceId": eserviceId,
           "data.state": delegationState.active,
-          "data.kind": kind,
+          "data.kind": delegationKind.delegatedProducer,
         },
         { projection: { data: true } }
       );
