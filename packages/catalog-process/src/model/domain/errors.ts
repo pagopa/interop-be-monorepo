@@ -1,5 +1,7 @@
+import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
+  DelegationId,
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
@@ -7,7 +9,6 @@ import {
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 
 export const errorCodes = {
   eServiceDescriptorNotFound: "0001",
@@ -33,6 +34,7 @@ export const errorCodes = {
   riskAnalysisDuplicated: "0021",
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
+  eserviceWithActiveOrPendingDelegation: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -89,7 +91,7 @@ export function eServiceDocumentNotFound(
   });
 }
 
-export function notValidDescriptor(
+export function notValidDescriptorState(
   descriptorId: DescriptorId,
   descriptorStatus: string
 ): ApiError<ErrorCodes> {
@@ -269,5 +271,16 @@ export function audienceCannotBeEmpty(
     detail: `Descriptor ${descriptorId} can't be published with empty audience`,
     code: "audienceCannotBeEmpty",
     title: "Audience cannot be empty",
+  });
+}
+
+export function eserviceWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} can't be deleted with an active or pending delegation ${delegationId}`,
+    code: "eserviceWithActiveOrPendingDelegation",
+    title: "E-service with active or pending delegation",
   });
 }
