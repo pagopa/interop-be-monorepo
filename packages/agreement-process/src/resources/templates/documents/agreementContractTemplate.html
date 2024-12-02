@@ -47,9 +47,18 @@
       <strong>{{todayTime}}</strong>, l’Infrastruttura ha ricevuto la richiesta
       di fruizione contraddistinta da id <strong>{{agreementId}}</strong> (di
       seguito “richiesta di fruizione”), inviata dall’aderente
+      {{#if consumerDelegationId}}
+      <strong>{{consumerDelegateName}}</strong>{{#if consumerDelegateIpaCode}} (codice IPA:
+      <strong>{{consumerDelegateIpaCode}}</strong> - di seguito “delegato
+      alla fruizione”){{else}}(di seguito “delegato alla fruizione”){{/if}}, per conto
+      del fruitore <strong>{{consumerDelegatorName}}</strong>{{#if consumerDelegatorIpaCode}}
+      (codice IPA: <strong>{{consumerDelegatorIpaCode}}</strong> - di seguito
+      “fruitore”){{else}}(di seguito “fruitore”){{/if}}
+      {{else}}
       <strong>{{consumerName}}</strong> {{#if consumerIpaCode}}(codice IPA:
       <strong>{{consumerIpaCode}}</strong> — di seguito “fruitore”){{else}}(di
-      seguito “fruitore”){{/if}}, tramite l’operatore amministrativo con
+      seguito “fruitore”){{/if}}
+      {{/if}}, tramite l’operatore amministrativo con
       identificativo Area Riservata <strong>{{submitterId}}</strong>, per
       l’e-service <strong>{{eserviceName}}</strong>, contraddistinto da id
       <strong>{{eserviceId}}</strong>, versione {{descriptorVersion}},
@@ -77,7 +86,9 @@
         <strong>{{this.assignmentDate}}</strong>
         alle ore
         <strong>{{this.assignmentTime}}</strong>, l’infrastruttura ha registrato
-        la dichiarazione del fruitore di possedere l’attributo dichiarato
+        la dichiarazione del {{#if consumerDelegationId}}
+        delegato alla fruizione che il fruitore possegga
+        {{else}} fruitore di possedere{{/if}} l’attributo dichiarato
         <strong>{{this.attributeName}}</strong>, contraddistinto da id
         <strong>{{this.attributeId}}</strong>, necessario a soddisfare il
         requisito di fruizione stabilito dall’erogatore per l’accesso
@@ -138,13 +149,15 @@
       <div>
         In data <strong>{{activationDate}}</strong> alle ore
         <strong>{{activationTime}}</strong>, l’Infrastruttura ha comunicato al
-        fruitore la dichiarazione di accettazione inviata {{#if producerDelegationId}}dal delegato all’erogazione{{else}}dall’erogatore{{/if}}.
+        fruitore {{#if consumerDelegationId}}e al delegato alla fruizione{{/if}} la dichiarazione di accettazione inviata {{#if producerDelegationId}}dal delegato all’erogazione{{else}}dall’erogatore{{/if}}.
       </div>
 
       <div>
         In data <strong>{{activationDate}}</strong> alle ore
-        <strong>{{activationTime}}</strong>, l’Infrastruttura ha registrato il
-        fruitore quale soggetto titolato ad accedere all’e-service.
+        <strong>{{activationTime}}</strong>, l’Infrastruttura ha registrato
+        {{#if consumerDelegationId}} il fruitore e il delegato alla fruizione (esclusivamente
+        per conto del fruitore) quali soggetti titolati
+        {{else}} il fruitore quale soggetto titolato{{/if}} ad accedere all’e-service.
       </div>
     </div>
   </body>
