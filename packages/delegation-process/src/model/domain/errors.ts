@@ -5,9 +5,10 @@ import {
   makeApiProblemBuilder,
   TenantId,
   DelegationState,
+  DelegationId,
+  DelegationContractId,
   DelegationKind,
   Tenant,
-  DelegationId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -24,7 +25,7 @@ export const errorCodes = {
   operationRestrictedToDelegate: "0010",
   incorrectState: "0011",
   differentEserviceProducer: "0012",
-  invalidDelegationKind: "0013",
+  delegationContractNotFound: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -32,10 +33,13 @@ export type ErrorCodes = keyof typeof errorCodes;
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function delegationNotFound(
-  delegationId: DelegationId
+  delegationId: DelegationId,
+  kind: DelegationKind | undefined = undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegation ${delegationId} not found`,
+    detail: kind
+      ? `Delegation ${delegationId} of kind ${kind} not found`
+      : `Delegation ${delegationId} not found`,
     code: "delegationNotFound",
     title: "Delegation not found",
   });
@@ -149,6 +153,17 @@ export function differentEServiceProducer(
   });
 }
 
+export function delegationContractNotFound(
+  delegationId: DelegationId,
+  contractId: DelegationContractId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract ${contractId} of delegation ${delegationId} not found`,
+    code: "delegationContractNotFound",
+    title: "Delegation contract not found",
+  });
+}
+
 export function delegationStampNotFound(
   stamp: keyof Delegation["stamps"]
 ): ApiError<ErrorCodes> {
@@ -156,16 +171,5 @@ export function delegationStampNotFound(
     detail: `Delegation ${stamp} stamp not found`,
     code: "stampNotFound",
     title: "Stamp not found",
-  });
-}
-
-export function invalidDelegationKind(
-  delegation: Delegation,
-  expectedKind: DelegationKind
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Delegation ${delegation.id} is of kind ${delegation.kind} but expected ${expectedKind}`,
-    code: "invalidDelegationKind",
-    title: "Invalidd delegation kind",
   });
 }

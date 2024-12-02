@@ -7,6 +7,7 @@ import {
   delegationState,
   EService,
   EServiceId,
+  operationForbidden,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
@@ -22,7 +23,6 @@ import {
   operationRestrictedToDelegator,
   tenantIsNotIPAError,
   tenantNotAllowedToDelegation,
-  invalidDelegationKind,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -136,6 +136,18 @@ export const assertIsState = (
   }
 };
 
+export const assertRequesterIsDelegateOrDelegator = (
+  delegation: Delegation,
+  requesterId: TenantId
+): void => {
+  if (
+    delegation.delegateId !== requesterId &&
+    delegation.delegatorId !== requesterId
+  ) {
+    throw operationForbidden;
+  }
+};
+
 export function assertStampExists<S extends keyof Delegation["stamps"]>(
   stamps: Delegation["stamps"],
   stamp: S
@@ -144,14 +156,5 @@ export function assertStampExists<S extends keyof Delegation["stamps"]>(
 } {
   if (!stamps[stamp]) {
     throw delegationStampNotFound(stamp);
-  }
-}
-
-export function assertDelegationKindIs(
-  expectedKind: DelegationKind,
-  delegation: Delegation
-): void {
-  if (delegation.kind !== expectedKind) {
-    throw invalidDelegationKind(delegation, expectedKind);
   }
 }

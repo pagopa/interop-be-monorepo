@@ -32,7 +32,6 @@ import {
   delegationNotFound,
   operationRestrictedToDelegate,
   incorrectState,
-  invalidDelegationKind,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -143,7 +142,7 @@ describe("approve producer delegation", () => {
         "delegationApprovedTemplate.html"
       ),
       {
-        delegationKindText: "all'erogazione",
+        delegationKindText: "all’erogazione",
         todayDate: dateAtRomeZone(currentExecutionTime),
         todayTime: timeAtRomeZone(currentExecutionTime),
         delegationId: approvedDelegationWithoutContract.id,
@@ -178,10 +177,15 @@ describe("approve producer delegation", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrow(delegationNotFound(nonExistentDelegationId));
+    ).rejects.toThrow(
+      delegationNotFound(
+        nonExistentDelegationId,
+        delegationKind.delegatedProducer
+      )
+    );
   });
 
-  it("should throw invalidDelegationKind when delegation kind is not DelegatedProducer", async () => {
+  it("should throw delegationNotFound when delegation kind is not DelegatedProducer", async () => {
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       state: "WaitingForApproval",
@@ -199,7 +203,7 @@ describe("approve producer delegation", () => {
         logger: genericLogger,
       })
     ).rejects.toThrow(
-      invalidDelegationKind(delegation, delegationKind.delegatedProducer)
+      delegationNotFound(delegation.id, delegationKind.delegatedProducer)
     );
   });
 

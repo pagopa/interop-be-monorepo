@@ -107,5 +107,6 @@ export const EService = z.object({
   mode: EServiceMode,
   isSignalHubEnabled: z.boolean().optional(),
   isDelegable: z.boolean().optional(),
+  isClientAccessDelegable: z.boolean().optional(),
 });
 export type EService = z.infer<typeof EService>;

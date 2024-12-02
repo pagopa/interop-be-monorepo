@@ -25,7 +25,7 @@ import {
 } from "../model/domain/toEvent.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
 import {
-  retrieveDelegationById,
+  retrieveDelegation,
   retrieveEserviceById,
   retrieveTenantById,
 } from "./delegationService.js";
@@ -37,7 +37,6 @@ import {
   assertIsState,
   assertTenantAllowedToReceiveDelegation,
   assertDelegatorAndDelegateIPA,
-  assertDelegationKindIs,
 } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -114,12 +113,12 @@ export function delegationConsumerServiceBuilder(
         `Approving delegation ${delegationId} by delegate ${delegateId}`
       );
 
-      const { data: delegation, metadata } = await retrieveDelegationById(
+      const { data: delegation, metadata } = await retrieveDelegation(
         readModelService,
-        delegationId
+        delegationId,
+        delegationKind.delegatedConsumer
       );
 
-      assertDelegationKindIs(delegationKind.delegatedConsumer, delegation);
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
