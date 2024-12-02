@@ -113,7 +113,7 @@ export function toBffCatalogDescriptorEService(
       (t) => hasCertifiedAttributes(descriptor, t)
       /* True in case:
       - the requester has the certified attributes required to consume the eservice, or
-      - the requester is the delegated consumer for the eservice and 
+      - the requester is the delegated consumer for the eservice and
         the delegator has the certified attributes required to consume the eservice */
     ),
     isSubscribed: isAgreementSubscribed(agreement),
