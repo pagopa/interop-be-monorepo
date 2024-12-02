@@ -29,7 +29,6 @@ import {
   Agreement,
   AgreementAddedV2,
   AgreementArchivedByUpgradeV2,
-  AgreementContractPDFPayload,
   AgreementDocument,
   AgreementId,
   AgreementUpgradedV2,
@@ -67,6 +66,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
+import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -824,11 +824,6 @@ describe("upgrade Agreement", () => {
       producerIpaCode: getIpaCode(producer),
       consumerName: consumer.name,
       consumerIpaCode: getIpaCode(consumer),
-      producerDelegationId: delegation.id,
-      producerDelegatorName: producer.name,
-      producerDelegatorIpaCode: getIpaCode(producer),
-      producerDelegateName: delegate.name,
-      producerDelegateIpaCode: getIpaCode(delegate),
       certifiedAttributes: [
         {
           assignmentDate: dateAtRomeZone(
@@ -866,6 +861,16 @@ describe("upgrade Agreement", () => {
           expirationDate: undefined,
         },
       ],
+      producerDelegationId: delegation.id,
+      producerDelegatorName: producer.name,
+      producerDelegatorIpaCode: getIpaCode(producer),
+      producerDelegateName: delegate.name,
+      producerDelegateIpaCode: getIpaCode(delegate),
+      consumerDelegationId: undefined,
+      consumerDelegatorName: undefined,
+      consumerDelegatorIpaCode: undefined,
+      consumerDelegateName: undefined,
+      consumerDelegateIpaCode: undefined,
     };
 
     expect(pdfGenerator.generate).toHaveBeenCalledWith(

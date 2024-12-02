@@ -28,7 +28,6 @@ import {
 import {
   Agreement,
   AgreementActivatedV2,
-  AgreementContractPDFPayload,
   AgreementId,
   AgreementSetMissingCertifiedAttributesByPlatformV2,
   AgreementSubmittedV2,
@@ -69,6 +68,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
 import { config } from "../src/config/config.js";
+import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -1856,6 +1856,11 @@ describe("submit agreement", () => {
       producerDelegatorIpaCode: getIpaCode(producer),
       producerDelegateName: delegate.name,
       producerDelegateIpaCode: getIpaCode(delegate),
+      consumerDelegationId: undefined,
+      consumerDelegatorName: undefined,
+      consumerDelegatorIpaCode: undefined,
+      consumerDelegateName: undefined,
+      consumerDelegateIpaCode: undefined,
     };
 
     expect(pdfGenerator.generate).toHaveBeenCalledWith(

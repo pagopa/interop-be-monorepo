@@ -1,7 +1,11 @@
 import {
   AgreementAttribute,
+  AgreementId,
   AgreementStamps,
   AgreementState,
+  DescriptorId,
+  EServiceId,
+  UserId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -48,3 +52,52 @@ export const CompactEService = z.object({
   name: z.string(),
 });
 export type CompactEService = z.infer<typeof CompactEService>;
+
+export type AgreementContractPDFPayload = {
+  todayDate: string;
+  todayTime: string;
+  agreementId: AgreementId;
+  submitterId: UserId;
+  submissionDate: string;
+  submissionTime: string;
+  activatorId: UserId;
+  activationDate: string;
+  activationTime: string;
+  eserviceId: EServiceId;
+  eserviceName: string;
+  descriptorId: DescriptorId;
+  descriptorVersion: string;
+  producerName: string;
+  producerIpaCode: string | undefined;
+  consumerName: string;
+  consumerIpaCode: string | undefined;
+  certifiedAttributes: Array<{
+    assignmentDate: string;
+    assignmentTime: string;
+    attributeName: string;
+    attributeId: string;
+  }>;
+  declaredAttributes: Array<{
+    assignmentDate: string;
+    assignmentTime: string;
+    attributeName: string;
+    attributeId: string;
+  }>;
+  verifiedAttributes: Array<{
+    assignmentDate: string;
+    assignmentTime: string;
+    attributeName: string;
+    attributeId: string;
+    expirationDate: string | undefined;
+  }>;
+  producerDelegationId: string | undefined;
+  producerDelegatorName: string | undefined;
+  producerDelegatorIpaCode: string | undefined;
+  producerDelegateName: string | undefined;
+  producerDelegateIpaCode: string | undefined;
+  consumerDelegationId: string | undefined;
+  consumerDelegatorName: string | undefined;
+  consumerDelegatorIpaCode: string | undefined;
+  consumerDelegateName: string | undefined;
+  consumerDelegateIpaCode: string | undefined;
+};
