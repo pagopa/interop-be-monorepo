@@ -162,11 +162,11 @@ export const assertRequesterIsProducer = async (
   }
 };
 
-export async function assertRequesterIsConsumerOrProducer(
+export const assertRequesterIsConsumerOrProducer = async (
   agreement: Agreement,
   authData: AuthData,
   activeProducerDelegation: Delegation | undefined
-): Promise<void> {
+): Promise<void> => {
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
@@ -176,7 +176,7 @@ export async function assertRequesterIsConsumerOrProducer(
       activeProducerDelegation
     );
   }
-}
+};
 
 const assertRequesterIsDelegate = (
   delegateId: TenantId | undefined,
