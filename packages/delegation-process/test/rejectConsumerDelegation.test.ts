@@ -91,7 +91,12 @@ describe("reject consumer delegation", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrow(delegationNotFound(nonExistentDelegationId));
+    ).rejects.toThrow(
+      delegationNotFound(
+        nonExistentDelegationId,
+        delegationKind.delegatedConsumer
+      )
+    );
   });
 
   it("should throw operationRestrictedToDelegate when rejecter is not the delegate", async () => {
