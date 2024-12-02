@@ -11,7 +11,6 @@ import {
 import { genericLogger } from "pagopa-interop-commons";
 import {
   CertifiedTenantAttribute,
-  DelegationId,
   delegationState,
   DescriptorId,
   EServiceId,
@@ -20,12 +19,9 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import {
-  delegationNotActive,
-  delegationNotFound,
   descriptorNotFound,
   eServiceNotFound,
   operationRestrictedToDelegate,
-  tenantIsNotRequester,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -78,7 +74,11 @@ describe("Verify Tenant Certified Attributes", () => {
     });
 
     it("should verify attributes", async () => {
-      const delegation = { ...mockDelegation, state: delegationState.active };
+      const delegation = {
+        ...mockDelegation,
+        state: delegationState.active,
+        delegatorId: mockTenant.id,
+      };
 
       await addOneEService(mockEService);
       await addOneTenant(mockTenant);
@@ -89,7 +89,6 @@ describe("Verify Tenant Certified Attributes", () => {
           tenantId: mockTenant.id,
           descriptorId: mockDescriptor.id,
           eserviceId: mockEService.id,
-          delegationId: delegation.id,
         },
         {
           authData: getMockAuthData(delegation.delegateId),
@@ -101,54 +100,13 @@ describe("Verify Tenant Certified Attributes", () => {
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
     });
-    it("should throw delegationNotFound when the delegation doesn't exist", async () => {
-      const delegationId = generateId<DelegationId>();
-
-      await expect(
-        agreementService.verifyTenantCertifiedAttributes(
-          {
-            tenantId: mockTenant.id,
-            descriptorId: mockDescriptor.id,
-            eserviceId: mockEService.id,
-            delegationId,
-          },
-          {
-            authData: getMockAuthData(mockTenant.id),
-            serviceName: "agreement-process",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
-        )
-      ).rejects.toThrowError(delegationNotFound(delegationId));
-    });
-    it("should throw delegationNotActive when the delegation is not active", async () => {
-      const inactiveDelegation = {
-        ...mockDelegation,
-        state: delegationState.waitingForApproval,
-      };
-
-      await addOneDelegation(inactiveDelegation);
-
-      await expect(
-        agreementService.verifyTenantCertifiedAttributes(
-          {
-            tenantId: mockTenant.id,
-            descriptorId: mockDescriptor.id,
-            eserviceId: mockEService.id,
-            delegationId: inactiveDelegation.id,
-          },
-          {
-            authData: getMockAuthData(inactiveDelegation.delegateId),
-            serviceName: "agreement-process",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
-        )
-      ).rejects.toThrowError(delegationNotActive(inactiveDelegation.id));
-    });
     it("should throw operationRestrictedToDelegate when organizationId is not the delegate", async () => {
       const organizationId = generateId<TenantId>();
-      const delegation = { ...mockDelegation, state: delegationState.active };
+      const delegation = {
+        ...mockDelegation,
+        state: delegationState.active,
+        delegatorId: mockTenant.id,
+      };
 
       await addOneDelegation(delegation);
 
@@ -158,7 +116,6 @@ describe("Verify Tenant Certified Attributes", () => {
             tenantId: mockTenant.id,
             descriptorId: mockDescriptor.id,
             eserviceId: mockEService.id,
-            delegationId: delegation.id,
           },
           {
             authData: getMockAuthData(organizationId),
@@ -168,7 +125,10 @@ describe("Verify Tenant Certified Attributes", () => {
           }
         )
       ).rejects.toThrowError(
-        operationRestrictedToDelegate(organizationId, delegation.id)
+        operationRestrictedToDelegate({
+          delegatorId: organizationId,
+          delegateId: mockTenant.id,
+        })
       );
     });
   });
@@ -192,27 +152,6 @@ describe("Verify Tenant Certified Attributes", () => {
       );
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
-    });
-    it("should throw tenantIsNotRequester if tenant is not the requester", async () => {
-      const organizationId = generateId<TenantId>();
-
-      await expect(
-        agreementService.verifyTenantCertifiedAttributes(
-          {
-            tenantId: mockTenant.id,
-            descriptorId: mockDescriptor.id,
-            eserviceId: mockEService.id,
-          },
-          {
-            authData: getMockAuthData(organizationId),
-            serviceName: "agreement-process",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
-        )
-      ).rejects.toThrowError(
-        tenantIsNotRequester(organizationId, mockTenant.id)
-      );
     });
     it("should return true if the consumer is the producer even if the tenant has invalid certified attributes", async () => {
       const tenant: Tenant = {
