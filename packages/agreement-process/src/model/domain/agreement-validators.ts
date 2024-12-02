@@ -138,15 +138,6 @@ export const assertRequesterIsConsumer = (
   }
 };
 
-const assertRequesterIsDelegate = (
-  delegateId: TenantId | undefined,
-  authData: AuthData
-): void => {
-  if (authData.organizationId !== delegateId) {
-    throw operationNotAllowed(authData.organizationId);
-  }
-};
-
 export const assertRequesterIsProducer = async (
   agreement: Agreement,
   authData: AuthData,
@@ -186,6 +177,15 @@ export async function assertRequesterIsConsumerOrProducer(
     );
   }
 }
+
+const assertRequesterIsDelegate = (
+  delegateId: TenantId | undefined,
+  authData: AuthData
+): void => {
+  if (authData.organizationId !== delegateId) {
+    throw operationNotAllowed(authData.organizationId);
+  }
+};
 
 export const assertSubmittableState = (
   state: AgreementState,
