@@ -2,6 +2,7 @@
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockDelegation,
   getMockValidRiskAnalysis,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
@@ -14,6 +15,8 @@ import {
   eserviceMode,
   operationForbidden,
   generateId,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
@@ -32,6 +35,7 @@ import {
   getMockDocument,
   getMockDescriptor,
   getMockEService,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("update eService", () => {
@@ -330,6 +334,52 @@ describe("update eService", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
+  it("should write on event-store for the update of an eService (delegate)", async () => {
+    const updatedDescription = "eservice new description";
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
+    const returnedEService = await catalogService.updateEService(
+      mockEService.id,
+      {
+        name: mockEService.name,
+        description: updatedDescription,
+        technology: "REST",
+        mode: "DELIVER",
+      },
+      {
+        authData: getMockAuthData(delegation.delegateId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    const updatedEService: EService = {
+      ...mockEService,
+      description: updatedDescription,
+    };
+
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockEService.id,
+      version: "1",
+      type: "DraftEServiceUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftEServiceUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+  });
 
   it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
     const riskAnalysis = getMockValidRiskAnalysis("PA");
@@ -413,6 +463,35 @@ describe("update eService", () => {
         },
         {
           authData: getMockAuthData(),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.updateEService(
+        mockEService.id,
+        {
+          name: "eservice new name",
+          description: "eservice description",
+          technology: "REST",
+          mode: "DELIVER",
+        },
+        {
+          authData: getMockAuthData(mockEService.producerId),
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
