@@ -19,6 +19,7 @@ import { ReadModelService } from "../services/readModelService.js";
 import {
   approveDelegationErrorMapper,
   createConsumerDelegationErrorMapper,
+  rejectDelegationErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const { ADMIN_ROLE } = userRoles;
@@ -90,6 +91,33 @@ const delegationConsumerRouter = (
           const errorRes = makeApiProblem(
             error,
             approveDelegationErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/consumer/delegations/:delegationId/reject",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        const { rejectionReason } = req.body;
+
+        try {
+          await delegationConsumerService.rejectConsumerDelegation(
+            unsafeBrandId(req.params.delegationId),
+            rejectionReason,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            rejectDelegationErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
