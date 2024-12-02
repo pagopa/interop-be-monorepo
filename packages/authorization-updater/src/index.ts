@@ -67,7 +67,8 @@ export async function sendCatalogAuthUpdate(
       {
         type: P.union(
           "EServiceDescriptorPublished",
-          "EServiceDescriptorActivated"
+          "EServiceDescriptorActivated",
+          "EServiceDescriptorDelegatorApproved"
         ),
       },
       async (msg) => {
@@ -134,7 +135,9 @@ export async function sendCatalogAuthUpdate(
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
           "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptionUpdated"
+          "EServiceDescriptionUpdated",
+          "EServiceDescriptorDelegateSubmitted",
+          "EServiceDescriptorDelegatorRejected"
         ),
       },
       () => {

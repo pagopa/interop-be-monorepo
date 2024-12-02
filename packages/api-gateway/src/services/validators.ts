@@ -3,6 +3,7 @@ import {
   apiGatewayApi,
   attributeRegistryApi,
   catalogApi,
+  delegationApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
 import { operationForbidden, TenantId } from "pagopa-interop-models";
@@ -15,6 +16,7 @@ import {
   missingAvailableDescriptor,
   multipleAgreementForEserviceAndConsumer,
   unexpectedDescriptorState,
+  multipleActiveProducerDelegationsForEservice,
 } from "../models/errors.js";
 import { NonDraftCatalogApiDescriptor } from "../api/catalogApiConverter.js";
 
@@ -91,5 +93,32 @@ export function assertRegistryAttributeExists(
 ): asserts registryAttribute is NonNullable<attributeRegistryApi.Attribute> {
   if (!registryAttribute) {
     throw attributeNotFoundInRegistry(attributeId);
+  }
+}
+
+export function assertIsEserviceDelegateProducer(
+  producerDelegation: delegationApi.Delegation | undefined,
+  organizationId: TenantId
+): void {
+  if (
+    !producerDelegation ||
+    producerDelegation.kind !==
+      delegationApi.DelegationKind.Values.DELEGATED_PRODUCER ||
+    producerDelegation.delegateId !== organizationId
+  ) {
+    throw operationForbidden;
+  }
+}
+
+export function assertOnlyOneActiveProducerDelegationForEserviceExists(
+  producerDelegations: delegationApi.Delegations,
+  eserviceId: apiGatewayApi.EService["id"]
+): void {
+  if (
+    producerDelegations.results.filter(
+      (d) => d.kind === delegationApi.DelegationKind.Values.DELEGATED_PRODUCER
+    ).length > 1
+  ) {
+    throw multipleActiveProducerDelegationsForEservice(eserviceId);
   }
 }
