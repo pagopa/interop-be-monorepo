@@ -5,6 +5,8 @@ import {
   EServiceSQL,
   DescriptorSQL,
   DescriptorAttributeSQL,
+  EserviceRiskAnalysisSQL,
+  RiskAnalysisAnswerSQL,
 } from "pagopa-interop-models";
 
 export const parseDocumentSQL = (data: any): DocumentSQL | undefined => {
@@ -65,6 +67,42 @@ export const parseDescriptorAttributeSQL = (
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse descriptor attribute item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return result.data;
+  }
+};
+
+export const parseRiskAnalysisSQL = (
+  data: any
+): EserviceRiskAnalysisSQL | undefined => {
+  if (!data) {
+    return undefined;
+  } else {
+    const result = EserviceRiskAnalysisSQL.safeParse(data);
+    if (!result.success) {
+      throw genericInternalError(
+        `Unable to parse risk analysis item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return result.data;
+  }
+};
+
+export const parseRiskAnalysisAnswerSQL = (
+  data: any
+): RiskAnalysisAnswerSQL | undefined => {
+  if (!data) {
+    return undefined;
+  } else {
+    const result = RiskAnalysisAnswerSQL.safeParse(data);
+    if (!result.success) {
+      throw genericInternalError(
+        `Unable to parse risk analysis answer item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
