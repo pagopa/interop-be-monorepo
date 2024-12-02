@@ -127,7 +127,7 @@ CREATE TABLE readmodel.agreement(
   suspension_by_consumer_by uuid,
   suspension_by_consumer_at timestamp with time zone,
   upgrade_by uuid,
-  upgrade_at timestamp with time zone
+  upgrade_at timestamp with time zone,
   archiving_by uuid,
   archiving_at timestamp with time zone
   );
@@ -146,5 +146,5 @@ CREATE TABLE readmodel.agreement_consumer_document(
   content_type varchar,
   path varchar,
   created_at timestamp with time zone,
-  kind = varchar --consumerDoc / contract
+  kind varchar --consumerDoc / contract
 );
