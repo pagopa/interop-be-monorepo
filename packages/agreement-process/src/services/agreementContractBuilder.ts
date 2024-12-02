@@ -24,6 +24,7 @@ import {
   generateId,
   tenantAttributeType,
   AgreementDocument,
+  Delegation,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -32,10 +33,16 @@ import { attributeNotFound } from "../model/domain/errors.js";
 import { AgreementProcessConfig } from "../config/config.js";
 import { assertStampExists } from "../model/domain/agreement-validators.js";
 import { ReadModelService } from "./readModelService.js";
-import { retrieveDescriptor } from "./agreementService.js";
+import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
+
+export type DelegationData = {
+  producerDelegation: Delegation;
+  delegator: Tenant;
+  delegate: Tenant;
+};
 
 const createAgreementDocumentName = (
   consumerId: TenantId,
@@ -135,6 +142,7 @@ const getPdfPayload = async (
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
+  producerDelegationData: DelegationData | undefined,
   readModelService: ReadModelService
 ): Promise<AgreementContractPDFPayload> => {
   const getIpaCode = (tenant: Tenant): string | undefined =>
@@ -201,6 +209,33 @@ const getPdfPayload = async (
           : undefined,
       };
     }),
+    producerDelegationId: producerDelegationData?.producerDelegation.id,
+    producerDelegatorName: producerDelegationData?.delegator.name,
+    producerDelegatorIpaCode:
+      producerDelegationData && getIpaCode(producerDelegationData?.delegator),
+    producerDelegateName: producerDelegationData?.delegate.name,
+    producerDelegateIpaCode:
+      producerDelegationData && getIpaCode(producerDelegationData?.delegate),
+  };
+};
+
+const buildProducerDelegationData = async (
+  producerDelegation: Delegation,
+  readModelService: ReadModelService
+): Promise<DelegationData> => {
+  const delegator = await retrieveTenant(
+    producerDelegation.delegatorId,
+    readModelService
+  );
+  const delegate = await retrieveTenant(
+    producerDelegation.delegateId,
+    readModelService
+  );
+
+  return {
+    producerDelegation,
+    delegator,
+    delegate,
   };
 };
 
@@ -226,13 +261,22 @@ export const contractBuilder = (
       agreement: Agreement,
       eservice: EService,
       consumer: Tenant,
-      producer: Tenant
+      producer: Tenant,
+      producerDelegation: Delegation | undefined
     ): Promise<AgreementDocument> => {
+      const producerDelegationData =
+        producerDelegation &&
+        (await buildProducerDelegationData(
+          producerDelegation,
+          readModelService
+        ));
+
       const pdfPayload = await getPdfPayload(
         agreement,
         eservice,
         consumer,
         producer,
+        producerDelegationData,
         readModelService
       );
 

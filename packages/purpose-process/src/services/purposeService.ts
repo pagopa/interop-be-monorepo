@@ -41,6 +41,7 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
+  delegationKind,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -105,6 +106,8 @@ import {
   validateRiskAnalysisOrThrow,
   assertPurposeTitleIsNotDuplicated,
   isOverQuota,
+  assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
+  assertRequesterIsProducer,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -267,11 +270,15 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      getOrganizationRole({
+
+      await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument({
+        eserviceId: eservice.id,
         organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
+        readModelService,
       });
+
       const version = retrievePurposeVersion(versionId, purpose);
 
       return retrievePurposeVersionDocument(purposeId, version, documentId);
@@ -341,9 +348,13 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      if (organizationId !== eservice.producerId) {
-        throw organizationIsNotTheProducer(organizationId);
-      }
+
+      await assertRequesterIsProducer({
+        eserviceId: eservice.id,
+        organizationId,
+        producerId: eservice.producerId,
+        readModelService,
+      });
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
@@ -535,10 +546,12 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const suspender = getOrganizationRole({
+      const suspender = await getOrganizationRole({
+        eserviceId: eservice.id,
         organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
+        readModelService,
       });
 
       const suspendedPurposeVersion: PurposeVersion = {
@@ -812,10 +825,12 @@ export function purposeServiceBuilder(
         });
       }
 
-      const purposeOwnership = getOrganizationRole({
+      const purposeOwnership = await getOrganizationRole({
+        eserviceId: eservice.id,
         organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
+        readModelService,
       });
 
       const { event, updatedPurposeVersion } = await match({
@@ -1331,24 +1346,39 @@ const authorizeRiskAnalysisForm = ({
   }
 };
 
-const getOrganizationRole = ({
+const getOrganizationRole = async ({
+  eserviceId,
   organizationId,
   producerId,
   consumerId,
+  readModelService,
 }: {
+  eserviceId: EServiceId;
   organizationId: TenantId;
   producerId: TenantId;
   consumerId: TenantId;
-}): Ownership => {
+  readModelService: ReadModelService;
+}): Promise<Ownership> => {
   if (producerId === consumerId && organizationId === producerId) {
     return ownership.SELF_CONSUMER;
   } else if (producerId !== consumerId && organizationId === consumerId) {
     return ownership.CONSUMER;
-  } else if (producerId !== consumerId && organizationId === producerId) {
-    return ownership.PRODUCER;
-  } else {
-    throw organizationNotAllowed(organizationId);
   }
+
+  const activeProducerDelegation = await readModelService.getActiveDelegation(
+    eserviceId,
+    delegationKind.delegatedProducer
+  );
+
+  if (
+    (activeProducerDelegation &&
+      organizationId === activeProducerDelegation.delegateId) ||
+    (!activeProducerDelegation && organizationId === producerId)
+  ) {
+    return ownership.PRODUCER;
+  }
+
+  throw organizationNotAllowed(organizationId);
 };
 
 const replacePurposeVersion = (
@@ -1599,10 +1629,10 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
   updatedPurposeVersion: PurposeVersion;
 } {
   const newPurposeVersion: PurposeVersion = {
-    ...purposeVersion,
     createdAt: new Date(),
     state: purposeVersionState.waitingForApproval,
     id: generateId<PurposeVersionId>(),
+    dailyCalls: purposeVersion.dailyCalls,
   };
 
   const oldVersions = purpose.data.versions.filter(
@@ -1667,10 +1697,17 @@ async function activatePurposeLogic({
     updatedAt: new Date(),
     firstActivationAt: new Date(),
   };
-
+  const unsuspendedPurpose: Purpose =
+    fromState === purposeVersionState.waitingForApproval
+      ? {
+          ...purpose.data,
+          suspendedByConsumer: false,
+          suspendedByProducer: false,
+        }
+      : purpose.data;
   const updatedPurpose: Purpose = replacePurposeVersion(
     {
-      ...purpose.data,
+      ...unsuspendedPurpose,
       versions: archiveActiveAndSuspendedPurposeVersions(purpose.data.versions),
     },
     updatedPurposeVersion
