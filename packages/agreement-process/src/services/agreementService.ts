@@ -35,6 +35,7 @@ import {
   CorrelationId,
   DelegationId,
   Delegation,
+  operationForbidden,
 } from "pagopa-interop-models";
 import {
   certifiedAttributesSatisfied,
@@ -54,7 +55,6 @@ import {
   eServiceNotFound,
   missingDelegationId,
   noNewerDescriptor,
-  operationRestrictedToDelegate,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -1185,22 +1185,25 @@ export function agreementServiceBuilder(
         `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
       );
 
-      const isAuthorized =
-        authData.organizationId === tenantId ||
-        (await isConsumerDelegationByEserviceIdAndIdsValid(
+      const hasValidDelegation =
+        await isConsumerDelegationByEserviceIdAndIdsValid(
           {
             eserviceId,
             delegateId: authData.organizationId,
             delegatorId: tenantId,
           },
           readModelService
-        ));
+        );
+
+      const isSameOrganization = authData.organizationId === tenantId;
+
+      // The route is callable only by himself if there isn't a valid delegation or by the delegate
+      const isAuthorized =
+        (isSameOrganization && !hasValidDelegation) ||
+        (!isSameOrganization && hasValidDelegation);
 
       if (!isAuthorized) {
-        throw operationRestrictedToDelegate({
-          delegatorId: tenantId,
-          delegateId: authData.organizationId,
-        });
+        throw operationForbidden;
       }
       const consumer = await retrieveTenant(tenantId, readModelService);
       const eservice = await retrieveEService(eserviceId, readModelService);

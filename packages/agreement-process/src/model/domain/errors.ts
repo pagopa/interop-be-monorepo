@@ -40,7 +40,6 @@ export const errorCodes = {
   userNotFound: "0026",
   delegationNotFound: "0027",
   missingDelegationId: "0028",
-  operationRestrictedToDelegate: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -301,19 +300,5 @@ export function missingDelegationId(
     detail: `Missing delegation id for organization ${organizationId} and EService ${eserviceId}`,
     code: "missingDelegationId",
     title: "Missing delegation id",
-  });
-}
-
-export function operationRestrictedToDelegate({
-  delegatorId,
-  delegateId,
-}: {
-  delegatorId: TenantId;
-  delegateId: TenantId;
-}): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${delegateId} is not a delegate of delegator ${delegatorId}`,
-    code: "operationRestrictedToDelegate",
-    title: "Operation restricted to delegate",
   });
 }
