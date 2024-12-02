@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{host-delegation}}/consumer/delegations/:delegationId/reject
-  body: none
+  body: json
   auth: none
 }
 
@@ -17,4 +17,10 @@ params:path {
 headers {
   Authorization: {{JWT2}}
   X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "rejectionReason": "test rejection reason"
+  }
 }

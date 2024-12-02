@@ -181,12 +181,12 @@ export function delegationConsumerServiceBuilder(
         `Rejecting delegation ${delegationId} by delegate ${delegateId}`
       );
 
-      const { data: delegation, metadata } = await retrieveDelegationById(
+      const { data: delegation, metadata } = await retrieveDelegation(
         readModelService,
-        delegationId
+        delegationId,
+        delegationKind.delegatedConsumer
       );
 
-      assertDelegationKindIs(delegationKind.delegatedConsumer, delegation);
       assertIsDelegate(delegation, delegateId);
       assertIsState(delegationState.waitingForApproval, delegation);
 
