@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
-  getMockAuthData,
   getMockCertifiedTenantAttribute,
   getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -91,7 +91,7 @@ describe("Verify Tenant Certified Attributes", () => {
           eserviceId: mockEService.id,
         },
         {
-          authData: getMockAuthData(delegation.delegateId),
+          authData: getRandomAuthData(delegation.delegateId),
           serviceName: "agreement-process",
           correlationId: generateId(),
           logger: genericLogger,
@@ -101,7 +101,7 @@ describe("Verify Tenant Certified Attributes", () => {
       expect(result).toEqual({ hasCertifiedAttributes: true });
     });
     it("should throw operationRestrictedToDelegate when organizationId is not the delegate", async () => {
-      const organizationId = generateId<TenantId>();
+      const authData = getRandomAuthData();
       const delegation = {
         ...mockDelegation,
         state: delegationState.active,
@@ -118,7 +118,7 @@ describe("Verify Tenant Certified Attributes", () => {
             eserviceId: mockEService.id,
           },
           {
-            authData: getMockAuthData(organizationId),
+            authData,
             serviceName: "agreement-process",
             correlationId: generateId(),
             logger: genericLogger,
@@ -126,8 +126,8 @@ describe("Verify Tenant Certified Attributes", () => {
         )
       ).rejects.toThrowError(
         operationRestrictedToDelegate({
-          delegatorId: organizationId,
-          delegateId: mockTenant.id,
+          delegatorId: mockTenant.id,
+          delegateId: authData.organizationId,
         })
       );
     });
@@ -144,7 +144,7 @@ describe("Verify Tenant Certified Attributes", () => {
           eserviceId: mockEService.id,
         },
         {
-          authData: getMockAuthData(mockTenant.id),
+          authData: getRandomAuthData(mockTenant.id),
           serviceName: "agreement-process",
           correlationId: generateId(),
           logger: genericLogger,
@@ -169,7 +169,7 @@ describe("Verify Tenant Certified Attributes", () => {
           eserviceId: mockEService.id,
         },
         {
-          authData: getMockAuthData(tenant.id),
+          authData: getRandomAuthData(tenant.id),
           serviceName: "agreement-process",
           correlationId: generateId(),
           logger: genericLogger,
@@ -189,7 +189,7 @@ describe("Verify Tenant Certified Attributes", () => {
             eserviceId: mockEService.id,
           },
           {
-            authData: getMockAuthData(tenantId),
+            authData: getRandomAuthData(tenantId),
             serviceName: "agreement-process",
             correlationId: generateId(),
             logger: genericLogger,
@@ -210,7 +210,7 @@ describe("Verify Tenant Certified Attributes", () => {
             eserviceId,
           },
           {
-            authData: getMockAuthData(mockTenant.id),
+            authData: getRandomAuthData(mockTenant.id),
             serviceName: "agreement-process",
             correlationId: generateId(),
             logger: genericLogger,
@@ -232,7 +232,7 @@ describe("Verify Tenant Certified Attributes", () => {
             eserviceId: mockEService.id,
           },
           {
-            authData: getMockAuthData(mockTenant.id),
+            authData: getRandomAuthData(mockTenant.id),
             serviceName: "agreement-process",
             correlationId: generateId(),
             logger: genericLogger,
