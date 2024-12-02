@@ -8602,7 +8602,7 @@ paths:
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available        
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "409":
           description: Feature already assigned to tenant
           content:
@@ -8621,7 +8621,7 @@ paths:
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available  
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     delete:
       tags:
         - tenants
@@ -8661,7 +8661,7 @@ paths:
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available        
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "409":
           description: Feature not assigned to tenant
           content:
@@ -13705,11 +13705,11 @@ components:
           type: boolean
         hasCertifiedAttributes:
           type: boolean
-          description: > 
+          description: >
             True in case:
               - the requester has the certified attributes required to consume the eservice, or
-              - the requester is the delegated consumer for the eservice and 
-                the delegator has the certified attributes required to consume the eservice 
+              - the requester is the delegated consumer for the eservice and
+                the delegator has the certified attributes required to consume the eservice
         isSubscribed:
           type: boolean
         activeDescriptor:
@@ -13926,7 +13926,7 @@ components:
           format: date-time
       required:
         - rejectionReason
-        - rejectedAt 
+        - rejectedAt
     AgreementApprovalPolicy:
       type: string
       description: |
@@ -15638,7 +15638,7 @@ components:
         extensionDate:
           type: string
           format: date-time
-        delegationId: 
+        delegationId:
           type: string
           format: uuid
       required:
@@ -15663,7 +15663,7 @@ components:
         revocationDate:
           type: string
           format: date-time
-        delegationId: 
+        delegationId:
           type: string
           format: uuid
 
@@ -15848,7 +15848,7 @@ components:
           format: uuid
         producerName:
           type: string
-        descriptors: 
+        descriptors:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
