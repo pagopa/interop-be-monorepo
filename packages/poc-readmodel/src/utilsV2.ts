@@ -4,10 +4,13 @@ import {
   AgreementState,
   AttributeId,
   Descriptor,
+  DescriptorAttributeSQL,
   DescriptorId,
+  DescriptorSQL,
   DescriptorState,
   Document,
   documentKind,
+  DocumentSQL,
   EService,
   EServiceDocumentId,
   EServiceId,
@@ -35,9 +38,13 @@ import {
   prepareInsertRiskAnalysis,
   prepareInsertRiskAnalysisAnswer,
   prepareReadDescriptorAttributesByDescriptorIds,
+  prepareReadDescriptorsByEserviceId,
   prepareReadDescriptorsByEserviceIds,
   prepareReadDocumentsByDescriptorIds,
+  prepareReadEservice,
+  prepareReadEserviceByNameAndProducerId,
   prepareReadRiskAnalysesAnswersByFormIds,
+  prepareReadRiskAnalysesByEserviceId,
   prepareReadRiskAnalysesByEserviceIds,
   prepareUpdateDescriptor,
   prepareUpdateDescriptorDocument,
@@ -51,7 +58,18 @@ import {
   splitEserviceIntoObjectsSQL,
   splitRiskAnalysisIntoObjectsSQL,
 } from "./splitters.js";
-import { eserviceSQLArraytoEserviceArray } from "./aggregators.js";
+import {
+  eserviceSQLArraytoEserviceArray,
+  eserviceSQLtoEservice,
+} from "./aggregators.js";
+import {
+  parseDescriptorAttributeSQL,
+  parseDescriptorSQL,
+  parseDocumentSQL,
+  parseEserviceSQL,
+  parseRiskAnalysisAnswerSQL,
+  parseRiskAnalysisSQL,
+} from "./parsers.js";
 
 // "EServiceDeleted" -> cascade delete
 export const deleteEService = async (
@@ -336,22 +354,126 @@ export const updateEservice = async (
   await readModelRepositorySQL.writeItem(updateEserviceStatement);
 };
 
-// listing
-export const listEservices = async ({
-  readModelRepositorySQL,
-  authData,
-  eservicesIds,
-  producersIds,
-  attributesIds,
-  states,
-  agreementStates,
+export const getEServiceById = async (
+  eserviceId: EServiceId,
+  readModelRepositorySQL: ReadModelRepositorySQL
+): Promise<EService | undefined> => {
+  // eservice
+  const readEserviceStatement = prepareReadEservice(eserviceId);
+  const rawEserviceResult = await readModelRepositorySQL.readItem(
+    readEserviceStatement
+  );
+  const parsedEserviceSQL = parseEserviceSQL(rawEserviceResult);
+
+  if (!parsedEserviceSQL) return undefined;
+
+  const eservice = rebuildEserviceFromEserviceSQL(
+    parsedEserviceSQL,
+    readModelRepositorySQL
+  );
+  return eservice;
+};
+
+export const getEServiceByNameAndProducerId = async ({
   name,
-  mode,
-  offset,
-  limit,
+  producerId,
+  readModelRepositorySQL,
 }: {
+  name: string;
+  producerId: TenantId;
   readModelRepositorySQL: ReadModelRepositorySQL;
-  authData: AuthData;
+}): Promise<EService | undefined> => {
+  // eservice
+  const readEserviceStatement = prepareReadEserviceByNameAndProducerId(
+    name,
+    producerId
+  );
+  const rawEserviceResult = await readModelRepositorySQL.readItem(
+    readEserviceStatement
+  );
+  const parsedEserviceSQL = parseEserviceSQL(rawEserviceResult);
+
+  if (!parsedEserviceSQL) return undefined;
+
+  const eservice = rebuildEserviceFromEserviceSQL(
+    parsedEserviceSQL,
+    readModelRepositorySQL
+  );
+  return eservice;
+};
+
+export const rebuildEserviceFromEserviceSQL = async (
+  parsedEserviceSQL: EServiceSQL,
+  readModelRepositorySQL: ReadModelRepositorySQL
+): Promise<EService | undefined> => {
+  //descriptors
+  const readDescriptorsStatement = prepareReadDescriptorsByEserviceId(
+    parsedEserviceSQL.id
+  );
+  const rawDescriptorResults = await readModelRepositorySQL.readItems(
+    readDescriptorsStatement
+  );
+  const parsedDescriptorsSQL = rawDescriptorResults
+    .map((d) => parseDescriptorSQL(d))
+    .filter((d) => d !== undefined) as DescriptorSQL[]; // TODO build doesn't work without "as";
+
+  const readDocumentsStatement = prepareReadDocumentsByDescriptorIds(
+    parsedDescriptorsSQL.map((d) => d.id)
+  );
+  // const readDocumentsStatement = prepareReadDocumentsByEserviceId(eserviceId);
+  const rawDocumentsResult = await readModelRepositorySQL.readItems(
+    readDocumentsStatement
+  );
+  const parsedDocumentsSQL = rawDocumentsResult
+    .map((a) => parseDocumentSQL(a))
+    .filter((doc) => doc !== undefined) as DocumentSQL[];
+
+  const readAttributesStatement =
+    prepareReadDescriptorAttributesByDescriptorIds(
+      parsedDescriptorsSQL.map((d) => d.id)
+    );
+  // const readAttributesStatement = prepareReadDescriptorAttributesByEserviceId(eserviceId);
+  const rawAttributesResult = await readModelRepositorySQL.readItems(
+    readAttributesStatement
+  );
+  const parsedDescriptorAttributesSQL = rawAttributesResult
+    .map((a) => parseDescriptorAttributeSQL(a))
+    .filter((attr) => attr !== undefined) as DescriptorAttributeSQL[];
+
+  const readRiskAnalysesStatement = prepareReadRiskAnalysesByEserviceId(
+    parsedEserviceSQL.id
+  );
+  const rawRiskAnalysesResult = await readModelRepositorySQL.readItems(
+    readRiskAnalysesStatement
+  );
+  const parsedRiskAnalysises = rawRiskAnalysesResult
+    .map((ra) => parseRiskAnalysisSQL(ra))
+    .filter((ra) => ra !== undefined) as EserviceRiskAnalysisSQL[];
+
+  const readRiskAnalysesAnswersStatement =
+    prepareReadRiskAnalysesAnswersByFormIds(
+      parsedRiskAnalysises.map((ra) => ra.risk_analysis_form_id)
+    );
+  const rawRiskAnalysesAnswersResult = await readModelRepositorySQL.readItems(
+    readRiskAnalysesAnswersStatement
+  );
+  const parsedRiskAnalysisesAnswers = rawRiskAnalysesAnswersResult
+    .map((answer) => parseRiskAnalysisAnswerSQL(answer))
+    .filter((ra) => ra !== undefined) as RiskAnalysisAnswerSQL[];
+
+  const eservice = eserviceSQLtoEservice(
+    parsedEserviceSQL,
+    parsedRiskAnalysises,
+    parsedRiskAnalysisesAnswers,
+    parsedDescriptorsSQL,
+    parsedDocumentsSQL,
+    parsedDescriptorAttributesSQL
+  );
+
+  return eservice;
+};
+
+export type ApiGetEServicesFilters = {
   eservicesIds: EServiceId[];
   producersIds: TenantId[];
   attributesIds: AttributeId[];
@@ -359,10 +481,33 @@ export const listEservices = async ({
   agreementStates: AgreementState[];
   name?: string;
   mode?: EServiceMode;
+};
+
+// listing
+export const listEservices = async ({
+  readModelRepositorySQL,
+  authData,
+  filters,
+  offset,
+  limit,
+}: {
+  readModelRepositorySQL: ReadModelRepositorySQL;
+  authData: AuthData;
+  filters: ApiGetEServicesFilters;
   offset: number;
   limit: number;
 }): Promise<EService[]> => {
   // TODO implement actual query
+
+  const {
+    eservicesIds,
+    producersIds,
+    attributesIds,
+    states,
+    agreementStates,
+    name,
+    mode,
+  } = filters;
   const resultOfMainQuery = await getEservices({
     readModelRepositorySQL,
     authData,
@@ -540,6 +685,7 @@ const getEservices = async ({
   return eservicesSQL as EServiceSQL[];
 };
 
+// TODO this have to be used in getEservices and in publishDescriptor
 const listAgreements = ({
   eservicesIds,
   consumersIds,
