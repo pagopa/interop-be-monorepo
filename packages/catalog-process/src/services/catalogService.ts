@@ -1680,6 +1680,7 @@ export function catalogServiceBuilder(
     async updateDescriptorAttributes(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
+      seed: catalogApi.AttributesSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -1690,6 +1691,25 @@ export function catalogServiceBuilder(
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      (["certified", "declared", "verified"] as const).forEach(
+        (attributeKind) => {
+          descriptor.attributes[attributeKind].forEach((group, idx) => {
+            group.forEach((attribute) => {
+              if (
+                !seed[attributeKind].find(
+                  (a) =>
+                    a[idx].id === attribute.id &&
+                    a[idx].explicitAttributeVerification ===
+                      attribute.explicitAttributeVerification
+                )
+              ) {
+                throw attributeNotFound(attribute.id);
+              }
+            });
+          });
+        }
+      );
 
       const updatedEService: EService = {
         ...eservice.data,
