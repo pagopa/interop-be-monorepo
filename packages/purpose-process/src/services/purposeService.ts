@@ -1599,10 +1599,10 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
   updatedPurposeVersion: PurposeVersion;
 } {
   const newPurposeVersion: PurposeVersion = {
-    ...purposeVersion,
     createdAt: new Date(),
     state: purposeVersionState.waitingForApproval,
     id: generateId<PurposeVersionId>(),
+    dailyCalls: purposeVersion.dailyCalls,
   };
 
   const oldVersions = purpose.data.versions.filter(
@@ -1667,10 +1667,17 @@ async function activatePurposeLogic({
     updatedAt: new Date(),
     firstActivationAt: new Date(),
   };
-
+  const unsuspendedPurpose: Purpose =
+    fromState === purposeVersionState.waitingForApproval
+      ? {
+          ...purpose.data,
+          suspendedByConsumer: false,
+          suspendedByProducer: false,
+        }
+      : purpose.data;
   const updatedPurpose: Purpose = replacePurposeVersion(
     {
-      ...purpose.data,
+      ...unsuspendedPurpose,
       versions: archiveActiveAndSuspendedPurposeVersions(purpose.data.versions),
     },
     updatedPurposeVersion
