@@ -125,7 +125,7 @@
       <div>
         In data <strong>{{submissionDate}}</strong> alle ore
         <strong>{{submissionTime}}</strong>, l’Infrastruttura ha trasmesso
-        all’erogatore la richiesta di fruizione.
+        {{#if producerDelegationId}} al delegante all’erogazione{{else}} all’erogatore{{/if}} la richiesta di fruizione.
       </div>
       {{#if producerDelegationId}}
       <div>
@@ -150,7 +150,7 @@
       <div>
         In data <strong>{{activationDate}}</strong> alle ore
         <strong>{{activationTime}}</strong>, l’Infrastruttura ha comunicato al
-        fruitore la dichiarazione di accettazione inviata dall’erogatore.
+        fruitore la dichiarazione di accettazione inviata {{#if producerDelegationId}}dal delegato all’erogazione{{else}}dall’erogatore{{/if}}.
       </div>
 
       <div>
