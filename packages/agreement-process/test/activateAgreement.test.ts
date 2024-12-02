@@ -16,6 +16,7 @@ import {
   getMockAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
+  getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
@@ -28,6 +29,7 @@ import {
 import {
   Agreement,
   AgreementActivatedV2,
+  AgreementContractPDFPayload,
   AgreementId,
   AgreementSetMissingCertifiedAttributesByPlatformV2,
   AgreementSuspendedByPlatformV2,
@@ -39,11 +41,15 @@ import {
   DeclaredTenantAttribute,
   Descriptor,
   EService,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantAttribute,
   TenantId,
   VerifiedTenantAttribute,
   agreementState,
+  attributeKind,
+  delegationKind,
+  delegationState,
   descriptorState,
   fromAgreementV2,
   generateId,
@@ -71,6 +77,7 @@ import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneAttribute,
+  addOneDelegation,
   addOneEService,
   addOneTenant,
   agreementService,
@@ -632,6 +639,310 @@ describe("activate agreement", () => {
           logger: genericLogger,
         })
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
+
+    it("should succeed when the requester is the Delegate and first activation", async () => {
+      const consumerId = generateId<TenantId>();
+      const producerId = generateId<TenantId>();
+      const verifiedTenantAttributes = [
+        {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            {
+              id: producerId,
+              verificationDate: new Date(),
+              extensionDate: undefined,
+            },
+          ],
+          revokedBy: [],
+        },
+      ];
+      const certifiedTenantAttributes = [
+        {
+          ...getMockCertifiedTenantAttribute(),
+          revocationTimestamp: undefined,
+        },
+      ];
+      const declaredTenantAttributes = [
+        {
+          ...getMockDeclaredTenantAttribute(),
+          revocationTimestamp: undefined,
+        },
+      ];
+
+      const verifiedAttribute: Attribute = getMockAttribute(
+        attributeKind.verified,
+        verifiedTenantAttributes[0].id
+      );
+
+      const certifiedAttribute: Attribute = getMockAttribute(
+        attributeKind.certified,
+        certifiedTenantAttributes[0].id
+      );
+
+      const declaredAttribute: Attribute = getMockAttribute(
+        attributeKind.declared,
+        declaredTenantAttributes[0].id
+      );
+
+      const producer = getMockTenant(producerId);
+      const consumer = {
+        ...getMockTenant(consumerId),
+        attributes: [
+          verifiedTenantAttributes[0],
+          certifiedTenantAttributes[0],
+          declaredTenantAttributes[0],
+        ],
+      };
+      const authData = getRandomAuthData();
+
+      const descriptor = {
+        ...getMockDescriptorPublished(),
+        attributes: {
+          certified: [
+            [getMockEServiceAttribute(certifiedTenantAttributes[0].id)],
+          ],
+          declared: [
+            [getMockEServiceAttribute(declaredTenantAttributes[0].id)],
+          ],
+          verified: [
+            [getMockEServiceAttribute(verifiedTenantAttributes[0].id)],
+          ],
+        },
+      };
+      const eservice = {
+        ...getMockEService(),
+        producerId: producer.id,
+        consumerId: consumer.id,
+        descriptors: [descriptor],
+      };
+      const agreementSubmissionDate = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth() - 1,
+        1
+      );
+
+      const submitterId = authData.userId;
+      const activatorId = authData.userId;
+      const agreement: Agreement = {
+        ...getMockAgreement(eservice.id),
+        state: agreementState.pending,
+        descriptorId: eservice.descriptors[0].id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+        suspendedAt: undefined,
+        suspendedByConsumer: false,
+        suspendedByProducer: false,
+        suspendedByPlatform: false,
+        verifiedAttributes: [
+          ...verifiedTenantAttributes.map(({ id }) => ({
+            id,
+          })),
+        ],
+        certifiedAttributes: certifiedTenantAttributes.map(({ id }) => ({
+          id,
+        })),
+        declaredAttributes: declaredTenantAttributes.map(({ id }) => ({
+          id,
+        })),
+        stamps: {
+          submission: {
+            who: submitterId,
+            when: agreementSubmissionDate,
+          },
+        },
+      };
+
+      const delegator = getMockTenant(producer.id);
+      const delegate = getMockTenant(authData.organizationId);
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: agreement.eserviceId,
+        delegateId: delegate.id,
+        delegatorId: delegator.id,
+        state: delegationState.active,
+      });
+
+      await addOneAttribute(verifiedAttribute);
+      await addOneAttribute(certifiedAttribute);
+      await addOneAttribute(declaredAttribute);
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      await addOneTenant(delegator);
+      await addOneTenant(delegate);
+      await addOneEService(eservice);
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+
+      vi.spyOn(pdfGenerator, "generate");
+      const actualAgreement = await agreementService.activateAgreement(
+        agreement.id,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+
+      const expectedAgreement = {
+        ...agreement,
+        state: agreementState.active,
+        contract: actualAgreement.contract,
+        certifiedAttributes: actualAgreement.certifiedAttributes,
+        declaredAttributes: actualAgreement.declaredAttributes,
+        verifiedAttributes: actualAgreement.verifiedAttributes,
+        stamps: {
+          ...agreement.stamps,
+          activation: {
+            who: authData.userId,
+            when: expect.any(Date),
+            delegationId: delegation.id,
+          },
+        },
+      };
+
+      expect(actualAgreement).toEqual(expectedAgreement);
+
+      // ============================
+      // Verify agreement Document
+      // ============================
+
+      expect(
+        await fileManager.listFiles(config.s3Bucket, genericLogger)
+      ).toContain(actualAgreement.contract?.path);
+
+      expect(submitterId).toEqual(actualAgreement.stamps.submission?.who);
+      expect(activatorId).toEqual(actualAgreement.stamps.activation?.who);
+
+      const getIpaCode = (tenant: Tenant): string | undefined =>
+        tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
+          ? tenant.externalId.value
+          : undefined;
+
+      const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
+        todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+        agreementId: agreement.id,
+        submitterId,
+        submissionDate: dateAtRomeZone(agreementSubmissionDate),
+        submissionTime: timeAtRomeZone(agreementSubmissionDate),
+        activatorId,
+        activationDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        activationTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+        eserviceName: eservice.name,
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+        descriptorVersion: eservice.descriptors[0].version,
+        producerName: producer.name,
+        producerIpaCode: getIpaCode(producer),
+        consumerName: consumer.name,
+        consumerIpaCode: getIpaCode(consumer),
+        certifiedAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              certifiedTenantAttributes[0].assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              certifiedTenantAttributes[0].assignmentTimestamp
+            ),
+            attributeName: certifiedAttribute.name,
+            attributeId: certifiedTenantAttributes[0].id,
+          },
+        ],
+        declaredAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              declaredTenantAttributes[0].assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              declaredTenantAttributes[0].assignmentTimestamp
+            ),
+            attributeName: declaredAttribute.name,
+            attributeId: declaredTenantAttributes[0].id,
+          },
+        ],
+        verifiedAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              verifiedTenantAttributes[0].assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              verifiedTenantAttributes[0].assignmentTimestamp
+            ),
+            attributeName: verifiedAttribute.name,
+            attributeId: verifiedTenantAttributes[0].id,
+            expirationDate: undefined,
+          },
+        ],
+        producerDelegationId: delegation.id,
+        producerDelegatorName: producer.name,
+        producerDelegatorIpaCode: getIpaCode(producer),
+        producerDelegateName: delegate.name,
+        producerDelegateIpaCode: getIpaCode(delegate),
+      };
+
+      expect(pdfGenerator.generate).toHaveBeenCalledWith(
+        expect.any(String),
+        expectedAgreementPDFPayload
+      );
+    });
+
+    it("should succed when the requester is the Delegate and from Suspended", async () => {
+      const producer = getMockTenant();
+      const consumer = getMockTenant();
+      const authData = getRandomAuthData();
+      const esevice = {
+        ...getMockEService(),
+        producerId: producer.id,
+        consumerId: consumer.id,
+        descriptors: [getMockDescriptorPublished()],
+      };
+      const agreement: Agreement = {
+        ...getMockAgreement(esevice.id),
+        state: agreementState.suspended,
+        descriptorId: esevice.descriptors[0].id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+        suspendedAt: new Date(),
+        suspendedByConsumer: false,
+        suspendedByProducer: false,
+        suspendedByPlatform: false,
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: agreement.eserviceId,
+        delegateId: authData.organizationId,
+        state: delegationState.active,
+      });
+
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      await addOneEService(esevice);
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+
+      const actualAgreement = await agreementService.activateAgreement(
+        agreement.id,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+
+      const expectedAgreement = {
+        ...agreement,
+        state: agreementState.active,
+        contract: actualAgreement.contract,
+        certifiedAttributes: actualAgreement.certifiedAttributes,
+        declaredAttributes: actualAgreement.declaredAttributes,
+        verifiedAttributes: actualAgreement.verifiedAttributes,
+        suspendedAt: undefined,
+      };
+
+      expect(actualAgreement).toEqual(expectedAgreement);
     });
   });
 
@@ -1490,6 +1801,33 @@ describe("activate agreement", () => {
       const authData = getRandomAuthData();
       const agreement: Agreement = getMockAgreement();
       await addOneAgreement(agreement);
+      await expect(
+        agreementService.activateAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
+
+    it("should throw an operationNotAllowed error when the requester is the Producer but it is not the delegate", async () => {
+      const authData = getRandomAuthData();
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.pending,
+        producerId: authData.organizationId,
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: agreement.eserviceId,
+        state: delegationState.active,
+      });
+
+      const eservice = getMockEService(agreement.eserviceId);
+      await addOneEService(eservice);
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
       await expect(
         agreementService.activateAgreement(agreement.id, {
           authData,

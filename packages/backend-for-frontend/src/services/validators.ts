@@ -55,7 +55,7 @@ export async function assertNotDelegatedEservice(
     delegationProcessClient,
     headers,
     {
-      kind: toDelegationKind(delegationKind.delegatedConsumer),
+      kind: toDelegationKind(delegationKind.delegatedProducer),
       delegatorIds: [delegatorId],
       eserviceIds: [eserviceid],
       delegationStates: [
