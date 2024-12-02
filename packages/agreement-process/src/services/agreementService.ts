@@ -190,7 +190,7 @@ export const retrieveDescriptor = (
   return descriptor;
 };
 
-const isConsumerDelegationByEserviceIdAndIdsValid = async (
+const isConsumerDelegationByEserviceAndIdsValid = async (
   {
     eserviceId,
     delegatorId,
@@ -203,11 +203,30 @@ const isConsumerDelegationByEserviceIdAndIdsValid = async (
   readModelService: ReadModelService
 ): Promise<boolean> => {
   const delegation =
-    await readModelService.getActiveConsumerDelegationByEserviceIdAndIds({
+    await readModelService.getActiveConsumerDelegationByEserviceAndIds({
       eserviceId,
       delegatorId,
       delegateId,
     });
+
+  return delegation !== undefined;
+};
+
+const isConsumerDelegationByEserviceAndDelegatorIdsValid = async (
+  {
+    eserviceId,
+    delegatorId,
+  }: {
+    eserviceId: EServiceId;
+    delegatorId: TenantId;
+  },
+  readModelService: ReadModelService
+): Promise<boolean> => {
+  const delegation =
+    await readModelService.getActiveConsumerDelegationByEserviceAndDelegatorIds(
+      eserviceId,
+      delegatorId
+    );
 
   return delegation !== undefined;
 };
@@ -1185,17 +1204,24 @@ export function agreementServiceBuilder(
         `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
       );
 
-      const hasValidDelegation =
-        await isConsumerDelegationByEserviceIdAndIdsValid(
-          {
-            eserviceId,
-            delegateId: authData.organizationId,
-            delegatorId: tenantId,
-          },
-          readModelService
-        );
-
       const isSameOrganization = authData.organizationId === tenantId;
+
+      const hasValidDelegation = isSameOrganization
+        ? await isConsumerDelegationByEserviceAndDelegatorIdsValid(
+            {
+              eserviceId,
+              delegatorId: authData.organizationId,
+            },
+            readModelService
+          )
+        : await isConsumerDelegationByEserviceAndIdsValid(
+            {
+              eserviceId,
+              delegateId: authData.organizationId,
+              delegatorId: tenantId,
+            },
+            readModelService
+          );
 
       // The route is callable only by himself if there isn't a valid delegation or by the delegate
       const isAuthorized =
