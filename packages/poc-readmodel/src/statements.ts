@@ -10,6 +10,7 @@ import {
   RiskAnalysisAnswerSQL,
   RiskAnalysisFormId,
   RiskAnalysisId,
+  TenantId,
 } from "pagopa-interop-models";
 import pgPromise from "pg-promise";
 
@@ -37,6 +38,16 @@ export const prepareReadEservice = (
     name: "read-eservice",
     text: "SELECT * FROM readmodel.eservice WHERE id = $1",
     values: [id],
+  });
+
+export const prepareReadEserviceByNameAndProducerId = (
+  eserviceName: string,
+  producerId: TenantId
+): pgPromise.PreparedStatement =>
+  new pgPromise.PreparedStatement({
+    name: "read-eservice-by-name-and-producer-id",
+    text: "SELECT * FROM readmodel.eservice WHERE name LIKE $1 AND producerId = $2",
+    values: [eserviceName, producerId],
   });
 
 export const prepareUpdateEservice = (
@@ -289,7 +300,7 @@ export const prepareInsertRiskAnalysisAnswer = (
   riskAnalysisAnswerSQL: RiskAnalysisAnswerSQL
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
-    name: "insert-risk-analysis",
+    name: "insert-risk-analysis-answer",
     text: "INSERT INTO readmodel.eservice_risk_analysis(id, risk_analysis_form_id, kind, key, value) VALUES($1, $2, $3, $4, $5)",
     values: [
       riskAnalysisAnswerSQL.id,
@@ -304,9 +315,18 @@ export const prepareReadRiskAnalysesByEserviceIds = (
   eserviceIds: EServiceId[]
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
-    name: "read-risk-analysis-by-eservice-ids",
+    name: "read-risk-analyses-by-eservice-ids",
     text: "SELECT * FROM readmodel.eservice_risk_analysis WHERE eservice_id = ANY ($1)",
     values: [eserviceIds],
+  });
+
+export const prepareReadRiskAnalysesByEserviceId = (
+  eserviceId: EServiceId
+): pgPromise.PreparedStatement =>
+  new pgPromise.PreparedStatement({
+    name: "read-risk-analyses-by-eservice-id",
+    text: "SELECT * FROM readmodel.eservice_risk_analysis WHERE eservice_id = $1",
+    values: [eserviceId],
   });
 
 export const prepareReadRiskAnalysesAnswersByFormIds = (
