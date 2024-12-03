@@ -523,6 +523,7 @@ export function catalogServiceBuilder(
         archivedAt: undefined,
         createdAt: creationDate,
         attributes: { certified: [], declared: [], verified: [] },
+        rejectionReasons: undefined,
       };
 
       const eserviceWithDescriptor: EService = {
@@ -996,6 +997,7 @@ export function catalogServiceBuilder(
         archivedAt: undefined,
         createdAt: new Date(),
         attributes: parsedAttributes,
+        rejectionReasons: undefined,
       };
 
       const newEservice: EService = {
