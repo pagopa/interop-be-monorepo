@@ -713,8 +713,7 @@ const agreementRouter = (
           error,
           verifyTenantCertifiedAttributesErrorMapper,
           ctx.logger,
-          ctx.correlationId,
-          `Error verifying certified attributes`
+          ctx.correlationId
         );
         return res.status(errorRes.status).send(errorRes);
       }
