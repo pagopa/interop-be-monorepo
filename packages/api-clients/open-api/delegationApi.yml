@@ -22,7 +22,12 @@ tags:
       description: Find out more
       url: http://swagger.io
   - name: producer
-    description: Lead organization
+    description: Producer delegations operations
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: consumer
+    description: Consumer delegations operations
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
