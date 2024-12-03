@@ -27,6 +27,7 @@ import {
   Attribute,
   toReadModelAttribute,
   TenantId,
+  Delegation,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -39,6 +40,7 @@ import puppeteer, { Browser } from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/config/config.js";
+import { contractBuilder } from "../src/services/agreementContractBuilder.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
@@ -65,10 +67,19 @@ export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
 export const attributes = readModelRepository.attributes;
+export const delegations = readModelRepository.delegations;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
 export const pdfGenerator = await initPDFGenerator();
+
+export const agreementContractBuilder = contractBuilder(
+  readModelService,
+  pdfGenerator,
+  fileManager,
+  config,
+  genericLogger
+);
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
@@ -110,6 +121,13 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await writeInReadmodel(delegation, delegations);
+};
+
 export const readLastAgreementEvent = async (
   agreementId: AgreementId
 ): Promise<ReadEvent<AgreementEvent>> =>

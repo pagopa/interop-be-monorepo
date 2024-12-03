@@ -10,6 +10,7 @@ import {
   getMockTenant,
   getMockValidRiskAnalysis,
   decodeProtobufPayload,
+  getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
   TenantKind,
@@ -27,6 +28,8 @@ import {
   generateId,
   operationForbidden,
   RiskAnalysisId,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
@@ -49,6 +52,7 @@ import {
   readLastEserviceEvent,
   getMockDescriptor,
   getMockEService,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("update risk analysis", () => {
@@ -172,6 +176,131 @@ describe("update risk analysis", () => {
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
   });
+  it("should write on event-store for the update of a risk analysis (delegate)", async () => {
+    const producerTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
+    );
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: producerTenantKind,
+    };
+
+    const riskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        },
+      ],
+      riskAnalysis: [riskAnalysis],
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed =
+      buildRiskAnalysisSeed(riskAnalysis);
+
+    const riskAnalysisUpdatedSeed: catalogApi.EServiceRiskAnalysisSeed = {
+      ...riskAnalysisSeed,
+      riskAnalysisForm: {
+        ...riskAnalysisSeed.riskAnalysisForm,
+        answers: {
+          ...riskAnalysisSeed.riskAnalysisForm.answers,
+          purpose: ["OTHER"], // we modify the purpose field, present in the mock for all tenant kinds
+          otherPurpose: ["updated other purpose"], // we add a new field
+          ruleOfLawText: [], // we remove the ruleOfLawText field, present in the mock for all tenant kinds
+        },
+      },
+    };
+
+    await catalogService.updateRiskAnalysis(
+      eservice.id,
+      riskAnalysis.id,
+      riskAnalysisUpdatedSeed,
+      {
+        authData: getMockAuthData(delegation.delegateId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceRiskAnalysisUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceRiskAnalysisUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    const updatedEservice: EService = {
+      ...eservice,
+      riskAnalysis: [
+        {
+          ...riskAnalysis,
+          name: riskAnalysisUpdatedSeed.name,
+          riskAnalysisForm: {
+            ...riskAnalysis.riskAnalysisForm,
+            id: unsafeBrandId<RiskAnalysisFormId>(
+              writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.id
+            ),
+            multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers.map(
+              (multiAnswer) => ({
+                ...multiAnswer,
+                id: unsafeBrandId<RiskAnalysisMultiAnswerId>(
+                  writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.multiAnswers.find(
+                    (ma) => ma.key === multiAnswer.key
+                  )!.id
+                ),
+              })
+            ),
+            singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers
+              .filter((singleAnswer) => singleAnswer.key !== "ruleOfLawText")
+              .map((singleAnswer) => ({
+                ...singleAnswer,
+                id: unsafeBrandId<RiskAnalysisSingleAnswerId>(
+                  writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.singleAnswers.find(
+                    (sa) => sa.key === singleAnswer.key
+                  )!.id
+                ),
+                value:
+                  singleAnswer.key === "purpose" ? "OTHER" : singleAnswer.value,
+              }))
+              .concat([
+                {
+                  key: "otherPurpose",
+                  value: "updated other purpose",
+                  id: unsafeBrandId<RiskAnalysisSingleAnswerId>(
+                    writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.singleAnswers.find(
+                      (sa) => sa.key === "otherPurpose"
+                    )!.id
+                  ),
+                },
+              ]),
+          },
+        },
+      ],
+    };
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
+  });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     expect(
       catalogService.updateRiskAnalysis(
@@ -196,6 +325,30 @@ describe("update risk analysis", () => {
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         {
           authData: getMockAuthData(),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.updateRiskAnalysis(
+        mockEService.id,
+        generateId(),
+        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+        {
+          authData: getMockAuthData(mockEService.producerId),
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
