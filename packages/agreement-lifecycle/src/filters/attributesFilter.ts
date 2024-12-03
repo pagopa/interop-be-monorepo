@@ -18,12 +18,6 @@ export const filterVerifiedAttributes = (
   const now = new Date();
 
   const isVerificationExpired = (verification: TenantVerifier): boolean => {
-    if (verification.extensionDate && verification.expirationDate) {
-      return (
-        verification.extensionDate <= now && verification.expirationDate <= now
-      );
-    }
-
     if (verification.extensionDate) {
       return verification.extensionDate <= now;
     }

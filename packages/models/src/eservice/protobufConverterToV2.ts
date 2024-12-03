@@ -1,6 +1,7 @@
 import { P, match } from "ts-pattern";
 import {
   AgreementApprovalPolicyV2,
+  DescriptorRejectionReasonV2,
   EServiceAttributeV2,
   EServiceDescriptorStateV2,
   EServiceDescriptorV2,
@@ -15,6 +16,7 @@ import { dateToBigInt } from "../utils.js";
 import {
   AgreementApprovalPolicy,
   Descriptor,
+  DescriptorRejectionReason,
   DescriptorState,
   Document,
   EService,
@@ -54,6 +56,10 @@ export const toEServiceDescriptorStateV2 = (
       descriptorState.deprecated,
       () => EServiceDescriptorStateV2.DEPRECATED
     )
+    .with(
+      descriptorState.waitingForApproval,
+      () => EServiceDescriptorStateV2.WAITING_FOR_APPROVAL
+    )
     .exhaustive();
 
 export const toEServiceTechnologyV2 = (
@@ -77,6 +83,13 @@ export const toEServiceAttributeV2 = (
     id: i.id,
     explicitAttributeVerification: i.explicitAttributeVerification,
   })),
+});
+
+export const toDescriptorRejectedReasonV2 = (
+  input: DescriptorRejectionReason
+): DescriptorRejectionReasonV2 => ({
+  ...input,
+  rejectedAt: dateToBigInt(input.rejectedAt),
 });
 
 export const toDocumentV2 = (input: Document): EServiceDocumentV2 => ({
@@ -104,6 +117,8 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   suspendedAt: dateToBigInt(input.suspendedAt),
   deprecatedAt: dateToBigInt(input.deprecatedAt),
   archivedAt: dateToBigInt(input.archivedAt),
+  rejectionReasons:
+    input.rejectionReasons?.map(toDescriptorRejectedReasonV2) ?? [],
 });
 
 export const toRiskAnalysisV2 = (

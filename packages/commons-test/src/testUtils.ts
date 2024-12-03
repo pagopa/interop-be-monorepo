@@ -1,3 +1,4 @@
+/* eslint-disable fp/no-delete */
 import crypto from "crypto";
 import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
@@ -67,6 +68,7 @@ import {
   PlatformStatesClientPK,
   PlatformStatesClientEntry,
   makePlatformStatesClientPK,
+  AgreementStamps,
   DelegationKind,
   unsafeBrandId,
   UserId,
@@ -225,6 +227,18 @@ export const getMockTenantMail = (
   address: generateMock(z.string().email()),
 });
 
+export const getMockAgreementStamps = (): AgreementStamps => {
+  const stamps = generateMock(AgreementStamps);
+  delete stamps.submission?.delegationId;
+  delete stamps.activation?.delegationId;
+  delete stamps.rejection?.delegationId;
+  delete stamps.suspensionByConsumer?.delegationId;
+  delete stamps.suspensionByProducer?.delegationId;
+  delete stamps.upgrade?.delegationId;
+  delete stamps.archiving?.delegationId;
+  return stamps;
+};
+
 export const getMockAgreement = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   consumerId: TenantId = generateId<TenantId>(),
@@ -234,6 +248,7 @@ export const getMockAgreement = (
   eserviceId,
   consumerId,
   state,
+  stamps: getMockAgreementStamps(),
 });
 
 export const getMockAttribute = (
