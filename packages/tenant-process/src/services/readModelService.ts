@@ -20,13 +20,18 @@ import {
   AgreementState,
   TenantReadModel,
   genericInternalError,
+  TenantFeatureType,
+  AgreementId,
+  DelegationKind,
+  Delegation,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
 
 function listTenantsFilters(
-  name: string | undefined
+  name: string | undefined,
+  features?: TenantFeatureType[]
 ): Filter<{ data: TenantReadModel }> {
   const nameFilter = name
     ? {
@@ -37,6 +42,15 @@ function listTenantsFilters(
       }
     : {};
 
+  const featuresFilter =
+    features && features.length > 0
+      ? {
+          "data.features.type": {
+            $in: features,
+          },
+        }
+      : {};
+
   const withSelfcareIdFilter = {
     "data.selfcareId": {
       $exists: true,
@@ -45,6 +59,7 @@ function listTenantsFilters(
 
   return {
     ...nameFilter,
+    ...featuresFilter,
     ...withSelfcareIdFilter,
   };
 }
@@ -145,18 +160,21 @@ async function getTenant(
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { attributes, eservices, tenants, agreements } = readModelRepository;
+  const { attributes, eservices, tenants, agreements, delegations } =
+    readModelRepository;
   return {
-    async getTenantsByName({
+    async getTenants({
       name,
+      features,
       offset,
       limit,
     }: {
       name: string | undefined;
+      features: TenantFeatureType[];
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const query = listTenantsFilters(name);
+      const query = listTenantsFilters(name, features);
       const aggregationPipeline = [
         { $match: query },
         { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
@@ -394,6 +412,24 @@ export function readModelServiceBuilder(
       return result.data;
     },
 
+    async getAgreementById(
+      agreementId: AgreementId
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne({ "data.id": agreementId });
+      if (data) {
+        const result = Agreement.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse agreement item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+      return undefined;
+    },
+
     async getCertifiedAttributes({
       certifierId,
       offset,
@@ -495,6 +531,33 @@ export function readModelServiceBuilder(
         "data.kind": attributeKind.certified,
         "data.origin": certifierId,
       });
+    },
+
+    async getActiveDelegation({
+      eserviceId,
+      kind,
+    }: {
+      eserviceId: EServiceId;
+      kind: DelegationKind;
+    }): Promise<Delegation | undefined> {
+      const data = await delegations.findOne({
+        "data.eserviceId": eserviceId,
+        "data.kind": kind,
+        "data.state": agreementState.active,
+      });
+
+      if (data) {
+        const result = Delegation.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse delegation item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+      return undefined;
     },
   };
 }

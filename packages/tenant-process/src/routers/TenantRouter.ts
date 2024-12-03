@@ -12,7 +12,10 @@ import {
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { toApiTenant } from "../model/domain/apiConverter.js";
+import {
+  apiTenantFeatureTypeToTenantFeatureType,
+  toApiTenant,
+} from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   getTenantByExternalIdErrorMapper,
@@ -168,10 +171,11 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const { name, offset, limit } = req.query;
-          const tenants = await tenantService.getTenantsByName(
+          const { name, features, offset, limit } = req.query;
+          const tenants = await tenantService.getTenants(
             {
               name,
+              features: features.map(apiTenantFeatureTypeToTenantFeatureType),
               offset,
               limit,
             },
@@ -852,6 +856,7 @@ const tenantsRouter = (
             {
               tenantId: unsafeBrandId(req.params.tenantId),
               attributeId: unsafeBrandId(req.params.attributeId),
+              agreementId: unsafeBrandId(req.body.agreementId),
             },
             ctx
           );

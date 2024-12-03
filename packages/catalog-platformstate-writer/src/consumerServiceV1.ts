@@ -139,8 +139,11 @@ export async function handleMessageV1(
             dynamoDBClient
           );
         })
-        .with(descriptorState.draft, descriptorState.deprecated, () =>
-          Promise.resolve()
+        .with(
+          descriptorState.draft,
+          descriptorState.deprecated,
+          descriptorState.waitingForApproval,
+          () => Promise.resolve()
         )
         .exhaustive();
     })

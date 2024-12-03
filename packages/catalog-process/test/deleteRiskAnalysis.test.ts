@@ -3,6 +3,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockValidRiskAnalysis,
   decodeProtobufPayload,
+  getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
   EService,
@@ -13,6 +14,8 @@ import {
   Descriptor,
   descriptorState,
   operationForbidden,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -21,6 +24,7 @@ import {
   eserviceNotInDraftState,
 } from "../src/model/domain/errors.js";
 import {
+  addOneDelegation,
   addOneEService,
   catalogService,
   getMockAuthData,
@@ -34,6 +38,93 @@ describe("delete risk analysis", () => {
   const mockDescriptor = getMockDescriptor();
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
+  it("should write on event-store for the deletion of a risk analysis", async () => {
+    const riskAnalysis = getMockValidRiskAnalysis("PA");
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [],
+      riskAnalysis: [riskAnalysis],
+      mode: "Receive",
+    };
+    await addOneEService(eservice);
+
+    await catalogService.deleteRiskAnalysis(eservice.id, riskAnalysis.id, {
+      authData: getMockAuthData(eservice.producerId),
+      correlationId: generateId(),
+      serviceName: "",
+      logger: genericLogger,
+    });
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    const expectedEservice = toEServiceV2({
+      ...eservice,
+      riskAnalysis: eservice.riskAnalysis.filter(
+        (r) => r.id !== riskAnalysis.id
+      ),
+    });
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceRiskAnalysisDeleted",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceRiskAnalysisDeletedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload).toEqual({
+      riskAnalysisId: riskAnalysis.id,
+      eservice: expectedEservice,
+    });
+  });
+  it("should write on event-store for the deletion of a risk analysis (delegate)", async () => {
+    const riskAnalysis = getMockValidRiskAnalysis("PA");
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [],
+      riskAnalysis: [riskAnalysis],
+      mode: "Receive",
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    await catalogService.deleteRiskAnalysis(eservice.id, riskAnalysis.id, {
+      authData: getMockAuthData(delegation.delegateId),
+      correlationId: generateId(),
+      serviceName: "",
+      logger: genericLogger,
+    });
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    const expectedEservice = toEServiceV2({
+      ...eservice,
+      riskAnalysis: eservice.riskAnalysis.filter(
+        (r) => r.id !== riskAnalysis.id
+      ),
+    });
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceRiskAnalysisDeleted",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceRiskAnalysisDeletedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload).toEqual({
+      riskAnalysisId: riskAnalysis.id,
+      eservice: expectedEservice,
+    });
+  });
   it("should write on event-store for the deletion of a risk analysis", async () => {
     const riskAnalysis = getMockValidRiskAnalysis("PA");
     const eservice: EService = {
@@ -159,6 +250,41 @@ describe("delete risk analysis", () => {
         generateId<RiskAnalysisId>(),
         {
           authData: getMockAuthData(),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      riskAnalysis: [getMockValidRiskAnalysis("PA")],
+      mode: "Receive",
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.deleteRiskAnalysis(
+        eservice.id,
+        generateId<RiskAnalysisId>(),
+        {
+          authData: getMockAuthData(mockEService.producerId),
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,

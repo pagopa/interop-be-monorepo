@@ -16,6 +16,7 @@ import {
   TenantId,
   AgreementStamp,
   AgreementStamps,
+  delegationKind,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
@@ -159,6 +160,66 @@ export const assertRequesterIsConsumerOrProducer = (
   }
 };
 
+export const assertRequesterIsConsumerOrProducerOrDelegateProducer = async (
+  agreement: Agreement,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<void> => {
+  try {
+    assertRequesterIsConsumer(agreement, authData);
+  } catch (error) {
+    try {
+      assertRequesterIsProducer(agreement, authData);
+    } catch (error) {
+      const producerDelegation =
+        await readModelService.getDelegationByDelegateId(
+          authData.organizationId,
+          delegationKind.delegatedProducer
+        );
+      assertRequesterIsDelegate(producerDelegation?.delegateId, authData);
+    }
+  }
+};
+
+export const assertRequesterIsProducerOrDelegateProducer = (
+  agreement: Agreement,
+  delegateProducerId: TenantId | undefined,
+  authData: AuthData
+): void => {
+  if (delegateProducerId) {
+    assertRequesterIsDelegate(delegateProducerId, authData);
+  } else {
+    assertRequesterIsProducer(agreement, authData);
+  }
+};
+
+export const assertRequesterIsDelegate = (
+  delegateId: TenantId | undefined,
+  authData: AuthData
+): void => {
+  if (authData.organizationId !== delegateId) {
+    throw operationNotAllowed(authData.organizationId);
+  }
+};
+
+export const assertRequesterCanActivate = (
+  agreement: Agreement,
+  delegateProducerId: TenantId | undefined,
+  authData: AuthData
+): void => {
+  try {
+    assertRequesterIsConsumer(agreement, authData);
+  } catch (e) {
+    if (delegateProducerId) {
+      assertRequesterIsDelegate(delegateProducerId, authData);
+    } else {
+      assertRequesterIsProducer(agreement, authData);
+    }
+  }
+};
+
+export const assertRequesterCanSuspend = assertRequesterCanActivate;
+
 export const assertSubmittableState = (
   state: AgreementState,
   agreementId: AgreementId
@@ -210,8 +271,15 @@ const validateLatestDescriptor = (
   descriptorId: DescriptorId,
   allowedStates: DescriptorState[]
 ): Descriptor => {
+  const activeDescriptorStates: DescriptorState[] = [
+    descriptorState.archived,
+    descriptorState.deprecated,
+    descriptorState.published,
+    descriptorState.suspended,
+  ];
+
   const recentActiveDescriptors = eservice.descriptors
-    .filter((d) => d.state !== descriptorState.draft)
+    .filter((d) => activeDescriptorStates.includes(d.state))
     .sort((a, b) => Number(b.version) - Number(a.version));
 
   if (
