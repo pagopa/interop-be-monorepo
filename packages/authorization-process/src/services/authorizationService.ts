@@ -1068,6 +1068,8 @@ export function authorizationServiceBuilder(
         throw invalidKey(keySeed.key, "Not an RSA key");
       }
 
+      assertValidateRsaKeyLength(keySeed.key);
+
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
