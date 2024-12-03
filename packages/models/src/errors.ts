@@ -191,6 +191,7 @@ const errorCodes = {
   notAllowedCertificateException: "10005",
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
+  invalidKeyLenght: "10003",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -420,5 +421,13 @@ export function invalidKey(
     detail: `Key ${kid} is invalid. Reason: ${parseErrorMessage(error)}`,
     code: "invalidKey",
     title: "Invalid Key",
+  });
+}
+
+export function invalidKeyLenght(key: string): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Invalid lenght for the key ${key}, must be 2048 bites`,
+    code: "invalidKeyLenght",
+    title: "Invalid Key lenght",
   });
 }
