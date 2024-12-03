@@ -55,6 +55,14 @@ app.use(
     fileManager
   )
 );
-app.use(delegationConsumerRouter(zodiosCtx, eventStore, readModelService));
+app.use(
+  delegationConsumerRouter(
+    zodiosCtx,
+    eventStore,
+    readModelService,
+    pdfGenerator,
+    fileManager
+  )
+);
 
 export default app;
