@@ -151,7 +151,7 @@ function assertRequesterIsProducer(
   }
 }
 
-export const assertCanActAsProducerOrConsumer = async (
+export const assertRequesterCanActAsProducerOrConsumer = async (
   agreement: Agreement,
   authData: AuthData,
   activeProducerDelegation: Delegation | undefined
@@ -159,11 +159,15 @@ export const assertCanActAsProducerOrConsumer = async (
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
-    await assertCanActAsProducer(agreement, authData, activeProducerDelegation);
+    await assertRequesterCanActAsProducer(
+      agreement,
+      authData,
+      activeProducerDelegation
+    );
   }
 };
 
-export const assertCanRetrieveConsumerDocuments = async (
+export const assertRequesterCanRetrieveConsumerDocuments = async (
   agreement: Agreement,
   authData: AuthData,
   readModelService: ReadModelService
@@ -180,12 +184,16 @@ export const assertCanRetrieveConsumerDocuments = async (
         await readModelService.getActiveProducerDelegationByEserviceId(
           agreement.eserviceId
         );
-      assertIsDelegateProducer(activeProducerDelegation, agreement, authData);
+      assertRequesterIsDelegateProducer(
+        activeProducerDelegation,
+        agreement,
+        authData
+      );
     }
   }
 };
 
-export const assertCanActAsProducer = async (
+export const assertRequesterCanActAsProducer = async (
   agreement: Agreement,
   authData: AuthData,
   activeProducerDelegation: Delegation | undefined
@@ -195,11 +203,15 @@ export const assertCanActAsProducer = async (
     assertRequesterIsProducer(agreement, authData);
   } else {
     // Active producer delegation, requester is authorized only if they are the delegate
-    assertIsDelegateProducer(activeProducerDelegation, agreement, authData);
+    assertRequesterIsDelegateProducer(
+      activeProducerDelegation,
+      agreement,
+      authData
+    );
   }
 };
 
-const assertIsDelegateProducer = (
+const assertRequesterIsDelegateProducer = (
   activeProducerDelegation: Delegation | undefined,
   agreement: Agreement,
   authData: AuthData
