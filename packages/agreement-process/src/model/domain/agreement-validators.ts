@@ -151,7 +151,7 @@ function assertRequesterIsProducer(
   }
 }
 
-export const assertRequesterCanActAsProducerOrConsumer = async (
+export const assertRequesterCanActAsConsumerOrProducer = async (
   agreement: Agreement,
   authData: AuthData,
   activeProducerDelegation: Delegation | undefined

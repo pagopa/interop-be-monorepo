@@ -84,7 +84,7 @@ import {
   agreementUpgradableStates,
   assertActivableState,
   assertRequesterCanActAsProducer,
-  assertRequesterCanActAsProducerOrConsumer,
+  assertRequesterCanActAsConsumerOrProducer,
   assertRequesterCanRetrieveConsumerDocuments,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
@@ -788,7 +788,7 @@ export function agreementServiceBuilder(
           readModelService
         );
 
-      await assertRequesterCanActAsProducerOrConsumer(
+      await assertRequesterCanActAsConsumerOrProducer(
         agreement.data,
         authData,
         activeProducerDelegation
@@ -983,7 +983,7 @@ export function agreementServiceBuilder(
           readModelService
         );
 
-      await assertRequesterCanActAsProducerOrConsumer(
+      await assertRequesterCanActAsConsumerOrProducer(
         agreement.data,
         authData,
         activeProducerDelegation
