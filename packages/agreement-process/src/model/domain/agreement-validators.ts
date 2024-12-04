@@ -18,6 +18,7 @@ import {
   AgreementStamps,
   delegationKind,
   Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
@@ -207,6 +208,7 @@ const assertIsDelegateProducer = (
     activeProducerDelegation?.delegateId !== authData.organizationId ||
     activeProducerDelegation?.delegatorId !== agreement.producerId ||
     activeProducerDelegation?.kind !== delegationKind.delegatedProducer ||
+    activeProducerDelegation?.state !== delegationState.active ||
     activeProducerDelegation?.eserviceId !== agreement.eserviceId
   ) {
     throw operationNotAllowed(authData.organizationId);
