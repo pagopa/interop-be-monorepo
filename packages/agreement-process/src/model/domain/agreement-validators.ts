@@ -185,9 +185,9 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
           agreement.eserviceId
         );
       assertRequesterIsDelegateProducer(
-        activeProducerDelegation,
         agreement,
-        authData
+        authData,
+        activeProducerDelegation
       );
     }
   }
@@ -204,17 +204,17 @@ export const assertRequesterCanActAsProducer = (
   } else {
     // Active producer delegation, requester is authorized only if they are the delegate
     assertRequesterIsDelegateProducer(
-      activeProducerDelegation,
       agreement,
-      authData
+      authData,
+      activeProducerDelegation
     );
   }
 };
 
 const assertRequesterIsDelegateProducer = (
-  activeProducerDelegation: Delegation | undefined,
   agreement: Agreement,
-  authData: AuthData
+  authData: AuthData,
+  activeProducerDelegation: Delegation | undefined
 ): void => {
   if (
     activeProducerDelegation?.delegateId !== authData.organizationId ||
