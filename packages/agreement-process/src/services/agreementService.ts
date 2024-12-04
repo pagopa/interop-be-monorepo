@@ -55,6 +55,7 @@ import {
   eServiceNotFound,
   missingDelegationId,
   noNewerDescriptor,
+  operationNotAllowed,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -1284,7 +1285,7 @@ export function agreementServiceBuilder(
         (!isSameOrganization && hasValidDelegation);
 
       if (!isAuthorized) {
-        throw operationForbidden;
+        throw operationNotAllowed(authData.organizationId);
       }
       const consumer = await retrieveTenant(tenantId, readModelService);
       const eservice = await retrieveEService(eserviceId, readModelService);

@@ -15,13 +15,13 @@ import {
   DescriptorId,
   EServiceId,
   generateId,
-  operationForbidden,
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
 import {
   descriptorNotFound,
   eServiceNotFound,
+  operationNotAllowed,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -100,7 +100,7 @@ describe("Verify Tenant Certified Attributes", () => {
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
     });
-    it("should throw operationForbidden when organizationId is not the delegate", async () => {
+    it("should throw operationNotAllowed when organizationId is not the delegate", async () => {
       const authData = getRandomAuthData();
       const delegation = {
         ...mockDelegation,
@@ -124,7 +124,7 @@ describe("Verify Tenant Certified Attributes", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(operationForbidden);
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
   });
   describe("Without delegationId", () => {
@@ -148,7 +148,9 @@ describe("Verify Tenant Certified Attributes", () => {
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
     });
-    it("should throw operationForbidden when organizationId !== tenantId", async () => {
+    it("should throw operationNotAllowed when organizationId !== tenantId", async () => {
+      const authData = getRandomAuthData();
+
       await expect(
         agreementService.verifyTenantCertifiedAttributes(
           {
@@ -157,13 +159,13 @@ describe("Verify Tenant Certified Attributes", () => {
             eserviceId: mockEService.id,
           },
           {
-            authData: getRandomAuthData(),
+            authData,
             serviceName: "agreement-process",
             correlationId: generateId(),
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(operationForbidden);
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
     it("should return true if the consumer is the producer even if the tenant has invalid certified attributes", async () => {
       const tenant: Tenant = {
