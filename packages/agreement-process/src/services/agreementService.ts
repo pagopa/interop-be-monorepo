@@ -766,15 +766,10 @@ export function agreementServiceBuilder(
       );
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
-          agreement.data.eserviceId,
-          readModelService
-        );
       await assertRequesterIsConsumerOrProducer(
         agreement.data,
         authData,
-        activeProducerDelegation
+        readModelService
       );
 
       return retrieveAgreementDocument(agreement.data, documentId);
@@ -795,6 +790,7 @@ export function agreementServiceBuilder(
       await assertRequesterIsConsumerOrProducer(
         agreement.data,
         authData,
+        readModelService,
         activeProducerDelegation
       );
 
@@ -913,6 +909,7 @@ export function agreementServiceBuilder(
       await assertRequesterIsProducer(
         agreementToBeRejected.data,
         authData,
+        readModelService,
         activeProducerDelegation
       );
 
@@ -990,6 +987,7 @@ export function agreementServiceBuilder(
       await assertRequesterIsConsumerOrProducer(
         agreement.data,
         authData,
+        readModelService,
         activeProducerDelegation
       );
 

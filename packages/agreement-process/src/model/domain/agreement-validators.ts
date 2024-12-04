@@ -28,6 +28,7 @@ import {
   filterVerifiedAttributes,
 } from "pagopa-interop-agreement-lifecycle";
 import { ReadModelService } from "../../services/readModelService.js";
+import { retrieveActiveProducerDelegationByEserviceId } from "../../services/agreementService.js";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,
@@ -141,9 +142,18 @@ export const assertRequesterIsConsumer = (
 export const assertRequesterIsProducer = async (
   agreement: Agreement,
   authData: AuthData,
-  activeProducerDelegation: Delegation | undefined
+  readModelService: ReadModelService,
+  rertievedActiveProducerDelegation: Delegation | undefined = undefined
 ): Promise<void> => {
+  const activeProducerDelegation =
+    rertievedActiveProducerDelegation ||
+    (await retrieveActiveProducerDelegationByEserviceId(
+      agreement.eserviceId,
+      readModelService
+    ));
+
   if (!activeProducerDelegation) {
+    // No active producer delegation, requester is auhorized only if they are the producer
     if (
       !authData.userRoles.includes("internal") &&
       authData.organizationId !== agreement.producerId
@@ -151,6 +161,7 @@ export const assertRequesterIsProducer = async (
       throw operationNotAllowed(authData.organizationId);
     }
   } else {
+    // Active producer delegation, requester is authorized only if they are the delegate
     assertRequesterIsDelegate(activeProducerDelegation?.delegateId, authData);
     if (
       activeProducerDelegation?.delegatorId !== agreement.producerId ||
@@ -165,7 +176,8 @@ export const assertRequesterIsProducer = async (
 export const assertRequesterIsConsumerOrProducer = async (
   agreement: Agreement,
   authData: AuthData,
-  activeProducerDelegation: Delegation | undefined
+  readModelService: ReadModelService,
+  activeProducerDelegation: Delegation | undefined = undefined
 ): Promise<void> => {
   try {
     assertRequesterIsConsumer(agreement, authData);
@@ -173,6 +185,7 @@ export const assertRequesterIsConsumerOrProducer = async (
     await assertRequesterIsProducer(
       agreement,
       authData,
+      readModelService,
       activeProducerDelegation
     );
   }
