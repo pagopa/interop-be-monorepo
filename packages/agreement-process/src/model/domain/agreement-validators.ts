@@ -263,7 +263,7 @@ export const assertRequesterIsDelegateConsumer = (
   if (
     activeConsumerDelegation.eserviceId !== eserviceId ||
     activeConsumerDelegation.kind !== delegationKind.delegatedConsumer ||
-    activeConsumerDelegation?.state !== delegationState.active
+    activeConsumerDelegation.state !== delegationState.active
   ) {
     throw operationNotAllowed(authData.organizationId);
   }
