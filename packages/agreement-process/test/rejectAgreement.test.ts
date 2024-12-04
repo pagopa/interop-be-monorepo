@@ -195,6 +195,7 @@ describe("reject agreement", () => {
         kind: delegationKind.delegatedProducer,
         delegateId: authData.organizationId,
         eserviceId: eservice.id,
+        delegatorId: eservice.producerId,
         state: delegationState.active,
       });
       if (type === "delegate") {
