@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -52,8 +53,8 @@ import {
   delegationNotFound,
   descriptorNotFound,
   eServiceNotFound,
-  missingDelegationId,
   noNewerDescriptor,
+  operationNotAllowed,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -283,7 +284,7 @@ export function agreementServiceBuilder(
       const consumer = await getConsumerFromDelegationOrRequester(
         eserviceId,
         delegationId,
-        authData.organizationId,
+        authData,
         readModelService
       );
 
@@ -1324,7 +1325,7 @@ async function addContractOnFirstActivation(
 async function getConsumerFromDelegationOrRequester(
   eserviceId: EServiceId,
   delegationId: DelegationId | undefined,
-  organizationId: TenantId,
+  authData: AuthData,
   readModelService: ReadModelService
 ): Promise<Tenant> {
   const delegations =
@@ -1334,18 +1335,18 @@ async function getConsumerFromDelegationOrRequester(
     // If a delegation has been passed, the consumer is the delegator
     const delegation = retrieveDelegation(delegations, delegationId);
 
-    assertRequesterIsDelegateConsumer(delegation, eserviceId, organizationId);
+    assertRequesterIsDelegateConsumer(delegation, eserviceId, authData);
     return retrieveTenant(delegation.delegatorId, readModelService);
   } else {
-    const hasDelegation = delegations.some(
-      (d) => d.delegateId === organizationId || d.delegatorId === organizationId
+    const hasDelegated = delegations.some(
+      (d) => d.delegatorId === authData.organizationId
     );
 
-    if (hasDelegation) {
+    if (hasDelegated) {
       // If a delegation exists, the delegator cannot create the agreement
-      throw missingDelegationId(organizationId, eserviceId);
+      throw operationNotAllowed(authData.organizationId);
     }
 
-    return retrieveTenant(organizationId, readModelService);
+    return retrieveTenant(authData.organizationId, readModelService);
   }
 }

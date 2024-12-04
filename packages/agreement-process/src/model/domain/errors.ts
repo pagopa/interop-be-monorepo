@@ -38,7 +38,6 @@ export const errorCodes = {
   consumerWithNotValidEmail: "0024",
   agreementDocumentAlreadyExists: "0025",
   delegationNotFound: "0026",
-  missingDelegationId: "0027",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -288,16 +287,5 @@ export function delegationNotFound(
     detail: `Delegation ${delegationId} not found`,
     code: "delegationNotFound",
     title: "Delegation not found",
-  });
-}
-
-export function missingDelegationId(
-  organizationId: TenantId,
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `An Active delegation exists for EService ${eserviceId} where requester organization ${organizationId} is delegator or delegate, but delegation id is missing`,
-    code: "missingDelegationId",
-    title: "Missing delegation id",
   });
 }

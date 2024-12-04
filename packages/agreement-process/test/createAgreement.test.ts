@@ -45,7 +45,6 @@ import {
   descriptorNotInExpectedState,
   eServiceNotFound,
   missingCertifiedAttributesError,
-  missingDelegationId,
   notLatestEServiceDescriptor,
   operationNotAllowed,
   tenantNotFound,
@@ -787,9 +786,7 @@ describe("create agreement", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(
-      missingDelegationId(authData.organizationId, eservice.id)
-    );
+    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
   });
   it("should throw delegationNotFound error when the provided delegation id does not exist", async () => {
     const delegationId = generateId<DelegationId>();
