@@ -754,7 +754,7 @@ describe("create agreement", () => {
       missingCertifiedAttributesError(descriptor.id, consumer.id)
     );
   });
-  it("should throw cannotCreateAgreementForDelegatedEservice error when there is an active delegation and the requester is the delegator", async () => {
+  it("should throw operationNotAllowed error when there is an active delegation and the requester is the delegator", async () => {
     const authData = getRandomAuthData();
 
     const eservice = getMockEService(
