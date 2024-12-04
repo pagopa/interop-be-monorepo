@@ -181,6 +181,8 @@ export const assertCanRetrieveConsumerDocuments = async (
   authData: AuthData,
   readModelService: ReadModelService
 ): Promise<void> => {
+  // This operation has a dedicated assertion because it's the only operation that
+  // can be performed also by the producer even when there is an active producer delegation
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
