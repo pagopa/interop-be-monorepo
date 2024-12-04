@@ -227,7 +227,7 @@ describe("create agreement", () => {
       consumer.id
     );
   });
-  it("should succeed when the delegationId is provided, the requester is the delegated and the delegator has all Descriptor certified Attributes not revoked", async () => {
+  it("should succeed when the delegationId is provided, the requester is the delegate and the delegator has all Descriptor certified Attributes not revoked", async () => {
     const authData = getRandomAuthData();
     const eserviceProducer: Tenant = getMockTenant();
 
@@ -251,7 +251,7 @@ describe("create agreement", () => {
       revocationTimestamp: undefined,
     };
 
-    const delegator = getMockTenant(authData.organizationId, [
+    const delegator = getMockTenant(generateId<TenantId>(), [
       getMockDeclaredTenantAttribute(),
       certifiedTenantAttribute1,
       certifiedTenantAttribute2,
@@ -754,7 +754,7 @@ describe("create agreement", () => {
       missingCertifiedAttributesError(descriptor.id, consumer.id)
     );
   });
-  it("should throw missingDelegationId error when there is an active delegation, the requester is the delegate or the delegator, but no delegation id is provided", async () => {
+  it("should throw cannotCreateAgreementForDelegatedEservice error when there is an active delegation and the requester is the delegator", async () => {
     const authData = getRandomAuthData();
 
     const eservice = getMockEService(
@@ -769,7 +769,7 @@ describe("create agreement", () => {
         kind: delegationKind.delegatedConsumer,
         eserviceId: eservice.id,
         state: delegationState.active,
-        delegateId: authData.organizationId,
+        delegatorId: authData.organizationId,
       })
     );
 
@@ -821,7 +821,7 @@ describe("create agreement", () => {
       )
     ).rejects.toThrowError(delegationNotFound(delegationId));
   });
-  it("should throw operationNotAllowed error when the requester is not the delegated if delegationId is provided", async () => {
+  it("should throw operationNotAllowed error when the requester is not the delegate if delegationId is provided", async () => {
     const authData = getRandomAuthData();
     const eservice = getMockEService(
       generateId<EServiceId>(),
