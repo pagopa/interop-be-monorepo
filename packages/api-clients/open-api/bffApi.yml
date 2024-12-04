@@ -14338,21 +14338,6 @@ components:
       required:
         - results
         - pagination
-    ProductInfo:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-        role:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - id
-        - role
-        - createdAt
     SelfcareProduct:
       type: object
       additionalProperties: false
