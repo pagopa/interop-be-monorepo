@@ -151,20 +151,6 @@ function assertRequesterIsProducer(
   }
 }
 
-export const assertCanActAsProducer = async (
-  agreement: Agreement,
-  authData: AuthData,
-  activeProducerDelegation: Delegation | undefined
-): Promise<void> => {
-  if (!activeProducerDelegation) {
-    // No active producer delegation, requester is auhorized only if they are the producer
-    assertRequesterIsProducer(agreement, authData);
-  } else {
-    // Active producer delegation, requester is authorized only if they are the delegate
-    assertIsDelegateProducer(activeProducerDelegation, agreement, authData);
-  }
-};
-
 export const assertCanActAsProducerOrConsumer = async (
   agreement: Agreement,
   authData: AuthData,
@@ -196,6 +182,20 @@ export const assertCanRetrieveConsumerDocuments = async (
         );
       assertIsDelegateProducer(activeProducerDelegation, agreement, authData);
     }
+  }
+};
+
+export const assertCanActAsProducer = async (
+  agreement: Agreement,
+  authData: AuthData,
+  activeProducerDelegation: Delegation | undefined
+): Promise<void> => {
+  if (!activeProducerDelegation) {
+    // No active producer delegation, requester is auhorized only if they are the producer
+    assertRequesterIsProducer(agreement, authData);
+  } else {
+    // Active producer delegation, requester is authorized only if they are the delegate
+    assertIsDelegateProducer(activeProducerDelegation, agreement, authData);
   }
 };
 
