@@ -273,7 +273,7 @@ export const assertRequesterIsDelegateConsumer = (
   }
 };
 
-export const assertRequesterisDelegateConsumerOrConsumer = async (
+export const assertRequesterCanCreateAgrementForTenant = async (
   {
     requesterId,
     tenantIdToVerify,

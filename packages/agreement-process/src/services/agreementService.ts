@@ -90,6 +90,7 @@ import {
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
   assertRequesterCanActivate,
+  assertRequesterCanCreateAgrementForTenant,
   assertRequesterCanSuspend,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducerOrDelegateProducer,
@@ -1219,7 +1220,7 @@ export function agreementServiceBuilder(
         `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
       );
 
-      await assertRequesterisDelegateConsumerOrConsumer(
+      await assertRequesterCanCreateAgrementForTenant(
         {
           requesterId: authData.organizationId,
           tenantIdToVerify: tenantId,
