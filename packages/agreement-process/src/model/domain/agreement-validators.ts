@@ -17,6 +17,7 @@ import {
   AgreementStamp,
   AgreementStamps,
   delegationKind,
+  Delegation,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import {
@@ -195,7 +196,7 @@ export const assertRequesterIsProducerOrDelegateProducer = (
   }
 };
 
-export const assertRequesterIsDelegate = (
+const assertRequesterIsDelegate = (
   delegateId: TenantId | undefined,
   organizationId: TenantId
 ): void => {
@@ -252,6 +253,23 @@ export const assertCanWorkOnConsumerDocuments = (
 export const assertActivableState = (agreement: Agreement): void => {
   if (!agreementActivableStates.includes(agreement.state)) {
     throw agreementNotInExpectedState(agreement.id, agreement.state);
+  }
+};
+
+export const assertRequesterIsDelegateConsumer = (
+  activeConsumerDelegation: Delegation,
+  eserviceId: EServiceId,
+  organizationId: TenantId
+): void => {
+  assertRequesterIsDelegate(
+    activeConsumerDelegation.delegateId,
+    organizationId
+  );
+  if (
+    activeConsumerDelegation.eserviceId !== eserviceId ||
+    activeConsumerDelegation.kind !== delegationKind.delegatedConsumer
+  ) {
+    throw operationNotAllowed(organizationId);
   }
 };
 

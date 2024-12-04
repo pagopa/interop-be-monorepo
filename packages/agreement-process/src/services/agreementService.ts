@@ -92,7 +92,7 @@ import {
   assertRequesterCanSuspend,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducerOrDelegateProducer,
-  assertRequesterIsDelegate,
+  assertRequesterIsDelegateConsumer,
   assertRequesterIsProducerOrDelegateProducer,
   assertSubmittableState,
   failOnActivationFailure,
@@ -1333,7 +1333,7 @@ async function getConsumerFromDelegationOrRequester(
   if (delegationId) {
     const delegation = retrieveDelegation(delegations, delegationId);
 
-    assertRequesterIsDelegate(delegation.delegateId, organizationId);
+    assertRequesterIsDelegateConsumer(delegation, eserviceId, organizationId);
     return retrieveTenant(delegation.delegatorId, readModelService);
   } else {
     const hasDelegation = delegations.some(
