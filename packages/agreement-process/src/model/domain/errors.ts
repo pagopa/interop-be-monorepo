@@ -297,7 +297,7 @@ export function missingDelegationId(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Missing delegation id for organization ${organizationId} and EService ${eserviceId}`,
+    detail: `An Active delegation exists for EService ${eserviceId} where requester organization ${organizationId} is delegator or delegate, but delegation id is missing`,
     code: "missingDelegationId",
     title: "Missing delegation id",
   });
