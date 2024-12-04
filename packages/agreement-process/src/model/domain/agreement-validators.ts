@@ -173,7 +173,7 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
   readModelService: ReadModelService
 ): Promise<void> => {
   // This operation has a dedicated assertion because it's the only operation that
-  // can be performed also by the producer even when there is an active producer delegation
+  // can be performed also by the producer even when an active producer delegation exists
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
@@ -199,10 +199,10 @@ export const assertRequesterCanActAsProducer = (
   activeProducerDelegation: Delegation | undefined
 ): void => {
   if (!activeProducerDelegation) {
-    // No active producer delegation, requester is auhorized only if they are the producer
+    // No active producer delegation, the requester is authorized only if they are the producer
     assertRequesterIsProducer(agreement, authData);
   } else {
-    // Active producer delegation, requester is authorized only if they are the delegate
+    // Active producer delegation, the requester is authorized only if they are the delegate
     assertRequesterIsDelegateProducer(
       agreement,
       authData,
