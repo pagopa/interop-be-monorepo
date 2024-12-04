@@ -595,16 +595,6 @@ components:
       required:
         - results
         - totalCount
-    CreatedResource:
-      type: object
-      additionalProperties: false
-      description: contains the id of the created resource
-      properties:
-        id:
-          type: string
-          format: uuid
-      required:
-        - id
     Delegation:
       type: object
       additionalProperties: false

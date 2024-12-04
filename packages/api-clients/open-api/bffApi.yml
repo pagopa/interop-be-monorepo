@@ -12484,6 +12484,8 @@ paths:
             items:
               type: string
               format: uuid
+            default: []
+          explode: false
           description: "The delegator ids to filter by"
         - in: query
           name: delegateIds
@@ -12492,6 +12494,8 @@ paths:
             items:
               type: string
               format: uuid
+            default: []
+          explode: false
           description: "The delegated ids to filter by"
         - in: query
           name: kind
@@ -14480,21 +14484,6 @@ components:
       required:
         - results
         - pagination
-    ProductInfo:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-        role:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - id
-        - role
-        - createdAt
     SelfcareProduct:
       type: object
       additionalProperties: false
