@@ -1331,6 +1331,7 @@ async function getConsumerFromDelegationOrRequester(
     await readModelService.getActiveConsumerDelegationsByEserviceId(eserviceId);
 
   if (delegationId) {
+    // If a delegation has been passed, the consumer is the delegator
     const delegation = retrieveDelegation(delegations, delegationId);
 
     assertRequesterIsDelegateConsumer(delegation, eserviceId, organizationId);
@@ -1341,6 +1342,7 @@ async function getConsumerFromDelegationOrRequester(
     );
 
     if (hasDelegation) {
+      // If a delegation exists, the delegator cannot create the agreement
       throw missingDelegationId(organizationId, eserviceId);
     }
 
