@@ -17,6 +17,8 @@ import {
   AgreementStamp,
   AgreementStamps,
   delegationKind,
+  Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
@@ -137,88 +139,93 @@ export const assertRequesterIsConsumer = (
   }
 };
 
-export function assertRequesterIsProducer(
+const assertRequesterIsProducer = (
   agreement: Agreement,
   authData: AuthData
-): void {
+): void => {
   if (
     !authData.userRoles.includes("internal") &&
     authData.organizationId !== agreement.producerId
   ) {
     throw operationNotAllowed(authData.organizationId);
   }
-}
+};
 
-export const assertRequesterIsConsumerOrProducer = (
+export const assertRequesterCanActAsConsumerOrProducer = (
   agreement: Agreement,
-  authData: AuthData
+  authData: AuthData,
+  activeProducerDelegation: Delegation | undefined
 ): void => {
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
-    assertRequesterIsProducer(agreement, authData);
+    assertRequesterCanActAsProducer(
+      agreement,
+      authData,
+      activeProducerDelegation
+    );
   }
 };
 
-export const assertRequesterIsConsumerOrProducerOrDelegateProducer = async (
+export const assertRequesterCanRetrieveConsumerDocuments = async (
   agreement: Agreement,
   authData: AuthData,
   readModelService: ReadModelService
 ): Promise<void> => {
+  // This operation has a dedicated assertion because it's the only operation that
+  // can be performed also by the producer even when an active producer delegation exists
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
     try {
       assertRequesterIsProducer(agreement, authData);
     } catch (error) {
-      const producerDelegation =
-        await readModelService.getDelegationByDelegateId(
-          authData.organizationId,
-          delegationKind.delegatedProducer
+      const activeProducerDelegation =
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreement.eserviceId
         );
-      assertRequesterIsDelegate(producerDelegation?.delegateId, authData);
+      assertRequesterIsDelegateProducer(
+        agreement,
+        authData,
+        activeProducerDelegation
+      );
     }
   }
 };
 
-export const assertRequesterIsProducerOrDelegateProducer = (
+export const assertRequesterCanActAsProducer = (
   agreement: Agreement,
-  delegateProducerId: TenantId | undefined,
-  authData: AuthData
+  authData: AuthData,
+  activeProducerDelegation: Delegation | undefined
 ): void => {
-  if (delegateProducerId) {
-    assertRequesterIsDelegate(delegateProducerId, authData);
-  } else {
+  if (!activeProducerDelegation) {
+    // No active producer delegation, the requester is authorized only if they are the producer
     assertRequesterIsProducer(agreement, authData);
+  } else {
+    // Active producer delegation, the requester is authorized only if they are the delegate
+    assertRequesterIsDelegateProducer(
+      agreement,
+      authData,
+      activeProducerDelegation
+    );
   }
 };
 
-export const assertRequesterIsDelegate = (
-  delegateId: TenantId | undefined,
-  authData: AuthData
+const assertRequesterIsDelegateProducer = (
+  agreement: Agreement,
+  authData: AuthData,
+  activeProducerDelegation: Delegation | undefined
 ): void => {
-  if (authData.organizationId !== delegateId) {
+  if (
+    activeProducerDelegation?.delegateId !== authData.organizationId ||
+    activeProducerDelegation?.delegatorId !== agreement.producerId ||
+    activeProducerDelegation?.kind !== delegationKind.delegatedProducer ||
+    activeProducerDelegation?.state !== delegationState.active ||
+    activeProducerDelegation?.eserviceId !== agreement.eserviceId
+  ) {
     throw operationNotAllowed(authData.organizationId);
   }
 };
-
-export const assertRequesterCanActivate = (
-  agreement: Agreement,
-  delegateProducerId: TenantId | undefined,
-  authData: AuthData
-): void => {
-  try {
-    assertRequesterIsConsumer(agreement, authData);
-  } catch (e) {
-    if (delegateProducerId) {
-      assertRequesterIsDelegate(delegateProducerId, authData);
-    } else {
-      assertRequesterIsProducer(agreement, authData);
-    }
-  }
-};
-
-export const assertRequesterCanSuspend = assertRequesterCanActivate;
 
 export const assertSubmittableState = (
   state: AgreementState,

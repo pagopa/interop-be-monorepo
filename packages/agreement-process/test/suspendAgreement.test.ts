@@ -439,6 +439,7 @@ describe("suspend agreement", () => {
         kind: delegationKind.delegatedProducer,
         delegateId: authData.organizationId,
         eserviceId: eservice.id,
+        delegatorId: eservice.producerId,
         state: delegationState.active,
       });
 
@@ -624,6 +625,7 @@ describe("suspend agreement", () => {
       kind: delegationKind.delegatedProducer,
       delegateId: delegate.id,
       eserviceId: eservice.id,
+      delegatorId: eservice.producerId,
       state: delegationState.active,
     });
 
@@ -662,6 +664,7 @@ describe("suspend agreement", () => {
       kind: delegationKind.delegatedProducer,
       delegateId: authData.organizationId,
       eserviceId: eservice.id,
+      delegatorId: eservice.producerId,
       state: delegationState.waitingForApproval,
     });
 
