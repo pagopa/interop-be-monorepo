@@ -95,7 +95,6 @@ import {
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducerOrDelegateProducer,
   assertRequesterIsDelegateConsumer,
-  assertRequesterisDelegateConsumerOrConsumer,
   assertRequesterIsProducerOrDelegateProducer,
   assertSubmittableState,
   failOnActivationFailure,
