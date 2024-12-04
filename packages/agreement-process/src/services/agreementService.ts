@@ -35,7 +35,6 @@ import {
   CompactTenant,
   CorrelationId,
   Delegation,
-  delegationKind,
   DelegationId,
 } from "pagopa-interop-models";
 import {
@@ -87,14 +86,13 @@ import {
   agreementUpdatableStates,
   agreementUpgradableStates,
   assertActivableState,
+  assertRequesterCanActAsProducer,
+  assertRequesterCanActAsConsumerOrProducer,
+  assertRequesterCanRetrieveConsumerDocuments,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
-  assertRequesterCanActivate,
-  assertRequesterCanSuspend,
   assertRequesterIsConsumer,
-  assertRequesterIsConsumerOrProducerOrDelegateProducer,
   assertRequesterIsDelegateConsumer,
-  assertRequesterIsProducerOrDelegateProducer,
   assertSubmittableState,
   failOnActivationFailure,
   matchingCertifiedAttributes,
@@ -181,10 +179,7 @@ export const retrieveActiveProducerDelegationByEserviceId = async (
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<Delegation | undefined> =>
-  await readModelService.getActiveDelegationByEserviceId(
-    eserviceId,
-    delegationKind.delegatedProducer
-  );
+  await readModelService.getActiveProducerDelegationByEserviceId(eserviceId);
 
 export const retrieveDescriptor = (
   descriptorId: DescriptorId,
@@ -796,7 +791,7 @@ export function agreementServiceBuilder(
       );
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      await assertRequesterIsConsumerOrProducerOrDelegateProducer(
+      await assertRequesterCanRetrieveConsumerDocuments(
         agreement.data,
         authData,
         readModelService
@@ -819,7 +814,11 @@ export function agreementServiceBuilder(
 
       const delegateProducerId = activeProducerDelegation?.delegateId;
 
-      assertRequesterCanSuspend(agreement.data, delegateProducerId, authData);
+      assertRequesterCanActAsConsumerOrProducer(
+        agreement.data,
+        authData,
+        activeProducerDelegation
+      );
 
       assertExpectedState(
         agreementId,
@@ -930,12 +929,11 @@ export function agreementServiceBuilder(
           agreementToBeRejected.data.eserviceId,
           readModelService
         );
-      const delegateProducerId = activeProducerDelegation?.delegateId;
 
-      assertRequesterIsProducerOrDelegateProducer(
+      assertRequesterCanActAsProducer(
         agreementToBeRejected.data,
-        delegateProducerId,
-        authData
+        authData,
+        activeProducerDelegation
       );
 
       assertExpectedState(
@@ -1011,7 +1009,11 @@ export function agreementServiceBuilder(
 
       const delegateProducerId = activeProducerDelegation?.delegateId;
 
-      assertRequesterCanActivate(agreement.data, delegateProducerId, authData);
+      assertRequesterCanActAsConsumerOrProducer(
+        agreement.data,
+        authData,
+        activeProducerDelegation
+      );
 
       verifyConsumerDoesNotActivatePending(agreement.data, authData);
       assertActivableState(agreement.data);

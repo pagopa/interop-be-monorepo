@@ -22,7 +22,12 @@ tags:
       description: Find out more
       url: http://swagger.io
   - name: producer
-    description: Lead organization
+    description: Producer delegations operations
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: consumer
+    description: Consumer delegations operations
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -296,6 +301,61 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /consumer/delegations/{delegationId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      description: Revokes a consumer delegation
+      summary: Consumer delegation revocation
+      tags:
+        - consumer
+      operationId: revokeConsumerDelegation
+      responses:
+        "204":
+          description: Delegation revoked
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /producer/delegations:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -386,6 +446,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /producer/delegations/{delegationId}/reject:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -436,6 +502,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /producer/delegations/{delegationId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -455,6 +527,12 @@ paths:
       responses:
         "204":
           description: Delegation revoked
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -469,6 +547,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/json:
               schema:
@@ -511,16 +595,6 @@ components:
       required:
         - results
         - totalCount
-    CreatedResource:
-      type: object
-      additionalProperties: false
-      description: contains the id of the created resource
-      properties:
-        id:
-          type: string
-          format: uuid
-      required:
-        - id
     Delegation:
       type: object
       additionalProperties: false

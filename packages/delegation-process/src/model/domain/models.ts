@@ -37,6 +37,7 @@ export type DelegationActivationPDFPayload = {
 };
 
 export type DelegationRevocationPDFPayload = {
+  delegationKindText: string;
   todayDate: string;
   todayTime: string;
   delegationId: DelegationId;
