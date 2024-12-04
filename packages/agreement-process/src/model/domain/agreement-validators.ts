@@ -18,6 +18,7 @@ import {
   AgreementStamps,
   delegationKind,
   Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import {
@@ -261,8 +262,8 @@ export const assertRequesterIsDelegateConsumer = (
   assertRequesterIsDelegate(activeConsumerDelegation.delegateId, authData);
   if (
     activeConsumerDelegation.eserviceId !== eserviceId ||
-    activeConsumerDelegation.kind !== delegationKind.delegatedConsumer|
-    activeProducerDelegation?.state !== delegationState.active
+    activeConsumerDelegation.kind !== delegationKind.delegatedConsumer ||
+    activeConsumerDelegation?.state !== delegationState.active
   ) {
     throw operationNotAllowed(authData.organizationId);
   }
