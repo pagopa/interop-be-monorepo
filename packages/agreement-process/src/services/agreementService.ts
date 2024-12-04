@@ -297,7 +297,7 @@ export function agreementServiceBuilder(
         eserviceId,
         descriptorId,
         producerId: eservice.producerId,
-        consumerId: authData.organizationId,
+        consumerId: consumer.id,
         state: agreementState.draft,
         verifiedAttributes: [],
         certifiedAttributes: [],
