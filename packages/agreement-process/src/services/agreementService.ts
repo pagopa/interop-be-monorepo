@@ -788,7 +788,7 @@ export function agreementServiceBuilder(
           readModelService
         );
 
-      await assertRequesterCanActAsConsumerOrProducer(
+      assertRequesterCanActAsConsumerOrProducer(
         agreement.data,
         authData,
         activeProducerDelegation
@@ -906,7 +906,7 @@ export function agreementServiceBuilder(
           readModelService
         );
 
-      await assertRequesterCanActAsProducer(
+      assertRequesterCanActAsProducer(
         agreementToBeRejected.data,
         authData,
         activeProducerDelegation
@@ -983,7 +983,7 @@ export function agreementServiceBuilder(
           readModelService
         );
 
-      await assertRequesterCanActAsConsumerOrProducer(
+      assertRequesterCanActAsConsumerOrProducer(
         agreement.data,
         authData,
         activeProducerDelegation

@@ -139,27 +139,27 @@ export const assertRequesterIsConsumer = (
   }
 };
 
-function assertRequesterIsProducer(
+const assertRequesterIsProducer = (
   agreement: Agreement,
   authData: AuthData
-): void {
+): void => {
   if (
     !authData.userRoles.includes("internal") &&
     authData.organizationId !== agreement.producerId
   ) {
     throw operationNotAllowed(authData.organizationId);
   }
-}
+};
 
-export const assertRequesterCanActAsConsumerOrProducer = async (
+export const assertRequesterCanActAsConsumerOrProducer = (
   agreement: Agreement,
   authData: AuthData,
   activeProducerDelegation: Delegation | undefined
-): Promise<void> => {
+): void => {
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
-    await assertRequesterCanActAsProducer(
+    assertRequesterCanActAsProducer(
       agreement,
       authData,
       activeProducerDelegation
@@ -193,11 +193,11 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
   }
 };
 
-export const assertRequesterCanActAsProducer = async (
+export const assertRequesterCanActAsProducer = (
   agreement: Agreement,
   authData: AuthData,
   activeProducerDelegation: Delegation | undefined
-): Promise<void> => {
+): void => {
   if (!activeProducerDelegation) {
     // No active producer delegation, requester is auhorized only if they are the producer
     assertRequesterIsProducer(agreement, authData);
