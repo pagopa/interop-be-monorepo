@@ -37,9 +37,8 @@ export const errorCodes = {
   invalidAttributeStructure: "0023",
   consumerWithNotValidEmail: "0024",
   agreementDocumentAlreadyExists: "0025",
-  userNotFound: "0026",
-  delegationNotFound: "0027",
-  missingDelegationId: "0028",
+  delegationNotFound: "0026",
+  missingDelegationId: "0027",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
