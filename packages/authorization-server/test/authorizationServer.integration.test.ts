@@ -554,7 +554,7 @@ describe("authorization server tests", () => {
     const correlationId = generateId();
     const response = await tokenService.generateToken(
       request,
-      correlationId,
+      unsafeBrandId(correlationId),
       genericLogger
     );
 
@@ -576,7 +576,7 @@ describe("authorization server tests", () => {
       genericLogger
     );
 
-    const decodedFileContent = new TextDecoder().decode(fileContent);
+    const decodedFileContent = Buffer.from(fileContent).toString();
     const parsedDecodedFileContent = JSON.parse(decodedFileContent);
 
     const expectedMessageBody: GeneratedTokenAuditDetails = {
@@ -684,7 +684,7 @@ describe("authorization server tests", () => {
     const correlationId = generateId();
     const result = await tokenService.generateToken(
       request,
-      correlationId,
+      unsafeBrandId(correlationId),
       genericLogger
     );
 

@@ -1,5 +1,7 @@
 import {
   Delegation,
+  DelegationContractDocument,
+  DelegationContractId,
   DelegationId,
   DelegationKind,
   DelegationState,
@@ -7,9 +9,13 @@ import {
   TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { delegationNotFound } from "../model/domain/errors.js";
+import { AppContext, Logger, WithLogger } from "pagopa-interop-commons";
+import {
+  delegationNotFound,
+  delegationContractNotFound,
+} from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
+import { assertRequesterIsDelegateOrDelegator } from "./validators.js";
 
 export const retrieveDelegationById = async (
   readModelService: ReadModelService,
@@ -70,6 +76,36 @@ export function delegationServiceBuilder(readModelService: ReadModelService) {
         offset,
         limit,
       });
+    },
+    async getDelegationContract(
+      delegationId: DelegationId,
+      contractId: DelegationContractId,
+      { logger, authData }: WithLogger<AppContext>
+    ): Promise<DelegationContractDocument> {
+      logger.info(
+        `Retrieving delegation ${delegationId} contract ${contractId}`
+      );
+      const delegation = await retrieveDelegationById(
+        readModelService,
+        delegationId
+      );
+
+      assertRequesterIsDelegateOrDelegator(
+        delegation.data,
+        authData.organizationId
+      );
+
+      const { activationContract, revocationContract } = delegation.data;
+
+      if (contractId === activationContract?.id) {
+        return activationContract;
+      }
+
+      if (contractId === revocationContract?.id) {
+        return revocationContract;
+      }
+
+      throw delegationContractNotFound(delegationId, contractId);
     },
   };
 }

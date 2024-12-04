@@ -14,6 +14,9 @@ import {
   EServiceId,
   unsafeBrandId,
   TenantId,
+  AgreementStamp,
+  AgreementStamps,
+  delegationKind,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
@@ -28,6 +31,7 @@ import {
   agreementActivationFailed,
   agreementAlreadyExists,
   agreementNotInExpectedState,
+  agreementStampNotFound,
   agreementSubmissionFailed,
   descriptorNotFound,
   descriptorNotInExpectedState,
@@ -156,6 +160,66 @@ export const assertRequesterIsConsumerOrProducer = (
   }
 };
 
+export const assertRequesterIsConsumerOrProducerOrDelegateProducer = async (
+  agreement: Agreement,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<void> => {
+  try {
+    assertRequesterIsConsumer(agreement, authData);
+  } catch (error) {
+    try {
+      assertRequesterIsProducer(agreement, authData);
+    } catch (error) {
+      const producerDelegation =
+        await readModelService.getDelegationByDelegateId(
+          authData.organizationId,
+          delegationKind.delegatedProducer
+        );
+      assertRequesterIsDelegate(producerDelegation?.delegateId, authData);
+    }
+  }
+};
+
+export const assertRequesterIsProducerOrDelegateProducer = (
+  agreement: Agreement,
+  delegateProducerId: TenantId | undefined,
+  authData: AuthData
+): void => {
+  if (delegateProducerId) {
+    assertRequesterIsDelegate(delegateProducerId, authData);
+  } else {
+    assertRequesterIsProducer(agreement, authData);
+  }
+};
+
+export const assertRequesterIsDelegate = (
+  delegateId: TenantId | undefined,
+  authData: AuthData
+): void => {
+  if (authData.organizationId !== delegateId) {
+    throw operationNotAllowed(authData.organizationId);
+  }
+};
+
+export const assertRequesterCanActivate = (
+  agreement: Agreement,
+  delegateProducerId: TenantId | undefined,
+  authData: AuthData
+): void => {
+  try {
+    assertRequesterIsConsumer(agreement, authData);
+  } catch (e) {
+    if (delegateProducerId) {
+      assertRequesterIsDelegate(delegateProducerId, authData);
+    } else {
+      assertRequesterIsProducer(agreement, authData);
+    }
+  }
+};
+
+export const assertRequesterCanSuspend = assertRequesterCanActivate;
+
 export const assertSubmittableState = (
   state: AgreementState,
   agreementId: AgreementId
@@ -207,8 +271,15 @@ const validateLatestDescriptor = (
   descriptorId: DescriptorId,
   allowedStates: DescriptorState[]
 ): Descriptor => {
+  const activeDescriptorStates: DescriptorState[] = [
+    descriptorState.archived,
+    descriptorState.deprecated,
+    descriptorState.published,
+    descriptorState.suspended,
+  ];
+
   const recentActiveDescriptors = eservice.descriptors
-    .filter((d) => d.state !== descriptorState.draft)
+    .filter((d) => activeDescriptorStates.includes(d.state))
     .sort((a, b) => Number(b.version) - Number(a.version));
 
   if (
@@ -407,3 +478,14 @@ export const matchingVerifiedAttributes = (
     verifiedAttributes
   ).map((id) => ({ id } as VerifiedAgreementAttribute));
 };
+
+export function assertStampExists<S extends keyof AgreementStamps>(
+  stamps: AgreementStamps,
+  stamp: S
+): asserts stamps is AgreementStamps & {
+  [key in S]: AgreementStamp;
+} {
+  if (!stamps[stamp]) {
+    throw agreementStampNotFound(stamp);
+  }
+}
