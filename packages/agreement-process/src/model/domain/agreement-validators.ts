@@ -176,10 +176,7 @@ export const assertRequesterIsConsumerOrProducerOrDelegateProducer = async (
           authData.organizationId,
           delegationKind.delegatedProducer
         );
-      assertRequesterIsDelegate(
-        producerDelegation?.delegateId,
-        authData.organizationId
-      );
+      assertRequesterIsDelegate(producerDelegation?.delegateId, authData);
     }
   }
 };
@@ -190,7 +187,7 @@ export const assertRequesterIsProducerOrDelegateProducer = (
   authData: AuthData
 ): void => {
   if (delegateProducerId) {
-    assertRequesterIsDelegate(delegateProducerId, authData.organizationId);
+    assertRequesterIsDelegate(delegateProducerId, authData);
   } else {
     assertRequesterIsProducer(agreement, authData);
   }
@@ -198,10 +195,10 @@ export const assertRequesterIsProducerOrDelegateProducer = (
 
 const assertRequesterIsDelegate = (
   delegateId: TenantId | undefined,
-  organizationId: TenantId
+  authData: AuthData
 ): void => {
-  if (organizationId !== delegateId) {
-    throw operationNotAllowed(organizationId);
+  if (authData.organizationId !== delegateId) {
+    throw operationNotAllowed(authData.organizationId);
   }
 };
 
@@ -214,7 +211,7 @@ export const assertRequesterCanActivate = (
     assertRequesterIsConsumer(agreement, authData);
   } catch (e) {
     if (delegateProducerId) {
-      assertRequesterIsDelegate(delegateProducerId, authData.organizationId);
+      assertRequesterIsDelegate(delegateProducerId, authData);
     } else {
       assertRequesterIsProducer(agreement, authData);
     }
@@ -259,17 +256,14 @@ export const assertActivableState = (agreement: Agreement): void => {
 export const assertRequesterIsDelegateConsumer = (
   activeConsumerDelegation: Delegation,
   eserviceId: EServiceId,
-  organizationId: TenantId
+  authData: AuthData
 ): void => {
-  assertRequesterIsDelegate(
-    activeConsumerDelegation.delegateId,
-    organizationId
-  );
+  assertRequesterIsDelegate(activeConsumerDelegation.delegateId, authData);
   if (
     activeConsumerDelegation.eserviceId !== eserviceId ||
     activeConsumerDelegation.kind !== delegationKind.delegatedConsumer
   ) {
-    throw operationNotAllowed(organizationId);
+    throw operationNotAllowed(authData.organizationId);
   }
 };
 
