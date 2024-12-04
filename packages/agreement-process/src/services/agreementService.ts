@@ -788,13 +788,13 @@ export function agreementServiceBuilder(
           readModelService
         );
 
+      const delegateProducerId = activeProducerDelegation?.delegateId;
+
       assertRequesterCanActAsConsumerOrProducer(
         agreement.data,
         authData,
         activeProducerDelegation
       );
-
-      const delegateProducerId = activeProducerDelegation?.delegateId;
 
       assertExpectedState(
         agreementId,
@@ -983,13 +983,13 @@ export function agreementServiceBuilder(
           readModelService
         );
 
+      const delegateProducerId = activeProducerDelegation?.delegateId;
+
       assertRequesterCanActAsConsumerOrProducer(
         agreement.data,
         authData,
         activeProducerDelegation
       );
-
-      const delegateProducerId = activeProducerDelegation?.delegateId;
 
       verifyConsumerDoesNotActivatePending(agreement.data, authData);
       assertActivableState(agreement.data);
