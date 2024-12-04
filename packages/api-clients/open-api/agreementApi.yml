@@ -1120,6 +1120,9 @@ components:
         extensionDate:
           type: string
           format: date-time
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
         - verificationDate
@@ -1142,6 +1145,9 @@ components:
         revocationDate:
           type: string
           format: date-time
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
         - verificationDate

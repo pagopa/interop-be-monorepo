@@ -3885,6 +3885,217 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/approve:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: approve a delegated new e-service version
+      operationId: approveDelegatedEServiceDescriptor
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: New delegated e-service version approved
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService or Descriptor not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/reject:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: reject a delegated new e-service version
+      operationId: rejectDelegatedEServiceDescriptor
+      requestBody:
+        description: Payload containing the reason of the rejection
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedEServiceDescriptorSeed"
+        required: true
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: New delegated e-service version rejected
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService or Descriptor not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /export/eservices/{eserviceId}/descriptors/{descriptorId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -4194,6 +4405,11 @@ paths:
               format: uuid
             default: []
           explode: false
+        - in: query
+          name: delegated
+          description: if true only delegated e-services will be returned, if false only non-delegated e-services will be returned, if not present all e-services will be returned
+          schema:
+            type: boolean
         - in: query
           name: offset
           required: true
@@ -7417,6 +7633,19 @@ paths:
         - tenants
       operationId: revokeVerifiedAttribute
       description: Revoke a Verified attribute to a Tenant by the requester Tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - agreementId
+              properties:
+                agreementId:
+                  type: string
+                  format: uuid
       responses:
         "204":
           description: Updated Tenant
@@ -8252,6 +8481,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: features
+        description: comma separated feature types to filter the teanants with
+        schema:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantFeatureType"
+          default: []
+        explode: false
+      - in: query
         name: limit
         required: true
         schema:
@@ -8364,7 +8602,7 @@ paths:
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available        
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "409":
           description: Feature already assigned to tenant
           content:
@@ -8383,7 +8621,7 @@ paths:
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available  
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     delete:
       tags:
         - tenants
@@ -8423,7 +8661,7 @@ paths:
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available        
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "409":
           description: Feature not assigned to tenant
           content:
@@ -13292,6 +13530,14 @@ components:
           type: string
       required:
         - description
+    RejectDelegatedEServiceDescriptorSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        rejectionReason:
+          type: string
+      required:
+        - rejectionReason
     CatalogEServiceDescriptor:
       type: object
       additionalProperties: false
@@ -13459,11 +13705,11 @@ components:
           type: boolean
         hasCertifiedAttributes:
           type: boolean
-          description: > 
+          description: >
             True in case:
               - the requester has the certified attributes required to consume the eservice, or
-              - the requester is the delegated consumer for the eservice and 
-                the delegator has the certified attributes required to consume the eservice 
+              - the requester is the delegated consumer for the eservice and
+                the delegator has the certified attributes required to consume the eservice
         isSubscribed:
           type: boolean
         activeDescriptor:
@@ -13598,6 +13844,10 @@ components:
           $ref: "#/components/schemas/ProducerDescriptorEService"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributes"
+        rejectionReasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/DescriptorRejectionReason"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -13665,6 +13915,18 @@ components:
       properties:
         prettyName:
           type: string
+    DescriptorRejectionReason:
+      type: object
+      additionalProperties: false
+      properties:
+        rejectionReason:
+          type: string
+        rejectedAt:
+          type: string
+          format: date-time
+      required:
+        - rejectionReason
+        - rejectedAt
     AgreementApprovalPolicy:
       type: string
       description: |
@@ -14167,6 +14429,28 @@ components:
           format: uri
       required:
         - url
+    CompactProducerDescriptor:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - state
+        - version
+        - audience
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: "#/components/schemas/EServiceDescriptorState"
+        version:
+          type: string
+        audience:
+          type: array
+          items:
+            type: string
+        requireCorrections:
+          type: boolean
     ProducerEService:
       type: object
       additionalProperties: false
@@ -14183,9 +14467,9 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         activeDescriptor:
-          $ref: "#/components/schemas/CompactDescriptor"
+          $ref: "#/components/schemas/CompactProducerDescriptor"
         draftDescriptor:
-          $ref: "#/components/schemas/CompactDescriptor"
+          $ref: "#/components/schemas/CompactProducerDescriptor"
     ProducerEServices:
       type: object
       additionalProperties: false
@@ -14755,6 +15039,7 @@ components:
         - DEPRECATED
         - SUSPENDED
         - ARCHIVED
+        - WAITING_FOR_APPROVAL
     EServiceTechnology:
       type: string
       description: EService Descriptor State
@@ -15106,6 +15391,11 @@ components:
       required:
         - results
         - pagination
+    TenantFeatureType:
+      type: string
+      enum:
+        - PERSISTENT_CERTIFIER
+        - DELEGATED_PRODUCER
     TenantFeature:
       oneOf:
         - type: object
@@ -15274,11 +15564,15 @@ components:
         id:
           type: string
           format: uuid
+        agreementId:
+          type: string
+          format: uuid
         expirationDate:
           type: string
           format: date-time
       required:
         - id
+        - agreementId
 
     CertifiedTenantAttribute:
       type: object
@@ -15347,6 +15641,9 @@ components:
         extensionDate:
           type: string
           format: date-time
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
         - verificationDate
@@ -15369,6 +15666,10 @@ components:
         revocationDate:
           type: string
           format: date-time
+        delegationId:
+          type: string
+          format: uuid
+
       required:
         - id
         - verificationDate
@@ -15550,7 +15851,7 @@ components:
           format: uuid
         producerName:
           type: string
-        descriptors: 
+        descriptors:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
@@ -15600,8 +15901,8 @@ components:
         id:
           type: string
           format: uuid
-        eserviceName:
-          type: string
+        eservice:
+          $ref: "#/components/schemas/CompactEServiceLight"
         delegate:
           $ref: "#/components/schemas/DelegationTenant"
         delegator:

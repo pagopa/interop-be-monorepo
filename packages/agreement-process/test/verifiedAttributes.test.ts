@@ -247,7 +247,6 @@ describe("verified attributes utilities", () => {
         verifiedWithFutureExtension,
         verifiedWithFutureExpirationAndExtension,
         verifiedWithFutureExpirationAndExtensionSwapped,
-        verifiedWithFutureExpirationAndPastExtension,
         verifiedWithPastExpirationAndFutureExtension,
       ]);
     });

@@ -11,6 +11,7 @@ import {
   ProducerDelegationSubmittedV2,
   delegationKind,
   ConsumerDelegationSubmittedV2,
+  ConsumerDelegationApprovedV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/delegationConsumerServiceV2.js";
@@ -134,6 +135,30 @@ describe("Events V2", async () => {
     const message: DelegationEventEnvelopeV2 = {
       ...mockMessage,
       type: "ConsumerDelegationSubmitted",
+      data: payload,
+    };
+
+    await handleMessageV2(message, delegations);
+
+    const retrievedDelegation = await delegations.findOne({
+      "data.id": mockDelegation.id,
+    });
+
+    expect(retrievedDelegation?.data).toEqual(mockDelegation);
+
+    expect(retrievedDelegation?.metadata).toEqual({
+      version: 1,
+    });
+  });
+
+  it("ConsumerDelegationApproved", async () => {
+    const payload: ConsumerDelegationApprovedV2 = {
+      delegation: toDelegationV2(mockDelegation),
+    };
+
+    const message: DelegationEventEnvelopeV2 = {
+      ...mockMessage,
+      type: "ConsumerDelegationApproved",
       data: payload,
     };
 

@@ -90,7 +90,39 @@ describe("reject producer delegation", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrow(delegationNotFound(nonExistentDelegationId));
+    ).rejects.toThrow(
+      delegationNotFound(
+        nonExistentDelegationId,
+        delegationKind.delegatedProducer
+      )
+    );
+  });
+
+  it("should throw delegationNotFound when delegation kind is not DelegatedProducer", async () => {
+    const delegate = getMockTenant();
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      state: "WaitingForApproval",
+      delegateId: delegate.id,
+    });
+    await addOneDelegation(delegation);
+
+    const rejectionReason = "I don't like computers, please send me a pigeon";
+
+    await expect(
+      delegationProducerService.rejectProducerDelegation(
+        delegation.id,
+        rejectionReason,
+        {
+          authData: getRandomAuthData(delegate.id),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrow(
+      delegationNotFound(delegation.id, delegationKind.delegatedProducer)
+    );
   });
 
   it("should throw operationRestrictedToDelegate when rejecter is not the delegate", async () => {

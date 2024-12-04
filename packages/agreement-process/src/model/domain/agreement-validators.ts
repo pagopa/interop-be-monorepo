@@ -16,6 +16,7 @@ import {
   TenantId,
   AgreementStamp,
   AgreementStamps,
+  delegationKind,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import {
@@ -158,6 +159,69 @@ export const assertRequesterIsConsumerOrProducer = (
   }
 };
 
+export const assertRequesterIsConsumerOrProducerOrDelegateProducer = async (
+  agreement: Agreement,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<void> => {
+  try {
+    assertRequesterIsConsumer(agreement, authData);
+  } catch (error) {
+    try {
+      assertRequesterIsProducer(agreement, authData);
+    } catch (error) {
+      const producerDelegation =
+        await readModelService.getDelegationByDelegateId(
+          authData.organizationId,
+          delegationKind.delegatedProducer
+        );
+      assertRequesterIsDelegate(
+        producerDelegation?.delegateId,
+        authData.organizationId
+      );
+    }
+  }
+};
+
+export const assertRequesterIsProducerOrDelegateProducer = (
+  agreement: Agreement,
+  delegateProducerId: TenantId | undefined,
+  authData: AuthData
+): void => {
+  if (delegateProducerId) {
+    assertRequesterIsDelegate(delegateProducerId, authData.organizationId);
+  } else {
+    assertRequesterIsProducer(agreement, authData);
+  }
+};
+
+export const assertRequesterIsDelegate = (
+  delegateId: TenantId | undefined,
+  organizationId: TenantId
+): void => {
+  if (organizationId !== delegateId) {
+    throw operationNotAllowed(organizationId);
+  }
+};
+
+export const assertRequesterCanActivate = (
+  agreement: Agreement,
+  delegateProducerId: TenantId | undefined,
+  authData: AuthData
+): void => {
+  try {
+    assertRequesterIsConsumer(agreement, authData);
+  } catch (e) {
+    if (delegateProducerId) {
+      assertRequesterIsDelegate(delegateProducerId, authData.organizationId);
+    } else {
+      assertRequesterIsProducer(agreement, authData);
+    }
+  }
+};
+
+export const assertRequesterCanSuspend = assertRequesterCanActivate;
+
 export const assertSubmittableState = (
   state: AgreementState,
   agreementId: AgreementId
@@ -191,15 +255,6 @@ export const assertActivableState = (agreement: Agreement): void => {
   }
 };
 
-export const assertRequesterIsDelegate = (
-  delegateId: TenantId | undefined,
-  organizationId: TenantId
-): void => {
-  if (organizationId !== delegateId) {
-    throw operationNotAllowed(organizationId);
-  }
-};
-
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
@@ -218,8 +273,15 @@ const validateLatestDescriptor = (
   descriptorId: DescriptorId,
   allowedStates: DescriptorState[]
 ): Descriptor => {
+  const activeDescriptorStates: DescriptorState[] = [
+    descriptorState.archived,
+    descriptorState.deprecated,
+    descriptorState.published,
+    descriptorState.suspended,
+  ];
+
   const recentActiveDescriptors = eservice.descriptors
-    .filter((d) => d.state !== descriptorState.draft)
+    .filter((d) => activeDescriptorStates.includes(d.state))
     .sort((a, b) => Number(b.version) - Number(a.version));
 
   if (

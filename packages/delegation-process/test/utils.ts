@@ -69,7 +69,9 @@ export const delegationProducerService = delegationProducerServiceBuilder(
 
 export const delegationConsumerService = delegationConsumerServiceBuilder(
   postgresDB,
-  readModelService
+  readModelService,
+  pdfGenerator,
+  fileManager
 );
 
 export const delegationService = delegationServiceBuilder(readModelService);

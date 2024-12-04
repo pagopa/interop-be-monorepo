@@ -21,13 +21,25 @@ import {
 import { ReadModelService } from "./readModelService.js";
 import { assertRequesterIsDelegateOrDelegator } from "./validators.js";
 
-export const retrieveDelegationById = async (
+const retrieveDelegationById = async (
   readModelService: ReadModelService,
   delegationId: DelegationId
 ): Promise<WithMetadata<Delegation>> => {
-  const delegation = await readModelService.getDelegationById(delegationId);
+  const delegation = await readModelService.getDelegation(delegationId);
   if (!delegation?.data) {
     throw delegationNotFound(delegationId);
+  }
+  return delegation;
+};
+
+export const retrieveDelegation = async (
+  readModelService: ReadModelService,
+  delegationId: DelegationId,
+  kind: DelegationKind
+): Promise<WithMetadata<Delegation>> => {
+  const delegation = await readModelService.getDelegation(delegationId, kind);
+  if (!delegation?.data) {
+    throw delegationNotFound(delegationId, kind);
   }
   return delegation;
 };

@@ -39,7 +39,7 @@ import {
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
 import {
-  retrieveDelegationById,
+  retrieveDelegation,
   retrieveEserviceById,
   retrieveTenantById,
 } from "./delegationService.js";
@@ -118,9 +118,10 @@ export function delegationProducerServiceBuilder(
         `Revoking delegation ${delegationId} by producer ${delegatorId}`
       );
 
-      const { data: delegation, metadata } = await retrieveDelegationById(
+      const { data: delegation, metadata } = await retrieveDelegation(
         readModelService,
-        delegationId
+        delegationId,
+        delegationKind.delegatedProducer
       );
 
       assertIsDelegator(delegation, delegatorId);
@@ -183,9 +184,10 @@ export function delegationProducerServiceBuilder(
         `Approving delegation ${delegationId} by delegate ${delegateId}`
       );
 
-      const { data: delegation, metadata } = await retrieveDelegationById(
+      const { data: delegation, metadata } = await retrieveDelegation(
         readModelService,
-        delegationId
+        delegationId,
+        delegationKind.delegatedProducer
       );
 
       assertIsDelegate(delegation, delegateId);
@@ -250,9 +252,10 @@ export function delegationProducerServiceBuilder(
         `Rejecting delegation ${delegationId} by delegate ${delegateId}`
       );
 
-      const { data: delegation, metadata } = await retrieveDelegationById(
+      const { data: delegation, metadata } = await retrieveDelegation(
         readModelService,
-        delegationId
+        delegationId,
+        delegationKind.delegatedProducer
       );
 
       assertIsDelegate(delegation, delegateId);

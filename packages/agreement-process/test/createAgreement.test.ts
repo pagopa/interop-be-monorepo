@@ -491,7 +491,9 @@ describe("create agreement", () => {
     const authData = getRandomAuthData();
     const eserviceId = generateId<EServiceId>();
     const notDraftDescriptorStates = Object.values(descriptorState).filter(
-      (state) => state !== descriptorState.draft
+      (state) =>
+        state !== descriptorState.draft &&
+        state !== descriptorState.waitingForApproval
     );
 
     const descriptor0: Descriptor = {
@@ -542,7 +544,8 @@ describe("create agreement", () => {
         Object.values(descriptorState).filter(
           (state) =>
             state !== descriptorState.published &&
-            state !== descriptorState.draft
+            state !== descriptorState.draft &&
+            state !== descriptorState.waitingForApproval
         )
       ),
     };
