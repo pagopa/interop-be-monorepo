@@ -40,6 +40,7 @@ import puppeteer, { Browser } from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/config/config.js";
+import { contractBuilder } from "../src/services/agreementContractBuilder.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
@@ -68,6 +69,14 @@ export const { agreements, attributes, eservices, tenants, delegations } =
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
 export const pdfGenerator = await initPDFGenerator();
+
+export const agreementContractBuilder = contractBuilder(
+  readModelService,
+  pdfGenerator,
+  fileManager,
+  config,
+  genericLogger
+);
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,

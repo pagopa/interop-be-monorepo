@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockDelegation,
+} from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -8,13 +11,15 @@ import {
   EServiceDescriptorActivatedV2,
   toEServiceV2,
   operationForbidden,
+  delegationState,
   generateId,
+  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -24,6 +29,7 @@ import {
   getMockEService,
   getMockDescriptor,
   getMockDocument,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("activate descriptor", () => {
@@ -48,7 +54,7 @@ describe("activate descriptor", () => {
       logger: genericLogger,
     });
 
-    const updatedDescriptor = {
+    const expectedDescriptor = {
       ...descriptor,
       state: descriptorState.published,
     };
@@ -65,7 +71,61 @@ describe("activate descriptor", () => {
 
     const expectedEservice = toEServiceV2({
       ...eservice,
-      descriptors: [updatedDescriptor],
+      descriptors: [expectedDescriptor],
+    });
+    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+  });
+
+  it("should write on event-store for the activation of a descriptor (delegate)", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.suspended,
+    };
+
+    const delegate = getMockAuthData();
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      delegateId: delegate.organizationId,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    await catalogService.activateDescriptor(eservice.id, descriptor.id, {
+      authData: delegate,
+      correlationId: generateId(),
+      serviceName: "",
+      logger: genericLogger,
+    });
+
+    const expectedDescriptor = {
+      ...descriptor,
+      state: descriptorState.published,
+    };
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent.stream_id).toBe(eservice.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe("EServiceDescriptorActivated");
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedEservice = toEServiceV2({
+      ...eservice,
+      descriptors: [expectedDescriptor],
     });
     expect(writtenPayload.eservice).toEqual(expectedEservice);
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
@@ -122,94 +182,61 @@ describe("activate descriptor", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw notValidDescriptor if the descriptor is in draft state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      state: descriptorState.draft,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-    expect(
-      catalogService.activateDescriptor(mockEService.id, mockDescriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      notValidDescriptor(descriptor.id, descriptorState.draft)
-    );
-  });
-
-  it("should throw notValidDescriptor if the descriptor is in published state", async () => {
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
-      state: descriptorState.published,
+      state: descriptorState.suspended,
     };
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
     };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
     await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
     expect(
-      catalogService.activateDescriptor(mockEService.id, mockDescriptor.id, {
+      catalogService.activateDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(
-      notValidDescriptor(descriptor.id, descriptorState.published)
-    );
+    ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw notValidDescriptor if the descriptor is in deprecated state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.deprecated,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-    expect(
-      catalogService.activateDescriptor(mockEService.id, mockDescriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      notValidDescriptor(descriptor.id, descriptorState.deprecated)
-    );
-  });
-
-  it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.archived,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-    expect(
-      catalogService.activateDescriptor(mockEService.id, mockDescriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      notValidDescriptor(descriptor.id, descriptorState.archived)
-    );
-  });
+  it.each([
+    descriptorState.draft,
+    descriptorState.published,
+    descriptorState.deprecated,
+    descriptorState.archived,
+    descriptorState.waitingForApproval,
+  ])(
+    "should throw notValidDescriptorState if the descriptor is in state %s",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        state,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+      expect(
+        catalogService.activateDescriptor(mockEService.id, mockDescriptor.id, {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
+    }
+  );
 });

@@ -18,6 +18,7 @@ export type GetDelegationsFilters = {
 };
 
 export type DelegationActivationPDFPayload = {
+  delegationKindText: string;
   todayDate: string;
   todayTime: string;
   delegationId: DelegationId;

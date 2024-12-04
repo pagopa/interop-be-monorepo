@@ -37,9 +37,8 @@ export const errorCodes = {
   invalidAttributeStructure: "0023",
   consumerWithNotValidEmail: "0024",
   agreementDocumentAlreadyExists: "0025",
-  userNotFound: "0026",
-  delegationNotFound: "0027",
-  missingDelegationId: "0028",
+  delegationNotFound: "0026",
+  missingDelegationId: "0027",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -297,7 +296,7 @@ export function missingDelegationId(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Missing delegation id for organization ${organizationId} and EService ${eserviceId}`,
+    detail: `An Active delegation exists for EService ${eserviceId} where requester organization ${organizationId} is delegator or delegate, but delegation id is missing`,
     code: "missingDelegationId",
     title: "Missing delegation id",
   });
