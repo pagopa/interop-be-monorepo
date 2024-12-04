@@ -12,7 +12,7 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
-    "build": "tsc",
+    "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources'",
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
