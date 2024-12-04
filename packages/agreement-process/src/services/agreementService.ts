@@ -1221,7 +1221,7 @@ export function agreementServiceBuilder(
 
       await assertRequesterisDelegateConsumerOrConsumer(
         {
-          organizationId: authData.organizationId,
+          requesterId: authData.organizationId,
           tenantIdToVerify: tenantId,
           eserviceId,
         },
