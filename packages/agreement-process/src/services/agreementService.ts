@@ -55,7 +55,6 @@ import {
   eServiceNotFound,
   missingDelegationId,
   noNewerDescriptor,
-  operationNotAllowed,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -95,6 +94,7 @@ import {
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducerOrDelegateProducer,
   assertRequesterIsDelegateConsumer,
+  assertRequesterisDelegateConsumerOrConsumer,
   assertRequesterIsProducerOrDelegateProducer,
   assertSubmittableState,
   failOnActivationFailure,
@@ -200,47 +200,6 @@ export const retrieveDescriptor = (
   }
 
   return descriptor;
-};
-
-const isConsumerDelegationByEserviceAndIdsValid = async (
-  {
-    eserviceId,
-    delegatorId,
-    delegateId,
-  }: {
-    eserviceId: EServiceId;
-    delegatorId: TenantId;
-    delegateId: TenantId;
-  },
-  readModelService: ReadModelService
-): Promise<boolean> => {
-  const delegation =
-    await readModelService.getActiveConsumerDelegationByEserviceAndIds({
-      eserviceId,
-      delegatorId,
-      delegateId,
-    });
-
-  return delegation !== undefined;
-};
-
-const isConsumerDelegationByEserviceAndDelegatorIdsValid = async (
-  {
-    eserviceId,
-    delegatorId,
-  }: {
-    eserviceId: EServiceId;
-    delegatorId: TenantId;
-  },
-  readModelService: ReadModelService
-): Promise<boolean> => {
-  const delegation =
-    await readModelService.getActiveConsumerDelegationByEserviceAndDelegatorIds(
-      eserviceId,
-      delegatorId
-    );
-
-  return delegation !== undefined;
 };
 
 const retrieveDelegation = (
@@ -1260,33 +1219,14 @@ export function agreementServiceBuilder(
         `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
       );
 
-      const isSameOrganization = authData.organizationId === tenantId;
-
-      const hasValidDelegation = isSameOrganization
-        ? await isConsumerDelegationByEserviceAndDelegatorIdsValid(
-            {
-              eserviceId,
-              delegatorId: authData.organizationId,
-            },
-            readModelService
-          )
-        : await isConsumerDelegationByEserviceAndIdsValid(
-            {
-              eserviceId,
-              delegateId: authData.organizationId,
-              delegatorId: tenantId,
-            },
-            readModelService
-          );
-
-      // The route is callable only by himself if there isn't a valid delegation or by the delegate
-      const isAuthorized =
-        (isSameOrganization && !hasValidDelegation) ||
-        (!isSameOrganization && hasValidDelegation);
-
-      if (!isAuthorized) {
-        throw operationNotAllowed(authData.organizationId);
-      }
+      await assertRequesterisDelegateConsumerOrConsumer(
+        {
+          organizationId: authData.organizationId,
+          tenantIdToVerify: tenantId,
+          eserviceId,
+        },
+        readModelService
+      );
       const consumer = await retrieveTenant(tenantId, readModelService);
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);

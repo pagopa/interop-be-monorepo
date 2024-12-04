@@ -732,7 +732,7 @@ export function readModelServiceBuilder(
     }: {
       eserviceId: EServiceId;
       delegatorId: TenantId;
-      delegateId: TenantId;
+      delegateId?: TenantId;
     }): Promise<Delegation | undefined> {
       return getDelegation(delegations, {
         "data.eserviceId": eserviceId,

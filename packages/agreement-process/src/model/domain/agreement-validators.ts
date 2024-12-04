@@ -273,6 +273,38 @@ export const assertRequesterIsDelegateConsumer = (
   }
 };
 
+export const assertRequesterisDelegateConsumerOrConsumer = async (
+  {
+    organizationId,
+    tenantIdToVerify,
+    eserviceId,
+  }: {
+    organizationId: TenantId;
+    tenantIdToVerify: TenantId;
+    eserviceId: EServiceId;
+  },
+  readModelService: ReadModelService
+): Promise<Promise<void>> => {
+  const isSameOrganization = organizationId === tenantIdToVerify;
+
+  const validDelegation =
+    await readModelService.getActiveConsumerDelegationByEserviceAndIds({
+      eserviceId,
+      // if same organization, there's no delegate, otherwise the requester is the delegate
+      delegateId: isSameOrganization ? undefined : organizationId,
+      // if same organization, we have to check that it is not a delegator, otherwise tenantIdToVerify is the delegator
+      delegatorId: isSameOrganization ? organizationId : tenantIdToVerify,
+    });
+
+  const isAuthorized =
+    (isSameOrganization && !validDelegation) ||
+    (!isSameOrganization && validDelegation);
+
+  if (!isAuthorized) {
+    throw operationNotAllowed(organizationId);
+  }
+};
+
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
