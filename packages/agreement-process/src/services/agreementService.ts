@@ -83,11 +83,12 @@ import {
   agreementUpdatableStates,
   agreementUpgradableStates,
   assertActivableState,
+  assertCanActAsProducer,
+  assertCanActAsProducerOrConsumer,
+  assertCanRetrieveConsumerDocuments,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
   assertRequesterIsConsumer,
-  assertRequesterIsConsumerOrProducer,
-  assertRequesterIsProducer,
   assertSubmittableState,
   failOnActivationFailure,
   matchingCertifiedAttributes,
@@ -766,7 +767,7 @@ export function agreementServiceBuilder(
       );
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      await assertRequesterIsConsumerOrProducer(
+      await assertCanRetrieveConsumerDocuments(
         agreement.data,
         authData,
         readModelService
@@ -787,10 +788,9 @@ export function agreementServiceBuilder(
           readModelService
         );
 
-      await assertRequesterIsConsumerOrProducer(
+      await assertCanActAsProducerOrConsumer(
         agreement.data,
         authData,
-        readModelService,
         activeProducerDelegation
       );
 
@@ -906,10 +906,9 @@ export function agreementServiceBuilder(
           readModelService
         );
 
-      await assertRequesterIsProducer(
+      await assertCanActAsProducer(
         agreementToBeRejected.data,
         authData,
-        readModelService,
         activeProducerDelegation
       );
 
@@ -984,10 +983,9 @@ export function agreementServiceBuilder(
           readModelService
         );
 
-      await assertRequesterIsConsumerOrProducer(
+      await assertCanActAsProducerOrConsumer(
         agreement.data,
         authData,
-        readModelService,
         activeProducerDelegation
       );
 
