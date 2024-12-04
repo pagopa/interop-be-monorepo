@@ -54,7 +54,7 @@ export async function assertRequesterCanActAsProducer(
   try {
     assertRequesterIsProducer(requesterId, eservice);
   } catch {
-    const delegations = await getAllDelegations(
+    const producerDelegations = await getAllDelegations(
       delegationProcessClient,
       headers,
       {
@@ -64,7 +64,7 @@ export async function assertRequesterCanActAsProducer(
         delegationStates: [toDelegationState(delegationState.active)],
       }
     );
-    if (delegations.length === 0) {
+    if (producerDelegations.length === 0) {
       throw invalidEServiceRequester(eservice.id, requesterId);
     }
   }
