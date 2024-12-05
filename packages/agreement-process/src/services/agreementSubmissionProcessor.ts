@@ -6,6 +6,7 @@ import {
   AgreementStamp,
   AgreementStamps,
   AgreementState,
+  Delegation,
   Descriptor,
   EService,
   Tenant,
@@ -23,10 +24,7 @@ import {
   agreementNotInExpectedState,
   consumerWithNotValidEmail,
 } from "../model/domain/errors.js";
-import {
-  ActiveDelegations,
-  UpdateAgreementSeed,
-} from "../model/domain/models.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { createStamp } from "./agreementStampUtils.js";
 
 export type AgremeentSubmissionResults = {
@@ -57,12 +55,15 @@ export const createSubmissionUpdateAgreementSeed = (
   newState: AgreementState,
   authData: AuthData,
   suspendedByPlatform: boolean | undefined,
-  activeDelegations: ActiveDelegations
+  activeConsumerDelegation: Delegation | undefined
 ): UpdateAgreementSeed => {
   const stamps = calculateStamps(
     agreement,
     newState,
-    createStamp(authData, activeDelegations)
+    createStamp(authData, {
+      consumerDelegation: activeConsumerDelegation,
+      producerDelegation: undefined,
+    })
   );
   const isActivation = newState === agreementState.active;
 

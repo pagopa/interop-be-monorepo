@@ -42,6 +42,7 @@ import {
   operationNotAllowed,
 } from "./errors.js";
 import {
+  ActiveDelegations,
   CertifiedAgreementAttribute,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
@@ -153,20 +154,19 @@ const assertRequesterIsProducer = (
 export const assertRequesterCanActAsConsumerOrProducer = (
   agreement: Agreement,
   authData: AuthData,
-  activeProducerDelegation: Delegation | undefined,
-  activeConsumerDelegation: Delegation | undefined
+  activeDelegations: ActiveDelegations
 ): void => {
   try {
     assertRequesterCanActAsConsumer(
       agreement,
       authData,
-      activeConsumerDelegation
+      activeDelegations.consumerDelegation
     );
   } catch (error) {
     assertRequesterCanActAsProducer(
       agreement,
       authData,
-      activeProducerDelegation
+      activeDelegations.producerDelegation
     );
   }
 };
@@ -484,6 +484,7 @@ export const verifyConsumerDoesNotActivatePending = (
   agreement: Agreement,
   authData: AuthData
 ): void => {
+  // TODO
   const activationPendingNotAllowed =
     agreement.state === agreementState.pending &&
     agreement.consumerId === authData.organizationId &&

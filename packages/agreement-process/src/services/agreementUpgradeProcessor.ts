@@ -9,6 +9,7 @@ import {
   AgreementEvent,
   AgreementId,
   CorrelationId,
+  Delegation,
   Descriptor,
   EService,
   Tenant,
@@ -27,7 +28,6 @@ import {
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementUpgraded,
 } from "../model/domain/toEvent.js";
-import { ActiveDelegations } from "../model/domain/models.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { ReadModelService } from "./readModelService.js";
@@ -43,7 +43,7 @@ export async function createUpgradeOrNewDraft({
   canBeUpgraded,
   copyFile,
   authData,
-  activeDelegations,
+  activeConsumerDelegation,
   contractBuilder,
   correlationId,
   logger,
@@ -57,7 +57,7 @@ export async function createUpgradeOrNewDraft({
   canBeUpgraded: boolean;
   copyFile: FileManager["copy"];
   authData: AuthData;
-  activeDelegations: ActiveDelegations;
+  activeConsumerDelegation: Delegation | undefined;
   contractBuilder: ContractBuilder;
   correlationId: CorrelationId;
   logger: Logger;
@@ -68,7 +68,10 @@ export async function createUpgradeOrNewDraft({
     // Creates a new Agreement linked to the new descriptor version,
     // with the same state of the old agreement, and archives the old agreement.
 
-    const stamp = createStamp(authData, activeDelegations);
+    const stamp = createStamp(authData, {
+      consumerDelegation: activeConsumerDelegation,
+      producerDelegation: undefined,
+    });
 
     const archived: Agreement = {
       ...agreement.data,
@@ -118,7 +121,10 @@ export async function createUpgradeOrNewDraft({
       eservice,
       consumer,
       producer,
-      activeProducerDelegation
+      {
+        consumerDelegation: activeConsumerDelegation,
+        producerDelegation: undefined,
+      }
     );
 
     const upgradedWithContract: Agreement = {

@@ -23,11 +23,11 @@ export const createStamp = (
   const delegationId = match(requesterDelegateKind)
     .with(
       delegationKind.delegatedProducer,
-      () => activeDelegations.producer?.id
+      () => activeDelegations.producerDelegation?.id
     )
     .with(
       delegationKind.delegatedConsumer,
-      () => activeDelegations.consumer?.id
+      () => activeDelegations.consumerDelegation?.id
     )
     .with(undefined, () => undefined)
     .exhaustive();

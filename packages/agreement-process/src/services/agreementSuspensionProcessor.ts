@@ -52,21 +52,20 @@ export function createSuspensionUpdatedAgreement({
   const nextStateByAttributes = nextStateByAttributesFSM(
     agreement,
     descriptor,
-    consumer,
-    activeDelegations.producer?.delegateId
+    consumer
   );
 
   const suspendedByConsumer = suspendedByConsumerFlag(
     agreement,
     authData.organizationId,
     targetDestinationState,
-    activeDelegations.consumer?.delegateId
+    activeDelegations.consumerDelegation?.delegateId
   );
   const suspendedByProducer = suspendedByProducerFlag(
     agreement,
     authData.organizationId,
     targetDestinationState,
-    activeDelegations.producer?.delegateId
+    activeDelegations.producerDelegation?.delegateId
   );
 
   const newState = agreementStateByFlags(
@@ -83,7 +82,7 @@ export function createSuspensionUpdatedAgreement({
     authData.organizationId,
     agreementState.suspended,
     stamp,
-    activeDelegations.producer?.delegateId
+    activeDelegations.producerDelegation?.delegateId
   );
 
   const suspensionByConsumerStamp = suspendedByConsumerStamp(

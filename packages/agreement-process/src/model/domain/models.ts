@@ -55,8 +55,8 @@ export const CompactEService = z.object({
 export type CompactEService = z.infer<typeof CompactEService>;
 
 export type ActiveDelegations = {
-  producer: Delegation | undefined;
-  consumer: Delegation | undefined;
+  producerDelegation: Delegation | undefined;
+  consumerDelegation: Delegation | undefined;
 };
 
 export type AgreementContractPDFPayload = {

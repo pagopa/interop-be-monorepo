@@ -276,16 +276,16 @@ export const contractBuilder = (
       activeDelagations: ActiveDelegations
     ): Promise<AgreementDocument> => {
       const producerDelegationData =
-        activeDelagations.producer &&
+        activeDelagations.producerDelegation &&
         (await buildDelegationData(
-          activeDelagations.producer,
+          activeDelagations.producerDelegation,
           readModelService
         ));
 
       const consumerDelegationData =
-        activeDelagations.consumer &&
+        activeDelagations.consumerDelegation &&
         (await buildDelegationData(
-          activeDelagations.consumer,
+          activeDelagations.consumerDelegation,
           readModelService
         ));
 

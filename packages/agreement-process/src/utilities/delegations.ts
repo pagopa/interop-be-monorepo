@@ -7,11 +7,11 @@ export function getRequesterDelegateKind(
   authData: AuthData
 ): DelegationKind | undefined {
   const isDelegateProducer =
-    activeDelegations.producer &&
-    activeDelegations.producer.delegateId === authData.organizationId;
+    activeDelegations.producerDelegation &&
+    activeDelegations.producerDelegation.delegateId === authData.organizationId;
   const isDelegateConsumer =
-    activeDelegations.consumer &&
-    activeDelegations.consumer.delegateId === authData.organizationId;
+    activeDelegations.consumerDelegation &&
+    activeDelegations.consumerDelegation.delegateId === authData.organizationId;
 
   return isDelegateProducer
     ? delegationKind.delegatedProducer
