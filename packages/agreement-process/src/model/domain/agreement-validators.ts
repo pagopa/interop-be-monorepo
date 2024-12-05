@@ -28,6 +28,7 @@ import {
   filterVerifiedAttributes,
 } from "pagopa-interop-agreement-lifecycle";
 import { ReadModelService } from "../../services/readModelService.js";
+import { getActiveConsumerDelegation } from "../../services/agreementService.js";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,
@@ -195,13 +196,11 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
           activeProducerDelegation
         );
       } catch (error) {
-        const activeConsumerDelegation =
-          await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
-            {
-              agreement,
-              delegateId: authData.organizationId,
-            }
-          );
+        const activeConsumerDelegation = await getActiveConsumerDelegation(
+          agreement,
+          authData,
+          readModelService
+        );
 
         assertRequesterIsDelegateConsumer(
           agreement,
@@ -477,20 +476,6 @@ export const verifyConflictingAgreements = async (
 
   if (agreements.length > 0) {
     throw agreementAlreadyExists(consumerId, eserviceId);
-  }
-};
-
-export const verifyConsumerDoesNotActivatePending = (
-  agreement: Agreement,
-  authData: AuthData
-): void => {
-  // TODO
-  const activationPendingNotAllowed =
-    agreement.state === agreementState.pending &&
-    agreement.consumerId === authData.organizationId &&
-    agreement.producerId !== agreement.consumerId;
-  if (activationPendingNotAllowed) {
-    throw operationNotAllowed(authData.organizationId);
   }
 };
 

@@ -104,7 +104,6 @@ import {
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   validateSubmitOnDescriptor,
-  verifyConsumerDoesNotActivatePending,
   verifyCreationConflictingAgreements,
   verifySubmissionConflictingAgreements,
   assertRequesterCanActAsConsumer,
@@ -233,7 +232,7 @@ const getActiveDelegations = async (
   ),
 });
 
-const getActiveConsumerDelegation = async (
+export const getActiveConsumerDelegation = async (
   agreement: Agreement,
   authData: AuthData,
   readModelService: ReadModelService
@@ -1098,13 +1097,20 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      assertRequesterCanActAsConsumerOrProducer(
-        agreement.data,
-        authData,
-        activeDelegations
-      );
+      if (agreement.data.state === agreementState.pending) {
+        assertRequesterCanActAsProducer(
+          agreement.data,
+          authData,
+          activeDelegations.producerDelegation
+        );
+      } else {
+        assertRequesterCanActAsConsumerOrProducer(
+          agreement.data,
+          authData,
+          activeDelegations
+        );
+      }
 
-      verifyConsumerDoesNotActivatePending(agreement.data, authData);
       assertActivableState(agreement.data);
 
       const eservice = await retrieveEService(
