@@ -61,6 +61,7 @@ import { getAllBulkAttributes } from "./attributeService.js";
 import {
   assertNotDelegatedEservice,
   assertRequesterIsProducer,
+  assertRequesterCanActAsProducer,
 } from "./validators.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -263,7 +264,12 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      assertRequesterIsProducer(requesterId, eservice);
+      await assertRequesterCanActAsProducer(
+        delegationProcessClient,
+        headers,
+        requesterId,
+        eservice
+      );
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
 
@@ -280,10 +286,10 @@ export function catalogServiceBuilder(
         descriptor
       );
 
-      const requesterTenant = await tenantProcessClient.tenant.getTenant({
+      const producerTenant = await tenantProcessClient.tenant.getTenant({
         headers,
         params: {
-          id: requesterId,
+          id: eservice.producerId,
         },
       });
 
@@ -304,7 +310,7 @@ export function catalogServiceBuilder(
         attributes: descriptorAttributes,
         eservice: toBffCatalogApiProducerDescriptorEService(
           eservice,
-          requesterTenant
+          producerTenant
         ),
       };
     },
@@ -325,7 +331,12 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      assertRequesterIsProducer(requesterId, eservice);
+      await assertRequesterCanActAsProducer(
+        delegationProcessClient,
+        headers,
+        requesterId,
+        eservice
+      );
 
       return {
         id: eservice.id,
