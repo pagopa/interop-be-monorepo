@@ -14,7 +14,6 @@ import {
   Tenant,
   WithMetadata,
   agreementState,
-  delegationKind,
   generateId,
 } from "pagopa-interop-models";
 import {
@@ -68,9 +67,8 @@ export async function createUpgradeOrNewDraft({
 
     // If current eservice has an active producer delegation the new contract will be created with the delegation data
     const activeProducerDelegation =
-      await readModelService.getActiveDelegationByEserviceId(
-        eservice.id,
-        delegationKind.delegatedProducer
+      await readModelService.getActiveProducerDelegationByEserviceId(
+        eservice.id
       );
 
     const stamp =

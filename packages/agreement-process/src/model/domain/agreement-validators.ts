@@ -180,9 +180,8 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
       assertRequesterIsProducer(agreement, authData);
     } catch (error) {
       const activeProducerDelegation =
-        await readModelService.getActiveDelegationByEserviceId(
-          agreement.eserviceId,
-          delegationKind.delegatedProducer
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreement.eserviceId
         );
       assertRequesterIsDelegateProducer(
         agreement,

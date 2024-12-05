@@ -33,8 +33,6 @@ import {
   DescriptorReadModel,
   EServiceReadModel,
   delegationKind,
-  DelegationKind,
-  DelegationState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -635,25 +633,13 @@ export function readModelServiceBuilder(
         ),
       };
     },
-    async getDelegationByDelegateId(
-      delegateId: TenantId,
-      kind: DelegationKind,
-      state: DelegationState = delegationState.active
-    ): Promise<Delegation | undefined> {
-      return getDelegation(delegations, {
-        "data.delegateId": delegateId,
-        "data.state": state,
-        "data.kind": kind,
-      });
-    },
-    async getActiveDelegationByEserviceId(
-      eserviceId: EServiceId,
-      kind: DelegationKind
+    async getActiveProducerDelegationByEserviceId(
+      eserviceId: EServiceId
     ): Promise<Delegation | undefined> {
       return getDelegation(delegations, {
         "data.eserviceId": eserviceId,
         "data.state": delegationState.active,
-        "data.kind": kind,
+        "data.kind": delegationKind.delegatedProducer,
       });
     },
     async getActiveConsumerDelegationsByEserviceId(

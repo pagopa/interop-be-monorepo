@@ -36,7 +36,6 @@ import {
   CorrelationId,
   Delegation,
   DelegationId,
-  delegationKind,
 } from "pagopa-interop-models";
 import {
   certifiedAttributesSatisfied,
@@ -427,9 +426,8 @@ export function agreementServiceBuilder(
       );
 
       const activeProducerDelegation =
-        await readModelService.getActiveDelegationByEserviceId(
-          agreement.data.eserviceId,
-          delegationKind.delegatedProducer
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreement.data.eserviceId
         );
       const delegateProducerId = activeProducerDelegation?.delegateId;
 
@@ -804,9 +802,8 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
       const activeProducerDelegation =
-        await readModelService.getActiveDelegationByEserviceId(
-          agreement.data.eserviceId,
-          delegationKind.delegatedProducer
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreement.data.eserviceId
         );
 
       const delegateProducerId = activeProducerDelegation?.delegateId;
@@ -922,9 +919,8 @@ export function agreementServiceBuilder(
         readModelService
       );
       const activeProducerDelegation =
-        await readModelService.getActiveDelegationByEserviceId(
-          agreementToBeRejected.data.eserviceId,
-          delegationKind.delegatedProducer
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreementToBeRejected.data.eserviceId
         );
 
       assertRequesterCanActAsProducer(
@@ -999,9 +995,8 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
       const activeProducerDelegation =
-        await readModelService.getActiveDelegationByEserviceId(
-          agreement.data.eserviceId,
-          delegationKind.delegatedProducer
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreement.data.eserviceId
         );
 
       const delegateProducerId = activeProducerDelegation?.delegateId;
