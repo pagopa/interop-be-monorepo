@@ -15680,6 +15680,9 @@ components:
         revocationTimestamp:
           type: string
           format: date-time
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
         - name
@@ -15690,6 +15693,9 @@ components:
       additionalProperties: false
       properties:
         id:
+          type: string
+          format: uuid
+        delegationId:
           type: string
           format: uuid
       required:
