@@ -847,6 +847,69 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  "/agreements/verify":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      tags:
+        - agreement
+      summary: Verify a Tenant has required certified attributes
+      description: Verify a Tenant has required certified attributes
+      operationId: verifyTenantCertifiedAttributes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tenantId
+                - descriptorId
+                - eserviceId
+              properties:
+                tenantId:
+                  type: string
+                  format: uuid
+                  description: The Tenant id
+                eserviceId:
+                  type: string
+                  format: uuid
+                  description: The E-Service id
+                descriptorId:
+                  type: string
+                  format: uuid
+                  description: The E-Service descriptor id
+      responses:
+        "200":
+          description: Tenant has required certified attributes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HasCertifiedAttributes"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   parameters:
     CorrelationIdHeader:
@@ -1279,6 +1342,14 @@ components:
       required:
         - results
         - totalCount
+    HasCertifiedAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        hasCertifiedAttributes:
+          type: boolean
+      required:
+        - hasCertifiedAttributes
     Problem:
       properties:
         type:

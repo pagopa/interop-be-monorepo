@@ -45,6 +45,7 @@ import {
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
   computeAgreementsStateErrorMapper,
+  verifyTenantCertifiedAttributesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
@@ -681,6 +682,36 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           () => 500,
+          ctx.logger,
+          ctx.correlationId
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    }
+  );
+
+  agreementRouter.post(
+    "/agreements/verify",
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const result = await agreementService.verifyTenantCertifiedAttributes(
+          {
+            tenantId: unsafeBrandId<TenantId>(req.body.tenantId),
+            descriptorId: unsafeBrandId<DescriptorId>(req.body.descriptorId),
+            eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
+          },
+          ctx
+        );
+        return res
+          .status(200)
+          .send(agreementApi.HasCertifiedAttributes.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          verifyTenantCertifiedAttributesErrorMapper,
           ctx.logger,
           ctx.correlationId
         );

@@ -38,6 +38,7 @@ import {
   DelegationId,
 } from "pagopa-interop-models";
 import {
+  certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
 } from "pagopa-interop-agreement-lifecycle";
@@ -91,6 +92,7 @@ import {
   assertRequesterCanRetrieveConsumerDocuments,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
+  assertRequesterCanCreateAgrementForTenant,
   assertRequesterIsConsumer,
   assertRequesterIsDelegateConsumer,
   assertSubmittableState,
@@ -174,12 +176,6 @@ export const retrieveTenant = async (
   }
   return tenant;
 };
-
-export const retrieveActiveProducerDelegationByEserviceId = async (
-  eserviceId: EServiceId,
-  readModelService: ReadModelService
-): Promise<Delegation | undefined> =>
-  await readModelService.getActiveProducerDelegationByEserviceId(eserviceId);
 
 export const retrieveDescriptor = (
   descriptorId: DescriptorId,
@@ -430,9 +426,8 @@ export function agreementServiceBuilder(
       );
 
       const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
-          agreement.data.eserviceId,
-          readModelService
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreement.data.eserviceId
         );
       const delegateProducerId = activeProducerDelegation?.delegateId;
 
@@ -807,9 +802,8 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
       const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
-          agreement.data.eserviceId,
-          readModelService
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreement.data.eserviceId
         );
 
       const delegateProducerId = activeProducerDelegation?.delegateId;
@@ -925,9 +919,8 @@ export function agreementServiceBuilder(
         readModelService
       );
       const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
-          agreementToBeRejected.data.eserviceId,
-          readModelService
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreementToBeRejected.data.eserviceId
         );
 
       assertRequesterCanActAsProducer(
@@ -1002,9 +995,8 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
       const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
-          agreement.data.eserviceId,
-          readModelService
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreement.data.eserviceId
         );
 
       const delegateProducerId = activeProducerDelegation?.delegateId;
@@ -1203,6 +1195,43 @@ export function agreementServiceBuilder(
       for (const event of events) {
         await repository.createEvent(event);
       }
+    },
+    async verifyTenantCertifiedAttributes(
+      {
+        tenantId,
+        descriptorId,
+        eserviceId,
+      }: {
+        tenantId: TenantId;
+        descriptorId: DescriptorId;
+        eserviceId: EServiceId;
+      },
+      { logger, authData }: WithLogger<AppContext>
+    ): Promise<agreementApi.HasCertifiedAttributes> {
+      logger.info(
+        `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
+      );
+
+      await assertRequesterCanCreateAgrementForTenant(
+        {
+          requesterId: authData.organizationId,
+          tenantIdToVerify: tenantId,
+          eserviceId,
+        },
+        readModelService
+      );
+      const consumer = await retrieveTenant(tenantId, readModelService);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      return {
+        hasCertifiedAttributes:
+          eservice.producerId === consumer.id || // in case the consumer is also the producer, we don't need to check the attributes
+          certifiedAttributesSatisfied(
+            descriptor.attributes,
+            consumer.attributes
+          ),
+      };
     },
   };
 }

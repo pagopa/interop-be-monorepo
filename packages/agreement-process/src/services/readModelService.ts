@@ -7,6 +7,7 @@ import {
   RemoveDataPrefix,
   Metadata,
   AttributeCollection,
+  DelegationCollection,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -23,6 +24,7 @@ import {
   descriptorState,
   EServiceId,
   AttributeReadmodel,
+  DelegationReadModel,
   TenantId,
   genericInternalError,
   Delegation,
@@ -246,6 +248,27 @@ async function getAttribute(
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return result.data;
+  }
+  return undefined;
+}
+
+async function getDelegation(
+  delegations: DelegationCollection,
+  filter: Filter<{ data: DelegationReadModel }>
+): Promise<Delegation | undefined> {
+  const data = await delegations.findOne(filter, {
+    projection: { data: true },
+  });
+  if (data) {
+    const result = Delegation.safeParse(data.data);
+    if (!result.success) {
+      throw genericInternalError(
+        `Unable to parse delegation item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
@@ -613,27 +636,11 @@ export function readModelServiceBuilder(
     async getActiveProducerDelegationByEserviceId(
       eserviceId: EServiceId
     ): Promise<Delegation | undefined> {
-      const data = await delegations.findOne(
-        {
-          "data.eserviceId": eserviceId,
-          "data.state": delegationState.active,
-          "data.kind": delegationKind.delegatedProducer,
-        },
-        { projection: { data: true } }
-      );
-
-      if (!data) {
-        return undefined;
-      }
-      const result = z.object({ data: Delegation }).safeParse(data);
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse delegation item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-      return result.data.data;
+      return getDelegation(delegations, {
+        "data.eserviceId": eserviceId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedProducer,
+      });
     },
     async getActiveConsumerDelegationsByEserviceId(
       eserviceId: EServiceId
@@ -658,6 +665,23 @@ export function readModelServiceBuilder(
         );
       }
       return result.data;
+    },
+    async getActiveConsumerDelegationByEserviceAndIds({
+      eserviceId,
+      delegatorId,
+      delegateId,
+    }: {
+      eserviceId: EServiceId;
+      delegatorId: TenantId;
+      delegateId?: TenantId;
+    }): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.eserviceId": eserviceId,
+        "data.delegatorId": delegatorId,
+        "data.delegateId": delegateId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedConsumer,
+      });
     },
   };
 }
