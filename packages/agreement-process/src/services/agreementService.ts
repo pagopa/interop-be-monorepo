@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -34,7 +35,6 @@ import {
   CompactTenant,
   CorrelationId,
   Delegation,
-  delegationKind,
   DelegationId,
 } from "pagopa-interop-models";
 import {
@@ -53,8 +53,8 @@ import {
   delegationNotFound,
   descriptorNotFound,
   eServiceNotFound,
-  missingDelegationId,
   noNewerDescriptor,
+  operationNotAllowed,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -87,15 +87,14 @@ import {
   agreementUpdatableStates,
   agreementUpgradableStates,
   assertActivableState,
+  assertRequesterCanActAsProducer,
+  assertRequesterCanActAsConsumerOrProducer,
+  assertRequesterCanRetrieveConsumerDocuments,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
-  assertRequesterCanActivate,
   assertRequesterCanCreateAgrementForTenant,
-  assertRequesterCanSuspend,
   assertRequesterIsConsumer,
-  assertRequesterIsConsumerOrProducerOrDelegateProducer,
   assertRequesterIsDelegateConsumer,
-  assertRequesterIsProducerOrDelegateProducer,
   assertSubmittableState,
   failOnActivationFailure,
   matchingCertifiedAttributes,
@@ -182,10 +181,7 @@ export const retrieveActiveProducerDelegationByEserviceId = async (
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<Delegation | undefined> =>
-  await readModelService.getActiveDelegationByEserviceId(
-    eserviceId,
-    delegationKind.delegatedProducer
-  );
+  await readModelService.getActiveProducerDelegationByEserviceId(eserviceId);
 
 export const retrieveDescriptor = (
   descriptorId: DescriptorId,
@@ -285,7 +281,7 @@ export function agreementServiceBuilder(
       const consumer = await getConsumerFromDelegationOrRequester(
         eserviceId,
         delegationId,
-        authData.organizationId,
+        authData,
         readModelService
       );
 
@@ -298,7 +294,7 @@ export function agreementServiceBuilder(
         eserviceId,
         descriptorId,
         producerId: eservice.producerId,
-        consumerId: authData.organizationId,
+        consumerId: consumer.id,
         state: agreementState.draft,
         verifiedAttributes: [],
         certifiedAttributes: [],
@@ -797,7 +793,7 @@ export function agreementServiceBuilder(
       );
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      await assertRequesterIsConsumerOrProducerOrDelegateProducer(
+      await assertRequesterCanRetrieveConsumerDocuments(
         agreement.data,
         authData,
         readModelService
@@ -820,7 +816,11 @@ export function agreementServiceBuilder(
 
       const delegateProducerId = activeProducerDelegation?.delegateId;
 
-      assertRequesterCanSuspend(agreement.data, delegateProducerId, authData);
+      assertRequesterCanActAsConsumerOrProducer(
+        agreement.data,
+        authData,
+        activeProducerDelegation
+      );
 
       assertExpectedState(
         agreementId,
@@ -931,12 +931,11 @@ export function agreementServiceBuilder(
           agreementToBeRejected.data.eserviceId,
           readModelService
         );
-      const delegateProducerId = activeProducerDelegation?.delegateId;
 
-      assertRequesterIsProducerOrDelegateProducer(
+      assertRequesterCanActAsProducer(
         agreementToBeRejected.data,
-        delegateProducerId,
-        authData
+        authData,
+        activeProducerDelegation
       );
 
       assertExpectedState(
@@ -1012,7 +1011,11 @@ export function agreementServiceBuilder(
 
       const delegateProducerId = activeProducerDelegation?.delegateId;
 
-      assertRequesterCanActivate(agreement.data, delegateProducerId, authData);
+      assertRequesterCanActAsConsumerOrProducer(
+        agreement.data,
+        authData,
+        activeProducerDelegation
+      );
 
       verifyConsumerDoesNotActivatePending(agreement.data, authData);
       assertActivableState(agreement.data);
@@ -1363,7 +1366,7 @@ async function addContractOnFirstActivation(
 async function getConsumerFromDelegationOrRequester(
   eserviceId: EServiceId,
   delegationId: DelegationId | undefined,
-  organizationId: TenantId,
+  authData: AuthData,
   readModelService: ReadModelService
 ): Promise<Tenant> {
   const delegations =
@@ -1373,18 +1376,18 @@ async function getConsumerFromDelegationOrRequester(
     // If a delegation has been passed, the consumer is the delegator
     const delegation = retrieveDelegation(delegations, delegationId);
 
-    assertRequesterIsDelegateConsumer(delegation, eserviceId, organizationId);
+    assertRequesterIsDelegateConsumer(delegation, eserviceId, authData);
     return retrieveTenant(delegation.delegatorId, readModelService);
   } else {
-    const hasDelegation = delegations.some(
-      (d) => d.delegateId === organizationId || d.delegatorId === organizationId
+    const hasDelegated = delegations.some(
+      (d) => d.delegatorId === authData.organizationId
     );
 
-    if (hasDelegation) {
+    if (hasDelegated) {
       // If a delegation exists, the delegator cannot create the agreement
-      throw missingDelegationId(organizationId, eserviceId);
+      throw operationNotAllowed(authData.organizationId);
     }
 
-    return retrieveTenant(organizationId, readModelService);
+    return retrieveTenant(authData.organizationId, readModelService);
   }
 }

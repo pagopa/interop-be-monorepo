@@ -23,7 +23,6 @@ export const createAgreementErrorMapper = (
       "missingCertifiedAttributesError",
       "eServiceNotFound",
       "delegationNotFound",
-      "missingDelegationId",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)

@@ -5,6 +5,7 @@ import {
   decodeProtobufPayload,
   getMockAgreement,
   getMockDelegation,
+  getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
   getRandomAuthData,
@@ -82,15 +83,27 @@ describe("agreement consumer document", () => {
     });
 
     it("should succed when the requester is the delegate", async () => {
-      const eservice = getMockEService();
+      const producer = getMockTenant();
+      const consumer = getMockTenant();
+      const authData = getRandomAuthData();
+      const eservice = {
+        ...getMockEService(),
+        producerId: producer.id,
+        consumerId: consumer.id,
+        descriptors: [getMockDescriptorPublished()],
+      };
       const agreement = {
         ...getMockAgreement(eservice.id),
+        descriptorId: eservice.descriptors[0].id,
+        producerId: producer.id,
+        consumerId: consumer.id,
         consumerDocuments: [generateMock(AgreementDocument)],
       };
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedProducer,
-        delegateId: eservice.producerId,
+        delegateId: authData.organizationId,
         eserviceId: eservice.id,
+        delegatorId: eservice.producerId,
         state: delegationState.active,
       });
       const delegate = getMockTenant(delegation.delegateId);
@@ -100,7 +113,49 @@ describe("agreement consumer document", () => {
       await addOneAgreement(agreement);
       await addOneDelegation(delegation);
 
-      const authData = getRandomAuthData(eservice.producerId);
+      const result = await agreementService.getAgreementConsumerDocument(
+        agreement.id,
+        agreement.consumerDocuments[0].id,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+
+      expect(result).toEqual(agreement.consumerDocuments[0]);
+    });
+
+    it("should succed when the requester is the producer, even if there is an active producer delegation", async () => {
+      const producer = getMockTenant();
+      const consumer = getMockTenant();
+      const authData = getRandomAuthData(producer.id);
+      const eservice = {
+        ...getMockEService(),
+        producerId: producer.id,
+        consumerId: consumer.id,
+        descriptors: [getMockDescriptorPublished()],
+      };
+      const agreement = {
+        ...getMockAgreement(eservice.id),
+        descriptorId: eservice.descriptors[0].id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+        consumerDocuments: [generateMock(AgreementDocument)],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegateId: generateId<TenantId>(),
+        eserviceId: eservice.id,
+        delegatorId: eservice.producerId,
+        state: delegationState.active,
+      });
+
+      await addOneEService(eservice);
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+
       const result = await agreementService.getAgreementConsumerDocument(
         agreement.id,
         agreement.consumerDocuments[0].id,

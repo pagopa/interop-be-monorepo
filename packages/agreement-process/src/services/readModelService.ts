@@ -27,14 +27,14 @@ import {
   DelegationReadModel,
   TenantId,
   genericInternalError,
-  DelegationState,
   Delegation,
   delegationState,
   AgreementReadModel,
   DescriptorReadModel,
   EServiceReadModel,
-  DelegationKind,
   delegationKind,
+  DelegationKind,
+  DelegationState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
