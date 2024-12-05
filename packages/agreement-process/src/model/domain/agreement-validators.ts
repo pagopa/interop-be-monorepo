@@ -299,13 +299,12 @@ export const assertRequesterCanCreateAgrementForTenant = async (
   const isSameOrganization = requesterId === tenantIdToVerify;
 
   const validDelegation =
-    await readModelService.getActiveDelegationByEserviceAndIds({
+    await readModelService.getActiveConsumerDelegationByEserviceAndIds({
       eserviceId,
       // if same organization, there's no delegate, otherwise the requester is the delegate
       delegateId: isSameOrganization ? undefined : requesterId,
       // if same organization, we have to check that it is not a delegator, otherwise tenantIdToVerify is the delegator
       delegatorId: isSameOrganization ? requesterId : tenantIdToVerify,
-      kind: delegationKind.delegatedConsumer,
     });
 
   const isAuthorized =

@@ -680,23 +680,21 @@ export function readModelServiceBuilder(
       }
       return result.data;
     },
-    async getActiveDelegationByEserviceAndIds({
+    async getActiveConsumerDelegationByEserviceAndIds({
       eserviceId,
       delegatorId,
       delegateId,
-      kind,
     }: {
       eserviceId: EServiceId;
       delegatorId: TenantId;
       delegateId?: TenantId;
-      kind: DelegationKind;
     }): Promise<Delegation | undefined> {
       return getDelegation(delegations, {
         "data.eserviceId": eserviceId,
         "data.delegatorId": delegatorId,
         "data.delegateId": delegateId,
         "data.state": delegationState.active,
-        "data.kind": kind,
+        "data.kind": delegationKind.delegatedConsumer,
       });
     },
   };
