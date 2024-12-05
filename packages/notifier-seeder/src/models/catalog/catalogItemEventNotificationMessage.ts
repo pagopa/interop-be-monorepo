@@ -34,6 +34,7 @@ export const eventV2TypeMapper = (
       "EServiceDescriptorDelegateSubmitted",
       "EServiceDescriptorDelegatorApproved",
       "EServiceDescriptorDelegatorRejected",
+      "EServiceDescriptorAttributesUpdated",
       () => "catalog_item_descriptor_updated"
     )
     .with(

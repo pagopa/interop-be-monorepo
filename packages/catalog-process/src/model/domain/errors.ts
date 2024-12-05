@@ -35,6 +35,8 @@ export const errorCodes = {
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
   eserviceWithActiveOrPendingDelegation: "0024",
+  invalidAttributeSeed: "0025",
+  unchangedAttributes: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -282,5 +284,27 @@ export function eserviceWithActiveOrPendingDelegation(
     detail: `E-service ${eserviceId} can't be deleted with an active or pending delegation ${delegationId}`,
     code: "eserviceWithActiveOrPendingDelegation",
     title: "E-service with active or pending delegation",
+  });
+}
+
+export function invalidAttributeSeed(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attributes seed is not valid for EService ${eserviceId} and Descriptor ${descriptorId}`,
+    code: "invalidAttributeSeed",
+    title: "Invalid attribute seed",
+  });
+}
+
+export function unchangedAttributes(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No new attributes detected in attribute seed for EService ${eserviceId} and Descriptor ${descriptorId}`,
+    code: "unchangedAttributes",
+    title: "Unchanged attributes",
   });
 }

@@ -23,6 +23,7 @@ import {
   DescriptorState,
   Document,
   EService,
+  EServiceAttribute,
   EServiceDocumentId,
   EServiceId,
   EserviceAttributes,
@@ -62,11 +63,13 @@ import {
   eserviceWithoutValidDescriptors,
   inconsistentDailyCalls,
   interfaceAlreadyExists,
+  invalidAttributeSeed,
   notValidDescriptorState,
   originNotCompliant,
   prettyNameDuplicate,
   riskAnalysisDuplicated,
   tenantNotFound,
+  unchangedAttributes,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -106,7 +109,6 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
-  assertRequesterAllowed,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
@@ -1897,43 +1899,96 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      (["certified", "declared", "verified"] as const).forEach(
-        (attributeKind) => {
-          descriptor.attributes[attributeKind].forEach((group, idx) => {
-            group.forEach((attribute) => {
-              if (
-                !seed[attributeKind].find(
-                  (a) =>
-                    a[idx].id === attribute.id &&
-                    a[idx].explicitAttributeVerification ===
-                      attribute.explicitAttributeVerification
-                )
-              ) {
-                throw attributeNotFound(attribute.id);
-              }
-            });
-          });
+      if (
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended
+      ) {
+        throw notValidDescriptorState(
+          descriptorId,
+          descriptor.state.toString()
+        );
+      }
+
+      function validateAndRetrieveNewAttributes(
+        attributesDescriptor: EServiceAttribute[][],
+        attributesSeed: catalogApi.Attribute[][]
+      ): string[] {
+        if (attributesDescriptor.length !== attributesSeed.length) {
+          throw invalidAttributeSeed(eserviceId, descriptorId);
         }
+
+        return attributesDescriptor.flatMap((attributeGroup) => {
+          const supersetSeed = attributesSeed.find((seedGroup) =>
+            attributeGroup.every((descriptorAttribute) =>
+              seedGroup.some(
+                (seedAttribute) => descriptorAttribute.id === seedAttribute.id
+              )
+            )
+          );
+
+          if (!supersetSeed) {
+            throw invalidAttributeSeed(eserviceId, descriptorId);
+          }
+
+          return supersetSeed
+            .filter(
+              (seedAttribute) =>
+                !attributeGroup.some((att) => att.id === seedAttribute.id)
+            )
+            .flatMap((seedAttribute) => seedAttribute.id);
+        });
+      }
+
+      const certifiedAttributes = validateAndRetrieveNewAttributes(
+        descriptor.attributes.certified,
+        seed.certified
       );
 
-      const updatedEService: EService = {
-        ...eservice.data,
-        descriptors: [descriptor],
+      const verifiedAttributes = validateAndRetrieveNewAttributes(
+        descriptor.attributes.verified,
+        seed.verified
+      );
+
+      const declaredAttributes = validateAndRetrieveNewAttributes(
+        descriptor.attributes.declared,
+        seed.declared
+      );
+
+      const newAttributes = [
+        ...certifiedAttributes,
+        ...verifiedAttributes,
+        ...declaredAttributes,
+      ].map(unsafeBrandId<AttributeId>);
+
+      if (newAttributes.length === 0) {
+        throw unchangedAttributes(eserviceId, descriptorId);
+      }
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        attributes: await parseAndCheckAttributes(seed, readModelService),
       };
 
-      const attributesIds = descriptor.attributes.certified.flatMap((c) =>
-        c.map((a) => a.id)
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
       );
 
       await repository.createEvent(
         toCreateEventEServiceDescriptorAttributesUpdated(
           eservice.metadata.version,
           descriptor.id,
-          descriptor.attributes.certified.flatMap((c) => c.map((a) => a.id)),
+          newAttributes,
           updatedEService,
           correlationId
         )
