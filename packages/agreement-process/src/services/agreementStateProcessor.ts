@@ -135,7 +135,7 @@ export const nextStateByAttributesFSM = (
   agreement: Agreement,
   descriptor: Descriptor,
   tenant: Tenant | CompactTenant,
-  delegateProducerId?: TenantId | undefined
+  delegateProducerId: TenantId | undefined
 ): AgreementState =>
   match(agreement.state)
     .with(agreementState.draft, () =>
@@ -188,9 +188,11 @@ export const suspendedByPlatformFlag = (
 export const suspendedByConsumerFlag = (
   agreement: Agreement,
   requesterOrgId: Tenant["id"],
-  targetDestinationState: AgreementState
+  targetDestinationState: AgreementState,
+  delegateConsumerId: TenantId | undefined
 ): boolean | undefined =>
-  requesterOrgId === agreement.consumerId
+  requesterOrgId === agreement.consumerId ||
+  requesterOrgId === delegateConsumerId
     ? targetDestinationState === agreementState.suspended
     : agreement.suspendedByConsumer;
 
@@ -198,7 +200,7 @@ export const suspendedByProducerFlag = (
   agreement: Agreement,
   requesterOrgId: Tenant["id"],
   targetDestinationState: AgreementState,
-  delegateProducerId?: TenantId | undefined
+  delegateProducerId: TenantId | undefined
 ): boolean | undefined =>
   requesterOrgId === agreement.producerId ||
   requesterOrgId === delegateProducerId
@@ -248,7 +250,8 @@ function updateAgreementState(
   const nextStateByAttributes = nextStateByAttributesFSM(
     agreement.data,
     descriptor,
-    consumer
+    consumer,
+    undefined
   );
 
   const newSuspendedByPlatform = suspendedByPlatformFlag(nextStateByAttributes);

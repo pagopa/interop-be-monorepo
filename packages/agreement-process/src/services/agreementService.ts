@@ -60,6 +60,7 @@ import {
   unexpectedVersionFormat,
 } from "../model/domain/errors.js";
 import {
+  ActiveDelegations,
   CompactEService,
   CompactOrganization,
   UpdateAgreementSeed,
@@ -216,6 +217,19 @@ function retrieveAgreementDocument(
   }
   return document;
 }
+
+const getActiveConsumerDelegation = async (
+  agreement: Agreement,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<Delegation | undefined> =>
+  // This function is called get instead of retrieve because in the retrieve
+  // funcions we usually perform validations to check if the resource exists,
+  // while this funciton is used only to force
+  await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId({
+    agreement,
+    delegateId: authData.organizationId,
+  });
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
@@ -805,13 +819,17 @@ export function agreementServiceBuilder(
         await readModelService.getActiveProducerDelegationByEserviceId(
           agreement.data.eserviceId
         );
-
-      const delegateProducerId = activeProducerDelegation?.delegateId;
+      const activeConsumerDelegation = await getActiveConsumerDelegation(
+        agreement.data,
+        authData,
+        readModelService
+      );
 
       assertRequesterCanActAsConsumerOrProducer(
         agreement.data,
         authData,
-        activeProducerDelegation
+        activeProducerDelegation,
+        activeConsumerDelegation
       );
 
       assertExpectedState(
@@ -849,7 +867,8 @@ export function agreementServiceBuilder(
           correlationId,
           updatedAgreement,
           agreement,
-          delegateProducerId
+          activeProducerDelegation?.delegateId,
+          activeConsumerDelegation?.delegateId
         )
       );
 
@@ -999,12 +1018,16 @@ export function agreementServiceBuilder(
           agreement.data.eserviceId
         );
 
-      const delegateProducerId = activeProducerDelegation?.delegateId;
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+          { agreement: agreement.data, delegateId: authData.organizationId }
+        );
 
       assertRequesterCanActAsConsumerOrProducer(
         agreement.data,
         authData,
-        activeProducerDelegation
+        activeProducerDelegation,
+        activeConsumerDelegation
       );
 
       verifyConsumerDoesNotActivatePending(agreement.data, authData);
@@ -1098,7 +1121,7 @@ export function agreementServiceBuilder(
           suspendedByConsumer,
           suspendedByProducer,
           suspendedByPlatform,
-          producerDelegationId: activeProducerDelegation?.id,
+          delegationId,
         });
 
       const updatedAgreementWithoutContract: Agreement = {
@@ -1333,7 +1356,7 @@ async function addContractOnFirstActivation(
   consumer: Tenant,
   producer: Tenant,
   agreement: Agreement,
-  producerDelegation: Delegation | undefined
+  activeDelegations: ActiveDelegations
 ): Promise<Agreement> {
   if (isFirstActivation) {
     const contract = await contractBuilder.createContract(
@@ -1341,7 +1364,7 @@ async function addContractOnFirstActivation(
       eservice,
       consumer,
       producer,
-      producerDelegation
+      activeDelegations
     );
 
     return {
@@ -1366,7 +1389,11 @@ async function getConsumerFromDelegationOrRequester(
     // If a delegation has been passed, the consumer is the delegator
     const delegation = retrieveDelegation(delegations, delegationId);
 
-    assertRequesterIsDelegateConsumer(delegation, eserviceId, authData);
+    assertRequesterIsDelegateConsumer(
+      { consumerId: delegation.delegatorId, eserviceId },
+      authData,
+      delegation
+    );
     return retrieveTenant(delegation.delegatorId, readModelService);
   } else {
     const hasDelegated = delegations.some(

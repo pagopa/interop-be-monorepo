@@ -6,7 +6,6 @@ import {
   AgreementEventV2,
   AgreementState,
   CorrelationId,
-  DelegationId,
   Descriptor,
   EService,
   Tenant,
@@ -22,7 +21,10 @@ import {
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
 } from "../model/domain/agreement-validators.js";
-import { UpdateAgreementSeed } from "../model/domain/models.js";
+import {
+  ActiveDelegations,
+  UpdateAgreementSeed,
+} from "../model/domain/models.js";
 import {
   toCreateEventAgreementActivated,
   toCreateEventAgreementSuspendedByPlatform,
@@ -49,7 +51,7 @@ export function createActivationUpdateAgreementSeed({
   suspendedByConsumer,
   suspendedByProducer,
   suspendedByPlatform,
-  producerDelegationId,
+  activeDelegations,
 }: {
   isFirstActivation: boolean;
   newState: AgreementState;
@@ -61,9 +63,9 @@ export function createActivationUpdateAgreementSeed({
   suspendedByConsumer: boolean | undefined;
   suspendedByProducer: boolean | undefined;
   suspendedByPlatform: boolean | undefined;
-  producerDelegationId?: DelegationId | undefined;
+  activeDelegations: ActiveDelegations;
 }): UpdateAgreementSeed {
-  const stamp = createStamp(authData.userId, producerDelegationId);
+  const stamp = createStamp(authData, activeDelegations);
 
   return isFirstActivation
     ? {

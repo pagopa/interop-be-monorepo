@@ -31,7 +31,10 @@ import { getVerifiedAttributeExpirationDate } from "pagopa-interop-agreement-lif
 import { attributeNotFound } from "../model/domain/errors.js";
 import { AgreementProcessConfig } from "../config/config.js";
 import { assertStampExists } from "../model/domain/agreement-validators.js";
-import { AgreementContractPDFPayload } from "../model/domain/models.js";
+import {
+  ActiveDelegations,
+  AgreementContractPDFPayload,
+} from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 
@@ -270,16 +273,21 @@ export const contractBuilder = (
       eservice: EService,
       consumer: Tenant,
       producer: Tenant,
-      producerDelegation: Delegation | undefined,
-      consumerDelegation: Delegation | undefined
+      activeDelagations: ActiveDelegations
     ): Promise<AgreementDocument> => {
       const producerDelegationData =
-        producerDelegation &&
-        (await buildDelegationData(producerDelegation, readModelService));
+        activeDelagations.producer &&
+        (await buildDelegationData(
+          activeDelagations.producer,
+          readModelService
+        ));
 
       const consumerDelegationData =
-        consumerDelegation &&
-        (await buildDelegationData(consumerDelegation, readModelService));
+        activeDelagations.consumer &&
+        (await buildDelegationData(
+          activeDelagations.consumer,
+          readModelService
+        ));
 
       const pdfPayload = await getPdfPayload(
         agreement,

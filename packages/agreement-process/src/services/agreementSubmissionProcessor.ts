@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import { CreateEvent } from "pagopa-interop-commons";
+import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
@@ -9,7 +9,6 @@ import {
   Descriptor,
   EService,
   Tenant,
-  UserId,
   agreementState,
   tenantMailKind,
 } from "pagopa-interop-models";
@@ -24,7 +23,10 @@ import {
   agreementNotInExpectedState,
   consumerWithNotValidEmail,
 } from "../model/domain/errors.js";
-import { UpdateAgreementSeed } from "../model/domain/models.js";
+import {
+  ActiveDelegations,
+  UpdateAgreementSeed,
+} from "../model/domain/models.js";
 import { createStamp } from "./agreementStampUtils.js";
 
 export type AgremeentSubmissionResults = {
@@ -53,10 +55,15 @@ export const createSubmissionUpdateAgreementSeed = (
   agreement: Agreement,
   payload: agreementApi.AgreementSubmissionPayload,
   newState: AgreementState,
-  userId: UserId,
-  suspendedByPlatform: boolean | undefined
+  authData: AuthData,
+  suspendedByPlatform: boolean | undefined,
+  activeDelegations: ActiveDelegations
 ): UpdateAgreementSeed => {
-  const stamps = calculateStamps(agreement, newState, createStamp(userId));
+  const stamps = calculateStamps(
+    agreement,
+    newState,
+    createStamp(authData, activeDelegations)
+  );
   const isActivation = newState === agreementState.active;
 
   /* As we do in the upgrade, we copy suspendedByProducer, suspendedByProducer, and suspendedAt

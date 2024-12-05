@@ -1,23 +1,43 @@
+import { AuthData } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementStamp,
   AgreementState,
-  DelegationId,
   TenantId,
-  UserId,
   agreementState,
-  unsafeBrandId,
+  delegationKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { ActiveDelegations } from "../model/domain/models.js";
+import { getRequesterDelegateKind } from "../utilities/delegations.js";
 
 export const createStamp = (
-  userId: UserId,
-  delegationId?: DelegationId | undefined
-): AgreementStamp => ({
-  who: unsafeBrandId(userId),
-  delegationId,
-  when: new Date(),
-});
+  authData: AuthData,
+  activeDelegations: ActiveDelegations
+): AgreementStamp => {
+  const requesterDelegateKind = getRequesterDelegateKind(
+    activeDelegations,
+    authData
+  );
+
+  const delegationId = match(requesterDelegateKind)
+    .with(
+      delegationKind.delegatedProducer,
+      () => activeDelegations.producer?.id
+    )
+    .with(
+      delegationKind.delegatedConsumer,
+      () => activeDelegations.consumer?.id
+    )
+    .with(undefined, () => undefined)
+    .exhaustive();
+
+  return {
+    who: authData.userId,
+    delegationId,
+    when: new Date(),
+  };
+};
 
 export const suspendedByConsumerStamp = (
   agreement: Agreement,

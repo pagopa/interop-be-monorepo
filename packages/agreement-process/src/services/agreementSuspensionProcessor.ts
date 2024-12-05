@@ -3,19 +3,22 @@ import {
   Agreement,
   AgreementEventV2,
   CorrelationId,
-  Delegation,
   Descriptor,
   Tenant,
-  TenantId,
   WithMetadata,
   agreementState,
+  delegationKind,
   genericError,
 } from "pagopa-interop-models";
-import { UpdateAgreementSeed } from "../model/domain/models.js";
+import {
+  ActiveDelegations,
+  UpdateAgreementSeed,
+} from "../model/domain/models.js";
 import {
   toCreateEventAgreementSuspendedByProducer,
   toCreateEventAgreementSuspendedByConsumer,
 } from "../model/domain/toEvent.js";
+import { getRequesterDelegateKind } from "../utilities/delegations.js";
 import {
   agreementStateByFlags,
   nextStateByAttributesFSM,
@@ -33,13 +36,13 @@ export function createSuspensionUpdatedAgreement({
   authData,
   descriptor,
   consumer,
-  producerDelegation,
+  activeDelegations,
 }: {
   agreement: Agreement;
   authData: AuthData;
   descriptor: Descriptor;
   consumer: Tenant;
-  producerDelegation: Delegation | undefined;
+  activeDelegations: ActiveDelegations;
 }): Agreement {
   /* nextAttributesState VS targetDestinationState
   -- targetDestinationState is the state where the caller wants to go (suspended, in this case)
@@ -50,19 +53,20 @@ export function createSuspensionUpdatedAgreement({
     agreement,
     descriptor,
     consumer,
-    producerDelegation?.delegateId
+    activeDelegations.producer?.delegateId
   );
 
   const suspendedByConsumer = suspendedByConsumerFlag(
     agreement,
     authData.organizationId,
-    targetDestinationState
+    targetDestinationState,
+    activeDelegations.consumer?.delegateId
   );
   const suspendedByProducer = suspendedByProducerFlag(
     agreement,
     authData.organizationId,
     targetDestinationState,
-    producerDelegation?.delegateId
+    activeDelegations.producer?.delegateId
   );
 
   const newState = agreementStateByFlags(
@@ -72,14 +76,14 @@ export function createSuspensionUpdatedAgreement({
     agreement.suspendedByPlatform
   );
 
-  const stamp = createStamp(authData.userId, producerDelegation?.id);
+  const stamp = createStamp(authData, activeDelegations);
 
   const suspensionByProducerStamp = suspendedByProducerStamp(
     agreement,
     authData.organizationId,
     agreementState.suspended,
     stamp,
-    producerDelegation?.delegateId
+    activeDelegations.producer?.delegateId
   );
 
   const suspensionByConsumerStamp = suspendedByConsumerStamp(
@@ -107,32 +111,42 @@ export function createSuspensionUpdatedAgreement({
   };
 }
 
+// eslint-disable-next-line max-params
 export function createAgreementSuspendedEvent(
-  organizationId: TenantId,
+  authData: AuthData,
   correlationId: CorrelationId,
   updatedAgreement: Agreement,
   agreement: WithMetadata<Agreement>,
-  delegateProducerId: TenantId | undefined
+  activeDelegations: ActiveDelegations
 ): CreateEvent<AgreementEventV2> {
-  const isProducer = organizationId === agreement.data.producerId;
-  const isConsumer = organizationId === agreement.data.consumerId;
-  const isProducerDelegate = delegateProducerId === organizationId;
+  const isProducer = authData.organizationId === agreement.data.producerId;
+  const isConsumer = authData.organizationId === agreement.data.consumerId;
+  const requesterDelegateKind = getRequesterDelegateKind(
+    activeDelegations,
+    authData
+  );
 
-  if (!isProducer && !isConsumer && !isProducerDelegate) {
+  if (
+    isProducer ||
+    requesterDelegateKind === delegationKind.delegatedProducer
+  ) {
+    return toCreateEventAgreementSuspendedByProducer(
+      updatedAgreement,
+      agreement.metadata.version,
+      correlationId
+    );
+  } else if (
+    isConsumer ||
+    requesterDelegateKind === delegationKind.delegatedConsumer
+  ) {
+    return toCreateEventAgreementSuspendedByConsumer(
+      updatedAgreement,
+      agreement.metadata.version,
+      correlationId
+    );
+  } else {
     throw genericError(
       "Agreement can only be suspended by the consumer or producer/delegate producer."
     );
   }
-
-  return isProducer || isProducerDelegate
-    ? toCreateEventAgreementSuspendedByProducer(
-        updatedAgreement,
-        agreement.metadata.version,
-        correlationId
-      )
-    : toCreateEventAgreementSuspendedByConsumer(
-        updatedAgreement,
-        agreement.metadata.version,
-        correlationId
-      );
 }
