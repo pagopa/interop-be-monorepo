@@ -226,15 +226,6 @@ const assertRequesterIsDelegateProducer = (
   }
 };
 
-const assertRequesterIsDelegate = (
-  delegateId: TenantId | undefined,
-  authData: AuthData
-): void => {
-  if (authData.organizationId !== delegateId) {
-    throw operationNotAllowed(authData.organizationId);
-  }
-};
-
 export const assertSubmittableState = (
   state: AgreementState,
   agreementId: AgreementId
@@ -273,8 +264,8 @@ export const assertRequesterIsDelegateConsumer = (
   eserviceId: EServiceId,
   authData: AuthData
 ): void => {
-  assertRequesterIsDelegate(activeConsumerDelegation.delegateId, authData);
   if (
+    activeConsumerDelegation.delegateId !== authData.organizationId ||
     activeConsumerDelegation.eserviceId !== eserviceId ||
     activeConsumerDelegation.kind !== delegationKind.delegatedConsumer ||
     activeConsumerDelegation.state !== delegationState.active
