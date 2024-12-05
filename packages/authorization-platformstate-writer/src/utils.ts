@@ -788,12 +788,12 @@ export const writePlatformClientEntry = async (
 export const readConsumerClientEntriesInTokenGenerationStates = async (
   GSIPK_clientId: ClientId,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenStatesGenericClientWithGSIPKClientIdProjection[]> => {
+): Promise<TokenGenStatesConsumerClientWithGSIPKClientIdProjection[]> => {
   const runPaginatedQuery = async (
     GSIPK_clientId: ClientId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenStatesGenericClientWithGSIPKClientIdProjection[]> => {
+  ): Promise<TokenGenStatesConsumerClientWithGSIPKClientIdProjection[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Client",
