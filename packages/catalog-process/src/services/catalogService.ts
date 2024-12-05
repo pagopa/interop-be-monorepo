@@ -1887,31 +1887,16 @@ export function catalogServiceBuilder(
   };
 }
 
-async function isUserAllowedToSeeDraft(
+function isUserAllowedToSeeDraft(
   eservice: EService,
-  authData: AuthData,
-  readModelService: ReadModelService
-): Promise<boolean> {
-  if (
-    !hasPermission(
+  authData: AuthData
+): boolean {
+  return (
+    hasPermission(
       [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
       authData
-    )
-  ) {
-    return false;
-  }
-
-  if (authData.organizationId === eservice.producerId) {
-    return true;
-  }
-
-  const activeProducerDelegation = await readModelService.getLatestDelegation({
-    eserviceId: eservice.id,
-    delegateId: authData.organizationId,
-    kind: delegationKind.delegatedProducer,
-  });
-
-  return activeProducerDelegation !== undefined;
+    ) && authData.organizationId === eservice.producerId
+  );
 }
 
 async function applyVisibilityToEService(
@@ -1919,15 +1904,27 @@ async function applyVisibilityToEService(
   authData: AuthData,
   readModelService: ReadModelService
 ): Promise<EService> {
-  if (await isUserAllowedToSeeDraft(eservice, authData, readModelService)) {
+  if (isUserAllowedToSeeDraft(eservice, authData)) {
+    return eservice;
+  }
+
+  const producerDelegation = await readModelService.getLatestDelegation({
+    eserviceId: eservice.id,
+    delegateId: authData.organizationId,
+    kind: delegationKind.delegatedProducer,
+  });
+
+  if (producerDelegation?.state === delegationState.active) {
     return eservice;
   }
 
   if (
-    eservice.descriptors.length === 0 ||
-    (eservice.descriptors.length === 1 &&
-      (eservice.descriptors[0].state === descriptorState.draft ||
-        eservice.descriptors[0].state === descriptorState.waitingForApproval))
+    !producerDelegation &&
+    eservice.descriptors.every(
+      (descriptor) =>
+        descriptor.state === descriptorState.draft ||
+        descriptor.state === delegationState.waitingForApproval
+    )
   ) {
     throw eServiceNotFound(eservice.id);
   }
