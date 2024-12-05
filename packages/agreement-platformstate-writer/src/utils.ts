@@ -276,9 +276,9 @@ export const readPlatformStateAgreementEntriesByConsumerIdEserviceId = async (
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNamePlatform,
       IndexName: "Agreement",
-      KeyConditionExpression: `GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId`,
+      KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":GSIPK_consumerId_eserviceId": { S: consumerId_eserviceId },
+        ":gsiValue": { S: consumerId_eserviceId },
       },
       ExclusiveStartKey: exclusiveStartKey,
       ScanIndexForward: false,
@@ -352,9 +352,9 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Agreement",
-      KeyConditionExpression: `GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId`,
+      KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":GSIPK_consumerId_eserviceId": { S: consumerId_eserviceId },
+        ":gsiValue": { S: consumerId_eserviceId },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
@@ -447,9 +447,9 @@ export const updateAgreementStateOnTokenGenStates = async ({
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Agreement",
-      KeyConditionExpression: `GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId`,
+      KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":GSIPK_consumerId_eserviceId": { S: consumerId_eserviceId },
+        ":gsiValue": { S: consumerId_eserviceId },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };

@@ -67,9 +67,9 @@ export const deleteEntriesFromTokenGenStatesByKid = async (
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Kid",
-      KeyConditionExpression: `GSIPK_kid = :GSIPK_kid`,
+      KeyConditionExpression: `GSIPK_kid = :gsiValue`,
       ExpressionAttributeValues: {
-        ":GSIPK_kid": { S: GSIPK_kid },
+        ":gsiValue": { S: GSIPK_kid },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
@@ -142,9 +142,9 @@ export const deleteEntriesFromTokenGenStatesByClientId = async (
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Client",
-      KeyConditionExpression: `GSIPK_clientId = :GSIPK_clientId`,
+      KeyConditionExpression: `GSIPK_clientId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":GSIPK_clientId": { S: GSIPK_clientId },
+        ":gsiValue": { S: GSIPK_clientId },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
@@ -249,9 +249,9 @@ const readTokenGenStatesConsumerClientsByGSIPKClientPurpose = async (
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
     IndexName: "ClientPurpose",
-    KeyConditionExpression: `GSIPK_clientId_purposeId = :GSIPK_clientId_purposeId`,
+    KeyConditionExpression: `GSIPK_clientId_purposeId = :gsiValue`,
     ExpressionAttributeValues: {
-      ":GSIPK_clientId_purposeId": { S: GSIPK_clientId_purposeId },
+      ":gsiValue": { S: GSIPK_clientId_purposeId },
     },
     ExclusiveStartKey: exclusiveStartKey,
   };
@@ -446,9 +446,9 @@ export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     IndexName: "Agreement",
-    KeyConditionExpression: `GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId`,
+    KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
     ExpressionAttributeValues: {
-      ":GSIPK_consumerId_eserviceId": { S: gsiPKConsumerIdEServiceId },
+      ":gsiValue": { S: gsiPKConsumerIdEServiceId },
     },
     ScanIndexForward: false,
   };
@@ -793,9 +793,9 @@ export const readConsumerClientEntriesInTokenGenerationStates = async (
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Client",
-      KeyConditionExpression: `GSIPK_clientId = :GSIPK_clientId`,
+      KeyConditionExpression: `GSIPK_clientId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":GSIPK_clientId": { S: GSIPK_clientId },
+        ":gsiValue": { S: GSIPK_clientId },
       },
       ExclusiveStartKey: exclusiveStartKey,
       ScanIndexForward: false,

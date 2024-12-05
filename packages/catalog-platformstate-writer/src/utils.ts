@@ -194,9 +194,9 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Descriptor",
-      KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId`,
+      KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":GSIPK_eserviceId_descriptorId": { S: eserviceId_descriptorId },
+        ":gsiValue": { S: eserviceId_descriptorId },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
@@ -267,9 +267,9 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Descriptor",
-      KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId`,
+      KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":GSIPK_eserviceId_descriptorId": { S: eserviceId_descriptorId },
+        ":gsiValue": { S: eserviceId_descriptorId },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
@@ -341,9 +341,9 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
       const input: QueryInput = {
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
         IndexName: "Descriptor",
-        KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId`,
+        KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
         ExpressionAttributeValues: {
-          ":GSIPK_eserviceId_descriptorId": { S: eserviceId_descriptorId },
+          ":gsiValue": { S: eserviceId_descriptorId },
         },
         ExclusiveStartKey: exclusiveStartKey,
       };

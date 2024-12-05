@@ -140,9 +140,9 @@ export const readTokenGenStatesEntriesByGSIPKPurposeId = async (
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
     IndexName: "Purpose",
-    KeyConditionExpression: `GSIPK_purposeId = :GSIPK_purposeId`,
+    KeyConditionExpression: `GSIPK_purposeId = :gsiValue`,
     ExpressionAttributeValues: {
-      ":GSIPK_purposeId": { S: purposeId },
+      ":gsiValue": { S: purposeId },
     },
     ExclusiveStartKey: exclusiveStartKey,
   };
@@ -280,7 +280,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
               ":agreementState": {
                 S: platformAgreementEntry.state,
               },
-              ":GSIPK_eserviceId_descriptorId": {
+              ":gsiPKEServiceIdDescriptorId": {
                 S: makeGSIPKEServiceIdDescriptorId({
                   eserviceId: purpose.eserviceId,
                   descriptorId: platformAgreementEntry.agreementDescriptorId,
@@ -291,7 +291,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
         const agreementUpdateExpression = isAgreementMissingInTokenGenStates
           ? `, agreementId = :agreementId, 
       agreementState = :agreementState, 
-      GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId`
+      GSIPK_eserviceId_descriptorId = :gsiPKEServiceIdDescriptorId`
           : "";
 
         // Descriptor data from platform-states
@@ -343,7 +343,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
             ":newPurposeVersionId": {
               S: purposeVersionId,
             },
-            ":GSIPK_consumerId_eserviceId": {
+            ":gsiPKConsumerIdEServiceId": {
               S: makeGSIPKConsumerIdEServiceId({
                 consumerId: purpose.consumerId,
                 eserviceId: purpose.eserviceId,
@@ -354,7 +354,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
             },
           },
           UpdateExpression:
-            "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId, updatedAt = :newUpdatedAt" +
+            "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, GSIPK_consumerId_eserviceId = :gsiPKConsumerIdEServiceId, updatedAt = :newUpdatedAt" +
             agreementUpdateExpression +
             descriptorUpdateExpression,
           TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
@@ -461,9 +461,9 @@ export const readPlatformAgreementEntry = async (
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     IndexName: "Agreement",
-    KeyConditionExpression: `GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId`,
+    KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
     ExpressionAttributeValues: {
-      ":GSIPK_consumerId_eserviceId": { S: gsiPKConsumerIdEServiceId },
+      ":gsiValue": { S: gsiPKConsumerIdEServiceId },
     },
     ScanIndexForward: false,
   };

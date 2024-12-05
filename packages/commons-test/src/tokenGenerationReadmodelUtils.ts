@@ -250,9 +250,9 @@ export const readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
     const input: QueryInput = {
       TableName: "token-generation-states",
       IndexName: "Descriptor",
-      KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId`,
+      KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":GSIPK_eserviceId_descriptorId": { S: gsiPKEServiceIdDescriptorId },
+        ":gsiValue": { S: gsiPKEServiceIdDescriptorId },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
@@ -312,9 +312,9 @@ export const readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId = async (
     const input: QueryInput = {
       TableName: "token-generation-states",
       IndexName: "Agreement",
-      KeyConditionExpression: `GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId`,
+      KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":GSIPK_consumerId_eserviceId": { S: gsiPKConsumerIdEServiceId },
+        ":gsiValue": { S: gsiPKConsumerIdEServiceId },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
