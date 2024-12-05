@@ -36,6 +36,7 @@ import {
   CorrelationId,
   Delegation,
   DelegationId,
+  delegationKind,
 } from "pagopa-interop-models";
 import {
   certifiedAttributesSatisfied,
@@ -176,12 +177,6 @@ export const retrieveTenant = async (
   }
   return tenant;
 };
-
-export const retrieveActiveProducerDelegationByEserviceId = async (
-  eserviceId: EServiceId,
-  readModelService: ReadModelService
-): Promise<Delegation | undefined> =>
-  await readModelService.getActiveProducerDelegationByEserviceId(eserviceId);
 
 export const retrieveDescriptor = (
   descriptorId: DescriptorId,
@@ -432,9 +427,9 @@ export function agreementServiceBuilder(
       );
 
       const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
+        await readModelService.getActiveDelegationByEserviceId(
           agreement.data.eserviceId,
-          readModelService
+          delegationKind.delegatedProducer
         );
       const delegateProducerId = activeProducerDelegation?.delegateId;
 
@@ -809,9 +804,9 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
       const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
+        await readModelService.getActiveDelegationByEserviceId(
           agreement.data.eserviceId,
-          readModelService
+          delegationKind.delegatedProducer
         );
 
       const delegateProducerId = activeProducerDelegation?.delegateId;
@@ -927,9 +922,9 @@ export function agreementServiceBuilder(
         readModelService
       );
       const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
+        await readModelService.getActiveDelegationByEserviceId(
           agreementToBeRejected.data.eserviceId,
-          readModelService
+          delegationKind.delegatedProducer
         );
 
       assertRequesterCanActAsProducer(
@@ -1004,9 +999,9 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
       const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
+        await readModelService.getActiveDelegationByEserviceId(
           agreement.data.eserviceId,
-          readModelService
+          delegationKind.delegatedProducer
         );
 
       const delegateProducerId = activeProducerDelegation?.delegateId;
