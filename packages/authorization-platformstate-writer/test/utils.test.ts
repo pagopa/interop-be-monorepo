@@ -55,8 +55,8 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
   TokenGenerationStatesGenericClient,
-  TokenGenStatesGenericClientWithGSIPKClientIdProjection,
   unsafeBrandId,
+  TokenGenStatesConsumerClientWithGSIPKClientIdProjection,
 } from "pagopa-interop-models";
 import {
   afterAll,
@@ -519,10 +519,10 @@ describe("utils", () => {
 
     expect(res).toEqual(
       expect.arrayContaining([
-        TokenGenStatesGenericClientWithGSIPKClientIdProjection.parse(
+        TokenGenStatesConsumerClientWithGSIPKClientIdProjection.parse(
           tokenGenStatesConsumerClientWithoutPurpose
         ),
-        TokenGenStatesGenericClientWithGSIPKClientIdProjection.parse(
+        TokenGenStatesConsumerClientWithGSIPKClientIdProjection.parse(
           tokenGenStatesConsumerClientWithPurpose
         ),
       ])
