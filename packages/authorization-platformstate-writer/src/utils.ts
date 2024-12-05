@@ -1200,7 +1200,7 @@ export const createTokenGenStatesConsumerClient = ({
   agreementEntry,
   catalogEntry,
 }: {
-  tokenGenStatesClient: TokenGenStatesGenericClientWithGSIPKClientIdProjection;
+  tokenGenStatesClient: TokenGenStatesConsumerClientWithGSIPKClientIdProjection;
   kid: string;
   clientId: ClientId;
   purposeId: PurposeId;
