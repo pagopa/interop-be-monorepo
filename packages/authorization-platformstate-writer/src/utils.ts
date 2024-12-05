@@ -131,11 +131,11 @@ export const deleteClientEntryFromPlatformStates = async (
 };
 
 export const deleteEntriesFromTokenGenStatesByClientId = async (
-  GSIPK_client: ClientId,
+  GSIPK_clientId: ClientId,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const runPaginatedQuery = async (
-    GSIPK_client: ClientId,
+    GSIPK_clientId: ClientId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<void> => {
@@ -144,7 +144,7 @@ export const deleteEntriesFromTokenGenStatesByClientId = async (
       IndexName: "Client",
       KeyConditionExpression: `GSIPK_clientId = :GSIPK_clientId`,
       ExpressionAttributeValues: {
-        ":GSIPK_clientId": { S: GSIPK_client },
+        ":GSIPK_clientId": { S: GSIPK_clientId },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
@@ -181,7 +181,7 @@ export const deleteEntriesFromTokenGenStatesByClientId = async (
 
       if (data.LastEvaluatedKey) {
         await runPaginatedQuery(
-          GSIPK_client,
+          GSIPK_clientId,
           dynamoDBClient,
           data.LastEvaluatedKey
         );
@@ -189,7 +189,7 @@ export const deleteEntriesFromTokenGenStatesByClientId = async (
     }
   };
 
-  await runPaginatedQuery(GSIPK_client, dynamoDBClient, undefined);
+  await runPaginatedQuery(GSIPK_clientId, dynamoDBClient, undefined);
 };
 
 export const deleteClientEntryFromTokenGenerationStates = async (
