@@ -45,11 +45,36 @@ export function assertRequesterIsProducer(
   }
 }
 
+export async function assertRequesterCanActAsProducer(
+  delegationProcessClient: DelegationProcessClient,
+  headers: BffAppContext["headers"],
+  requesterId: TenantId,
+  eservice: catalogApi.EService
+): Promise<void> {
+  try {
+    assertRequesterIsProducer(requesterId, eservice);
+  } catch {
+    const producerDelegations = await getAllDelegations(
+      delegationProcessClient,
+      headers,
+      {
+        kind: toDelegationKind(delegationKind.delegatedProducer),
+        delegateIds: [requesterId],
+        eserviceIds: [eservice.id],
+        delegationStates: [toDelegationState(delegationState.active)],
+      }
+    );
+    if (producerDelegations.length === 0) {
+      throw invalidEServiceRequester(eservice.id, requesterId);
+    }
+  }
+}
+
 export async function assertNotDelegatedEservice(
   delegationProcessClient: DelegationProcessClient,
   headers: BffAppContext["headers"],
   delegatorId: TenantId,
-  eserviceid: EServiceId
+  eserviceId: EServiceId
 ): Promise<void> {
   const delegations = await getAllDelegations(
     delegationProcessClient,
@@ -57,7 +82,7 @@ export async function assertNotDelegatedEservice(
     {
       kind: toDelegationKind(delegationKind.delegatedProducer),
       delegatorIds: [delegatorId],
-      eserviceIds: [eserviceid],
+      eserviceIds: [eserviceId],
       delegationStates: [
         toDelegationState(delegationState.active),
         toDelegationState(delegationState.waitingForApproval),
