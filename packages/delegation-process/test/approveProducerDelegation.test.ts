@@ -38,7 +38,7 @@ import {
   addOneDelegation,
   addOneTenant,
   addOneEservice,
-  delegationProducerService,
+  delegationService,
   fileManager,
   readLastDelegationEvent,
   pdfGenerator,
@@ -81,7 +81,7 @@ describe("approve producer delegation", () => {
     const { version } = await readLastDelegationEvent(delegation.id);
     expect(version).toBe("0");
 
-    await delegationProducerService.approveProducerDelegation(delegation.id, {
+    await delegationService.approveProducerDelegation(delegation.id, {
       authData,
       serviceName: "",
       correlationId: generateId(),
@@ -168,15 +168,12 @@ describe("approve producer delegation", () => {
       unsafeBrandId<DelegationId>("non-existent-id");
 
     await expect(
-      delegationProducerService.approveProducerDelegation(
-        nonExistentDelegationId,
-        {
-          authData: getRandomAuthData(delegateId),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
-      )
+      delegationService.approveProducerDelegation(nonExistentDelegationId, {
+        authData: getRandomAuthData(delegateId),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrow(
       delegationNotFound(
         nonExistentDelegationId,
@@ -196,7 +193,7 @@ describe("approve producer delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationProducerService.approveProducerDelegation(delegation.id, {
+      delegationService.approveProducerDelegation(delegation.id, {
         authData: getRandomAuthData(delegate.id),
         serviceName: "",
         correlationId: generateId(),
@@ -220,7 +217,7 @@ describe("approve producer delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationProducerService.approveProducerDelegation(delegation.id, {
+      delegationService.approveProducerDelegation(delegation.id, {
         authData: getRandomAuthData(wrongDelegate.id),
         serviceName: "",
         correlationId: generateId(),
@@ -248,7 +245,7 @@ describe("approve producer delegation", () => {
       await addOneDelegation(delegation);
 
       await expect(
-        delegationProducerService.approveProducerDelegation(delegation.id, {
+        delegationService.approveProducerDelegation(delegation.id, {
           authData: getRandomAuthData(delegate.id),
           serviceName: "",
           correlationId: generateId(),
@@ -272,7 +269,7 @@ describe("approve producer delegation", () => {
     const { version } = await readLastDelegationEvent(delegation.id);
     expect(version).toBe("0");
 
-    await delegationProducerService.approveProducerDelegation(delegation.id, {
+    await delegationService.approveProducerDelegation(delegation.id, {
       authData: getRandomAuthData(delegate.id),
       serviceName: "",
       correlationId: generateId(),

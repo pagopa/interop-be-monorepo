@@ -24,7 +24,7 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneDelegation,
-  delegationConsumerService,
+  delegationService,
   readLastDelegationEvent,
 } from "./utils.js";
 
@@ -45,7 +45,7 @@ describe("reject consumer delegation", () => {
 
     const rejectionReason = "I don't like computers, please send me a pigeon";
 
-    await delegationConsumerService.rejectConsumerDelegation(
+    await delegationService.rejectConsumerDelegation(
       delegation.id,
       rejectionReason,
       {
@@ -81,16 +81,12 @@ describe("reject consumer delegation", () => {
       unsafeBrandId<DelegationId>("non-existent-id");
 
     await expect(
-      delegationConsumerService.rejectConsumerDelegation(
-        nonExistentDelegationId,
-        "",
-        {
-          authData: getMockAuthData(delegateId),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
-      )
+      delegationService.rejectConsumerDelegation(nonExistentDelegationId, "", {
+        authData: getMockAuthData(delegateId),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrow(
       delegationNotFound(
         nonExistentDelegationId,
@@ -110,7 +106,7 @@ describe("reject consumer delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationConsumerService.rejectConsumerDelegation(delegation.id, "", {
+      delegationService.rejectConsumerDelegation(delegation.id, "", {
         authData: getMockAuthData(wrongDelegate.id),
         serviceName: "",
         correlationId: generateId(),
@@ -131,7 +127,7 @@ describe("reject consumer delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationConsumerService.rejectConsumerDelegation(delegation.id, "", {
+      delegationService.rejectConsumerDelegation(delegation.id, "", {
         authData: getMockAuthData(delegate.id),
         serviceName: "",
         correlationId: generateId(),

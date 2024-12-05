@@ -24,8 +24,6 @@ import {
   launchPuppeteerBrowser,
 } from "pagopa-interop-commons";
 import puppeteer, { Browser } from "puppeteer";
-import { delegationProducerServiceBuilder } from "../src/services/delegationProducerService.js";
-import { delegationConsumerServiceBuilder } from "../src/services/delegationConsumerService.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
@@ -60,21 +58,12 @@ vi.spyOn(puppeteer, "launch").mockImplementation(
 
 export const pdfGenerator = await initPDFGenerator();
 
-export const delegationProducerService = delegationProducerServiceBuilder(
-  postgresDB,
+export const delegationService = delegationServiceBuilder(
   readModelService,
+  postgresDB,
   pdfGenerator,
   fileManager
 );
-
-export const delegationConsumerService = delegationConsumerServiceBuilder(
-  postgresDB,
-  readModelService,
-  pdfGenerator,
-  fileManager
-);
-
-export const delegationService = delegationServiceBuilder(readModelService);
 
 export const writeSubmitDelegationInEventstore = async (
   delegation: Delegation

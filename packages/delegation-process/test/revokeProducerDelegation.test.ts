@@ -42,7 +42,7 @@ import {
   addOneDelegation,
   addOneEservice,
   addOneTenant,
-  delegationProducerService,
+  delegationService,
   fileManager,
   pdfGenerator,
   readLastDelegationEvent,
@@ -105,15 +105,12 @@ describe("revoke producer delegation", () => {
 
     await addOneDelegation(existentDelegation);
 
-    await delegationProducerService.revokeProducerDelegation(
-      existentDelegation.id,
-      {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "DelegationServiceTest",
-      }
-    );
+    await delegationService.revokeProducerDelegation(existentDelegation.id, {
+      authData,
+      logger: genericLogger,
+      correlationId: generateId(),
+      serviceName: "DelegationServiceTest",
+    });
 
     const event = await readLastDelegationEvent(existentDelegation.id);
     expect(event.version).toBe("1");
@@ -191,7 +188,7 @@ describe("revoke producer delegation", () => {
     const authData = getRandomAuthData(delegatorId);
     const delegationId = generateId<DelegationId>();
     await expect(
-      delegationProducerService.revokeProducerDelegation(delegationId, {
+      delegationService.revokeProducerDelegation(delegationId, {
         authData,
         logger: genericLogger,
         correlationId: generateId(),
@@ -212,7 +209,7 @@ describe("revoke producer delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationProducerService.revokeProducerDelegation(delegation.id, {
+      delegationService.revokeProducerDelegation(delegation.id, {
         authData: getRandomAuthData(delegate.id),
         serviceName: "",
         correlationId: generateId(),
@@ -238,7 +235,7 @@ describe("revoke producer delegation", () => {
     await addOneDelegation(existentDelegation);
 
     await expect(
-      delegationProducerService.revokeProducerDelegation(delegationId, {
+      delegationService.revokeProducerDelegation(delegationId, {
         authData,
         logger: genericLogger,
         correlationId: generateId(),
@@ -267,15 +264,12 @@ describe("revoke producer delegation", () => {
       await addOneDelegation(existentDelegation);
 
       await expect(
-        delegationProducerService.revokeProducerDelegation(
-          existentDelegation.id,
-          {
-            authData,
-            logger: genericLogger,
-            correlationId: generateId(),
-            serviceName: "DelegationServiceTest",
-          }
-        )
+        delegationService.revokeProducerDelegation(existentDelegation.id, {
+          authData,
+          logger: genericLogger,
+          correlationId: generateId(),
+          serviceName: "DelegationServiceTest",
+        })
       ).rejects.toThrow(
         incorrectState(
           existentDelegation.id,
