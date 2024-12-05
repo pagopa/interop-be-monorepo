@@ -117,7 +117,9 @@ const enhanceProducerEService = (
 ): bffApi.ProducerEService => {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   const draftDescriptor = eservice.descriptors.find(
-    (d) => d.state === catalogApiDescriptorState.DRAFT
+    (d) =>
+      d.state === catalogApiDescriptorState.DRAFT ||
+      d.state === catalogApiDescriptorState.WAITING_FOR_APPROVAL
   );
 
   const isRequesterDelegateProducer = requesterId !== eservice.producerId;
