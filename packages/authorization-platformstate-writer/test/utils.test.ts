@@ -43,7 +43,7 @@ import {
   makePlatformStatesPurposePK,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
-  PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection,
+  PlatformStatesAgreementGSIAgreement,
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
@@ -56,7 +56,7 @@ import {
   TokenGenerationStatesConsumerClient,
   TokenGenerationStatesGenericClient,
   unsafeBrandId,
-  TokenGenStatesConsumerClientWithGSIPKClientIdProjection,
+  TokenGenStatesConsumerClientGSIClient,
 } from "pagopa-interop-models";
 import {
   afterAll,
@@ -436,9 +436,7 @@ describe("utils", () => {
     );
 
     expect(res).toEqual(
-      PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection.parse(
-        agreementEntry2
-      )
+      PlatformStatesAgreementGSIAgreement.parse(agreementEntry2)
     );
   });
 
@@ -519,10 +517,10 @@ describe("utils", () => {
 
     expect(res).toEqual(
       expect.arrayContaining([
-        TokenGenStatesConsumerClientWithGSIPKClientIdProjection.parse(
+        TokenGenStatesConsumerClientGSIClient.parse(
           tokenGenStatesConsumerClientWithoutPurpose
         ),
-        TokenGenStatesConsumerClientWithGSIPKClientIdProjection.parse(
+        TokenGenStatesConsumerClientGSIClient.parse(
           tokenGenStatesConsumerClientWithPurpose
         ),
       ])
@@ -618,10 +616,7 @@ describe("utils", () => {
 
     expect(res).toEqual({
       purposeEntry,
-      agreementEntry:
-        PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection.parse(
-          agreementEntry
-        ),
+      agreementEntry: PlatformStatesAgreementGSIAgreement.parse(agreementEntry),
       catalogEntry,
     });
   });

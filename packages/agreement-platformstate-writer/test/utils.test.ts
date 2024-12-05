@@ -26,7 +26,7 @@ import {
   PlatformStatesCatalogEntry,
   TenantId,
   TokenGenerationStatesConsumerClient,
-  TokenGenStatesConsumerClientWithGSIPKConsumerIdEServiceIdProjection,
+  TokenGenStatesConsumerClientGSIAgreement,
 } from "pagopa-interop-models";
 import {
   afterAll,
@@ -311,10 +311,10 @@ describe("utils", async () => {
 
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          TokenGenStatesConsumerClientWithGSIPKConsumerIdEServiceIdProjection.parse(
+          TokenGenStatesConsumerClientGSIAgreement.parse(
             tokenGenStatesConsumerClient1
           ),
-          TokenGenStatesConsumerClientWithGSIPKConsumerIdEServiceIdProjection.parse(
+          TokenGenStatesConsumerClientGSIAgreement.parse(
             tokenGenStatesConsumerClient2
           ),
         ])
@@ -366,9 +366,7 @@ describe("utils", async () => {
       expect(tokenGenStatesConsumerClients).toEqual(
         expect.arrayContaining(
           z
-            .array(
-              TokenGenStatesConsumerClientWithGSIPKConsumerIdEServiceIdProjection
-            )
+            .array(TokenGenStatesConsumerClientGSIAgreement)
             .parse(writtenTokenGenStatesConsumerClients)
         )
       );

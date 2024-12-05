@@ -22,8 +22,8 @@ import {
   PlatformStatesAgreementEntry,
   TokenGenerationStatesGenericClient,
   TokenGenerationStatesApiClient,
-  TokenGenStatesConsumerClientWithGSIPKConsumerIdEServiceIdProjection,
-  TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection,
+  TokenGenStatesConsumerClientGSIAgreement,
+  TokenGenStatesConsumerClientGSIDescriptor,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -241,16 +241,12 @@ export const readAllPlatformStatesItems = async (
 export const readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
   gsiPKEServiceIdDescriptorId: GSIPKEServiceIdDescriptorId,
   dynamoDBClient: DynamoDBClient
-): Promise<
-  TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection[]
-> => {
+): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
   const runPaginatedQuery = async (
     gsiPKEServiceIdDescriptorId: GSIPKEServiceIdDescriptorId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<
-    TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection[]
-  > => {
+  ): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
     const input: QueryInput = {
       TableName: "token-generation-states",
       IndexName: "Descriptor",
@@ -271,9 +267,7 @@ export const readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenGenStatesEntries = z
-        .array(
-          TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection
-        )
+        .array(TokenGenStatesConsumerClientGSIDescriptor)
         .safeParse(unmarshalledItems);
 
       if (!tokenGenStatesEntries.success) {
@@ -309,16 +303,12 @@ export const readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
 export const readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId = async (
   gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId,
   dynamoDBClient: DynamoDBClient
-): Promise<
-  TokenGenStatesConsumerClientWithGSIPKConsumerIdEServiceIdProjection[]
-> => {
+): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
   const runPaginatedQuery = async (
     gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<
-    TokenGenStatesConsumerClientWithGSIPKConsumerIdEServiceIdProjection[]
-  > => {
+  ): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
     const input: QueryInput = {
       TableName: "token-generation-states",
       IndexName: "Agreement",
@@ -339,9 +329,7 @@ export const readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenGenStatesEntries = z
-        .array(
-          TokenGenStatesConsumerClientWithGSIPKConsumerIdEServiceIdProjection
-        )
+        .array(TokenGenStatesConsumerClientGSIAgreement)
         .safeParse(unmarshalledItems);
 
       if (!tokenGenStatesEntries.success) {

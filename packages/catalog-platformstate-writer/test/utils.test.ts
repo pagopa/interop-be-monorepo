@@ -13,7 +13,7 @@ import {
 import {
   PlatformStatesCatalogEntry,
   TokenGenerationStatesConsumerClient,
-  TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection,
+  TokenGenStatesConsumerClientGSIDescriptor,
   descriptorState,
   generateId,
   itemState,
@@ -374,10 +374,10 @@ describe("utils tests", async () => {
 
       expect(tokenGenStatesConsumerClients).toEqual(
         expect.arrayContaining([
-          TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection.parse(
+          TokenGenStatesConsumerClientGSIDescriptor.parse(
             tokenGenStatesConsumerClient1
           ),
-          TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection.parse(
+          TokenGenStatesConsumerClientGSIDescriptor.parse(
             tokenGenStatesConsumerClient2
           ),
         ])
@@ -429,9 +429,7 @@ describe("utils tests", async () => {
       expect(tokenGenStatesConsumerClients).toEqual(
         expect.arrayContaining(
           z
-            .array(
-              TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection
-            )
+            .array(TokenGenStatesConsumerClientGSIDescriptor)
             .parse(writtenTokenGenStatesConsumerClients)
         )
       );

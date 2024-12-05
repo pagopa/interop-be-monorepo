@@ -79,7 +79,7 @@ export type PlatformStatesGenericEntry = z.infer<
 >;
 
 // GSI projection types
-export const PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection =
+export const PlatformStatesAgreementGSIAgreement =
   PlatformStatesAgreementEntry.pick({
     PK: true,
     GSIPK_consumerId_eserviceId: true,
@@ -87,7 +87,6 @@ export const PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection =
     agreementDescriptorId: true,
     state: true,
   });
-export type PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection =
-  z.infer<
-    typeof PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection
-  >;
+export type PlatformStatesAgreementGSIAgreement = z.infer<
+  typeof PlatformStatesAgreementGSIAgreement
+>;

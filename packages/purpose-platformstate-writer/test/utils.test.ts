@@ -28,8 +28,8 @@ import {
   makePlatformStatesPurposePK,
   makeTokenGenerationStatesClientKidPurposePK,
   purposeVersionState,
-  TokenGenStatesConsumerClientWithGSIPKPurposeIdProjection,
-  PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection,
+  TokenGenStatesConsumerClientGSIPurpose,
+  PlatformStatesAgreementGSIAgreement,
 } from "pagopa-interop-models";
 import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import {
@@ -268,10 +268,10 @@ describe("utils tests", async () => {
 
       expect(result.tokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          TokenGenStatesConsumerClientWithGSIPKPurposeIdProjection.parse(
+          TokenGenStatesConsumerClientGSIPurpose.parse(
             tokenGenStatesConsumerClient1
           ),
-          TokenGenStatesConsumerClientWithGSIPKPurposeIdProjection.parse(
+          TokenGenStatesConsumerClientGSIPurpose.parse(
             tokenGenStatesConsumerClient2
           ),
         ])
@@ -371,7 +371,7 @@ describe("utils tests", async () => {
       );
 
       expect(retrievedPlatformAgreementEntry).toEqual(
-        PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection.parse(
+        PlatformStatesAgreementGSIAgreement.parse(
           previousPlatformAgreementEntry2
         )
       );

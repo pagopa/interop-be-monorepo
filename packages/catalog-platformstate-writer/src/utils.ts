@@ -7,7 +7,7 @@ import {
   ItemState,
   PlatformStatesCatalogEntry,
   PlatformStatesEServiceDescriptorPK,
-  TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection,
+  TokenGenStatesConsumerClientGSIDescriptor,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
@@ -185,16 +185,12 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   descriptorState: ItemState,
   dynamoDBClient: DynamoDBClient
-): Promise<
-  TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection[]
-> => {
+): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
   const runPaginatedQuery = async (
     eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<
-    TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection[]
-  > => {
+  ): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Descriptor",
@@ -217,9 +213,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenGenStatesEntries = z
-        .array(
-          TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection
-        )
+        .array(TokenGenStatesConsumerClientGSIDescriptor)
         .safeParse(unmarshalledItems);
 
       if (!tokenGenStatesEntries.success) {
@@ -264,16 +258,12 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
   descriptorVoucherLifespan: number,
   descriptorAudience: string[],
   dynamoDBClient: DynamoDBClient
-): Promise<
-  TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection[]
-> => {
+): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
   const runPaginatedQuery = async (
     eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<
-    TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection[]
-  > => {
+  ): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Descriptor",
@@ -296,9 +286,7 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenGenStatesEntries = z
-        .array(
-          TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection
-        )
+        .array(TokenGenStatesConsumerClientGSIDescriptor)
         .safeParse(unmarshalledItems);
 
       if (!tokenGenStatesEntries.success) {
@@ -372,9 +360,7 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
         const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
         const tokenGenStatesEntries = z
-          .array(
-            TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection
-          )
+          .array(TokenGenStatesConsumerClientGSIDescriptor)
           .safeParse(unmarshalledItems);
 
         if (!tokenGenStatesEntries.success) {
@@ -407,7 +393,7 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
 const updateDescriptorStateInTokenGenerationStatesEntries = async (
   descriptorState: ItemState,
   dynamoDBClient: DynamoDBClient,
-  entriesToUpdate: TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection[]
+  entriesToUpdate: TokenGenStatesConsumerClientGSIDescriptor[]
 ): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
@@ -446,7 +432,7 @@ const updateDescriptorInfoInTokenGenerationStatesEntries = async ({
   descriptorVoucherLifespan: number;
   descriptorAudience: string[];
   dynamoDBClient: DynamoDBClient;
-  entriesToUpdate: TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection[];
+  entriesToUpdate: TokenGenStatesConsumerClientGSIDescriptor[];
 }): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
@@ -485,7 +471,7 @@ const updateDescriptorInfoInTokenGenerationStatesEntries = async ({
 const updateDescriptorVoucherLifespanInTokenGenerationStatesEntries = async (
   voucherLifespan: number,
   dynamoDBClient: DynamoDBClient,
-  entriesToUpdate: TokenGenStatesConsumerClientWithGSIPKEServiceIdDescriptorIdProjection[]
+  entriesToUpdate: TokenGenStatesConsumerClientGSIDescriptor[]
 ): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {

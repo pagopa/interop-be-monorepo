@@ -24,7 +24,7 @@ import {
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
-  PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection,
+  PlatformStatesAgreementGSIAgreement,
   PlatformStatesAgreementPK,
   PlatformStatesCatalogEntry,
   PlatformStatesEServiceDescriptorPK,
@@ -35,7 +35,7 @@ import {
   PurposeVersion,
   PurposeVersionId,
   purposeVersionState,
-  TokenGenStatesConsumerClientWithGSIPKPurposeIdProjection,
+  TokenGenStatesConsumerClientGSIPurpose,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { config } from "./config/config.js";
@@ -134,7 +134,7 @@ export const readTokenGenStatesEntriesByGSIPKPurposeId = async (
   purposeId: PurposeId,
   exclusiveStartKey?: Record<string, AttributeValue>
 ): Promise<{
-  tokenGenStatesEntries: TokenGenStatesConsumerClientWithGSIPKPurposeIdProjection[];
+  tokenGenStatesEntries: TokenGenStatesConsumerClientGSIPurpose[];
   lastEvaluatedKey?: Record<string, AttributeValue>;
 }> => {
   const input: QueryInput = {
@@ -159,7 +159,7 @@ export const readTokenGenStatesEntriesByGSIPKPurposeId = async (
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
     const tokenGenStatesEntries = z
-      .array(TokenGenStatesConsumerClientWithGSIPKPurposeIdProjection)
+      .array(TokenGenStatesConsumerClientGSIPurpose)
       .safeParse(unmarshalledItems);
 
     if (!tokenGenStatesEntries.success) {
@@ -457,9 +457,7 @@ export const updatePurposeDataInTokenGenStatesEntries = async ({
 export const readPlatformAgreementEntry = async (
   dynamoDBClient: DynamoDBClient,
   gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId
-): Promise<
-  PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection | undefined
-> => {
+): Promise<PlatformStatesAgreementGSIAgreement | undefined> => {
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     IndexName: "Agreement",
@@ -477,7 +475,7 @@ export const readPlatformAgreementEntry = async (
   } else {
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
     const platformAgreementEntries = z
-      .array(PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection)
+      .array(PlatformStatesAgreementGSIAgreement)
       .safeParse(unmarshalledItems);
 
     if (platformAgreementEntries.success) {

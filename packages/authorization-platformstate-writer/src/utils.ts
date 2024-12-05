@@ -34,7 +34,7 @@ import {
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
   PlatformStatesAgreementPK,
-  PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection,
+  PlatformStatesAgreementGSIAgreement,
   PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
   PlatformStatesClientPK,
@@ -46,10 +46,10 @@ import {
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesConsumerClient,
-  TokenGenStatesConsumerClientWithGSIPKClientIdProjection,
-  TokenGenStatesConsumerClientWithGSIPKClientIdPurposeIdProjection,
-  TokenGenStatesGenericClientWithGSIPKClientIdProjection,
-  TokenGenStatesGenericClientWithGSIPKKidProjection,
+  TokenGenStatesConsumerClientGSIClient,
+  TokenGenStatesConsumerClientGSIClientPurpose,
+  TokenGenStatesGenericClientGSIClient,
+  TokenGenStatesGenericClientGSIKid,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -85,7 +85,7 @@ export const deleteEntriesFromTokenGenStatesByKid = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenGenStatesEntries = z
-        .array(TokenGenStatesGenericClientWithGSIPKKidProjection)
+        .array(TokenGenStatesGenericClientGSIKid)
         .safeParse(unmarshalledItems);
 
       if (!tokenGenStatesEntries.success) {
@@ -161,7 +161,7 @@ export const deleteEntriesFromTokenGenStatesByClientId = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenGenStatesEntries = z
-        .array(TokenGenStatesGenericClientWithGSIPKClientIdProjection)
+        .array(TokenGenStatesGenericClientGSIClient)
         .safeParse(unmarshalledItems);
 
       if (!tokenGenStatesEntries.success) {
@@ -243,7 +243,7 @@ const readTokenGenStatesConsumerClientsByGSIPKClientPurpose = async (
   dynamoDBClient: DynamoDBClient,
   exclusiveStartKey?: Record<string, AttributeValue>
 ): Promise<{
-  tokenGenStatesEntries: TokenGenStatesConsumerClientWithGSIPKClientIdPurposeIdProjection[];
+  tokenGenStatesEntries: TokenGenStatesConsumerClientGSIClientPurpose[];
   lastEvaluatedKey: Record<string, AttributeValue> | undefined;
 }> => {
   const input: QueryInput = {
@@ -268,7 +268,7 @@ const readTokenGenStatesConsumerClientsByGSIPKClientPurpose = async (
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
     const tokenGenStatesEntries = z
-      .array(TokenGenStatesConsumerClientWithGSIPKClientIdPurposeIdProjection)
+      .array(TokenGenStatesConsumerClientGSIClientPurpose)
       .safeParse(unmarshalledItems);
 
     if (!tokenGenStatesEntries.success) {
@@ -326,9 +326,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
     GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<
-    TokenGenStatesConsumerClientWithGSIPKClientIdPurposeIdProjection[]
-  > => {
+  ): Promise<TokenGenStatesConsumerClientGSIClientPurpose[]> => {
     const res = await readTokenGenStatesConsumerClientsByGSIPKClientPurpose(
       GSIPK_clientId_purposeId,
       dynamoDBClient,
@@ -444,9 +442,7 @@ export const readPlatformCatalogEntry = async (
 export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
   gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId,
   dynamoDBClient: DynamoDBClient
-): Promise<
-  PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection | undefined
-> => {
+): Promise<PlatformStatesAgreementGSIAgreement | undefined> => {
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     IndexName: "Agreement",
@@ -464,7 +460,7 @@ export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
   } else {
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
     const platformAgreementEntries = z
-      .array(PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection)
+      .array(PlatformStatesAgreementGSIAgreement)
       .safeParse(unmarshalledItems);
 
     if (platformAgreementEntries.success) {
@@ -788,12 +784,12 @@ export const writePlatformClientEntry = async (
 export const readConsumerClientEntriesInTokenGenerationStates = async (
   GSIPK_clientId: ClientId,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenStatesConsumerClientWithGSIPKClientIdProjection[]> => {
+): Promise<TokenGenStatesConsumerClientGSIClient[]> => {
   const runPaginatedQuery = async (
     GSIPK_clientId: ClientId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenStatesConsumerClientWithGSIPKClientIdProjection[]> => {
+  ): Promise<TokenGenStatesConsumerClientGSIClient[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Client",
@@ -817,7 +813,7 @@ export const readConsumerClientEntriesInTokenGenerationStates = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const clientEntries = z
-        .array(TokenGenStatesConsumerClientWithGSIPKClientIdProjection)
+        .array(TokenGenStatesConsumerClientGSIClient)
         .safeParse(unmarshalledItems);
 
       if (!clientEntries.success) {
@@ -913,7 +909,7 @@ export const retrievePlatformStatesByPurpose = async (
   dynamoDBClient: DynamoDBClient
 ): Promise<{
   purposeEntry?: PlatformStatesPurposeEntry;
-  agreementEntry?: PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection;
+  agreementEntry?: PlatformStatesAgreementGSIAgreement;
   catalogEntry?: PlatformStatesCatalogEntry;
 }> => {
   const purposePK = makePlatformStatesPurposePK(purposeId);
@@ -1049,7 +1045,7 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
   dynamoDBClient: DynamoDBClient;
   entry: TokenGenerationStatesConsumerClient;
   purposeEntry?: PlatformStatesPurposeEntry;
-  agreementEntry?: PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection;
+  agreementEntry?: PlatformStatesAgreementGSIAgreement;
   catalogEntry?: PlatformStatesCatalogEntry;
 }): Promise<void> => {
   const setIfChanged = <K extends keyof TokenGenerationStatesConsumerClient>(
@@ -1200,12 +1196,12 @@ export const createTokenGenStatesConsumerClient = ({
   agreementEntry,
   catalogEntry,
 }: {
-  tokenGenStatesClient: TokenGenStatesConsumerClientWithGSIPKClientIdProjection;
+  tokenGenStatesClient: TokenGenStatesConsumerClientGSIClient;
   kid: string;
   clientId: ClientId;
   purposeId: PurposeId;
   purposeEntry?: PlatformStatesPurposeEntry;
-  agreementEntry?: PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection;
+  agreementEntry?: PlatformStatesAgreementGSIAgreement;
   catalogEntry?: PlatformStatesCatalogEntry;
 }): TokenGenerationStatesConsumerClient => {
   const pk = makeTokenGenerationStatesClientKidPurposePK({
