@@ -7,7 +7,6 @@ import {
   Tenant,
   WithMetadata,
   agreementState,
-  delegationKind,
   genericError,
 } from "pagopa-interop-models";
 import {
@@ -18,7 +17,6 @@ import {
   toCreateEventAgreementSuspendedByProducer,
   toCreateEventAgreementSuspendedByConsumer,
 } from "../model/domain/toEvent.js";
-import { getRequesterDelegateKind } from "../utilities/delegations.js";
 import {
   agreementStateByFlags,
   nextStateByAttributesFSM,
@@ -120,24 +118,20 @@ export function createAgreementSuspendedEvent(
 ): CreateEvent<AgreementEventV2> {
   const isProducer = authData.organizationId === agreement.data.producerId;
   const isConsumer = authData.organizationId === agreement.data.consumerId;
-  const requesterDelegateKind = getRequesterDelegateKind(
-    activeDelegations,
-    authData
-  );
+  const isProducerDelegate =
+    activeDelegations.producerDelegation?.delegateId ===
+    authData.organizationId;
+  const isConsumerDelegate =
+    activeDelegations.consumerDelegation?.delegateId ===
+    authData.organizationId;
 
-  if (
-    isProducer ||
-    requesterDelegateKind === delegationKind.delegatedProducer
-  ) {
+  if (isProducer || isProducerDelegate) {
     return toCreateEventAgreementSuspendedByProducer(
       updatedAgreement,
       agreement.metadata.version,
       correlationId
     );
-  } else if (
-    isConsumer ||
-    requesterDelegateKind === delegationKind.delegatedConsumer
-  ) {
+  } else if (isConsumer || isConsumerDelegate) {
     return toCreateEventAgreementSuspendedByConsumer(
       updatedAgreement,
       agreement.metadata.version,

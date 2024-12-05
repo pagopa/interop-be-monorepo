@@ -5,32 +5,26 @@ import {
   AgreementState,
   TenantId,
   agreementState,
-  delegationKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ActiveDelegations } from "../model/domain/models.js";
-import { getRequesterDelegateKind } from "../utilities/delegations.js";
 
 export const createStamp = (
   authData: AuthData,
   activeDelegations: ActiveDelegations
 ): AgreementStamp => {
-  const requesterDelegateKind = getRequesterDelegateKind(
-    activeDelegations,
-    authData
-  );
+  const isProducerDelegate =
+    activeDelegations.producerDelegation?.delegateId ===
+    authData.organizationId;
+  const isConsumerDelegate =
+    activeDelegations.consumerDelegation?.delegateId ===
+    authData.organizationId;
 
-  const delegationId = match(requesterDelegateKind)
-    .with(
-      delegationKind.delegatedProducer,
-      () => activeDelegations.producerDelegation?.id
-    )
-    .with(
-      delegationKind.delegatedConsumer,
-      () => activeDelegations.consumerDelegation?.id
-    )
-    .with(undefined, () => undefined)
-    .exhaustive();
+  const delegationId = isProducerDelegate
+    ? activeDelegations.producerDelegation?.id
+    : isConsumerDelegate
+    ? activeDelegations.consumerDelegation?.id
+    : undefined;
 
   return {
     who: authData.userId,

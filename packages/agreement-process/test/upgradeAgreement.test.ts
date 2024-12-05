@@ -65,7 +65,6 @@ import {
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
-import { createStamp } from "../src/services/agreementStampUtils.js";
 import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
 import {
   addOneAgreement,
@@ -77,6 +76,7 @@ import {
   fileManager,
   getMockConsumerDocument,
   getMockContract,
+  getRandomPastStamp,
   pdfGenerator,
   readAgreementEventByVersion,
   uploadDocument,
@@ -185,10 +185,10 @@ describe("upgrade Agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        submission: createStamp(authData.userId),
-        activation: createStamp(authData.userId),
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        submission: getRandomPastStamp(authData.userId),
+        activation: getRandomPastStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       contract: getMockContract(
         agreementId,
@@ -420,10 +420,10 @@ describe("upgrade Agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        submission: createStamp(authData.userId),
-        activation: createStamp(authData.userId),
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        submission: getRandomPastStamp(authData.userId),
+        activation: getRandomPastStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       contract: getMockContract(agreementId, consumer.id, producer.id),
       suspendedAt: new Date(),
@@ -605,13 +605,12 @@ describe("upgrade Agreement", () => {
       ],
     };
 
-    const delegate: Tenant = getMockTenant();
+    const delegate = getMockTenant();
+    const authData = getRandomAuthData(delegate.id);
 
     await addOneTenant(consumer);
     await addOneTenant(producer);
     await addOneTenant(delegate);
-
-    const authData = getRandomAuthData(consumer.id);
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -669,10 +668,10 @@ describe("upgrade Agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        submission: createStamp(submitterId),
-        activation: createStamp(activatorId),
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        submission: getRandomPastStamp(submitterId),
+        activation: getRandomPastStamp(activatorId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       contract: getMockContract(agreementId, consumer.id, producer.id),
       suspendedAt: new Date(),
@@ -985,10 +984,10 @@ describe("upgrade Agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        submission: createStamp(authData.userId),
-        activation: createStamp(authData.userId),
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        submission: getRandomPastStamp(authData.userId),
+        activation: getRandomPastStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       contract: getMockContract(agreementId, consumer.id, producer.id),
       suspendedAt: new Date(),
