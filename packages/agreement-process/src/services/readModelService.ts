@@ -346,11 +346,8 @@ function getDelegateAgreementsFilters(producerIds: TenantId[] | undefined) {
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const agreements = readModelRepository.agreements;
-  const eservices = readModelRepository.eservices;
-  const tenants = readModelRepository.tenants;
-  const attributes = readModelRepository.attributes;
-  const delegations = readModelRepository.delegations;
+  const { agreements, eservices, tenants, attributes, delegations } =
+    readModelRepository;
   return {
     async getAgreements(
       filters: AgreementQueryFilters,
@@ -637,6 +634,30 @@ export function readModelServiceBuilder(
         );
       }
       return result.data.data;
+    },
+    async getActiveConsumerDelegationsByEserviceId(
+      eserviceId: EServiceId
+    ): Promise<Delegation[]> {
+      const data = await delegations
+        .find(
+          {
+            "data.eserviceId": eserviceId,
+            "data.state": delegationState.active,
+            "data.kind": delegationKind.delegatedConsumer,
+          },
+          { projection: { data: true } }
+        )
+        .toArray();
+
+      const result = z.array(Delegation).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse delegation item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+      return result.data;
     },
   };
 }

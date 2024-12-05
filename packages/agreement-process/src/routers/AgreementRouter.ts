@@ -17,6 +17,7 @@ import {
   DescriptorId,
   EServiceId,
   unsafeBrandId,
+  DelegationId,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -321,7 +322,16 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const agreement = await agreementService.createAgreement(req.body, ctx);
+        const agreement = await agreementService.createAgreement(
+          {
+            eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
+            descriptorId: unsafeBrandId<DescriptorId>(req.body.descriptorId),
+            delegationId: req.body.delegationId
+              ? unsafeBrandId<DelegationId>(req.body.delegationId)
+              : undefined,
+          },
+          ctx
+        );
         return res
           .status(200)
           .send(

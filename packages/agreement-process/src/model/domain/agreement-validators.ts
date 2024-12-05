@@ -20,7 +20,6 @@ import {
   Delegation,
   delegationState,
 } from "pagopa-interop-models";
-import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
 import {
   certifiedAttributesSatisfied,
@@ -260,6 +259,21 @@ export const assertActivableState = (agreement: Agreement): void => {
   }
 };
 
+export const assertRequesterIsDelegateConsumer = (
+  activeConsumerDelegation: Delegation,
+  eserviceId: EServiceId,
+  authData: AuthData
+): void => {
+  if (
+    activeConsumerDelegation.delegateId !== authData.organizationId ||
+    activeConsumerDelegation.eserviceId !== eserviceId ||
+    activeConsumerDelegation.kind !== delegationKind.delegatedConsumer ||
+    activeConsumerDelegation.state !== delegationState.active
+  ) {
+    throw operationNotAllowed(authData.organizationId);
+  }
+};
+
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
@@ -317,12 +331,12 @@ export const validateCreationOnDescriptor = (
 
 export const verifyCreationConflictingAgreements = async (
   organizationId: TenantId,
-  agreement: agreementApi.AgreementPayload,
+  eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(
     organizationId,
-    unsafeBrandId(agreement.eserviceId),
+    eserviceId,
     agreementCreationConflictingStates,
     readModelService
   );

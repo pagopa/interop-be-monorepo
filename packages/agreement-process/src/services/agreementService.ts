@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -31,10 +32,10 @@ import {
   agreementState,
   descriptorState,
   generateId,
-  unsafeBrandId,
   CompactTenant,
   CorrelationId,
   Delegation,
+  DelegationId,
 } from "pagopa-interop-models";
 import {
   declaredAttributesSatisfied,
@@ -48,9 +49,11 @@ import {
   agreementDocumentNotFound,
   agreementNotFound,
   agreementSubmissionFailed,
+  delegationNotFound,
   descriptorNotFound,
   eServiceNotFound,
   noNewerDescriptor,
+  operationNotAllowed,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -89,6 +92,7 @@ import {
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
   assertRequesterIsConsumer,
+  assertRequesterIsDelegateConsumer,
   assertSubmittableState,
   failOnActivationFailure,
   matchingCertifiedAttributes,
@@ -192,6 +196,19 @@ export const retrieveDescriptor = (
   return descriptor;
 };
 
+const retrieveDelegation = (
+  delegations: Delegation[],
+  delegationId: DelegationId
+): Delegation => {
+  const delegation = delegations.find((d) => d.id === delegationId);
+
+  if (!delegation) {
+    throw delegationNotFound(delegationId);
+  }
+
+  return delegation;
+};
+
 function retrieveAgreementDocument(
   agreement: Agreement,
   documentId: AgreementDocumentId
@@ -232,18 +249,21 @@ export function agreementServiceBuilder(
       return agreement.data;
     },
     async createAgreement(
-      agreementPayload: agreementApi.AgreementPayload,
+      {
+        eserviceId,
+        descriptorId,
+        delegationId,
+      }: {
+        eserviceId: EServiceId;
+        descriptorId: DescriptorId;
+        delegationId?: DelegationId;
+      },
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(
-        `Creating agreement for EService ${agreementPayload.eserviceId} and Descriptor ${agreementPayload.descriptorId}`
-      );
-
-      const eserviceId: EServiceId = unsafeBrandId<EServiceId>(
-        agreementPayload.eserviceId
-      );
-      const descriptorId: DescriptorId = unsafeBrandId<DescriptorId>(
-        agreementPayload.descriptorId
+        `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -252,13 +272,17 @@ export function agreementServiceBuilder(
 
       await verifyCreationConflictingAgreements(
         authData.organizationId,
-        agreementPayload,
+        eserviceId,
         readModelService
       );
-      const consumer = await retrieveTenant(
-        authData.organizationId,
+
+      const consumer = await getConsumerFromDelegationOrRequester(
+        eserviceId,
+        delegationId,
+        authData,
         readModelService
       );
+
       if (eservice.producerId !== consumer.id) {
         validateCertifiedAttributes({ descriptor, consumer });
       }
@@ -268,7 +292,7 @@ export function agreementServiceBuilder(
         eserviceId,
         descriptorId,
         producerId: eservice.producerId,
-        consumerId: authData.organizationId,
+        consumerId: consumer.id,
         state: agreementState.draft,
         verifiedAttributes: [],
         certifiedAttributes: [],
@@ -1298,4 +1322,33 @@ async function addContractOnFirstActivation(
   }
 
   return agreement;
+}
+
+async function getConsumerFromDelegationOrRequester(
+  eserviceId: EServiceId,
+  delegationId: DelegationId | undefined,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<Tenant> {
+  const delegations =
+    await readModelService.getActiveConsumerDelegationsByEserviceId(eserviceId);
+
+  if (delegationId) {
+    // If a delegation has been passed, the consumer is the delegator
+    const delegation = retrieveDelegation(delegations, delegationId);
+
+    assertRequesterIsDelegateConsumer(delegation, eserviceId, authData);
+    return retrieveTenant(delegation.delegatorId, readModelService);
+  } else {
+    const hasDelegated = delegations.some(
+      (d) => d.delegatorId === authData.organizationId
+    );
+
+    if (hasDelegated) {
+      // If a delegation exists, the delegator cannot create the agreement
+      throw operationNotAllowed(authData.organizationId);
+    }
+
+    return retrieveTenant(authData.organizationId, readModelService);
+  }
 }
