@@ -305,7 +305,7 @@ export async function handleMessageV2(
                 dynamoDBClient
               );
               await deleteClientEntryFromTokenGenerationStates(
-                entry,
+                entry.PK,
                 dynamoDBClient
               );
               return newTokenGenStatesConsumerClient;

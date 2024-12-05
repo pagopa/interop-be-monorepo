@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -44,6 +43,7 @@ import {
   makePlatformStatesPurposePK,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
+  PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection,
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
@@ -55,6 +55,7 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
   TokenGenerationStatesGenericClient,
+  TokenGenStatesGenericClientWithGSIPKClientIdProjection,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -67,7 +68,6 @@ import {
   it,
   vi,
 } from "vitest";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { z } from "zod";
 import {
   setClientPurposeIdsInPlatformStatesEntry,
@@ -88,15 +88,9 @@ import {
   upsertTokenGenStatesConsumerClient,
   upsertTokenGenStatesApiClient,
 } from "../src/utils.js";
-import { config } from "./utils.js";
+import { dynamoDBClient } from "./utils.js";
 
 describe("utils", () => {
-  if (!config) {
-    fail();
-  }
-  const dynamoDBClient = new DynamoDBClient({
-    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-  });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });
@@ -218,7 +212,7 @@ describe("utils", () => {
       );
 
       await deleteClientEntryFromTokenGenerationStates(
-        clientEntry,
+        clientEntry.PK,
         dynamoDBClient
       );
 
@@ -242,7 +236,7 @@ describe("utils", () => {
       );
 
       await deleteClientEntryFromTokenGenerationStates(
-        tokenGenStatesConsumerClient,
+        tokenGenStatesConsumerClient.PK,
         dynamoDBClient
       );
 
@@ -441,7 +435,11 @@ describe("utils", () => {
       dynamoDBClient
     );
 
-    expect(res).toEqual(agreementEntry2);
+    expect(res).toEqual(
+      PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection.parse(
+        agreementEntry2
+      )
+    );
   });
 
   describe("upsertTokenGenStatesConsumerClient", () => {
@@ -521,8 +519,12 @@ describe("utils", () => {
 
     expect(res).toEqual(
       expect.arrayContaining([
-        tokenGenStatesConsumerClientWithoutPurpose,
-        tokenGenStatesConsumerClientWithPurpose,
+        TokenGenStatesGenericClientWithGSIPKClientIdProjection.parse(
+          tokenGenStatesConsumerClientWithoutPurpose
+        ),
+        TokenGenStatesGenericClientWithGSIPKClientIdProjection.parse(
+          tokenGenStatesConsumerClientWithPurpose
+        ),
       ])
     );
   });
@@ -616,7 +618,10 @@ describe("utils", () => {
 
     expect(res).toEqual({
       purposeEntry,
-      agreementEntry,
+      agreementEntry:
+        PlatformStatesAgreementWithGSIPKConsumerIdEServiceIdProjection.parse(
+          agreementEntry
+        ),
       catalogEntry,
     });
   });

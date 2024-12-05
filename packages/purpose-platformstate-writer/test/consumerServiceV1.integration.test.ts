@@ -1,4 +1,3 @@
-import { fail } from "assert";
 import {
   afterAll,
   afterEach,
@@ -9,7 +8,6 @@ import {
   it,
   vi,
 } from "vitest";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   getMockAgreement,
   getMockDescriptor,
@@ -52,20 +50,12 @@ import {
   writePlatformPurposeEntry,
 } from "../src/utils.js";
 import {
-  config,
-  readAllTokenGenStatesEntriesByGSIPKPurposeId,
+  dynamoDBClient,
   writeAgreementEntry,
   writeCatalogEntry,
 } from "./utils.js";
 
 describe("integration tests for events V1", () => {
-  if (!config) {
-    fail();
-  }
-
-  const dynamoDBClient = new DynamoDBClient({
-    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-  });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });
@@ -230,11 +220,9 @@ describe("integration tests for events V1", () => {
         consumerId: purpose.consumerId,
         eserviceId: purpose.eserviceId,
       });
-      const retrievedTokenGenStatesEntries =
-        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
-          dynamoDBClient,
-          purposeId
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -332,11 +320,9 @@ describe("integration tests for events V1", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
-          dynamoDBClient,
-          purposeId
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
@@ -457,11 +443,9 @@ describe("integration tests for events V1", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
-          dynamoDBClient,
-          purposeId
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -587,11 +571,9 @@ describe("integration tests for events V1", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
-          dynamoDBClient,
-          purposeId
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -726,11 +708,9 @@ describe("integration tests for events V1", () => {
 
       await handleMessageV1(message, dynamoDBClient);
 
-      const retrievedTokenGenStatesEntries =
-        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
-          dynamoDBClient,
-          purposeId
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const gsiPKEserviceIdDescriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: purpose.eserviceId,
         descriptorId: mockDescriptor.id,
@@ -865,11 +845,9 @@ describe("integration tests for events V1", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
-          dynamoDBClient,
-          purposeId
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
@@ -976,11 +954,9 @@ describe("integration tests for events V1", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
-          dynamoDBClient,
-          purposeId
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -1096,11 +1072,9 @@ describe("integration tests for events V1", () => {
       expect(retrievedPlatformPurposeEntry).toBeUndefined();
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
-          dynamoDBClient,
-          purposeId
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
@@ -1211,11 +1185,9 @@ describe("integration tests for events V1", () => {
       expect(retrievedPlatformPurposeEntry).toBeUndefined();
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readAllTokenGenStatesEntriesByGSIPKPurposeId(
-          dynamoDBClient,
-          purposeId
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,

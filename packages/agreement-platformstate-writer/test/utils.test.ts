@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
 import crypto from "crypto";
-import {
-  ConditionalCheckFailedException,
-  DynamoDBClient,
-} from "@aws-sdk/client-dynamodb";
+import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -30,6 +26,7 @@ import {
   PlatformStatesCatalogEntry,
   TenantId,
   TokenGenerationStatesConsumerClient,
+  TokenGenStatesConsumerClientWithGSIPKConsumerIdEServiceIdProjection,
 } from "pagopa-interop-models";
 import {
   afterAll,
@@ -41,6 +38,7 @@ import {
   it,
   vi,
 } from "vitest";
+import { z } from "zod";
 import {
   updateAgreementStateInPlatformStatesEntry,
   readAgreementEntry,
@@ -51,15 +49,9 @@ import {
   updateAgreementStateAndDescriptorInfoOnTokenGenStates,
   isLatestAgreement,
 } from "../src/utils.js";
-import { config } from "./utils.js";
+import { dynamoDBClient } from "./utils.js";
 
 describe("utils", async () => {
-  if (!config) {
-    fail();
-  }
-  const dynamoDBClient = new DynamoDBClient({
-    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-  });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });
@@ -319,8 +311,12 @@ describe("utils", async () => {
 
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          tokenGenStatesConsumerClient1,
-          tokenGenStatesConsumerClient2,
+          TokenGenStatesConsumerClientWithGSIPKConsumerIdEServiceIdProjection.parse(
+            tokenGenStatesConsumerClient1
+          ),
+          TokenGenStatesConsumerClientWithGSIPKConsumerIdEServiceIdProjection.parse(
+            tokenGenStatesConsumerClient2
+          ),
         ])
       );
     });
@@ -368,7 +364,13 @@ describe("utils", async () => {
       expect(dynamoDBClient.send).toHaveBeenCalledTimes(2);
       expect(tokenGenStatesConsumerClients).toHaveLength(tokenEntriesLength);
       expect(tokenGenStatesConsumerClients).toEqual(
-        expect.arrayContaining(writtenTokenGenStatesConsumerClients)
+        expect.arrayContaining(
+          z
+            .array(
+              TokenGenStatesConsumerClientWithGSIPKConsumerIdEServiceIdProjection
+            )
+            .parse(writtenTokenGenStatesConsumerClients)
+        )
       );
     });
   });
@@ -441,11 +443,9 @@ describe("utils", async () => {
         agreementState: agreementState.active,
         dynamoDBClient,
       });
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -592,11 +592,9 @@ describe("utils", async () => {
         GSIPK_eserviceId_descriptorId,
         catalogEntry,
       });
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
