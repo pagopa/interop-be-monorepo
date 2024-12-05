@@ -1909,7 +1909,6 @@ async function isUserAllowedToSeeDraft(
     eserviceId: eservice.id,
     delegateId: authData.organizationId,
     kind: delegationKind.delegatedProducer,
-    states: [delegationState.active],
   });
 
   return activeProducerDelegation !== undefined;
