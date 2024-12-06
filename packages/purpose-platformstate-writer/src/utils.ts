@@ -272,7 +272,6 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
               gsiPKEServiceIdDescriptorId: undefined,
             };
 
-      // TODO: double check. Is this correct?
       if (catalogEntryPK) {
         logger.info(
           `Retrieving platform-states catalog entry ${catalogEntryPK} to add descriptor info in token-generation-states`

@@ -949,7 +949,6 @@ export const retrievePlatformStatesByPurpose = async (
     descriptorId: agreementEntry.agreementDescriptorId,
   });
 
-  // TODO: double check. Is this correct?
   logger.info(
     `Retrieving platform-states catalog entry ${catalogPK} to add descriptor info in token-generation-states`
   );
