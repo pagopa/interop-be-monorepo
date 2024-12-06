@@ -7,7 +7,7 @@ import {
   ItemState,
   PlatformStatesCatalogEntry,
   PlatformStatesEServiceDescriptorPK,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
@@ -185,12 +185,12 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   descriptorState: ItemState,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
     eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Descriptor",
@@ -210,14 +210,14 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
     } else {
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-      const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+      const tokenGenStatesEntries = z
+        .array(TokenGenerationStatesConsumerClient)
         .safeParse(unmarshalledItems);
 
-      if (!tokenStateEntries.success) {
+      if (!tokenGenStatesEntries.success) {
         throw genericInternalError(
           `Unable to parse token state entry item: result ${JSON.stringify(
-            tokenStateEntries
+            tokenGenStatesEntries
           )} - data ${JSON.stringify(data)} `
         );
       }
@@ -225,14 +225,14 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
       await updateDescriptorStateInTokenGenerationStatesEntries(
         descriptorState,
         dynamoDBClient,
-        tokenStateEntries.data
+        tokenGenStatesEntries.data
       );
 
       if (!data.LastEvaluatedKey) {
-        return tokenStateEntries.data;
+        return tokenGenStatesEntries.data;
       } else {
         return [
-          ...tokenStateEntries.data,
+          ...tokenGenStatesEntries.data,
           ...(await runPaginatedQuery(
             eserviceId_descriptorId,
             dynamoDBClient,
@@ -256,12 +256,12 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
   descriptorVoucherLifespan: number,
   descriptorAudience: string[],
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
     eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Descriptor",
@@ -281,14 +281,14 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
     } else {
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-      const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+      const tokenGenStatesEntries = z
+        .array(TokenGenerationStatesConsumerClient)
         .safeParse(unmarshalledItems);
 
-      if (!tokenStateEntries.success) {
+      if (!tokenGenStatesEntries.success) {
         throw genericInternalError(
           `Unable to parse token state entry item: result ${JSON.stringify(
-            tokenStateEntries
+            tokenGenStatesEntries
           )} - data ${JSON.stringify(data)} `
         );
       }
@@ -298,14 +298,14 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
         descriptorVoucherLifespan,
         descriptorAudience,
         dynamoDBClient,
-        entriesToUpdate: tokenStateEntries.data,
+        entriesToUpdate: tokenGenStatesEntries.data,
       });
 
       if (!data.LastEvaluatedKey) {
-        return tokenStateEntries.data;
+        return tokenGenStatesEntries.data;
       } else {
         return [
-          ...tokenStateEntries.data,
+          ...tokenGenStatesEntries.data,
           ...(await runPaginatedQuery(
             eserviceId_descriptorId,
             dynamoDBClient,
@@ -353,14 +353,14 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
       } else {
         const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-        const tokenStateEntries = z
-          .array(TokenGenerationStatesClientPurposeEntry)
+        const tokenGenStatesEntries = z
+          .array(TokenGenerationStatesConsumerClient)
           .safeParse(unmarshalledItems);
 
-        if (!tokenStateEntries.success) {
+        if (!tokenGenStatesEntries.success) {
           throw genericInternalError(
             `Unable to parse token state entry item: result ${JSON.stringify(
-              tokenStateEntries
+              tokenGenStatesEntries
             )} - data ${JSON.stringify(data)} `
           );
         }
@@ -368,7 +368,7 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
         await updateDescriptorVoucherLifespanInTokenGenerationStatesEntries(
           voucherLifespan,
           dynamoDBClient,
-          tokenStateEntries.data
+          tokenGenStatesEntries.data
         );
 
         if (data.LastEvaluatedKey) {
@@ -387,7 +387,7 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
 const updateDescriptorStateInTokenGenerationStatesEntries = async (
   descriptorState: ItemState,
   dynamoDBClient: DynamoDBClient,
-  entriesToUpdate: TokenGenerationStatesClientPurposeEntry[]
+  entriesToUpdate: TokenGenerationStatesConsumerClient[]
 ): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
@@ -426,7 +426,7 @@ const updateDescriptorInfoInTokenGenerationStatesEntries = async ({
   descriptorVoucherLifespan: number;
   descriptorAudience: string[];
   dynamoDBClient: DynamoDBClient;
-  entriesToUpdate: TokenGenerationStatesClientPurposeEntry[];
+  entriesToUpdate: TokenGenerationStatesConsumerClient[];
 }): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
@@ -465,7 +465,7 @@ const updateDescriptorInfoInTokenGenerationStatesEntries = async ({
 const updateDescriptorVoucherLifespanInTokenGenerationStatesEntries = async (
   voucherLifespan: number,
   dynamoDBClient: DynamoDBClient,
-  entriesToUpdate: TokenGenerationStatesClientPurposeEntry[]
+  entriesToUpdate: TokenGenerationStatesConsumerClient[]
 ): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {

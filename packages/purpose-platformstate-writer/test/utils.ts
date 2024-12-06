@@ -13,11 +13,11 @@ import {
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
   PurposeId,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import { inject } from "vitest";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
-import { readTokenEntriesByGSIPKPurposeId } from "../src/utils.js";
+import { readTokenGenStatesEntriesByGSIPKPurposeId } from "../src/utils.js";
 
 export const config = inject("tokenGenerationReadModelConfig");
 
@@ -131,25 +131,25 @@ export const writeCatalogEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const readAllTokenEntriesByGSIPKPurposeId = async (
+export const readAllTokenGenStatesEntriesByGSIPKPurposeId = async (
   dynamoDBClient: DynamoDBClient,
   purposeId: PurposeId
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
     dynamoDBClient: DynamoDBClient,
     purposeId: PurposeId,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
-    const result = await readTokenEntriesByGSIPKPurposeId(
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
+    const result = await readTokenGenStatesEntriesByGSIPKPurposeId(
       dynamoDBClient,
       purposeId,
       exclusiveStartKey
     );
     if (!result.lastEvaluatedKey) {
-      return result.tokenStateEntries;
+      return result.tokenGenStatesEntries;
     } else {
       return [
-        ...result.tokenStateEntries,
+        ...result.tokenGenStatesEntries,
         ...(await runPaginatedQuery(
           dynamoDBClient,
           purposeId,

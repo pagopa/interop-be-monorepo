@@ -18,10 +18,10 @@ import {
   readAgreementEntry,
   updateAgreementStateInPlatformStatesEntry,
   agreementStateToItemState,
-  updateAgreementStateOnTokenStates,
+  updateAgreementStateOnTokenGenStates,
   writeAgreementEntry,
   readCatalogEntry,
-  updateAgreementStateAndDescriptorInfoOnTokenStates,
+  updateAgreementStateAndDescriptorInfoOnTokenGenStates,
   deleteAgreementEntry,
   isLatestAgreement,
 } from "./utils.js";
@@ -174,7 +174,7 @@ const handleFirstActivation = async (
     });
 
     // token-generation-states
-    await updateAgreementStateAndDescriptorInfoOnTokenStates({
+    await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
       GSIPK_consumerId_eserviceId,
       agreementId: agreement.id,
       agreementState: agreement.state,
@@ -234,7 +234,7 @@ const handleActivationOrSuspension = async (
     )
   ) {
     // token-generation-states
-    await updateAgreementStateAndDescriptorInfoOnTokenStates({
+    await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
       GSIPK_consumerId_eserviceId,
       agreementId: agreement.id,
       agreementState: agreement.state,
@@ -264,7 +264,7 @@ const handleArchiving = async (
   ) {
     // token-generation-states only if agreement is the latest
 
-    await updateAgreementStateOnTokenStates({
+    await updateAgreementStateOnTokenGenStates({
       GSIPK_consumerId_eserviceId,
       agreementState: agreement.state,
       dynamoDBClient,
@@ -320,7 +320,7 @@ const handleUpgrade = async (
     await writeAgreementEntry(newAgreementEntry, dynamoDBClient);
   }
 
-  const updateLatestAgreementOnTokenStates = async (
+  const updateLatestAgreementOnTokenGenStates = async (
     catalogEntry: PlatformStatesCatalogEntry | undefined
   ): Promise<void> => {
     if (
@@ -336,7 +336,7 @@ const handleUpgrade = async (
         descriptorId: agreement.descriptorId,
       });
 
-      await updateAgreementStateAndDescriptorInfoOnTokenStates({
+      await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
         GSIPK_consumerId_eserviceId,
         agreementId: agreement.id,
         agreementState: agreement.state,
@@ -347,7 +347,7 @@ const handleUpgrade = async (
     }
   };
 
-  await updateLatestAgreementOnTokenStates(catalogEntry);
+  await updateLatestAgreementOnTokenGenStates(catalogEntry);
 
   const secondRetrievalCatalogEntry = await readCatalogEntry(
     pkCatalogEntry,
@@ -357,6 +357,6 @@ const handleUpgrade = async (
     secondRetrievalCatalogEntry &&
     (!catalogEntry || secondRetrievalCatalogEntry.state !== catalogEntry.state)
   ) {
-    await updateLatestAgreementOnTokenStates(secondRetrievalCatalogEntry);
+    await updateLatestAgreementOnTokenGenStates(secondRetrievalCatalogEntry);
   }
 };

@@ -3,7 +3,7 @@ import {
   ClientId,
   itemState,
   PurposeId,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
   unsafeBrandId,
   ClientAssertionDigest,
 } from "pagopa-interop-models";
@@ -23,9 +23,6 @@ import {
   invalidSubject,
   invalidPurposeIdClaimFormat,
   kidNotFound,
-  inactiveAgreement,
-  inactiveEService,
-  inactivePurpose,
   invalidClientIdFormat,
   invalidSubjectFormat,
   algorithmNotFound,
@@ -36,6 +33,9 @@ import {
   digestClaimNotFound,
   audienceNotFound,
   invalidAudienceFormat,
+  invalidAgreementState,
+  invalidEServiceState,
+  invalidPurposeState,
 } from "./errors.js";
 import { config } from "./config.js";
 
@@ -190,16 +190,22 @@ export const validateDigest = (
 };
 
 export const validatePlatformState = (
-  key: TokenGenerationStatesClientPurposeEntry
-): ValidationResult<TokenGenerationStatesClientPurposeEntry> => {
+  key: TokenGenerationStatesConsumerClient
+): ValidationResult<TokenGenerationStatesConsumerClient> => {
   const agreementError =
-    key.agreementState !== itemState.active ? inactiveAgreement() : undefined;
+    key.agreementState !== itemState.active
+      ? invalidAgreementState(key.agreementState)
+      : undefined;
 
   const descriptorError =
-    key.descriptorState !== itemState.active ? inactiveEService() : undefined;
+    key.descriptorState !== itemState.active
+      ? invalidEServiceState(key.descriptorState)
+      : undefined;
 
   const purposeError =
-    key.purposeState !== itemState.active ? inactivePurpose() : undefined;
+    key.purposeState !== itemState.active
+      ? invalidPurposeState(key.purposeState)
+      : undefined;
 
   if (!agreementError && !descriptorError && !purposeError) {
     return successfulValidation(key);
