@@ -528,7 +528,7 @@ export function countPurposeDifferences(
           logger.error(`Read model purpose not found for id: ${id}`);
           differencesCount++;
         }
-      } else if (purpose) {
+      } else {
         logger.error(
           `Purpose states are not equal:
   platform-states entry: ${JSON.stringify(platformStatesEntry)}
@@ -754,7 +754,7 @@ export function countAgreementDifferences(
           logger.error(`Read model agreement not found for id: ${id}`);
           differencesCount++;
         }
-      } else if (agreement) {
+      } else {
         logger.error(
           `Agreement states are not equal:
     platform-states entry: ${JSON.stringify(platformStatesEntry)}
@@ -1021,7 +1021,7 @@ export function countCatalogDifferences(
           logger.error(`Read model eservice not found for id: ${id}`);
           differencesCount++;
         }
-      } else if (eservice) {
+      } else {
         logger.error(
           `Catalog states are not equal:
   platform-states entry: ${JSON.stringify(platformStatesEntry)}
