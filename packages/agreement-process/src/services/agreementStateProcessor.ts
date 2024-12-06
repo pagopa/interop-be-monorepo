@@ -198,7 +198,7 @@ export const suspendedByProducerFlag = (
   agreement: Agreement,
   requesterOrgId: Tenant["id"],
   targetDestinationState: AgreementState,
-  delegateProducerId?: TenantId | undefined
+  delegateProducerId: TenantId | undefined
 ): boolean | undefined =>
   requesterOrgId === agreement.producerId ||
   requesterOrgId === delegateProducerId

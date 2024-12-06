@@ -1054,7 +1054,8 @@ export function agreementServiceBuilder(
       const suspendedByProducer = suspendedByProducerFlag(
         agreement.data,
         authData.organizationId,
-        targetDestinationState
+        targetDestinationState,
+        delegateProducerId
       );
 
       const newState = agreementStateByFlags(
