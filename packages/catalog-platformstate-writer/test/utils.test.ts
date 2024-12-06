@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
-import { fail } from "assert";
 import {
   afterAll,
   afterEach,
@@ -14,6 +13,7 @@ import {
 import {
   PlatformStatesCatalogEntry,
   TokenGenerationStatesConsumerClient,
+  TokenGenStatesConsumerClientGSIDescriptor,
   descriptorState,
   generateId,
   itemState,
@@ -21,10 +21,7 @@ import {
   makePlatformStatesEServiceDescriptorPK,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
-import {
-  ConditionalCheckFailedException,
-  DynamoDBClient,
-} from "@aws-sdk/client-dynamodb";
+import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import {
   getMockTokenGenStatesConsumerClient,
   buildDynamoDBTables,
@@ -33,6 +30,7 @@ import {
   readAllTokenGenStatesItems,
   writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
+import { z } from "zod";
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
@@ -41,15 +39,9 @@ import {
   updateDescriptorStateInTokenGenerationStatesTable,
   writeCatalogEntry,
 } from "../src/utils.js";
-import { config } from "./utils.js";
+import { dynamoDBClient } from "./utils.js";
 
 describe("utils tests", async () => {
-  if (!config) {
-    fail();
-  }
-  const dynamoDBClient = new DynamoDBClient({
-    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-  });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });
@@ -294,11 +286,9 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const previousTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
-          eserviceId_descriptorId,
-          dynamoDBClient
-        );
+      const previousTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       expect(previousTokenGenStatesEntries).toEqual([]);
       const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
         {
@@ -311,11 +301,9 @@ describe("utils tests", async () => {
         tokenGenStatesConsumerClient,
         dynamoDBClient
       );
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
-          eserviceId_descriptorId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
 
       expect(retrievedTokenGenStatesEntries).toEqual([
         tokenGenStatesConsumerClient,
@@ -386,8 +374,12 @@ describe("utils tests", async () => {
 
       expect(tokenGenStatesConsumerClients).toEqual(
         expect.arrayContaining([
-          tokenGenStatesConsumerClient1,
-          tokenGenStatesConsumerClient2,
+          TokenGenStatesConsumerClientGSIDescriptor.parse(
+            tokenGenStatesConsumerClient1
+          ),
+          TokenGenStatesConsumerClientGSIDescriptor.parse(
+            tokenGenStatesConsumerClient2
+          ),
         ])
       );
     });
@@ -435,7 +427,11 @@ describe("utils tests", async () => {
       expect(dynamoDBClient.send).toHaveBeenCalledTimes(2);
       expect(tokenGenStatesConsumerClients).toHaveLength(tokenEntriesLength);
       expect(tokenGenStatesConsumerClients).toEqual(
-        expect.arrayContaining(writtenTokenGenStatesConsumerClients)
+        expect.arrayContaining(
+          z
+            .array(TokenGenStatesConsumerClientGSIDescriptor)
+            .parse(writtenTokenGenStatesConsumerClients)
+        )
       );
     });
   });
@@ -508,11 +504,9 @@ describe("utils tests", async () => {
         itemState.active,
         dynamoDBClient
       );
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
-          eserviceId_descriptorId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,

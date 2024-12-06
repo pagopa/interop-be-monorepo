@@ -10,6 +10,7 @@ import {
   ScanCommandOutput,
   ScanInput,
 } from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import {
   genericInternalError,
   GSIPKConsumerIdEServiceId,
@@ -21,8 +22,9 @@ import {
   PlatformStatesAgreementEntry,
   TokenGenerationStatesGenericClient,
   TokenGenerationStatesApiClient,
+  TokenGenStatesConsumerClientGSIAgreement,
+  TokenGenStatesConsumerClientGSIDescriptor,
 } from "pagopa-interop-models";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
 
 export const writeTokenGenStatesApiClient = async (
@@ -196,7 +198,7 @@ export const readAllTokenGenStatesItems = async (
 
     if (!tokenGenStatesEntries.success) {
       throw genericInternalError(
-        `Unable to parse token state entry item: result ${JSON.stringify(
+        `Unable to parse token-generation-states entries: result ${JSON.stringify(
           tokenGenStatesEntries
         )} - data ${JSON.stringify(data)} `
       );
@@ -239,12 +241,12 @@ export const readAllPlatformStatesItems = async (
 export const readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
   gsiPKEServiceIdDescriptorId: GSIPKEServiceIdDescriptorId,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesConsumerClient[]> => {
+): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
   const runPaginatedQuery = async (
     gsiPKEServiceIdDescriptorId: GSIPKEServiceIdDescriptorId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesConsumerClient[]> => {
+  ): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
     const input: QueryInput = {
       TableName: "token-generation-states",
       IndexName: "Descriptor",
@@ -265,12 +267,12 @@ export const readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenGenStatesEntries = z
-        .array(TokenGenerationStatesConsumerClient)
+        .array(TokenGenStatesConsumerClientGSIDescriptor)
         .safeParse(unmarshalledItems);
 
       if (!tokenGenStatesEntries.success) {
         throw genericInternalError(
-          `Unable to parse token state entry item: result ${JSON.stringify(
+          `Unable to parse token-generation-states entries: result ${JSON.stringify(
             tokenGenStatesEntries
           )} - data ${JSON.stringify(data)} `
         );
@@ -301,12 +303,12 @@ export const readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
 export const readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId = async (
   gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesConsumerClient[]> => {
+): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
   const runPaginatedQuery = async (
     gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesConsumerClient[]> => {
+  ): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
     const input: QueryInput = {
       TableName: "token-generation-states",
       IndexName: "Agreement",
@@ -327,12 +329,12 @@ export const readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenGenStatesEntries = z
-        .array(TokenGenerationStatesConsumerClient)
+        .array(TokenGenStatesConsumerClientGSIAgreement)
         .safeParse(unmarshalledItems);
 
       if (!tokenGenStatesEntries.success) {
         throw genericInternalError(
-          `Unable to parse token state entry item: result ${JSON.stringify(
+          `Unable to parse toke-generation-states entries: result ${JSON.stringify(
             tokenGenStatesEntries
           )} - data ${JSON.stringify(data)} `
         );

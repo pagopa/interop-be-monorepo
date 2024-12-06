@@ -77,3 +77,16 @@ export const PlatformStatesGenericEntry = PlatformStatesCatalogEntry.or(
 export type PlatformStatesGenericEntry = z.infer<
   typeof PlatformStatesGenericEntry
 >;
+
+// GSI projection types
+export const PlatformStatesAgreementGSIAgreement =
+  PlatformStatesAgreementEntry.pick({
+    PK: true,
+    GSIPK_consumerId_eserviceId: true,
+    GSISK_agreementTimestamp: true,
+    agreementDescriptorId: true,
+    state: true,
+  });
+export type PlatformStatesAgreementGSIAgreement = z.infer<
+  typeof PlatformStatesAgreementGSIAgreement
+>;

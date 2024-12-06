@@ -24,7 +24,7 @@ import {
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
-  PlatformStatesAgreementEntry,
+  PlatformStatesAgreementGSIAgreement,
   PlatformStatesAgreementPK,
   PlatformStatesCatalogEntry,
   PlatformStatesEServiceDescriptorPK,
@@ -35,7 +35,7 @@ import {
   PurposeVersion,
   PurposeVersionId,
   purposeVersionState,
-  TokenGenerationStatesConsumerClient,
+  TokenGenStatesConsumerClientGSIPurpose,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { config } from "./config/config.js";
@@ -106,7 +106,7 @@ export const readPlatformPurposeEntry = async (
 
     if (!purposeEntry.success) {
       throw genericInternalError(
-        `Unable to parse purpose entry item: result ${JSON.stringify(
+        `Unable to parse platform-states purpose entry: result ${JSON.stringify(
           purposeEntry
         )} - data ${JSON.stringify(data)} `
       );
@@ -134,7 +134,7 @@ export const readTokenGenStatesEntriesByGSIPKPurposeId = async (
   purposeId: PurposeId,
   exclusiveStartKey?: Record<string, AttributeValue>
 ): Promise<{
-  tokenGenStatesEntries: TokenGenerationStatesConsumerClient[];
+  tokenGenStatesEntries: TokenGenStatesConsumerClientGSIPurpose[];
   lastEvaluatedKey?: Record<string, AttributeValue>;
 }> => {
   const input: QueryInput = {
@@ -151,18 +151,20 @@ export const readTokenGenStatesEntriesByGSIPKPurposeId = async (
 
   if (!data.Items) {
     throw genericInternalError(
-      `Unable to read token state entries: result ${JSON.stringify(data)} `
+      `Unable to read token-generation-states entries: result ${JSON.stringify(
+        data
+      )} `
     );
   } else {
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
     const tokenGenStatesEntries = z
-      .array(TokenGenerationStatesConsumerClient)
+      .array(TokenGenStatesConsumerClientGSIPurpose)
       .safeParse(unmarshalledItems);
 
     if (!tokenGenStatesEntries.success) {
       throw genericInternalError(
-        `Unable to parse token state entry item: result ${JSON.stringify(
+        `Unable to parse token-generation-states entries: result ${JSON.stringify(
           tokenGenStatesEntries
         )} - data ${JSON.stringify(data)} `
       );
@@ -278,7 +280,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
               ":agreementState": {
                 S: platformAgreementEntry.state,
               },
-              ":GSIPK_eserviceId_descriptorId": {
+              ":gsiPKEServiceIdDescriptorId": {
                 S: makeGSIPKEServiceIdDescriptorId({
                   eserviceId: purpose.eserviceId,
                   descriptorId: platformAgreementEntry.agreementDescriptorId,
@@ -289,7 +291,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
         const agreementUpdateExpression = isAgreementMissingInTokenGenStates
           ? `, agreementId = :agreementId, 
       agreementState = :agreementState, 
-      GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId`
+      GSIPK_eserviceId_descriptorId = :gsiPKEServiceIdDescriptorId`
           : "";
 
         // Descriptor data from platform-states
@@ -341,7 +343,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
             ":newPurposeVersionId": {
               S: purposeVersionId,
             },
-            ":GSIPK_consumerId_eserviceId": {
+            ":gsiPKConsumerIdEServiceId": {
               S: makeGSIPKConsumerIdEServiceId({
                 consumerId: purpose.consumerId,
                 eserviceId: purpose.eserviceId,
@@ -352,7 +354,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
             },
           },
           UpdateExpression:
-            "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId, updatedAt = :newUpdatedAt" +
+            "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, GSIPK_consumerId_eserviceId = :gsiPKConsumerIdEServiceId, updatedAt = :newUpdatedAt" +
             agreementUpdateExpression +
             descriptorUpdateExpression,
           TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
@@ -455,7 +457,7 @@ export const updatePurposeDataInTokenGenStatesEntries = async ({
 export const readPlatformAgreementEntry = async (
   dynamoDBClient: DynamoDBClient,
   gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId
-): Promise<PlatformStatesAgreementEntry | undefined> => {
+): Promise<PlatformStatesAgreementGSIAgreement | undefined> => {
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     IndexName: "Agreement",
@@ -473,14 +475,14 @@ export const readPlatformAgreementEntry = async (
   } else {
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
     const platformAgreementEntries = z
-      .array(PlatformStatesAgreementEntry)
+      .array(PlatformStatesAgreementGSIAgreement)
       .safeParse(unmarshalledItems);
 
     if (platformAgreementEntries.success) {
       return platformAgreementEntries.data[0];
     } else {
       throw genericInternalError(
-        `Unable to parse platform agreement entries: result ${JSON.stringify(
+        `Unable to parse platform-states agreement entries: result ${JSON.stringify(
           platformAgreementEntries
         )} `
       );
@@ -509,7 +511,7 @@ export const readCatalogEntry = async (
 
     if (!catalogEntry.success) {
       throw genericInternalError(
-        `Unable to parse catalog entry item: result ${JSON.stringify(
+        `Unable to parse platform-states catalog entry: result ${JSON.stringify(
           catalogEntry
         )} - data ${JSON.stringify(data)} `
       );
