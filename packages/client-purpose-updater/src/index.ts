@@ -32,8 +32,9 @@ async function processMessage({
       : generateId<CorrelationId>(),
   });
 
-  const tokenGenerator = new InteropTokenGenerator(config);
-  const refreshableToken = new RefreshableInteropToken(tokenGenerator);
+  const refreshableToken = new RefreshableInteropToken(
+    new InteropTokenGenerator(config)
+  );
   await refreshableToken.init();
 
   await match(decodedMessage)

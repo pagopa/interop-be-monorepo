@@ -14,9 +14,6 @@ export const AuthorizationProcessServerConfig = z
   .transform((c) => ({
     authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
   }));
-export type AuthorizationProcessServerConfig = z.infer<
-  typeof AuthorizationProcessServerConfig
->;
 
 const AuthorizationProcessConfig = CommonHTTPServiceConfig.and(
   AuthorizationProcessServerConfig
