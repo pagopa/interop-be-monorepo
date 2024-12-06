@@ -11,7 +11,7 @@ import {
   PlatformStatesAgreementPK,
   PlatformStatesCatalogEntry,
   PlatformStatesEServiceDescriptorPK,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
@@ -151,12 +151,12 @@ export const updateAgreementStateInPlatformStatesEntry = async (
 export const agreementStateToItemState = (state: AgreementState): ItemState =>
   state === agreementState.active ? itemState.active : itemState.inactive;
 
-export const updateAgreementStateOnTokenStatesEntries = async ({
+export const updateAgreementStateOnTokenGenStatesEntries = async ({
   entriesToUpdate,
   agreementState,
   dynamoDBClient,
 }: {
-  entriesToUpdate: TokenGenerationStatesClientPurposeEntry[];
+  entriesToUpdate: TokenGenerationStatesConsumerClient[];
   agreementState: AgreementState;
   dynamoDBClient: DynamoDBClient;
 }): Promise<void> => {
@@ -187,7 +187,7 @@ export const updateAgreementStateOnTokenStatesEntries = async ({
   }
 };
 
-export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
+export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
   async ({
     entriesToUpdate,
     agreementId,
@@ -196,7 +196,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
     GSIPK_eserviceId_descriptorId,
     catalogEntry,
   }: {
-    entriesToUpdate: TokenGenerationStatesClientPurposeEntry[];
+    entriesToUpdate: TokenGenerationStatesConsumerClient[];
     agreementId: AgreementId;
     agreementState: AgreementState;
     dynamoDBClient: DynamoDBClient;
@@ -328,7 +328,7 @@ export const readPlatformStateAgreementEntriesByConsumerIdEserviceId = async (
   );
 };
 
-export const updateAgreementStateAndDescriptorInfoOnTokenStates = async ({
+export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
   GSIPK_consumerId_eserviceId,
   agreementId,
   agreementState,
@@ -342,12 +342,12 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStates = async ({
   dynamoDBClient: DynamoDBClient;
   GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
   catalogEntry: PlatformStatesCatalogEntry | undefined;
-}): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+}): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
     consumerId_eserviceId: GSIPKConsumerIdEServiceId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Agreement",
@@ -367,20 +367,20 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStates = async ({
     } else {
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-      const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+      const tokenGenStatesEntries = z
+        .array(TokenGenerationStatesConsumerClient)
         .safeParse(unmarshalledItems);
 
-      if (!tokenStateEntries.success) {
+      if (!tokenGenStatesEntries.success) {
         throw genericInternalError(
           `Unable to parse token state entry item: result ${JSON.stringify(
-            tokenStateEntries
+            tokenGenStatesEntries
           )} - data ${JSON.stringify(data)} `
         );
       }
 
-      await updateAgreementStateAndDescriptorInfoOnTokenStatesEntries({
-        entriesToUpdate: tokenStateEntries.data,
+      await updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries({
+        entriesToUpdate: tokenGenStatesEntries.data,
         agreementId,
         agreementState,
         dynamoDBClient,
@@ -389,10 +389,10 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStates = async ({
       });
 
       if (!data.LastEvaluatedKey) {
-        return tokenStateEntries.data;
+        return tokenGenStatesEntries.data;
       } else {
         return [
-          ...tokenStateEntries.data,
+          ...tokenGenStatesEntries.data,
           ...(await runPaginatedQuery(
             consumerId_eserviceId,
             dynamoDBClient,
@@ -427,7 +427,7 @@ export const extractAgreementIdFromAgreementPK = (
   return result.data;
 };
 
-export const updateAgreementStateOnTokenStates = async ({
+export const updateAgreementStateOnTokenGenStates = async ({
   GSIPK_consumerId_eserviceId,
   agreementState,
   dynamoDBClient,
@@ -435,12 +435,12 @@ export const updateAgreementStateOnTokenStates = async ({
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId;
   agreementState: AgreementState;
   dynamoDBClient: DynamoDBClient;
-}): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+}): Promise<TokenGenerationStatesConsumerClient[]> => {
   const runPaginatedQuery = async (
     consumerId_eserviceId: GSIPKConsumerIdEServiceId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesConsumerClient[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Agreement",
@@ -460,29 +460,29 @@ export const updateAgreementStateOnTokenStates = async ({
     } else {
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-      const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+      const tokenGenStatesEntries = z
+        .array(TokenGenerationStatesConsumerClient)
         .safeParse(unmarshalledItems);
 
-      if (!tokenStateEntries.success) {
+      if (!tokenGenStatesEntries.success) {
         throw genericInternalError(
           `Unable to parse token state entry item: result ${JSON.stringify(
-            tokenStateEntries
+            tokenGenStatesEntries
           )} - data ${JSON.stringify(data)} `
         );
       }
 
-      await updateAgreementStateOnTokenStatesEntries({
-        entriesToUpdate: tokenStateEntries.data,
+      await updateAgreementStateOnTokenGenStatesEntries({
+        entriesToUpdate: tokenGenStatesEntries.data,
         agreementState,
         dynamoDBClient,
       });
 
       if (!data.LastEvaluatedKey) {
-        return tokenStateEntries.data;
+        return tokenGenStatesEntries.data;
       } else {
         return [
-          ...tokenStateEntries.data,
+          ...tokenGenStatesEntries.data,
           ...(await runPaginatedQuery(
             consumerId_eserviceId,
             dynamoDBClient,
