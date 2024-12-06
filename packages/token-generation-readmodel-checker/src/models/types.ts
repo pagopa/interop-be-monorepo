@@ -1,14 +1,15 @@
 import {
   Agreement,
   Client,
+  clientKindTokenGenStates,
   EService,
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
   PlatformStatesPurposeEntry,
   Purpose,
-  TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesApiClient,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -33,8 +34,8 @@ export type ComparisonPlatformStatesPurposeEntry = z.infer<
   typeof ComparisonPlatformStatesPurposeEntry
 >;
 
-export const ComparisonTokenStatesPurposeEntry =
-  TokenGenerationStatesClientPurposeEntry.pick({
+export const ComparisonTokenGenStatesConsumerClientPurpose =
+  TokenGenerationStatesConsumerClient.pick({
     PK: true,
     consumerId: true,
     GSIPK_purposeId: true,
@@ -42,14 +43,14 @@ export const ComparisonTokenStatesPurposeEntry =
     purposeVersionId: true,
     GSIPK_clientId_purposeId: true,
   });
-export type ComparisonTokenStatesPurposeEntry = z.infer<
-  typeof ComparisonTokenStatesPurposeEntry
+export type ComparisonTokenGenStatesConsumerClientPurpose = z.infer<
+  typeof ComparisonTokenGenStatesConsumerClientPurpose
 >;
 
 export type PurposeDifferencesResult = Array<
   [
     ComparisonPlatformStatesPurposeEntry | undefined,
-    ComparisonTokenStatesPurposeEntry[] | undefined,
+    ComparisonTokenGenStatesConsumerClientPurpose[] | undefined,
     ComparisonPurpose | undefined
   ]
 >;
@@ -75,8 +76,8 @@ export type ComparisonPlatformStatesAgreementEntry = z.infer<
   typeof ComparisonPlatformStatesAgreementEntry
 >;
 
-export const ComparisonTokenStatesAgreementEntry =
-  TokenGenerationStatesClientPurposeEntry.pick({
+export const ComparisonTokenGenStatesConsumerClientAgreement =
+  TokenGenerationStatesConsumerClient.pick({
     PK: true,
     consumerId: true,
     agreementId: true,
@@ -84,14 +85,14 @@ export const ComparisonTokenStatesAgreementEntry =
     GSIPK_consumerId_eserviceId: true,
     GSIPK_eserviceId_descriptorId: true,
   });
-export type ComparisonTokenStatesAgreementEntry = z.infer<
-  typeof ComparisonTokenStatesAgreementEntry
+export type ComparisonTokenGenStatesConsumerClientAgreement = z.infer<
+  typeof ComparisonTokenGenStatesConsumerClientAgreement
 >;
 
 export type AgreementDifferencesResult = Array<
   [
     ComparisonPlatformStatesAgreementEntry | undefined,
-    ComparisonTokenStatesAgreementEntry[] | undefined,
+    ComparisonTokenGenStatesConsumerClientAgreement[] | undefined,
     ComparisonAgreement | undefined
   ]
 >;
@@ -114,8 +115,8 @@ export type ComparisonPlatformStatesCatalogEntry = z.infer<
   typeof ComparisonPlatformStatesCatalogEntry
 >;
 
-export const ComparisonTokenStatesCatalogEntry =
-  TokenGenerationStatesClientPurposeEntry.pick({
+export const ComparisonTokenGenStatesConsumerClientCatalog =
+  TokenGenerationStatesConsumerClient.pick({
     PK: true,
     GSIPK_consumerId_eserviceId: true,
     GSIPK_eserviceId_descriptorId: true,
@@ -123,14 +124,14 @@ export const ComparisonTokenStatesCatalogEntry =
     descriptorAudience: true,
     descriptorVoucherLifespan: true,
   });
-export type ComparisonTokenStatesCatalogEntry = z.infer<
-  typeof ComparisonTokenStatesCatalogEntry
+export type ComparisonTokenGenStatesConsumerClientCatalog = z.infer<
+  typeof ComparisonTokenGenStatesConsumerClientCatalog
 >;
 
 export type CatalogDifferencesResult = Array<
   [
     ComparisonPlatformStatesCatalogEntry | undefined,
-    ComparisonTokenStatesCatalogEntry[] | undefined,
+    ComparisonTokenGenStatesConsumerClientCatalog[] | undefined,
     ComparisonEService | undefined
   ]
 >;
@@ -155,28 +156,29 @@ export type ComparisonPlatformStatesClientEntry = z.infer<
   typeof ComparisonPlatformStatesClientEntry
 >;
 
-const TokenStatesClientEntryPK = z.union([
-  TokenGenerationStatesClientPurposeEntry.shape.PK,
-  TokenGenerationStatesClientEntry.shape.PK,
-]);
-export const ComparisonTokenStatesClientEntry =
-  TokenGenerationStatesClientPurposeEntry.pick({
+export const ComparisonTokenGenStatesGenericClient =
+  TokenGenerationStatesConsumerClient.pick({
     consumerId: true,
-    clientKind: true,
     GSIPK_clientId: true,
     GSIPK_clientId_purposeId: true,
   }).extend({
-    PK: TokenStatesClientEntryPK,
+    PK:
+      TokenGenerationStatesConsumerClient.shape.PK ||
+      TokenGenerationStatesApiClient.shape.PK,
+    clientKind: z.union([
+      z.literal(clientKindTokenGenStates.consumer),
+      z.literal(clientKindTokenGenStates.api),
+    ]),
   });
 
-export type ComparisonTokenStatesClientEntry = z.infer<
-  typeof ComparisonTokenStatesClientEntry
+export type ComparisonTokenGenStatesGenericClient = z.infer<
+  typeof ComparisonTokenGenStatesGenericClient
 >;
 
 export type ClientDifferencesResult = Array<
   [
     ComparisonPlatformStatesClientEntry | undefined,
-    ComparisonTokenStatesClientEntry[] | undefined,
+    ComparisonTokenGenStatesGenericClient[] | undefined,
     ComparisonClient | undefined
   ]
 >;

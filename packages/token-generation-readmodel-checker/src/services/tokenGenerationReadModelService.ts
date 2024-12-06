@@ -1,6 +1,6 @@
 import {
   genericInternalError,
-  TokenGenerationStatesGenericEntry,
+  TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
@@ -66,11 +66,11 @@ export function tokenGenerationReadModelServiceBuilder(
     },
 
     async readAllTokenGenerationStatesItems(): Promise<
-      TokenGenerationStatesGenericEntry[]
+      TokenGenerationStatesGenericClient[]
     > {
       const runPaginatedQuery = async (
         exclusiveStartKey?: Record<string, AttributeValue>
-      ): Promise<TokenGenerationStatesGenericEntry[]> => {
+      ): Promise<TokenGenerationStatesGenericClient[]> => {
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
           ExclusiveStartKey: exclusiveStartKey,
@@ -87,23 +87,23 @@ export function tokenGenerationReadModelServiceBuilder(
         } else {
           const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-          const tokenStateEntries = z
-            .array(TokenGenerationStatesGenericEntry)
+          const tokenGenStatesEntries = z
+            .array(TokenGenerationStatesGenericClient)
             .safeParse(unmarshalledItems);
 
-          if (!tokenStateEntries.success) {
+          if (!tokenGenStatesEntries.success) {
             throw genericInternalError(
               `Unable to parse token-generation-states entries: result ${JSON.stringify(
-                tokenStateEntries
+                tokenGenStatesEntries
               )} - data ${JSON.stringify(data)} `
             );
           }
 
           if (!data.LastEvaluatedKey) {
-            return tokenStateEntries.data;
+            return tokenGenStatesEntries.data;
           } else {
             return [
-              ...tokenStateEntries.data,
+              ...tokenGenStatesEntries.data,
               ...(await runPaginatedQuery(data.LastEvaluatedKey)),
             ];
           }

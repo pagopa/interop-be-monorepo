@@ -1,4 +1,4 @@
-import { fail } from "assert";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -6,22 +6,23 @@ import {
   getMockClient,
   getMockDescriptor,
   getMockEService,
+  getMockKey,
   getMockPurpose,
   getMockPurposeVersion,
-  writeCatalogEntry,
+  getMockTokenGenStatesApiClient,
+  getMockTokenGenStatesConsumerClient,
   writePlatformAgreementEntry,
+  writePlatformCatalogEntry,
   writePlatformPurposeEntry,
-  getMockTokenStatesClientPurposeEntry,
-  writeTokenStateEntry,
-  getMockKey,
-  getMockTokenStatesClientEntry,
-  writeTokenStateClientEntry,
+  writeTokenGenStatesApiClient,
+  writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
   agreementState,
   Client,
   ClientId,
+  clientKindTokenGenStates,
   Descriptor,
   descriptorState,
   EService,
@@ -44,8 +45,8 @@ import {
   Purpose,
   purposeVersionState,
   TenantId,
-  TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesApiClient,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import {
   afterAll,
@@ -57,8 +58,24 @@ import {
   it,
   vi,
 } from "vitest";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  AgreementDifferencesResult,
+  CatalogDifferencesResult,
+  ClientDifferencesResult,
+  ComparisonAgreement,
+  ComparisonClient,
+  ComparisonEService,
+  ComparisonPlatformStatesAgreementEntry,
+  ComparisonPlatformStatesCatalogEntry,
+  ComparisonPlatformStatesClientEntry,
+  ComparisonPlatformStatesPurposeEntry,
+  ComparisonPurpose,
+  ComparisonTokenGenStatesConsumerClientAgreement,
+  ComparisonTokenGenStatesConsumerClientCatalog,
+  ComparisonTokenGenStatesConsumerClientPurpose,
+  ComparisonTokenGenStatesGenericClient,
+  PurposeDifferencesResult,
+} from "../src/models/types.js";
 import {
   clientKindToTokenGenerationStatesClientKind,
   compareReadModelAgreementsWithTokenGenReadModel,
@@ -68,39 +85,15 @@ import {
   compareTokenGenerationReadModel,
 } from "../src/utils/utils.js";
 import {
-  AgreementDifferencesResult,
-  ComparisonPlatformStatesAgreementEntry,
-  ComparisonPlatformStatesPurposeEntry,
-  ComparisonAgreement,
-  ComparisonPurpose,
-  ComparisonTokenStatesAgreementEntry,
-  ComparisonTokenStatesPurposeEntry,
-  PurposeDifferencesResult,
-  CatalogDifferencesResult,
-  ComparisonPlatformStatesCatalogEntry,
-  ComparisonEService,
-  ComparisonTokenStatesCatalogEntry,
-  ClientDifferencesResult,
-  ComparisonTokenStatesClientEntry,
-  ComparisonClient,
-  ComparisonPlatformStatesClientEntry,
-} from "../src/models/types.js";
-import {
   addOneAgreement,
   addOneClient,
   addOneEService,
   addOnePurpose,
-  config,
+  dynamoDBClient,
   writeClientEntry,
 } from "./utils.js";
 
 describe("Token Generation Read Model Checker tests", () => {
-  if (!config) {
-    fail();
-  }
-  const dynamoDBClient = new DynamoDBClient({
-    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-  });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });
@@ -119,28 +112,28 @@ describe("Token Generation Read Model Checker tests", () => {
   describe("all collections", () => {
     it("should detect differences for all collections when the Token Generation Read Model states are wrong", async () => {
       // catalog
-      const descriptor1: Descriptor = {
+      const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
         audience: ["pagopa.it"],
       };
-      const eservice1: EService = {
+      const eservice: EService = {
         ...getMockEService(),
-        descriptors: [descriptor1],
+        descriptors: [descriptor],
       };
-      await addOneEService(eservice1);
+      await addOneEService(eservice);
 
       // purpose
-      const purpose1 = getMockPurpose([
+      const purpose = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
       ]);
-      await addOnePurpose(purpose1);
+      await addOnePurpose(purpose);
 
       // agreement
-      const agreement1: Agreement = {
+      const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
-        consumerId: purpose1.consumerId,
+        consumerId: purpose.consumerId,
         stamps: {
           activation: {
             when: new Date(),
@@ -148,112 +141,124 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      await addOneAgreement(agreement1);
+      await addOneAgreement(agreement);
 
       // client
-      const client1: Client = {
+      const client: Client = {
         ...getMockClient(),
-        purposes: [purpose1.id, generateId()],
-        consumerId: purpose1.consumerId,
+        purposes: [purpose.id, generateId()],
+        consumerId: purpose.consumerId,
         keys: [getMockKey()],
       };
-      await addOneClient(client1);
+      await addOneClient(client);
 
       // platform-states
-      const purposeEntryPK1 = makePlatformStatesPurposePK(purpose1.id);
-      const platformPurposeEntry1: PlatformStatesPurposeEntry = {
-        PK: purposeEntryPK1,
+      const purposeEntryPK = makePlatformStatesPurposePK(purpose.id);
+      const platformStatesPurposeEntry: PlatformStatesPurposeEntry = {
+        PK: purposeEntryPK,
         state: itemState.active,
-        purposeVersionId: purpose1.versions[0].id,
-        purposeEserviceId: purpose1.eserviceId,
-        purposeConsumerId: purpose1.consumerId,
+        purposeVersionId: purpose.versions[0].id,
+        purposeEserviceId: purpose.eserviceId,
+        purposeConsumerId: purpose.consumerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(platformPurposeEntry1, dynamoDBClient);
+      await writePlatformPurposeEntry(
+        platformStatesPurposeEntry,
+        dynamoDBClient
+      );
 
-      const agreementEntryPK1 = makePlatformStatesAgreementPK(agreement1.id);
-      const platformAgreementEntry1: PlatformStatesAgreementEntry = {
-        PK: agreementEntryPK1,
+      const agreementEntryPK = makePlatformStatesAgreementPK(agreement.id);
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
+        PK: agreementEntryPK,
         state: itemState.active,
         GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement1.consumerId,
-          eserviceId: agreement1.eserviceId,
+          consumerId: agreement.consumerId,
+          eserviceId: agreement.eserviceId,
         }),
         GSISK_agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          agreement1.stamps.activation!.when.toISOString(),
-        agreementDescriptorId: agreement1.descriptorId,
+          agreement.stamps.activation!.when.toISOString(),
+        agreementDescriptorId: agreement.descriptorId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
       await writePlatformAgreementEntry(
-        platformAgreementEntry1,
+        platformStatesAgreementEntry,
         dynamoDBClient
       );
 
-      const catalogEntryPK1 = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: eservice1.id,
-        descriptorId: eservice1.descriptors[0].id,
+      const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
       });
-      const platformCatalogEntry1: PlatformStatesCatalogEntry = {
-        PK: catalogEntryPK1,
+      const platformStatesCatalogEntry: PlatformStatesCatalogEntry = {
+        PK: catalogEntryPK,
         state: itemState.active,
-        descriptorAudience: descriptor1.audience,
-        descriptorVoucherLifespan: descriptor1.voucherLifespan,
+        descriptorAudience: descriptor.audience,
+        descriptorVoucherLifespan: descriptor.voucherLifespan,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(platformCatalogEntry1, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        platformStatesCatalogEntry,
+        dynamoDBClient
+      );
 
-      const clientEntryPK1 = makePlatformStatesClientPK(client1.id);
-      const platformClientEntry1: PlatformStatesClientEntry = {
-        PK: clientEntryPK1,
+      const clientEntryPK = makePlatformStatesClientPK(client.id);
+      const platformStatesClientEntry: PlatformStatesClientEntry = {
+        PK: clientEntryPK,
         state: itemState.active,
-        clientKind: clientKindToTokenGenerationStatesClientKind(client1.kind),
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: generateId(),
         clientPurposesIds: [],
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry1, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry, dynamoDBClient);
 
       // token-generation-states
-      const tokenStatesPurposeEntryPK =
+      const tokenGenStatesClientKidPurposePK =
         makeTokenGenerationStatesClientKidPurposePK({
-          clientId: client1.id,
+          clientId: client.id,
           kid: `kid ${Math.random()}`,
-          purposeId: purpose1.id,
+          purposeId: purpose.id,
         });
-      const tokenStatesPurposeEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesPurposeEntryPK),
-        GSIPK_purposeId: purpose1.id,
-        purposeState: itemState.inactive,
-        purposeVersionId: purpose1.versions[0].id,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement1.consumerId,
-          eserviceId: agreement1.eserviceId,
-        }),
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          GSIPK_purposeId: purpose.id,
+          purposeState: itemState.inactive,
+          purposeVersionId: purpose.versions[0].id,
+          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+            consumerId: agreement.consumerId,
+            eserviceId: agreement.eserviceId,
+          }),
 
-        consumerId: agreement1.consumerId,
-        agreementId: agreement1.id,
-        agreementState: itemState.inactive,
+          consumerId: agreement.consumerId,
+          agreementId: agreement.id,
+          agreementState: itemState.inactive,
 
-        descriptorState: itemState.inactive,
-        descriptorAudience: ["wrong-audience-2"],
-        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-          eserviceId: eservice1.id,
-          descriptorId: eservice1.descriptors[0].id,
-        }),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["wrong-audience-2"],
+          GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice.id,
+            descriptorId: eservice.descriptors[0].id,
+          }),
 
-        clientKind: platformClientEntry1.clientKind,
-        publicKey: client1.keys[0].encodedPem,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-          clientId: generateId(),
-          purposeId: generateId(),
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesPurposeEntry, dynamoDBClient);
+          clientKind: clientKindTokenGenStates.consumer,
+          publicKey: client.keys[0].encodedPem,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId: generateId(),
+            purposeId: generateId(),
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 4;
       const differencesCount = await compareTokenGenerationReadModel(
@@ -279,7 +284,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const purposeEntryPK1 = makePlatformStatesPurposePK(purpose1.id);
-      const platformPurposeEntry1: PlatformStatesPurposeEntry = {
+      const platformStatesPurposeEntry1: PlatformStatesPurposeEntry = {
         PK: purposeEntryPK1,
         state: itemState.active,
         purposeVersionId: purpose1.versions[0].id,
@@ -288,10 +293,13 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(platformPurposeEntry1, dynamoDBClient);
+      await writePlatformPurposeEntry(
+        platformStatesPurposeEntry1,
+        dynamoDBClient
+      );
 
       const purposeEntryPK2 = makePlatformStatesPurposePK(purpose2.id);
-      const platformPurposeEntry2: PlatformStatesPurposeEntry = {
+      const platformStatesPurposeEntry2: PlatformStatesPurposeEntry = {
         PK: purposeEntryPK2,
         state: itemState.active,
         purposeVersionId: purpose2.versions[0].id,
@@ -300,51 +308,74 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(platformPurposeEntry2, dynamoDBClient);
+      await writePlatformPurposeEntry(
+        platformStatesPurposeEntry2,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const clientId = generateId<ClientId>();
-      const tokenStatesEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId,
-        kid: `kid ${Math.random()}`,
-        purposeId: purpose1.id,
-      });
-      const tokenStatesEntry1: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK1),
-        GSIPK_purposeId: purpose1.id,
-        purposeState: itemState.active,
-        purposeVersionId: purpose1.versions[0].id,
-        consumerId: purpose1.consumerId,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      const tokenGenStatesClientKidPurposePK1 =
+        makeTokenGenerationStatesClientKidPurposePK({
           clientId,
+          kid: `kid ${Math.random()}`,
           purposeId: purpose1.id,
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry1, dynamoDBClient);
+        });
+      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK1
+          ),
+          GSIPK_purposeId: purpose1.id,
+          purposeState: itemState.active,
+          purposeVersionId: purpose1.versions[0].id,
+          consumerId: purpose1.consumerId,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId,
+            purposeId: purpose1.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient1,
+        dynamoDBClient
+      );
 
-      const tokenStatesEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId,
-        kid: `kid ${Math.random()}`,
-        purposeId: purpose2.id,
-      });
-      const tokenStatesEntry2: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK2),
-        GSIPK_purposeId: purpose2.id,
-        purposeState: itemState.active,
-        purposeVersionId: purpose2.versions[0].id,
-        consumerId: purpose2.consumerId,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      const tokenGenStatesClientKidPurposePK2 =
+        makeTokenGenerationStatesClientKidPurposePK({
           clientId,
+          kid: `kid ${Math.random()}`,
           purposeId: purpose2.id,
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry2, dynamoDBClient);
+        });
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK2
+          ),
+          GSIPK_purposeId: purpose2.id,
+          purposeState: itemState.active,
+          purposeVersionId: purpose2.versions[0].id,
+          consumerId: purpose2.consumerId,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId,
+            purposeId: purpose2.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient2,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 0;
       const purposeDifferences =
         await compareReadModelPurposesWithTokenGenReadModel({
-          platformStatesEntries: [platformPurposeEntry1, platformPurposeEntry2],
-          tokenGenerationStatesEntries: [tokenStatesEntry1, tokenStatesEntry2],
+          platformStatesEntries: [
+            platformStatesPurposeEntry1,
+            platformStatesPurposeEntry2,
+          ],
+          tokenGenerationStatesEntries: [
+            tokenGenStatesConsumerClient1,
+            tokenGenStatesConsumerClient2,
+          ],
           purposes: [purpose1, purpose2],
         });
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
@@ -363,7 +394,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const purposeEntryPK1 = makePlatformStatesPurposePK(purpose1.id);
-      const platformPurposeEntry1: PlatformStatesPurposeEntry = {
+      const platformStatesPurposeEntry1: PlatformStatesPurposeEntry = {
         PK: purposeEntryPK1,
         state: itemState.active,
         purposeVersionId: purpose1.versions[0].id,
@@ -372,10 +403,13 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(platformPurposeEntry1, dynamoDBClient);
+      await writePlatformPurposeEntry(
+        platformStatesPurposeEntry1,
+        dynamoDBClient
+      );
 
       const purposeEntryPK2 = makePlatformStatesPurposePK(purpose2.id);
-      const platformPurposeEntry2: PlatformStatesPurposeEntry = {
+      const platformStatesPurposeEntry2: PlatformStatesPurposeEntry = {
         PK: purposeEntryPK2,
         state: itemState.active,
         purposeVersionId: purpose2.versions[0].id,
@@ -384,61 +418,85 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(platformPurposeEntry2, dynamoDBClient);
+      await writePlatformPurposeEntry(
+        platformStatesPurposeEntry2,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const clientId1 = generateId<ClientId>();
-      const tokenStatesEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: clientId1,
-        kid: `kid ${Math.random()}`,
-        purposeId: purpose1.id,
-      });
-      const correctTokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK1),
-        GSIPK_purposeId: purpose1.id,
-        purposeState: itemState.active,
-        purposeVersionId: purpose1.versions[0].id,
-        consumerId: purpose1.consumerId,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      const tokenGenStatesClientKidPurposePK1 =
+        makeTokenGenerationStatesClientKidPurposePK({
           clientId: clientId1,
+          kid: `kid ${Math.random()}`,
           purposeId: purpose1.id,
-        }),
-      };
-      await writeTokenStateEntry(correctTokenStatesEntry, dynamoDBClient);
+        });
+      const correctTokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK1
+          ),
+          GSIPK_purposeId: purpose1.id,
+          purposeState: itemState.active,
+          purposeVersionId: purpose1.versions[0].id,
+          consumerId: purpose1.consumerId,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId: clientId1,
+            purposeId: purpose1.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        correctTokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const clientId2 = generateId<ClientId>();
-      const tokenStatesEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: clientId2,
-        kid: `kid ${Math.random()}`,
-        purposeId: purpose1.id,
-      });
-      const wrongTokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK2),
-        GSIPK_purposeId: purpose1.id,
-        purposeState: itemState.inactive,
-        purposeVersionId: purpose1.versions[0].id,
-        consumerId: purpose1.consumerId,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      const tokenGenStatesClientKidPurposePK2 =
+        makeTokenGenerationStatesClientKidPurposePK({
           clientId: clientId2,
+          kid: `kid ${Math.random()}`,
           purposeId: purpose1.id,
-        }),
-      };
-      await writeTokenStateEntry(wrongTokenStatesEntry, dynamoDBClient);
+        });
+      const wrongTokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK2
+          ),
+          GSIPK_purposeId: purpose1.id,
+          purposeState: itemState.inactive,
+          purposeVersionId: purpose1.versions[0].id,
+          consumerId: purpose1.consumerId,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId: clientId2,
+            purposeId: purpose1.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        wrongTokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 2;
       const purposeDifferences =
         await compareReadModelPurposesWithTokenGenReadModel({
-          platformStatesEntries: [platformPurposeEntry1, platformPurposeEntry2],
+          platformStatesEntries: [
+            platformStatesPurposeEntry1,
+            platformStatesPurposeEntry2,
+          ],
           tokenGenerationStatesEntries: [
-            correctTokenStatesEntry,
-            wrongTokenStatesEntry,
+            correctTokenGenStatesConsumerClient,
+            wrongTokenGenStatesConsumerClient,
           ],
           purposes: [purpose1, purpose2],
         });
       const expectedPurposeDifferences: PurposeDifferencesResult = [
         [
           undefined,
-          [ComparisonTokenStatesPurposeEntry.parse(wrongTokenStatesEntry)],
+          [
+            ComparisonTokenGenStatesConsumerClientPurpose.parse(
+              wrongTokenGenStatesConsumerClient
+            ),
+          ],
           ComparisonPurpose.parse(purpose1),
         ],
         [undefined, undefined, ComparisonPurpose.parse(purpose2)],
@@ -477,29 +535,36 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // token-generation-states
       const clientId = generateId<ClientId>();
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId,
-        kid: `kid ${Math.random()}`,
-        purposeId: purpose.id,
-      });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        GSIPK_purposeId: purpose.id,
-        purposeState: itemState.inactive,
-        purposeVersionId: purpose.versions[0].id,
-        consumerId: purpose.consumerId,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      const tokenGenStatesClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
           clientId,
+          kid: `kid ${Math.random()}`,
           purposeId: purpose.id,
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+        });
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          GSIPK_purposeId: purpose.id,
+          purposeState: itemState.inactive,
+          purposeVersionId: purpose.versions[0].id,
+          consumerId: purpose.consumerId,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId,
+            purposeId: purpose.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 0;
       const purposeDifferences =
         await compareReadModelPurposesWithTokenGenReadModel({
           platformStatesEntries: [],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           purposes: [purpose],
         });
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
@@ -512,7 +577,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const purposeEntryPK = makePlatformStatesPurposePK(purpose.id);
-      const platformPurposeEntry: PlatformStatesPurposeEntry = {
+      const platformStatesPurposeEntry: PlatformStatesPurposeEntry = {
         PK: purposeEntryPK,
         state: itemState.active,
         purposeVersionId: purpose.versions[0].id,
@@ -521,34 +586,50 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(platformPurposeEntry, dynamoDBClient);
+      await writePlatformPurposeEntry(
+        platformStatesPurposeEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: purpose.id,
-      });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        GSIPK_purposeId: purpose.id,
-        purposeState: itemState.active,
-        purposeVersionId: purpose.versions[0].id,
-        consumerId: purpose.consumerId,
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+      const tokenGenStatesClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: purpose.id,
+        });
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          GSIPK_purposeId: purpose.id,
+          purposeState: itemState.active,
+          purposeVersionId: purpose.versions[0].id,
+          consumerId: purpose.consumerId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 1;
       const purposeDifferences =
         await compareReadModelPurposesWithTokenGenReadModel({
-          platformStatesEntries: [platformPurposeEntry],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          platformStatesEntries: [platformStatesPurposeEntry],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           purposes: [],
         });
       const expectedPurposeDifferences: PurposeDifferencesResult = [
         [
-          ComparisonPlatformStatesPurposeEntry.parse(platformPurposeEntry),
-          [ComparisonTokenStatesPurposeEntry.parse(tokenStatesEntry)],
+          ComparisonPlatformStatesPurposeEntry.parse(
+            platformStatesPurposeEntry
+          ),
+          [
+            ComparisonTokenGenStatesConsumerClientPurpose.parse(
+              tokenGenStatesConsumerClient
+            ),
+          ],
           undefined,
         ],
       ];
@@ -585,7 +666,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const agreementEntryPK1 = makePlatformStatesAgreementPK(agreement1.id);
-      const platformAgreementEntry1: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry1: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK1,
         state: itemState.active,
         GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
@@ -600,12 +681,12 @@ describe("Token Generation Read Model Checker tests", () => {
         updatedAt: new Date().toISOString(),
       };
       await writePlatformAgreementEntry(
-        platformAgreementEntry1,
+        platformStatesAgreementEntry1,
         dynamoDBClient
       );
 
       const agreementEntryPK2 = makePlatformStatesAgreementPK(agreement2.id);
-      const platformAgreementEntry2: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry2: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK2,
         state: itemState.active,
         GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
@@ -620,16 +701,17 @@ describe("Token Generation Read Model Checker tests", () => {
         updatedAt: new Date().toISOString(),
       };
       await writePlatformAgreementEntry(
-        platformAgreementEntry2,
+        platformStatesAgreementEntry2,
         dynamoDBClient
       );
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
+      const tokenGenStatesClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: agreement1.consumerId,
         eserviceId: agreement1.eserviceId,
@@ -638,24 +720,30 @@ describe("Token Generation Read Model Checker tests", () => {
         eserviceId: agreement1.eserviceId,
         descriptorId: agreement1.descriptorId,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        consumerId: agreement1.consumerId,
-        agreementId: agreement1.id,
-        agreementState: itemState.active,
-        GSIPK_consumerId_eserviceId,
-        GSIPK_eserviceId_descriptorId,
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          consumerId: agreement1.consumerId,
+          agreementId: agreement1.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+          GSIPK_eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 0;
       const agreementDifferences =
         await compareReadModelAgreementsWithTokenGenReadModel({
           platformStatesEntries: [
-            platformAgreementEntry1,
-            platformAgreementEntry2,
+            platformStatesAgreementEntry1,
+            platformStatesAgreementEntry2,
           ],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           agreements: [agreement1, agreement2],
         });
       expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
@@ -688,7 +776,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const agreementEntryPK1 = makePlatformStatesAgreementPK(agreement1.id);
-      const platformAgreementEntry1: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry1: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK1,
         state: itemState.active,
         GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
@@ -703,12 +791,12 @@ describe("Token Generation Read Model Checker tests", () => {
         updatedAt: new Date().toISOString(),
       };
       await writePlatformAgreementEntry(
-        platformAgreementEntry1,
+        platformStatesAgreementEntry1,
         dynamoDBClient
       );
 
       const agreementEntryPK2 = makePlatformStatesAgreementPK(agreement2.id);
-      const platformAgreementEntry2: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry2: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK2,
         state: itemState.active,
         GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
@@ -723,47 +811,60 @@ describe("Token Generation Read Model Checker tests", () => {
         updatedAt: new Date().toISOString(),
       };
       await writePlatformAgreementEntry(
-        platformAgreementEntry2,
+        platformStatesAgreementEntry2,
         dynamoDBClient
       );
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
+      const tokenGenStatesClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: agreement1.consumerId,
         eserviceId: agreement1.eserviceId,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        consumerId: agreement1.consumerId,
-        agreementId: agreement1.id,
-        agreementState: itemState.inactive,
-        GSIPK_consumerId_eserviceId,
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          consumerId: agreement1.consumerId,
+          agreementId: agreement1.id,
+          agreementState: itemState.inactive,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 2;
       const agreementDifferences =
         await compareReadModelAgreementsWithTokenGenReadModel({
           platformStatesEntries: [
-            platformAgreementEntry1,
-            platformAgreementEntry2,
+            platformStatesAgreementEntry1,
+            platformStatesAgreementEntry2,
           ],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           agreements: [agreement1, agreement2],
         });
       const expectedAgreementDifferences: AgreementDifferencesResult = [
         [
           undefined,
-          [ComparisonTokenStatesAgreementEntry.parse(tokenStatesEntry)],
+          [
+            ComparisonTokenGenStatesConsumerClientAgreement.parse(
+              tokenGenStatesConsumerClient
+            ),
+          ],
           ComparisonAgreement.parse(agreement1),
         ],
         [
-          ComparisonPlatformStatesAgreementEntry.parse(platformAgreementEntry2),
+          ComparisonPlatformStatesAgreementEntry.parse(
+            platformStatesAgreementEntry2
+          ),
           undefined,
           ComparisonAgreement.parse(agreement2),
         ],
@@ -838,7 +939,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const agreementEntryPK = makePlatformStatesAgreementPK(agreement.id);
-      const platformAgreementEntry: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK,
         state: itemState.active,
         GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
@@ -852,14 +953,18 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(platformAgreementEntry, dynamoDBClient);
+      await writePlatformAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
+      const tokenGenStatesClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: agreement.consumerId,
         eserviceId: agreement.eserviceId,
@@ -868,27 +973,37 @@ describe("Token Generation Read Model Checker tests", () => {
         eserviceId: agreement.eserviceId,
         descriptorId: agreement.descriptorId,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        consumerId: agreement.consumerId,
-        agreementId: agreement.id,
-        agreementState: itemState.inactive,
-        GSIPK_consumerId_eserviceId,
-        GSIPK_eserviceId_descriptorId,
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          consumerId: agreement.consumerId,
+          agreementId: agreement.id,
+          agreementState: itemState.inactive,
+          GSIPK_consumerId_eserviceId,
+          GSIPK_eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 1;
       const agreementDifferences =
         await compareReadModelAgreementsWithTokenGenReadModel({
           platformStatesEntries: [],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           agreements: [],
         });
       const expectedAgreementDifferences: AgreementDifferencesResult = [
         [
           undefined,
-          [ComparisonTokenStatesAgreementEntry.parse(tokenStatesEntry)],
+          [
+            ComparisonTokenGenStatesConsumerClientAgreement.parse(
+              tokenGenStatesConsumerClient
+            ),
+          ],
           undefined,
         ],
       ];
@@ -926,7 +1041,7 @@ describe("Token Generation Read Model Checker tests", () => {
         eserviceId: eservice1.id,
         descriptorId: eservice1.descriptors[0].id,
       });
-      const platformCatalogEntry1: PlatformStatesCatalogEntry = {
+      const platformStatesCatalogEntry1: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK1,
         state: itemState.active,
         descriptorAudience: descriptor1.audience,
@@ -934,13 +1049,16 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(platformCatalogEntry1, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        platformStatesCatalogEntry1,
+        dynamoDBClient
+      );
 
       const catalogEntryPK2 = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice2.id,
         descriptorId: eservice2.descriptors[0].id,
       });
-      const platformCatalogEntry2: PlatformStatesCatalogEntry = {
+      const platformStatesCatalogEntry2: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK2,
         state: itemState.active,
         descriptorAudience: descriptor2.audience,
@@ -948,34 +1066,47 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(platformCatalogEntry2, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        platformStatesCatalogEntry2,
+        dynamoDBClient
+      );
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        descriptorState: itemState.active,
-        descriptorAudience: descriptor1.audience,
-        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-          eserviceId: eservice1.id,
-          descriptorId: descriptor1.id,
-        }),
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: generateId(),
-          eserviceId: eservice1.id,
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+      const tokenGenStatesClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          descriptorState: itemState.active,
+          descriptorAudience: descriptor1.audience,
+          GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice1.id,
+            descriptorId: descriptor1.id,
+          }),
+          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+            consumerId: generateId(),
+            eserviceId: eservice1.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 0;
       const catalogDifferences =
         await compareReadModelEServicesWithTokenGenReadModel({
-          platformStatesEntries: [platformCatalogEntry1, platformCatalogEntry2],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          platformStatesEntries: [
+            platformStatesCatalogEntry1,
+            platformStatesCatalogEntry2,
+          ],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           eservices: [eservice1, eservice2],
         });
       expect(catalogDifferences).toHaveLength(expectedDifferencesLength);
@@ -1009,7 +1140,7 @@ describe("Token Generation Read Model Checker tests", () => {
         eserviceId: eservice1.id,
         descriptorId: eservice1.descriptors[0].id,
       });
-      const platformCatalogEntry1: PlatformStatesCatalogEntry = {
+      const platformStatesCatalogEntry1: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK1,
         state: itemState.active,
         descriptorAudience: descriptor1.audience,
@@ -1017,13 +1148,16 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(platformCatalogEntry1, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        platformStatesCatalogEntry1,
+        dynamoDBClient
+      );
 
       const catalogEntryPK2 = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice2.id,
         descriptorId: eservice2.descriptors[0].id,
       });
-      const platformCatalogEntry2: PlatformStatesCatalogEntry = {
+      const platformStatesCatalogEntry2: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK2,
         state: itemState.inactive,
         descriptorAudience: ["wrong-audience"],
@@ -1031,44 +1165,63 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(platformCatalogEntry2, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        platformStatesCatalogEntry2,
+        dynamoDBClient
+      );
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        descriptorState: itemState.inactive,
-        descriptorAudience: ["wrong-audience-2"],
-        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-          eserviceId: eservice1.id,
-          descriptorId: eservice1.descriptors[0].id,
-        }),
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: generateId(),
-          eserviceId: eservice1.id,
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+      const tokenGenStatesClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["wrong-audience-2"],
+          GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice1.id,
+            descriptorId: eservice1.descriptors[0].id,
+          }),
+          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+            consumerId: generateId(),
+            eserviceId: eservice1.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 2;
       const catalogDifferences =
         await compareReadModelEServicesWithTokenGenReadModel({
-          platformStatesEntries: [platformCatalogEntry1, platformCatalogEntry2],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          platformStatesEntries: [
+            platformStatesCatalogEntry1,
+            platformStatesCatalogEntry2,
+          ],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           eservices: [eservice1, eservice2],
         });
       const expectedCatalogDifferences: CatalogDifferencesResult = [
         [
           undefined,
-          [ComparisonTokenStatesCatalogEntry.parse(tokenStatesEntry)],
+          [
+            ComparisonTokenGenStatesConsumerClientCatalog.parse(
+              tokenGenStatesConsumerClient
+            ),
+          ],
           ComparisonEService.parse(eservice1),
         ],
         [
-          ComparisonPlatformStatesCatalogEntry.parse(platformCatalogEntry2),
+          ComparisonPlatformStatesCatalogEntry.parse(
+            platformStatesCatalogEntry2
+          ),
           undefined,
           ComparisonEService.parse(eservice2),
         ],
@@ -1118,31 +1271,38 @@ describe("Token Generation Read Model Checker tests", () => {
       await addOneEService(eservice);
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        descriptorState: itemState.inactive,
-        descriptorAudience: descriptor.audience,
-        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-          eserviceId: eservice.id,
-          descriptorId: descriptor.id,
-        }),
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: generateId(),
-          eserviceId: eservice.id,
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+      const tokenGenStatesClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          descriptorState: itemState.inactive,
+          descriptorAudience: descriptor.audience,
+          GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          }),
+          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+            consumerId: generateId(),
+            eserviceId: eservice.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 0;
       const catalogDifferences =
         await compareReadModelEServicesWithTokenGenReadModel({
           platformStatesEntries: [],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           eservices: [eservice],
         });
       expect(catalogDifferences).toHaveLength(expectedDifferencesLength);
@@ -1164,7 +1324,7 @@ describe("Token Generation Read Model Checker tests", () => {
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
       });
-      const platformCatalogEntry: PlatformStatesCatalogEntry = {
+      const platformStatesCatalogEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK,
         state: itemState.active,
         descriptorAudience: descriptor.audience,
@@ -1172,36 +1332,52 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(platformCatalogEntry, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        platformStatesCatalogEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        descriptorState: itemState.active,
-        descriptorAudience: descriptor.audience,
-        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-          eserviceId: eservice.id,
-          descriptorId: descriptor.id,
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+      const tokenGenStatesClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          descriptorState: itemState.active,
+          descriptorAudience: descriptor.audience,
+          GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 1;
       const catalogDifferences =
         await compareReadModelEServicesWithTokenGenReadModel({
-          platformStatesEntries: [platformCatalogEntry],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          platformStatesEntries: [platformStatesCatalogEntry],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           eservices: [],
         });
       const expectedAgreementDifferences: CatalogDifferencesResult = [
         [
-          ComparisonPlatformStatesCatalogEntry.parse(platformCatalogEntry),
-          [ComparisonTokenStatesCatalogEntry.parse(tokenStatesEntry)],
+          ComparisonPlatformStatesCatalogEntry.parse(
+            platformStatesCatalogEntry
+          ),
+          [
+            ComparisonTokenGenStatesConsumerClientCatalog.parse(
+              tokenGenStatesConsumerClient
+            ),
+          ],
           undefined,
         ],
       ];
@@ -1232,7 +1408,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const clientEntryPK1 = makePlatformStatesClientPK(client1.id);
-      const platformClientEntry1: PlatformStatesClientEntry = {
+      const platformStatesClientEntry1: PlatformStatesClientEntry = {
         PK: clientEntryPK1,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client1.kind),
@@ -1241,10 +1417,10 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry1, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry1, dynamoDBClient);
 
       const clientEntryPK2 = makePlatformStatesClientPK(client2.id);
-      const platformClientEntry2: PlatformStatesClientEntry = {
+      const platformStatesClientEntry2: PlatformStatesClientEntry = {
         PK: clientEntryPK2,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client2.kind),
@@ -1253,52 +1429,72 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry2, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry2, dynamoDBClient);
 
       // token-generation-states
-      const tokenStatesEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: client1.id,
-        kid: client1.keys[0].kid,
-        purposeId: purpose1.id,
-      });
-      const tokenStatesEntry1: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK1),
-        consumerId: purpose1.consumerId,
-        GSIPK_clientId: client1.id,
-        GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
-        clientKind: platformClientEntry1.clientKind,
-        publicKey: client1.keys[0].encodedPem,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      const tokenGenStatesClientKidPurposePK1 =
+        makeTokenGenerationStatesClientKidPurposePK({
           clientId: client1.id,
+          kid: client1.keys[0].kid,
           purposeId: purpose1.id,
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry1, dynamoDBClient);
+        });
+      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK1
+          ),
+          consumerId: purpose1.consumerId,
+          GSIPK_clientId: client1.id,
+          GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
+          clientKind: clientKindTokenGenStates.consumer,
+          publicKey: client1.keys[0].encodedPem,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId: client1.id,
+            purposeId: purpose1.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient1,
+        dynamoDBClient
+      );
 
-      const tokenStatesEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: client2.id,
-        kid: client2.keys[0].kid,
-        purposeId: purpose2.id,
-      });
-      const tokenStatesEntry2: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK2),
-        consumerId: purpose2.consumerId,
-        GSIPK_clientId: client2.id,
-        GSIPK_kid: makeGSIPKKid(client2.keys[0].kid),
-        clientKind: platformClientEntry2.clientKind,
-        publicKey: client2.keys[0].encodedPem,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      const tokenGenStatesClientKidPurposePK2 =
+        makeTokenGenerationStatesClientKidPurposePK({
           clientId: client2.id,
+          kid: client2.keys[0].kid,
           purposeId: purpose2.id,
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry2, dynamoDBClient);
+        });
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK2
+          ),
+          consumerId: purpose2.consumerId,
+          GSIPK_clientId: client2.id,
+          GSIPK_kid: makeGSIPKKid(client2.keys[0].kid),
+          clientKind: clientKindTokenGenStates.consumer,
+          publicKey: client2.keys[0].encodedPem,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId: client2.id,
+            purposeId: purpose2.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient2,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 0;
       const clientDifferences =
         await compareReadModelClientsWithTokenGenReadModel({
-          platformStatesEntries: [platformClientEntry1, platformClientEntry2],
-          tokenGenerationStatesEntries: [tokenStatesEntry1, tokenStatesEntry2],
+          platformStatesEntries: [
+            platformStatesClientEntry1,
+            platformStatesClientEntry2,
+          ],
+          tokenGenerationStatesEntries: [
+            tokenGenStatesConsumerClient1,
+            tokenGenStatesConsumerClient2,
+          ],
           clients: [client1, client2],
         });
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
@@ -1325,7 +1521,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const clientEntryPK1 = makePlatformStatesClientPK(client1.id);
-      const platformClientEntry1: PlatformStatesClientEntry = {
+      const platformStatesClientEntry1: PlatformStatesClientEntry = {
         PK: clientEntryPK1,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client1.kind),
@@ -1334,10 +1530,10 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry1, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry1, dynamoDBClient);
 
       const clientEntryPK2 = makePlatformStatesClientPK(client2.id);
-      const platformClientEntry2: PlatformStatesClientEntry = {
+      const platformStatesClientEntry2: PlatformStatesClientEntry = {
         PK: clientEntryPK2,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client2.kind),
@@ -1346,43 +1542,57 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry2, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry2, dynamoDBClient);
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: client1.id,
-        kid: client1.keys[0].kid,
-        purposeId: purpose1.id,
-      });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        consumerId: generateId(),
-        GSIPK_clientId: client1.id,
-        GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
-        clientKind: platformClientEntry1.clientKind,
-        publicKey: client1.keys[0].encodedPem,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-          clientId: generateId(),
-          purposeId: generateId(),
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+      const tokenGenStatesClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: client1.id,
+          kid: client1.keys[0].kid,
+          purposeId: purpose1.id,
+        });
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          consumerId: generateId(),
+          GSIPK_clientId: client1.id,
+          GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
+          clientKind: clientKindTokenGenStates.consumer,
+          publicKey: client1.keys[0].encodedPem,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId: generateId(),
+            purposeId: generateId(),
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 2;
       const clientDifferences =
         await compareReadModelClientsWithTokenGenReadModel({
-          platformStatesEntries: [platformClientEntry1, platformClientEntry2],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          platformStatesEntries: [
+            platformStatesClientEntry1,
+            platformStatesClientEntry2,
+          ],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           clients: [client1, client2],
         });
       const expectedClientDifferences: ClientDifferencesResult = [
         [
           undefined,
-          [ComparisonTokenStatesClientEntry.parse(tokenStatesEntry)],
+          [
+            ComparisonTokenGenStatesGenericClient.parse(
+              tokenGenStatesConsumerClient
+            ),
+          ],
           ComparisonClient.parse(client1),
         ],
         [
-          ComparisonPlatformStatesClientEntry.parse(platformClientEntry2),
+          ComparisonPlatformStatesClientEntry.parse(platformStatesClientEntry2),
           undefined,
           ComparisonClient.parse(client2),
         ],
@@ -1413,7 +1623,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const clientEntryPK1 = makePlatformStatesClientPK(client.id);
-      const platformClientEntry: PlatformStatesClientEntry = {
+      const platformStatesClientEntry: PlatformStatesClientEntry = {
         PK: clientEntryPK1,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
@@ -1422,58 +1632,72 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry, dynamoDBClient);
 
       // token-generation-states
-      const tokenStatesEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: client.id,
-        kid: client.keys[0].kid,
-        purposeId: purpose1.id,
-      });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK1),
-        consumerId: purpose1.consumerId,
-        GSIPK_clientId: client.id,
-        GSIPK_kid: makeGSIPKKid(client.keys[0].kid),
-        clientKind: platformClientEntry.clientKind,
-        publicKey: client.keys[0].encodedPem,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      const tokenGenStatesClientKidPurposePK1 =
+        makeTokenGenerationStatesClientKidPurposePK({
           clientId: client.id,
+          kid: client.keys[0].kid,
           purposeId: purpose1.id,
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+        });
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK1
+          ),
+          consumerId: purpose1.consumerId,
+          GSIPK_clientId: client.id,
+          GSIPK_kid: makeGSIPKKid(client.keys[0].kid),
+          clientKind: clientKindTokenGenStates.consumer,
+          publicKey: client.keys[0].encodedPem,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId: client.id,
+            purposeId: purpose1.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
-      const tokenStatesEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: "client.keys[0].kid",
-        purposeId: generateId(),
-      });
-      const tokenStatesEntry2: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK2),
-        consumerId: generateId(),
-        GSIPK_clientId: generateId(),
-        GSIPK_kid: makeGSIPKKid(client.keys[0].kid),
-        clientKind: platformClientEntry.clientKind,
-        publicKey: client.keys[0].encodedPem,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      const tokenGenStatesClientKidPurposePK2 =
+        makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
+          kid: "client.keys[0].kid",
           purposeId: generateId(),
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry2, dynamoDBClient);
+        });
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK2
+          ),
+          consumerId: generateId(),
+          GSIPK_clientId: generateId(),
+          GSIPK_kid: makeGSIPKKid(client.keys[0].kid),
+          clientKind: clientKindTokenGenStates.consumer,
+          publicKey: client.keys[0].encodedPem,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId: generateId(),
+            purposeId: generateId(),
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient2,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 1;
       const clientDifferences =
         await compareReadModelClientsWithTokenGenReadModel({
-          platformStatesEntries: [platformClientEntry],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          platformStatesEntries: [platformStatesClientEntry],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           clients: [client],
         });
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
     });
 
-    it("should detect differences if the token entry is client kid but should be client kid purpose", async () => {
+    it("should detect differences if the token-generation-states entry is client kid but should be client kid purpose", async () => {
       const purpose = getMockPurpose();
       const client: Client = {
         ...getMockClient(),
@@ -1485,7 +1709,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const clientEntryPK = makePlatformStatesClientPK(client.id);
-      const platformClientEntry: PlatformStatesClientEntry = {
+      const platformStatesClientEntry: PlatformStatesClientEntry = {
         PK: clientEntryPK,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
@@ -1494,34 +1718,41 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry, dynamoDBClient);
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPK({
+      const tokenGenStatesClientKidPK = makeTokenGenerationStatesClientKidPK({
         clientId: client.id,
         kid: client.keys[0].kid,
       });
-      const tokenStatesEntry: TokenGenerationStatesClientEntry = {
-        ...getMockTokenStatesClientEntry(tokenStatesEntryPK),
+      const tokenGenStatesApiClient: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(tokenGenStatesClientKidPK),
         consumerId: client.consumerId,
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(client.keys[0].kid),
-        clientKind: platformClientEntry.clientKind,
+        clientKind: clientKindTokenGenStates.api,
         publicKey: client.keys[0].encodedPem,
       };
-      await writeTokenStateClientEntry(tokenStatesEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        tokenGenStatesApiClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 1;
       const clientDifferences =
         await compareReadModelClientsWithTokenGenReadModel({
-          platformStatesEntries: [platformClientEntry],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          platformStatesEntries: [platformStatesClientEntry],
+          tokenGenerationStatesEntries: [tokenGenStatesApiClient],
           clients: [client],
         });
       const expectedClientDifferences: ClientDifferencesResult = [
         [
           undefined,
-          [ComparisonTokenStatesClientEntry.parse(tokenStatesEntry)],
+          [
+            ComparisonTokenGenStatesGenericClient.parse(
+              tokenGenStatesApiClient
+            ),
+          ],
           ComparisonClient.parse(client),
         ],
       ];
@@ -1552,7 +1783,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const clientEntryPK1 = makePlatformStatesClientPK(client1.id);
-      const platformClientEntry1: PlatformStatesClientEntry = {
+      const platformStatesClientEntry1: PlatformStatesClientEntry = {
         PK: clientEntryPK1,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client1.kind),
@@ -1561,10 +1792,10 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry1, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry1, dynamoDBClient);
 
       const clientEntryPK2 = makePlatformStatesClientPK(client2.id);
-      const platformClientEntry2: PlatformStatesClientEntry = {
+      const platformStatesClientEntry2: PlatformStatesClientEntry = {
         PK: clientEntryPK2,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client2.kind),
@@ -1573,43 +1804,57 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry2, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry2, dynamoDBClient);
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: client1.id,
-        kid: client1.keys[0].kid,
-        purposeId: purpose1.id,
-      });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        consumerId: generateId(),
-        GSIPK_clientId: client1.id,
-        GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
-        clientKind: platformClientEntry1.clientKind,
-        publicKey: client1.keys[0].encodedPem,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-          clientId: generateId(),
-          purposeId: generateId(),
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+      const tokenGenStatesClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: client1.id,
+          kid: client1.keys[0].kid,
+          purposeId: purpose1.id,
+        });
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          consumerId: generateId(),
+          GSIPK_clientId: client1.id,
+          GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
+          clientKind: clientKindTokenGenStates.consumer,
+          publicKey: client1.keys[0].encodedPem,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId: generateId(),
+            purposeId: generateId(),
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 2;
       const clientDifferences =
         await compareReadModelClientsWithTokenGenReadModel({
-          platformStatesEntries: [platformClientEntry1, platformClientEntry2],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          platformStatesEntries: [
+            platformStatesClientEntry1,
+            platformStatesClientEntry2,
+          ],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           clients: [client1, client2],
         });
       const expectedClientDifferences: ClientDifferencesResult = [
         [
-          ComparisonPlatformStatesClientEntry.parse(platformClientEntry1),
-          [ComparisonTokenStatesClientEntry.parse(tokenStatesEntry)],
+          ComparisonPlatformStatesClientEntry.parse(platformStatesClientEntry1),
+          [
+            ComparisonTokenGenStatesGenericClient.parse(
+              tokenGenStatesConsumerClient
+            ),
+          ],
           ComparisonClient.parse(client1),
         ],
         [
-          ComparisonPlatformStatesClientEntry.parse(platformClientEntry2),
+          ComparisonPlatformStatesClientEntry.parse(platformStatesClientEntry2),
           undefined,
           ComparisonClient.parse(client2),
         ],
@@ -1658,7 +1903,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const clientEntryPK = makePlatformStatesClientPK(client.id);
-      const platformClientEntry: PlatformStatesClientEntry = {
+      const platformStatesClientEntry: PlatformStatesClientEntry = {
         PK: clientEntryPK,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
@@ -1667,12 +1912,12 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry, dynamoDBClient);
 
       const expectedDifferencesLength = 1;
       const clientDifferences =
         await compareReadModelClientsWithTokenGenReadModel({
-          platformStatesEntries: [platformClientEntry],
+          platformStatesEntries: [platformStatesClientEntry],
           tokenGenerationStatesEntries: [],
           clients: [client],
         });
@@ -1696,7 +1941,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const clientEntryPK = makePlatformStatesClientPK(client.id);
-      const platformClientEntry: PlatformStatesClientEntry = {
+      const platformStatesClientEntry: PlatformStatesClientEntry = {
         PK: clientEntryPK,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
@@ -1705,12 +1950,12 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry, dynamoDBClient);
 
       const expectedDifferencesLength = 0;
       const clientDifferences =
         await compareReadModelClientsWithTokenGenReadModel({
-          platformStatesEntries: [platformClientEntry],
+          platformStatesEntries: [platformStatesClientEntry],
           tokenGenerationStatesEntries: [],
           clients: [client],
         });
@@ -1727,7 +1972,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // platform-states
       const clientEntryPK = makePlatformStatesClientPK(client.id);
-      const platformClientEntry: PlatformStatesClientEntry = {
+      const platformStatesClientEntry: PlatformStatesClientEntry = {
         PK: clientEntryPK,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
@@ -1736,12 +1981,12 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry, dynamoDBClient);
 
       const expectedDifferencesLength = 1;
       const clientDifferences =
         await compareReadModelClientsWithTokenGenReadModel({
-          platformStatesEntries: [platformClientEntry],
+          platformStatesEntries: [platformStatesClientEntry],
           tokenGenerationStatesEntries: [],
           clients: [client],
         });
@@ -1764,7 +2009,7 @@ describe("Token Generation Read Model Checker tests", () => {
       };
 
       const clientEntryPK = makePlatformStatesClientPK(client.id);
-      const platformClientEntry: PlatformStatesClientEntry = {
+      const platformStatesClientEntry: PlatformStatesClientEntry = {
         PK: clientEntryPK,
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
@@ -1773,39 +2018,50 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformClientEntry, dynamoDBClient);
+      await writeClientEntry(platformStatesClientEntry, dynamoDBClient);
 
       // token-generation-states
-      const tokenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: client.id,
-        kid: client.keys[0].kid,
-        purposeId: purpose.id,
-      });
-      const tokenStatesEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStatesEntryPK),
-        consumerId: purpose.consumerId,
-        GSIPK_clientId: client.id,
-        GSIPK_kid: makeGSIPKKid(client.keys[0].kid),
-        clientKind: platformClientEntry.clientKind,
-        publicKey: client.keys[0].encodedPem,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      const tokenGenStatesClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
           clientId: client.id,
+          kid: client.keys[0].kid,
           purposeId: purpose.id,
-        }),
-      };
-      await writeTokenStateEntry(tokenStatesEntry, dynamoDBClient);
+        });
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(
+            tokenGenStatesClientKidPurposePK
+          ),
+          consumerId: purpose.consumerId,
+          GSIPK_clientId: client.id,
+          GSIPK_kid: makeGSIPKKid(client.keys[0].kid),
+          clientKind: clientKindTokenGenStates.consumer,
+          publicKey: client.keys[0].encodedPem,
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId: client.id,
+            purposeId: purpose.id,
+          }),
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 1;
       const clientDifferences =
         await compareReadModelClientsWithTokenGenReadModel({
-          platformStatesEntries: [platformClientEntry],
-          tokenGenerationStatesEntries: [tokenStatesEntry],
+          platformStatesEntries: [platformStatesClientEntry],
+          tokenGenerationStatesEntries: [tokenGenStatesConsumerClient],
           clients: [],
         });
       const expectedClientDifferences: ClientDifferencesResult = [
         [
-          ComparisonPlatformStatesClientEntry.parse(platformClientEntry),
-          [ComparisonTokenStatesClientEntry.parse(tokenStatesEntry)],
+          ComparisonPlatformStatesClientEntry.parse(platformStatesClientEntry),
+          [
+            ComparisonTokenGenStatesGenericClient.parse(
+              tokenGenStatesConsumerClient
+            ),
+          ],
           undefined,
         ],
       ];

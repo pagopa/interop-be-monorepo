@@ -28,6 +28,14 @@ export const { cleanup, readModelRepository } = await setupTestContainersVitest(
 
 afterEach(cleanup);
 
+if (!config) {
+  throw new Error("config is not defined");
+}
+
+export const dynamoDBClient = new DynamoDBClient({
+  endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
+});
+
 // TODO: copied
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(
