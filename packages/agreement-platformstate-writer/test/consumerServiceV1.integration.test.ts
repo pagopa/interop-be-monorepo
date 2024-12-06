@@ -41,6 +41,7 @@ import {
   writeTokenGenStatesConsumerClient,
   readAllTokenGenStatesItems,
 } from "pagopa-interop-commons-test";
+import { genericLogger } from "pagopa-interop-commons";
 import { readAgreementEntry, writeAgreementEntry } from "../src/utils.js";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { dynamoDBClient } from "./utils.js";
@@ -133,7 +134,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedAgreementEntry = await readAgreementEntry(
@@ -229,7 +230,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedAgreementEntry = await readAgreementEntry(
@@ -345,7 +346,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedAgreementEntry = await readAgreementEntry(
@@ -489,7 +490,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedAgreementEntry = await readAgreementEntry(
@@ -673,7 +674,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedAgreementEntry = await readAgreementEntry(
@@ -796,7 +797,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedAgreementEntry = await readAgreementEntry(
@@ -946,7 +947,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       const retrievedEntry = await readAgreementEntry(
         latestAgreementEntryPrimaryKey,
@@ -1120,7 +1121,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       const retrievedEntry = await readAgreementEntry(
         previousAgreementEntryPrimaryKey,
@@ -1235,7 +1236,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       // platform-states
       const retrievedAgreementEntry = await readAgreementEntry(
@@ -1321,7 +1322,7 @@ describe("integration tests V1 events", async () => {
         agreement.id
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       const retrievedAgreementEntry = await readAgreementEntry(
         agreementEntryPrimaryKey,
@@ -1442,7 +1443,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
         ...previousAgreementStateEntry,
@@ -1589,7 +1590,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
         ...latestAgreementStateEntry,
@@ -1660,7 +1661,7 @@ describe("integration tests V1 events", async () => {
         agreement.id
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       const retrievedAgreementEntry = await readAgreementEntry(
         agreementEntryPrimaryKey,
@@ -1781,7 +1782,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
         ...previousAgreementStateEntry,
@@ -1928,7 +1929,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
         ...latestAgreementStateEntry,
@@ -2085,7 +2086,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       const retrievedEntry = await readAgreementEntry(
         latestAgreementEntryPrimaryKey,
@@ -2227,7 +2228,7 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       const retrievedEntry = await readAgreementEntry(
         previousAgreementEntryPrimaryKey,
