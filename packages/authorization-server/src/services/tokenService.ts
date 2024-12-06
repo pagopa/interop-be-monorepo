@@ -24,7 +24,7 @@ import {
   ClientAssertion,
   FullTokenGenerationStatesConsumerClient,
   CorrelationId,
-  ClientKindTokenStates,
+  ClientKindTokenGenStates,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -421,7 +421,7 @@ export const logTokenGenerationInfo = ({
   logger,
 }: {
   validatedJwt: ClientAssertion;
-  clientKind: ClientKindTokenStates | undefined;
+  clientKind: ClientKindTokenGenStates | undefined;
   tokenJti: string | undefined;
   message: string;
   logger: Logger;

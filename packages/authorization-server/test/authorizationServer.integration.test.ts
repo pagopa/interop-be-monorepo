@@ -35,7 +35,7 @@ import {
 import { formatDateyyyyMMdd, genericLogger } from "pagopa-interop-commons";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
-  inactiveEService,
+  invalidEServiceState,
   invalidAssertionType,
   invalidSignature,
   issuedAtNotFound,
@@ -301,7 +301,9 @@ describe("authorization server tests", () => {
     expect(
       tokenService.generateToken(request, generateId(), genericLogger)
     ).rejects.toThrowError(
-      platformStateValidationFailed(inactiveEService().detail)
+      platformStateValidationFailed(
+        invalidEServiceState(descriptorState).detail
+      )
     );
   });
 

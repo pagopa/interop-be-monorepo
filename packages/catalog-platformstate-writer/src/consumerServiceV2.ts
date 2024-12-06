@@ -50,9 +50,6 @@ export async function handleMessageV2(
             eserviceId: eservice.id,
             descriptorId: descriptor.id,
           });
-          // logger.info(
-          //   `Retrieving catalog entry with PK: ${primaryKeyCurrent} from platform-states`
-          // );
           const existingCatalogEntryCurrent = await readCatalogEntry(
             primaryKeyCurrent,
             dynamoDBClient
