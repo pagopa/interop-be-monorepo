@@ -25,8 +25,7 @@ import {
   makeTokenGenerationStatesClientKidPurposePK,
   PurposeId,
   TenantId,
-  TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { WithLogger } from "pagopa-interop-commons";
@@ -225,9 +224,7 @@ async function retrieveKeyAndEservice(
   ctx: WithLogger<BffAppContext>
 ): Promise<
   | SuccessfulValidation<{
-      key:
-        | TokenGenerationStatesClientEntry
-        | TokenGenerationStatesClientPurposeEntry;
+      key: TokenGenerationStatesGenericClient;
       eservice?: catalogApi.EService;
       descriptor?: catalogApi.EServiceDescriptor;
     }>

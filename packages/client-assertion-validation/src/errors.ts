@@ -1,4 +1,4 @@
-import { ApiError } from "pagopa-interop-models";
+import { ApiError, ItemState } from "pagopa-interop-models";
 
 export const errorCodes = {
   unexpectedClientAssertionSignatureVerificationError: "0001",
@@ -20,9 +20,9 @@ export const errorCodes = {
   tokenExpiredError: "0017",
   jsonWebTokenError: "0018",
   notBeforeError: "0019",
-  inactivePurpose: "0020",
-  inactiveAgreement: "0021",
-  inactiveEService: "0022",
+  invalidPurposeState: "0020",
+  invalidAgreementState: "0021",
+  invalidEServiceState: "0022",
   invalidClientIdFormat: "0023",
   invalidSubjectFormat: "0024",
   digestClaimNotFound: "0025",
@@ -34,7 +34,6 @@ export const errorCodes = {
   invalidKidFormat: "0031",
   clientAssertionInvalidClaims: "0032",
   invalidSignature: "0033",
-  missingPlatformStates: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -206,26 +205,32 @@ export function notBeforeError(): ApiError<ErrorCodes> {
   });
 }
 
-export function inactivePurpose(): ApiError<ErrorCodes> {
+export function invalidPurposeState(
+  purposeState: ItemState | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Purpose is not active",
-    code: "inactivePurpose",
+    detail: `Purpose state is: ${purposeState}`,
+    code: "invalidPurposeState",
     title: "Purpose is not active",
   });
 }
 
-export function inactiveEService(): ApiError<ErrorCodes> {
+export function invalidEServiceState(
+  eserviceState: ItemState | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "E-Service is not active",
-    code: "inactiveEService",
+    detail: `E-Service state is: ${eserviceState}`,
+    code: "invalidEServiceState",
     title: "E-Service is not active",
   });
 }
 
-export function inactiveAgreement(): ApiError<ErrorCodes> {
+export function invalidAgreementState(
+  agreementState: ItemState | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Agreement is not active",
-    code: "inactiveAgreement",
+    detail: `Agreement state is: ${agreementState}`,
+    code: "invalidAgreementState",
     title: "Agreement is not active",
   });
 }
@@ -317,13 +322,5 @@ export function invalidSignature(): ApiError<ErrorCodes> {
     detail: "Client assertion signature is invalid",
     code: "invalidSignature",
     title: "Invalid signature",
-  });
-}
-
-export function missingPlatformStates(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: "Platform states not available for the entry",
-    code: "missingPlatformStates",
-    title: "Missing platform states",
   });
 }

@@ -40,13 +40,13 @@ import {
   itemState,
   ClientId,
   PurposeId,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKClientIdPurposeId,
   makeGSIPKEServiceIdDescriptorId,
   TokenGenerationStatesClientKidPurposePK,
   makeTokenGenerationStatesClientKidPurposePK,
-  clientKindTokenStates,
+  clientKindTokenGenStates,
   AgreementId,
   PurposeVersionId,
   ProducerKeychain,
@@ -63,7 +63,7 @@ import {
   PlatformStatesAgreementPK,
   makeGSIPKKid,
   TokenGenerationStatesClientKidPK,
-  TokenGenerationStatesClientEntry,
+  TokenGenerationStatesApiClient,
   makeTokenGenerationStatesClientKidPK,
   PlatformStatesClientPK,
   PlatformStatesClientEntry,
@@ -439,11 +439,13 @@ export const getMockDelegationDocument = (
   createdAt: new Date(),
 });
 
-export const getMockTokenStatesClientPurposeEntry = (
-  tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
-): TokenGenerationStatesClientPurposeEntry => {
-  const clientId = tokenStateEntryPK
-    ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
+export const getMockTokenGenStatesConsumerClient = (
+  tokenGenStatesEntryPK?:
+    | TokenGenerationStatesClientKidPurposePK
+    | TokenGenerationStatesClientKidPK
+): TokenGenerationStatesConsumerClient => {
+  const clientId = tokenGenStatesEntryPK
+    ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
     : generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
   const consumerId = generateId<TenantId>();
@@ -453,44 +455,60 @@ export const getMockTokenStatesClientPurposeEntry = (
   const purposeVersionId = generateId<PurposeVersionId>();
   const kid = `kid ${Math.random()}`;
 
-  return {
-    PK:
-      tokenStateEntryPK ||
-      makeTokenGenerationStatesClientKidPurposePK({
+  if (
+    !tokenGenStatesEntryPK ||
+    TokenGenerationStatesClientKidPurposePK.safeParse(tokenGenStatesEntryPK)
+      .success
+  ) {
+    return {
+      PK:
+        tokenGenStatesEntryPK ||
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId,
+          kid,
+          purposeId,
+        }),
+      descriptorState: itemState.active,
+      descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+      descriptorVoucherLifespan: 60,
+      updatedAt: new Date().toISOString(),
+      consumerId,
+      agreementId,
+      purposeVersionId,
+      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      }),
+      clientKind: clientKindTokenGenStates.consumer,
+      publicKey: "PEM",
+      GSIPK_clientId: clientId,
+      GSIPK_kid: makeGSIPKKid(kid),
+      agreementState: itemState.active,
+      GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+        eserviceId,
+        descriptorId,
+      }),
+      GSIPK_purposeId: purposeId,
+      purposeState: itemState.active,
+      GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
         clientId,
-        kid,
         purposeId,
       }),
-    descriptorState: itemState.active,
-    descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-    descriptorVoucherLifespan: 60,
-    updatedAt: new Date().toISOString(),
-    consumerId,
-    agreementId,
-    purposeVersionId,
-    GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+    };
+  } else {
+    return {
+      PK: tokenGenStatesEntryPK,
+      updatedAt: new Date().toISOString(),
       consumerId,
-      eserviceId,
-    }),
-    clientKind: clientKindTokenStates.consumer,
-    publicKey: "PEM",
-    GSIPK_clientId: clientId,
-    GSIPK_kid: makeGSIPKKid(kid),
-    agreementState: itemState.active,
-    GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-      eserviceId,
-      descriptorId,
-    }),
-    GSIPK_purposeId: purposeId,
-    purposeState: itemState.active,
-    GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-      clientId,
-      purposeId,
-    }),
-  };
+      clientKind: clientKindTokenGenStates.consumer,
+      publicKey: "PEM",
+      GSIPK_clientId: clientId,
+      GSIPK_kid: makeGSIPKKid(kid),
+    };
+  }
 };
 
-export const getMockAgreementEntry = (
+export const getMockPlatformStatesAgreementEntry = (
   primaryKey: PlatformStatesAgreementPK,
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId(
     {
@@ -508,11 +526,11 @@ export const getMockAgreementEntry = (
   agreementDescriptorId: generateId<DescriptorId>(),
 });
 
-export const getMockTokenStatesClientEntry = (
-  tokenStateEntryPK?: TokenGenerationStatesClientKidPK
-): TokenGenerationStatesClientEntry => {
-  const clientId = tokenStateEntryPK
-    ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
+export const getMockTokenGenStatesApiClient = (
+  tokenGenStatesEntryPK?: TokenGenerationStatesClientKidPK
+): TokenGenerationStatesApiClient => {
+  const clientId = tokenGenStatesEntryPK
+    ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
     : generateId<ClientId>();
 
   const consumerId = generateId<TenantId>();
@@ -520,14 +538,14 @@ export const getMockTokenStatesClientEntry = (
 
   return {
     PK:
-      tokenStateEntryPK ||
+      tokenGenStatesEntryPK ||
       makeTokenGenerationStatesClientKidPK({
         clientId,
         kid,
       }),
     updatedAt: new Date().toISOString(),
     consumerId,
-    clientKind: clientKindTokenStates.consumer,
+    clientKind: clientKindTokenGenStates.api,
     publicKey: "PEM",
     GSIPK_clientId: clientId,
     GSIPK_kid: makeGSIPKKid(kid),
