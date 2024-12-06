@@ -15,6 +15,7 @@ import { config } from "../config/config.js";
 import {
   apiDelegationKindToDelegationKind,
   apiDelegationStateToDelegationState,
+  delegationContractToApiDelegationContract,
   delegationToApiDelegation,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
@@ -159,7 +160,11 @@ const delegationRouter = (
 
           return res
             .status(200)
-            .send(delegationApi.DelegationContractDocument.parse(contract));
+            .send(
+              delegationApi.DelegationContractDocument.parse(
+                delegationContractToApiDelegationContract(contract)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

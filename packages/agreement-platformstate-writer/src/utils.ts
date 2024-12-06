@@ -11,7 +11,8 @@ import {
   PlatformStatesAgreementPK,
   PlatformStatesCatalogEntry,
   PlatformStatesEServiceDescriptorPK,
-  TokenGenerationStatesClientPurposeEntry,
+  PlatformStatesAgreementGSIAgreement,
+  TokenGenStatesConsumerClientGSIAgreement,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
@@ -89,7 +90,7 @@ export const readAgreementEntry = async (
 
     if (!agreementEntry.success) {
       throw genericInternalError(
-        `Unable to parse agreement entry item: result ${JSON.stringify(
+        `Unable to parse platform-states agreement entry: result ${JSON.stringify(
           agreementEntry
         )} - data ${JSON.stringify(data)} `
       );
@@ -151,12 +152,12 @@ export const updateAgreementStateInPlatformStatesEntry = async (
 export const agreementStateToItemState = (state: AgreementState): ItemState =>
   state === agreementState.active ? itemState.active : itemState.inactive;
 
-export const updateAgreementStateOnTokenStatesEntries = async ({
+export const updateAgreementStateOnTokenGenStatesEntries = async ({
   entriesToUpdate,
   agreementState,
   dynamoDBClient,
 }: {
-  entriesToUpdate: TokenGenerationStatesClientPurposeEntry[];
+  entriesToUpdate: TokenGenStatesConsumerClientGSIAgreement[];
   agreementState: AgreementState;
   dynamoDBClient: DynamoDBClient;
 }): Promise<void> => {
@@ -187,7 +188,7 @@ export const updateAgreementStateOnTokenStatesEntries = async ({
   }
 };
 
-export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
+export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
   async ({
     entriesToUpdate,
     agreementId,
@@ -196,7 +197,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
     GSIPK_eserviceId_descriptorId,
     catalogEntry,
   }: {
-    entriesToUpdate: TokenGenerationStatesClientPurposeEntry[];
+    entriesToUpdate: TokenGenStatesConsumerClientGSIAgreement[];
     agreementId: AgreementId;
     agreementState: AgreementState;
     dynamoDBClient: DynamoDBClient;
@@ -266,12 +267,12 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStatesEntries =
 export const readPlatformStateAgreementEntriesByConsumerIdEserviceId = async (
   consumerId_eserviceId: GSIPKConsumerIdEServiceId,
   dynamoDBClient: DynamoDBClient
-): Promise<PlatformStatesAgreementEntry[]> => {
+): Promise<PlatformStatesAgreementGSIAgreement[]> => {
   const runPaginatedQuery = async (
     consumerId_eserviceId: GSIPKConsumerIdEServiceId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<PlatformStatesAgreementEntry[]> => {
+  ): Promise<PlatformStatesAgreementGSIAgreement[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNamePlatform,
       IndexName: "Agreement",
@@ -287,7 +288,7 @@ export const readPlatformStateAgreementEntriesByConsumerIdEserviceId = async (
 
     if (!data.Items) {
       throw genericInternalError(
-        `Unable to read platform state agreement entries: result ${JSON.stringify(
+        `Unable to read platform-states agreement entries: result ${JSON.stringify(
           data
         )} `
       );
@@ -295,12 +296,12 @@ export const readPlatformStateAgreementEntriesByConsumerIdEserviceId = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const agreementEntries = z
-        .array(PlatformStatesAgreementEntry)
+        .array(PlatformStatesAgreementGSIAgreement)
         .safeParse(unmarshalledItems);
 
       if (!agreementEntries.success) {
         throw genericInternalError(
-          `Unable to parse platform state entry items: result ${JSON.stringify(
+          `Unable to parse platform-states agreement entries: result ${JSON.stringify(
             agreementEntries
           )} - data ${JSON.stringify(data)} `
         );
@@ -328,7 +329,7 @@ export const readPlatformStateAgreementEntriesByConsumerIdEserviceId = async (
   );
 };
 
-export const updateAgreementStateAndDescriptorInfoOnTokenStates = async ({
+export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
   GSIPK_consumerId_eserviceId,
   agreementId,
   agreementState,
@@ -342,12 +343,12 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStates = async ({
   dynamoDBClient: DynamoDBClient;
   GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
   catalogEntry: PlatformStatesCatalogEntry | undefined;
-}): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+}): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
   const runPaginatedQuery = async (
     consumerId_eserviceId: GSIPKConsumerIdEServiceId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Agreement",
@@ -362,25 +363,27 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStates = async ({
 
     if (!data.Items) {
       throw genericInternalError(
-        `Unable to read token state entries: result ${JSON.stringify(data)} `
+        `Unable to read token-generation-states entries: result ${JSON.stringify(
+          data
+        )} `
       );
     } else {
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-      const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+      const tokenGenStatesEntries = z
+        .array(TokenGenStatesConsumerClientGSIAgreement)
         .safeParse(unmarshalledItems);
 
-      if (!tokenStateEntries.success) {
+      if (!tokenGenStatesEntries.success) {
         throw genericInternalError(
-          `Unable to parse token state entry item: result ${JSON.stringify(
-            tokenStateEntries
+          `Unable to parse token-generation-states entries: result ${JSON.stringify(
+            tokenGenStatesEntries
           )} - data ${JSON.stringify(data)} `
         );
       }
 
-      await updateAgreementStateAndDescriptorInfoOnTokenStatesEntries({
-        entriesToUpdate: tokenStateEntries.data,
+      await updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries({
+        entriesToUpdate: tokenGenStatesEntries.data,
         agreementId,
         agreementState,
         dynamoDBClient,
@@ -389,10 +392,10 @@ export const updateAgreementStateAndDescriptorInfoOnTokenStates = async ({
       });
 
       if (!data.LastEvaluatedKey) {
-        return tokenStateEntries.data;
+        return tokenGenStatesEntries.data;
       } else {
         return [
-          ...tokenStateEntries.data,
+          ...tokenGenStatesEntries.data,
           ...(await runPaginatedQuery(
             consumerId_eserviceId,
             dynamoDBClient,
@@ -427,7 +430,7 @@ export const extractAgreementIdFromAgreementPK = (
   return result.data;
 };
 
-export const updateAgreementStateOnTokenStates = async ({
+export const updateAgreementStateOnTokenGenStates = async ({
   GSIPK_consumerId_eserviceId,
   agreementState,
   dynamoDBClient,
@@ -435,12 +438,12 @@ export const updateAgreementStateOnTokenStates = async ({
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId;
   agreementState: AgreementState;
   dynamoDBClient: DynamoDBClient;
-}): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+}): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
   const runPaginatedQuery = async (
     consumerId_eserviceId: GSIPKConsumerIdEServiceId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Agreement",
@@ -455,34 +458,36 @@ export const updateAgreementStateOnTokenStates = async ({
 
     if (!data.Items) {
       throw genericInternalError(
-        `Unable to read token state entries: result ${JSON.stringify(data)} `
+        `Unable to read token-generation-states entries: result ${JSON.stringify(
+          data
+        )} `
       );
     } else {
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-      const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+      const tokenGenStatesEntries = z
+        .array(TokenGenStatesConsumerClientGSIAgreement)
         .safeParse(unmarshalledItems);
 
-      if (!tokenStateEntries.success) {
+      if (!tokenGenStatesEntries.success) {
         throw genericInternalError(
-          `Unable to parse token state entry item: result ${JSON.stringify(
-            tokenStateEntries
+          `Unable to parse token-generation-states entries: result ${JSON.stringify(
+            tokenGenStatesEntries
           )} - data ${JSON.stringify(data)} `
         );
       }
 
-      await updateAgreementStateOnTokenStatesEntries({
-        entriesToUpdate: tokenStateEntries.data,
+      await updateAgreementStateOnTokenGenStatesEntries({
+        entriesToUpdate: tokenGenStatesEntries.data,
         agreementState,
         dynamoDBClient,
       });
 
       if (!data.LastEvaluatedKey) {
-        return tokenStateEntries.data;
+        return tokenGenStatesEntries.data;
       } else {
         return [
-          ...tokenStateEntries.data,
+          ...tokenGenStatesEntries.data,
           ...(await runPaginatedQuery(
             consumerId_eserviceId,
             dynamoDBClient,
@@ -521,7 +526,7 @@ export const readCatalogEntry = async (
 
     if (!catalogEntry.success) {
       throw genericInternalError(
-        `Unable to parse catalog entry item: result ${JSON.stringify(
+        `Unable to parse platform-states catalog entry: result ${JSON.stringify(
           catalogEntry
         )} - data ${JSON.stringify(data)} `
       );

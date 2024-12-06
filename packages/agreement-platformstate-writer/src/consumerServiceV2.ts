@@ -19,8 +19,8 @@ import {
   readAgreementEntry,
   readCatalogEntry,
   updateAgreementStateInPlatformStatesEntry,
-  updateAgreementStateOnTokenStates,
-  updateAgreementStateAndDescriptorInfoOnTokenStates,
+  updateAgreementStateOnTokenGenStates,
+  updateAgreementStateAndDescriptorInfoOnTokenGenStates,
   writeAgreementEntry,
   isLatestAgreement,
 } from "./utils.js";
@@ -97,7 +97,7 @@ export async function handleMessageV2(
         });
 
         // token-generation-states
-        await updateAgreementStateAndDescriptorInfoOnTokenStates({
+        await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
           GSIPK_consumerId_eserviceId,
           agreementId: agreement.id,
           agreementState: agreement.state,
@@ -146,7 +146,7 @@ export async function handleMessageV2(
           ) {
             // token-generation-states only if agreement is the latest
 
-            await updateAgreementStateOnTokenStates({
+            await updateAgreementStateOnTokenGenStates({
               GSIPK_consumerId_eserviceId,
               agreementState: agreement.state,
               dynamoDBClient,
@@ -204,7 +204,7 @@ export async function handleMessageV2(
         await writeAgreementEntry(newAgreementEntry, dynamoDBClient);
       }
 
-      const updateLatestAgreementOnTokenStates = async (
+      const updateLatestAgreementOnTokenGenStates = async (
         catalogEntry: PlatformStatesCatalogEntry | undefined
       ): Promise<void> => {
         if (
@@ -222,7 +222,7 @@ export async function handleMessageV2(
             }
           );
 
-          await updateAgreementStateAndDescriptorInfoOnTokenStates({
+          await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
             GSIPK_consumerId_eserviceId,
             agreementId: agreement.id,
             agreementState: agreement.state,
@@ -238,7 +238,7 @@ export async function handleMessageV2(
         dynamoDBClient
       );
 
-      await updateLatestAgreementOnTokenStates(catalogEntry);
+      await updateLatestAgreementOnTokenGenStates(catalogEntry);
 
       const updatedCatalogEntry = await readCatalogEntry(
         pkCatalogEntry,
@@ -249,7 +249,7 @@ export async function handleMessageV2(
         updatedCatalogEntry &&
         (!catalogEntry || updatedCatalogEntry.state !== catalogEntry.state)
       ) {
-        await updateLatestAgreementOnTokenStates(updatedCatalogEntry);
+        await updateLatestAgreementOnTokenGenStates(updatedCatalogEntry);
       }
     })
     .with({ type: "AgreementArchivedByUpgrade" }, async (msg) => {
@@ -275,7 +275,7 @@ export async function handleMessageV2(
       ) {
         // token-generation-states only if agreement is the latest
 
-        await updateAgreementStateOnTokenStates({
+        await updateAgreementStateOnTokenGenStates({
           GSIPK_consumerId_eserviceId,
           agreementState: agreement.state,
           dynamoDBClient,

@@ -99,12 +99,12 @@ export const makeGSIPKClientIdPurposeId = ({
 export const makeGSIPKKid = (kid: string): GSIPKKid =>
   unsafeBrandId<GSIPKKid>(kid);
 
-export const clientKindTokenStates = {
+export const clientKindTokenGenStates = {
   consumer: "CONSUMER",
   api: "API",
 } as const;
-export const ClientKindTokenStates = z.enum([
-  Object.values(clientKindTokenStates)[0],
-  ...Object.values(clientKindTokenStates).slice(1),
+export const ClientKindTokenGenStates = z.enum([
+  Object.values(clientKindTokenGenStates)[0],
+  ...Object.values(clientKindTokenGenStates).slice(1),
 ]);
-export type ClientKindTokenStates = z.infer<typeof ClientKindTokenStates>;
+export type ClientKindTokenGenStates = z.infer<typeof ClientKindTokenGenStates>;
