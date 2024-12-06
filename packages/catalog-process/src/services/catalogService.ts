@@ -1703,15 +1703,24 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptorId, descriptor.state.toString());
       }
 
+      /**
+       * In order for the descriptor attributes to be updatable,
+       * each attribute group contained in the seed must be a superset
+       * of the corresponding attribute group in the descriptor,
+       * meaning that each attribute group in the seed must contain all the attributes
+       * of his corresponding group in the descriptor, plus, optionally, some ones.
+       */
       function validateAndRetrieveNewAttributes(
         attributesDescriptor: EServiceAttribute[][],
         attributesSeed: catalogApi.Attribute[][]
       ): string[] {
+        // If the seed has a different number of attribute groups than the descriptor, it's invalid
         if (attributesDescriptor.length !== attributesSeed.length) {
           throw invalidAttributeSeed(eserviceId, descriptorId);
         }
 
         return attributesDescriptor.flatMap((attributeGroup) => {
+          // Get the seed group that is a superset of the descriptor group
           const supersetSeed = attributesSeed.find((seedGroup) =>
             attributeGroup.every((descriptorAttribute) =>
               seedGroup.some(
@@ -1724,6 +1733,7 @@ export function catalogServiceBuilder(
             throw invalidAttributeSeed(eserviceId, descriptorId);
           }
 
+          // Return only the new attributes
           return supersetSeed
             .filter(
               (seedAttribute) =>
