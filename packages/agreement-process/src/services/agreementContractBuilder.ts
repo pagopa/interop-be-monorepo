@@ -2,6 +2,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import {
+  AuthData,
   FileManager,
   Logger,
   PDFGenerator,
@@ -273,21 +274,36 @@ export const contractBuilder = (
       eservice: EService,
       consumer: Tenant,
       producer: Tenant,
+      authData: AuthData,
       activeDelagations: ActiveDelegations
     ): Promise<AgreementDocument> => {
-      const producerDelegationData =
-        activeDelagations.producerDelegation &&
-        (await buildDelegationData(
-          activeDelagations.producerDelegation,
-          readModelService
+      /*
+        In case delegations are not passed, we perform a retrieval again here,
+        to make sure we have both producer and consumer delegations for PDF generation,
+        No matter if the operation was called by a consumer or producer delegate or not.
+      */
+      const producerDelegation =
+        activeDelagations.producerDelegation ??
+        (await readModelService.getActiveProducerDelegationByEserviceId(
+          eservice.id
         ));
 
-      const consumerDelegationData =
-        activeDelagations.consumerDelegation &&
-        (await buildDelegationData(
-          activeDelagations.consumerDelegation,
-          readModelService
+      const consumerDelegation =
+        activeDelagations.consumerDelegation ??
+        (await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+          {
+            agreement,
+            delegateId: authData.organizationId,
+          }
         ));
+
+      const producerDelegationData =
+        producerDelegation &&
+        (await buildDelegationData(producerDelegation, readModelService));
+
+      const consumerDelegationData =
+        consumerDelegation &&
+        (await buildDelegationData(consumerDelegation, readModelService));
 
       const pdfPayload = await getPdfPayload(
         agreement,

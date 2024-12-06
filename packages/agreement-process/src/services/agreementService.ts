@@ -561,6 +561,7 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreement,
+        authData,
         {
           consumerDelegation: activeConsumerDelegation,
           producerDelegation: undefined,
@@ -1222,6 +1223,7 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreementWithoutContract,
+        authData,
         activeDelegations
       );
 
@@ -1460,6 +1462,7 @@ async function addContractOnFirstActivation(
   consumer: Tenant,
   producer: Tenant,
   agreement: Agreement,
+  authData: AuthData,
   activeDelegations: ActiveDelegations
 ): Promise<Agreement> {
   if (isFirstActivation) {
@@ -1468,6 +1471,7 @@ async function addContractOnFirstActivation(
       eservice,
       consumer,
       producer,
+      authData,
       activeDelegations
     );
 

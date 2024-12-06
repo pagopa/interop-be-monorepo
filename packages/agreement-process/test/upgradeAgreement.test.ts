@@ -811,11 +811,19 @@ describe("upgrade Agreement", () => {
       todayTime: timeAtRomeZone(currentExecutionTime),
       agreementId: newAgreementId,
       submitterId,
-      submissionDate: dateAtRomeZone(currentExecutionTime),
-      submissionTime: timeAtRomeZone(currentExecutionTime),
+      submissionDate: dateAtRomeZone(
+        expectedUpgradedAgreement.stamps.submission!.when
+      ),
+      submissionTime: timeAtRomeZone(
+        expectedUpgradedAgreement.stamps.submission!.when
+      ),
       activatorId,
-      activationDate: dateAtRomeZone(currentExecutionTime),
-      activationTime: timeAtRomeZone(currentExecutionTime),
+      activationDate: dateAtRomeZone(
+        expectedUpgradedAgreement.stamps.activation!.when
+      ),
+      activationTime: timeAtRomeZone(
+        expectedUpgradedAgreement.stamps.activation!.when
+      ),
       eserviceName: eservice.name,
       eserviceId: eservice.id,
       descriptorId: eservice.descriptors[0].id,

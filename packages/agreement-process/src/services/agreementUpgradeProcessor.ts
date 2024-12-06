@@ -121,6 +121,7 @@ export async function createUpgradeOrNewDraft({
       eservice,
       consumer,
       producer,
+      authData,
       {
         consumerDelegation: activeConsumerDelegation,
         producerDelegation: undefined,
