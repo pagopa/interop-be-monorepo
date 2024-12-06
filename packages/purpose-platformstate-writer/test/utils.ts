@@ -1,6 +1,5 @@
 import { fail } from "assert";
 import {
-  AttributeValue,
   DynamoDBClient,
   GetItemCommand,
   GetItemCommandOutput,
@@ -12,14 +11,18 @@ import {
   genericInternalError,
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
-  PurposeId,
-  TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import { inject } from "vitest";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
-import { readTokenEntriesByGSIPKPurposeId } from "../src/utils.js";
 
-export const config = inject("tokenGenerationReadModelConfig");
+const config = inject("tokenGenerationReadModelConfig");
+
+if (!config) {
+  throw new Error("config is not defined");
+}
+export const dynamoDBClient = new DynamoDBClient({
+  endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
+});
 
 export const writeAgreementEntry = async (
   agreementEntry: PlatformStatesAgreementEntry,
@@ -84,7 +87,7 @@ export const readAgreementEntry = async (
 
     if (!agreementEntry.success) {
       throw genericInternalError(
-        `Unable to parse agreement entry item: result ${JSON.stringify(
+        `Unable to parse platform-states agreement entry: result ${JSON.stringify(
           agreementEntry
         )} - data ${JSON.stringify(data)} `
       );
@@ -129,35 +132,4 @@ export const writeCatalogEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
-};
-
-export const readAllTokenEntriesByGSIPKPurposeId = async (
-  dynamoDBClient: DynamoDBClient,
-  purposeId: PurposeId
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
-  const runPaginatedQuery = async (
-    dynamoDBClient: DynamoDBClient,
-    purposeId: PurposeId,
-    exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
-    const result = await readTokenEntriesByGSIPKPurposeId(
-      dynamoDBClient,
-      purposeId,
-      exclusiveStartKey
-    );
-    if (!result.lastEvaluatedKey) {
-      return result.tokenStateEntries;
-    } else {
-      return [
-        ...result.tokenStateEntries,
-        ...(await runPaginatedQuery(
-          dynamoDBClient,
-          purposeId,
-          result.lastEvaluatedKey
-        )),
-      ];
-    }
-  };
-
-  return await runPaginatedQuery(dynamoDBClient, purposeId);
 };
