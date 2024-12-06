@@ -554,7 +554,7 @@ describe("upgrade Agreement", () => {
     }
   });
 
-  it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different and requester is a delegate", async () => {
+  it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different, requester is consumer, an active producer delegation exists and is taken into account for the PDF contract generation", async () => {
     const producer = getMockTenant();
 
     const validVerifiedTenantAttribute = {

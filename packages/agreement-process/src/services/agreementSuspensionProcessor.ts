@@ -49,8 +49,7 @@ export function createSuspensionUpdatedAgreement({
   const nextStateByAttributes = nextStateByAttributesFSM(
     agreement,
     descriptor,
-    consumer,
-    producerDelegation?.delegateId
+    consumer
   );
 
   const suspendedByConsumer = suspendedByConsumerFlag(
