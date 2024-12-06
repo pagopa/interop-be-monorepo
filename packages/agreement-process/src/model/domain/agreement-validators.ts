@@ -289,14 +289,12 @@ export const assertRequesterCanCreateAgrementForTenant = async (
   const isSameOrganization = requesterId === tenantIdToVerify;
 
   const validDelegation = isSameOrganization
-    ? // Case 1: Same organization
-      // Retrieve an active delegation where the requester is the delegator
+    ? // Retrieve an active delegation where the requester is the delegator
       await readModelService.getActiveConsumerDelegationByEserviceAndIds({
         eserviceId,
         delegatorId: requesterId,
       })
-    : // Case 2: Different organization
-      // Retrieve the delegation where the requester is the delegate and the delegator is the tenantToVerify
+    : // Retrieve the delegation where the requester is the delegate and the delegator is the tenantToVerify
       await readModelService.getActiveConsumerDelegationByEserviceAndIds({
         eserviceId,
         delegateId: requesterId,
