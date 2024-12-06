@@ -216,20 +216,25 @@ function retrieveAgreementDocument(
   return document;
 }
 
-const getActiveConsumerAndProducerDelegations = async (
+export const getActiveConsumerAndProducerDelegations = async (
   agreement: Agreement,
   authData: AuthData,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  cachedActiveDelegations?: ActiveDelegations
 ): Promise<ActiveDelegations> => ({
   producerDelegation:
-    await readModelService.getActiveProducerDelegationByEserviceId(
+    cachedActiveDelegations?.producerDelegation ??
+    (await readModelService.getActiveProducerDelegationByEserviceId(
       agreement.eserviceId
-    ),
+    )),
   consumerDelegation:
-    await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId({
-      agreement,
-      delegateId: authData.organizationId,
-    }),
+    cachedActiveDelegations?.consumerDelegation ??
+    (await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+      {
+        agreement,
+        delegateId: authData.organizationId,
+      }
+    )),
 });
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
@@ -433,18 +438,16 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      const activeConsumerDelegation =
-        await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
-          {
-            agreement: agreement.data,
-            delegateId: authData.organizationId,
-          }
-        );
+      const activeDelegations = await getActiveConsumerAndProducerDelegations(
+        agreement.data,
+        authData,
+        readModelService
+      );
 
       assertRequesterCanActAsConsumer(
         agreement.data,
         authData,
-        activeConsumerDelegation
+        activeDelegations.consumerDelegation
       );
 
       assertSubmittableState(agreement.data.state, agreement.data.id);
@@ -525,7 +528,7 @@ export function agreementServiceBuilder(
         newState,
         authData,
         suspendedByPlatform,
-        activeConsumerDelegation
+        activeDelegations.consumerDelegation
       );
 
       const agreements = (
@@ -562,10 +565,7 @@ export function agreementServiceBuilder(
         producer,
         updatedAgreement,
         authData,
-        {
-          consumerDelegation: activeConsumerDelegation,
-          producerDelegation: undefined,
-        }
+        activeDelegations
       );
 
       const agreementEvent =
@@ -596,10 +596,7 @@ export function agreementServiceBuilder(
               createAgreementArchivedByUpgradeEvent(
                 agreement,
                 authData,
-                {
-                  consumerDelegation: activeConsumerDelegation,
-                  producerDelegation: undefined,
-                },
+                activeDelegations,
                 correlationId
               )
             )
@@ -623,17 +620,15 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const activeConsumerDelegation =
-        await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
-          {
-            agreement: agreementToBeUpgraded.data,
-            delegateId: authData.organizationId,
-          }
-        );
+      const activeDelegations = await getActiveConsumerAndProducerDelegations(
+        agreementToBeUpgraded.data,
+        authData,
+        readModelService
+      );
       assertRequesterCanActAsConsumer(
         agreementToBeUpgraded.data,
         authData,
-        activeConsumerDelegation
+        activeDelegations.consumerDelegation
       );
 
       assertExpectedState(
@@ -722,7 +717,7 @@ export function agreementServiceBuilder(
         canBeUpgraded: verifiedValid && declaredValid,
         copyFile: fileManager.copy,
         authData,
-        activeConsumerDelegation,
+        activeDelegations,
         contractBuilder: contractBuilderInstance,
         correlationId,
         logger,

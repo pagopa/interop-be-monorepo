@@ -29,7 +29,6 @@ import {
   Agreement,
   AgreementAddedV2,
   AgreementArchivedByUpgradeV2,
-  AgreementContractPDFPayload,
   AgreementDocument,
   AgreementId,
   AgreementUpgradedV2,
@@ -66,6 +65,7 @@ import {
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
+import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -874,6 +874,11 @@ describe("upgrade Agreement", () => {
           expirationDate: undefined,
         },
       ],
+      consumerDelegateIpaCode: undefined,
+      consumerDelegateName: undefined,
+      consumerDelegationId: undefined,
+      consumerDelegatorIpaCode: undefined,
+      consumerDelegatorName: undefined,
     };
 
     expect(pdfGenerator.generate).toHaveBeenCalledWith(
