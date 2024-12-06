@@ -5,8 +5,6 @@ import {
   ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
-  initPecEmailManager,
-  initSesMailManager,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -17,27 +15,20 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { agreementEmailSenderServiceBuilder } from "./services/agreementEmailSenderService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
-import {
-  sendAgreementActivationEmail,
-  senderAgreementSubmissionEmail,
-} from "./services/agreementEmailSenderService.js";
-
 import { config } from "./config/config.js";
-
-const sesEmailManager = initSesMailManager(config);
-const pecEmailManager = initPecEmailManager({
-  smtpAddress: config.smtpAddress,
-  smtpPort: config.smtpPort,
-  smtpSecure: config.smtpSecure,
-  smtpUsername: config.smtpUsername,
-  smtpPassword: config.smtpPassword,
-});
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 const templateService = buildHTMLTemplateService();
+
+const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
+  config,
+  readModelService,
+  templateService
+);
 
 export async function processMessage({
   message,
@@ -61,17 +52,15 @@ export async function processMessage({
       { event_version: 2, type: "AgreementActivated" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await sendAgreementActivationEmail({
-            agreementV2: agreement,
-            readModelService,
-            emailManager: pecEmailManager,
-            sender: {
-              label: config.pecSenderLabel,
-              mail: config.pecSenderMail,
-            },
-            templateService,
-            logger: loggerInstance,
-          });
+          await agreementEmailSenderService.sendAgreementActivationCertifiedEmail(
+            agreement,
+            loggerInstance
+          );
+
+          await agreementEmailSenderService.sendAgreementActivationNotificationEmail(
+            agreement,
+            loggerInstance
+          );
         } else {
           throw missingKafkaMessageDataError("agreement", decodedMessage.type);
         }
@@ -81,10 +70,9 @@ export async function processMessage({
       { event_version: 2, type: "AgreementSubmitted" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await senderAgreementSubmissionEmail({
+          await agreementEmailSenderService.senderAgreementSubmissionEmail({
             agreementV2: agreement,
             readModelService,
-            emailManager: sesEmailManager,
             feBaseUrl: config.interopFeBaseUrl,
             sender: { label: config.senderLabel, mail: config.senderMail },
             templateService,
