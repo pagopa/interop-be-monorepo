@@ -33,6 +33,7 @@ import {
   DescriptorReadModel,
   EServiceReadModel,
   delegationKind,
+  DelegationKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -318,51 +319,108 @@ async function searchTenantsByName(
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getDelegateAgreementsFilters(producerIds: TenantId[] | undefined) {
-  return producerIds && producerIds.length > 0
-    ? [
-        {
-          $lookup: {
-            from: "delegations",
-            localField: "data.eserviceId",
-            foreignField: "data.eserviceId",
-            as: "delegations",
-          },
-        },
-        {
-          $unwind: {
-            path: "$delegations",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
+const getDelegationLookup = (kind: DelegationKind) => [
+  {
+    $lookup: {
+      from: "delegations",
+      let: {
+        eserviceId: "$data.eserviceId",
+      },
+      pipeline: [
         {
           $match: {
-            $or: [
-              {
-                $and: [
-                  {
-                    "delegations.data.kind": delegationKind.delegatedProducer,
-                  },
-                  {
-                    "delegations.data.state": agreementState.active,
-                  },
-                  {
-                    "delegations.data.delegateId": {
-                      $in: producerIds,
-                    },
-                  },
-                ],
-              },
-              {
-                "data.producerId": {
-                  $in: producerIds,
+            $expr: {
+              $and: [
+                {
+                  $eq: ["$data.eserviceId", "$$eserviceId"],
                 },
-              },
-            ],
+                {
+                  $eq: ["$data.kind", kind],
+                },
+                {
+                  $eq: ["$data.state", delegationState.active],
+                },
+              ],
+            },
           },
         },
-      ]
-    : [];
+      ],
+      as: "delegations",
+    },
+  },
+  {
+    $unwind: {
+      path: "$delegations",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+];
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function getDelegateAgreementsFilters(
+  producerIds: TenantId[],
+  consumerIds: TenantId[],
+  requesterId: TenantId
+) {
+  const requesterRole: DelegationKind | undefined =
+    producerIds.length === 1 && producerIds[0] === requesterId
+      ? delegationKind.delegatedProducer
+      : consumerIds.length === 1 && consumerIds[0] === requesterId
+      ? delegationKind.delegatedConsumer
+      : undefined;
+
+  return match([requesterRole, producerIds.length > 0, consumerIds.length > 0])
+    .with([delegationKind.delegatedProducer, false, P.any], () => []) // Impossible case (producerIds must be set)
+    .with([delegationKind.delegatedConsumer, P.any, false], () => []) // Impossible case (consumerIds must be set)
+    .with([undefined, P.any, P.any], () => [
+      {
+        $match: {
+          ...makeFilter("producerId", producerIds),
+          ...makeFilter("consumerId", consumerIds),
+        },
+      },
+    ])
+    .with([delegationKind.delegatedProducer, true, P.any], ([kind]) => [
+      ...getDelegationLookup(kind),
+      {
+        $match: {
+          $and: [
+            {
+              $or: [
+                {
+                  "delegations.data.delegateId": {
+                    $in: producerIds,
+                  },
+                },
+                makeFilter("producerId", producerIds),
+              ],
+            },
+            makeFilter("consumerId", consumerIds),
+          ].filter((a) => a !== undefined),
+        },
+      },
+    ])
+    .with([delegationKind.delegatedConsumer, P.any, true], ([kind]) => [
+      ...getDelegationLookup(kind),
+      {
+        $match: {
+          $and: [
+            {
+              $or: [
+                {
+                  "delegations.data.delegateId": {
+                    $in: consumerIds,
+                  },
+                },
+                makeFilter("consumerId", consumerIds),
+              ],
+            },
+            makeFilter("producerId", producerIds),
+          ].filter((a) => a !== undefined),
+        },
+      },
+    ])
+    .exhaustive();
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -374,26 +432,37 @@ export function readModelServiceBuilder(
   return {
     async getAgreements(
       filters: AgreementQueryFilters,
+      requesterId: TenantId,
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
-      const { producerId, ...filtersWithoutProducerId } = filters;
+      const { producerId, consumerId, ...otherFilters } = filters;
       const producerIds = producerId
         ? Array.isArray(producerId)
           ? producerId
           : [producerId]
         : [];
+      const consumerIds = consumerId
+        ? Array.isArray(consumerId)
+          ? consumerId
+          : [consumerId]
+        : [];
+
+      const delegateAgreementFilters = getDelegateAgreementsFilters(
+        producerIds,
+        consumerIds,
+        requesterId
+      );
+
+      const pipeline = [
+        getAgreementsFilters(otherFilters),
+        ...delegateAgreementFilters,
+      ];
 
       const agreementsData = await agreements
-        .aggregate(
-          [
-            getAgreementsFilters(filtersWithoutProducerId),
-            ...getDelegateAgreementsFilters(producerIds),
-          ],
-          {
-            allowDiskUse: true,
-          }
-        )
+        .aggregate(pipeline, {
+          allowDiskUse: true,
+        })
         .toArray();
 
       const eserviceIds = agreementsData.map(
@@ -553,6 +622,7 @@ export function readModelServiceBuilder(
     },
     async getAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
+      requesterId: TenantId,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactEService>> {
@@ -566,7 +636,7 @@ export function readModelServiceBuilder(
       };
 
       const agreementAggregationPipeline = [
-        ...getDelegateAgreementsFilters(filters.producerIds),
+        ...getDelegateAgreementsFilters(filters.producerIds, [], requesterId),
         {
           $match: agreementFilter,
         },
