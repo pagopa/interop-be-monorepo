@@ -262,15 +262,15 @@ export const assertActivableState = (agreement: Agreement): void => {
 export const assertRequesterIsDelegateConsumer = (
   activeConsumerDelegation: Delegation,
   eserviceId: EServiceId,
-  authData: AuthData
+  requesterId: TenantId
 ): void => {
   if (
-    activeConsumerDelegation.delegateId !== authData.organizationId ||
+    activeConsumerDelegation.delegateId !== requesterId ||
     activeConsumerDelegation.eserviceId !== eserviceId ||
     activeConsumerDelegation.kind !== delegationKind.delegatedConsumer ||
     activeConsumerDelegation.state !== delegationState.active
   ) {
-    throw operationNotAllowed(authData.organizationId);
+    throw operationNotAllowed(requesterId);
   }
 };
 
@@ -288,14 +288,20 @@ export const assertRequesterCanCreateAgrementForTenant = async (
 ): Promise<Promise<void>> => {
   const isSameOrganization = requesterId === tenantIdToVerify;
 
-  const validDelegation =
-    await readModelService.getActiveConsumerDelegationByEserviceAndIds({
-      eserviceId,
-      // if same organization, there's no delegate, otherwise the requester is the delegate
-      delegateId: isSameOrganization ? undefined : requesterId,
-      // if same organization, we have to check that it is not a delegator, otherwise tenantIdToVerify is the delegator
-      delegatorId: isSameOrganization ? requesterId : tenantIdToVerify,
-    });
+  const validDelegation = isSameOrganization
+    ? // Case 1: Same organization
+      // Retrieve an active delegation where the requester is the delegator
+      await readModelService.getActiveConsumerDelegationByEserviceAndIds({
+        eserviceId,
+        delegatorId: requesterId,
+      })
+    : // Case 2: Different organization
+      // Retrieve the delegation where the requester is the delegate and the delegator is the tenantToVerify
+      await readModelService.getActiveConsumerDelegationByEserviceAndIds({
+        eserviceId,
+        delegateId: requesterId,
+        delegatorId: tenantIdToVerify,
+      });
 
   const isAuthorized =
     (isSameOrganization && !validDelegation) ||

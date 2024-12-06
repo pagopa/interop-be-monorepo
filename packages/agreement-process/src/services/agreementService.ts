@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   AppContext,
-  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -275,7 +274,7 @@ export function agreementServiceBuilder(
       const consumer = await getConsumerFromDelegationOrRequester(
         eserviceId,
         delegationId,
-        authData,
+        authData.organizationId,
         readModelService
       );
 
@@ -1356,7 +1355,7 @@ async function addContractOnFirstActivation(
 async function getConsumerFromDelegationOrRequester(
   eserviceId: EServiceId,
   delegationId: DelegationId | undefined,
-  authData: AuthData,
+  requesterId: TenantId,
   readModelService: ReadModelService
 ): Promise<Tenant> {
   const delegations =
@@ -1366,18 +1365,16 @@ async function getConsumerFromDelegationOrRequester(
     // If a delegation has been passed, the consumer is the delegator
     const delegation = retrieveDelegation(delegations, delegationId);
 
-    assertRequesterIsDelegateConsumer(delegation, eserviceId, authData);
+    assertRequesterIsDelegateConsumer(delegation, eserviceId, requesterId);
     return retrieveTenant(delegation.delegatorId, readModelService);
   } else {
-    const hasDelegated = delegations.some(
-      (d) => d.delegatorId === authData.organizationId
-    );
+    const hasDelegated = delegations.some((d) => d.delegatorId === requesterId);
 
     if (hasDelegated) {
       // If a delegation exists, the delegator cannot create the agreement
-      throw operationNotAllowed(authData.organizationId);
+      throw operationNotAllowed(requesterId);
     }
 
-    return retrieveTenant(authData.organizationId, readModelService);
+    return retrieveTenant(requesterId, readModelService);
   }
 }
