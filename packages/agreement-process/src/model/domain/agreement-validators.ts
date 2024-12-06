@@ -28,7 +28,6 @@ import {
   filterVerifiedAttributes,
 } from "pagopa-interop-agreement-lifecycle";
 import { ReadModelService } from "../../services/readModelService.js";
-import { getActiveConsumerDelegation } from "../../services/agreementService.js";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,
@@ -196,11 +195,13 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
           activeProducerDelegation
         );
       } catch (error) {
-        const activeConsumerDelegation = await getActiveConsumerDelegation(
-          agreement,
-          authData,
-          readModelService
-        );
+        const activeConsumerDelegation =
+          await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+            {
+              agreement,
+              delegateId: authData.organizationId,
+            }
+          );
 
         assertRequesterIsDelegateConsumer(
           agreement,

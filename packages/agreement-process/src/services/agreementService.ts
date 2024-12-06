@@ -216,7 +216,7 @@ function retrieveAgreementDocument(
   return document;
 }
 
-const getActiveDelegations = async (
+const getActiveConsumerAndProducerDelegations = async (
   agreement: Agreement,
   authData: AuthData,
   readModelService: ReadModelService
@@ -225,11 +225,11 @@ const getActiveDelegations = async (
     await readModelService.getActiveProducerDelegationByEserviceId(
       agreement.eserviceId
     ),
-  consumerDelegation: await getActiveConsumerDelegation(
-    agreement,
-    authData,
-    readModelService
-  ),
+  consumerDelegation:
+    await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId({
+      agreement,
+      delegateId: authData.organizationId,
+    }),
 });
 
 export const getActiveConsumerDelegation = async (
@@ -362,11 +362,13 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const activeConsumerDelegation = await getActiveConsumerDelegation(
-        agreementToBeUpdated.data,
-        authData,
-        readModelService
-      );
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+          {
+            agreement: agreementToBeUpdated.data,
+            delegateId: authData.organizationId,
+          }
+        );
       assertRequesterCanActAsConsumer(
         agreementToBeUpdated.data,
         authData,
@@ -401,11 +403,13 @@ export function agreementServiceBuilder(
       logger.info(`Deleting agreement ${agreementId}`);
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      const activeConsumerDelegation = await getActiveConsumerDelegation(
-        agreement.data,
-        authData,
-        readModelService
-      );
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+          {
+            agreement: agreement.data,
+            delegateId: authData.organizationId,
+          }
+        );
       assertRequesterCanActAsConsumer(
         agreement.data,
         authData,
@@ -439,11 +443,13 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      const activeConsumerDelegation = await getActiveConsumerDelegation(
-        agreement.data,
-        authData,
-        readModelService
-      );
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+          {
+            agreement: agreement.data,
+            delegateId: authData.organizationId,
+          }
+        );
 
       assertRequesterCanActAsConsumer(
         agreement.data,
@@ -626,11 +632,13 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const activeConsumerDelegation = await getActiveConsumerDelegation(
-        agreementToBeUpgraded.data,
-        authData,
-        readModelService
-      );
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+          {
+            agreement: agreementToBeUpgraded.data,
+            delegateId: authData.organizationId,
+          }
+        );
       assertRequesterCanActAsConsumer(
         agreementToBeUpgraded.data,
         authData,
@@ -744,11 +752,13 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const activeConsumerDelegation = await getActiveConsumerDelegation(
-        agreementToBeCloned.data,
-        authData,
-        readModelService
-      );
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+          {
+            agreement: agreementToBeCloned.data,
+            delegateId: authData.organizationId,
+          }
+        );
 
       assertRequesterCanActAsConsumer(
         agreementToBeCloned.data,
@@ -824,11 +834,13 @@ export function agreementServiceBuilder(
       logger.info(`Adding a consumer document to agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      const activeConsumerDelegation = await getActiveConsumerDelegation(
-        agreement.data,
-        authData,
-        readModelService
-      );
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+          {
+            agreement: agreement.data,
+            delegateId: authData.organizationId,
+          }
+        );
       assertRequesterCanActAsConsumer(
         agreement.data,
         authData,
@@ -886,7 +898,7 @@ export function agreementServiceBuilder(
       logger.info(`Suspending agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      const activeDelegations = await getActiveDelegations(
+      const activeDelegations = await getActiveConsumerAndProducerDelegations(
         agreement.data,
         authData,
         readModelService
@@ -966,11 +978,13 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      const activeConsumerDelegation = await getActiveConsumerDelegation(
-        agreement.data,
-        authData,
-        readModelService
-      );
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+          {
+            agreement: agreement.data,
+            delegateId: authData.organizationId,
+          }
+        );
       assertRequesterCanActAsConsumer(
         agreement.data,
         authData,
@@ -1091,7 +1105,7 @@ export function agreementServiceBuilder(
       );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      const activeDelegations = await getActiveDelegations(
+      const activeDelegations = await getActiveConsumerAndProducerDelegations(
         agreement.data,
         authData,
         readModelService
@@ -1255,11 +1269,13 @@ export function agreementServiceBuilder(
       logger.info(`Archiving agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      const activeConsumerDelegation = await getActiveConsumerDelegation(
-        agreement.data,
-        authData,
-        readModelService
-      );
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+          {
+            agreement: agreement.data,
+            delegateId: authData.organizationId,
+          }
+        );
 
       assertRequesterCanActAsConsumer(
         agreement.data,

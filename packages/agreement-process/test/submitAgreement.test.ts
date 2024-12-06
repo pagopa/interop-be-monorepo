@@ -66,7 +66,6 @@ import {
   operationNotAllowed,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { createStamp } from "../src/services/agreementStampUtils.js";
 import { config } from "../src/config/config.js";
 import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
 import {
@@ -77,6 +76,7 @@ import {
   addOneTenant,
   agreementService,
   fileManager,
+  getRandomPastStamp,
   pdfGenerator,
   readLastAgreementEvent,
 } from "./utils.js";
@@ -1000,8 +1000,8 @@ describe("submit agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       suspendedAt: new Date(),
     };
@@ -1164,8 +1164,8 @@ describe("submit agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       suspendedAt: new Date(),
     };
@@ -1450,8 +1450,8 @@ describe("submit agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
@@ -1633,8 +1633,8 @@ describe("submit agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
@@ -1940,8 +1940,8 @@ describe("submit agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
@@ -2146,8 +2146,8 @@ describe("submit agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
@@ -2288,8 +2288,8 @@ describe("submit agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
