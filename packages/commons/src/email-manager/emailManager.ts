@@ -12,8 +12,17 @@ import {
 import { Address, Attachment } from "nodemailer/lib/mailer/index.js";
 import { PecEmailManagerConfig } from "../index.js";
 import { AWSSesConfig } from "../config/awsSesConfig.js";
+import { z } from "zod";
+
+export const emailManagerKind = { pec: "PEC", ses: "SES" } as const;
+export const EmailManagerKind = z.enum([
+  Object.values(emailManagerKind)[0],
+  ...Object.values(emailManagerKind).slice(1),
+]);
+export type EmailManagerKind = z.infer<typeof EmailManagerKind>;
 
 export type EmailManager = {
+  kind: EmailManagerKind;
   send: (
     from: string | { name: string; address: string },
     to: string[],
@@ -28,12 +37,20 @@ export type EmailManager = {
     attachments: Attachment[]
   ) => Promise<void>;
 };
+export type EmailManagerPEC = EmailManager & {
+  kind: typeof emailManagerKind.pec;
+};
+
+export type EmailManagerSES = EmailManager & {
+  kind: typeof emailManagerKind.ses;
+};
 
 export function initPecEmailManager(
   config: PecEmailManagerConfig,
   rejectUnauthorized = true
-): EmailManager {
+): EmailManagerPEC {
   return {
+    kind: emailManagerKind.pec,
     send: async (
       from: string | Address,
       to: string[],
@@ -103,13 +120,14 @@ export function initPecEmailManager(
   };
 }
 
-export function initSesMailManager(awsConfig: AWSSesConfig): EmailManager {
+export function initSesMailManager(awsConfig: AWSSesConfig): EmailManagerSES {
   const client = new SESv2Client({
     region: awsConfig.awsRegion,
     endpoint: awsConfig.awsSesEndpoint,
   });
 
   return {
+    kind: emailManagerKind.ses,
     send: async (
       from: string | Address,
       to: string[],
