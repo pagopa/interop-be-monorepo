@@ -948,8 +948,10 @@ export const retrievePlatformStatesByPurpose = async (
     eserviceId: purposeEntry.purposeEserviceId,
     descriptorId: agreementEntry.agreementDescriptorId,
   });
+
+  // TODO: double check. Is this correct?
   logger.info(
-    `Retrieving catalog entry ${catalogPK} to add descriptor info in token-generation-states`
+    `Retrieving platform-states catalog entry ${catalogPK} to add descriptor info in token-generation-states`
   );
   const catalogEntry = await readPlatformCatalogEntry(
     catalogPK,

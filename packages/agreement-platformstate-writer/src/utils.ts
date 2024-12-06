@@ -216,7 +216,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
 
       if (additionalDescriptorInfo) {
         logger.info(
-          `Adding also descriptor info token-generation-states in entry with GSIPK_eserviceId_descriptorId ${GSIPKEServiceIdDescriptorId}`
+          `Adding descriptor info to token-generation-states entry with PK ${entry.PK} and GSIPK_eserviceId_descriptorId ${GSIPK_eserviceId_descriptorId}`
         );
       }
       const additionalAttributesToSet: Record<string, AttributeValue> =

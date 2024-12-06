@@ -19,7 +19,6 @@ import {
   AgreementId,
   genericInternalError,
   GSIPKConsumerIdEServiceId,
-  GSIPKEServiceIdDescriptorId,
   itemState,
   ItemState,
   makeGSIPKConsumerIdEServiceId,
@@ -256,16 +255,27 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
         gsiPKConsumerIdEServiceId
       );
 
-      const catalogEntryPK = platformAgreementEntry
-        ? makePlatformStatesEServiceDescriptorPK({
-            eserviceId: purpose.eserviceId,
-            descriptorId: platformAgreementEntry.agreementDescriptorId,
-          })
-        : undefined;
+      const { catalogEntryPK, gsiPKEServiceIdDescriptorId } =
+        platformAgreementEntry
+          ? {
+              catalogEntryPK: makePlatformStatesEServiceDescriptorPK({
+                eserviceId: purpose.eserviceId,
+                descriptorId: platformAgreementEntry.agreementDescriptorId,
+              }),
+              gsiPKEServiceIdDescriptorId: makeGSIPKEServiceIdDescriptorId({
+                eserviceId: purpose.eserviceId,
+                descriptorId: platformAgreementEntry.agreementDescriptorId,
+              }),
+            }
+          : {
+              catalogEntryPK: undefined,
+              gsiPKEServiceIdDescriptorId: undefined,
+            };
 
+      // TODO: double check. Is this correct?
       if (catalogEntryPK) {
         logger.info(
-          `Retrieving catalog entry ${catalogEntryPK} to add descriptor info in token-generation-states`
+          `Retrieving platform-states catalog entry ${catalogEntryPK} to add descriptor info in token-generation-states`
         );
       }
 
@@ -276,14 +286,15 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
       for (const entry of result.tokenGenStatesEntries) {
         const tokenEntryPK = entry.PK;
         const isAgreementMissingInTokenGenStates =
-          platformAgreementEntry &&
+          !!platformAgreementEntry &&
+          !!gsiPKEServiceIdDescriptorId &&
           (!entry.agreementId ||
             !entry.agreementState ||
             !entry.GSIPK_eserviceId_descriptorId);
 
         if (isAgreementMissingInTokenGenStates) {
           logger.info(
-            `Adding also agreement info token-generation-states in entry with GSIPK_consumerId_eserviceId ${gsiPKConsumerIdEServiceId}`
+            `Adding agreement info to token-generation-states entry with PK ${tokenEntryPK} and GSIPK_consumerId_eserviceId ${gsiPKConsumerIdEServiceId}`
           );
         }
         // Agreement data from platform-states
@@ -299,10 +310,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
                 S: platformAgreementEntry.state,
               },
               ":gsiPKEServiceIdDescriptorId": {
-                S: makeGSIPKEServiceIdDescriptorId({
-                  eserviceId: purpose.eserviceId,
-                  descriptorId: platformAgreementEntry.agreementDescriptorId,
-                }),
+                S: gsiPKEServiceIdDescriptorId,
               },
             }
           : {};
@@ -314,15 +322,15 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
 
         // Descriptor data from platform-states
         const isDescriptorDataMissingInTokenGenStates =
-          platformAgreementEntry &&
-          catalogEntry &&
+          !!platformAgreementEntry &&
+          !!catalogEntry &&
           (!entry.descriptorAudience ||
             !entry.descriptorState ||
             !entry.descriptorVoucherLifespan);
 
         if (isDescriptorDataMissingInTokenGenStates) {
           logger.info(
-            `Adding also descriptor info token-generation-states in entry with GSIPK_eserviceId_descriptorId ${GSIPKEServiceIdDescriptorId}`
+            `Adding descriptor info to token-generation-states entry with PK ${tokenEntryPK} and GSIPK_eserviceId_descriptorId ${gsiPKEServiceIdDescriptorId}`
           );
         }
 
