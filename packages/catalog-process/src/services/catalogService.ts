@@ -1918,14 +1918,13 @@ async function applyVisibilityToEService(
     return eservice;
   }
 
-  if (
-    !producerDelegation &&
-    eservice.descriptors.every(
-      (descriptor) =>
-        descriptor.state === descriptorState.draft ||
-        descriptor.state === delegationState.waitingForApproval
-    )
-  ) {
+  const hasNoActiveDescriptor = eservice.descriptors.every(
+    (descriptor) =>
+      descriptor.state === descriptorState.draft ||
+      descriptor.state === delegationState.waitingForApproval
+  );
+
+  if (!producerDelegation && hasNoActiveDescriptor) {
     throw eServiceNotFound(eservice.id);
   }
 
