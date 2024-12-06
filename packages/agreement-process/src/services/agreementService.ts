@@ -232,16 +232,6 @@ const getActiveConsumerAndProducerDelegations = async (
     }),
 });
 
-export const getActiveConsumerDelegation = async (
-  agreement: Agreement,
-  authData: AuthData,
-  readModelService: ReadModelService
-): Promise<Delegation | undefined> =>
-  await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId({
-    agreement,
-    delegateId: authData.organizationId,
-  });
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
