@@ -2,6 +2,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import {
+  AuthData,
   FileManager,
   Logger,
   PDFGenerator,
@@ -11,7 +12,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   Agreement,
-  AgreementContractPDFPayload,
   AgreementDocumentId,
   Attribute,
   CertifiedTenantAttribute,
@@ -32,8 +32,16 @@ import { getVerifiedAttributeExpirationDate } from "pagopa-interop-agreement-lif
 import { attributeNotFound } from "../model/domain/errors.js";
 import { AgreementProcessConfig } from "../config/config.js";
 import { assertStampExists } from "../model/domain/agreement-validators.js";
+import {
+  ActiveDelegations,
+  AgreementContractPDFPayload,
+} from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
-import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
+import {
+  getActiveConsumerAndProducerDelegations,
+  retrieveDescriptor,
+  retrieveTenant,
+} from "./agreementService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
@@ -143,6 +151,7 @@ const getPdfPayload = async (
   consumer: Tenant,
   producer: Tenant,
   producerDelegationData: DelegationData | undefined,
+  consumerDelegationData: DelegationData | undefined,
   readModelService: ReadModelService
 ): Promise<AgreementContractPDFPayload> => {
   const getIpaCode = (tenant: Tenant): string | undefined =>
@@ -216,24 +225,31 @@ const getPdfPayload = async (
     producerDelegateName: producerDelegationData?.delegate.name,
     producerDelegateIpaCode:
       producerDelegationData && getIpaCode(producerDelegationData?.delegate),
+    consumerDelegationId: consumerDelegationData?.producerDelegation.id,
+    consumerDelegatorName: consumerDelegationData?.delegator.name,
+    consumerDelegatorIpaCode:
+      consumerDelegationData && getIpaCode(consumerDelegationData?.delegator),
+    consumerDelegateName: consumerDelegationData?.delegate.name,
+    consumerDelegateIpaCode:
+      consumerDelegationData && getIpaCode(consumerDelegationData?.delegate),
   };
 };
 
-const buildProducerDelegationData = async (
-  producerDelegation: Delegation,
+const buildDelegationData = async (
+  delegation: Delegation,
   readModelService: ReadModelService
 ): Promise<DelegationData> => {
   const delegator = await retrieveTenant(
-    producerDelegation.delegatorId,
+    delegation.delegatorId,
     readModelService
   );
   const delegate = await retrieveTenant(
-    producerDelegation.delegateId,
+    delegation.delegateId,
     readModelService
   );
 
   return {
-    producerDelegation,
+    producerDelegation: delegation,
     delegator,
     delegate,
   };
@@ -262,14 +278,30 @@ export const contractBuilder = (
       eservice: EService,
       consumer: Tenant,
       producer: Tenant,
-      producerDelegation: Delegation | undefined
+      authData: AuthData,
+      retrievedActiveDelegations: ActiveDelegations
     ): Promise<AgreementDocument> => {
+      /*
+        In case delegations are not passed, we perform a retrieval again here,
+        to make sure we have both producer and consumer delegations for PDF generation,
+        no matter if the operation was called by a consumer or producer delegate or not.
+        That's because if there is a delegation active, the PDF text changes.
+      */
+      const { producerDelegation, consumerDelegation } =
+        await getActiveConsumerAndProducerDelegations(
+          agreement,
+          authData,
+          readModelService,
+          retrievedActiveDelegations
+        );
+
       const producerDelegationData =
         producerDelegation &&
-        (await buildProducerDelegationData(
-          producerDelegation,
-          readModelService
-        ));
+        (await buildDelegationData(producerDelegation, readModelService));
+
+      const consumerDelegationData =
+        consumerDelegation &&
+        (await buildDelegationData(consumerDelegation, readModelService));
 
       const pdfPayload = await getPdfPayload(
         agreement,
@@ -277,6 +309,7 @@ export const contractBuilder = (
         consumer,
         producer,
         producerDelegationData,
+        consumerDelegationData,
         readModelService
       );
 
