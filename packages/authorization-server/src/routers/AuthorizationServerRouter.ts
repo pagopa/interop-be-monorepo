@@ -20,7 +20,7 @@ import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { tokenServiceBuilder } from "../services/tokenService.js";
 import { config } from "../config/config.js";
 
-const dynamoDBClient = new DynamoDBClient({});
+const dynamoDBClient = new DynamoDBClient();
 const redisRateLimiter = await initRedisRateLimiter({
   limiterGroup: "AUTHSERVER",
   maxRequests: config.rateLimiterMaxRequests,

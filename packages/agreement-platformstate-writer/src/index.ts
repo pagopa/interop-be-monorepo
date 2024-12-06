@@ -13,7 +13,7 @@ import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
 
-const dynamoDBClient = new DynamoDBClient({});
+const dynamoDBClient = new DynamoDBClient();
 async function processMessage({
   message,
   partition,

@@ -1,7 +1,6 @@
 import {
   ApiError,
   ClientId,
-  ClientKindTokenStates,
   makeApiProblemBuilder,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
@@ -14,10 +13,8 @@ export const errorCodes = {
   kafkaAuditingFailed: "0004",
   fallbackAuditFailed: "0005",
   tokenGenerationStatesEntryNotFound: "0006",
-  invalidTokenClientKidPurposeEntry: "0007",
-  keyTypeMismatch: "0008",
-  unexpectedTokenGenerationStatesEntry: "0009",
-  platformStateValidationFailed: "0010",
+  incompleteTokenGenerationStatesConsumerClient: "0007",
+  platformStateValidationFailed: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -83,36 +80,13 @@ export function tokenGenerationStatesEntryNotFound(
   });
 }
 
-export function invalidTokenClientKidPurposeEntry(
+export function incompleteTokenGenerationStatesConsumerClient(
   pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Missing data in client-kid-purpose entry from token-generation-states table. Primary key: ${pk}`,
-    code: "invalidTokenClientKidPurposeEntry",
-    title: "Invalid token client-kid-purpose entry",
-  });
-}
-
-export function keyTypeMismatch(
-  pk:
-    | TokenGenerationStatesClientKidPurposePK
-    | TokenGenerationStatesClientKidPK,
-  clientKind: ClientKindTokenStates
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Token-generation entry ${pk} can't have client kind: ${clientKind}`,
-    code: "keyTypeMismatch",
-    title: "Key type mismatch",
-  });
-}
-
-export function unexpectedTokenGenerationStatesEntry(
-  pk: TokenGenerationStatesClientKidPK | TokenGenerationStatesClientKidPurposePK
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Unexpected token-generation-states entry, primary key: ${pk}`,
-    code: "unexpectedTokenGenerationStatesEntry",
-    title: "Unexpected token-generation-states entry",
+    detail: `Missing data in token-generation-states consumer client entry. Primary key: ${pk}`,
+    code: "incompleteTokenGenerationStatesConsumerClient",
+    title: "Incomplete token-generation-states consumer client entry",
   });
 }
 
