@@ -1887,7 +1887,7 @@ export function catalogServiceBuilder(
   };
 }
 
-function isUserAllowedToSeeDraft(
+function isRequesterEServiceProducer(
   eservice: EService,
   authData: AuthData
 ): boolean {
@@ -1904,7 +1904,7 @@ async function applyVisibilityToEService(
   authData: AuthData,
   readModelService: ReadModelService
 ): Promise<EService> {
-  if (isUserAllowedToSeeDraft(eservice, authData)) {
+  if (isRequesterEServiceProducer(eservice, authData)) {
     return eservice;
   }
 
