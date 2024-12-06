@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
 import {
   afterAll,
   afterEach,
@@ -32,20 +31,14 @@ import {
   getMockTokenGenStatesConsumerClient,
   buildDynamoDBTables,
   deleteDynamoDBTables,
-  readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId,
+  readAllTokenGenStatesItems,
 } from "pagopa-interop-commons-test";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { writeTokenGenStatesConsumerClient } from "pagopa-interop-commons-test";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
-import { config } from "./utils.js";
+import { dynamoDBClient } from "./utils.js";
+
 describe("V1 events", async () => {
-  if (!config) {
-    fail();
-  }
-  const dynamoDBClient = new DynamoDBClient({
-    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-  });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });
@@ -152,11 +145,9 @@ describe("V1 events", async () => {
         expect(retrievedEntry).toEqual(expectedEntry);
 
         // token-generation-states
-        const retrievedTokenGenStatesEntries =
-          await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
-            eserviceId_descriptorId,
-            dynamoDBClient
-          );
+        const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+          dynamoDBClient
+        );
         const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
           {
             ...tokenGenStatesConsumerClient1,
@@ -272,11 +263,9 @@ describe("V1 events", async () => {
         expect(retrievedCatalogEntry).toEqual(expectedCatalogEntry);
 
         // token-generation-states
-        const retrievedTokenGenStatesEntries =
-          await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
-            eserviceId_descriptorId,
-            dynamoDBClient
-          );
+        const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+          dynamoDBClient
+        );
         const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
           {
             ...tokenGenStatesConsumerClient1,
@@ -388,11 +377,9 @@ describe("V1 events", async () => {
         expect(retrievedCatalogEntry).toEqual(previousCatalogStateEntry);
 
         // token-generation-states
-        const retrievedTokenGenStatesEntries =
-          await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
-            eserviceId_descriptorId,
-            dynamoDBClient
-          );
+        const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+          dynamoDBClient
+        );
         expect(retrievedTokenGenStatesEntries).toEqual(
           expect.arrayContaining([
             tokenGenStatesConsumerClient1,
@@ -499,10 +486,7 @@ describe("V1 events", async () => {
 
           // token-generation-states
           const retrievedTokenGenStatesEntries =
-            await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
-              eserviceId_descriptorId,
-              dynamoDBClient
-            );
+            await readAllTokenGenStatesItems(dynamoDBClient);
           const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
             {
               ...tokenGenStatesConsumerClient1,
@@ -615,10 +599,7 @@ describe("V1 events", async () => {
 
           // token-generation-states
           const retrievedTokenGenStatesEntries =
-            await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
-              eserviceId_descriptorId,
-              dynamoDBClient
-            );
+            await readAllTokenGenStatesItems(dynamoDBClient);
           expect(retrievedTokenGenStatesEntries).toEqual(
             expect.arrayContaining([
               tokenGenStatesConsumerClient1,
@@ -760,11 +741,9 @@ describe("V1 events", async () => {
       expect(retrievedEntry).toBeUndefined();
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
-          eserviceId_descriptorId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,

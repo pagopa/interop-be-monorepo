@@ -1,4 +1,3 @@
-import { fail } from "assert";
 import {
   afterAll,
   afterEach,
@@ -9,7 +8,6 @@ import {
   it,
   vi,
 } from "vitest";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -71,15 +69,9 @@ import {
   writePlatformClientEntry,
   writeTokenGenStatesApiClient,
 } from "../src/utils.js";
-import { config } from "./utils.js";
+import { dynamoDBClient } from "./utils.js";
 
 describe("integration tests V2 events", async () => {
-  if (!config) {
-    fail();
-  }
-  const dynamoDBClient = new DynamoDBClient({
-    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-  });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
 import {
   afterAll,
   afterEach,
@@ -31,29 +30,22 @@ import {
   makePlatformStatesEServiceDescriptorPK,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   getMockTokenGenStatesConsumerClient,
   getMockAgreement,
   buildDynamoDBTables,
   deleteDynamoDBTables,
   toAgreementV1,
-  readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId,
   getMockPlatformStatesAgreementEntry,
   writePlatformCatalogEntry,
   writeTokenGenStatesConsumerClient,
+  readAllTokenGenStatesItems,
 } from "pagopa-interop-commons-test";
 import { readAgreementEntry, writeAgreementEntry } from "../src/utils.js";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
-import { config } from "./utils.js";
+import { dynamoDBClient } from "./utils.js";
 
 describe("integration tests V1 events", async () => {
-  if (!config) {
-    fail();
-  }
-  const dynamoDBClient = new DynamoDBClient({
-    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-  });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });
@@ -152,11 +144,9 @@ describe("integration tests V1 events", async () => {
       expect(retrievedAgreementEntry).toEqual(previousStateEntry);
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
@@ -259,11 +249,9 @@ describe("integration tests V1 events", async () => {
         eserviceId: agreement.eserviceId,
         descriptorId: agreement.descriptorId,
       });
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
 
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
@@ -385,11 +373,9 @@ describe("integration tests V1 events", async () => {
         eserviceId: agreement.eserviceId,
         descriptorId: agreement.descriptorId,
       });
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -531,11 +517,9 @@ describe("integration tests V1 events", async () => {
         eserviceId: agreement.eserviceId,
         descriptorId: agreement.descriptorId,
       });
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -713,11 +697,9 @@ describe("integration tests V1 events", async () => {
       expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
@@ -824,11 +806,9 @@ describe("integration tests V1 events", async () => {
       expect(retrievedAgreementEntry).toEqual(previousStateEntry);
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
@@ -985,11 +965,9 @@ describe("integration tests V1 events", async () => {
         eserviceId: latestAgreement.eserviceId,
         descriptorId: latestAgreement.descriptorId,
       });
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
 
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
@@ -1157,11 +1135,9 @@ describe("integration tests V1 events", async () => {
       expect(retrievedEntry).toEqual(expectedAgreementEntry);
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
@@ -1287,11 +1263,9 @@ describe("integration tests V1 events", async () => {
         eserviceId: agreement.eserviceId,
         descriptorId: agreement.descriptorId,
       });
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -1483,11 +1457,9 @@ describe("integration tests V1 events", async () => {
       expect(retrievedEntry).toEqual(expectedAgreementStateEntry);
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
@@ -1632,11 +1604,9 @@ describe("integration tests V1 events", async () => {
       expect(retrievedEntry).toEqual(expectedAgreementStateEntry);
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -1826,11 +1796,9 @@ describe("integration tests V1 events", async () => {
       expect(retrievedEntry).toEqual(expectedAgreementStateEntry);
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
@@ -1975,11 +1943,9 @@ describe("integration tests V1 events", async () => {
       expect(retrievedEntry).toEqual(expectedAgreementStateEntry);
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -2128,11 +2094,9 @@ describe("integration tests V1 events", async () => {
       expect(retrievedEntry).toBeUndefined();
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -2272,11 +2236,9 @@ describe("integration tests V1 events", async () => {
       expect(retrievedEntry).toBeUndefined();
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId(
-          GSIPK_consumerId_eserviceId,
-          dynamoDBClient
-        );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
