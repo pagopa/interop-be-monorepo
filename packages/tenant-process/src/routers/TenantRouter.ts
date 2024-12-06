@@ -826,7 +826,9 @@ const tenantsRouter = (
           const tenant = await tenantService.verifyVerifiedAttribute(
             {
               tenantId: unsafeBrandId(req.params.tenantId),
-              tenantAttributeSeed: req.body,
+              attributeId: unsafeBrandId(req.body.id),
+              agreementId: unsafeBrandId(req.body.agreementId),
+              expirationDate: req.body.expirationDate,
               organizationId: req.ctx.authData.organizationId,
               correlationId: req.ctx.correlationId,
             },
