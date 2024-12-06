@@ -73,6 +73,74 @@ export const retrieveTenantMailAddress = (
   return digitalAddress;
 };
 
+async function retrieveAgreementEservice(
+  agreement: Agreement,
+  readModelService: ReadModelService
+): Promise<EService> {
+  const eservice = await readModelService.getEServiceById(agreement.eserviceId);
+
+  if (!eservice) {
+    throw eServiceNotFound(agreement.eserviceId);
+  }
+
+  return eservice;
+}
+
+async function retrieveTenant(
+  tenantId: TenantId,
+  readModelService: ReadModelService
+): Promise<Tenant> {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (!tenant) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
+}
+
+function retrieveAgreementDescriptor(
+  eservice: EService,
+  agreement: Agreement
+): Descriptor {
+  const descriptor = eservice.descriptors.find(
+    (d) => d.id === agreement.descriptorId
+  );
+
+  if (!descriptor) {
+    throw descriptorNotFound(agreement.eserviceId, agreement.descriptorId);
+  }
+  return descriptor;
+}
+
+async function retrieveHTMLTemplate(
+  templateKind: AgreementEventMailTemplateType
+): Promise<string> {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `/resources/templates/${templateKind}.html`;
+
+  try {
+    const htmlTemplateBuffer = await fs.readFile(
+      `${dirname}/..${templatePath}`
+    );
+    return htmlTemplateBuffer.toString();
+  } catch {
+    throw htmlTemplateNotFound(templatePath);
+  }
+}
+
+function getFormattedAgreementStampDate(
+  agreement: Agreement,
+  stamp: keyof Agreement["stamps"]
+): string {
+  const stampDate = agreement.stamps[stamp]?.when;
+
+  if (stampDate === undefined) {
+    throw agreementStampDateNotFound(stamp, agreement.id);
+  }
+  return dateAtRomeZone(new Date(Number(stampDate)));
+}
+
+
 async function sendAgreementActivationEmail(
   emailManager: EmailManager,
   readModelService: ReadModelService,
@@ -272,71 +340,4 @@ export function agreementEmailSenderServiceBuilder(
       );
     },
   };
-}
-
-async function retrieveAgreementEservice(
-  agreement: Agreement,
-  readModelService: ReadModelService
-): Promise<EService> {
-  const eservice = await readModelService.getEServiceById(agreement.eserviceId);
-
-  if (!eservice) {
-    throw eServiceNotFound(agreement.eserviceId);
-  }
-
-  return eservice;
-}
-
-async function retrieveTenant(
-  tenantId: TenantId,
-  readModelService: ReadModelService
-): Promise<Tenant> {
-  const tenant = await readModelService.getTenantById(tenantId);
-  if (!tenant) {
-    throw tenantNotFound(tenantId);
-  }
-  return tenant;
-}
-
-function retrieveAgreementDescriptor(
-  eservice: EService,
-  agreement: Agreement
-): Descriptor {
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === agreement.descriptorId
-  );
-
-  if (!descriptor) {
-    throw descriptorNotFound(agreement.eserviceId, agreement.descriptorId);
-  }
-  return descriptor;
-}
-
-async function retrieveHTMLTemplate(
-  templateKind: AgreementEventMailTemplateType
-): Promise<string> {
-  const filename = fileURLToPath(import.meta.url);
-  const dirname = path.dirname(filename);
-  const templatePath = `/resources/templates/${templateKind}.html`;
-
-  try {
-    const htmlTemplateBuffer = await fs.readFile(
-      `${dirname}/..${templatePath}`
-    );
-    return htmlTemplateBuffer.toString();
-  } catch {
-    throw htmlTemplateNotFound(templatePath);
-  }
-}
-
-function getFormattedAgreementStampDate(
-  agreement: Agreement,
-  stamp: keyof Agreement["stamps"]
-): string {
-  const stampDate = agreement.stamps[stamp]?.when;
-
-  if (stampDate === undefined) {
-    throw agreementStampDateNotFound(stamp, agreement.id);
-  }
-  return dateAtRomeZone(new Date(Number(stampDate)));
 }
