@@ -52,6 +52,7 @@ import {
   PagoPAInteropBeClients,
   AgreementProcessClient,
 } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import { getAllAgreements } from "./agreementService.js";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
@@ -73,7 +74,11 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       const { data: jwt, errors: clientAssertionErrors } =
-        verifyClientAssertion(clientAssertion, clientId);
+        verifyClientAssertion(
+          clientAssertion,
+          clientId,
+          config.clientAssertionAudience
+        );
 
       if (parametersErrors || clientAssertionErrors) {
         return handleValidationResults({

@@ -8,6 +8,7 @@ import {
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
+import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -207,7 +208,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(S3PrivacyNoticeConfig)
   .and(ExportFileConfig)
   .and(ImportFileConfig)
-  .and(InterfaceVersion);
+  .and(InterfaceVersion)
+  .and(ClientAssertionValidationConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
