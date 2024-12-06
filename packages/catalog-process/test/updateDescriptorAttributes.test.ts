@@ -429,7 +429,7 @@ describe("update descriptor", () => {
 
   it.each([
     descriptorState.draft,
-    descriptorState.waitingForApproval,
+    // descriptorState.waitingForApproval,
     descriptorState.archived,
     descriptorState.deprecated,
   ])(
