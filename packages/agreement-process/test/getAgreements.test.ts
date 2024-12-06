@@ -33,6 +33,7 @@ describe("get agreements", () => {
   let tenant1: Tenant;
   let tenant2: Tenant;
   let tenant3: Tenant;
+  let tenant4: Tenant;
   let descriptor1: Descriptor;
   let descriptor2: Descriptor;
   let descriptor3: Descriptor;
@@ -42,6 +43,7 @@ describe("get agreements", () => {
   let eservice2: EService;
   let eservice3: EService;
   let eservice4: EService;
+  let eservice5: EService;
   let attribute1: AgreementAttribute;
   let attribute2: AgreementAttribute;
   let attribute3: AgreementAttribute;
@@ -53,11 +55,13 @@ describe("get agreements", () => {
   let agreement5: Agreement;
   let agreement6: Agreement;
   let agreement7: Agreement;
+  let agreement8: Agreement;
 
   beforeEach(async () => {
     tenant1 = getMockTenant();
     tenant2 = getMockTenant();
     tenant3 = getMockTenant();
+    tenant4 = getMockTenant();
 
     descriptor1 = {
       ...getMockDescriptorPublished(),
@@ -101,14 +105,20 @@ describe("get agreements", () => {
       ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
       name: "EService4", // Adding name because results are sorted by esevice name
     };
+    eservice5 = {
+      ...getMockEService(generateId<EServiceId>(), tenant4.id, [descriptor5]),
+      name: "EService5", // Adding name because results are sorted by esevice name
+    };
 
     await addOneTenant(tenant1);
     await addOneTenant(tenant2);
     await addOneTenant(tenant3);
+    await addOneTenant(tenant4);
     await addOneEService(eservice1);
     await addOneEService(eservice2);
     await addOneEService(eservice3);
     await addOneEService(eservice4);
+    await addOneEService(eservice5);
 
     attribute1 = { id: generateId() };
     attribute2 = { id: generateId() };
@@ -165,6 +175,12 @@ describe("get agreements", () => {
       producerId: eservice4.producerId,
     };
 
+    agreement8 = {
+      ...getMockAgreement(eservice5.id, tenant1.id, agreementState.draft),
+      descriptorId: eservice5.descriptors[0].id,
+      producerId: eservice5.producerId,
+    };
+
     await addOneAgreement(agreement1);
     await addOneAgreement(agreement2);
     await addOneAgreement(agreement3);
@@ -172,6 +188,7 @@ describe("get agreements", () => {
     await addOneAgreement(agreement5);
     await addOneAgreement(agreement6);
     await addOneAgreement(agreement7);
+    await addOneAgreement(agreement8);
 
     const delegation1 = getMockDelegation({
       kind: delegationKind.delegatedProducer,
@@ -179,18 +196,27 @@ describe("get agreements", () => {
       eserviceId: eservice4.id,
       state: agreementState.active,
     });
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      delegateId: tenant4.id,
+      eserviceId: eservice5.id,
+      state: agreementState.active,
+    });
+
     await addOneDelegation(delegation1);
+    await addOneDelegation(delegation2);
   });
 
   it("should get all agreements if no filters are provided", async () => {
     const allAgreements = await agreementService.getAgreements(
       {},
+      agreement1.producerId,
       10,
       0,
       genericLogger
     );
     expect(allAgreements).toEqual({
-      totalCount: 7,
+      totalCount: 8,
       results: expect.arrayContaining([
         agreement1,
         agreement2,
@@ -199,6 +225,7 @@ describe("get agreements", () => {
         agreement5,
         agreement6,
         agreement7,
+        agreement8,
       ]),
     });
   });
@@ -208,6 +235,7 @@ describe("get agreements", () => {
       {
         producerId: eservice1.producerId,
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -221,6 +249,7 @@ describe("get agreements", () => {
       {
         producerId: [eservice1.producerId, eservice2.producerId],
       },
+      eservice1.producerId,
       10,
       0,
       genericLogger
@@ -242,17 +271,19 @@ describe("get agreements", () => {
       {
         consumerId: tenant1.id,
       },
+      agreement1.consumerId,
       10,
       0,
       genericLogger
     );
     expect(agreements1).toEqual({
-      totalCount: 4,
+      totalCount: 5,
       results: expect.arrayContaining([
         agreement1,
         agreement3,
         agreement5,
         agreement7,
+        agreement8,
       ]),
     });
 
@@ -260,12 +291,13 @@ describe("get agreements", () => {
       {
         consumerId: [tenant1.id, tenant2.id],
       },
+      agreement2.consumerId,
       10,
       0,
       genericLogger
     );
     expect(agreements2).toEqual({
-      totalCount: 6,
+      totalCount: 7,
       results: expect.arrayContaining([
         agreement1,
         agreement2,
@@ -273,6 +305,7 @@ describe("get agreements", () => {
         agreement4,
         agreement5,
         agreement7,
+        agreement8,
       ]),
     });
   });
@@ -282,6 +315,7 @@ describe("get agreements", () => {
       {
         eserviceId: eservice1.id,
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -295,6 +329,7 @@ describe("get agreements", () => {
       {
         eserviceId: [eservice1.id, eservice2.id],
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -315,6 +350,7 @@ describe("get agreements", () => {
       {
         descriptorId: descriptor1.id,
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -328,18 +364,20 @@ describe("get agreements", () => {
       {
         descriptorId: [descriptor1.id, descriptor3.id, descriptor5.id],
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
     );
     expect(agreements2).toEqual({
-      totalCount: 5,
+      totalCount: 6,
       results: expect.arrayContaining([
         agreement1,
         agreement3,
         agreement5,
         agreement6,
         agreement7,
+        agreement8,
       ]),
     });
   });
@@ -349,6 +387,7 @@ describe("get agreements", () => {
       {
         attributeId: attribute2.id,
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -362,6 +401,7 @@ describe("get agreements", () => {
       {
         attributeId: attribute3.id,
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -375,6 +415,7 @@ describe("get agreements", () => {
       {
         attributeId: [attribute1.id, attribute3.id, attribute4.id],
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -389,6 +430,7 @@ describe("get agreements", () => {
       {
         agreementStates: [agreementState.active, agreementState.pending],
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -403,6 +445,7 @@ describe("get agreements", () => {
       {
         showOnlyUpgradeable: true,
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -424,6 +467,7 @@ describe("get agreements", () => {
         consumerId: tenant1.id,
         eserviceId: [eservice1.id, eservice2.id],
       },
+      agreement1.consumerId,
       10,
       0,
       genericLogger
@@ -442,6 +486,7 @@ describe("get agreements", () => {
         eserviceId: [eservice1.id, eservice2.id],
         descriptorId: [descriptor1.id],
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -458,6 +503,7 @@ describe("get agreements", () => {
         attributeId: attribute3.id,
         agreementStates: [agreementState.active],
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -475,6 +521,7 @@ describe("get agreements", () => {
         agreementStates: [agreementState.draft],
         descriptorId: descriptor1.id,
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -490,6 +537,7 @@ describe("get agreements", () => {
         agreementStates: [agreementState.suspended],
         descriptorId: descriptor1.id,
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -505,6 +553,7 @@ describe("get agreements", () => {
       {
         eserviceId: eservice1.id,
       },
+      agreement1.producerId,
       1,
       0,
       genericLogger
@@ -520,6 +569,7 @@ describe("get agreements", () => {
       {
         eserviceId: [eservice1.id, eservice2.id],
       },
+      agreement1.producerId,
       2,
       1,
       genericLogger
@@ -535,6 +585,7 @@ describe("get agreements", () => {
       {
         producerId: generateId<TenantId>(),
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -546,11 +597,12 @@ describe("get agreements", () => {
     });
   });
 
-  it("should get agreements for a delegated eservice with filters: producerId", async () => {
+  it("should get agreements for a delegated eservice with filters: producerId and requester is producer", async () => {
     const agreements = await agreementService.getAgreements(
       {
         producerId: eservice4.producerId,
       },
+      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -558,6 +610,22 @@ describe("get agreements", () => {
     expect(agreements).toEqual({
       totalCount: 3,
       results: expect.arrayContaining([agreement5, agreement6, agreement7]),
+    });
+  });
+
+  it("should get agreements for a delegated eservice with filters: consumerId sand requester is consumer", async () => {
+    const agreements = await agreementService.getAgreements(
+      {
+        consumerId: tenant4.id,
+      },
+      tenant4.id,
+      10,
+      0,
+      genericLogger
+    );
+    expect(agreements).toEqual({
+      totalCount: 1,
+      results: expect.arrayContaining([agreement8]),
     });
   });
 });
