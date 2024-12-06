@@ -40,17 +40,17 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   correlationId: CorrelationId;
 }): Promise<void> => {
   const users =
-    await selfcareV2InstitutionClient.getInstitutionProductUsersUsingGET({
+    await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
       params: { institutionId: selfcareId },
       queries: {
-        userIdForAuth: requesterUserId,
         userId: userIdToCheck,
-        productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
+        productRoles: [userRoles.ADMIN_ROLE, userRoles.SECURITY_ROLE].join(","), // At this point productRoles is a string and not a string[]
       },
       headers: {
         "X-Correlation-Id": correlationId,
       },
     });
+
   if (users.length === 0) {
     throw userWithoutSecurityPrivileges(consumerId, requesterUserId);
   }
