@@ -348,30 +348,24 @@ const getDelegationLookup = (kind: DelegationKind) => [
       as: "delegations",
     },
   },
-  {
-    $unwind: {
-      path: "$delegations",
-      preserveNullAndEmptyArrays: true,
-    },
-  },
 ];
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getDelegateAgreementsFilters(
+function getAgreementByProducerOrConsumerWithDelegateFilters(
   producerIds: TenantId[],
   consumerIds: TenantId[],
   requesterId: TenantId
 ) {
-  const requesterRole: DelegationKind | undefined =
+  const requesterRole: "Consumer" | "Producer" | undefined =
     producerIds.length === 1 && producerIds[0] === requesterId
-      ? delegationKind.delegatedProducer
+      ? "Producer"
       : consumerIds.length === 1 && consumerIds[0] === requesterId
-      ? delegationKind.delegatedConsumer
+      ? "Consumer"
       : undefined;
 
   return match([requesterRole, producerIds.length > 0, consumerIds.length > 0])
-    .with([delegationKind.delegatedProducer, false, P.any], () => []) // Impossible case (producerIds must be set)
-    .with([delegationKind.delegatedConsumer, P.any, false], () => []) // Impossible case (consumerIds must be set)
+    .with(["Producer", false, P.any], () => []) // Impossible case (producerIds must be set)
+    .with(["Consumer", P.any, false], () => []) // Impossible case (consumerIds must be set)
     .with([undefined, P.any, P.any], () => [
       {
         $match: {
@@ -380,19 +374,17 @@ function getDelegateAgreementsFilters(
         },
       },
     ])
-    .with([delegationKind.delegatedProducer, true, P.any], ([kind]) => [
-      ...getDelegationLookup(kind),
+    .with(["Producer", true, P.any], () => [
+      ...getDelegationLookup(delegationKind.delegatedProducer),
       {
         $match: {
           $and: [
             {
               $or: [
                 {
-                  "delegations.data.delegateId": {
-                    $in: producerIds,
-                  },
+                  "delegations.data.delegateId": requesterId,
                 },
-                makeFilter("producerId", producerIds),
+                makeFilter("producerId", requesterId),
               ],
             },
             makeFilter("consumerId", consumerIds),
@@ -400,19 +392,17 @@ function getDelegateAgreementsFilters(
         },
       },
     ])
-    .with([delegationKind.delegatedConsumer, P.any, true], ([kind]) => [
-      ...getDelegationLookup(kind),
+    .with(["Consumer", P.any, true], () => [
+      ...getDelegationLookup(delegationKind.delegatedConsumer),
       {
         $match: {
           $and: [
             {
               $or: [
                 {
-                  "delegations.data.delegateId": {
-                    $in: consumerIds,
-                  },
+                  "delegations.data.delegateId": requesterId,
                 },
-                makeFilter("consumerId", consumerIds),
+                makeFilter("consumerId", requesterId),
               ],
             },
             makeFilter("producerId", producerIds),
@@ -448,11 +438,12 @@ export function readModelServiceBuilder(
           : [consumerId]
         : [];
 
-      const delegateAgreementFilters = getDelegateAgreementsFilters(
-        producerIds,
-        consumerIds,
-        requesterId
-      );
+      const delegateAgreementFilters =
+        getAgreementByProducerOrConsumerWithDelegateFilters(
+          producerIds,
+          consumerIds,
+          requesterId
+        );
 
       const pipeline = [
         getAgreementsFilters(otherFilters),
@@ -633,7 +624,7 @@ export function readModelServiceBuilder(
       };
 
       const agreementAggregationPipeline = [
-        ...getDelegateAgreementsFilters(
+        ...getAgreementByProducerOrConsumerWithDelegateFilters(
           filters.producerIds,
           filters.consumerIds,
           requesterId
