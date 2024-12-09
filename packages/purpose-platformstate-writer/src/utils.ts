@@ -38,6 +38,7 @@ import {
   TokenGenStatesConsumerClientGSIPurpose,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { Logger } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 
 export const getPurposeStateFromPurposeVersions = (
@@ -228,7 +229,8 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
     dynamoDBClient: DynamoDBClient,
     purpose: Purpose,
     purposeState: ItemState,
-    purposeVersionId: PurposeVersionId
+    purposeVersionId: PurposeVersionId,
+    logger: Logger
   ): Promise<void> => {
     const runPaginatedUpdateQuery = async (
       dynamoDBClient: DynamoDBClient,
@@ -236,6 +238,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
       purposeState: ItemState,
       purposeVersionId: PurposeVersionId,
       exclusiveStartKey?: Record<string, AttributeValue>
+      // eslint-disable-next-line sonarjs/cognitive-complexity
     ): Promise<void> => {
       const result = await readTokenGenStatesEntriesByGSIPKPurposeId(
         dynamoDBClient,
@@ -246,28 +249,53 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
         consumerId: purpose.consumerId,
         eserviceId: purpose.eserviceId,
       });
+
       const platformAgreementEntry = await readPlatformAgreementEntry(
         dynamoDBClient,
         gsiPKConsumerIdEServiceId
       );
-      const catalogEntry = platformAgreementEntry
-        ? await readCatalogEntry(
-            dynamoDBClient,
-            makePlatformStatesEServiceDescriptorPK({
-              eserviceId: purpose.eserviceId,
-              descriptorId: platformAgreementEntry.agreementDescriptorId,
-            })
-          )
+
+      const { catalogEntryPK, gsiPKEServiceIdDescriptorId } =
+        platformAgreementEntry
+          ? {
+              catalogEntryPK: makePlatformStatesEServiceDescriptorPK({
+                eserviceId: purpose.eserviceId,
+                descriptorId: platformAgreementEntry.agreementDescriptorId,
+              }),
+              gsiPKEServiceIdDescriptorId: makeGSIPKEServiceIdDescriptorId({
+                eserviceId: purpose.eserviceId,
+                descriptorId: platformAgreementEntry.agreementDescriptorId,
+              }),
+            }
+          : {
+              catalogEntryPK: undefined,
+              gsiPKEServiceIdDescriptorId: undefined,
+            };
+
+      if (catalogEntryPK) {
+        logger.info(
+          `Retrieving platform-states catalog entry ${catalogEntryPK} to add descriptor info in token-generation-states`
+        );
+      }
+
+      const catalogEntry = catalogEntryPK
+        ? await readCatalogEntry(dynamoDBClient, catalogEntryPK)
         : undefined;
 
       for (const entry of result.tokenGenStatesEntries) {
         const tokenEntryPK = entry.PK;
         const isAgreementMissingInTokenGenStates =
-          platformAgreementEntry &&
+          !!platformAgreementEntry &&
+          !!gsiPKEServiceIdDescriptorId &&
           (!entry.agreementId ||
             !entry.agreementState ||
             !entry.GSIPK_eserviceId_descriptorId);
 
+        if (isAgreementMissingInTokenGenStates) {
+          logger.info(
+            `Adding agreement info to token-generation-states entry with PK ${tokenEntryPK} and GSIPK_consumerId_eserviceId ${gsiPKConsumerIdEServiceId}`
+          );
+        }
         // Agreement data from platform-states
         const agreementExpressionAttributeValues: Record<
           string,
@@ -281,10 +309,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
                 S: platformAgreementEntry.state,
               },
               ":gsiPKEServiceIdDescriptorId": {
-                S: makeGSIPKEServiceIdDescriptorId({
-                  eserviceId: purpose.eserviceId,
-                  descriptorId: platformAgreementEntry.agreementDescriptorId,
-                }),
+                S: gsiPKEServiceIdDescriptorId,
               },
             }
           : {};
@@ -296,11 +321,17 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
 
         // Descriptor data from platform-states
         const isDescriptorDataMissingInTokenGenStates =
-          platformAgreementEntry &&
-          catalogEntry &&
+          !!platformAgreementEntry &&
+          !!catalogEntry &&
           (!entry.descriptorAudience ||
             !entry.descriptorState ||
             !entry.descriptorVoucherLifespan);
+
+        if (isDescriptorDataMissingInTokenGenStates) {
+          logger.info(
+            `Adding descriptor info to token-generation-states entry with PK ${tokenEntryPK} and GSIPK_eserviceId_descriptorId ${gsiPKEServiceIdDescriptorId}`
+          );
+        }
 
         const descriptorExpressionAttributeValues: Record<
           string,

@@ -13,6 +13,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { Logger } from "pagopa-interop-commons";
 import {
   deletePlatformPurposeEntry,
   getPurposeStateFromPurposeVersions,
@@ -26,7 +27,8 @@ import {
 
 export async function handleMessageV2(
   message: PurposeEventEnvelopeV2,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with(
@@ -77,7 +79,8 @@ export async function handleMessageV2(
           dynamoDBClient,
           purpose,
           purposeState,
-          purposeVersion.id
+          purposeVersion.id,
+          logger
         );
       }
     )
