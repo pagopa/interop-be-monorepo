@@ -33,6 +33,7 @@
     "start:pn-consumers": "turbo start --filter pagopa-interop-pn-consumers",
     "start:one-trust-notices": "turbo start --filter pagopa-interop-one-trust-notices",
     "start:datalake-data-export": "turbo start --filter pagopa-interop-datalake-data-export",
+    "start:client-purpose-updater": "turbo start --filter pagopa-interop-client-purpose-updater",
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",

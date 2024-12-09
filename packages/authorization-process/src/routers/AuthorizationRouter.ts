@@ -84,8 +84,14 @@ const authorizationService = authorizationServiceBuilder(
 const authorizationRouter = (
   ctx: ZodiosContext
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
-  const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE, API_ROLE } =
-    userRoles;
+  const {
+    ADMIN_ROLE,
+    SECURITY_ROLE,
+    M2M_ROLE,
+    SUPPORT_ROLE,
+    API_ROLE,
+    INTERNAL_ROLE,
+  } = userRoles;
 
   const authorizationClientRouter = ctx.router(authorizationApi.clientApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -577,7 +583,7 @@ const authorizationRouter = (
     )
     .delete(
       "/clients/purposes/:purposeId",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
