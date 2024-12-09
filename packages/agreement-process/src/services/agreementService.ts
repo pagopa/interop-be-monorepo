@@ -429,13 +429,11 @@ export function agreementServiceBuilder(
         await readModelService.getActiveProducerDelegationByEserviceId(
           agreement.data.eserviceId
         );
-      const delegateProducerId = activeProducerDelegation?.delegateId;
 
       const nextStateByAttributes = nextStateByAttributesFSM(
         agreement.data,
         descriptor,
-        consumer,
-        delegateProducerId
+        consumer
       );
 
       const suspendedByPlatform = suspendedByPlatformFlag(

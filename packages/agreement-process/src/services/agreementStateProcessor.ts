@@ -42,13 +42,9 @@ const {
 const nextStateFromDraft = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant | CompactTenant,
-  delegateProducerId: TenantId | undefined
+  tenant: Tenant | CompactTenant
 ): AgreementState => {
-  if (
-    agreement.consumerId === agreement.producerId ||
-    agreement.consumerId === delegateProducerId
-  ) {
+  if (agreement.consumerId === agreement.producerId) {
     return active;
   }
   if (!certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
@@ -98,13 +94,9 @@ const nextStateFromPending = (
 const nextStateFromActiveOrSuspended = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant | CompactTenant,
-  delegateProducerId: TenantId | undefined
+  tenant: Tenant | CompactTenant
 ): AgreementState => {
-  if (
-    agreement.consumerId === agreement.producerId ||
-    agreement.consumerId === delegateProducerId
-  ) {
+  if (agreement.consumerId === agreement.producerId) {
     return active;
   }
   if (
@@ -134,23 +126,17 @@ const nextStateFromMissingCertifiedAttributes = (
 export const nextStateByAttributesFSM = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant | CompactTenant,
-  delegateProducerId?: TenantId | undefined
+  tenant: Tenant | CompactTenant
 ): AgreementState =>
   match(agreement.state)
     .with(agreementState.draft, () =>
-      nextStateFromDraft(agreement, descriptor, tenant, delegateProducerId)
+      nextStateFromDraft(agreement, descriptor, tenant)
     )
     .with(agreementState.pending, () =>
       nextStateFromPending(agreement, descriptor, tenant)
     )
     .with(agreementState.active, agreementState.suspended, () =>
-      nextStateFromActiveOrSuspended(
-        agreement,
-        descriptor,
-        tenant,
-        delegateProducerId
-      )
+      nextStateFromActiveOrSuspended(agreement, descriptor, tenant)
     )
     .with(agreementState.archived, () => archived)
     .with(agreementState.missingCertifiedAttributes, () =>
