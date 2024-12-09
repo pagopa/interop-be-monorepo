@@ -284,7 +284,7 @@ export const publishAudit = async ({
     purposeVersionId: unsafeBrandId(key.purposeVersionId),
     algorithm: generatedToken.header.alg,
     keyId: generatedToken.header.kid,
-    audience: generatedToken.payload.aud.join(","),
+    audience: [generatedToken.payload.aud].flat().join(","),
     subject: generatedToken.payload.sub,
     notBefore: generatedToken.payload.nbf,
     expirationTime: generatedToken.payload.exp,

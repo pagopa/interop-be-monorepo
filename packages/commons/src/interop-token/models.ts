@@ -26,7 +26,7 @@ export interface InteropJwtHeader {
 export type InteropJwtCommonPayload = {
   jti: string;
   iss: string;
-  aud: string[];
+  aud: string[] | string;
   iat: number;
   nbf: number;
   exp: number;

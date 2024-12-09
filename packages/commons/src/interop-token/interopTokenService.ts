@@ -167,7 +167,7 @@ export class InteropTokenGenerator {
     const payload: InteropJwtApiPayload = {
       jti: generateId(),
       iss: this.config.generatedInteropTokenIssuer,
-      aud: [this.config.generatedInteropTokenM2MAudience],
+      aud: this.convertAudience(this.config.generatedInteropTokenM2MAudience),
       client_id: sub,
       sub,
       iat: currentTimestamp,
@@ -226,7 +226,7 @@ export class InteropTokenGenerator {
     const payload: InteropJwtConsumerPayload = {
       jti: generateId(),
       iss: this.config.generatedInteropTokenIssuer,
-      aud: audience,
+      aud: this.convertAudience(audience),
       client_id: sub,
       sub,
       iat: currentTimestamp,
@@ -279,4 +279,7 @@ export class InteropTokenGenerator {
 
     return `${serializedToken}.${jwtSignature}`;
   }
+
+  private convertAudience = (input: string | string[]): string | string[] =>
+    Array.isArray(input) && input.length === 1 ? input[0] : input;
 }
