@@ -2,7 +2,6 @@
 import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
 import {
   DelegationId,
-  DelegationKind,
   delegationKind,
   generateId,
 } from "pagopa-interop-models";
@@ -12,50 +11,36 @@ import { delegationNotFound } from "../src/model/domain/errors.js";
 import { addOneDelegation, delegationService } from "./utils.js";
 
 describe("get delegation by id", () => {
-  it("should get the consumer delegation if it exists", async () => {
-    await testDelegationRetrieval(delegationKind.delegatedConsumer);
-  });
+  it.each(Object.values(delegationKind))(
+    "should get the %s delegation if it exists",
+    async (kind) => {
+      const delegation = getMockDelegation({ kind });
+      await addOneDelegation(delegation);
 
-  it("should get the producer delegation if it exists", async () => {
-    await testDelegationRetrieval(delegationKind.delegatedProducer);
-  });
+      const expectedDelegation = await delegationService.getDelegationById(
+        delegation.id,
+        genericLogger
+      );
 
-  it("should fail with delegationNotFound for consumer delegations", async () => {
-    await testDelegationNotFound(delegationKind.delegatedConsumer);
-  });
+      expect(delegation).toEqual(expectedDelegation);
+    }
+  );
 
-  it("should fail with delegationNotFound for producer delegations", async () => {
-    await testDelegationNotFound(delegationKind.delegatedProducer);
-  });
+  it.each(Object.values(delegationKind))(
+    "should fail with delegationNotFound for %s delegations",
+    async (kind) => {
+      const delegation = getMockDelegation({ kind });
+      await addOneDelegation(delegation);
 
-  const testDelegationRetrieval = async (
-    kind: DelegationKind
-  ): Promise<void> => {
-    const delegation = getMockDelegation({ kind });
-    await addOneDelegation(delegation);
+      const notFoundId = generateId<DelegationId>();
+      const expectedDelegation = delegationService.getDelegationById(
+        notFoundId,
+        genericLogger
+      );
 
-    const expectedDelegation = await delegationService.getDelegationById(
-      delegation.id,
-      genericLogger
-    );
-
-    expect(delegation).toEqual(expectedDelegation);
-  };
-
-  const testDelegationNotFound = async (
-    kind: DelegationKind
-  ): Promise<void> => {
-    const delegation = getMockDelegation({ kind });
-    await addOneDelegation(delegation);
-
-    const notFoundId = generateId<DelegationId>();
-    const expectedDelegation = delegationService.getDelegationById(
-      notFoundId,
-      genericLogger
-    );
-
-    await expect(expectedDelegation).rejects.toThrow(
-      delegationNotFound(notFoundId)
-    );
-  };
+      await expect(expectedDelegation).rejects.toThrow(
+        delegationNotFound(notFoundId)
+      );
+    }
+  );
 });
