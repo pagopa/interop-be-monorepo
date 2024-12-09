@@ -155,7 +155,7 @@ export class InteropTokenGenerator {
       );
     }
 
-    const currentTimestamp = Date.now();
+    const currentTimestamp = dateToSeconds(new Date());
 
     const header: InteropJwtHeader = {
       alg: "RS256",
@@ -172,8 +172,7 @@ export class InteropTokenGenerator {
       iat: currentTimestamp,
       nbf: currentTimestamp,
       exp:
-        currentTimestamp +
-        this.config.generatedInteropTokenM2MDurationSeconds * 1000,
+        currentTimestamp + this.config.generatedInteropTokenM2MDurationSeconds,
       [ORGANIZATION_ID_CLAIM]: consumerId,
       [ROLE_CLAIM]: GENERATED_INTEROP_TOKEN_M2M_ROLE,
     };
@@ -214,7 +213,7 @@ export class InteropTokenGenerator {
       );
     }
 
-    const currentTimestamp = Date.now();
+    const currentTimestamp = dateToSeconds(new Date());
 
     const header: InteropJwtHeader = {
       alg: "RS256",
