@@ -33,12 +33,14 @@ export type InteropJwtCommonPayload = {
 };
 
 export type InteropJwtConsumerPayload = InteropJwtCommonPayload & {
+  client_id: string;
   sub: string;
   [PURPOSE_ID_CLAIM]: string;
   digest?: ClientAssertionDigest;
 };
 
 export type InteropJwtApiPayload = InteropJwtCommonPayload & {
+  client_id: string;
   sub: string;
   [ORGANIZATION_ID_CLAIM]: string;
   [ROLE_CLAIM]: string;
