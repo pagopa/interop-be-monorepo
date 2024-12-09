@@ -1,4 +1,9 @@
-import { ClientAssertionDigest } from "pagopa-interop-models";
+import {
+  ClientAssertionDigest,
+  ClientId,
+  PurposeId,
+  TenantId,
+} from "pagopa-interop-models";
 import { z } from "zod";
 
 export const ORGANIZATION = "organization";
@@ -33,16 +38,16 @@ export type InteropJwtCommonPayload = {
 };
 
 export type InteropJwtConsumerPayload = InteropJwtCommonPayload & {
-  client_id: string;
-  sub: string;
-  [PURPOSE_ID_CLAIM]: string;
+  client_id: ClientId;
+  sub: ClientId;
+  [PURPOSE_ID_CLAIM]: PurposeId;
   digest?: ClientAssertionDigest;
 };
 
 export type InteropJwtApiPayload = InteropJwtCommonPayload & {
-  client_id: string;
-  sub: string;
-  [ORGANIZATION_ID_CLAIM]: string;
+  client_id: ClientId;
+  sub: ClientId;
+  [ORGANIZATION_ID_CLAIM]: TenantId;
   [ROLE_CLAIM]: string;
 };
 
