@@ -410,13 +410,11 @@ export function agreementServiceBuilder(
           agreement.data.eserviceId,
           readModelService
         );
-      const delegateProducerId = activeProducerDelegation?.delegateId;
 
       const nextStateByAttributes = nextStateByAttributesFSM(
         agreement.data,
         descriptor,
-        consumer,
-        delegateProducerId
+        consumer
       );
 
       const suspendedByPlatform = suspendedByPlatformFlag(
@@ -1054,7 +1052,8 @@ export function agreementServiceBuilder(
       const suspendedByProducer = suspendedByProducerFlag(
         agreement.data,
         authData.organizationId,
-        targetDestinationState
+        targetDestinationState,
+        delegateProducerId
       );
 
       const newState = agreementStateByFlags(

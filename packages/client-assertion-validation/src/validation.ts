@@ -74,10 +74,10 @@ export const validateRequestParameters = (
   return failedValidation([assertionTypeError, grantTypeError]);
 };
 
-// eslint-disable-next-line complexity
 export const verifyClientAssertion = (
   clientAssertionJws: string,
-  clientId: string | undefined
+  clientId: string | undefined,
+  expectedAudiences: string[]
 ): ValidationResult<ClientAssertion> => {
   try {
     const decodedPayload = jose.decodeJwt(clientAssertionJws);
@@ -105,7 +105,8 @@ export const verifyClientAssertion = (
       decodedHeader.kid
     );
     const { errors: audErrors, data: validatedAud } = validateAudience(
-      decodedPayload.aud
+      decodedPayload.aud,
+      expectedAudiences
     );
     const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
       decodedHeader.alg
