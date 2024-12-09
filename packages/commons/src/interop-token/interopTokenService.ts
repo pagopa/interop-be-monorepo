@@ -255,7 +255,11 @@ export class InteropTokenGenerator {
     keyId,
   }: {
     header: InteropJwtHeader;
-    payload: InteropJwtPayload | SessionJwtPayload | InteropJwtConsumerPayload;
+    payload:
+      | InteropJwtPayload
+      | SessionJwtPayload
+      | InteropJwtConsumerPayload
+      | InteropJwtApiPayload;
     keyId: string;
   }): Promise<string> {
     const serializedToken = `${b64UrlEncode(
