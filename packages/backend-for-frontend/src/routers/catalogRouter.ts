@@ -762,7 +762,7 @@ const catalogRouter = (
             emptyErrorMapper,
             ctx.logger,
             ctx.correlationId,
-            `Error updated eService ${req.params.eServiceId} descriptor ${req.params.descriptorId} attributes`
+            `Error updating attributes for eService ${req.params.eServiceId} descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

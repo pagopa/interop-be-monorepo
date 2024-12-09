@@ -1700,7 +1700,7 @@ export function catalogServiceBuilder(
         descriptor.state !== descriptorState.published &&
         descriptor.state !== descriptorState.suspended
       ) {
-        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+        throw notValidDescriptor(descriptorId, descriptor.state);
       }
 
       /**
