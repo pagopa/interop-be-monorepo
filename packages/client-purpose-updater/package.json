@@ -2,7 +2,7 @@
     "name": "pagopa-interop-client-purpose-updater",
     "private": true,
     "version": "1.0.0",
-    "description": "PagoPA Interoperability client consumer service that updates the read model when events are stored",
+    "description": "PagoPA Interoperability client consumer service that updates clients on purposes updates",
     "main": "dist",
     "type": "module",
     "scripts": {
