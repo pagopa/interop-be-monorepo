@@ -97,13 +97,9 @@ export type AgreementContractPDFPayload = {
     expirationDate: string | undefined;
   }>;
   producerDelegationId: string | undefined;
-  producerDelegatorName: string | undefined;
-  producerDelegatorIpaCode: string | undefined;
   producerDelegateName: string | undefined;
   producerDelegateIpaCode: string | undefined;
   consumerDelegationId: string | undefined;
-  consumerDelegatorName: string | undefined;
-  consumerDelegatorIpaCode: string | undefined;
   consumerDelegateName: string | undefined;
   consumerDelegateIpaCode: string | undefined;
 };

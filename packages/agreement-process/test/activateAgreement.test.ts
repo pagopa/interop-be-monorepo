@@ -876,13 +876,9 @@ describe("activate agreement", () => {
           },
         ],
         producerDelegationId: delegation.id,
-        producerDelegatorName: producer.name,
-        producerDelegatorIpaCode: getIpaCode(producer),
         producerDelegateName: delegate.name,
         producerDelegateIpaCode: getIpaCode(delegate),
         consumerDelegationId: undefined,
-        consumerDelegatorName: undefined,
-        consumerDelegatorIpaCode: undefined,
         consumerDelegateName: undefined,
         consumerDelegateIpaCode: undefined,
       };

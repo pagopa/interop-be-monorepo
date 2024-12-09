@@ -833,8 +833,6 @@ describe("upgrade Agreement", () => {
       consumerName: consumer.name,
       consumerIpaCode: getIpaCode(consumer),
       producerDelegationId: delegation.id,
-      producerDelegatorName: producer.name,
-      producerDelegatorIpaCode: getIpaCode(producer),
       producerDelegateName: delegate.name,
       producerDelegateIpaCode: getIpaCode(delegate),
       certifiedAttributes: [
@@ -877,8 +875,6 @@ describe("upgrade Agreement", () => {
       consumerDelegateIpaCode: undefined,
       consumerDelegateName: undefined,
       consumerDelegationId: undefined,
-      consumerDelegatorIpaCode: undefined,
-      consumerDelegatorName: undefined,
     };
 
     expect(pdfGenerator.generate).toHaveBeenCalledWith(

@@ -47,8 +47,7 @@ const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
 
 export type DelegationData = {
-  producerDelegation: Delegation;
-  delegator: Tenant;
+  delegation: Delegation;
   delegate: Tenant;
 };
 
@@ -218,17 +217,11 @@ const getPdfPayload = async (
           : undefined,
       };
     }),
-    producerDelegationId: producerDelegationData?.producerDelegation.id,
-    producerDelegatorName: producerDelegationData?.delegator.name,
-    producerDelegatorIpaCode:
-      producerDelegationData && getIpaCode(producerDelegationData?.delegator),
+    producerDelegationId: producerDelegationData?.delegation.id,
     producerDelegateName: producerDelegationData?.delegate.name,
     producerDelegateIpaCode:
       producerDelegationData && getIpaCode(producerDelegationData?.delegate),
-    consumerDelegationId: consumerDelegationData?.producerDelegation.id,
-    consumerDelegatorName: consumerDelegationData?.delegator.name,
-    consumerDelegatorIpaCode:
-      consumerDelegationData && getIpaCode(consumerDelegationData?.delegator),
+    consumerDelegationId: consumerDelegationData?.delegation.id,
     consumerDelegateName: consumerDelegationData?.delegate.name,
     consumerDelegateIpaCode:
       consumerDelegationData && getIpaCode(consumerDelegationData?.delegate),
@@ -239,18 +232,13 @@ const buildDelegationData = async (
   delegation: Delegation,
   readModelService: ReadModelService
 ): Promise<DelegationData> => {
-  const delegator = await retrieveTenant(
-    delegation.delegatorId,
-    readModelService
-  );
   const delegate = await retrieveTenant(
     delegation.delegateId,
     readModelService
   );
 
   return {
-    producerDelegation: delegation,
-    delegator,
+    delegation,
     delegate,
   };
 };

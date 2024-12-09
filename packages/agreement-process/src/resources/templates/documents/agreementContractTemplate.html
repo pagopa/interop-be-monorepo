@@ -51,30 +51,24 @@
       <strong>{{consumerDelegateName}}</strong>{{#if consumerDelegateIpaCode}} (codice IPA:
       <strong>{{consumerDelegateIpaCode}}</strong> - di seguito “delegato
       alla fruizione”){{else}}(di seguito “delegato alla fruizione”){{/if}}, per conto
-      del fruitore <strong>{{consumerDelegatorName}}</strong>{{#if consumerDelegatorIpaCode}}
-      (codice IPA: <strong>{{consumerDelegatorIpaCode}}</strong> - di seguito
-      “fruitore”){{else}}(di seguito “fruitore”){{/if}}
-      {{else}}
+      del fruitore {{/if}}
       <strong>{{consumerName}}</strong> {{#if consumerIpaCode}}(codice IPA:
       <strong>{{consumerIpaCode}}</strong> — di seguito “fruitore”){{else}}(di
-      seguito “fruitore”){{/if}}
-      {{/if}}, tramite l’operatore amministrativo con
+      seguito “fruitore”){{/if}}, tramite l’operatore amministrativo con
       identificativo Area Riservata <strong>{{submitterId}}</strong>, per
       l’e-service <strong>{{eserviceName}}</strong>, contraddistinto da id
       <strong>{{eserviceId}}</strong>, versione {{descriptorVersion}},
       contraddistinta da id <strong>{{descriptorId}}</strong> (di seguito
       “e-service”), reso disponibile dall’aderente
-      {{#if producerDelegationId}}
-      <strong>{{producerDelegatorName}}</strong>{{#if producerDelegatorIpaCode}} (codice IPA:
-      <strong>{{producerDelegatorIpaCode}}</strong> - di seguito “erogatore”){{else}}
-      (di seguito “erogatore”){{/if}}, per tramite dell’aderente
-      <strong>{{producerDelegateName}}</strong> {{#if producerDelegateIpaCode}}(codice IPA: 
-      <strong>{{producerDelegateIpaCode}}</strong> - di seguito “delegato all’erogazione”){{else}}(di seguito “delegato all’erogazione”){{/if}}
-      {{else}}
       <strong>{{producerName}}</strong> {{#if producerIpaCode}}(codice IPA: 
-      <strong>{{producerIpaCode}}</strong> — di seguito “erogatore”){{else}}(di
-      seguito “erogatore”){{/if}} 
-      {{/if}}, di cui il fruitore soddisfa i seguenti requisiti di fruizione per lo stesso previsti dall’erogatore.
+      <strong>{{producerIpaCode}}</strong> — di seguito “erogatore”){{else}}
+      (di seguito “erogatore”){{/if}}
+      {{#if producerDelegationId}}, per tramite dell’aderente
+      <strong>{{producerDelegateName}}</strong> {{#if producerDelegateIpaCode}}(codice IPA: 
+      <strong>{{producerDelegateIpaCode}}</strong> - di seguito “delegato all’erogazione”){{else}}
+      (di seguito “delegato all’erogazione”){{/if}}
+      {{/if}}, di cui il fruitore soddisfa i seguenti requisiti di
+      fruizione per lo stesso previsti dall’erogatore.
     </div>
     <div class="content">
       {{#if declaredAttributes}}
