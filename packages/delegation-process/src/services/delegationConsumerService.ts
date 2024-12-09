@@ -21,6 +21,7 @@ import {
 import { config } from "../config/config.js";
 import {
   toCreateEventConsumerDelegationApproved,
+  toCreateEventConsumerDelegationRejected,
   toCreateEventConsumerDelegationRevoked,
   toCreateEventConsumerDelegationSubmitted,
 } from "../model/domain/toEvent.js";
@@ -264,7 +265,7 @@ export function delegationConsumerServiceBuilder(
       const now = new Date();
 
       await repository.createEvent(
-        toCreateEventConsumerDelegationApproved(
+        toCreateEventConsumerDelegationRejected(
           {
             data: {
               ...delegation,
