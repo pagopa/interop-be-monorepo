@@ -37,6 +37,8 @@
     "start:datalake-data-export": "turbo start --filter pagopa-interop-datalake-data-export",
     "start:authorization-server": "turbo start --filter pagopa-interop-authorization-server",
     "start:token-details-persister": "turbo start --filter pagopa-interop-token-details-persister",
+    "start:process": "turbo start --filter pagopa-interop-*-process",
+    "start:readmodel-writer": "turbo start --concurrency 11 --filter pagopa-interop-*-readmodel-writer",
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",
