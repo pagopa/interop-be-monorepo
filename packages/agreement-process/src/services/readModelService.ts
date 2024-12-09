@@ -627,16 +627,17 @@ export function readModelServiceBuilder(
       offset: number
     ): Promise<ListResult<CompactEService>> {
       const agreementFilter = {
-        ...(filters.consumerIds.length === 0
-          ? undefined
-          : { "data.consumerId": { $in: filters.consumerIds } }),
         ...(filters.agreeementStates.length === 0
           ? undefined
           : { "data.state": { $in: filters.agreeementStates } }),
       };
 
       const agreementAggregationPipeline = [
-        ...getDelegateAgreementsFilters(filters.producerIds, [], requesterId),
+        ...getDelegateAgreementsFilters(
+          filters.producerIds,
+          filters.consumerIds,
+          requesterId
+        ),
         {
           $match: agreementFilter,
         },
