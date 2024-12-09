@@ -33,4 +33,4 @@ async function processMessage({
     .exhaustive();
 }
 
-await runConsumer(config, [config.authorizationTopic], processMessage);
+await runConsumer(config, [config.purposeTopic], processMessage);

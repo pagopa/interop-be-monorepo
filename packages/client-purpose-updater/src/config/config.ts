@@ -1,7 +1,7 @@
 import {
   APIEndpoint,
-  AuthorizationTopicConfig,
   KafkaConsumerConfig,
+  PurposeTopicConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -15,7 +15,7 @@ export const AuthorizationProcessServerConfig = z
   }));
 
 const ClientPurposeUpdaterConfig = AuthorizationProcessServerConfig.and(
-  AuthorizationTopicConfig
+  PurposeTopicConfig
 )
   .and(TokenGenerationConfig)
   .and(KafkaConsumerConfig);
