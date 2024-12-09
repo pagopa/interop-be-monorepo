@@ -1,5 +1,6 @@
 import {
   AttributeCollection,
+  DelegationCollection,
   ReadModelRepository,
   TenantCollection,
 } from "pagopa-interop-commons";
@@ -22,8 +23,10 @@ import {
   genericInternalError,
   TenantFeatureType,
   AgreementId,
-  DelegationKind,
   Delegation,
+  DelegationReadModel,
+  delegationKind,
+  delegationState,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
@@ -154,6 +157,27 @@ async function getTenant(
       metadata: { version: result.data.metadata.version },
     };
   }
+}
+
+async function getDelegation(
+  delegations: DelegationCollection,
+  filter: Filter<{ data: DelegationReadModel }>
+): Promise<Delegation | undefined> {
+  const data = await delegations.findOne(filter, {
+    projection: { data: true },
+  });
+  if (data) {
+    const result = Delegation.safeParse(data.data);
+    if (!result.success) {
+      throw genericInternalError(
+        `Unable to parse delegation item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return result.data;
+  }
+  return undefined;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -533,31 +557,14 @@ export function readModelServiceBuilder(
       });
     },
 
-    async getActiveDelegation({
-      eserviceId,
-      kind,
-    }: {
-      eserviceId: EServiceId;
-      kind: DelegationKind;
-    }): Promise<Delegation | undefined> {
-      const data = await delegations.findOne({
+    async getActiveProducerDelegationByEservice(
+      eserviceId: EServiceId
+    ): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
         "data.eserviceId": eserviceId,
-        "data.kind": kind,
-        "data.state": agreementState.active,
+        "data.kind": delegationKind.delegatedProducer,
+        "data.state": delegationState.active,
       });
-
-      if (data) {
-        const result = Delegation.safeParse(data.data);
-        if (!result.success) {
-          throw genericInternalError(
-            `Unable to parse delegation item: result ${JSON.stringify(
-              result
-            )} - data ${JSON.stringify(data)} `
-          );
-        }
-        return result.data;
-      }
-      return undefined;
     },
   };
 }
