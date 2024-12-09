@@ -542,6 +542,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tenant"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
