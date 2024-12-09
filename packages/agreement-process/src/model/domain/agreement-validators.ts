@@ -310,17 +310,26 @@ export const assertRequesterCanCreateAgrementForTenant = async (
 ): Promise<Promise<void>> => {
   const isSameOrganization = requesterId === tenantIdToVerify;
 
-  const validDelegation =
-    await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId({
-      agreement: {
-        eserviceId,
-        // If same organization, the requester will be the consumer of the agreement in creation.
-        // Otherwise it will be the tenantIdToVerify
-        consumerId: isSameOrganization ? requesterId : tenantIdToVerify,
-      },
-      // if same organization, there's no delegate, otherwise the requester is the delegate
-      delegateId: isSameOrganization ? undefined : requesterId,
-    });
+  const validDelegation = isSameOrganization
+    ? // Retrieve an active delegation where the requester is the delegator
+      await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+        {
+          agreement: {
+            consumerId: requesterId,
+            eserviceId,
+          },
+        }
+      )
+    : // Retrieve the delegation where the requester is the delegate and the delegator is the tenantToVerify
+      await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+        {
+          agreement: {
+            eserviceId,
+            consumerId: tenantIdToVerify,
+          },
+          delegateId: requesterId,
+        }
+      );
 
   const isAuthorized =
     (isSameOrganization && !validDelegation) ||
