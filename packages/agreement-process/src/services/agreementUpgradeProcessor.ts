@@ -27,10 +27,7 @@ import {
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementUpgraded,
 } from "../model/domain/toEvent.js";
-import {
-  createAndCopyDocumentsForClonedAgreement,
-  retrieveActiveProducerDelegationByEserviceId,
-} from "./agreementService.js";
+import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { ReadModelService } from "./readModelService.js";
 import { ContractBuilder } from "./agreementContractBuilder.js";
@@ -70,9 +67,8 @@ export async function createUpgradeOrNewDraft({
 
     // If current eservice has an active producer delegation the new contract will be created with the delegation data
     const activeProducerDelegation =
-      await retrieveActiveProducerDelegationByEserviceId(
-        eservice.id,
-        readModelService
+      await readModelService.getActiveProducerDelegationByEserviceId(
+        eservice.id
       );
 
     const stamp =

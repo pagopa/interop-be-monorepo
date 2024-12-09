@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -31,13 +32,13 @@ import {
   agreementState,
   descriptorState,
   generateId,
-  unsafeBrandId,
   CompactTenant,
   CorrelationId,
   Delegation,
-  delegationKind,
+  DelegationId,
 } from "pagopa-interop-models";
 import {
+  certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
 } from "pagopa-interop-agreement-lifecycle";
@@ -49,9 +50,11 @@ import {
   agreementDocumentNotFound,
   agreementNotFound,
   agreementSubmissionFailed,
+  delegationNotFound,
   descriptorNotFound,
   eServiceNotFound,
   noNewerDescriptor,
+  operationNotAllowed,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -84,13 +87,14 @@ import {
   agreementUpdatableStates,
   agreementUpgradableStates,
   assertActivableState,
+  assertRequesterCanActAsProducer,
+  assertRequesterCanActAsConsumerOrProducer,
+  assertRequesterCanRetrieveConsumerDocuments,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
-  assertRequesterCanActivate,
-  assertRequesterCanSuspend,
+  assertRequesterCanCreateAgrementForTenant,
   assertRequesterIsConsumer,
-  assertRequesterIsConsumerOrProducerOrDelegateProducer,
-  assertRequesterIsProducerOrDelegateProducer,
+  assertRequesterIsDelegateConsumer,
   assertSubmittableState,
   failOnActivationFailure,
   matchingCertifiedAttributes,
@@ -173,15 +177,6 @@ export const retrieveTenant = async (
   return tenant;
 };
 
-export const retrieveActiveProducerDelegationByEserviceId = async (
-  eserviceId: EServiceId,
-  readModelService: ReadModelService
-): Promise<Delegation | undefined> =>
-  await readModelService.getActiveDelegationByEserviceId(
-    eserviceId,
-    delegationKind.delegatedProducer
-  );
-
 export const retrieveDescriptor = (
   descriptorId: DescriptorId,
   eservice: EService
@@ -195,6 +190,19 @@ export const retrieveDescriptor = (
   }
 
   return descriptor;
+};
+
+const retrieveDelegation = (
+  delegations: Delegation[],
+  delegationId: DelegationId
+): Delegation => {
+  const delegation = delegations.find((d) => d.id === delegationId);
+
+  if (!delegation) {
+    throw delegationNotFound(delegationId);
+  }
+
+  return delegation;
 };
 
 function retrieveAgreementDocument(
@@ -237,18 +245,21 @@ export function agreementServiceBuilder(
       return agreement.data;
     },
     async createAgreement(
-      agreementPayload: agreementApi.AgreementPayload,
+      {
+        eserviceId,
+        descriptorId,
+        delegationId,
+      }: {
+        eserviceId: EServiceId;
+        descriptorId: DescriptorId;
+        delegationId?: DelegationId;
+      },
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(
-        `Creating agreement for EService ${agreementPayload.eserviceId} and Descriptor ${agreementPayload.descriptorId}`
-      );
-
-      const eserviceId: EServiceId = unsafeBrandId<EServiceId>(
-        agreementPayload.eserviceId
-      );
-      const descriptorId: DescriptorId = unsafeBrandId<DescriptorId>(
-        agreementPayload.descriptorId
+        `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -257,13 +268,17 @@ export function agreementServiceBuilder(
 
       await verifyCreationConflictingAgreements(
         authData.organizationId,
-        agreementPayload,
+        eserviceId,
         readModelService
       );
-      const consumer = await retrieveTenant(
-        authData.organizationId,
+
+      const consumer = await getConsumerFromDelegationOrRequester(
+        eserviceId,
+        delegationId,
+        authData,
         readModelService
       );
+
       if (eservice.producerId !== consumer.id) {
         validateCertifiedAttributes({ descriptor, consumer });
       }
@@ -273,7 +288,7 @@ export function agreementServiceBuilder(
         eserviceId,
         descriptorId,
         producerId: eservice.producerId,
-        consumerId: authData.organizationId,
+        consumerId: consumer.id,
         state: agreementState.draft,
         verifiedAttributes: [],
         certifiedAttributes: [],
@@ -411,9 +426,8 @@ export function agreementServiceBuilder(
       );
 
       const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
-          agreement.data.eserviceId,
-          readModelService
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreement.data.eserviceId
         );
       const delegateProducerId = activeProducerDelegation?.delegateId;
 
@@ -772,7 +786,7 @@ export function agreementServiceBuilder(
       );
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      await assertRequesterIsConsumerOrProducerOrDelegateProducer(
+      await assertRequesterCanRetrieveConsumerDocuments(
         agreement.data,
         authData,
         readModelService
@@ -788,14 +802,17 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
       const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
-          agreement.data.eserviceId,
-          readModelService
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreement.data.eserviceId
         );
 
       const delegateProducerId = activeProducerDelegation?.delegateId;
 
-      assertRequesterCanSuspend(agreement.data, delegateProducerId, authData);
+      assertRequesterCanActAsConsumerOrProducer(
+        agreement.data,
+        authData,
+        activeProducerDelegation
+      );
 
       assertExpectedState(
         agreementId,
@@ -902,16 +919,14 @@ export function agreementServiceBuilder(
         readModelService
       );
       const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
-          agreementToBeRejected.data.eserviceId,
-          readModelService
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreementToBeRejected.data.eserviceId
         );
-      const delegateProducerId = activeProducerDelegation?.delegateId;
 
-      assertRequesterIsProducerOrDelegateProducer(
+      assertRequesterCanActAsProducer(
         agreementToBeRejected.data,
-        delegateProducerId,
-        authData
+        authData,
+        activeProducerDelegation
       );
 
       assertExpectedState(
@@ -980,14 +995,17 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
       const activeProducerDelegation =
-        await retrieveActiveProducerDelegationByEserviceId(
-          agreement.data.eserviceId,
-          readModelService
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreement.data.eserviceId
         );
 
       const delegateProducerId = activeProducerDelegation?.delegateId;
 
-      assertRequesterCanActivate(agreement.data, delegateProducerId, authData);
+      assertRequesterCanActAsConsumerOrProducer(
+        agreement.data,
+        authData,
+        activeProducerDelegation
+      );
 
       verifyConsumerDoesNotActivatePending(agreement.data, authData);
       assertActivableState(agreement.data);
@@ -1178,6 +1196,43 @@ export function agreementServiceBuilder(
         await repository.createEvent(event);
       }
     },
+    async verifyTenantCertifiedAttributes(
+      {
+        tenantId,
+        descriptorId,
+        eserviceId,
+      }: {
+        tenantId: TenantId;
+        descriptorId: DescriptorId;
+        eserviceId: EServiceId;
+      },
+      { logger, authData }: WithLogger<AppContext>
+    ): Promise<agreementApi.HasCertifiedAttributes> {
+      logger.info(
+        `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
+      );
+
+      await assertRequesterCanCreateAgrementForTenant(
+        {
+          requesterId: authData.organizationId,
+          tenantIdToVerify: tenantId,
+          eserviceId,
+        },
+        readModelService
+      );
+      const consumer = await retrieveTenant(tenantId, readModelService);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      return {
+        hasCertifiedAttributes:
+          eservice.producerId === consumer.id || // in case the consumer is also the producer, we don't need to check the attributes
+          certifiedAttributesSatisfied(
+            descriptor.attributes,
+            consumer.attributes
+          ),
+      };
+    },
   };
 }
 
@@ -1296,4 +1351,33 @@ async function addContractOnFirstActivation(
   }
 
   return agreement;
+}
+
+async function getConsumerFromDelegationOrRequester(
+  eserviceId: EServiceId,
+  delegationId: DelegationId | undefined,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<Tenant> {
+  const delegations =
+    await readModelService.getActiveConsumerDelegationsByEserviceId(eserviceId);
+
+  if (delegationId) {
+    // If a delegation has been passed, the consumer is the delegator
+    const delegation = retrieveDelegation(delegations, delegationId);
+
+    assertRequesterIsDelegateConsumer(delegation, eserviceId, authData);
+    return retrieveTenant(delegation.delegatorId, readModelService);
+  } else {
+    const hasDelegated = delegations.some(
+      (d) => d.delegatorId === authData.organizationId
+    );
+
+    if (hasDelegated) {
+      // If a delegation exists, the delegator cannot create the agreement
+      throw operationNotAllowed(authData.organizationId);
+    }
+
+    return retrieveTenant(authData.organizationId, readModelService);
+  }
 }

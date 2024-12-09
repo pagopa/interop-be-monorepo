@@ -9,6 +9,7 @@ import {
   ConsumerDelegationSubmittedV2,
   ConsumerDelegationApprovedV2,
   ConsumerDelegationRejectedV2,
+  ConsumerDelegationRevokedV2,
 } from "../gen/v2/delegation/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import { EventEnvelope } from "../events/events.js";
@@ -49,6 +50,11 @@ export const DelegationEventV2 = z.discriminatedUnion("type", [
     type: z.literal("ConsumerDelegationRejected"),
     data: protobufDecoder(ConsumerDelegationRejectedV2),
   }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ConsumerDelegationRevoked"),
+    data: protobufDecoder(ConsumerDelegationRevokedV2),
+  }),
 ]);
 
 export type DelegationEventV2 = z.infer<typeof DelegationEventV2>;
@@ -77,6 +83,9 @@ export function delegationEventToBinaryDataV2(
     )
     .with({ type: "ConsumerDelegationRejected" }, ({ data }) =>
       ConsumerDelegationRejectedV2.toBinary(data)
+    )
+    .with({ type: "ConsumerDelegationRevoked" }, ({ data }) =>
+      ConsumerDelegationRevokedV2.toBinary(data)
     )
     .exhaustive();
 }

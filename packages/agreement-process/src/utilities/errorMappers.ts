@@ -22,8 +22,10 @@ export const createAgreementErrorMapper = (
       "descriptorNotInExpectedState",
       "missingCertifiedAttributesError",
       "eServiceNotFound",
+      "delegationNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -181,4 +183,17 @@ export const computeAgreementsStateErrorMapper = (
 ): number =>
   match(error.code)
     .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const verifyTenantCertifiedAttributesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eServiceNotFound",
+      "descriptorNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -21,6 +21,7 @@ import {
 import { config } from "../config/config.js";
 import {
   toCreateEventConsumerDelegationApproved,
+  toCreateEventConsumerDelegationRevoked,
   toCreateEventConsumerDelegationSubmitted,
 } from "../model/domain/toEvent.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
@@ -37,6 +38,8 @@ import {
   assertIsState,
   assertTenantAllowedToReceiveDelegation,
   assertDelegatorAndDelegateIPA,
+  activeDelegationStates,
+  assertIsDelegator,
 } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -170,6 +173,74 @@ export function delegationConsumerServiceBuilder(
         )
       );
     },
+
+    async revokeConsumerDelegation(
+      delegationId: DelegationId,
+      { authData, logger, correlationId }: WithLogger<AppContext>
+    ): Promise<void> {
+      const delegatorId = unsafeBrandId<TenantId>(authData.organizationId);
+      logger.info(
+        `Revoking delegation ${delegationId} by consumer ${delegatorId}`
+      );
+
+      const { data: delegation, metadata } = await retrieveDelegation(
+        readModelService,
+        delegationId,
+        delegationKind.delegatedConsumer
+      );
+
+      assertIsDelegator(delegation, delegatorId);
+      assertIsState(activeDelegationStates, delegation);
+
+      const [delegator, delegate, eservice] = await Promise.all([
+        retrieveTenantById(readModelService, delegation.delegatorId),
+        retrieveTenantById(readModelService, delegation.delegateId),
+        retrieveEserviceById(readModelService, delegation.eserviceId),
+      ]);
+
+      const now = new Date();
+      const revokedDelegationWithoutContract = {
+        ...delegation,
+        state: delegationState.revoked,
+        revokedAt: now,
+        stamps: {
+          ...delegation.stamps,
+          revocation: {
+            who: authData.userId,
+            when: now,
+          },
+        },
+      };
+
+      const revocationContract = await contractBuilder.createRevocationContract(
+        {
+          delegation: revokedDelegationWithoutContract,
+          delegator,
+          delegate,
+          eservice,
+          pdfGenerator,
+          fileManager,
+          config,
+          logger,
+        }
+      );
+
+      const revokedDelegation = {
+        ...revokedDelegationWithoutContract,
+        revocationContract,
+      };
+
+      await repository.createEvent(
+        toCreateEventConsumerDelegationRevoked(
+          {
+            data: revokedDelegation,
+            metadata,
+          },
+          correlationId
+        )
+      );
+    },
+
     async rejectConsumerDelegation(
       delegationId: DelegationId,
       rejectionReason: string,

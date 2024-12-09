@@ -20,6 +20,7 @@ import {
   approveDelegationErrorMapper,
   createConsumerDelegationErrorMapper,
   rejectDelegationErrorMapper,
+  revokeDelegationErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const { ADMIN_ROLE } = userRoles;
@@ -118,6 +119,32 @@ const delegationConsumerRouter = (
           const errorRes = makeApiProblem(
             error,
             rejectDelegationErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/consumer/delegations/:delegationId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const { delegationId } = req.params;
+          await delegationConsumerService.revokeConsumerDelegation(
+            unsafeBrandId(delegationId),
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeDelegationErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

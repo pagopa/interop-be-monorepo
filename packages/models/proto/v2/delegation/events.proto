@@ -31,3 +31,7 @@ message ConsumerDelegationApprovedV2 {
 message ConsumerDelegationRejectedV2 {
   DelegationV2 delegation = 1;
 }
+
+message ConsumerDelegationRevokedV2 {
+  DelegationV2 delegation = 1;
+}
