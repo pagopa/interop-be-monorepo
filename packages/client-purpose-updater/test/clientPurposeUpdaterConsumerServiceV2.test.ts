@@ -30,7 +30,7 @@ describe("PurposeArchived", async () => {
       versions: [activeVersion],
     };
 
-    const clientWithPurpose: Client = {
+    const client: Client = {
       ...getMockClient(),
       purposes: [purpose.id],
     };
@@ -65,10 +65,10 @@ describe("PurposeArchived", async () => {
     });
 
     const updatedClient: Client = {
-      ...clientWithPurpose,
+      ...client,
       purposes: [],
     };
 
-    expect(clientWithPurpose).toEqual(updatedClient);
+    expect(client).toEqual(updatedClient);
   });
 });
