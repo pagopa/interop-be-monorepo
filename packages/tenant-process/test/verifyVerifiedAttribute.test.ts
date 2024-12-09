@@ -15,6 +15,7 @@ import {
   Agreement,
   delegationState,
   delegationKind,
+  AttributeId,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -26,7 +27,6 @@ import {
   getMockTenant,
   getMockDelegation,
 } from "pagopa-interop-commons-test";
-import { tenantApi } from "pagopa-interop-api-clients";
 import {
   tenantNotFound,
   attributeVerificationNotAllowed,
@@ -51,7 +51,7 @@ describe("verifyVerifiedAttribute", async () => {
   const targetTenant = getMockTenant();
   const requesterTenant = getMockTenant();
 
-  const tenantAttributeSeedId = generateId();
+  const tenantAttributeSeedId = generateId<AttributeId>();
 
   const attribute: Attribute = {
     ...getMockAttribute(),
@@ -85,10 +85,6 @@ describe("verifyVerifiedAttribute", async () => {
     producerId: eService1.producerId,
     consumerId: targetTenant.id,
   });
-  const tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed = {
-    id: tenantAttributeSeedId,
-    agreementId: agreementEservice1.id,
-  };
 
   const delegation = getMockDelegation({
     kind: delegationKind.delegatedProducer,
@@ -130,7 +126,8 @@ describe("verifyVerifiedAttribute", async () => {
       const returnedTenant = await tenantService.verifyVerifiedAttribute(
         {
           tenantId: targetTenant.id,
-          tenantAttributeSeed,
+          attributeId: tenantAttributeSeedId,
+          agreementId: agreementEservice1.id,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         },
@@ -157,7 +154,7 @@ describe("verifyVerifiedAttribute", async () => {
         ...targetTenant,
         attributes: [
           {
-            id: unsafeBrandId(tenantAttributeSeed.id),
+            id: tenantAttributeSeedId,
             type: tenantAttributeType.VERIFIED,
             assignmentTimestamp: new Date(),
             verifiedBy: [
@@ -165,12 +162,8 @@ describe("verifyVerifiedAttribute", async () => {
                 id: hasDelegation ? delegation.delegatorId : requesterTenant.id,
                 delegationId: hasDelegation ? delegation.id : undefined,
                 verificationDate: new Date(),
-                expirationDate: tenantAttributeSeed.expirationDate
-                  ? new Date(tenantAttributeSeed.expirationDate)
-                  : undefined,
-                extensionDate: tenantAttributeSeed.expirationDate
-                  ? new Date(tenantAttributeSeed.expirationDate)
-                  : undefined,
+                expirationDate: undefined,
+                extensionDate: undefined,
               },
             ],
             revokedBy: [],
@@ -226,7 +219,8 @@ describe("verifyVerifiedAttribute", async () => {
       const returnedTenant = await tenantService.verifyVerifiedAttribute(
         {
           tenantId: tenantWithVerifiedAttribute.id,
-          tenantAttributeSeed,
+          attributeId: tenantAttributeSeedId,
+          agreementId: agreementEservice1.id,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         },
@@ -282,7 +276,8 @@ describe("verifyVerifiedAttribute", async () => {
       tenantService.verifyVerifiedAttribute(
         {
           tenantId: targetTenant.id,
-          tenantAttributeSeed,
+          attributeId: tenantAttributeSeedId,
+          agreementId: agreementEservice1.id,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         },
@@ -300,7 +295,8 @@ describe("verifyVerifiedAttribute", async () => {
       tenantService.verifyVerifiedAttribute(
         {
           tenantId: targetTenant.id,
-          tenantAttributeSeed,
+          attributeId: tenantAttributeSeedId,
+          agreementId: agreementEservice1.id,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         },
@@ -345,10 +341,8 @@ describe("verifyVerifiedAttribute", async () => {
       tenantService.verifyVerifiedAttribute(
         {
           tenantId: targetTenant.id,
-          tenantAttributeSeed: {
-            ...tenantAttributeSeed,
-            agreementId: agreementEserviceWithNotAllowedDescriptor.id,
-          },
+          attributeId: tenantAttributeSeedId,
+          agreementId: agreementEserviceWithNotAllowedDescriptor.id,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         },
@@ -357,7 +351,7 @@ describe("verifyVerifiedAttribute", async () => {
     ).rejects.toThrowError(
       attributeVerificationNotAllowed(
         targetTenant.id,
-        unsafeBrandId(tenantAttributeSeed.id)
+        unsafeBrandId(tenantAttributeSeedId)
       )
     );
   });
@@ -371,7 +365,8 @@ describe("verifyVerifiedAttribute", async () => {
       tenantService.verifyVerifiedAttribute(
         {
           tenantId: targetTenant.id,
-          tenantAttributeSeed,
+          attributeId: tenantAttributeSeedId,
+          agreementId: agreementEservice1.id,
           organizationId: targetTenant.id,
           correlationId: generateId(),
         },
