@@ -10,7 +10,6 @@ export const buildDynamoDBTables = async (
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const platformTableDefinition: CreateTableInput = {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     TableName: "platform-states",
     AttributeDefinitions: [
       { AttributeName: "PK", AttributeType: "S" },
@@ -33,8 +32,8 @@ export const buildDynamoDBTables = async (
           },
         ],
         Projection: {
-          NonKeyAttributes: [],
-          ProjectionType: "ALL",
+          ProjectionType: "INCLUDE",
+          NonKeyAttributes: ["state", "agreementDescriptorId"],
         },
       },
     ],
@@ -43,7 +42,6 @@ export const buildDynamoDBTables = async (
   await dynamoDBClient.send(command1);
 
   const tokenGenerationTableDefinition: CreateTableInput = {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     TableName: "token-generation-states",
     AttributeDefinitions: [
       { AttributeName: "PK", AttributeType: "S" },
@@ -66,8 +64,7 @@ export const buildDynamoDBTables = async (
           },
         ],
         Projection: {
-          NonKeyAttributes: [],
-          ProjectionType: "ALL",
+          ProjectionType: "KEYS_ONLY",
         },
       },
       {
@@ -79,32 +76,50 @@ export const buildDynamoDBTables = async (
           },
         ],
         Projection: {
-          NonKeyAttributes: [],
-          ProjectionType: "ALL",
+          ProjectionType: "INCLUDE",
+          NonKeyAttributes: [
+            "agreementState",
+            "descriptorAudience",
+            "descriptorState",
+            "descriptorVoucherLifespan",
+          ],
         },
       },
       {
         IndexName: "Purpose",
         KeySchema: [{ AttributeName: "GSIPK_purposeId", KeyType: "HASH" }],
         Projection: {
-          NonKeyAttributes: [],
-          ProjectionType: "ALL",
+          NonKeyAttributes: [
+            "agreementId",
+            "agreementState",
+            "GSIPK_eserviceId_descriptorId",
+            "descriptorAudience",
+            "descriptorState",
+            "descriptorVoucherLifespan",
+            "purposeState",
+            "purposeVersionId",
+          ],
+          ProjectionType: "INCLUDE",
         },
       },
       {
         IndexName: "Client",
         KeySchema: [{ AttributeName: "GSIPK_clientId", KeyType: "HASH" }],
         Projection: {
-          NonKeyAttributes: [],
-          ProjectionType: "ALL",
+          ProjectionType: "INCLUDE",
+          NonKeyAttributes: [
+            "consumerId",
+            "clientKind",
+            "publicKey",
+            "GSIPK_kid",
+          ],
         },
       },
       {
         IndexName: "Kid",
         KeySchema: [{ AttributeName: "GSIPK_kid", KeyType: "HASH" }],
         Projection: {
-          NonKeyAttributes: [],
-          ProjectionType: "ALL",
+          ProjectionType: "KEYS_ONLY",
         },
       },
       {
@@ -113,8 +128,15 @@ export const buildDynamoDBTables = async (
           { AttributeName: "GSIPK_clientId_purposeId", KeyType: "HASH" },
         ],
         Projection: {
-          NonKeyAttributes: [],
-          ProjectionType: "ALL",
+          ProjectionType: "INCLUDE",
+          NonKeyAttributes: [
+            "GSIPK_clientId",
+            "GSIPK_kid",
+            "GSIPK_purposeId",
+            "consumerId",
+            "clientKind",
+            "publicKey",
+          ],
         },
       },
     ],
