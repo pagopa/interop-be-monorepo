@@ -666,18 +666,16 @@ export function readModelServiceBuilder(
       }
       return result.data;
     },
-    async getActiveConsumerDelegationByEserviceAndIds({
-      eserviceId,
-      delegatorId,
+    async getActiveConsumerDelegationByAgreementAndDelegateId({
+      agreement,
       delegateId,
     }: {
-      eserviceId: EServiceId;
-      delegatorId: TenantId;
+      agreement: Pick<Agreement, "eserviceId" | "consumerId">;
       delegateId?: TenantId;
     }): Promise<Delegation | undefined> {
       return getDelegation(delegations, {
-        "data.eserviceId": eserviceId,
-        "data.delegatorId": delegatorId,
+        "data.eserviceId": agreement.eserviceId,
+        "data.delegatorId": agreement.consumerId,
         "data.delegateId": delegateId,
         "data.state": delegationState.active,
         "data.kind": delegationKind.delegatedConsumer,

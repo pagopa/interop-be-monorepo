@@ -29,7 +29,6 @@ import {
 import {
   Agreement,
   AgreementActivatedV2,
-  AgreementContractPDFPayload,
   AgreementId,
   AgreementSetMissingCertifiedAttributesByPlatformV2,
   AgreementSuspendedByPlatformV2,
@@ -74,6 +73,7 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
+import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -876,10 +876,11 @@ describe("activate agreement", () => {
           },
         ],
         producerDelegationId: delegation.id,
-        producerDelegatorName: producer.name,
-        producerDelegatorIpaCode: getIpaCode(producer),
         producerDelegateName: delegate.name,
         producerDelegateIpaCode: getIpaCode(delegate),
+        consumerDelegationId: undefined,
+        consumerDelegateName: undefined,
+        consumerDelegateIpaCode: undefined,
       };
 
       expect(pdfGenerator.generate).toHaveBeenCalledWith(
