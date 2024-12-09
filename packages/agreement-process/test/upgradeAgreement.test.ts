@@ -29,7 +29,6 @@ import {
   Agreement,
   AgreementAddedV2,
   AgreementArchivedByUpgradeV2,
-  AgreementContractPDFPayload,
   AgreementDocument,
   AgreementId,
   AgreementUpgradedV2,
@@ -66,7 +65,7 @@ import {
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
-import { createStamp } from "../src/services/agreementStampUtils.js";
+import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -77,6 +76,7 @@ import {
   fileManager,
   getMockConsumerDocument,
   getMockContract,
+  getRandomPastStamp,
   pdfGenerator,
   readAgreementEventByVersion,
   uploadDocument,
@@ -185,10 +185,10 @@ describe("upgrade Agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        submission: createStamp(authData.userId),
-        activation: createStamp(authData.userId),
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        submission: getRandomPastStamp(authData.userId),
+        activation: getRandomPastStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       contract: getMockContract(
         agreementId,
@@ -420,10 +420,10 @@ describe("upgrade Agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        submission: createStamp(authData.userId),
-        activation: createStamp(authData.userId),
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        submission: getRandomPastStamp(authData.userId),
+        activation: getRandomPastStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       contract: getMockContract(agreementId, consumer.id, producer.id),
       suspendedAt: new Date(),
@@ -554,7 +554,7 @@ describe("upgrade Agreement", () => {
     }
   });
 
-  it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different and requester is a delegate", async () => {
+  it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different, requester is consumer, an active producer delegation exists and is taken into account for the PDF contract generation", async () => {
     const producer = getMockTenant();
 
     const validVerifiedTenantAttribute = {
@@ -669,10 +669,10 @@ describe("upgrade Agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        submission: createStamp(submitterId),
-        activation: createStamp(activatorId),
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        submission: getRandomPastStamp(submitterId),
+        activation: getRandomPastStamp(activatorId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       contract: getMockContract(agreementId, consumer.id, producer.id),
       suspendedAt: new Date(),
@@ -811,11 +811,19 @@ describe("upgrade Agreement", () => {
       todayTime: timeAtRomeZone(currentExecutionTime),
       agreementId: newAgreementId,
       submitterId,
-      submissionDate: dateAtRomeZone(currentExecutionTime),
-      submissionTime: timeAtRomeZone(currentExecutionTime),
+      submissionDate: dateAtRomeZone(
+        expectedUpgradedAgreement.stamps.submission!.when
+      ),
+      submissionTime: timeAtRomeZone(
+        expectedUpgradedAgreement.stamps.submission!.when
+      ),
       activatorId,
-      activationDate: dateAtRomeZone(currentExecutionTime),
-      activationTime: timeAtRomeZone(currentExecutionTime),
+      activationDate: dateAtRomeZone(
+        expectedUpgradedAgreement.stamps.activation!.when
+      ),
+      activationTime: timeAtRomeZone(
+        expectedUpgradedAgreement.stamps.activation!.when
+      ),
       eserviceName: eservice.name,
       eserviceId: eservice.id,
       descriptorId: eservice.descriptors[0].id,
@@ -825,8 +833,6 @@ describe("upgrade Agreement", () => {
       consumerName: consumer.name,
       consumerIpaCode: getIpaCode(consumer),
       producerDelegationId: delegation.id,
-      producerDelegatorName: producer.name,
-      producerDelegatorIpaCode: getIpaCode(producer),
       producerDelegateName: delegate.name,
       producerDelegateIpaCode: getIpaCode(delegate),
       certifiedAttributes: [
@@ -866,6 +872,9 @@ describe("upgrade Agreement", () => {
           expirationDate: undefined,
         },
       ],
+      consumerDelegateIpaCode: undefined,
+      consumerDelegateName: undefined,
+      consumerDelegationId: undefined,
     };
 
     expect(pdfGenerator.generate).toHaveBeenCalledWith(
@@ -980,10 +989,10 @@ describe("upgrade Agreement", () => {
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
       stamps: {
-        submission: createStamp(authData.userId),
-        activation: createStamp(authData.userId),
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        submission: getRandomPastStamp(authData.userId),
+        activation: getRandomPastStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
       contract: getMockContract(agreementId, consumer.id, producer.id),
       suspendedAt: new Date(),

@@ -25,8 +25,7 @@ import {
   makeTokenGenerationStatesClientKidPurposePK,
   PurposeId,
   TenantId,
-  TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { WithLogger } from "pagopa-interop-commons";
@@ -53,6 +52,7 @@ import {
   PagoPAInteropBeClients,
   AgreementProcessClient,
 } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import { getAllAgreements } from "./agreementService.js";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
@@ -74,7 +74,11 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       const { data: jwt, errors: clientAssertionErrors } =
-        verifyClientAssertion(clientAssertion, clientId);
+        verifyClientAssertion(
+          clientAssertion,
+          clientId,
+          config.clientAssertionAudience
+        );
 
       if (parametersErrors || clientAssertionErrors) {
         return handleValidationResults({
@@ -220,9 +224,7 @@ async function retrieveKeyAndEservice(
   ctx: WithLogger<BffAppContext>
 ): Promise<
   | SuccessfulValidation<{
-      key:
-        | TokenGenerationStatesClientEntry
-        | TokenGenerationStatesClientPurposeEntry;
+      key: TokenGenerationStatesGenericClient;
       eservice?: catalogApi.EService;
       descriptor?: catalogApi.EServiceDescriptor;
     }>

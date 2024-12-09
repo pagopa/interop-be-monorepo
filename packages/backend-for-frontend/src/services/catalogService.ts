@@ -67,6 +67,7 @@ import { getAllBulkAttributes } from "./attributeService.js";
 import {
   assertNotDelegatedEservice,
   assertRequesterIsProducer,
+  assertRequesterCanActAsProducer,
 } from "./validators.js";
 import {
   getAllDelegations,
@@ -127,7 +128,9 @@ const enhanceProducerEService = (
 ): bffApi.ProducerEService => {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   const draftDescriptor = eservice.descriptors.find(
-    (d) => d.state === catalogApiDescriptorState.DRAFT
+    (d) =>
+      d.state === catalogApiDescriptorState.DRAFT ||
+      d.state === catalogApiDescriptorState.WAITING_FOR_APPROVAL
   );
 
   const isRequesterDelegateProducer = requesterId !== eservice.producerId;
@@ -271,7 +274,12 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      assertRequesterIsProducer(requesterId, eservice);
+      await assertRequesterCanActAsProducer(
+        delegationProcessClient,
+        headers,
+        requesterId,
+        eservice
+      );
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
 
@@ -288,10 +296,10 @@ export function catalogServiceBuilder(
         descriptor
       );
 
-      const requesterTenant = await tenantProcessClient.tenant.getTenant({
+      const producerTenant = await tenantProcessClient.tenant.getTenant({
         headers,
         params: {
-          id: requesterId,
+          id: eservice.producerId,
         },
       });
 
@@ -312,7 +320,7 @@ export function catalogServiceBuilder(
         attributes: descriptorAttributes,
         eservice: toBffCatalogApiProducerDescriptorEService(
           eservice,
-          requesterTenant
+          producerTenant
         ),
       };
     },
@@ -333,7 +341,12 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      assertRequesterIsProducer(requesterId, eservice);
+      await assertRequesterCanActAsProducer(
+        delegationProcessClient,
+        headers,
+        requesterId,
+        eservice
+      );
 
       return {
         id: eservice.id,
