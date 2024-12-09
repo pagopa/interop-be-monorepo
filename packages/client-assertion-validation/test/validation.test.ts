@@ -24,7 +24,7 @@ import {
   verifyClientAssertion,
   verifyClientAssertionSignature,
 } from "../src/validation.js";
-import { validatePlatformState } from "../src/utils.js";
+import { validateAudience, validatePlatformState } from "../src/utils.js";
 import {
   algorithmNotAllowed,
   algorithmNotFound,
@@ -54,11 +54,15 @@ import {
   invalidAssertionType,
   invalidSignature,
   clientAssertionInvalidClaims,
-  invalidAudienceFormat,
   unexpectedClientAssertionSignatureVerificationError,
+  audienceNotFound,
 } from "../src/errors.js";
 import { ClientAssertionValidationRequest } from "../src/types.js";
-import { getMockAccessTokenRequest, value64chars } from "./utils.js";
+import {
+  expectedAudiences,
+  getMockAccessTokenRequest,
+  value64chars,
+} from "./utils.js";
 
 describe("validation test", async () => {
   describe("validateRequestParameters", async () => {
@@ -114,7 +118,11 @@ describe("validation test", async () => {
   describe("verifyClientAssertion", async () => {
     it("success client assertion", async () => {
       const { jws } = await getMockClientAssertion();
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeUndefined();
     });
 
@@ -124,7 +132,11 @@ describe("validation test", async () => {
           invalidHeaderProp: "wrong",
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -137,7 +149,11 @@ describe("validation test", async () => {
           wrongPayloadProp: "wrong",
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
@@ -149,7 +165,8 @@ describe("validation test", async () => {
       const clientAssertionWithWrongSignature = `${subStrings[0]}.${subStrings[1]}.wrong-signature`;
       const { errors } = verifyClientAssertion(
         clientAssertionWithWrongSignature,
-        undefined
+        undefined,
+        expectedAudiences
       );
       expect(errors).toBeUndefined();
     });
@@ -163,7 +180,8 @@ describe("validation test", async () => {
       const clientAssertionWithWrongSignature = `${subStrings1[0]}.${subStrings1[1]}.${subStrings2[2]}`;
       const { errors } = verifyClientAssertion(
         clientAssertionWithWrongSignature,
-        undefined
+        undefined,
+        expectedAudiences
       );
       expect(errors).toBeUndefined();
     });
@@ -171,18 +189,27 @@ describe("validation test", async () => {
     it("invalidClientAssertionFormat (malformed jwt)", async () => {
       const { errors: errors1 } = verifyClientAssertion(
         "too.many.substrings.in.client.assertion",
-        undefined
+        undefined,
+        expectedAudiences
       );
       expect(errors1).toBeDefined();
       expect(errors1).toHaveLength(1);
       expect(errors1![0]).toEqual(invalidClientAssertionFormat("Invalid JWT"));
 
-      const { errors: errors2 } = verifyClientAssertion("not a jwt", undefined);
+      const { errors: errors2 } = verifyClientAssertion(
+        "not a jwt",
+        undefined,
+        expectedAudiences
+      );
       expect(errors2).toBeDefined();
       expect(errors2).toHaveLength(1);
       expect(errors2![0]).toEqual(invalidClientAssertionFormat("Invalid JWT"));
 
-      const { errors: errors3 } = verifyClientAssertion("not.a.jwt", undefined);
+      const { errors: errors3 } = verifyClientAssertion(
+        "not.a.jwt",
+        undefined,
+        expectedAudiences
+      );
       expect(errors3).toBeDefined();
       expect(errors3).toHaveLength(1);
       expect(errors3![0]).toEqual(
@@ -193,7 +220,8 @@ describe("validation test", async () => {
 
       const { errors: errors4 } = verifyClientAssertion(
         "signature.missing",
-        undefined
+        undefined,
+        expectedAudiences
       );
       expect(errors4).toBeDefined();
       expect(errors4).toHaveLength(1);
@@ -201,55 +229,48 @@ describe("validation test", async () => {
     });
 
     it("invalidAudience - wrong entry as string", async () => {
+      const aud = "random";
       const { jws } = await getMockClientAssertion({
-        standardClaimsOverride: { aud: "random" },
+        standardClaimsOverride: { aud },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudience());
+      expect(errors![0]).toEqual(invalidAudience(aud));
     });
 
     it("invalidAudience - wrong entry as 1-item array", async () => {
+      const aud = ["random"];
       const { jws } = await getMockClientAssertion({
-        standardClaimsOverride: { aud: ["random"] },
+        standardClaimsOverride: { aud },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudience());
-    });
-
-    it("invalidAudienceFormat - comma-separated strings", async () => {
-      const { jws } = await getMockClientAssertion({
-        standardClaimsOverride: { aud: "test.interop.pagopa.it, other-aud" },
-      });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudienceFormat());
+      expect(errors![0]).toEqual(invalidAudience(aud));
     });
 
     it("invalidAudience - wrong entries", async () => {
+      const aud = ["wrong-audience1", "wrong-audience2"];
       const { jws } = await getMockClientAssertion({
-        standardClaimsOverride: { aud: ["wrong-audience1, wrong-audience2"] },
+        standardClaimsOverride: { aud },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudience());
-    });
-
-    it("invalidAudience - missing entry", async () => {
-      const { jws } = await getMockClientAssertion({
-        standardClaimsOverride: {
-          aud: ["test.interop.pagopa.it"],
-        },
-      });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudience());
+      expect(errors![0]).toEqual(invalidAudience(aud));
     });
 
     it("unexpectedClientAssertionPayload", async () => {
@@ -266,7 +287,11 @@ describe("validation test", async () => {
         options
       );
 
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -281,7 +306,11 @@ describe("validation test", async () => {
       const { jws } = await getMockClientAssertion({
         standardClaimsOverride: { jti: undefined },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(jtiNotFound());
@@ -293,7 +322,11 @@ describe("validation test", async () => {
           iat: undefined,
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(issuedAtNotFound());
@@ -305,7 +338,11 @@ describe("validation test", async () => {
           exp: undefined,
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(expNotFound());
@@ -315,7 +352,11 @@ describe("validation test", async () => {
       const { jws } = await getMockClientAssertion({
         standardClaimsOverride: { iss: undefined },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(issuerNotFound());
@@ -325,7 +366,11 @@ describe("validation test", async () => {
       const { jws } = await getMockClientAssertion({
         standardClaimsOverride: { jti: undefined, iss: undefined },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(2);
       expect(errors).toEqual([jtiNotFound(), issuerNotFound()]);
@@ -335,7 +380,11 @@ describe("validation test", async () => {
       const { jws } = await getMockClientAssertion({
         standardClaimsOverride: { sub: undefined },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(subjectNotFound());
@@ -346,7 +395,11 @@ describe("validation test", async () => {
       const { jws } = await getMockClientAssertion({
         standardClaimsOverride: { sub: subject },
       });
-      const { errors } = verifyClientAssertion(jws, generateId<ClientId>());
+      const { errors } = verifyClientAssertion(
+        jws,
+        generateId<ClientId>(),
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidSubject(subject));
@@ -358,7 +411,11 @@ describe("validation test", async () => {
       const { jws } = await getMockClientAssertion({
         standardClaimsOverride: { sub: subject },
       });
-      const { errors } = verifyClientAssertion(jws, clientId);
+      const { errors } = verifyClientAssertion(
+        jws,
+        clientId,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidSubjectFormat(subject));
@@ -371,7 +428,11 @@ describe("validation test", async () => {
           purposeId: notPurposeId,
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidPurposeIdClaimFormat(notPurposeId));
@@ -380,7 +441,11 @@ describe("validation test", async () => {
     it("invalidClientIdFormat", async () => {
       const notClientId = "not a client id";
       const { jws } = await getMockClientAssertion();
-      const { errors } = verifyClientAssertion(jws, notClientId);
+      const { errors } = verifyClientAssertion(
+        jws,
+        notClientId,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidClientIdFormat(notClientId));
@@ -393,7 +458,11 @@ describe("validation test", async () => {
         },
       });
 
-      const verifiedClientAssertion = verifyClientAssertion(jws, undefined);
+      const verifiedClientAssertion = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(verifiedClientAssertion.data?.payload.digest).toBeUndefined();
     });
 
@@ -401,7 +470,11 @@ describe("validation test", async () => {
       const { jws } = await getMockClientAssertion({
         customClaims: { digest: { alg: "alg", invalidProp: true } },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0].code).toEqual(digestClaimNotFound("").code);
@@ -413,7 +486,11 @@ describe("validation test", async () => {
           digest: { alg: "SHA256", value: "string of wrong length" },
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidHashLength("SHA256"));
@@ -425,7 +502,11 @@ describe("validation test", async () => {
           digest: { alg: "wrong alg", value: value64chars },
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidHashAlgorithm());
@@ -437,7 +518,11 @@ describe("validation test", async () => {
           digest: { alg: "wrong alg", value: "string of wrong length" },
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(2);
       expect(errors).toEqual([
@@ -451,7 +536,11 @@ describe("validation test", async () => {
       const { jws } = await getMockClientAssertion({
         customHeader: { alg: undefined },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(algorithmNotFound());
@@ -462,7 +551,11 @@ describe("validation test", async () => {
       const { jws } = await getMockClientAssertion({
         customHeader: { alg: "RS512" },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(algorithmNotAllowed(notAllowedAlg));
@@ -472,7 +565,11 @@ describe("validation test", async () => {
       const { jws } = await getMockClientAssertion({
         customHeader: { kid: "not a valid kid" },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidKidFormat());
@@ -777,7 +874,8 @@ describe("validation test", async () => {
             standardClaimsOverride: { purposeId: generateId<PurposeId>() },
           })
         ).jws,
-        undefined
+        undefined,
+        expectedAudiences
       );
       if (!mockClientAssertion) {
         fail();
@@ -801,7 +899,8 @@ describe("validation test", async () => {
             standardClaimsOverride: { purposeId: generateId<PurposeId>() },
           })
         ).jws,
-        undefined
+        undefined,
+        expectedAudiences
       );
       if (!mockClientAssertion) {
         fail();
@@ -822,7 +921,8 @@ describe("validation test", async () => {
       };
       const { data: mockClientAssertion } = verifyClientAssertion(
         (await getMockClientAssertion()).jws,
-        undefined
+        undefined,
+        expectedAudiences
       );
       if (!mockClientAssertion) {
         fail();
@@ -848,7 +948,8 @@ describe("validation test", async () => {
             customClaims: { purposeId: mockConsumerClient.GSIPK_purposeId },
           })
         ).jws,
-        undefined
+        undefined,
+        expectedAudiences
       );
       if (!mockClientAssertion) {
         fail();
@@ -872,7 +973,8 @@ describe("validation test", async () => {
             standardClaimsOverride: { purposeId: undefined },
           })
         ).jws,
-        undefined
+        undefined,
+        expectedAudiences
       );
       if (!mockClientAssertion) {
         fail();
@@ -898,7 +1000,8 @@ describe("validation test", async () => {
             standardClaimsOverride: { purposeId: undefined },
           })
         ).jws,
-        undefined
+        undefined,
+        expectedAudiences
       );
       if (!mockClientAssertion) {
         fail();
@@ -913,6 +1016,155 @@ describe("validation test", async () => {
         invalidAgreementState(agreementState),
         purposeIdNotProvided(),
       ]);
+    });
+  });
+
+  describe("validateAudience", () => {
+    describe("expectedAudiences is a one item array", () => {
+      it("should succeed if the expected audiences contain the received audience (string)", () => {
+        const receivedAudiences = "aud1";
+        const expectedAudiences = ["aud1"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: receivedAudiences,
+          errors: undefined,
+        });
+      });
+
+      it("should return error if the expected audiences don't contain the received audience (string)", () => {
+        const receivedAudiences = "aud2";
+        const expectedAudiences = ["aud1"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [invalidAudience(receivedAudiences)],
+        });
+      });
+
+      it("should return error if the received audience is undefined", () => {
+        const receivedAudiences = undefined;
+        const expectedAudiences = ["aud1"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [audienceNotFound()],
+        });
+      });
+
+      it("should return error if the expected audiences don't contain the received audience (comma separated string)", () => {
+        const receivedAudiences = "aud1, aud2";
+        const expectedAudiences = ["aud1"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [invalidAudience(receivedAudiences)],
+        });
+      });
+
+      it("should return error if the intersection between the expected audiences and the received audiences is empty (array)", () => {
+        const receivedAudiences = ["aud2"];
+        const expectedAudiences = ["aud1"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [invalidAudience(receivedAudiences)],
+        });
+      });
+
+      it("should succeed if the intersection between the expected audiences and the received audiences is not empty (array)", () => {
+        const receivedAudiences = ["aud1", "aud2"];
+        const expectedAudiences = ["aud1"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: receivedAudiences,
+          errors: undefined,
+        });
+      });
+    });
+
+    describe("expectedAudiences is a two items array", () => {
+      it("should succeed if the expected audiences contain the received audience (string)", () => {
+        const receivedAudiences = "aud1";
+        const expectedAudiences = ["aud1", "aud2"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: receivedAudiences,
+          errors: undefined,
+        });
+      });
+
+      it("should return error if the expected audiences don't contain the received audience (string)", () => {
+        const receivedAudiences = "aud3";
+        const expectedAudiences = ["aud1", "aud2"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [invalidAudience(receivedAudiences)],
+        });
+      });
+
+      it("should return error if the expected audiences don't contain the received audience (comma separated string)", () => {
+        const receivedAudiences = "aud1, aud2";
+        const expectedAudiences = ["aud1", "aud2"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [invalidAudience(receivedAudiences)],
+        });
+      });
+
+      it("should succeed if the expected audiences contain the received audiences (array)", () => {
+        const receivedAudiences = ["aud1"];
+        const expectedAudiences = ["aud1", "aud2"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: receivedAudiences,
+          errors: undefined,
+        });
+      });
+
+      it("should return error if the intersection between the expected audiences and the received audiences (array) is empty", () => {
+        const receivedAudiences = ["aud3"];
+        const expectedAudiences = ["aud1", "aud2"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: undefined,
+          errors: [invalidAudience(receivedAudiences)],
+        });
+      });
+
+      it("should succeed if the expected audiences match the received audiences (array)", () => {
+        const receivedAudiences = ["aud1", "aud2"];
+        const expectedAudiences = ["aud1", "aud2"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: receivedAudiences,
+          errors: undefined,
+        });
+      });
+
+      it("should succeed if the intersection between the expected audiences and the received audiences (array) is not empty", () => {
+        const receivedAudiences = ["aud1", "aud3"];
+        const expectedAudiences = ["aud1", "aud2"];
+        expect(
+          validateAudience(receivedAudiences, expectedAudiences)
+        ).toMatchObject({
+          data: receivedAudiences,
+          errors: undefined,
+        });
+      });
     });
   });
 });

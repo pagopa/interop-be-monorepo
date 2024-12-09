@@ -32,12 +32,10 @@ import {
   invalidKidFormat,
   digestClaimNotFound,
   audienceNotFound,
-  invalidAudienceFormat,
   invalidAgreementState,
   invalidEServiceState,
   invalidPurposeState,
 } from "./errors.js";
-import { config } from "./config.js";
 
 export const EXPECTED_CLIENT_ASSERTION_TYPE =
   "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
@@ -129,27 +127,23 @@ export const validateKid = (kid?: string): ValidationResult<string> => {
 };
 
 export const validateAudience = (
-  aud: string | string[] | undefined
+  receivedAudiences: string | string[] | undefined,
+  expectedAudiences: string[]
 ): ValidationResult<string[] | string> => {
-  if (!aud) {
+  if (!receivedAudiences) {
     return failedValidation([audienceNotFound()]);
   }
 
-  if (Array.isArray(aud)) {
-    if (config.clientAssertionAudience.every((entry) => aud.includes(entry))) {
-      return successfulValidation(aud);
+  if (Array.isArray(receivedAudiences)) {
+    if (expectedAudiences.some((entry) => receivedAudiences.includes(entry))) {
+      return successfulValidation(receivedAudiences);
     }
-    return failedValidation([invalidAudience()]);
+    return failedValidation([invalidAudience(receivedAudiences)]);
   } else {
-    const split = aud.split(",").map((s) => s.trim());
-    if (split.length > 1) {
-      return failedValidation([invalidAudienceFormat()]);
+    if (expectedAudiences.some((entry) => receivedAudiences === entry)) {
+      return successfulValidation(receivedAudiences);
     }
-    const audEntry = split[0];
-    if (config.clientAssertionAudience.every((entry) => audEntry === entry)) {
-      return successfulValidation(aud);
-    }
-    return failedValidation([invalidAudience()]);
+    return failedValidation([invalidAudience(receivedAudiences)]);
   }
 };
 
