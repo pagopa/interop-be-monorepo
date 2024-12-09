@@ -33,6 +33,8 @@ export const errorCodes = {
   riskAnalysisDuplicated: "0021",
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
+  invalidAttributeSeed: "0024",
+  unchangedAttributes: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -269,5 +271,27 @@ export function audienceCannotBeEmpty(
     detail: `Descriptor ${descriptorId} can't be published with empty audience`,
     code: "audienceCannotBeEmpty",
     title: "Audience cannot be empty",
+  });
+}
+
+export function invalidAttributeSeed(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attributes seed is not valid for EService ${eserviceId} and Descriptor ${descriptorId}`,
+    code: "invalidAttributeSeed",
+    title: "Invalid attribute seed",
+  });
+}
+
+export function unchangedAttributes(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No new attributes detected in attribute seed for EService ${eserviceId} and Descriptor ${descriptorId}`,
+    code: "unchangedAttributes",
+    title: "Unchanged attributes",
   });
 }
