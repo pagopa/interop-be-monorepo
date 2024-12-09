@@ -29,7 +29,7 @@ const tenantRouter = (
   const tenantService = tenantServiceBuilder(
     clients.tenantProcessClient,
     clients.attributeProcessClient,
-    clients.selfcareV2Client
+    clients.selfcareV2InstitutionClient
   );
 
   tenantRouter
