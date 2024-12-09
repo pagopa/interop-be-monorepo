@@ -10,9 +10,9 @@ import {
   SendEmailCommandInput,
 } from "@aws-sdk/client-sesv2";
 import { Address, Attachment } from "nodemailer/lib/mailer/index.js";
+import { z } from "zod";
 import { PecEmailManagerConfig } from "../index.js";
 import { AWSSesConfig } from "../config/awsSesConfig.js";
-import { z } from "zod";
 
 export const emailManagerKind = { pec: "PEC", ses: "SES" } as const;
 export const EmailManagerKind = z.enum([

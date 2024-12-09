@@ -1,4 +1,6 @@
 import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 import {
   EmailManager,
   EmailManagerKind,
@@ -24,8 +26,6 @@ import {
   tenantMailKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import path from "path";
-import { fileURLToPath } from "url";
 import { z } from "zod";
 import {
   agreementStampDateNotFound,
@@ -35,11 +35,11 @@ import {
   tenantDigitalAddressNotFound,
   tenantNotFound,
 } from "../models/errors.js";
-import { ReadModelService } from "./readModelService.js";
 import { AgreementEmailSenderConfig } from "../config/config.js";
+import { ReadModelService } from "./readModelService.js";
 
 // Be careful to change this enum, it's used to find the html template files
-const agreementEventMailTemplateType = { 
+const agreementEventMailTemplateType = {
   activationPEC: "activation-pec-mail",
   activationSES: "activation-ses-mail",
   submission: "submission-mail",
@@ -153,7 +153,7 @@ async function sendAgreementActivationEmail(
   consumerName: string,
   producerName: string,
   recepientsEmail: string[],
-  interopFeUrl?: string,
+  interopFeUrl?: string
 ): Promise<void> {
   const agreement = fromAgreementV2(agreementV2Msg);
   const htmlTemplate = await retrieveHTMLTemplate(templateKind);
@@ -210,7 +210,6 @@ export function agreementEmailSenderServiceBuilder(
     label: config.pecSenderLabel,
     mail: config.pecSenderMail,
   };
-  
 
   return {
     senderAgreementSubmissionEmail: async (
@@ -342,7 +341,6 @@ export function agreementEmailSenderServiceBuilder(
       agreementV2Msg: AgreementV2,
       logger: Logger
     ) => {
-
       const agreement = fromAgreementV2(agreementV2Msg);
       const htmlTemplate = await retrieveHTMLTemplate(
         agreementEventMailTemplateType.rejection
@@ -381,7 +379,7 @@ export function agreementEmailSenderServiceBuilder(
 
       const mail = {
         from: { name: sesEmailsender.label, address: sesEmailsender.mail },
-        subject: `Richiesta richiesta di fruizione per ${eservice.name} rifiutata`,
+        subject: `Richiesta di fruizione per ${eservice.name} rifiutata`,
         to: [consumerEmail.address],
         body: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
@@ -393,9 +391,13 @@ export function agreementEmailSenderServiceBuilder(
       };
 
       try {
-        logger.info(`Sending email for agreement ${agreement.id} rejection (${emailManagerKind.ses})`);
+        logger.info(
+          `Sending email for agreement ${agreement.id} rejection (${emailManagerKind.ses})`
+        );
         await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
-        logger.info(`Email sent for agreement ${agreement.id} rejection (${emailManagerKind.ses})`);
+        logger.info(
+          `Email sent for agreement ${agreement.id} rejection (${emailManagerKind.ses})`
+        );
       } catch (err) {
         logger.warn(
           `Error sending email for agreement ${agreement.id}: ${err}`

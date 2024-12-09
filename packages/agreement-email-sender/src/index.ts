@@ -27,7 +27,7 @@ const templateService = buildHTMLTemplateService();
 const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
   config,
   readModelService,
-  templateService,
+  templateService
 );
 
 export async function processMessage({
@@ -70,17 +70,23 @@ export async function processMessage({
       { event_version: 2, type: "AgreementSubmitted" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await agreementEmailSenderService.senderAgreementSubmissionEmail(agreement,loggerInstance);
+          await agreementEmailSenderService.senderAgreementSubmissionEmail(
+            agreement,
+            loggerInstance
+          );
         } else {
           throw missingKafkaMessageDataError("agreement", decodedMessage.type);
         }
       }
     )
     .with(
-      { event_version: 2, type: "AgreementRejected", },
+      { event_version: 2, type: "AgreementRejected" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await agreementEmailSenderService.sendAgreementRejectNotificationEmail(agreement,loggerInstance);
+          await agreementEmailSenderService.sendAgreementRejectNotificationEmail(
+            agreement,
+            loggerInstance
+          );
         } else {
           throw missingKafkaMessageDataError("agreement", decodedMessage.type);
         }
@@ -101,7 +107,7 @@ export async function processMessage({
           "AgreementUpgraded",
           "AgreementSuspendedByProducer",
           "AgreementSuspendedByConsumer",
-          "AgreementSuspendedByPlatform",          
+          "AgreementSuspendedByPlatform",
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
