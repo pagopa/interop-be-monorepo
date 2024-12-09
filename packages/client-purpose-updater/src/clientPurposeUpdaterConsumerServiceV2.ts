@@ -1,37 +1,60 @@
 import {
   CorrelationId,
   generateId,
+  missingKafkaMessageDataError,
   PurposeEventEnvelopeV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   getInteropHeaders,
+  logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 
 const { authorizationClient } = getInteropBeClients();
 
-export async function handleMessageV2(
-  message: PurposeEventEnvelopeV2,
-  refreshableToken: RefreshableInteropToken
-): Promise<void> {
-  await match(message)
+export async function handleMessageV2({
+  decodedKafkaMessage,
+  refreshableToken,
+  partition,
+  offset,
+}: {
+  decodedKafkaMessage: PurposeEventEnvelopeV2;
+  refreshableToken: RefreshableInteropToken;
+  partition: number;
+  offset: string;
+}): Promise<void> {
+  await match(decodedKafkaMessage)
     .with({ type: "PurposeArchived" }, async (purposeMsg) => {
-      const token = (await refreshableToken.get()).serialized;
-      const maybePurposeId = purposeMsg.data.purpose?.id;
+      const correlationId = purposeMsg.correlation_id
+        ? unsafeBrandId<CorrelationId>(purposeMsg.correlation_id)
+        : generateId<CorrelationId>();
 
-      if (!maybePurposeId) {
-        return;
+      const loggerInstance = logger({
+        serviceName: "client-purpose-updater",
+        eventType: purposeMsg.type,
+        eventVersion: purposeMsg.event_version,
+        streamId: purposeMsg.stream_id,
+        correlationId,
+      });
+
+      loggerInstance.info(
+        `Processing ${purposeMsg.type} message - Partition number: ${partition} - Offset: ${offset}`
+      );
+
+      const token = (await refreshableToken.get()).serialized;
+
+      if (!purposeMsg.data.purpose) {
+        throw missingKafkaMessageDataError("purpose", purposeMsg.type);
       }
 
-      const purposeId = maybePurposeId;
-
       await authorizationClient.client.removePurposeFromClients(undefined, {
-        params: { purposeId },
+        params: { purposeId: purposeMsg.data.purpose.id },
         headers: getInteropHeaders({
           token,
-          correlationId: generateId<CorrelationId>(),
+          correlationId,
         }),
       });
     })

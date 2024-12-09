@@ -1,51 +1,36 @@
 import { EachMessagePayload } from "kafkajs";
 import {
-  logger,
   decodeKafkaMessage,
   InteropTokenGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
-import {
-  CorrelationId,
-  generateId,
-  PurposeEventV2,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { PurposeEventV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV2 } from "./clientPurposeUpdaterConsumerServiceV2.js";
 import { config } from "./config/config.js";
+
+const refreshableToken = new RefreshableInteropToken(
+  new InteropTokenGenerator(config)
+);
+await refreshableToken.init();
 
 async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  const decodedMessage = decodeKafkaMessage(message, PurposeEventV2);
+  const decodedKafkaMessage = decodeKafkaMessage(message, PurposeEventV2);
 
-  const loggerInstance = logger({
-    serviceName: "client-purpose-updater",
-    eventType: decodedMessage.type,
-    eventVersion: decodedMessage.event_version,
-    streamId: decodedMessage.stream_id,
-    correlationId: decodedMessage.correlation_id
-      ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
-      : generateId<CorrelationId>(),
-  });
-
-  const refreshableToken = new RefreshableInteropToken(
-    new InteropTokenGenerator(config)
-  );
-  await refreshableToken.init();
-
-  await match(decodedMessage)
+  await match(decodedKafkaMessage)
     .with({ event_version: 2 }, () =>
-      handleMessageV2(decodedMessage, refreshableToken)
+      handleMessageV2({
+        decodedKafkaMessage,
+        refreshableToken,
+        partition,
+        offset: message.offset,
+      })
     )
     .exhaustive();
-
-  loggerInstance.info(
-    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
-  );
 }
 
 await runConsumer(config, [config.authorizationTopic], processMessage);

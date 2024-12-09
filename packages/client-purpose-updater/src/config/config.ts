@@ -1,7 +1,6 @@
 import {
   APIEndpoint,
   AuthorizationTopicConfig,
-  CommonHTTPServiceConfig,
   KafkaConsumerConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
@@ -15,15 +14,14 @@ export const AuthorizationProcessServerConfig = z
     authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
   }));
 
-const AuthorizationProcessConfig = CommonHTTPServiceConfig.and(
-  AuthorizationProcessServerConfig
+const ClientPurposeUpdaterConfig = AuthorizationProcessServerConfig.and(
+  AuthorizationTopicConfig
 )
-  .and(AuthorizationTopicConfig)
   .and(TokenGenerationConfig)
   .and(KafkaConsumerConfig);
 
-export type AuthorizationProcessConfig = z.infer<
-  typeof AuthorizationProcessConfig
+export type ClientPurposeUpdaterConfig = z.infer<
+  typeof ClientPurposeUpdaterConfig
 >;
-export const config: AuthorizationProcessConfig =
-  AuthorizationProcessConfig.parse(process.env);
+export const config: ClientPurposeUpdaterConfig =
+  ClientPurposeUpdaterConfig.parse(process.env);
