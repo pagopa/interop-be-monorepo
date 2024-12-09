@@ -102,6 +102,7 @@ export const addDeclaredAttributeErrorMapper = (
       "delegationNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("notAllowedToAddDeclaredAttribute", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeCertifiedAttributeErrorMapper = (
