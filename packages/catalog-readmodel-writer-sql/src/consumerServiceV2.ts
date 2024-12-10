@@ -317,7 +317,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorDelegatorApproved" },
       { type: "EServiceDescriptorDelegatorRejected" },
       () => {
-        console.log("unhandled for now");
+        // unhandled for now
       }
     )
     .exhaustive();
