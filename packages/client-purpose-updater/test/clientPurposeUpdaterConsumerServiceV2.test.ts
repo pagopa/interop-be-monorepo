@@ -24,6 +24,8 @@ import { handleMessageV2 } from "../src/clientPurposeUpdaterConsumerServiceV2.js
 import { getInteropBeClients } from "../src/clients/clientsProvider.js";
 
 describe("PurposeArchived", async () => {
+  const { authorizationClient } = getInteropBeClients();
+
   const testToken = {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
@@ -66,8 +68,7 @@ describe("PurposeArchived", async () => {
 
   beforeEach(async () => {
     // eslint-disable-next-line functional/immutable-data
-    getInteropBeClients().authorizationClient.client.removePurposeFromClients =
-      vi.fn();
+    authorizationClient.client.removePurposeFromClients = vi.fn();
   });
 
   afterEach(async () => {
@@ -112,12 +113,13 @@ describe("PurposeArchived", async () => {
     });
 
     expect(
-      getInteropBeClients().authorizationClient.client.removePurposeFromClients
+      authorizationClient.client.removePurposeFromClients
     ).toHaveBeenCalledWith(undefined, {
       params: {
         purposeId: purpose.id,
       },
       headers: testHeaders,
     });
+    // expect(1).toEqual(1);
   });
 });
