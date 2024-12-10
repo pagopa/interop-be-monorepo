@@ -36,8 +36,8 @@ import {
   agreementEmailSenderServiceFailure,
   emailManager,
   interopFeBaseUrl,
+  pecEmailManager,
   pecEmailsenderData,
-  sesEmailManager,
   sesEmailsenderData,
   templateService,
 } from "./utils.js";
@@ -51,7 +51,7 @@ afterEach(() => {
 });
 
 describe("sendAgreementActivationEmail", () => {
-  describe("Send Notification Email", () => {
+  describe("Send Simple Email", () => {
     it("should send an email to Consumer to contact email addresses", async () => {
       const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
       const consumer: Tenant = {
@@ -82,7 +82,7 @@ describe("sendAgreementActivationEmail", () => {
       };
       await addOneAgreement(agreement);
 
-      await agreementEmailSenderService.sendAgreementActivationNotificationEmail(
+      await agreementEmailSenderService.sendAgreementActivationSimpleEmail(
         toAgreementV2(agreement),
         genericLogger
       );
@@ -115,7 +115,7 @@ describe("sendAgreementActivationEmail", () => {
         }),
       };
 
-      expect(sesEmailManager.send).toHaveBeenCalledWith(
+      expect(emailManager.send).toHaveBeenCalledWith(
         mail.from,
         mail.to,
         mail.subject,
@@ -124,7 +124,7 @@ describe("sendAgreementActivationEmail", () => {
     });
 
     it("should throw agreementStampDateNotFound for activation date not found", async () => {
-      vi.spyOn(sesEmailManager, "send");
+      vi.spyOn(emailManager, "send");
       const consumer = {
         ...getMockTenant(),
         mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
@@ -144,18 +144,18 @@ describe("sendAgreementActivationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementEmailSenderService.sendAgreementActivationNotificationEmail(
+        agreementEmailSenderService.sendAgreementActivationSimpleEmail(
           toAgreementV2(agreement),
           genericLogger
         )
       ).rejects.toThrowError(
         agreementStampDateNotFound("activation", agreement.id)
       );
-      expect(sesEmailManager.send).not.toHaveBeenCalled();
+      expect(emailManager.send).not.toHaveBeenCalled();
     });
 
     it("should throw eServiceNotFound for Eservice not found", async () => {
-      vi.spyOn(sesEmailManager, "send");
+      vi.spyOn(emailManager, "send");
       const consumer = {
         ...getMockTenant(),
         mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
@@ -175,17 +175,17 @@ describe("sendAgreementActivationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementEmailSenderService.sendAgreementActivationNotificationEmail(
+        agreementEmailSenderService.sendAgreementActivationSimpleEmail(
           toAgreementV2(agreement),
           genericLogger
         )
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
 
-      expect(sesEmailManager.send).not.toHaveBeenCalled();
+      expect(emailManager.send).not.toHaveBeenCalled();
     });
 
     it("should throw tenantNotFound for Producer not found", async () => {
-      vi.spyOn(sesEmailManager, "send");
+      vi.spyOn(emailManager, "send");
       const eservice = getMockEService();
       const consumer = {
         ...getMockTenant(),
@@ -208,16 +208,16 @@ describe("sendAgreementActivationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementEmailSenderService.sendAgreementActivationNotificationEmail(
+        agreementEmailSenderService.sendAgreementActivationSimpleEmail(
           toAgreementV2(agreement),
           genericLogger
         )
       ).rejects.toThrowError(tenantNotFound(agreement.producerId));
-      expect(sesEmailManager.send).not.toHaveBeenCalled();
+      expect(emailManager.send).not.toHaveBeenCalled();
     });
 
     it("should throw tenantNotFound for Consumer not found", async () => {
-      vi.spyOn(sesEmailManager, "send");
+      vi.spyOn(emailManager, "send");
       const consumer = {
         ...getMockTenant(),
         mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
@@ -241,17 +241,17 @@ describe("sendAgreementActivationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementEmailSenderService.sendAgreementActivationNotificationEmail(
+        agreementEmailSenderService.sendAgreementActivationSimpleEmail(
           toAgreementV2(agreement),
           genericLogger
         )
       ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
 
-      expect(sesEmailManager.send).not.toHaveBeenCalled();
+      expect(emailManager.send).not.toHaveBeenCalled();
     });
 
     it("should throw tenantDigitalAddressNotFound for Consumer digital address not found", async () => {
-      vi.spyOn(sesEmailManager, "send");
+      vi.spyOn(emailManager, "send");
       const producer = {
         ...getMockTenant(),
         mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
@@ -273,7 +273,7 @@ describe("sendAgreementActivationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementEmailSenderService.sendAgreementActivationNotificationEmail(
+        agreementEmailSenderService.sendAgreementActivationSimpleEmail(
           toAgreementV2(agreement),
           genericLogger
         )
@@ -281,11 +281,11 @@ describe("sendAgreementActivationEmail", () => {
         tenantDigitalAddressNotFound(agreement.consumerId)
       );
 
-      expect(sesEmailManager.send).not.toHaveBeenCalled();
+      expect(emailManager.send).not.toHaveBeenCalled();
     });
 
     it("should throw descriptorNotFound for Descriptor not found", async () => {
-      vi.spyOn(sesEmailManager, "send");
+      vi.spyOn(emailManager, "send");
       const producer = {
         ...getMockTenant(),
         mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
@@ -310,7 +310,7 @@ describe("sendAgreementActivationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementEmailSenderService.sendAgreementActivationNotificationEmail(
+        agreementEmailSenderService.sendAgreementActivationSimpleEmail(
           toAgreementV2(agreement),
           genericLogger
         )
@@ -318,11 +318,11 @@ describe("sendAgreementActivationEmail", () => {
         descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
       );
 
-      expect(sesEmailManager.send).not.toHaveBeenCalled();
+      expect(emailManager.send).not.toHaveBeenCalled();
     });
 
     it("should fail when email manager send fails", async () => {
-      vi.spyOn(sesEmailManager, "send");
+      vi.spyOn(emailManager, "send");
       const consumer: Tenant = {
         ...getMockTenant(),
         mails: [
@@ -361,18 +361,18 @@ describe("sendAgreementActivationEmail", () => {
       };
       await addOneAgreement(agreement);
 
-      await agreementEmailSenderServiceFailure.sendAgreementActivationNotificationEmail(
+      await agreementEmailSenderServiceFailure.sendAgreementActivationSimpleEmail(
         toAgreementV2(agreement),
         genericLogger
       );
 
-      expect(sesEmailManager.send).not.toHaveBeenCalled();
+      expect(emailManager.send).not.toHaveBeenCalled();
     });
   });
 
   describe("Send Certified Email", () => {
     it("should send an email to Producer and Consumer digital addresses", async () => {
-      vi.spyOn(emailManager, "send");
+      vi.spyOn(pecEmailManager, "send");
       const consumerEmail = getMockTenantMail(tenantMailKind.DigitalAddress);
       const consumer: Tenant = {
         ...getMockTenant(),
@@ -437,8 +437,8 @@ describe("sendAgreementActivationEmail", () => {
           interopFeUrl: interopFeBaseUrl,
         }),
       };
-
-      expect(emailManager.send).toHaveBeenCalledWith(
+      expect(pecEmailManager.send).toHaveBeenCalledTimes(1);
+      expect(pecEmailManager.send).toHaveBeenCalledWith(
         mail.from,
         mail.to,
         mail.subject,
@@ -478,7 +478,7 @@ describe("sendAgreementActivationEmail", () => {
         tenantDigitalAddressNotFound(agreement.producerId)
       );
 
-      expect(sesEmailManager.send).not.toHaveBeenCalled();
+      expect(emailManager.send).not.toHaveBeenCalled();
     });
   });
 });

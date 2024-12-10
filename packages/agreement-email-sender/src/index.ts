@@ -19,9 +19,9 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { config } from "./config/config.js";
 import { agreementEmailSenderServiceBuilder } from "./services/agreementEmailSenderService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
-import { config } from "./config/config.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -77,7 +77,7 @@ export async function processMessage({
               agreement,
               loggerInstance
             ),
-            agreementEmailSenderService.sendAgreementActivationNotificationEmail(
+            agreementEmailSenderService.sendAgreementActivationSimpleEmail(
               agreement,
               loggerInstance
             ),
@@ -91,7 +91,7 @@ export async function processMessage({
       { event_version: 2, type: "AgreementSubmitted" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await agreementEmailSenderService.senderAgreementSubmissionEmail(
+          await agreementEmailSenderService.sendAgreementSubmissionSimpleEmail(
             agreement,
             loggerInstance
           );
@@ -104,7 +104,7 @@ export async function processMessage({
       { event_version: 2, type: "AgreementRejected" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await agreementEmailSenderService.sendAgreementRejectNotificationEmail(
+          await agreementEmailSenderService.sendAgreementRejectSimpleEmail(
             agreement,
             loggerInstance
           );

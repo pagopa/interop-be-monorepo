@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
 import fs from "fs/promises";
-import { fileURLToPath } from "url";
-import path from "path";
 import {
   EmailManager,
   EmailManagerKind,
@@ -25,6 +23,8 @@ import {
   tenantMailKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import path from "path";
+import { fileURLToPath } from "url";
 import { z } from "zod";
 import {
   agreementStampDateNotFound,
@@ -55,14 +55,14 @@ type AgreementEventMailTemplateType = z.infer<
 
 export const retrieveTenantMailAddress = (
   tenant: Tenant,
-  managerEmailKind: EmailManagerKind
+  emailManagerKind: EmailManagerKind
 ): TenantMail => {
   /*
-    When email sender kind is PEC a certified email is sent
-    so it require to use a digital address instead of a contact email 
+    When email manager kind is PEC a certified email is sent
+    so it requires to use a digital address instead of a contact email 
   */
   const mailKind =
-    managerEmailKind === "PEC"
+    emailManagerKind === "PEC"
       ? tenantMailKind.DigitalAddress
       : tenantMailKind.ContactEmail;
 
@@ -150,7 +150,7 @@ async function sendAgreementActivationEmail(
   sender: { label: string; mail: string },
   consumerName: string,
   producerName: string,
-  recepientsEmail: string[],
+  recepientsEmails: string[],
   interopFeUrl?: string
 ): Promise<void> {
   const agreement = fromAgreementV2(agreementV2Msg);
@@ -165,7 +165,7 @@ async function sendAgreementActivationEmail(
   const descriptor = retrieveAgreementDescriptor(eservice, agreement);
   const mail = {
     subject: `Richiesta di fruizione ${agreement.id} attiva`,
-    to: recepientsEmail,
+    to: recepientsEmails,
     body: templateService.compileHtml(htmlTemplate, {
       activationDate,
       agreementId: agreement.id,
@@ -206,7 +206,7 @@ export function agreementEmailSenderServiceBuilder(
   interopFeBaseUrl?: string
 ) {
   return {
-    senderAgreementSubmissionEmail: async (
+    sendAgreementSubmissionSimpleEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ): Promise<void> => {
@@ -260,9 +260,13 @@ export function agreementEmailSenderServiceBuilder(
       };
 
       try {
-        logger.info(`Sending email for agreement ${agreement.id} submission`);
+        logger.info(
+          `Sending email for agreement ${agreement.id} submission (SES)`
+        );
         await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
-        logger.info(`Email sent for agreement ${agreement.id} submission`);
+        logger.info(
+          `Email sent for agreement ${agreement.id} submission (SES)`
+        );
       } catch (err) {
         logger.warn(
           `Error sending email for agreement ${agreement.id}: ${err}`
@@ -300,7 +304,7 @@ export function agreementEmailSenderServiceBuilder(
         recepientsEmails
       );
     },
-    sendAgreementActivationNotificationEmail: async (
+    sendAgreementActivationSimpleEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ) => {
@@ -331,7 +335,7 @@ export function agreementEmailSenderServiceBuilder(
         interopFeBaseUrl
       );
     },
-    sendAgreementRejectNotificationEmail: async (
+    sendAgreementRejectSimpleEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ) => {

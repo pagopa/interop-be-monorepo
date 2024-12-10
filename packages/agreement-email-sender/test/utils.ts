@@ -1,8 +1,12 @@
+import axios, { AxiosResponse } from "axios";
+import {
+  buildHTMLTemplateService,
+  EmailManagerSES,
+} from "pagopa-interop-commons";
 import {
   setupTestContainersVitest,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
-import { afterEach, inject, vi } from "vitest";
 import {
   Agreement,
   EService,
@@ -11,19 +15,14 @@ import {
   toReadModelEService,
   toReadModelTenant,
 } from "pagopa-interop-models";
-import axios, { AxiosResponse } from "axios";
-import {
-  buildHTMLTemplateService,
-  EmailManagerPEC,
-  EmailManagerSES,
-} from "pagopa-interop-commons";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { afterEach, inject, vi } from "vitest";
 import { agreementEmailSenderServiceBuilder } from "../src/services/agreementEmailSenderService.js";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const readModelConfig = inject("readModelConfig");
 export const emailManagerConfig = inject("emailManagerConfig");
 
-export const { cleanup, readModelRepository, emailManager } =
+export const { cleanup, readModelRepository, pecEmailManager } =
   await setupTestContainersVitest(
     readModelConfig,
     undefined,
@@ -33,7 +32,7 @@ export const { cleanup, readModelRepository, emailManager } =
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const templateService = buildHTMLTemplateService();
 
-export const sesEmailManager: EmailManagerSES = {
+export const emailManager: EmailManagerSES = {
   kind: "SES",
   send: vi.fn().mockResolvedValue({ status: 200 } as AxiosResponse),
   sendWithAttachments: vi
@@ -59,9 +58,9 @@ export const pecEmailsenderData = {
 export const interopFeBaseUrl = "http://localhost/fe";
 
 export const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
-  emailManager as EmailManagerPEC,
+  pecEmailManager,
   pecEmailsenderData,
-  sesEmailManager,
+  emailManager,
   sesEmailsenderData,
   readModelService,
   templateService,
@@ -70,7 +69,7 @@ export const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
 
 export const agreementEmailSenderServiceFailure =
   agreementEmailSenderServiceBuilder(
-    emailManager as EmailManagerPEC,
+    pecEmailManager,
     pecEmailsenderData,
     sesEmailManagerFailure,
     sesEmailsenderData,

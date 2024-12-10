@@ -1,7 +1,5 @@
 /* eslint-disable no-irregular-whitespace */
 import fs from "fs/promises";
-import { fileURLToPath } from "url";
-import path from "path";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
@@ -20,6 +18,8 @@ import {
   tenantMailKind,
   toAgreementV2,
 } from "pagopa-interop-models";
+import path from "path";
+import { fileURLToPath } from "url";
 import { describe, expect, it, vi } from "vitest";
 import {
   agreementEventMailTemplateType,
@@ -30,15 +30,15 @@ import {
   addOneEService,
   addOneTenant,
   agreementEmailSenderService,
+  emailManager,
   interopFeBaseUrl,
-  sesEmailManager,
   sesEmailsenderData,
   templateService,
 } from "./utils.js";
 
 describe("sendAgreementRejectEmail", () => {
   it("should send an email on AgreementRejected", async () => {
-    vi.spyOn(sesEmailManager, "send");
+    vi.spyOn(emailManager, "send");
     const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
     const consumer: Tenant = {
       ...getMockTenant(),
@@ -73,7 +73,7 @@ describe("sendAgreementRejectEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await agreementEmailSenderService.sendAgreementRejectNotificationEmail(
+    await agreementEmailSenderService.sendAgreementRejectSimpleEmail(
       toAgreementV2(agreement),
       genericLogger
     );
@@ -101,7 +101,7 @@ describe("sendAgreementRejectEmail", () => {
       }),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(
+    expect(emailManager.send).toHaveBeenCalledWith(
       mail.from,
       mail.to,
       mail.subject,
@@ -110,7 +110,7 @@ describe("sendAgreementRejectEmail", () => {
   });
 
   it("should should not send email if the producer has no mail", async () => {
-    vi.spyOn(sesEmailManager, "send");
+    vi.spyOn(emailManager, "send");
     const consumer: Tenant = { ...getMockTenant(), name: "Jane Doe" };
     const producer: Tenant = {
       ...getMockTenant(),
@@ -137,11 +137,11 @@ describe("sendAgreementRejectEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await agreementEmailSenderService.senderAgreementSubmissionEmail(
+    await agreementEmailSenderService.sendAgreementSubmissionSimpleEmail(
       toAgreementV2(agreement),
       genericLogger
     );
 
-    expect(sesEmailManager.send).not.toHaveBeenCalled();
+    expect(emailManager.send).not.toHaveBeenCalled();
   });
 });
