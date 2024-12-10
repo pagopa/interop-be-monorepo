@@ -11,7 +11,6 @@ import {
   HtmlTemplateService,
   Logger,
   dateAtRomeZone,
-  emailManagerKind,
   getLatestTenantMailOfKind,
 } from "pagopa-interop-commons";
 import {
@@ -63,7 +62,7 @@ export const retrieveTenantMailAddress = (
     so it require to use a digital address instead of a contact email 
   */
   const mailKind =
-    managerEmailKind === emailManagerKind.pec
+    managerEmailKind === "PEC"
       ? tenantMailKind.DigitalAddress
       : tenantMailKind.ContactEmail;
 
@@ -177,19 +176,24 @@ async function sendAgreementActivationEmail(
       interopFeUrl,
     }),
   };
-
-  logger.info(
-    `Sending email for agreement ${agreement.id} activation (${emailManager.kind})`
-  );
-  await emailManager.send(
-    { name: sender.label, address: sender.mail },
-    mail.to,
-    mail.subject,
-    mail.body
-  );
-  logger.info(
-    `Email sent for agreement ${agreement.id} activation (${emailManager.kind})`
-  );
+  try {
+    logger.info(
+      `Sending email for agreement ${agreement.id} activation (${emailManager.kind})`
+    );
+    await emailManager.send(
+      { name: sender.label, address: sender.mail },
+      mail.to,
+      mail.subject,
+      mail.body
+    );
+    logger.info(
+      `Email sent for agreement ${agreement.id} activation (${emailManager.kind})`
+    );
+  } catch (error) {
+    logger.error(
+      `Unexpected error sending email for agreement ${agreement.id} activation (${emailManager.kind}): ${error}`
+    );
+  }
 }
 
 export function agreementEmailSenderServiceBuilder(
@@ -279,8 +283,8 @@ export function agreementEmailSenderServiceBuilder(
       );
 
       const recepientsEmails = [
-        retrieveTenantMailAddress(consumer, emailManagerKind.pec).address,
-        retrieveTenantMailAddress(producer, emailManagerKind.pec).address,
+        retrieveTenantMailAddress(consumer, "PEC").address,
+        retrieveTenantMailAddress(producer, "PEC").address,
       ];
 
       return sendAgreementActivationEmail(
@@ -310,7 +314,7 @@ export function agreementEmailSenderServiceBuilder(
       );
 
       const recepientsEmails = [
-        retrieveTenantMailAddress(consumer, emailManagerKind.ses).address,
+        retrieveTenantMailAddress(consumer, "SES").address,
       ];
 
       return sendAgreementActivationEmail(
@@ -382,12 +386,10 @@ export function agreementEmailSenderServiceBuilder(
 
       try {
         logger.info(
-          `Sending email for agreement ${agreement.id} rejection (${emailManagerKind.ses})`
+          `Sending email for agreement ${agreement.id} rejection (SES)`
         );
         await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
-        logger.info(
-          `Email sent for agreement ${agreement.id} rejection (${emailManagerKind.ses})`
-        );
+        logger.info(`Email sent for agreement ${agreement.id} rejection (SES)`);
       } catch (err) {
         logger.warn(
           `Error sending email for agreement ${agreement.id}: ${err}`
