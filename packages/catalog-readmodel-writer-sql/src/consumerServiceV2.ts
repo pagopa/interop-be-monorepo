@@ -22,7 +22,7 @@ export async function handleMessageV2(
   await match(message)
     .with({ type: "EServiceDeleted" }, async (message) => {
       const eserviceId = unsafeBrandId<EServiceId>(message.data.eserviceId);
-      poc.deleteEService(eserviceId, readModelRepositorySQL);
+      await poc.deleteEService(eserviceId, readModelRepositorySQL);
     })
     .with(
       { type: "EServiceAdded" },
@@ -33,7 +33,7 @@ export async function handleMessageV2(
         await poc.upsertEService(eservice, readModelRepositorySQL);
       }
     )
-    .with({ type: "EServiceDescriptorAdded" }, (message) => {
+    .with({ type: "EServiceDescriptorAdded" }, async (message) => {
       const eservice = parseEservice(message.data.eservice);
       const descriptorId = unsafeBrandId<DescriptorId>(
         message.data.descriptorId
@@ -47,7 +47,7 @@ export async function handleMessageV2(
         throw genericInternalError("");
       }
 
-      poc.addDescriptor(eservice.id, descriptor, readModelRepositorySQL);
+      await poc.addDescriptor(eservice.id, descriptor, readModelRepositorySQL);
     })
     .with({ type: "EServiceDraftDescriptorDeleted" }, async (message) => {
       const descriptorId = unsafeBrandId<DescriptorId>(
@@ -102,7 +102,7 @@ export async function handleMessageV2(
         );
       }
     )
-    .with({ type: "EServiceDescriptorPublished" }, (message) => {
+    .with({ type: "EServiceDescriptorPublished" }, async (message) => {
       const eservice = parseEservice(message.data.eservice);
       const descriptorId = unsafeBrandId<DescriptorId>(
         message.data.descriptorId
@@ -124,14 +124,14 @@ export async function handleMessageV2(
           d.state === descriptorState.archived
       );
 
-      poc.publishDescriptor(
+      await poc.publishDescriptor(
         publishedDescriptor,
         previousDescriptor,
         eservice.id,
         readModelRepositorySQL
       );
     })
-    .with({ type: "EServiceDescriptorInterfaceAdded" }, (message) => {
+    .with({ type: "EServiceDescriptorInterfaceAdded" }, async (message) => {
       const eservice = parseEservice(message.data.eservice);
       const descriptorId = unsafeBrandId<DescriptorId>(
         message.data.descriptorId
@@ -145,7 +145,7 @@ export async function handleMessageV2(
         throw genericInternalError("");
       }
 
-      poc.addInterface(eservice.id, descriptor, readModelRepositorySQL);
+      await poc.addInterface(eservice.id, descriptor, readModelRepositorySQL);
     })
     .with({ type: "EServiceDescriptorDocumentAdded" }, async (message) => {
       const eservice = parseEservice(message.data.eservice);
