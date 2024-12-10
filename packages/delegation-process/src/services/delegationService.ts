@@ -135,16 +135,16 @@ export function delegationServiceBuilder(
 
     assertDelegatorIsNotDelegate(delegatorId, delegateId);
 
-    const delegator = await retrieveTenantById(readModelService, delegatorId);
-    const delegate = await retrieveTenantById(readModelService, delegateId);
+    const [delegator, delegate, eservice] = await Promise.all([
+      retrieveTenantById(readModelService, delegatorId),
+      retrieveTenantById(readModelService, delegateId),
+      retrieveEserviceById(readModelService, eserviceId),
+    ]);
 
     assertTenantAllowedToReceiveDelegation(delegate, kind);
     await assertDelegatorAndDelegateIPA(delegator, delegate);
 
-    await retrieveEserviceById(readModelService, eserviceId);
-
     if (kind === delegationKind.delegatedProducer) {
-      const eservice = await retrieveEserviceById(readModelService, eserviceId);
       assertDelegatorIsProducer(delegatorId, eservice);
     }
 
