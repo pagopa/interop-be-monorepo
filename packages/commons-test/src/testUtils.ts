@@ -35,7 +35,6 @@ import {
   clientKind,
   keyUse,
   Key,
-  technology,
   AttributeKind,
   itemState,
   ClientId,
