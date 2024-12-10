@@ -1,7 +1,6 @@
 /* eslint-disable functional/no-let */
 import {
   decodeProtobufPayload,
-  getMockAuthData,
   getMockDelegation,
   getMockTenant,
   getRandomAuthData,
@@ -12,6 +11,7 @@ import {
   DelegationId,
   delegationKind,
   generateId,
+  TenantId,
   toDelegationV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -38,7 +38,7 @@ describe("reject consumer delegation", () => {
     const authData = getRandomAuthData(delegate.id);
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
-      state: "WaitingForApproval",
+      state: delegationState.waitingForApproval,
       delegateId: delegate.id,
     });
     await addOneDelegation(delegation);
@@ -76,17 +76,20 @@ describe("reject consumer delegation", () => {
   });
 
   it("should throw delegationNotFound when delegation doesn't exist", async () => {
-    const delegateId = getMockTenant().id;
     const nonExistentDelegationId =
       unsafeBrandId<DelegationId>("non-existent-id");
 
     await expect(
-      delegationService.rejectConsumerDelegation(nonExistentDelegationId, "", {
-        authData: getMockAuthData(delegateId),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      delegationConsumerService.rejectConsumerDelegation(
+        nonExistentDelegationId,
+        "",
+        {
+          authData: getRandomAuthData(),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrow(
       delegationNotFound(
         nonExistentDelegationId,
@@ -95,50 +98,74 @@ describe("reject consumer delegation", () => {
     );
   });
 
-  it("should throw operationRestrictedToDelegate when rejecter is not the delegate", async () => {
-    const delegate = getMockTenant();
-    const wrongDelegate = getMockTenant();
+  it("should throw delegationNotFound when delegation kind is not DelegatedConsumer", async () => {
     const delegation = getMockDelegation({
-      kind: delegationKind.delegatedConsumer,
-      state: "WaitingForApproval",
-      delegateId: delegate.id,
+      kind: delegationKind.delegatedProducer,
+      state: delegationState.waitingForApproval,
     });
     await addOneDelegation(delegation);
 
-    await expect(
-      delegationService.rejectConsumerDelegation(delegation.id, "", {
-        authData: getMockAuthData(wrongDelegate.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
-    ).rejects.toThrow(
-      operationRestrictedToDelegate(wrongDelegate.id, delegation.id)
-    );
-  });
-
-  it("should throw incorrectState when delegation is not in WaitingForApproval state", async () => {
-    const delegate = getMockTenant();
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedConsumer,
-      state: "Active",
-      delegateId: delegate.id,
-    });
-    await addOneDelegation(delegation);
+    const rejectionReason = "I don't like computers, please send me a pigeon";
 
     await expect(
-      delegationService.rejectConsumerDelegation(delegation.id, "", {
-        authData: getMockAuthData(delegate.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
-    ).rejects.toThrow(
-      incorrectState(
+      delegationConsumerService.rejectConsumerDelegation(
         delegation.id,
-        delegationState.active,
-        delegationState.waitingForApproval
+        rejectionReason,
+        {
+          authData: getRandomAuthData(delegation.delegateId),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
       )
+    ).rejects.toThrow(
+      delegationNotFound(delegation.id, delegationKind.delegatedConsumer)
     );
   });
+
+  it("should throw operationRestrictedToDelegate when rejecter is not the delegate", async () => {
+    const wrongDelegateId = generateId<TenantId>();
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      state: delegationState.waitingForApproval,
+    });
+    await addOneDelegation(delegation);
+
+    await expect(
+      delegationConsumerService.rejectConsumerDelegation(delegation.id, "", {
+        authData: getRandomAuthData(wrongDelegateId),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrow(
+      operationRestrictedToDelegate(wrongDelegateId, delegation.id)
+    );
+  });
+
+  it.each(
+    Object.values(delegationState).filter(
+      (state) => state !== delegationState.waitingForApproval
+    )
+  )(
+    "should throw incorrectState when delegation is in %s state",
+    async (state) => {
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        state,
+      });
+      await addOneDelegation(delegation);
+
+      await expect(
+        delegationConsumerService.rejectConsumerDelegation(delegation.id, "", {
+          authData: getRandomAuthData(delegation.delegateId),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrow(
+        incorrectState(delegation.id, state, delegationState.waitingForApproval)
+      );
+    }
+  );
 });

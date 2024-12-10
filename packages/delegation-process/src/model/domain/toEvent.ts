@@ -115,6 +115,24 @@ export function toCreateEventConsumerDelegationApproved(
   };
 }
 
+export function toCreateEventConsumerDelegationRevoked(
+  delegation: WithMetadata<Delegation>,
+  correlationId: CorrelationId
+): CreateEvent<DelegationEventV2> {
+  return {
+    streamId: delegation.data.id,
+    version: delegation.metadata.version,
+    event: {
+      type: "ConsumerDelegationRevoked",
+      event_version: 2,
+      data: {
+        delegation: toDelegationV2(delegation.data),
+      },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventConsumerDelegationRejected(
   delegation: WithMetadata<Delegation>,
   correlationId: CorrelationId

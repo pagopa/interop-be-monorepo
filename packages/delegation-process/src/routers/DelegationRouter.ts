@@ -395,6 +395,32 @@ const delegationRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .delete(
+      "/consumer/delegations/:delegationId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const { delegationId } = req.params;
+          await delegationService.revokeConsumerDelegation(
+            unsafeBrandId(delegationId),
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeDelegationErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
 
   return [delegationRouter, delegationProducerRouter, delegationConsumerRouter];
