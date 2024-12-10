@@ -371,7 +371,7 @@ describe("addDeclaredAttribute", async () => {
       )
     ).rejects.toThrowError(delegationNotFound(delegationId));
   });
-  it("Should throw delegationNotFound if the delegation is of kinf DelegatedConsumer", async () => {
+  it("Should throw delegationNotFound if the delegation is not of kind DelegatedConsumer", async () => {
     await addOneTenant(tenant);
 
     const delegationId: DelegationId = generateId();
