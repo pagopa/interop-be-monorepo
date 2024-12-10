@@ -325,6 +325,8 @@ const getDelegationLookup = (kind: DelegationKind) => [
       from: "delegations",
       let: {
         eserviceId: "$data.eserviceId",
+        consumerId: "$data.consumerId",
+        producerId: "$data.producerId",
       },
       pipeline: [
         {
@@ -333,6 +335,14 @@ const getDelegationLookup = (kind: DelegationKind) => [
               $and: [
                 {
                   $eq: ["$data.eserviceId", "$$eserviceId"],
+                },
+                {
+                  $eq: [
+                    "$data.delegatorId",
+                    kind === delegationKind.delegatedConsumer
+                      ? "$$consumerId"
+                      : "$$producerId",
+                  ],
                 },
                 {
                   $eq: ["$data.kind", kind],
@@ -351,7 +361,7 @@ const getDelegationLookup = (kind: DelegationKind) => [
 ];
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getAgreementByProducerOrConsumerWithDelegateFilters(
+function getProducerOrConsumerWithDelegateFilters(
   producerIds: TenantId[],
   consumerIds: TenantId[],
   requesterId: TenantId
@@ -438,12 +448,11 @@ export function readModelServiceBuilder(
           : [consumerId]
         : [];
 
-      const delegateAgreementFilters =
-        getAgreementByProducerOrConsumerWithDelegateFilters(
-          producerIds,
-          consumerIds,
-          requesterId
-        );
+      const delegateAgreementFilters = getProducerOrConsumerWithDelegateFilters(
+        producerIds,
+        consumerIds,
+        requesterId
+      );
 
       const pipeline = [
         getAgreementsFilters(otherFilters),
@@ -624,7 +633,7 @@ export function readModelServiceBuilder(
       };
 
       const agreementAggregationPipeline = [
-        ...getAgreementByProducerOrConsumerWithDelegateFilters(
+        ...getProducerOrConsumerWithDelegateFilters(
           filters.producerIds,
           filters.consumerIds,
           requesterId

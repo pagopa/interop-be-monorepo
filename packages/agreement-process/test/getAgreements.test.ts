@@ -193,12 +193,14 @@ describe("get agreements", () => {
     const delegation1 = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       delegateId: eservice4.producerId,
+      delegatorId: tenant3.id,
       eserviceId: eservice4.id,
       state: agreementState.active,
     });
     const delegation2 = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       delegateId: tenant4.id,
+      delegatorId: tenant1.id,
       eserviceId: eservice5.id,
       state: agreementState.active,
     });
