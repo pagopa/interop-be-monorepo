@@ -16,7 +16,7 @@ CREATE TABLE readmodel.eservice(
 
 CREATE TABLE readmodel.descriptor(
   id uuid,
-  eservice_id uuid,
+  eservice_id uuid references readmodel.eservice(id) ON DELETE CASCADE,
   version varchar,
   description varchar,
   -- interface
@@ -32,28 +32,32 @@ CREATE TABLE readmodel.descriptor(
   published_at timestamp with time zone,
   suspended_at timestamp with time zone,
   deprecated_at timestamp with time zone,
-  archived_at timestamp with time zone
+  archived_at timestamp with time zone,
   -- attributes
+  PRIMARY KEY(id)
 );
 
 CREATE TABLE readmodel.descriptor_document(
   id uuid,
-  descriptor_id uuid,
+  descriptor_id uuid REFERENCES readmodel.descriptor(id) ON DELETE CASCADE,
   name varchar,
   content_type varchar,
   pretty_name varchar,
   path varchar,
   checksum varchar,
   upload_date timestamp with time zone,
-  document_kind varchar -- differs from model
+  document_kind varchar, -- differs from model
+  PRIMARY KEY(id)
+
 );
 
 CREATE TABLE readmodel.descriptor_attribute(
   attribute_id uuid,
-  descriptor_id uuid,
+  descriptor_id uuid REFERENCES readmodel.descriptor(id) ON DELETE CASCADE,
   explicit_attribute_verification boolean,
   kind varchar, -- differs from model
-  group_set integer
+  group_set integer,
+  PRIMARY KEY(attribute_id, descriptor_id)
 );
 
 /*
@@ -67,11 +71,12 @@ d | certified | 3
 */
 CREATE TABLE readmodel.eservice_risk_analysis(
   risk_analysis_id uuid,
-  eservice_id uuid,
+  eservice_id uuid REFERENCES readmodel.eservice(id) ON DELETE CASCADE,
   name varchar,
   created_at timestamp with time zone,
   risk_analysis_form_id uuid,
-  risk_analysis_form_version varchar
+  risk_analysis_form_version varchar,
+  PRIMARY KEY(risk_analysis_id)
 );
 
 -- CREATE TABLE readmodel.risk_analysis_single_answer(
@@ -96,7 +101,8 @@ CREATE TABLE readmodel.eservice_risk_analysis_answer(
   risk_analysis_form_id uuid,
   kind varchar, -- SINGLE/MULTI
   key varchar,
-  value varchar ARRAY
+  value varchar ARRAY,
+  PRIMARY KEY(id)
 );
 
 
