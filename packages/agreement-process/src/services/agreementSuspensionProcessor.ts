@@ -2,6 +2,8 @@ import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEventV2,
+  CorrelationId,
+  Delegation,
   Descriptor,
   Tenant,
   TenantId,
@@ -31,11 +33,13 @@ export function createSuspensionUpdatedAgreement({
   authData,
   descriptor,
   consumer,
+  producerDelegation,
 }: {
   agreement: Agreement;
   authData: AuthData;
   descriptor: Descriptor;
   consumer: Tenant;
+  producerDelegation: Delegation | undefined;
 }): Agreement {
   /* nextAttributesState VS targetDestinationState
   -- targetDestinationState is the state where the caller wants to go (suspended, in this case)
@@ -56,7 +60,8 @@ export function createSuspensionUpdatedAgreement({
   const suspendedByProducer = suspendedByProducerFlag(
     agreement,
     authData.organizationId,
-    targetDestinationState
+    targetDestinationState,
+    producerDelegation?.delegateId
   );
 
   const newState = agreementStateByFlags(
@@ -66,13 +71,14 @@ export function createSuspensionUpdatedAgreement({
     agreement.suspendedByPlatform
   );
 
-  const stamp = createStamp(authData.userId);
+  const stamp = createStamp(authData.userId, producerDelegation?.id);
 
   const suspensionByProducerStamp = suspendedByProducerStamp(
     agreement,
     authData.organizationId,
     agreementState.suspended,
-    stamp
+    stamp,
+    producerDelegation?.delegateId
   );
 
   const suspensionByConsumerStamp = suspendedByConsumerStamp(
@@ -102,20 +108,22 @@ export function createSuspensionUpdatedAgreement({
 
 export function createAgreementSuspendedEvent(
   organizationId: TenantId,
-  correlationId: string,
+  correlationId: CorrelationId,
   updatedAgreement: Agreement,
-  agreement: WithMetadata<Agreement>
+  agreement: WithMetadata<Agreement>,
+  delegateProducerId: TenantId | undefined
 ): CreateEvent<AgreementEventV2> {
   const isProducer = organizationId === agreement.data.producerId;
   const isConsumer = organizationId === agreement.data.consumerId;
+  const isProducerDelegate = delegateProducerId === organizationId;
 
-  if (!isProducer && !isConsumer) {
+  if (!isProducer && !isConsumer && !isProducerDelegate) {
     throw genericError(
-      "Agreement can only be suspended by the consumer or producer."
+      "Agreement can only be suspended by the consumer or producer/delegate producer."
     );
   }
 
-  return isProducer
+  return isProducer || isProducerDelegate
     ? toCreateEventAgreementSuspendedByProducer(
         updatedAgreement,
         agreement.metadata.version,

@@ -19,6 +19,7 @@ import {
   AuthorizationEventEnvelopeV2,
   Client,
   ClientId,
+  CorrelationId,
   Descriptor,
   EService,
   EServiceEventEnvelopeV2,
@@ -81,7 +82,7 @@ import {
 } from "./utils.js";
 
 describe("Authorization Updater processMessage", () => {
-  const testCorrelationId = generateId();
+  const testCorrelationId: CorrelationId = generateId();
   const testToken = "mockToken";
   const testHeaders = {
     "X-Correlation-Id": testCorrelationId,
@@ -135,7 +136,7 @@ describe("Authorization Updater processMessage", () => {
     "EServiceDescriptorSuspended",
     "EServiceDescriptorActivated",
   ])(
-    "should correctly process a catalog message with type %t and call updateEServiceState",
+    "should correctly process a catalog message with type %s and call updateEServiceState",
     async (eventType) => {
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
@@ -202,6 +203,62 @@ describe("Authorization Updater processMessage", () => {
     }
   );
 
+  it("should correctly process a catalog message with type EServiceDescriptorQuotasUpdated and call updateEServiceState", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptorPublished(),
+      version: "1",
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+    const message: EServiceEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: eservice.id,
+      version: 1,
+      type: "EServiceDescriptorQuotasUpdated",
+      event_version: 2,
+      data: {
+        eservice: toEServiceV2(eservice),
+        descriptorId: descriptor.id,
+      },
+      log_date: new Date(),
+    } as EServiceEventEnvelopeV2;
+
+    await sendCatalogAuthUpdate(
+      message,
+      authorizationService,
+      genericLogger,
+      testCorrelationId
+    );
+
+    const expectedUpdateEServiceStatePayload = {
+      state: authorizationManagementApi.ClientComponentState.Values.ACTIVE,
+      descriptorId: descriptor.id,
+      audience: descriptor.audience,
+      voucherLifespan: descriptor.voucherLifespan,
+    };
+
+    expect(
+      authorizationManagementClients.purposeApiClient.updateEServiceState
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      authorizationManagementClients.purposeApiClient.updateEServiceState
+    ).toHaveBeenCalledWith(expectedUpdateEServiceStatePayload, {
+      params: { eserviceId: eservice.id },
+      withCredentials: true,
+      headers: testHeaders,
+    });
+
+    expect(
+      authorizationManagementClients.purposeApiClient.updateAgreementState
+    ).not.toHaveBeenCalled();
+    expect(
+      authorizationManagementClients.purposeApiClient
+        .updateAgreementAndEServiceStates
+    ).not.toHaveBeenCalled();
+  });
+
   it.each([
     "AgreementSubmitted",
     "AgreementActivated",
@@ -212,9 +269,8 @@ describe("Authorization Updater processMessage", () => {
     "AgreementUnsuspendedByConsumer",
     "AgreementUnsuspendedByProducer",
     "AgreementArchivedByConsumer",
-    "AgreementArchivedByUpgrade",
   ])(
-    "Should correctly process an agreement messages with type %t and call updateAgreementState",
+    "Should correctly process an agreement messages with type %s and call updateAgreementState",
     async (eventType) => {
       const agreement: Agreement = getMockAgreement();
 
@@ -433,7 +489,7 @@ describe("Authorization Updater processMessage", () => {
   });
 
   it.each(["DraftPurposeDeleted", "WaitingForApprovalPurposeDeleted"])(
-    "should correctly process purposes message with type %t and call deletePurposeFromClient",
+    "should correctly process purposes message with type %s and call deletePurposeFromClient",
     async (eventType) => {
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -512,7 +568,7 @@ describe("Authorization Updater processMessage", () => {
     "PurposeVersionActivated",
     "PurposeArchived",
   ])(
-    "should correctly process purposes message with type %t and call updatePurposeState with ACTIVE state",
+    "should correctly process purposes message with type %s and call updatePurposeState with ACTIVE state",
     async (eventType) => {
       const purposeVersion: PurposeVersion = {
         ...getMockPurposeVersion(),
@@ -575,7 +631,7 @@ describe("Authorization Updater processMessage", () => {
     "PurposeVersionActivated",
     "PurposeArchived",
   ])(
-    "should correctly process purposes message with type %t and call updatePurposeState with INACTIVE state",
+    "should correctly process purposes message with type %s and call updatePurposeState with INACTIVE state",
     async (eventType) => {
       const purposeVersion: PurposeVersion = {
         ...getMockPurposeVersion(),
@@ -974,12 +1030,21 @@ describe("Authorization Updater processMessage", () => {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
-    const mockAgreement: Agreement = {
+    const mockArchivedAgreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.archived,
+      eserviceId: mockEservice.id,
+      descriptorId: mockDescriptor.id,
+      consumerId: mockConsumerId,
+      createdAt: new Date(),
+    };
+    const mockActiveAgreement: Agreement = {
       ...getMockAgreement(),
       state: agreementState.active,
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
       consumerId: mockConsumerId,
+      createdAt: new Date(mockArchivedAgreement.createdAt.getTime() + 10000),
     };
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.active
@@ -993,7 +1058,14 @@ describe("Authorization Updater processMessage", () => {
     const mockClient = { ...getMockClient(), purposes: [mockPurpose.id] };
 
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await writeInReadmodel(
+      toReadModelAgreement(mockArchivedAgreement),
+      agreements
+    );
+    await writeInReadmodel(
+      toReadModelAgreement(mockActiveAgreement),
+      agreements
+    );
     await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
 
     const message = {
@@ -1035,7 +1107,7 @@ describe("Authorization Updater processMessage", () => {
             voucherLifespan: mockDescriptor.voucherLifespan,
           },
           agreement: {
-            agreementId: mockAgreement.id,
+            agreementId: mockActiveAgreement.id,
             state:
               authorizationManagementApi.ClientComponentState.Values.ACTIVE,
             eserviceId: mockEservice.id,

@@ -4,7 +4,6 @@ import { AWSConfig } from "./awsConfig.js";
 
 export const KafkaProducerConfig = AWSConfig.and(
   z.object({
-    PURPOSE_OUTBOUND_TOPIC: z.string(),
     PRODUCER_KAFKA_BROKERS: z.string().transform((value) => value.split(",")),
     PRODUCER_KAFKA_CLIENT_ID: z.string(),
     PRODUCER_KAFKA_DISABLE_AWS_IAM_AUTH: z.literal("true").optional(),
@@ -15,6 +14,7 @@ export const KafkaProducerConfig = AWSConfig.and(
       .number()
       .default(20)
       .transform((n) => n * 1000),
+    PRODUCER_KAFKA_BROKER_CONNECTION_STRING: z.string().optional(),
   })
 ).transform((c) => ({
   awsRegion: c.awsRegion,
@@ -25,5 +25,7 @@ export const KafkaProducerConfig = AWSConfig.and(
   producerKafkaLogLevel: logLevel[c.PRODUCER_KAFKA_LOG_LEVEL],
   producerKafkaReauthenticationThreshold:
     c.PRODUCER_KAFKA_REAUTHENTICATION_THRESHOLD,
+  producerKafkaBrokerConnectionString:
+    c.PRODUCER_KAFKA_BROKER_CONNECTION_STRING,
 }));
 export type KafkaProducerConfig = z.infer<typeof KafkaProducerConfig>;

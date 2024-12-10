@@ -5,12 +5,16 @@ import {
   ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
-  initEmailManager,
+  initPecEmailManager,
+  initSesMailManager,
   logger,
 } from "pagopa-interop-commons";
 import {
   AgreementEvent,
+  CorrelationId,
+  generateId,
   missingKafkaMessageDataError,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { readModelServiceBuilder } from "./services/readModelService.js";
@@ -21,19 +25,13 @@ import {
 
 import { config } from "./config/config.js";
 
-const emailManager = initEmailManager({
+const sesEmailManager = initSesMailManager(config);
+const pecEmailManager = initPecEmailManager({
   smtpAddress: config.smtpAddress,
   smtpPort: config.smtpPort,
   smtpSecure: config.smtpSecure,
   smtpUsername: config.smtpUsername,
   smtpPassword: config.smtpPassword,
-});
-const pecEmailManager = initEmailManager({
-  smtpAddress: config.pecSmtpAddress,
-  smtpPort: config.pecSmtpPort,
-  smtpSecure: config.pecSmtpSecure,
-  smtpUsername: config.pecSmtpUsername,
-  smtpPassword: config.pecSmtpPassword,
 });
 
 const readModelService = readModelServiceBuilder(
@@ -52,7 +50,9 @@ export async function processMessage({
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
-    correlationId: decodedMessage.correlation_id,
+    correlationId: decodedMessage.correlation_id
+      ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+      : generateId<CorrelationId>(),
   });
   loggerInstance.debug(decodedMessage);
 
@@ -84,7 +84,7 @@ export async function processMessage({
           await senderAgreementSubmissionEmail({
             agreementV2: agreement,
             readModelService,
-            emailManager,
+            emailManager: sesEmailManager,
             feBaseUrl: config.interopFeBaseUrl,
             sender: { label: config.senderLabel, mail: config.senderMail },
             templateService,

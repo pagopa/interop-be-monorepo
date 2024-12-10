@@ -1,4 +1,4 @@
-import { KeyCollection, keyToJWKKey } from "pagopa-interop-commons";
+import { ClientKeyCollection, keyToClientJWKKey } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
@@ -7,13 +7,17 @@ import { match } from "ts-pattern";
 
 export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
-  keys: KeyCollection
+  keys: ClientKeyCollection
 ): Promise<void> {
   await match(message)
     .with({ type: "ClientKeyAdded" }, async (message) => {
       const client = message.data.client
         ? fromClientV2(message.data.client)
         : undefined;
+
+      if (!client) {
+        throw Error("Client not found in event");
+      }
       const key = client?.keys.find((key) => key.kid === message.data.kid);
       if (!key) {
         throw Error(`Key not found in client: ${client?.id}`);
@@ -21,11 +25,12 @@ export async function handleMessageV2(
       await keys.updateOne(
         {
           "data.kid": message.data.kid,
+          "data.clientId": client.id,
           "metadata.version": { $lte: message.version },
         },
         {
           $set: {
-            data: keyToJWKKey(key),
+            data: keyToClientJWKKey(key, client.id),
             metadata: {
               version: message.version,
             },
@@ -35,8 +40,16 @@ export async function handleMessageV2(
       );
     })
     .with({ type: "ClientKeyDeleted" }, async (message) => {
+      const client = message.data.client
+        ? fromClientV2(message.data.client)
+        : undefined;
+
+      if (!client) {
+        throw Error("Client not found in event");
+      }
       await keys.deleteOne({
         "data.kid": message.data.kid,
+        "data.clientId": client.id,
         "metadata.version": { $lte: message.version },
       });
     })
@@ -52,6 +65,14 @@ export async function handleMessageV2(
       { type: "ClientUserDeleted" },
       { type: "ClientPurposeAdded" },
       { type: "ClientPurposeRemoved" },
+      { type: "ProducerKeychainAdded" },
+      { type: "ProducerKeychainDeleted" },
+      { type: "ProducerKeychainKeyAdded" },
+      { type: "ProducerKeychainKeyDeleted" },
+      { type: "ProducerKeychainUserAdded" },
+      { type: "ProducerKeychainUserDeleted" },
+      { type: "ProducerKeychainEServiceAdded" },
+      { type: "ProducerKeychainEServiceRemoved" },
       () => Promise.resolve
     )
     .exhaustive();

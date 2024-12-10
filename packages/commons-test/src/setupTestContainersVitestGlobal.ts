@@ -12,8 +12,11 @@ import {
   FileManagerConfig,
   LoggerConfig,
   ReadModelDbConfig,
+  RedisRateLimiterConfig,
   S3Config,
+  TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 import {
   TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
@@ -24,15 +27,29 @@ import {
   mailpitContainer,
   TEST_MAILPIT_SMTP_PORT,
   TEST_MAILPIT_HTTP_PORT,
+  dynamoDBContainer,
+  TEST_DYNAMODB_PORT,
+  redisContainer,
+  TEST_REDIS_PORT,
 } from "./containerTestUtils.js";
-import { EmailManagerConfigTest } from "./testConfig.js";
+import { PecEmailManagerConfigTest } from "./testConfig.js";
+
+const EnhancedTokenGenerationReadModelDbConfig =
+  TokenGenerationReadModelDbConfig.and(
+    z.object({ tokenGenerationReadModelDbPort: z.number() })
+  );
+type EnhancedTokenGenerationReadModelDbConfig = z.infer<
+  typeof EnhancedTokenGenerationReadModelDbConfig
+>;
 
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
+    tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
-    emailManagerConfig?: EmailManagerConfigTest;
+    redisRateLimiterConfig?: RedisRateLimiterConfig;
+    emailManagerConfig?: PecEmailManagerConfigTest;
   }
 }
 
@@ -51,7 +68,10 @@ export function setupTestContainersVitestGlobal() {
   const fileManagerConfig = FileManagerConfig.and(S3Config)
     .and(LoggerConfig)
     .safeParse(process.env);
-  const emailManagerConfig = EmailManagerConfigTest.safeParse(process.env);
+  const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
+  const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
+  const tokenGenerationReadModelConfig =
+    TokenGenerationReadModelDbConfig.safeParse(process.env);
 
   return async function ({
     provide,
@@ -60,6 +80,8 @@ export function setupTestContainersVitestGlobal() {
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
+    let startedRedisContainer: StartedTestContainer | undefined;
+    let startedDynamoDbContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -124,11 +146,31 @@ export function setupTestContainersVitestGlobal() {
       provide("emailManagerConfig", emailManagerConfig.data);
     }
 
+    // Setting up the DynamoDB container if the config is provided
+    if (tokenGenerationReadModelConfig.success) {
+      startedDynamoDbContainer = await dynamoDBContainer().start();
+
+      provide("tokenGenerationReadModelConfig", {
+        ...tokenGenerationReadModelConfig.data,
+        tokenGenerationReadModelDbPort:
+          startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
+      });
+    }
+
+    if (redisRateLimiterConfig.success) {
+      startedRedisContainer = await redisContainer().start();
+      redisRateLimiterConfig.data.rateLimiterRedisPort =
+        startedRedisContainer.getMappedPort(TEST_REDIS_PORT);
+      provide("redisRateLimiterConfig", redisRateLimiterConfig.data);
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
+      await startedDynamoDbContainer?.stop();
+      await startedRedisContainer?.stop();
     };
   };
 }

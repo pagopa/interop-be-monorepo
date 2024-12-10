@@ -4,6 +4,7 @@ import {
   AgreementDocumentId,
   AgreementId,
   AttributeId,
+  DelegationId,
   DescriptorId,
   EServiceId,
   TenantId,
@@ -69,6 +70,7 @@ export type AgreementDocumentSQL = z.infer<typeof AgreementDocumentSQL>;
 
 export const AgreementStamp = z.object({
   who: UserId,
+  delegationId: DelegationId.optional(),
   when: z.coerce.date(),
 });
 export type AgreementStamp = z.infer<typeof AgreementStamp>;
@@ -143,17 +145,43 @@ export type AgreementSQL = z.infer<typeof AgreementSQL>;
 export type AgreementContractPDFPayload = {
   todayDate: string;
   todayTime: string;
-  agreementId: string;
-  submitter: string;
+  agreementId: AgreementId;
+  submitterId: UserId;
   submissionDate: string;
   submissionTime: string;
-  activator: string;
+  activatorId: UserId;
   activationDate: string;
   activationTime: string;
-  eServiceName: string;
-  producerText: string;
-  consumerText: string;
-  certifiedAttributes: string;
-  declaredAttributes: string;
-  verifiedAttributes: string;
+  eserviceId: EServiceId;
+  eserviceName: string;
+  descriptorId: DescriptorId;
+  descriptorVersion: string;
+  producerName: string;
+  producerIpaCode: string | undefined;
+  consumerName: string;
+  consumerIpaCode: string | undefined;
+  certifiedAttributes: Array<{
+    assignmentDate: string;
+    assignmentTime: string;
+    attributeName: string;
+    attributeId: string;
+  }>;
+  declaredAttributes: Array<{
+    assignmentDate: string;
+    assignmentTime: string;
+    attributeName: string;
+    attributeId: string;
+  }>;
+  verifiedAttributes: Array<{
+    assignmentDate: string;
+    assignmentTime: string;
+    attributeName: string;
+    attributeId: string;
+    expirationDate: string | undefined;
+  }>;
+  producerDelegationId?: string;
+  producerDelegatorName?: string;
+  producerDelegatorIpaCode?: string;
+  producerDelegateName?: string;
+  producerDelegateIpaCode?: string;
 };

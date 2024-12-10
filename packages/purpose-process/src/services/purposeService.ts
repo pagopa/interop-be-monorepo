@@ -40,6 +40,8 @@ import {
   PurposeDocumentEServiceInfo,
   RiskAnalysisId,
   RiskAnalysis,
+  CorrelationId,
+  delegationKind,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -104,6 +106,8 @@ import {
   validateRiskAnalysisOrThrow,
   assertPurposeTitleIsNotDuplicated,
   isOverQuota,
+  assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
+  assertRequesterIsProducer,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -266,11 +270,15 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      getOrganizationRole({
+
+      await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument({
+        eserviceId: eservice.id,
         organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
+        readModelService,
       });
+
       const version = retrievePurposeVersion(versionId, purpose);
 
       return retrievePurposeVersionDocument(purposeId, version, documentId);
@@ -285,7 +293,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
@@ -330,7 +338,7 @@ export function purposeServiceBuilder(
       versionId: PurposeVersionId;
       rejectionReason: string;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
@@ -340,9 +348,13 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      if (organizationId !== eservice.producerId) {
-        throw organizationIsNotTheProducer(organizationId);
-      }
+
+      await assertRequesterIsProducer({
+        eserviceId: eservice.id,
+        organizationId,
+        producerId: eservice.producerId,
+        readModelService,
+      });
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
@@ -380,7 +392,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       purposeUpdateContent: purposeApi.PurposeUpdateContent;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Updating Purpose ${purposeId}`);
@@ -406,7 +418,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Updating Reverse Purpose ${purposeId}`);
@@ -430,7 +442,7 @@ export function purposeServiceBuilder(
     }: {
       purposeId: PurposeId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Deleting Purpose ${purposeId}`);
@@ -467,7 +479,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<PurposeVersion> {
       logger.info(`Archiving Version ${versionId} in Purpose ${purposeId}`);
@@ -517,7 +529,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<PurposeVersion> {
       logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
@@ -534,10 +546,12 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const suspender = getOrganizationRole({
+      const suspender = await getOrganizationRole({
+        eserviceId: eservice.id,
         organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
+        readModelService,
       });
 
       const suspendedPurposeVersion: PurposeVersion = {
@@ -638,7 +652,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       seed: purposeApi.PurposeVersionSeed;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<PurposeVersion> {
       logger.info(`Creating Version for Purpose ${purposeId}`);
@@ -647,15 +661,14 @@ export function purposeServiceBuilder(
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
 
-      const previousDailyCalls =
-        [
-          ...purpose.data.versions.filter(
-            (v) =>
-              v.state === purposeVersionState.active ||
-              v.state === purposeVersionState.suspended
-          ),
-        ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
-          ?.dailyCalls || 0;
+      const previousVersion = [
+        ...purpose.data.versions.filter(
+          (v) =>
+            v.state === purposeVersionState.active ||
+            v.state === purposeVersionState.suspended
+        ),
+      ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+      const previousDailyCalls = previousVersion?.dailyCalls || 0;
 
       if (previousDailyCalls === seed.dailyCalls) {
         throw unchangedDailyCalls(purpose.data.id);
@@ -680,6 +693,12 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      // isOverQuota doesn't include dailyCalls of suspended versions, so we don't have to calculate the delta. The delta is needed for active versions because those would be counted again inside isOverQuota
+      const deltaDailyCalls =
+        previousVersion.state === purposeVersionState.suspended
+          ? seed.dailyCalls
+          : seed.dailyCalls - previousDailyCalls;
+
       /**
        * If, with the given daily calls, the purpose goes in over quota,
        * we will create a new version in waiting for approval state
@@ -688,7 +707,7 @@ export function purposeServiceBuilder(
         await isOverQuota(
           eservice,
           purpose.data,
-          seed.dailyCalls - previousDailyCalls,
+          deltaDailyCalls,
           readModelService
         )
       ) {
@@ -772,7 +791,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<PurposeVersion> {
       logger.info(`Activating Version ${versionId} in Purpose ${purposeId}`);
@@ -806,10 +825,12 @@ export function purposeServiceBuilder(
         });
       }
 
-      const purposeOwnership = getOrganizationRole({
+      const purposeOwnership = await getOrganizationRole({
+        eserviceId: eservice.id,
         organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
+        readModelService,
       });
 
       const { event, updatedPurposeVersion } = await match({
@@ -988,7 +1009,7 @@ export function purposeServiceBuilder(
     async createPurpose(
       purposeSeed: purposeApi.PurposeSeed,
       organizationId: TenantId,
-      correlationId: string,
+      correlationId: CorrelationId,
       logger: Logger
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(
@@ -1046,7 +1067,7 @@ export function purposeServiceBuilder(
     async createReversePurpose(
       organizationId: TenantId,
       seed: purposeApi.EServicePurposeSeed,
-      correlationId: string,
+      correlationId: CorrelationId,
       logger: Logger
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(
@@ -1130,7 +1151,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       organizationId: TenantId;
       seed: purposeApi.PurposeCloneSeed;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Cloning Purpose ${purposeId}`);
@@ -1325,24 +1346,39 @@ const authorizeRiskAnalysisForm = ({
   }
 };
 
-const getOrganizationRole = ({
+const getOrganizationRole = async ({
+  eserviceId,
   organizationId,
   producerId,
   consumerId,
+  readModelService,
 }: {
+  eserviceId: EServiceId;
   organizationId: TenantId;
   producerId: TenantId;
   consumerId: TenantId;
-}): Ownership => {
+  readModelService: ReadModelService;
+}): Promise<Ownership> => {
   if (producerId === consumerId && organizationId === producerId) {
     return ownership.SELF_CONSUMER;
   } else if (producerId !== consumerId && organizationId === consumerId) {
     return ownership.CONSUMER;
-  } else if (producerId !== consumerId && organizationId === producerId) {
-    return ownership.PRODUCER;
-  } else {
-    throw organizationNotAllowed(organizationId);
   }
+
+  const activeProducerDelegation = await readModelService.getActiveDelegation(
+    eserviceId,
+    delegationKind.delegatedProducer
+  );
+
+  if (
+    (activeProducerDelegation &&
+      organizationId === activeProducerDelegation.delegateId) ||
+    (!activeProducerDelegation && organizationId === producerId)
+  ) {
+    return ownership.PRODUCER;
+  }
+
+  throw organizationNotAllowed(organizationId);
 };
 
 const replacePurposeVersion = (
@@ -1398,7 +1434,7 @@ const performUpdatePurpose = async (
       },
   organizationId: TenantId,
   readModelService: ReadModelService,
-  correlationId: string,
+  correlationId: CorrelationId,
   repository: {
     createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
   }
@@ -1558,7 +1594,7 @@ const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
 function changePurposeVersionToWaitForApprovalFromDraftLogic(
   purpose: WithMetadata<Purpose>,
   purposeVersion: PurposeVersion,
-  correlationId: string
+  correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
@@ -1587,16 +1623,16 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
 function activatePurposeVersionFromOverQuotaSuspendedLogic(
   purpose: WithMetadata<Purpose>,
   purposeVersion: PurposeVersion,
-  correlationId: string
+  correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
 } {
   const newPurposeVersion: PurposeVersion = {
-    ...purposeVersion,
     createdAt: new Date(),
     state: purposeVersionState.waitingForApproval,
     id: generateId<PurposeVersionId>(),
+    dailyCalls: purposeVersion.dailyCalls,
   };
 
   const oldVersions = purpose.data.versions.filter(
@@ -1640,7 +1676,7 @@ async function activatePurposeLogic({
   readModelService: ReadModelService;
   fileManager: FileManager;
   pdfGenerator: PDFGenerator;
-  correlationId: string;
+  correlationId: CorrelationId;
   logger: Logger;
 }): Promise<{
   event: CreateEvent<PurposeEvent>;
@@ -1661,10 +1697,17 @@ async function activatePurposeLogic({
     updatedAt: new Date(),
     firstActivationAt: new Date(),
   };
-
+  const unsuspendedPurpose: Purpose =
+    fromState === purposeVersionState.waitingForApproval
+      ? {
+          ...purpose.data,
+          suspendedByConsumer: false,
+          suspendedByProducer: false,
+        }
+      : purpose.data;
   const updatedPurpose: Purpose = replacePurposeVersion(
     {
-      ...purpose.data,
+      ...unsuspendedPurpose,
       versions: archiveActiveAndSuspendedPurposeVersions(purpose.data.versions),
     },
     updatedPurposeVersion
@@ -1696,7 +1739,7 @@ function activatePurposeVersionFromSuspendedLogic(
   purpose: WithMetadata<Purpose>,
   purposeVersion: PurposeVersion,
   purposeOwnership: Ownership,
-  correlationId: string
+  correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;

@@ -1,4 +1,3 @@
-/* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 import {
   getMockAgreement,
@@ -16,6 +15,7 @@ import {
 } from "vitest";
 import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
+  CorrelationId,
   EServiceId,
   TenantId,
   agreementState,
@@ -32,7 +32,7 @@ import { addOneAgreement, addOneEService, readModelService } from "./utils.js";
 
 describe("EService Descripors Archiver", async () => {
   describe("archiveDescriptorsForArchivedAgreement", async () => {
-    const testCorrelationId = generateId();
+    const testCorrelationId: CorrelationId = generateId();
     const testToken = "mockToken";
     const testHeaders = {
       "X-Correlation-Id": testCorrelationId,
@@ -51,6 +51,7 @@ describe("EService Descripors Archiver", async () => {
     });
 
     beforeEach(async () => {
+      // eslint-disable-next-line functional/immutable-data
       catalogProcessClient.archiveDescriptor = vi.fn();
     });
 

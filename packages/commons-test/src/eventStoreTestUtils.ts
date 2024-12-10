@@ -2,24 +2,28 @@ import { MessageType } from "@protobuf-ts/runtime";
 import { Event } from "pagopa-interop-commons";
 import {
   AgreementEvent,
+  agreementEventToBinaryData,
   AgreementId,
   AttributeEvent,
+  attributeEventToBinaryData,
   AttributeId,
   AuthorizationEvent,
-  ClientId,
-  EServiceEvent,
-  EServiceId,
-  PurposeEvent,
-  PurposeId,
-  TenantEvent,
-  TenantId,
-  agreementEventToBinaryData,
-  attributeEventToBinaryData,
   authorizationEventToBinaryData,
   catalogEventToBinaryData,
+  ClientId,
+  DelegationEvent,
+  delegationEventToBinaryDataV2,
+  DelegationId,
+  EServiceEvent,
+  EServiceId,
+  ProducerKeychainId,
   protobufDecoder,
+  PurposeEvent,
   purposeEventToBinaryData,
+  PurposeId,
+  TenantEvent,
   tenantEventToBinaryData,
+  TenantId,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import { match } from "ts-pattern";
@@ -30,7 +34,8 @@ type EventStoreSchema =
   | "catalog"
   | "tenant"
   | "purpose"
-  | '"authorization"';
+  | '"authorization"'
+  | "delegation";
 
 export type StoredEvent<T extends Event> = {
   stream_id: string;
@@ -59,6 +64,8 @@ export async function writeInEventstore<T extends EventStoreSchema>(
     ? StoredEvent<PurposeEvent>
     : T extends '"authorization"'
     ? StoredEvent<AuthorizationEvent>
+    : T extends "delegation"
+    ? StoredEvent<DelegationEvent>
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
@@ -89,6 +96,9 @@ export async function writeInEventstore<T extends EventStoreSchema>(
         .with('"authorization"', () =>
           authorizationEventToBinaryData(event.event as AuthorizationEvent)
         )
+        .with("delegation", () =>
+          delegationEventToBinaryDataV2(event.event as DelegationEvent)
+        )
         .exhaustive(),
     ]
   );
@@ -106,7 +116,9 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
     : T extends "purpose"
     ? PurposeId
     : T extends '"authorization"'
-    ? ClientId
+    ? ClientId | ProducerKeychainId
+    : T extends "delegation"
+    ? DelegationId
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
@@ -124,6 +136,8 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
       ? PurposeEvent
       : T extends '"authorization"'
       ? AuthorizationEvent
+      : T extends "delegation"
+      ? DelegationEvent
       : never
   >
 > {
@@ -145,7 +159,9 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
     : T extends "purpose"
     ? PurposeId
     : T extends '"authorization"'
-    ? ClientId
+    ? ClientId | ProducerKeychainId
+    : T extends "delegation"
+    ? DelegationId
     : never,
   version: number,
   schema: T,
@@ -164,6 +180,8 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
       ? PurposeEvent
       : T extends '"authorization"'
       ? AuthorizationEvent
+      : T extends "delegation"
+      ? DelegationEvent
       : never
   >
 > {

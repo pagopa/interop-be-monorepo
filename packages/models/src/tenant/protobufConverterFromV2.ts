@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { match } from "ts-pattern";
-import { unsafeBrandId } from "../brandedIds.js";
+import { DelegationId, unsafeBrandId } from "../brandedIds.js";
 import { genericError } from "../errors.js";
 import {
   TenantKindV2,
@@ -20,7 +20,6 @@ import {
   TenantMailKind,
   tenantMailKind,
   TenantMail,
-  TenantFeatureCertifier,
   TenantVerifier,
   TenantRevoker,
   TenantAttribute,
@@ -29,6 +28,7 @@ import {
   tenantAttributeType,
   TenantUnitType,
   tenantUnitType,
+  TenantFeature,
 } from "./tenant.js";
 
 export const fromTenantKindV2 = (input: TenantKindV2): TenantKind => {
@@ -39,6 +39,8 @@ export const fromTenantKindV2 = (input: TenantKindV2): TenantKind => {
       return tenantKind.PA;
     case TenantKindV2.PRIVATE:
       return tenantKind.PRIVATE;
+    case TenantKindV2.SCP:
+      return tenantKind.SCP;
   }
 };
 
@@ -60,15 +62,17 @@ export const fromTenantMailV2 = (input: TenantMailV2): TenantMail => ({
   kind: fromTenantMailKindV2(input.kind),
 });
 
-export const fromTenantFeatureV2 = (
-  input: TenantFeatureV2
-): TenantFeatureCertifier =>
-  match<TenantFeatureV2["sealedValue"], TenantFeatureCertifier>(
-    input.sealedValue
-  )
+export const fromTenantFeatureV2 = (input: TenantFeatureV2): TenantFeature =>
+  match<TenantFeatureV2["sealedValue"], TenantFeature>(input.sealedValue)
     .with({ oneofKind: "certifier" }, ({ certifier }) => ({
       type: "PersistentCertifier",
       certifierId: certifier.certifierId,
+    }))
+    .with({ oneofKind: "delegatedProducer" }, ({ delegatedProducer }) => ({
+      type: "DelegatedProducer",
+      availabilityTimestamp: bigIntToDate(
+        delegatedProducer.availabilityTimestamp
+      ),
     }))
     .with({ oneofKind: undefined }, () => {
       throw new Error("Unable to deserialize TenantFeature");
@@ -79,6 +83,10 @@ export const fromTenantVerifierV2 = (
   input: TenantVerifierV2
 ): TenantVerifier => ({
   ...input,
+  id: unsafeBrandId(input.id),
+  delegationId: input.delegationId
+    ? unsafeBrandId<DelegationId>(input.delegationId)
+    : undefined,
   verificationDate: bigIntToDate(input.verificationDate),
   expirationDate: bigIntToDate(input.expirationDate),
   extensionDate: bigIntToDate(input.extensionDate),
@@ -86,6 +94,10 @@ export const fromTenantVerifierV2 = (
 
 export const fromTenantRevokerV2 = (input: TenantRevokerV2): TenantRevoker => ({
   ...input,
+  id: unsafeBrandId(input.id),
+  delegationId: input.delegationId
+    ? unsafeBrandId<DelegationId>(input.delegationId)
+    : undefined,
   expirationDate: bigIntToDate(input.expirationDate),
   extensionDate: bigIntToDate(input.extensionDate),
   revocationDate: bigIntToDate(input.revocationDate),
@@ -104,6 +116,9 @@ export const fromTenantAttributesV2 = (
         id: unsafeBrandId(certifiedAttribute.id),
         assignmentTimestamp: bigIntToDate(
           certifiedAttribute.assignmentTimestamp
+        ),
+        revocationTimestamp: bigIntToDate(
+          certifiedAttribute.revocationTimestamp
         ),
         type: tenantAttributeType.CERTIFIED,
       };
@@ -124,6 +139,9 @@ export const fromTenantAttributesV2 = (
         id: unsafeBrandId(declaredAttribute.id),
         assignmentTimestamp: bigIntToDate(
           declaredAttribute.assignmentTimestamp
+        ),
+        revocationTimestamp: bigIntToDate(
+          declaredAttribute.revocationTimestamp
         ),
         type: tenantAttributeType.DECLARED,
       };
@@ -165,11 +183,12 @@ export const fromTenantV2 = (input: TenantV2): Tenant => {
     externalId: externalId.data,
     features: input.features.map(fromTenantFeatureV2),
     mails: input.mails.map(fromTenantMailV2),
-    kind: input.kind ? fromTenantKindV2(input.kind) : undefined,
+    kind: input.kind != null ? fromTenantKindV2(input.kind) : undefined,
     updatedAt: bigIntToDate(input.updatedAt),
     onboardedAt: bigIntToDate(input.onboardedAt),
-    subUnitType: input.subUnitType
-      ? fromTenantUnitTypeV2(input.subUnitType)
-      : undefined,
+    subUnitType:
+      input.subUnitType != null
+        ? fromTenantUnitTypeV2(input.subUnitType)
+        : undefined,
   };
 };

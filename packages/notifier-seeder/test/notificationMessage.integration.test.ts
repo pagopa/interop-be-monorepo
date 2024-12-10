@@ -1,7 +1,5 @@
-/* eslint-disable functional/immutable-data */
-/* eslint-disable functional/no-let */
+import { randomUUID } from "crypto";
 import { describe, expect, it, vi } from "vitest";
-
 import {
   Agreement,
   AgreementAddedV2,
@@ -26,7 +24,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
-import { v4 } from "uuid";
 import {
   getMockAgreement,
   getMockClient,
@@ -137,7 +134,7 @@ describe("Notification tests", async () => {
         sequence_num: 1,
         stream_id: "d27f668f-630b-4889-a97f-2b7e39b24188",
         version: 1,
-        correlation_id: v4(),
+        correlation_id: randomUUID(),
         log_date: new Date(),
         event_version: 2,
         type: "EServiceDescriptorSuspended",
@@ -162,7 +159,7 @@ describe("Notification tests", async () => {
         sequence_num: 2,
         stream_id: mockPurpose.id,
         version: 1,
-        correlation_id: v4(),
+        correlation_id: randomUUID(),
         log_date: new Date(),
         event_version: 2,
         type: "PurposeAdded",
@@ -196,7 +193,7 @@ describe("Notification tests", async () => {
         sequence_num: 2,
         stream_id: mockAgreement.id,
         version: 1,
-        correlation_id: v4(),
+        correlation_id: randomUUID(),
         log_date: new Date(),
         event_version: 2,
         type: "AgreementAdded",
@@ -224,7 +221,7 @@ describe("Notification tests", async () => {
         sequence_num: 3,
         stream_id: mockClient.id,
         version: 1,
-        correlation_id: v4(),
+        correlation_id: randomUUID(),
         log_date: new Date(),
         event_version: 2,
         type: "ClientKeyAdded",
@@ -267,12 +264,12 @@ describe("Notification tests", async () => {
       });
       expect(receivedAuthorizationMessage.payload).toEqual({
         clientId: mockClient.id,
-        keys: [
-          {
+        keys: {
+          [mockClient.keys[0].kid]: {
             ...mockClient.keys[0],
             createdAt: new Date().toISOString(),
           },
-        ],
+        },
       });
 
       vi.useRealTimers();

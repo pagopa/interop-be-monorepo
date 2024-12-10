@@ -11,6 +11,8 @@ import {
   tenantMailKind,
   TenantFeature,
   tenantAttributeType,
+  TenantFeatureType,
+  tenantFeatureType,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -20,6 +22,7 @@ export function toApiTenantKind(input: TenantKind): tenantApi.TenantKind {
     .with(tenantKind.GSP, () => "GSP")
     .with(tenantKind.PA, () => "PA")
     .with(tenantKind.PRIVATE, () => "PRIVATE")
+    .with(tenantKind.SCP, () => "SCP")
     .exhaustive();
 }
 
@@ -39,6 +42,11 @@ export function toApiTenantFeature(
         certifierId: feature.certifierId,
       },
     }))
+    .with({ type: "DelegatedProducer" }, (feature) => ({
+      delegatedProducer: {
+        availabilityTimestamp: feature.availabilityTimestamp.toJSON(),
+      },
+    }))
     .exhaustive();
 }
 
@@ -50,6 +58,7 @@ export function toApiTenantVerifier(
     verificationDate: verifier.verificationDate.toJSON(),
     expirationDate: verifier.expirationDate?.toJSON(),
     extensionDate: verifier.extensionDate?.toJSON(),
+    delegationId: verifier.delegationId,
   };
 }
 
@@ -62,6 +71,7 @@ export function toApiTenantRevoker(
     expirationDate: revoker.expirationDate?.toJSON(),
     extensionDate: revoker.extensionDate?.toJSON(),
     revocationDate: revoker.revocationDate.toJSON(),
+    delegationId: revoker.delegationId,
   };
 }
 
@@ -103,6 +113,7 @@ export function toApiMailKind(kind: TenantMailKind): tenantApi.MailKind {
 
 export function toApiMail(mail: TenantMail): tenantApi.Mail {
   return {
+    id: mail.id,
     kind: toApiMailKind(mail.kind),
     address: mail.address,
     createdAt: mail.createdAt.toJSON(),
@@ -122,5 +133,22 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     updatedAt: tenant.updatedAt?.toJSON(),
     mails: tenant.mails.map(toApiMail),
     name: tenant.name,
+    onboardedAt: tenant.onboardedAt?.toJSON(),
+    subUnitType: tenant.subUnitType,
   };
+}
+
+export function apiTenantFeatureTypeToTenantFeatureType(
+  input: tenantApi.TenantFeatureType
+): TenantFeatureType {
+  return match<tenantApi.TenantFeatureType, TenantFeatureType>(input)
+    .with(
+      tenantApi.TenantFeatureType.Values.DELEGATED_PRODUCER,
+      () => tenantFeatureType.delegatedProducer
+    )
+    .with(
+      tenantApi.TenantFeatureType.Values.PERSISTENT_CERTIFIER,
+      () => tenantFeatureType.persistentCertifier
+    )
+    .exhaustive();
 }

@@ -31,8 +31,9 @@ import {
   UserId,
   PurposeId,
   fromClientV2,
+  CorrelationId,
+  generateId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { authorizationManagementApi } from "pagopa-interop-api-clients";
 import {
   AuthorizationService,
@@ -59,14 +60,15 @@ export async function sendCatalogAuthUpdate(
   decodedMessage: EServiceEventEnvelopeV2,
   authService: AuthorizationService,
   logger: Logger,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<void> {
   await match(decodedMessage)
     .with(
       {
         type: P.union(
           "EServiceDescriptorPublished",
-          "EServiceDescriptorActivated"
+          "EServiceDescriptorActivated",
+          "EServiceDescriptorDelegatorApproved"
         ),
       },
       async (msg) => {
@@ -102,6 +104,18 @@ export async function sendCatalogAuthUpdate(
         );
       }
     )
+    .with({ type: "EServiceDescriptorQuotasUpdated" }, async (msg) => {
+      const data = getDescriptorFromEvent(msg, decodedMessage.type);
+      await authService.updateEServiceState(
+        descriptorStateToClientState(data.descriptor.state),
+        data.descriptor.id,
+        data.eserviceId,
+        data.descriptor.audience,
+        data.descriptor.voucherLifespan,
+        logger,
+        correlationId
+      );
+    })
     .with(
       {
         type: P.union(
@@ -121,8 +135,9 @@ export async function sendCatalogAuthUpdate(
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
           "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptorQuotasUpdated",
-          "EServiceDescriptionUpdated"
+          "EServiceDescriptionUpdated",
+          "EServiceDescriptorDelegateSubmitted",
+          "EServiceDescriptorDelegatorRejected"
         ),
       },
       () => {
@@ -137,7 +152,7 @@ export async function sendAgreementAuthUpdate(
   readModelService: ReadModelService,
   authService: AuthorizationService,
   logger: Logger,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<void> {
   await match(decodedMessage)
     .with(
@@ -151,8 +166,7 @@ export async function sendAgreementAuthUpdate(
           "AgreementSuspendedByPlatform",
           "AgreementSuspendedByConsumer",
           "AgreementSuspendedByProducer",
-          "AgreementArchivedByConsumer",
-          "AgreementArchivedByUpgrade"
+          "AgreementArchivedByConsumer"
         ),
       },
       async (msg) => {
@@ -215,7 +229,8 @@ export async function sendAgreementAuthUpdate(
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
-          "AgreementSetMissingCertifiedAttributesByPlatform"
+          "AgreementSetMissingCertifiedAttributesByPlatform",
+          "AgreementArchivedByUpgrade"
         ),
       },
       () => {
@@ -230,7 +245,7 @@ export async function sendPurposeAuthUpdate(
   readModelService: ReadModelService,
   authService: AuthorizationService,
   logger: Logger,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<void> {
   await match(decodedMessage)
     /**
@@ -339,7 +354,7 @@ export async function sendAuthorizationAuthUpdate(
   authService: AuthorizationService,
   readModelService: ReadModelService,
   logger: Logger,
-  correlationId: string
+  correlationId: CorrelationId
 ): Promise<void> {
   await match(decodedMessage)
     .with({ type: "ClientAdded" }, async (msg): Promise<void> => {
@@ -431,6 +446,17 @@ export async function sendAuthorizationAuthUpdate(
         correlationId
       );
     })
+    .with(
+      { type: "ProducerKeychainAdded" },
+      { type: "ProducerKeychainDeleted" },
+      { type: "ProducerKeychainKeyAdded" },
+      { type: "ProducerKeychainKeyDeleted" },
+      { type: "ProducerKeychainUserAdded" },
+      { type: "ProducerKeychainUserDeleted" },
+      { type: "ProducerKeychainEServiceAdded" },
+      { type: "ProducerKeychainEServiceRemoved" },
+      () => Promise.resolve
+    )
     .exhaustive();
 }
 
@@ -509,7 +535,9 @@ function processMessage(
           throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
         });
 
-      const correlationId = decodedMessage.correlation_id || uuidv4();
+      const correlationId: CorrelationId = decodedMessage.correlation_id
+        ? unsafeBrandId(decodedMessage.correlation_id)
+        : generateId();
 
       const loggerInstance = logger({
         serviceName: "authorization-updater",

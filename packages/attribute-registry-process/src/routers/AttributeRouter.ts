@@ -86,15 +86,14 @@ const attributeRouter = (
               logger
             );
 
-          return res
-            .status(200)
-            .json({
+          return res.status(200).send(
+            attributeRegistryApi.Attributes.parse({
               results: attributes.results.map(toApiAttribute),
               totalCount: attributes.totalCount,
             })
-            .end();
+          );
         } catch (error) {
-          return res.status(500).end();
+          return res.status(500).send();
         }
       }
     )
@@ -116,14 +115,21 @@ const attributeRouter = (
             ctx.logger
           );
 
-          return res.status(200).json(toApiAttribute(attribute.data)).end();
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(
+                toApiAttribute(attribute.data)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getAttributesByNameErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -150,14 +156,21 @@ const attributeRouter = (
               ctx.logger
             );
 
-          return res.status(200).json(toApiAttribute(attribute.data)).end();
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(
+                toApiAttribute(attribute.data)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getAttributeByOriginAndCodeErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -180,14 +193,21 @@ const attributeRouter = (
             ctx.logger
           );
 
-          return res.status(200).json(toApiAttribute(attribute.data)).end();
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(
+                toApiAttribute(attribute.data)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getAttributeByIdErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -213,15 +233,14 @@ const attributeRouter = (
             },
             logger
           );
-          return res
-            .status(200)
-            .json({
+          return res.status(200).send(
+            attributeRegistryApi.Attributes.parse({
               results: attributes.results.map(toApiAttribute),
               totalCount: attributes.totalCount,
             })
-            .end();
+          );
         } catch (error) {
-          return res.status(500).end();
+          return res.status(500).send();
         }
       }
     )
@@ -237,14 +256,19 @@ const attributeRouter = (
               req.body,
               ctx
             );
-          return res.status(200).json(toApiAttribute(attribute)).end();
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createCertifiedAttributesErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -260,14 +284,19 @@ const attributeRouter = (
               req.body,
               ctx
             );
-          return res.status(200).json(toApiAttribute(attribute)).end();
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createDeclaredAttributesErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -283,14 +312,19 @@ const attributeRouter = (
               req.body,
               ctx
             );
-          return res.status(200).json(toApiAttribute(attribute)).end();
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createVerifiedAttributesErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -306,14 +340,19 @@ const attributeRouter = (
               req.body,
               ctx
             );
-          return res.status(200).json(toApiAttribute(attribute)).end();
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createInternalCertifiedAttributesErrorMapper,
-            ctx.logger
+            ctx.logger,
+            ctx.correlationId
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );

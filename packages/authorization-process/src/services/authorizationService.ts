@@ -21,6 +21,9 @@ import {
   invalidKey,
   purposeVersionState,
   unsafeBrandId,
+  ProducerKeychain,
+  ProducerKeychainId,
+  CorrelationId,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -40,17 +43,23 @@ import {
   clientNotFound,
   descriptorNotFound,
   eserviceNotFound,
-  keyAlreadyExists,
-  keyNotFound,
+  clientKeyNotFound,
   noAgreementFoundInRequiredState,
   noPurposeVersionsFoundInRequiredState,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
-  tooManyKeysPerClient,
-  userAlreadyAssigned,
-  userIdNotFound,
+  clientUserAlreadyAssigned,
+  clientUserIdNotFound,
   userNotFound,
   userNotAllowedOnClient,
+  producerKeychainNotFound,
+  producerKeyNotFound,
+  userNotAllowedOnProducerKeychain,
+  producerKeychainUserAlreadyAssigned,
+  producerKeychainUserIdNotFound,
+  eserviceAlreadyLinkedToProducerKeychain,
+  userNotAllowedToDeleteProducerKeychainKey,
+  userNotAllowedToDeleteClientKey,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -61,17 +70,33 @@ import {
   toCreateEventClientUserAdded,
   toCreateEventClientUserDeleted,
   toCreateEventKeyAdded,
+  toCreateEventProducerKeychainAdded,
+  toCreateEventProducerKeychainDeleted,
+  toCreateEventProducerKeychainEServiceRemoved,
+  toCreateEventProducerKeychainEServiceAdded,
+  toCreateEventProducerKeychainKeyAdded,
+  toCreateEventProducerKeychainKeyDeleted,
+  toCreateEventProducerKeychainUserAdded,
+  toCreateEventProducerKeychainUserDeleted,
 } from "../model/domain/toEvent.js";
-import { config } from "../config/config.js";
 import {
   ApiKeyUseToKeyUse,
   clientToApiClient,
 } from "../model/domain/apiConverter.js";
-import { GetClientsFilters, ReadModelService } from "./readModelService.js";
+import {
+  GetClientsFilters,
+  GetProducerKeychainsFilters,
+  ReadModelService,
+} from "./readModelService.js";
 import {
   assertOrganizationIsPurposeConsumer,
   assertUserSelfcareSecurityPrivileges,
   assertOrganizationIsClientConsumer,
+  assertOrganizationIsProducerKeychainProducer,
+  assertClientKeysCountIsBelowThreshold,
+  assertProducerKeychainKeysCountIsBelowThreshold,
+  assertOrganizationIsEServiceProducer,
+  assertKeyDoesNotAlreadyExist,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -122,6 +147,19 @@ const retrieveDescriptor = (
   return descriptor;
 };
 
+const retrieveProducerKeychain = async (
+  producerKeychainId: ProducerKeychainId,
+  readModelService: ReadModelService
+): Promise<WithMetadata<ProducerKeychain>> => {
+  const producerKeychain = await readModelService.getProducerKeychainById(
+    producerKeychainId
+  );
+  if (!producerKeychain) {
+    throw producerKeychainNotFound(producerKeychainId);
+  }
+  return producerKeychain;
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   dbInstance: DB,
@@ -159,7 +197,7 @@ export function authorizationServiceBuilder(
     }: {
       clientSeed: authorizationApi.ClientSeed;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(
@@ -194,7 +232,7 @@ export function authorizationServiceBuilder(
     }: {
       clientSeed: authorizationApi.ClientSeed;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(
@@ -257,7 +295,7 @@ export function authorizationServiceBuilder(
     }: {
       clientId: ClientId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Deleting client ${clientId}`);
@@ -273,7 +311,7 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removeUser({
+    async removeClientUser({
       clientId,
       userIdToRemove,
       organizationId,
@@ -283,7 +321,7 @@ export function authorizationServiceBuilder(
       clientId: ClientId;
       userIdToRemove: UserId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Removing user ${userIdToRemove} from client ${clientId}`);
@@ -292,7 +330,7 @@ export function authorizationServiceBuilder(
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
       if (!client.data.users.includes(userIdToRemove)) {
-        throw userIdNotFound(userIdToRemove, clientId);
+        throw clientUserIdNotFound(userIdToRemove, clientId);
       }
 
       const updatedClient: Client = {
@@ -319,7 +357,7 @@ export function authorizationServiceBuilder(
       clientId: ClientId;
       keyIdToRemove: string;
       authData: AuthData;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
@@ -327,17 +365,28 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
+      const hasSecurityRole = authData.userRoles.includes(
+        userRoles.SECURITY_ROLE
+      );
+
+      if (hasSecurityRole && !client.data.users.includes(authData.userId)) {
+        throw userNotAllowedOnClient(authData.userId, client.data.id);
+      }
+
       const keyToRemove = client.data.keys.find(
         (key) => key.kid === keyIdToRemove
       );
+
       if (!keyToRemove) {
-        throw keyNotFound(keyIdToRemove, client.data.id);
+        throw clientKeyNotFound(keyIdToRemove, client.data.id);
       }
-      if (
-        authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
-        !client.data.users.includes(authData.userId)
-      ) {
-        throw userNotAllowedOnClient(authData.userId, client.data.id);
+
+      if (hasSecurityRole && keyToRemove.userId !== authData.userId) {
+        throw userNotAllowedToDeleteClientKey(
+          authData.userId,
+          client.data.id,
+          keyToRemove.kid
+        );
       }
 
       const updatedClient: Client = {
@@ -364,7 +413,7 @@ export function authorizationServiceBuilder(
       clientId: ClientId;
       purposeIdToRemove: PurposeId;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(
@@ -400,7 +449,7 @@ export function authorizationServiceBuilder(
       logger,
     }: {
       purposeIdToRemove: PurposeId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
@@ -443,45 +492,60 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async addUser(
+    async addClientUsers(
       {
         clientId,
-        userId,
+        userIds,
         authData,
       }: {
         clientId: ClientId;
-        userId: UserId;
+        userIds: UserId[];
         authData: AuthData;
       },
-      correlationId: string,
+      correlationId: CorrelationId,
       logger: Logger
     ): Promise<{ client: Client; showUsers: boolean }> {
-      logger.info(`Binding client ${clientId} with user ${userId}`);
+      logger.info(`Binding client ${clientId} with user ${userIds.join(",")}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
-      await assertUserSelfcareSecurityPrivileges({
-        selfcareId: authData.selfcareId,
-        requesterUserId: authData.userId,
-        consumerId: authData.organizationId,
-        selfcareV2InstitutionClient,
-        userIdToCheck: userId,
-      });
-      if (client.data.users.includes(userId)) {
-        throw userAlreadyAssigned(clientId, userId);
-      }
-      const updatedClient: Client = {
-        ...client.data,
-        users: [...client.data.users, userId],
-      };
 
-      await repository.createEvent(
-        toCreateEventClientUserAdded(
-          userId,
-          updatedClient,
-          client.metadata.version,
-          correlationId
+      await Promise.all(
+        userIds.map((userId) =>
+          assertUserSelfcareSecurityPrivileges({
+            selfcareId: authData.selfcareId,
+            requesterUserId: authData.userId,
+            consumerId: authData.organizationId,
+            selfcareV2InstitutionClient,
+            userIdToCheck: userId,
+            correlationId,
+          })
         )
       );
+
+      userIds.forEach((userId) => {
+        if (client.data.users.includes(userId)) {
+          throw clientUserAlreadyAssigned(clientId, userId);
+        }
+      });
+
+      const uniqueUserIds = Array.from(new Set(userIds));
+      const updatedClient: Client = {
+        ...client.data,
+      };
+
+      await repository.createEvents(
+        uniqueUserIds.map((userId, index) => {
+          // eslint-disable-next-line functional/immutable-data
+          updatedClient.users.push(userId);
+          return toCreateEventClientUserAdded(
+            userId,
+            updatedClient,
+            client.metadata.version + index,
+            correlationId
+          );
+        })
+      );
+
       return {
         client: updatedClient,
         showUsers: true,
@@ -502,9 +566,7 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
       if (userIds.length > 0) {
-        return client.data.keys.filter(
-          (k) => k.userId && userIds.includes(k.userId)
-        );
+        return client.data.keys.filter((k) => userIds.includes(k.userId));
       } else {
         return client.data.keys;
       }
@@ -519,7 +581,7 @@ export function authorizationServiceBuilder(
       clientId: ClientId;
       seed: authorizationApi.PurposeAdditionDetails;
       organizationId: TenantId;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
       logger.info(
@@ -590,7 +652,7 @@ export function authorizationServiceBuilder(
       clientId: ClientId;
       authData: AuthData;
       keysSeeds: authorizationApi.KeysSeed;
-      correlationId: string;
+      correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Creating keys for client ${clientId}`);
@@ -599,7 +661,7 @@ export function authorizationServiceBuilder(
         unsafeBrandId(authData.organizationId),
         client.data
       );
-      assertKeysCountIsBelowThreshold(
+      assertClientKeysCountIsBelowThreshold(
         clientId,
         client.data.keys.length + keysSeeds.length
       );
@@ -613,6 +675,7 @@ export function authorizationServiceBuilder(
         consumerId: authData.organizationId,
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
+        correlationId,
       });
 
       if (keysSeeds.length !== 1) {
@@ -624,7 +687,6 @@ export function authorizationServiceBuilder(
         throw invalidKey(keySeed.key, "Not an RSA key");
       }
       const newKey: Key = {
-        clientId,
         name: keySeed.name,
         createdAt: new Date(),
         kid: calculateKid(jwk),
@@ -633,10 +695,9 @@ export function authorizationServiceBuilder(
         use: ApiKeyUseToKeyUse(keySeed.use),
         userId: authData.userId,
       };
-      const duplicateKid = await readModelService.getKeyByKid(newKey.kid);
-      if (duplicateKid) {
-        throw keyAlreadyExists(newKey.kid);
-      }
+
+      await assertKeyDoesNotAlreadyExist(newKey.kid, readModelService);
+
       const updatedClient: Client = {
         ...client.data,
         keys: [...client.data.keys, newKey],
@@ -673,7 +734,7 @@ export function authorizationServiceBuilder(
       const key = client.data.keys.find((key) => key.kid === kid);
 
       if (!key) {
-        throw keyNotFound(kid, clientId);
+        throw clientKeyNotFound(kid, clientId);
       }
       return key;
     },
@@ -691,7 +752,7 @@ export function authorizationServiceBuilder(
       const key = client.data.keys.find((key) => key.kid === kid);
 
       if (!key) {
-        throw keyNotFound(kid, clientId);
+        throw clientKeyNotFound(kid, clientId);
       }
 
       const jwk: JsonWebKey = createJWK(key.encodedPem);
@@ -708,18 +769,557 @@ export function authorizationServiceBuilder(
         }),
       };
     },
+    async createProducerKeychain({
+      producerKeychainSeed,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainSeed: authorizationApi.ProducerKeychainSeed;
+      organizationId: TenantId;
+      correlationId: CorrelationId;
+      logger: Logger;
+    }): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+      logger.info(
+        `Creating producer keychain ${producerKeychainSeed.name} for producer ${organizationId}"`
+      );
+
+      const producerKeychain: ProducerKeychain = {
+        id: generateId(),
+        producerId: organizationId,
+        name: producerKeychainSeed.name,
+        eservices: [],
+        description: producerKeychainSeed.description,
+        users: producerKeychainSeed.members.map(unsafeBrandId<UserId>),
+        createdAt: new Date(),
+        keys: [],
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainAdded(producerKeychain, correlationId)
+      );
+
+      return { producerKeychain, showUsers: true };
+    },
+    async getProducerKeychains({
+      filters,
+      authData,
+      offset,
+      limit,
+      logger,
+    }: {
+      filters: GetProducerKeychainsFilters;
+      authData: AuthData;
+      offset: number;
+      limit: number;
+      logger: Logger;
+    }): Promise<ListResult<ProducerKeychain>> {
+      logger.info(
+        `Retrieving producer keychains by name ${filters.name}, userIds ${filters.userIds}, producerId ${filters.producerId}, eserviceId ${filters.eserviceId}`
+      );
+      const userIds = authData.userRoles.includes(userRoles.SECURITY_ROLE)
+        ? [authData.userId]
+        : filters.userIds;
+
+      return await readModelService.getProducerKeychains(
+        { ...filters, userIds },
+        {
+          offset,
+          limit,
+        }
+      );
+    },
+    async getProducerKeychainById({
+      producerKeychainId,
+      organizationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+      logger.info(`Retrieving Producer Keychain ${producerKeychainId}`);
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      return {
+        producerKeychain: producerKeychain.data,
+        showUsers: organizationId === producerKeychain.data.producerId,
+      };
+    },
+    async deleteProducerKeychain({
+      producerKeychainId,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      organizationId: TenantId;
+      correlationId: CorrelationId;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Deleting producer keychain ${producerKeychainId}`);
+
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainDeleted(
+          producerKeychain.data,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async getProducerKeychainUsers({
+      producerKeychainId,
+      organizationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<UserId[]> {
+      logger.info(
+        `Retrieving users of producer keychain ${producerKeychainId}`
+      );
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+      return producerKeychain.data.users;
+    },
+    async addProducerKeychainUsers(
+      {
+        producerKeychainId,
+        userIds,
+        authData,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        userIds: UserId[];
+        authData: AuthData;
+      },
+      correlationId: CorrelationId,
+      logger: Logger
+    ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+      logger.info(
+        `Binding producer keychain ${producerKeychainId} with users ${userIds.join(
+          ", "
+        )}`
+      );
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        authData.organizationId,
+        producerKeychain.data
+      );
+
+      await Promise.all(
+        userIds.map((userId) =>
+          assertUserSelfcareSecurityPrivileges({
+            selfcareId: authData.selfcareId,
+            requesterUserId: authData.userId,
+            consumerId: authData.organizationId,
+            userIdToCheck: userId,
+            selfcareV2InstitutionClient,
+            correlationId,
+          })
+        )
+      );
+
+      userIds.forEach((userId) => {
+        if (producerKeychain.data.users.includes(userId)) {
+          throw producerKeychainUserAlreadyAssigned(producerKeychainId, userId);
+        }
+      });
+
+      const uniqueUserIds = Array.from(new Set(userIds));
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+      };
+
+      await repository.createEvents(
+        uniqueUserIds.map((userId, index) => {
+          // eslint-disable-next-line functional/immutable-data
+          updatedProducerKeychain.users.push(userId);
+          return toCreateEventProducerKeychainUserAdded(
+            userId,
+            updatedProducerKeychain,
+            producerKeychain.metadata.version + index,
+            correlationId
+          );
+        })
+      );
+
+      return {
+        producerKeychain: updatedProducerKeychain,
+        showUsers: true,
+      };
+    },
+    async removeProducerKeychainUser({
+      producerKeychainId,
+      userIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      userIdToRemove: UserId;
+      organizationId: TenantId;
+      correlationId: CorrelationId;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing user ${userIdToRemove} from producer keychain ${producerKeychainId}`
+      );
+
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+
+      if (!producerKeychain.data.users.includes(userIdToRemove)) {
+        throw producerKeychainUserIdNotFound(
+          userIdToRemove,
+          producerKeychainId
+        );
+      }
+
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        users: producerKeychain.data.users.filter(
+          (userId) => userId !== userIdToRemove
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainUserDeleted(
+          updatedProducerKeychain,
+          userIdToRemove,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async createProducerKeychainKey({
+      producerKeychainId,
+      authData,
+      keySeed,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      authData: AuthData;
+      keySeed: authorizationApi.KeySeed;
+      correlationId: CorrelationId;
+      logger: Logger;
+    }): Promise<ProducerKeychain> {
+      logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        unsafeBrandId(authData.organizationId),
+        producerKeychain.data
+      );
+      assertProducerKeychainKeysCountIsBelowThreshold(
+        producerKeychainId,
+        producerKeychain.data.keys.length + 1
+      );
+
+      if (!producerKeychain.data.users.includes(authData.userId)) {
+        throw userNotFound(authData.userId, authData.selfcareId);
+      }
+
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        selfcareV2InstitutionClient,
+        userIdToCheck: authData.userId,
+        correlationId,
+      });
+
+      const jwk = createJWK(keySeed.key);
+
+      if (jwk.kty !== "RSA") {
+        throw invalidKey(keySeed.key, "Not an RSA key");
+      }
+
+      const newKey: Key = {
+        name: keySeed.name,
+        createdAt: new Date(),
+        kid: calculateKid(jwk),
+        encodedPem: keySeed.key,
+        algorithm: keySeed.alg,
+        use: ApiKeyUseToKeyUse(keySeed.use),
+        userId: authData.userId,
+      };
+
+      await assertKeyDoesNotAlreadyExist(newKey.kid, readModelService);
+
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        keys: [...producerKeychain.data.keys, newKey],
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainKeyAdded(
+          newKey.kid,
+          updatedProducerKeychain,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+
+      return updatedProducerKeychain;
+    },
+    async removeProducerKeychainKeyById({
+      producerKeychainId,
+      keyIdToRemove,
+      authData,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      keyIdToRemove: string;
+      authData: AuthData;
+      correlationId: CorrelationId;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing key ${keyIdToRemove} from producer keychain ${producerKeychainId}`
+      );
+
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        authData.organizationId,
+        producerKeychain.data
+      );
+
+      const hasSecurityRole = authData.userRoles.includes(
+        userRoles.SECURITY_ROLE
+      );
+
+      if (
+        hasSecurityRole &&
+        !producerKeychain.data.users.includes(authData.userId)
+      ) {
+        throw userNotAllowedOnProducerKeychain(
+          authData.userId,
+          producerKeychain.data.id
+        );
+      }
+
+      const keyToRemove = producerKeychain.data.keys.find(
+        (key) => key.kid === keyIdToRemove
+      );
+
+      if (!keyToRemove) {
+        throw producerKeyNotFound(keyIdToRemove, producerKeychain.data.id);
+      }
+
+      if (hasSecurityRole && keyToRemove.userId !== authData.userId) {
+        throw userNotAllowedToDeleteProducerKeychainKey(
+          authData.userId,
+          producerKeychain.data.id,
+          keyToRemove.kid
+        );
+      }
+
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        keys: producerKeychain.data.keys.filter(
+          (key) => key.kid !== keyIdToRemove
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainKeyDeleted(
+          updatedProducerKeychain,
+          keyIdToRemove,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async getProducerKeychainKeys({
+      producerKeychainId,
+      userIds,
+      organizationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      userIds: UserId[];
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<Key[]> {
+      logger.info(
+        `Retrieving keys for producer keychain ${producerKeychainId}`
+      );
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+      if (userIds.length > 0) {
+        return producerKeychain.data.keys.filter((k) =>
+          userIds.includes(k.userId)
+        );
+      }
+      return producerKeychain.data.keys;
+    },
+    async getProducerKeychainKeyById({
+      producerKeychainId,
+      kid,
+      organizationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      kid: string;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<Key> {
+      logger.info(
+        `Retrieving key ${kid} in producerKeychain ${producerKeychainId}`
+      );
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+      const key = producerKeychain.data.keys.find((key) => key.kid === kid);
+
+      if (!key) {
+        throw producerKeyNotFound(kid, producerKeychainId);
+      }
+      return key;
+    },
+    async addProducerKeychainEService({
+      producerKeychainId,
+      seed,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      seed: authorizationApi.EServiceAdditionDetails;
+      organizationId: TenantId;
+      correlationId: CorrelationId;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Adding eservice with id ${seed.eserviceId} to producer keychain ${producerKeychainId}`
+      );
+      const eserviceId: EServiceId = unsafeBrandId(seed.eserviceId);
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertOrganizationIsEServiceProducer(organizationId, eservice);
+      if (producerKeychain.data.eservices.includes(eserviceId)) {
+        throw eserviceAlreadyLinkedToProducerKeychain(
+          eserviceId,
+          producerKeychain.data.id
+        );
+      }
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        eservices: [...producerKeychain.data.eservices, eserviceId],
+      };
+      await repository.createEvent(
+        toCreateEventProducerKeychainEServiceAdded(
+          eserviceId,
+          updatedProducerKeychain,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async removeProducerKeychainEService({
+      producerKeychainId,
+      eserviceIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      eserviceIdToRemove: EServiceId;
+      organizationId: TenantId;
+      correlationId: CorrelationId;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing e-service ${eserviceIdToRemove} from producer keychain ${producerKeychainId}`
+      );
+
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+
+      if (
+        !producerKeychain.data.eservices.find((id) => id === eserviceIdToRemove)
+      ) {
+        throw eserviceNotFound(eserviceIdToRemove);
+      }
+
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        eservices: producerKeychain.data.eservices.filter(
+          (eserviceId) => eserviceId !== eserviceIdToRemove
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainEServiceRemoved(
+          updatedProducerKeychain,
+          eserviceIdToRemove,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+    },
   };
 }
 
 export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
-
-const assertKeysCountIsBelowThreshold = (
-  clientId: ClientId,
-  size: number
-): void => {
-  if (size > config.maxKeysPerClient) {
-    throw tooManyKeysPerClient(clientId, size);
-  }
-};

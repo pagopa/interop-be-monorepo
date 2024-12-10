@@ -2,6 +2,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
 import {
+  getMockTenant,
+  getTenantOneCertifierFeature,
+} from "pagopa-interop-commons-test";
+import {
   Tenant,
   Attribute,
   generateId,
@@ -12,6 +16,7 @@ import {
   fromTenantKindV2,
   toTenantV2,
   toReadModelAttribute,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, beforeAll, vi, afterAll, it, expect } from "vitest";
 import {
@@ -34,7 +39,6 @@ import {
   addOneTenant,
   tenantService,
   postgresDB,
-  getMockTenant,
 } from "./utils.js";
 
 describe("addCertifiedAttribute", async () => {
@@ -58,7 +62,7 @@ describe("addCertifiedAttribute", async () => {
     ...getMockAttribute(),
     id: unsafeBrandId(tenantAttributeSeed.id),
     kind: attributeKind.certified,
-    origin: requesterTenant.features[0].certifierId,
+    origin: getTenantOneCertifierFeature(requesterTenant).certifierId,
   };
 
   beforeAll(async () => {
@@ -104,7 +108,7 @@ describe("addCertifiedAttribute", async () => {
       attributes: [
         {
           id: unsafeBrandId(tenantAttributeSeed.id),
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
       ],
@@ -207,7 +211,7 @@ describe("addCertifiedAttribute", async () => {
       attributes: [
         {
           id: unsafeBrandId(tenantAttributeSeed.id),
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
       ],
@@ -223,7 +227,7 @@ describe("addCertifiedAttribute", async () => {
       attributes: [
         {
           id: attribute.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
       ],

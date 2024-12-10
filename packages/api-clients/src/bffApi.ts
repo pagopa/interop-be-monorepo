@@ -8,4 +8,9 @@ export type BffGetCatalogQueryParam = QueryParametersByAlias<
   "getEServicesCatalog"
 >;
 
+export type BffGetProducersEservicesQueryParam = QueryParametersByAlias<
+  BffApi,
+  "getProducerEServices"
+>;
+
 export * from "./generated/bffApi.js";

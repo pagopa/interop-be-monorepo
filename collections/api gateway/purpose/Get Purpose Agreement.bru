@@ -1,0 +1,19 @@
+meta {
+  name: Get Purpose Agreement
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-api-gw}}/purposes/:purposeId/agreement
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

@@ -15,6 +15,11 @@ export * from "./attribute/attributeEvents.js";
 export * from "./attribute/protobufConverterFromV1.js";
 export * from "./attribute/protobufConverterToV1.js";
 
+export * from "./delegation/delegation.js";
+export * from "./delegation/delegationEvents.js";
+export * from "./delegation/protobufConverterFromV2.js";
+export * from "./delegation/protobufConverterToV2.js";
+
 export * from "./email/email.js";
 
 export * from "./eservice/eservice.js";
@@ -43,6 +48,8 @@ export * from "./purpose/protobufConverterFromV2.js";
 export * from "./purpose/protobufConverterToV2.js";
 
 export * from "./authorization/client.js";
+export * from "./authorization/key.js";
+export * from "./authorization/producerKeychain.js";
 export * from "./authorization/authorizationEvents.js";
 export * from "./authorization/protobufConverterFromV1.js";
 export * from "./authorization/protobufConverterToV1.js";
@@ -51,6 +58,13 @@ export * from "./authorization/protobufConverterToV2.js";
 export * from "./authorization/authorizationReadModelAdapter.js";
 
 export * from "./user/user.js";
+
+// Token generation read model
+export * from "./token-generation-readmodel/platform-states-entry.js";
+export * from "./token-generation-readmodel/token-generation-states-entry.js";
+export * from "./token-generation-readmodel/commons.js";
+export * from "./token-generation-audit/audit.js";
+export * from "./client-assertion/clientAssertionValidation.js";
 
 // Protobuf
 export * from "./protobuf/protobuf.js";
@@ -63,9 +77,11 @@ export * from "./read-models/tenantReadModel.js";
 export * from "./read-models/purposeReadModel.js";
 export * from "./read-models/readModels.js";
 export * from "./read-models/authorizationReadModel.js";
+export * from "./read-models/delegationReadModel.js";
 
 // Utilities
 export * from "./brandedIds.js";
+export * from "./constants.js";
 export * from "./errors.js";
 export * from "./utils.js";
 
@@ -97,3 +113,5 @@ export * from "./gen/v2/authorization/key.js";
 export * from "./gen/v2/authorization/events.js";
 export * from "./gen/v2/tenant/tenant.js";
 export * from "./gen/v2/tenant/events.js";
+export * from "./gen/v2/delegation/delegation.js";
+export * from "./gen/v2/delegation/events.js";

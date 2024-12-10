@@ -6,17 +6,19 @@
  */
 
 import { z } from "zod";
-import { ReadModelDbConfig } from "pagopa-interop-commons";
-import { MongoClient, Db } from "mongodb";
+import { Db } from "mongodb";
 import isEqual from "lodash.isequal";
 import { diff } from "json-diff";
 import {
   Agreement,
   Attribute,
+  Client,
   EService,
+  ClientJWKKey,
   Purpose,
   Tenant,
 } from "pagopa-interop-models";
+import { connectToReadModel } from "./utils.js";
 
 const Collection = z.enum([
   "agreements",
@@ -24,6 +26,8 @@ const Collection = z.enum([
   "eservices",
   "tenants",
   "purposes",
+  "clients",
+  "keys",
 ]);
 type Collection = z.infer<typeof Collection>;
 
@@ -33,6 +37,8 @@ const readModelSchemas = {
   eservices: EService,
   tenants: Tenant,
   purposes: Purpose,
+  clients: Client,
+  keys: ClientJWKKey,
 } as const satisfies Record<Collection, z.ZodSchema<unknown>>;
 
 const Config = z
@@ -73,6 +79,12 @@ type Config = z.infer<typeof Config>;
 
 const config: Config = Config.parse(process.env);
 
+function getIdentificationKey<T extends { id: string } | { kid: string }>(
+  obj: T
+): string {
+  return "id" in obj ? obj.id : obj.kid;
+}
+
 async function main(): Promise<void> {
   const scalaReadModel = connectToReadModel(config.scalaReadModelConfig);
   const nodeReadModel = connectToReadModel(config.nodeReadModelConfig);
@@ -88,37 +100,42 @@ async function main(): Promise<void> {
   await scalaReadModel.close();
   await nodeReadModel.close();
 
+  // eslint-disable-next-line functional/no-let
+  let differencesCount = 0;
   differences.forEach(([scala, node]) => {
     if (scala && !node) {
-      console.warn(`Object with id ${scala.id} not found in node readmodel`);
+      differencesCount++;
+      console.warn(
+        `Object with id ${getIdentificationKey(
+          scala
+        )} not found in node readmodel`
+      );
     }
     if (!scala && node) {
-      console.warn(`Object with id ${node.id} not found in scala readmodel`);
+      differencesCount++;
+      console.warn(
+        `Object with id ${getIdentificationKey(
+          node
+        )} not found in scala readmodel`
+      );
     }
     if (scala && node) {
-      const objectsDiff = diff(scala, node);
-      console.warn(`Differences in object with id ${scala.id}`);
-      console.warn(JSON.stringify(objectsDiff, null, 2));
+      const objectsDiff = diff(scala, node, { sort: true });
+      if (objectsDiff) {
+        differencesCount++;
+        console.warn(
+          `Differences in object with id ${getIdentificationKey(scala)}`
+        );
+        console.warn(JSON.stringify(objectsDiff, null, 2));
+      }
     }
   });
 
-  if (differences.length > 0) {
+  if (differencesCount > 0) {
     process.exit(1);
   }
 
   console.log("No differences found");
-}
-
-function connectToReadModel({
-  readModelDbHost: host,
-  readModelDbPort: port,
-  readModelDbUsername: username,
-  readModelDbPassword: password,
-}: ReadModelDbConfig): MongoClient {
-  const mongoDBConnectionURI = `mongodb://${username}:${password}@${host}:${port}`;
-  return new MongoClient(mongoDBConnectionURI, {
-    retryWrites: false,
-  });
 }
 
 export async function compareReadModelsCollection<
@@ -141,7 +158,23 @@ export async function compareReadModelsCollection<
     readmodelA
       .collection(collectionNameA)
       .find()
-      .map(({ data }) => schema.parse(data))
+      .map(({ data }) => {
+        if (
+          collectionNameA.includes("clients") &&
+          data.purposes !== undefined
+        ) {
+          const adjusted = {
+            ...data,
+            purposes: data.purposes.map(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (stateUpdate: any) => stateUpdate.purpose.purposeId
+            ),
+          };
+          return schema.parse(adjusted);
+        } else {
+          return schema.parse(data);
+        }
+      })
       .toArray(),
     readmodelB
       .collection(collectionNameB)
@@ -153,14 +186,16 @@ export async function compareReadModelsCollection<
   return zipDataById(resultsA, resultsB).filter(([a, b]) => !isEqual(a, b));
 }
 
-export function zipDataById<T extends { id: string }>(
+export function zipDataById<T extends { id: string } | { kid: string }>(
   dataA: T[],
   dataB: T[]
 ): Array<[T | undefined, T | undefined]> {
-  const allIds = new Set([...dataA, ...dataB].map((d) => d.id));
+  const allIds = new Set(
+    [...dataA, ...dataB].map((d) => getIdentificationKey(d))
+  );
   return Array.from(allIds).map((id) => [
-    dataA.find((d) => d.id === id),
-    dataB.find((d) => d.id === id),
+    dataA.find((d) => getIdentificationKey(d) === id),
+    dataB.find((d) => getIdentificationKey(d) === id),
   ]);
 }
 

@@ -1,48 +1,73 @@
 /* eslint-disable max-params */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  AppContext,
   AuthData,
   DB,
   FileManager,
   Logger,
   WithLogger,
-  AppContext,
   eventRepository,
+  formatDateddMMyyyyHHmmss,
   hasPermission,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
-  formatDateddMMyyyyHHmmss,
 } from "pagopa-interop-commons";
 import {
+  AttributeId,
+  Delegation,
   Descriptor,
   DescriptorId,
+  DescriptorRejectionReason,
   DescriptorState,
   Document,
   EService,
   EServiceDocumentId,
   EServiceId,
-  TenantId,
-  WithMetadata,
-  catalogEventToBinaryData,
-  descriptorState,
-  generateId,
-  unsafeBrandId,
-  ListResult,
-  AttributeId,
-  agreementState,
   EserviceAttributes,
-  Tenant,
+  ListResult,
   RiskAnalysis,
   RiskAnalysisId,
+  Tenant,
+  TenantId,
+  WithMetadata,
+  agreementState,
+  catalogEventToBinaryData,
+  delegationKind,
+  delegationState,
+  descriptorState,
   eserviceMode,
+  generateId,
+  operationForbidden,
+  unsafeBrandId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
+import { RejectDelegatedEServiceDescriptorSeed } from "../../../api-clients/dist/catalogApi.js";
+import { config } from "../config/config.js";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
+import {
+  attributeNotFound,
+  audienceCannotBeEmpty,
+  eServiceDescriptorNotFound,
+  eServiceDescriptorWithoutInterface,
+  eServiceDocumentNotFound,
+  eServiceDuplicate,
+  eServiceNotFound,
+  eServiceRiskAnalysisNotFound,
+  eserviceWithoutValidDescriptors,
+  inconsistentDailyCalls,
+  interfaceAlreadyExists,
+  notValidDescriptorState,
+  originNotCompliant,
+  prettyNameDuplicate,
+  riskAnalysisDuplicated,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -52,6 +77,9 @@ import {
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorArchived,
+  toCreateEventEServiceDescriptorDelegateSubmitted,
+  toCreateEventEServiceDescriptorDelegatorApproved,
+  toCreateEventEServiceDescriptorDelegatorRejected,
   toCreateEventEServiceDescriptorPublished,
   toCreateEventEServiceDescriptorQuotasUpdated,
   toCreateEventEServiceDescriptorSuspended,
@@ -68,35 +96,20 @@ import {
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
-import { config } from "../config/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
-import {
-  eServiceDescriptorNotFound,
-  eServiceDocumentNotFound,
-  eServiceDuplicate,
-  notValidDescriptor,
-  eServiceNotFound,
-  eServiceDescriptorWithoutInterface,
-  interfaceAlreadyExists,
-  attributeNotFound,
-  inconsistentDailyCalls,
-  originNotCompliant,
-  tenantNotFound,
-  eServiceRiskAnalysisNotFound,
-  prettyNameDuplicate,
-  riskAnalysisDuplicated,
-  eserviceWithoutValidDescriptors,
-  audienceCannotBeEmpty,
-} from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
-  assertRequesterAllowed,
+  assertDocumentDeletableDescriptorState,
+  assertHasNoDraftOrWaitingForApprovalDescriptor,
+  assertInterfaceDeletableDescriptorState,
   assertIsDraftEservice,
   assertIsReceiveEservice,
+  assertNoExistingProducerDelegationInActiveOrPendingState,
+  assertRequesterIsDelegateProducerOrProducer,
+  assertRequesterIsProducer,
+  assertRiskAnalysisIsValidForPublication,
   assertTenantKindExists,
   validateRiskAnalysisSchemaOrThrow,
-  assertHasNoDraftDescriptor,
-  assertRiskAnalysisIsValidForPublication,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -165,6 +178,33 @@ const retrieveRiskAnalysis = (
   return riskAnalysis;
 };
 
+const assertRequesterCanPublish = (
+  producerDelegation: Delegation | undefined,
+  eservice: EService,
+  authData: AuthData
+): void => {
+  if (producerDelegation) {
+    if (
+      producerDelegation.kind !== delegationKind.delegatedProducer ||
+      authData.organizationId !== producerDelegation.delegateId
+    ) {
+      throw operationForbidden;
+    }
+  } else {
+    assertRequesterIsProducer(eservice.producerId, authData);
+  }
+};
+
+const retrieveActiveProducerDelegation = async (
+  eservice: EService,
+  readModelService: ReadModelService
+): Promise<Delegation | undefined> =>
+  await readModelService.getLatestDelegation({
+    eserviceId: eservice.id,
+    kind: delegationKind.delegatedProducer,
+    states: [delegationState.active],
+  });
+
 const updateDescriptorState = (
   descriptor: Descriptor,
   newState: DescriptorState
@@ -172,11 +212,15 @@ const updateDescriptorState = (
   const descriptorStateChange = [descriptor.state, newState];
 
   return match(descriptorStateChange)
-    .with([descriptorState.draft, descriptorState.published], () => ({
-      ...descriptor,
-      state: newState,
-      publishedAt: new Date(),
-    }))
+    .with(
+      [descriptorState.draft, descriptorState.published],
+      [descriptorState.waitingForApproval, descriptorState.published],
+      () => ({
+        ...descriptor,
+        state: newState,
+        publishedAt: new Date(),
+      })
+    )
     .with([descriptorState.published, descriptorState.suspended], () => ({
       ...descriptor,
       state: newState,
@@ -333,7 +377,11 @@ export function catalogServiceBuilder(
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      return applyVisibilityToEService(eservice.data, authData);
+      return await applyVisibilityToEService(
+        eservice.data,
+        authData,
+        readModelService
+      );
     },
 
     async getEServices(
@@ -353,8 +401,10 @@ export function catalogServiceBuilder(
         limit
       );
 
-      const eservicesToReturn = eservicesList.results.map((eservice) =>
-        applyVisibilityToEService(eservice, authData)
+      const eservicesToReturn = await Promise.all(
+        eservicesList.results.map((eservice) =>
+          applyVisibilityToEService(eservice, authData, readModelService)
+        )
       );
 
       return {
@@ -395,9 +445,10 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       const document = retrieveDocument(eserviceId, descriptor, documentId);
-      const checkedEService = applyVisibilityToEService(
+      const checkedEService = await applyVisibilityToEService(
         eservice.data,
-        authData
+        authData,
+        readModelService
       );
       if (!checkedEService.descriptors.find((d) => d.id === descriptorId)) {
         throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
@@ -436,6 +487,7 @@ export function catalogServiceBuilder(
         descriptors: [],
         createdAt: creationDate,
         riskAnalysis: [],
+        isSignalHubEnabled: seed.isSignalHubEnabled,
       };
 
       const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -501,7 +553,12 @@ export function catalogServiceBuilder(
       logger.info(`Updating EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       assertIsDraftEservice(eservice.data);
 
@@ -509,7 +566,7 @@ export function catalogServiceBuilder(
         const eserviceWithSameName =
           await readModelService.getEServiceByNameAndProducerId({
             name: eserviceSeed.name,
-            producerId: authData.organizationId,
+            producerId: eservice.data.producerId,
           });
         if (eserviceWithSameName !== undefined) {
           throw eServiceDuplicate(eserviceSeed.name);
@@ -546,7 +603,6 @@ export function catalogServiceBuilder(
         description: eserviceSeed.description,
         name: eserviceSeed.name,
         technology: updatedTechnology,
-        producerId: authData.organizationId,
         mode: updatedMode,
         riskAnalysis: checkedRiskAnalysis,
         descriptors: interfaceHasToBeDeleted
@@ -556,6 +612,7 @@ export function catalogServiceBuilder(
               serverUrls: [],
             }))
           : eservice.data.descriptors,
+        isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
       };
 
       const event = toCreateEventEServiceUpdated(
@@ -576,9 +633,13 @@ export function catalogServiceBuilder(
       logger.info(`Deleting EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
-
+      assertRequesterIsProducer(eservice.data.producerId, authData);
       assertIsDraftEservice(eservice.data);
+
+      await assertNoExistingProducerDelegationInActiveOrPendingState(
+        eserviceId,
+        readModelService
+      );
 
       if (eservice.data.descriptors.length === 0) {
         const eserviceDeletionEvent = toCreateEventEServiceDeleted(
@@ -632,7 +693,12 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -642,7 +708,7 @@ export function catalogServiceBuilder(
         descriptor.state !== descriptorState.published &&
         descriptor.state !== descriptorState.suspended
       ) {
-        throw notValidDescriptor(descriptor.id, descriptor.state);
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
@@ -651,7 +717,10 @@ export function catalogServiceBuilder(
 
       if (
         document.kind === "DOCUMENT" &&
-        descriptor.docs.some((d) => d.prettyName === document.prettyName)
+        descriptor.docs.some(
+          (d) =>
+            d.prettyName.toLowerCase() === document.prettyName.toLowerCase()
+        )
       ) {
         throw prettyNameDuplicate(document.prettyName, descriptor.id);
       }
@@ -719,24 +788,25 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      if (
-        descriptor.state !== descriptorState.draft &&
-        descriptor.state !== descriptorState.deprecated &&
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended
-      ) {
-        throw notValidDescriptor(descriptor.id, descriptor.state);
-      }
-
       const document = retrieveDocument(eserviceId, descriptor, documentId);
+      const isInterface = document.id === descriptor?.interface?.id;
+
+      if (isInterface) {
+        assertInterfaceDeletableDescriptorState(descriptor);
+      } else {
+        assertDocumentDeletableDescriptorState(descriptor);
+      }
 
       await fileManager.delete(config.s3Bucket, document.path, logger);
 
-      const isInterface = document.id === descriptor?.interface?.id;
       const newEservice: EService = {
         ...eservice.data,
         descriptors: eservice.data.descriptors.map((d: Descriptor) =>
@@ -790,7 +860,12 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -800,7 +875,7 @@ export function catalogServiceBuilder(
         descriptor.state !== descriptorState.published &&
         descriptor.state !== descriptorState.suspended
       ) {
-        throw notValidDescriptor(descriptor.id, descriptor.state);
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       const document = retrieveDocument(eserviceId, descriptor, documentId);
@@ -808,8 +883,9 @@ export function catalogServiceBuilder(
       if (
         descriptor.docs.some(
           (d) =>
-            d.id !== apiEServiceDescriptorDocumentUpdateSeed.id &&
-            d.prettyName === apiEServiceDescriptorDocumentUpdateSeed.prettyName
+            d.id !== documentId &&
+            d.prettyName.toLowerCase() ===
+              apiEServiceDescriptorDocumentUpdateSeed.prettyName.toLowerCase()
         )
       ) {
         throw prettyNameDuplicate(
@@ -873,8 +949,13 @@ export function catalogServiceBuilder(
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
-      assertHasNoDraftDescriptor(eservice.data);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+      assertHasNoDraftOrWaitingForApprovalDescriptor(eservice.data);
 
       const newVersion = nextDescriptorVersion(eservice.data);
 
@@ -984,12 +1065,17 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptor(descriptorId, descriptor.state);
+        throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
       await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
@@ -1035,12 +1121,20 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+        throw notValidDescriptorState(
+          descriptorId,
+          descriptor.state.toString()
+        );
       }
 
       if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
@@ -1094,11 +1188,20 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      assertRequesterCanPublish(producerDelegation, eservice.data, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptor(descriptor.id, descriptor.state.toString());
+        throw notValidDescriptorState(
+          descriptor.id,
+          descriptor.state.toString()
+        );
       }
 
       if (descriptor.interface === undefined) {
@@ -1118,71 +1221,37 @@ export function catalogServiceBuilder(
         throw audienceCannotBeEmpty(descriptor.id);
       }
 
-      const currentActiveDescriptor = eservice.data.descriptors.find(
-        (d: Descriptor) => d.state === descriptorState.published
-      );
+      if (producerDelegation) {
+        const eserviceWithWaitingForApprovalDescriptor = replaceDescriptor(
+          eservice.data,
+          updateDescriptorState(descriptor, descriptorState.waitingForApproval)
+        );
+        await repository.createEvent(
+          toCreateEventEServiceDescriptorDelegateSubmitted(
+            eservice.metadata.version,
+            descriptor.id,
+            eserviceWithWaitingForApprovalDescriptor,
+            correlationId
+          )
+        );
+      } else {
+        const updatedEService = await processDescriptorPublication(
+          eservice.data,
+          descriptor,
+          readModelService,
+          logger
+        );
 
-      const publishedDescriptor = updateDescriptorState(
-        descriptor,
-        descriptorState.published
-      );
-
-      const eserviceWithPublishedDescriptor = replaceDescriptor(
-        eservice.data,
-        publishedDescriptor
-      );
-
-      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const event = async () => {
-        if (currentActiveDescriptor !== undefined) {
-          const agreements = await readModelService.listAgreements({
-            eservicesIds: [eserviceId],
-            consumersIds: [],
-            producersIds: [],
-            states: [agreementState.active, agreementState.suspended],
-            limit: 1,
-            descriptorId: currentActiveDescriptor.id,
-          });
-          if (agreements.length === 0) {
-            const eserviceWithArchivedAndPublishedDescriptors =
-              replaceDescriptor(
-                eserviceWithPublishedDescriptor,
-                archiveDescriptor(eserviceId, currentActiveDescriptor, logger)
-              );
-
-            return toCreateEventEServiceDescriptorPublished(
-              eserviceId,
-              eservice.metadata.version,
-              descriptorId,
-              eserviceWithArchivedAndPublishedDescriptors,
-              correlationId
-            );
-          } else {
-            const eserviceWithDeprecatedAndPublishedDescriptors =
-              replaceDescriptor(
-                eserviceWithPublishedDescriptor,
-                deprecateDescriptor(eserviceId, currentActiveDescriptor, logger)
-              );
-
-            return toCreateEventEServiceDescriptorPublished(
-              eserviceId,
-              eservice.metadata.version,
-              descriptorId,
-              eserviceWithDeprecatedAndPublishedDescriptors,
-              correlationId
-            );
-          }
-        } else {
-          return toCreateEventEServiceDescriptorPublished(
+        await repository.createEvent(
+          toCreateEventEServiceDescriptorPublished(
             eserviceId,
             eservice.metadata.version,
             descriptorId,
-            eserviceWithPublishedDescriptor,
+            updatedEService,
             correlationId
-          );
-        }
-      };
-      await repository.createEvent(await event());
+          )
+        );
+      }
     },
 
     async suspendDescriptor(
@@ -1195,14 +1264,22 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (
         descriptor.state !== descriptorState.deprecated &&
         descriptor.state !== descriptorState.published
       ) {
-        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+        throw notValidDescriptorState(
+          descriptorId,
+          descriptor.state.toString()
+        );
       }
 
       const updatedDescriptor = updateDescriptorState(
@@ -1232,11 +1309,19 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (descriptor.state !== descriptorState.suspended) {
-        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+        throw notValidDescriptorState(
+          descriptorId,
+          descriptor.state.toString()
+        );
       }
 
       const updatedDescriptor = updateDescriptorState(
@@ -1301,7 +1386,11 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+      await assertNoExistingProducerDelegationInActiveOrPendingState(
+        eservice.data.id,
+        readModelService
+      );
 
       const clonedEServiceName = `${
         eservice.data.name
@@ -1310,7 +1399,7 @@ export function catalogServiceBuilder(
       if (
         await readModelService.getEServiceByNameAndProducerId({
           name: clonedEServiceName,
-          producerId: authData.organizationId,
+          producerId: eservice.data.producerId,
         })
       ) {
         throw eServiceDuplicate(clonedEServiceName);
@@ -1415,7 +1504,12 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       const updatedDescriptor = updateDescriptorState(
@@ -1446,7 +1540,12 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -1455,7 +1554,10 @@ export function catalogServiceBuilder(
         descriptor.state !== descriptorState.suspended &&
         descriptor.state !== descriptorState.deprecated
       ) {
-        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+        throw notValidDescriptorState(
+          descriptorId,
+          descriptor.state.toString()
+        );
       }
 
       if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
@@ -1494,12 +1596,17 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
       assertIsDraftEservice(eservice.data);
       assertIsReceiveEservice(eservice.data);
 
       const tenant = await retrieveTenant(
-        authData.organizationId,
+        eservice.data.producerId,
         readModelService
       );
       assertTenantKindExists(tenant);
@@ -1554,12 +1661,17 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
       assertIsDraftEservice(eservice.data);
       assertIsReceiveEservice(eservice.data);
 
       const tenant = await retrieveTenant(
-        authData.organizationId,
+        eservice.data.producerId,
         readModelService
       );
       assertTenantKindExists(tenant);
@@ -1620,7 +1732,12 @@ export function catalogServiceBuilder(
       );
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       assertIsDraftEservice(eservice.data);
       assertIsReceiveEservice(eservice.data);
@@ -1651,11 +1768,17 @@ export function catalogServiceBuilder(
       logger.info(`Updating EService ${eserviceId} description`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       const hasValidDescriptor = eservice.data.descriptors.some(
         (descriptor) =>
           descriptor.state !== descriptorState.draft &&
+          descriptor.state !== descriptorState.waitingForApproval &&
           descriptor.state !== descriptorState.archived
       );
       if (!hasValidDescriptor) {
@@ -1676,41 +1799,144 @@ export function catalogServiceBuilder(
       );
       return updatedEservice;
     },
+    async approveDelegatedEServiceDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(`Approving EService ${eserviceId} version ${descriptorId}`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.waitingForApproval) {
+        throw notValidDescriptorState(
+          descriptor.id,
+          descriptor.state.toString()
+        );
+      }
+
+      const updatedEService = await processDescriptorPublication(
+        eservice.data,
+        descriptor,
+        readModelService,
+        logger
+      );
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptorDelegatorApproved(
+          eservice.metadata.version,
+          descriptor.id,
+          updatedEService,
+          correlationId
+        )
+      );
+    },
+    async rejectDelegatedEServiceDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      body: RejectDelegatedEServiceDescriptorSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(`Rejecting EService ${eserviceId} version ${descriptorId}`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.waitingForApproval) {
+        throw notValidDescriptorState(
+          descriptor.id,
+          descriptor.state.toString()
+        );
+      }
+
+      const newRejectionReason: DescriptorRejectionReason = {
+        rejectionReason: body.rejectionReason,
+        rejectedAt: new Date(),
+      };
+
+      const updatedDescriptor = updateDescriptorState(
+        {
+          ...descriptor,
+          rejectionReasons: [
+            ...(descriptor.rejectionReasons ?? []),
+            newRejectionReason,
+          ],
+        },
+        descriptorState.draft
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptorDelegatorRejected(
+          eservice.metadata.version,
+          descriptor.id,
+          updatedEService,
+          correlationId
+        )
+      );
+    },
   };
 }
 
-const isUserAllowedToSeeDraft = (
-  authData: AuthData,
-  producerId: TenantId
-): boolean =>
-  hasPermission(
-    [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
-    authData
-  ) && authData.organizationId === producerId;
-
-const applyVisibilityToEService = (
+function isRequesterEServiceProducer(
   eservice: EService,
   authData: AuthData
-): EService => {
-  if (isUserAllowedToSeeDraft(authData, eservice.producerId)) {
+): boolean {
+  return (
+    hasPermission(
+      [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
+      authData
+    ) && authData.organizationId === eservice.producerId
+  );
+}
+
+async function applyVisibilityToEService(
+  eservice: EService,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<EService> {
+  if (isRequesterEServiceProducer(eservice, authData)) {
     return eservice;
   }
 
-  if (
-    eservice.descriptors.length === 0 ||
-    (eservice.descriptors.length === 1 &&
-      eservice.descriptors[0].state === descriptorState.draft)
-  ) {
+  const producerDelegation = await readModelService.getLatestDelegation({
+    eserviceId: eservice.id,
+    delegateId: authData.organizationId,
+    kind: delegationKind.delegatedProducer,
+  });
+
+  if (producerDelegation?.state === delegationState.active) {
+    return eservice;
+  }
+
+  const hasNoActiveDescriptor = eservice.descriptors.every(
+    (descriptor) =>
+      descriptor.state === descriptorState.draft ||
+      descriptor.state === delegationState.waitingForApproval
+  );
+
+  if (!producerDelegation && hasNoActiveDescriptor) {
     throw eServiceNotFound(eservice.id);
   }
 
   return {
     ...eservice,
     descriptors: eservice.descriptors.filter(
-      (d) => d.state !== descriptorState.draft
+      (d) =>
+        d.state !== descriptorState.draft &&
+        d.state !== descriptorState.waitingForApproval
     ),
   };
-};
+}
 
 const deleteDescriptorInterfaceAndDocs = async (
   descriptor: Descriptor,
@@ -1727,6 +1953,47 @@ const deleteDescriptorInterfaceAndDocs = async (
   );
 
   await Promise.all(deleteDescriptorDocs);
+};
+
+const processDescriptorPublication = async (
+  eservice: EService,
+  descriptor: Descriptor,
+  readModelService: ReadModelService,
+  logger: Logger
+): Promise<EService> => {
+  const currentActiveDescriptor = eservice.descriptors.find(
+    (d: Descriptor) => d.state === descriptorState.published
+  );
+
+  const publishedDescriptor = updateDescriptorState(
+    descriptor,
+    descriptorState.published
+  );
+
+  const eserviceWithPublishedDescriptor = replaceDescriptor(
+    eservice,
+    publishedDescriptor
+  );
+
+  if (!currentActiveDescriptor) {
+    return eserviceWithPublishedDescriptor;
+  }
+
+  const currentEServiceAgreements = await readModelService.listAgreements({
+    eservicesIds: [eservice.id],
+    consumersIds: [],
+    producersIds: [],
+    states: [agreementState.active, agreementState.suspended],
+    limit: 1,
+    descriptorId: currentActiveDescriptor.id,
+  });
+
+  return replaceDescriptor(
+    eserviceWithPublishedDescriptor,
+    currentEServiceAgreements.length === 0
+      ? archiveDescriptor(eservice.id, currentActiveDescriptor, logger)
+      : deprecateDescriptor(eservice.id, currentActiveDescriptor, logger)
+  );
 };
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

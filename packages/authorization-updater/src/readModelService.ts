@@ -45,19 +45,7 @@ export function readModelServiceBuilder(
 
     async getClientsIdsFromPurpose(purposeId: PurposeId): Promise<ClientId[]> {
       const data = await clients
-        .find(
-          {
-            $or: [
-              {
-                "data.purposes.purpose.purposeId": purposeId,
-              },
-              {
-                "data.purposes": purposeId,
-              },
-            ],
-          },
-          { projection: { data: true } }
-        )
+        .find({ "data.purposes": purposeId }, { projection: { data: true } })
         .map((c) => c.data)
         .toArray();
 
@@ -97,7 +85,7 @@ export function readModelServiceBuilder(
       return undefined;
     },
 
-    async getAgreement(
+    async getLatestAgreement(
       eserviceId: EServiceId,
       consumerId: TenantId
     ): Promise<Agreement | undefined> {
@@ -113,9 +101,8 @@ export function readModelServiceBuilder(
             ],
           },
         },
-        { projection: { data: true } }
+        { projection: { data: true }, sort: { "data.createdAt": -1 } }
       );
-
       if (data) {
         const result = Agreement.safeParse(data.data);
 

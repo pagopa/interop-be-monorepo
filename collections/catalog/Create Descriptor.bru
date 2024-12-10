@@ -1,0 +1,46 @@
+meta {
+  name: Create Descriptor
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "description": "testone testone",
+      "audience": [
+          "string"
+      ],
+      "voucherLifespan": 86400,
+      "dailyCallsPerConsumer": 100,
+      "dailyCallsTotal": 100,
+      "agreementApprovalPolicy": "AUTOMATIC",
+      "attributes": {
+          "certified": [
+          ],
+          "declared": [
+          ],
+          "verified": [
+          ]
+      },
+      "docs": []
+  }
+}
+
+vars:post-response {
+  descriptorId: res.body.id
+}

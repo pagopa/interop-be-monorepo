@@ -65,6 +65,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Attribute already assigned to Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
       requestBody:
         content:
           application/json:
@@ -336,6 +348,15 @@ paths:
         name: name
         schema:
           type: string
+      - in: query
+        name: features
+        description: comma separated feature types to filter the teanants with
+        schema:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantFeatureType"
+          default: []
+        explode: false
       - in: query
         name: offset
         required: true
@@ -620,9 +641,22 @@ paths:
           format: uuid
     delete:
       tags:
-        - tenant
+        - tenantAttribute
       operationId: revokeVerifiedAttribute
       description: Revoke a Verified attribute to a Tenant by the requester Tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - agreementId
+              properties:
+                agreementId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Updated Tenant
@@ -778,6 +812,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /tenants/{tenantId}/attributes/certified/{attributeId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: Tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: attributeId
+        in: path
+        description: Attribute id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - tenantAttribute
+      operationId: revokeCertifiedAttributeById
+      description: Revoke a certified attribute to a Tenant by the requester Tenant
+      responses:
+        "204":
+          description: Certified Attribute revoked
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /maintenance/tenants/{tenantId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -807,12 +878,67 @@ paths:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               properties:
                 currentVersion:
                   type: number
               required:
                 - currentVersion
         required: true
+    post:
+      tags:
+        - tenant
+      summary: Updates a tenant
+      operationId: maintenanceTenantUpdate
+      responses:
+        "204":
+          description: Tenant Updated
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaintenanceTenantUpdatePayload"
+        required: true
+  /maintenance/tenants/{tenantId}/certifier:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - tenant
+      operationId: addCerifierId
+      description: Add a certifierId to Tenant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertifierPromotionPayload"
+        required: true
+      responses:
+        "200":
+          description: Updated Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /tenants/{tenantId}/mails/{mailId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -891,6 +1017,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /tenants/delegatedProducer:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      tags:
+        - tenant
+      summary: Assign delegated producer feature to tenant caller
+      operationId: assignTenantDelegatedProducerFeature
+      responses:
+        "204":
+          description: Delegated producer feature assigned
+        "409":
+          description: Feature already assigned to tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      tags:
+        - tenant
+      summary: Remove delegated producer feature to tenant caller
+      operationId: removeTenantDelegatedProducerFeature
+      responses:
+        "204":
+          description: Delegated producer feature removed
+        "409":
+          description: Feature not assigned to tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -928,6 +1097,7 @@ components:
         - value
     InternalAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         origin:
           type: string
@@ -942,6 +1112,7 @@ components:
         - code
     M2MAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         code:
           type: string
@@ -951,15 +1122,22 @@ components:
         - code
     CertifiedTenantAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
           format: uuid
       required:
         - id
+    TenantUnitType:
+      type: string
+      enum:
+        - AOO
+        - UO
     Tenant:
       description: Tenant model
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -990,6 +1168,11 @@ components:
           type: string
         kind:
           $ref: "#/components/schemas/TenantKind"
+        onboardedAt:
+          type: string
+          format: date-time
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
       required:
         - id
         - certifier
@@ -1005,8 +1188,10 @@ components:
         - PA
         - PRIVATE
         - GSP
+        - SCP
     Tenants:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1018,21 +1203,45 @@ components:
       required:
         - results
         - totalCount
+    TenantFeatureType:
+      type: string
+      enum:
+        - PERSISTENT_CERTIFIER
+        - DELEGATED_PRODUCER
     TenantFeature:
-      type: object
-      properties:
-        certifier:
-          $ref: "#/components/schemas/Certifier"
+      oneOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            certifier:
+              $ref: "#/components/schemas/Certifier"
+        - type: object
+          additionalProperties: false
+          properties:
+            delegatedProducer:
+              $ref: "#/components/schemas/DelegatedProducer"
     Certifier:
       description: Certifier Tenant Feature
       type: object
+      additionalProperties: false
       properties:
         certifierId:
           type: string
       required:
         - certifierId
+    DelegatedProducer:
+      description: Delegated producer Tenant Feature
+      type: object
+      additionalProperties: false
+      properties:
+        availabilityTimestamp:
+          type: string
+          format: date-time
+      required:
+        - availabilityTimestamp
     CertifiedAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1049,9 +1258,9 @@ components:
         - name
         - attributeId
         - attributeName
-
     CertifiedAttributes:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1065,6 +1274,7 @@ components:
         - totalCount
     TenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         declared:
           $ref: "#/components/schemas/DeclaredTenantAttribute"
@@ -1074,6 +1284,7 @@ components:
           $ref: "#/components/schemas/VerifiedTenantAttribute"
     DeclaredTenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1090,6 +1301,7 @@ components:
         - assignmentTimestamp
     CertifiedTenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1106,6 +1318,7 @@ components:
         - assignmentTimestamp
     VerifiedTenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1129,6 +1342,7 @@ components:
         - revokedBy
     DeclaredTenantAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1137,8 +1351,12 @@ components:
         - id
     VerifiedTenantAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         id:
+          type: string
+          format: uuid
+        agreementId:
           type: string
           format: uuid
         expirationDate:
@@ -1146,14 +1364,17 @@ components:
           format: date-time
       required:
         - id
+        - agreementId
     UpdateVerifiedTenantAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         expirationDate:
           type: string
           format: date-time
     TenantVerifier:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1167,11 +1388,15 @@ components:
         extensionDate:
           type: string
           format: date-time
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
         - verificationDate
     TenantRevoker:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1188,6 +1413,9 @@ components:
         revocationDate:
           type: string
           format: date-time
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
         - verificationDate
@@ -1195,6 +1423,7 @@ components:
     InternalTenantSeed:
       description: Tenant Seed model
       type: object
+      additionalProperties: false
       properties:
         externalId:
           $ref: "#/components/schemas/ExternalId"
@@ -1213,6 +1442,7 @@ components:
     M2MTenantSeed:
       description: Tenant Seed model
       type: object
+      additionalProperties: false
       properties:
         externalId:
           $ref: "#/components/schemas/ExternalId"
@@ -1231,6 +1461,7 @@ components:
     SelfcareTenantSeed:
       description: Tenant Seed model
       type: object
+      additionalProperties: false
       properties:
         externalId:
           $ref: "#/components/schemas/ExternalId"
@@ -1240,19 +1471,30 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
+        digitalAddress:
+          $ref: "#/components/schemas/MailSeed"
+        onboardedAt:
+          type: string
+          format: date-time
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
       required:
         - externalId
         - selfcareId
         - name
+        - onboardedAt
     Mail:
       description: A specific kind of mail
       type: object
+      additionalProperties: false
       properties:
+        id:
+          type: string
         kind:
           $ref: "#/components/schemas/MailKind"
         address:
           type: string
-          maxLength: 30
+          maxLength: 320
         createdAt:
           type: string
           format: date-time
@@ -1260,6 +1502,7 @@ components:
           type: string
           maxLength: 250
       required:
+        - id
         - kind
         - address
         - createdAt
@@ -1270,6 +1513,7 @@ components:
         - DIGITAL_ADDRESS
     ResourceId:
       type: object
+      additionalProperties: false
       required:
         - id
       properties:
@@ -1279,6 +1523,7 @@ components:
     MailSeed:
       description: A specific kind of mail
       type: object
+      additionalProperties: false
       properties:
         kind:
           $ref: "#/components/schemas/MailKind"
@@ -1293,6 +1538,56 @@ components:
       required:
         - kind
         - address
+    CertifierPromotionPayload:
+      description: Certifier promotion payload
+      type: object
+      additionalProperties: false
+      properties:
+        certifierId:
+          type: string
+      required:
+        - certifierId
+    MaintenanceTenantUpdatePayload:
+      description: Maintenance payload to update tenant fields
+      type: object
+      additionalProperties: false
+      properties:
+        currentVersion:
+          type: number
+        tenant:
+          $ref: "#/components/schemas/MaintenanceTenantUpdate"
+      required:
+        - currentVersion
+        - tenant
+    MaintenanceTenantUpdate:
+      description: Tenant model
+      type: object
+      additionalProperties: false
+      properties:
+        selfcareId:
+          type: string
+        externalId:
+          $ref: "#/components/schemas/ExternalId"
+        mails:
+          type: array
+          items:
+            $ref: "#/components/schemas/Mail"
+        name:
+          type: string
+        kind:
+          $ref: "#/components/schemas/TenantKind"
+        onboardedAt:
+          type: string
+          format: date-time
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+      required:
+        - selfcareId
+        - externalId
+        - mails
+        - name
+        - kind
+        - onboardedAt
     Problem:
       properties:
         type:

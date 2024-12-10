@@ -1,11 +1,14 @@
 import crypto, { JsonWebKey, KeyObject } from "crypto";
+import jwksClient, { JwksClient } from "jwks-rsa";
 import {
   invalidKey,
   jwkDecodingError,
+  notAllowedCertificateException,
   notAllowedPrivateKeyException,
 } from "pagopa-interop-models";
+import { JWTConfig } from "../config/index.js";
 
-const decodeBase64ToPem = (base64String: string): string => {
+export const decodeBase64ToPem = (base64String: string): string => {
   try {
     const cleanedBase64 = base64String.trim();
     const decodedBytes = Buffer.from(cleanedBase64, "base64");
@@ -24,30 +27,35 @@ export const calculateKid = (jwk: JsonWebKey): string => {
   return crypto.createHash("sha256").update(jwkString).digest("base64url");
 };
 
-function createPublicKey(key: string): KeyObject {
-  /*
-  Validation of a public key in PEM format.
-  The standard library does not provide a specific method.
-  Note: crypto.createPublicKey cannot be used directly because it succeeds also when providing a private key.
-  In order to perform the check, the function:
-    1. tries to create a private key
-      - success: the value is a private key and the function fails
-      - failure: the value is not a private key and the function proceeds
-    2. tries to create a public key
-      - success: the value is a public key
-      - failure: the value is not a key
-  */
-  const pemKey = decodeBase64ToPem(key);
+function assertNotCertificate(key: string): void {
   try {
-    crypto.createPrivateKey(pemKey);
+    new crypto.X509Certificate(key);
+  } catch (error) {
+    return;
+  }
+  throw notAllowedCertificateException();
+}
+
+function assertNotPrivateKey(key: string): void {
+  try {
+    crypto.createPrivateKey(key);
   } catch {
-    try {
-      return crypto.createPublicKey(pemKey);
-    } catch (error) {
-      throw invalidKey(key, error);
-    }
+    return;
   }
   throw notAllowedPrivateKeyException();
+}
+
+export function createPublicKey(key: string): KeyObject {
+  const pemKey = decodeBase64ToPem(key);
+
+  assertNotPrivateKey(pemKey);
+  assertNotCertificate(pemKey);
+
+  try {
+    return crypto.createPublicKey(pemKey);
+  } catch (error) {
+    throw invalidKey(key, error);
+  }
 }
 
 export function sortJWK(jwk: JsonWebKey): JsonWebKey {
@@ -57,4 +65,22 @@ export function sortJWK(jwk: JsonWebKey): JsonWebKey {
       (prev, sortedKey) => ({ ...prev, [sortedKey]: jwk[sortedKey] }),
       {}
     );
+}
+
+export function buildJwksClients(config: JWTConfig): JwksClient[] {
+  return config.wellKnownUrls.map((url) =>
+    jwksClient({
+      jwksUri: url,
+      /* If JWKS_CACHE_MAX_AGE_MILLIS not provided using 10 minutes as default value:
+      https://github.com/auth0/node-jwks-rsa/blob/master/EXAMPLES.md#configuration
+      */
+
+      // Caching is not being leveraged at the moment since we are building
+      // a new client for each request.
+      // Building clients only once at startup caused https://pagopa.atlassian.net/browse/PIN-5682
+      // cache: true,
+      // rateLimit: true,
+      // cacheMaxAge: config.jwksCacheMaxAge ?? 600000,
+    })
+  );
 }

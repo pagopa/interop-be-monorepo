@@ -1,0 +1,33 @@
+meta {
+  name: Adds the verified attribute to the Institution
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-bff}}/tenants/:tenantId/attributes/verified
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: 0cf1db41-3085-43a6-9e4c-57e0fb81a916
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  {
+    "id": "e7e06185-f8b9-4fbd-852b-ede8be523962",
+    "expirationDate": "2024-10-10T13:17:21.845Z"
+  }
+}
+
+docs {
+  Adds the verified attribute to the Institution
+}

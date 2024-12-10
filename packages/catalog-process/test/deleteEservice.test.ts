@@ -2,6 +2,7 @@
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockDelegation,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -12,11 +13,15 @@ import {
   operationForbidden,
   EServiceDraftDescriptorDeletedV2,
   toEServiceV2,
+  delegationState,
+  generateId,
+  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi } from "vitest";
 import {
   eServiceNotFound,
   eserviceNotInDraftState,
+  eserviceWithActiveOrPendingDelegation,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -29,6 +34,7 @@ import {
   getMockEService,
   postgresDB,
   fileManager,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("delete eservice", () => {
@@ -43,7 +49,7 @@ describe("delete eservice", () => {
     await addOneEService(eservice);
     await catalogService.deleteEService(eservice.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -78,20 +84,24 @@ describe("delete eservice", () => {
     };
 
     await fileManager.storeBytes(
-      config.s3Bucket,
-      config.eserviceDocumentsPath,
-      interfaceDocument.id,
-      interfaceDocument.name,
-      Buffer.from("testtest"),
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: interfaceDocument.id,
+        name: interfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
       genericLogger
     );
 
     await fileManager.storeBytes(
-      config.s3Bucket,
-      config.eserviceDocumentsPath,
-      document.id,
-      document.name,
-      Buffer.from("testtest"),
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: document.id,
+        name: document.name,
+        content: Buffer.from("testtest"),
+      },
       genericLogger
     );
 
@@ -115,7 +125,7 @@ describe("delete eservice", () => {
     await addOneEService(eservice);
     await catalogService.deleteEService(eservice.id, {
       authData: getMockAuthData(eservice.producerId),
-      correlationId: "",
+      correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
     });
@@ -183,7 +193,7 @@ describe("delete eservice", () => {
     void expect(
       catalogService.deleteEService(mockEService.id, {
         authData: getMockAuthData(mockEService.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -195,12 +205,60 @@ describe("delete eservice", () => {
     expect(
       catalogService.deleteEService(mockEService.id, {
         authData: getMockAuthData(),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
     ).rejects.toThrowError(operationForbidden);
   });
+
+  it.each([delegationState.active, delegationState.waitingForApproval])(
+    "should throw eserviceWithActiveOrPendingDelegation if the eservice is associated with a delegation with state %s",
+    async (delegationState) => {
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: mockEService.id,
+        state: delegationState,
+      });
+
+      await addOneEService(mockEService);
+      await addOneDelegation(delegation);
+      expect(
+        catalogService.deleteEService(mockEService.id, {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(
+        eserviceWithActiveOrPendingDelegation(mockEService.id, delegation.id)
+      );
+    }
+  );
+
+  it.each([delegationState.revoked, delegationState.rejected])(
+    "should not throw eserviceWithActiveOrPendingDelegation if the eservice is associated with a delegation with state %s",
+    async (delegationState) => {
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: mockEService.id,
+        state: delegationState,
+      });
+
+      await addOneEService(mockEService);
+      await addOneDelegation(delegation);
+      expect(
+        catalogService.deleteEService(mockEService.id, {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        })
+      ).resolves.not.toThrowError(
+        eserviceWithActiveOrPendingDelegation(mockEService.id, delegation.id)
+      );
+    }
+  );
 
   it("should throw eserviceNotInDraftState if the eservice has both draft and non-draft descriptors", async () => {
     const descriptor1: Descriptor = {
@@ -222,7 +280,7 @@ describe("delete eservice", () => {
     expect(
       catalogService.deleteEService(eservice.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })

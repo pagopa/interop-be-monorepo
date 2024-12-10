@@ -22,6 +22,7 @@ export const descriptorState = {
   deprecated: "Deprecated",
   suspended: "Suspended",
   archived: "Archived",
+  waitingForApproval: "WaitingForApproval",
 } as const;
 export const DescriptorState = z.enum([
   Object.values(descriptorState)[0],
@@ -94,6 +95,14 @@ export const DocumentSQL = z.object({
   document_kind: DocumentKind,
 });
 export type DocumentSQL = z.infer<typeof DocumentSQL>;
+  
+export const DescriptorRejectionReason = z.object({
+  rejectionReason: z.string(),
+  rejectedAt: z.coerce.date(),
+});
+export type DescriptorRejectionReason = z.infer<
+  typeof DescriptorRejectionReason
+>;
 
 export const Descriptor = z.object({
   id: DescriptorId,
@@ -114,6 +123,7 @@ export const Descriptor = z.object({
   deprecatedAt: z.coerce.date().optional(),
   archivedAt: z.coerce.date().optional(),
   attributes: EServiceAttributes,
+  rejectionReasons: z.array(DescriptorRejectionReason).optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -161,6 +171,7 @@ export const EService = z.object({
   createdAt: z.coerce.date(),
   riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
+  isSignalHubEnabled: z.boolean().optional(),
 });
 export type EService = z.infer<typeof EService>;
 

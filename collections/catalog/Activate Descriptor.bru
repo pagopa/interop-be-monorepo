@@ -1,0 +1,21 @@
+meta {
+  name: Activate Descriptor
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/activate
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

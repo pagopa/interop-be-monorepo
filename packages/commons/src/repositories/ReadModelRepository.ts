@@ -4,9 +4,12 @@ import {
   ClientReadModel,
   EServiceReadModel,
   TenantReadModel,
-  JWKKey,
+  ClientJWKKey,
   PurposeReadModel,
   genericInternalError,
+  ProducerKeychainReadModel,
+  ProducerJWKKey,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   Collection,
@@ -37,7 +40,11 @@ export type TenantCollection = GenericCollection<TenantReadModel>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 export type PurposeCollection = GenericCollection<PurposeReadModel>;
 export type ClientCollection = GenericCollection<ClientReadModel>;
-export type KeyCollection = GenericCollection<JWKKey>;
+export type ClientKeyCollection = GenericCollection<ClientJWKKey>;
+export type ProducerKeychainCollection =
+  GenericCollection<ProducerKeychainReadModel>;
+export type ProducerKeyCollection = GenericCollection<ProducerJWKKey>;
+export type DelegationCollection = GenericCollection<Delegation>;
 
 export type Collections =
   | EServiceCollection
@@ -46,7 +53,10 @@ export type Collections =
   | AttributeCollection
   | PurposeCollection
   | ClientCollection
-  | KeyCollection;
+  | ClientKeyCollection
+  | ProducerKeychainCollection
+  | ProducerKeyCollection
+  | DelegationCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -151,7 +161,13 @@ export class ReadModelRepository {
 
   public clients: ClientCollection;
 
-  public keys: KeyCollection;
+  public keys: ClientKeyCollection;
+
+  public producerKeychains: ProducerKeychainCollection;
+
+  public producerKeys: ProducerKeyCollection;
+
+  public delegations: DelegationCollection;
 
   private client: MongoClient;
   private db: Db;
@@ -179,6 +195,15 @@ export class ReadModelRepository {
     this.purposes = this.db.collection("purposes", { ignoreUndefined: true });
     this.clients = this.db.collection("clients", { ignoreUndefined: true });
     this.keys = this.db.collection("keys", { ignoreUndefined: true });
+    this.producerKeychains = this.db.collection("producer_keychains", {
+      ignoreUndefined: true,
+    });
+    this.producerKeys = this.db.collection("producer_keys", {
+      ignoreUndefined: true,
+    });
+    this.delegations = this.db.collection("delegations", {
+      ignoreUndefined: true,
+    });
   }
 
   public static init(config: ReadModelDbConfig): ReadModelRepository {
@@ -203,11 +228,10 @@ export class ReadModelRepository {
 
   public static async getTotalCount(
     collection: Collections,
-    aggregation: object[],
-    allowDiskUse: boolean
+    aggregation: object[]
   ): Promise<number> {
     const query = collection.aggregate([...aggregation, { $count: "count" }], {
-      allowDiskUse,
+      allowDiskUse: true,
     });
 
     const data = await query.toArray();

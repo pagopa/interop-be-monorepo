@@ -1,9 +1,9 @@
-/* eslint-disable functional/immutable-data */
-/* eslint-disable functional/no-let */
 import { describe, expect, it } from "vitest";
 import {
   getMockPurpose,
   getMockPurposeVersion,
+  toPurposeV1,
+  toPurposeVersionV1,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
@@ -45,7 +45,6 @@ import {
 } from "pagopa-interop-models";
 import { handleMessageV1 } from "../src/purposeConsumerServiceV1.js";
 import { handleMessageV2 } from "../src/purposeConsumerServiceV2.js";
-import { toPurposeV1, toPurposeVersionV1 } from "./protobufConverterToV1.js";
 import { purposes } from "./utils.js";
 
 describe("Integration tests", async () => {

@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger, FileManagerError } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockDelegation,
+} from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -12,6 +15,8 @@ import {
   toEServiceV2,
   generateId,
   operationForbidden,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
@@ -30,6 +35,7 @@ import {
   getMockEService,
   getMockDescriptor,
   getMockDocument,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("clone descriptor", () => {
@@ -75,29 +81,35 @@ describe("clone descriptor", () => {
     await addOneEService(eservice);
 
     await fileManager.storeBytes(
-      config.s3Bucket,
-      config.eserviceDocumentsPath,
-      interfaceDocument.id,
-      interfaceDocument.name,
-      Buffer.from("testtest"),
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: interfaceDocument.id,
+        name: interfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
       genericLogger
     );
 
     await fileManager.storeBytes(
-      config.s3Bucket,
-      config.eserviceDocumentsPath,
-      document1.id,
-      document1.name,
-      Buffer.from("testtest"),
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: document1.id,
+        name: document1.name,
+        content: Buffer.from("testtest"),
+      },
       genericLogger
     );
 
     await fileManager.storeBytes(
-      config.s3Bucket,
-      config.eserviceDocumentsPath,
-      document2.id,
-      document2.name,
-      Buffer.from("testtest"),
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: document2.id,
+        name: document2.name,
+        content: Buffer.from("testtest"),
+      },
       genericLogger
     );
     expect(
@@ -116,7 +128,7 @@ describe("clone descriptor", () => {
       descriptor.id,
       {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -230,13 +242,13 @@ describe("clone descriptor", () => {
     await expect(
       catalogService.cloneDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
     ).rejects.toThrowError(FileManagerError);
   });
-  it("should throw eServiceDuplicate if an eservice with the same name already exists", async () => {
+  it("should throw eServiceDuplicate if an eservice with the same name already exists, case insensitive", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -245,15 +257,16 @@ describe("clone descriptor", () => {
     };
     const eservice1: EService = {
       ...mockEService,
+      name: mockEService.name.toUpperCase(),
       id: generateId(),
       descriptors: [descriptor],
     };
     await addOneEService(eservice1);
 
     const cloneTimestamp = new Date();
-    const conflictEServiceName = `${
-      eservice1.name
-    } - clone - ${formatDateddMMyyyyHHmmss(cloneTimestamp)}`;
+    const conflictEServiceName = `${eservice1.name.toLowerCase()} - clone - ${formatDateddMMyyyyHHmmss(
+      cloneTimestamp
+    )}`;
 
     const eservice2: EService = {
       ...mockEService,
@@ -266,17 +279,23 @@ describe("clone descriptor", () => {
     expect(
       catalogService.cloneDescriptor(eservice1.id, descriptor.id, {
         authData: getMockAuthData(eservice1.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(eServiceDuplicate(conflictEServiceName));
+    ).rejects.toThrowError(
+      eServiceDuplicate(
+        `${eservice1.name} - clone - ${formatDateddMMyyyyHHmmss(
+          cloneTimestamp
+        )}`
+      )
+    );
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(
       catalogService.cloneDescriptor(mockEService.id, mockDescriptor.id, {
         authData: getMockAuthData(),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -295,7 +314,34 @@ describe("clone descriptor", () => {
     expect(
       catalogService.cloneDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(),
-        correlationId: "",
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw operationForbidden if the requester is a producer delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.cloneDescriptor(eservice.id, descriptor.id, {
+        authData: getMockAuthData(delegation.delegateId),
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -310,7 +356,7 @@ describe("clone descriptor", () => {
     expect(
       catalogService.cloneDescriptor(mockEService.id, mockDescriptor.id, {
         authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })

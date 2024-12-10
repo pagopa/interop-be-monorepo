@@ -96,6 +96,11 @@ paths:
           schema:
             $ref: "#/components/schemas/EServiceMode"
         - in: query
+          name: delegated
+          description: if true only delegated e-services will be returned, if false only non-delegated e-services will be returned, if not present all e-services will be returned
+          schema:
+            type: boolean
+        - in: query
           name: offset
           required: true
           schema:
@@ -1069,6 +1074,105 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/:eServiceId/descriptors/:descriptorId/approve:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: approve a delegated new e-service version
+      operationId: approveDelegatedEServiceDescriptor
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: New delegated e-service version approved
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/:eServiceId/descriptors/:descriptorId/reject:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: reject a delegated new e-service version
+      operationId: rejectDelegatedEServiceDescriptor
+      requestBody:
+        description: Payload containing the reason of the rejection
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedEServiceDescriptorSeed"
+        required: true
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: New delegated e-service version rejected
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -1093,16 +1197,9 @@ components:
       schema:
         type: string
   schemas:
-    ResourceId:
-      type: object
-      required:
-        - id
-      properties:
-        id:
-          type: string
-          format: uuid
     EServiceSeed:
       type: object
+      additionalProperties: false
       required:
         - name
         - description
@@ -1124,8 +1221,11 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         descriptor:
           $ref: "#/components/schemas/DescriptorSeedForEServiceCreation"
+        isSignalHubEnabled:
+          type: boolean
     UpdateEServiceSeed:
       type: object
+      additionalProperties: false
       required:
         - name
         - description
@@ -1144,6 +1244,8 @@ components:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
     DescriptorSeedForEServiceCreation:
       required:
         - audience
@@ -1152,6 +1254,7 @@ components:
         - dailyCallsTotal
         - agreementApprovalPolicy
       type: object
+      additionalProperties: false
       properties:
         description:
           type: string
@@ -1190,6 +1293,7 @@ components:
         - attributes
         - docs
       type: object
+      additionalProperties: false
       properties:
         description:
           type: string
@@ -1233,6 +1337,7 @@ components:
         - agreementApprovalPolicy
         - attributes
       type: object
+      additionalProperties: false
       properties:
         description:
           type: string
@@ -1265,6 +1370,7 @@ components:
           $ref: "#/components/schemas/AttributesSeed"
     UpdateEServiceDescriptorQuotasSeed:
       type: object
+      additionalProperties: false
       properties:
         voucherLifespan:
           type: integer
@@ -1294,6 +1400,7 @@ components:
         - checksum
         - serverUrls
       type: object
+      additionalProperties: false
       properties:
         documentId:
           type: string
@@ -1318,6 +1425,7 @@ components:
       required:
         - prettyName
       type: object
+      additionalProperties: false
       properties:
         prettyName:
           type: string
@@ -1349,6 +1457,7 @@ components:
         - verified
     AttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1367,19 +1476,9 @@ components:
       enum:
         - AUTOMATIC
         - MANUAL
-    Organization:
-      type: object
-      required:
-        - id
-        - name
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
     EServiceRiskAnalysisSeed:
       type: object
+      additionalProperties: false
       required:
         - name
         - riskAnalysisForm
@@ -1390,6 +1489,7 @@ components:
           $ref: "#/components/schemas/EServiceRiskAnalysisFormSeed"
     EServiceRiskAnalysisFormSeed:
       type: object
+      additionalProperties: false
       properties:
         version:
           type: string
@@ -1407,6 +1507,7 @@ components:
         - answers
     EService:
       type: object
+      additionalProperties: false
       required:
         - id
         - producerId
@@ -1439,6 +1540,8 @@ components:
             $ref: "#/components/schemas/EServiceRiskAnalysis"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -1447,6 +1550,7 @@ components:
         - DELIVER
     EServiceRiskAnalysis:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -1465,6 +1569,7 @@ components:
           format: date-time
     EServiceRiskAnalysisForm:
       type: object
+      additionalProperties: false
       required:
         - id
         - version
@@ -1486,6 +1591,7 @@ components:
             $ref: "#/components/schemas/EServiceRiskAnalysisMultiAnswer"
     EServiceRiskAnalysisSingleAnswer:
       type: object
+      additionalProperties: false
       required:
         - id
         - key
@@ -1499,6 +1605,7 @@ components:
           type: string
     EServiceRiskAnalysisMultiAnswer:
       type: object
+      additionalProperties: false
       required:
         - id
         - key
@@ -1515,6 +1622,7 @@ components:
             type: string
     EServiceConsumers:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1528,6 +1636,7 @@ components:
         - totalCount
     EServiceConsumer:
       type: object
+      additionalProperties: false
       required:
         - descriptorVersion
         - descriptorState
@@ -1548,6 +1657,7 @@ components:
           type: string
     EServices:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1561,6 +1671,7 @@ components:
         - totalCount
     EServiceDoc:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -1584,6 +1695,7 @@ components:
           type: string
     EServiceDescriptionSeed:
       type: object
+      additionalProperties: false
       properties:
         description:
           type: string
@@ -1593,6 +1705,7 @@ components:
         - description
     EServiceDescriptor:
       type: object
+      additionalProperties: false
       required:
         - id
         - version
@@ -1659,8 +1772,13 @@ components:
           format: date-time
         attributes:
           $ref: "#/components/schemas/Attributes"
+        rejectionReasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/RejectionReason"
     Attribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1709,6 +1827,7 @@ components:
         - DEPRECATED
         - SUSPENDED
         - ARCHIVED
+        - WAITING_FOR_APPROVAL
     EServiceDocumentKind:
       type: string
       description: EService Document Kind
@@ -1726,6 +1845,26 @@ components:
         - ARCHIVED
         - MISSING_CERTIFIED_ATTRIBUTES
         - REJECTED
+    RejectionReason:
+      type: object
+      additionalProperties: false
+      properties:
+        rejectionReason:
+          type: string
+        rejectedAt:
+          type: string
+          format: date-time
+      required:
+        - rejectionReason
+        - rejectedAt
+    RejectDelegatedEServiceDescriptorSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        rejectionReason:
+          type: string
+      required:
+        - rejectionReason
     Problem:
       properties:
         type:

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { attributeKind, toReadModelAttribute } from "pagopa-interop-models";
 import {
   writeInReadmodel,
   getMockAttribute,
   readLastEventByStreamId,
+  getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -27,7 +27,6 @@ import {
 import {
   addOneTenant,
   attributes,
-  getMockTenant,
   postgresDB,
   tenantService,
 } from "./utils.js";

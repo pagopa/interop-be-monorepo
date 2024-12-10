@@ -11,6 +11,7 @@ import {
   TenantRevoker,
   badRequestError,
   CompactTenant,
+  DelegationId,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -100,13 +101,16 @@ function fromApiTenantVerifier(
   verifier: agreementApi.TenantVerifier
 ): TenantVerifier {
   return {
-    id: verifier.id,
+    id: unsafeBrandId(verifier.id),
     verificationDate: new Date(verifier.verificationDate),
     expirationDate: verifier.expirationDate
       ? new Date(verifier.expirationDate)
       : undefined,
     extensionDate: verifier.extensionDate
       ? new Date(verifier.extensionDate)
+      : undefined,
+    delegationId: verifier.delegationId
+      ? unsafeBrandId<DelegationId>(verifier.delegationId)
       : undefined,
   };
 }
@@ -115,7 +119,7 @@ function fromApiTenantRevoker(
   revoker: agreementApi.TenantRevoker
 ): TenantRevoker {
   return {
-    id: revoker.id,
+    id: unsafeBrandId(revoker.id),
     verificationDate: new Date(revoker.verificationDate),
     expirationDate: revoker.expirationDate
       ? new Date(revoker.expirationDate)
@@ -124,6 +128,9 @@ function fromApiTenantRevoker(
       ? new Date(revoker.extensionDate)
       : undefined,
     revocationDate: new Date(revoker.revocationDate),
+    delegationId: revoker.delegationId
+      ? unsafeBrandId<DelegationId>(revoker.delegationId)
+      : undefined,
   };
 }
 

@@ -1,0 +1,22 @@
+meta {
+  name: Delete Descriptor Document
+  type: http
+  seq: 18
+}
+
+delete {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/documents/:documentId
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+  documentId: {{interfaceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

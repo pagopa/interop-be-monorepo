@@ -5,7 +5,12 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
-import { AgreementEvent } from "pagopa-interop-models";
+import {
+  AgreementEvent,
+  CorrelationId,
+  generateId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
@@ -24,7 +29,9 @@ async function processMessage({
     eventType: msg.type,
     eventVersion: msg.event_version,
     streamId: msg.stream_id,
-    correlationId: msg.correlation_id,
+    correlationId: msg.correlation_id
+      ? unsafeBrandId<CorrelationId>(msg.correlation_id)
+      : generateId<CorrelationId>(),
   });
 
   await match(msg)

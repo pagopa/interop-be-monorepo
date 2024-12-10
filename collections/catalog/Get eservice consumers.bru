@@ -1,0 +1,25 @@
+meta {
+  name: Get eservice consumers
+  type: http
+  seq: 22
+}
+
+get {
+  url: {{host-catalog}}/eservices/:eserviceId/consumers?offset=0&limit=10
+  body: json
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

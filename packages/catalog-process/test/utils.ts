@@ -27,6 +27,7 @@ import {
   toReadModelTenant,
   toReadModelAgreement,
   DescriptorState,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -42,7 +43,7 @@ import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  setupTestContainersVitest(
+  await setupTestContainersVitest(
     inject("readModelConfig"),
     inject("eventStoreConfig"),
     inject("fileManagerConfig")
@@ -54,6 +55,7 @@ export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
 export const attributes = readModelRepository.attributes;
+export const delegations = readModelRepository.delegations;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
@@ -215,19 +217,6 @@ export const getMockDocument = (): Document => ({
   uploadDate: new Date(),
 });
 
-export const getMockTenant = (): Tenant => ({
-  name: "A tenant",
-  id: generateId(),
-  createdAt: new Date(),
-  attributes: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  features: [],
-  mails: [],
-});
-
 export const getMockAgreement = ({
   eserviceId,
   descriptorId,
@@ -294,6 +283,12 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+};
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await writeInReadmodel(delegation, delegations);
 };
 
 export const readLastEserviceEvent = async (

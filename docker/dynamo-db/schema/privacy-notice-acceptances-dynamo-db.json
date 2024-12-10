@@ -1,0 +1,11 @@
+{
+  "TableName": "privacy-notice-acceptances",
+  "KeySchema": [{ "AttributeName": "pnIdWithUserId", "KeyType": "HASH" }],
+  "AttributeDefinitions": [
+    { "AttributeName": "pnIdWithUserId", "AttributeType": "S" }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 10,
+    "WriteCapacityUnits": 5
+  }
+}

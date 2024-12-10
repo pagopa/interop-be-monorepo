@@ -22,8 +22,12 @@ import {
   MaintenanceTenantDeletedV2,
   TenantMailAddedV2,
   TenantVerifiedAttributeExtensionUpdatedV2,
+  MaintenanceTenantPromotedToCertifierV2,
   TenantMailDeletedV2,
   TenantKindUpdatedV2,
+  TenantDelegatedProducerFeatureAddedV2,
+  TenantDelegatedProducerFeatureRemovedV2,
+  MaintenanceTenantUpdatedV2,
 } from "../gen/v2/tenant/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import { EventEnvelope } from "../events/events.js";
@@ -96,6 +100,9 @@ export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
     .with({ type: "MaintenanceTenantDeleted" }, ({ data }) =>
       MaintenanceTenantDeletedV2.toBinary(data)
     )
+    .with({ type: "MaintenanceTenantUpdated" }, ({ data }) =>
+      MaintenanceTenantUpdatedV2.toBinary(data)
+    )
     .with({ type: "TenantMailAdded" }, ({ data }) =>
       TenantMailAddedV2.toBinary(data)
     )
@@ -104,6 +111,15 @@ export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
     )
     .with({ type: "TenantMailDeleted" }, ({ data }) =>
       TenantMailDeletedV2.toBinary(data)
+    )
+    .with({ type: "MaintenanceTenantPromotedToCertifier" }, ({ data }) =>
+      MaintenanceTenantPromotedToCertifierV2.toBinary(data)
+    )
+    .with({ type: "TenantDelegatedProducerFeatureAdded" }, ({ data }) =>
+      TenantDelegatedProducerFeatureAddedV2.toBinary(data)
+    )
+    .with({ type: "TenantDelegatedProducerFeatureRemoved" }, ({ data }) =>
+      TenantDelegatedProducerFeatureRemovedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -206,6 +222,11 @@ export const TenantEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
+    type: z.literal("MaintenanceTenantUpdated"),
+    data: protobufDecoder(MaintenanceTenantUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
     type: z.literal("TenantMailAdded"),
     data: protobufDecoder(TenantMailAddedV2),
   }),
@@ -218,6 +239,21 @@ export const TenantEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("TenantMailDeleted"),
     data: protobufDecoder(TenantMailDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("MaintenanceTenantPromotedToCertifier"),
+    data: protobufDecoder(MaintenanceTenantPromotedToCertifierV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("TenantDelegatedProducerFeatureAdded"),
+    data: protobufDecoder(TenantDelegatedProducerFeatureAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("TenantDelegatedProducerFeatureRemoved"),
+    data: protobufDecoder(TenantDelegatedProducerFeatureRemovedV2),
   }),
 ]);
 

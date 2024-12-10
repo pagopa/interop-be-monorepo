@@ -35,7 +35,9 @@ export function toFeatureV1(feature: TenantFeature): TenantFeatureV1 {
         },
       },
     }))
-    .exhaustive();
+    .otherwise(() => {
+      throw new Error("Unsupported tenant feature");
+    });
 }
 
 export function toTenantVerifierV1(verifier: TenantVerifier): TenantVerifierV1 {
@@ -86,6 +88,7 @@ export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
         declaredAttribute: {
           id: attribute.id,
           assignmentTimestamp: dateToBigInt(attribute.assignmentTimestamp),
+          revocationTimestamp: dateToBigInt(attribute.revocationTimestamp),
         },
       },
     }))
@@ -94,6 +97,7 @@ export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
 
 export function toTenantMailV1(mail: TenantMail): TenantMailV1 {
   return {
+    id: mail.id ?? undefined,
     kind: toTenantMailKindV1(mail.kind),
     address: mail.address,
     createdAt: dateToBigInt(mail.createdAt),
@@ -113,7 +117,9 @@ export function toTenantKindV1(input: TenantKind): TenantKindV1 {
     .with(tenantKind.GSP, () => TenantKindV1.GSP)
     .with(tenantKind.PA, () => TenantKindV1.PA)
     .with(tenantKind.PRIVATE, () => TenantKindV1.PRIVATE)
-    .exhaustive();
+    .otherwise(() => {
+      throw new Error("Unsupported tenant kind");
+    });
 }
 
 export function toTenantUnitTypeV1(input: TenantUnitType): TenantUnitTypeV1 {

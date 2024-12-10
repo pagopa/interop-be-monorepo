@@ -43,6 +43,7 @@ export function descriptorStateToApiEServiceDescriptorState(
     .with(descriptorState.suspended, () => "SUSPENDED")
     .with(descriptorState.deprecated, () => "DEPRECATED")
     .with(descriptorState.archived, () => "ARCHIVED")
+    .with(descriptorState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
     .exhaustive();
 }
 
@@ -55,6 +56,7 @@ export function apiDescriptorStateToDescriptorState(
     .with("SUSPENDED", () => descriptorState.suspended)
     .with("DEPRECATED", () => descriptorState.deprecated)
     .with("ARCHIVED", () => descriptorState.archived)
+    .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
     .exhaustive();
 }
 
@@ -141,7 +143,6 @@ export const documentToApiDocument = (
   contentType: document.contentType,
   prettyName: document.prettyName,
   path: document.path,
-  uploadDate: document.uploadDate,
   checksum: document.checksum,
 });
 
@@ -155,7 +156,9 @@ export const descriptorToApiDescriptor = (
   voucherLifespan: descriptor.voucherLifespan,
   dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
   dailyCallsTotal: descriptor.dailyCallsTotal,
-  interface: descriptor.interface,
+  interface: descriptor.interface
+    ? documentToApiDocument(descriptor.interface)
+    : undefined,
   docs: descriptor.docs.map(documentToApiDocument),
   state: descriptorStateToApiEServiceDescriptorState(descriptor.state),
   agreementApprovalPolicy: agreementApprovalPolicyToApiAgreementApprovalPolicy(
@@ -171,6 +174,10 @@ export const descriptorToApiDescriptor = (
     declared: descriptor.attributes.declared,
     verified: descriptor.attributes.verified,
   },
+  rejectionReasons: descriptor.rejectionReasons?.map((reason) => ({
+    rejectionReason: reason.rejectionReason,
+    rejectedAt: reason.rejectedAt.toJSON(),
+  })),
 });
 
 export const eServiceToApiEService = (
@@ -194,4 +201,5 @@ export const eServiceToApiEService = (
     },
   })),
   descriptors: eservice.descriptors.map(descriptorToApiDescriptor),
+  isSignalHubEnabled: eservice.isSignalHubEnabled,
 });

@@ -1,0 +1,19 @@
+meta {
+  name: Get Attribute
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-api-gw}}/attributes/:attributeId
+  body: none
+  auth: none
+}
+
+params:path {
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
