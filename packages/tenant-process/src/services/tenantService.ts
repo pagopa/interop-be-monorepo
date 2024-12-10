@@ -83,6 +83,7 @@ import {
   agreementNotFound,
   notValidMailAddress,
   delegationNotFound,
+  notAllowedToAddDeclaredAttribute,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -559,9 +560,10 @@ export function tenantServiceBuilder(
         })
         .otherwise(async (seedDelegationId) => {
           const delegationId: DelegationId = unsafeBrandId(seedDelegationId);
-          const delegation = await readModelService.getDelegation(
+          const delegation = await readModelService.getDelegationById(
             delegationId,
-            "DelegatedConsumer"
+            "DelegatedConsumer",
+            "Active"
           );
 
           if (!delegation) {
@@ -570,6 +572,11 @@ export function tenantServiceBuilder(
           logger.info(
             `Add declared attribute ${tenantAttributeSeed.id} to delegatator tenant ${delegation.delegatorId}`
           );
+
+          if (delegation.delegateId !== organizationId) {
+            throw notAllowedToAddDeclaredAttribute();
+          }
+
           const targetTenant = await retrieveTenant(
             delegation.delegatorId,
             readModelService
@@ -605,7 +612,6 @@ export function tenantServiceBuilder(
               attribute.id,
               delegationId
             ),
-
         updatedAt: new Date(),
       };
 
@@ -617,6 +623,7 @@ export function tenantServiceBuilder(
           correlationId
         )
       );
+
       return updatedTenant;
     },
 

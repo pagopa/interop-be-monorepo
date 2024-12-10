@@ -29,6 +29,7 @@ import {
   DelegationReadModel,
   delegationKind,
   delegationState,
+  DelegationState,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
@@ -567,14 +568,15 @@ export function readModelServiceBuilder(
         "data.state": delegationState.active,
       });
     },
-    async getDelegation(
+    async getDelegationById(
       delegationId: DelegationId,
-      kind: DelegationKind
+      kind: DelegationKind,
+      state: DelegationState
     ): Promise<Delegation | undefined> {
       const data = await delegations.findOne(
         {
           "data.id": delegationId,
-          "data.state": agreementState.active,
+          "data.state": state,
           "data.kind": kind,
         },
         { projection: { data: true } }
