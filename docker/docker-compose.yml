@@ -20,8 +20,9 @@ services:
       - ./readmodel-init.sql:/docker-entrypoint-initdb.d/01-init.sql
     image: postgres:14
     ports:
-      - 6002:5432
+      - 6002:5433
     environment:
+      PGPORT: 5433
       POSTGRES_DB: root
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
