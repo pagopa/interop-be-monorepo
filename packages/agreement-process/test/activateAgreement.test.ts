@@ -29,7 +29,6 @@ import {
 import {
   Agreement,
   AgreementActivatedV2,
-  AgreementContractPDFPayload,
   AgreementId,
   AgreementSetMissingCertifiedAttributesByPlatformV2,
   AgreementSuspendedByPlatformV2,
@@ -41,6 +40,7 @@ import {
   DeclaredTenantAttribute,
   Descriptor,
   EService,
+  EServiceId,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantAttribute,
@@ -74,6 +74,7 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
+import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -876,10 +877,11 @@ describe("activate agreement", () => {
           },
         ],
         producerDelegationId: delegation.id,
-        producerDelegatorName: producer.name,
-        producerDelegatorIpaCode: getIpaCode(producer),
         producerDelegateName: delegate.name,
         producerDelegateIpaCode: getIpaCode(delegate),
+        consumerDelegationId: undefined,
+        consumerDelegateName: undefined,
+        consumerDelegateIpaCode: undefined,
       };
 
       expect(pdfGenerator.generate).toHaveBeenCalledWith(
@@ -1800,7 +1802,11 @@ describe("activate agreement", () => {
 
     it("should throw an operationNotAllowed error when the requester is not the Consumer or Producer", async () => {
       const authData = getRandomAuthData();
-      const agreement: Agreement = getMockAgreement();
+      const agreement: Agreement = getMockAgreement(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        randomArrayItem(agreementActivableStates)
+      );
       await addOneAgreement(agreement);
       await expect(
         agreementService.activateAgreement(agreement.id, {
