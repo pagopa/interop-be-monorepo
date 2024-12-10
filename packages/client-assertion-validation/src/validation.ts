@@ -1,12 +1,10 @@
 import { match } from "ts-pattern";
 import {
-  clientKidPurposePrefix,
-  clientKindTokenStates,
-  TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  clientKindTokenGenStates,
   ClientAssertion,
   ClientAssertionHeader,
   ClientAssertionPayload,
+  TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
 import * as jose from "jose";
 import {
@@ -55,7 +53,6 @@ import {
   clientAssertionInvalidClaims,
   algorithmNotAllowed,
   clientAssertionSignatureVerificationError,
-  missingPlatformStates,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -77,10 +74,10 @@ export const validateRequestParameters = (
   return failedValidation([assertionTypeError, grantTypeError]);
 };
 
-// eslint-disable-next-line complexity
 export const verifyClientAssertion = (
   clientAssertionJws: string,
-  clientId: string | undefined
+  clientId: string | undefined,
+  expectedAudiences: string[]
 ): ValidationResult<ClientAssertion> => {
   try {
     const decodedPayload = jose.decodeJwt(clientAssertionJws);
@@ -108,7 +105,8 @@ export const verifyClientAssertion = (
       decodedHeader.kid
     );
     const { errors: audErrors, data: validatedAud } = validateAudience(
-      decodedPayload.aud
+      decodedPayload.aud,
+      expectedAudiences
     );
     const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
       decodedHeader.alg
@@ -187,9 +185,7 @@ export const verifyClientAssertion = (
 
 export const verifyClientAssertionSignature = async (
   clientAssertionJws: string,
-  key:
-    | TokenGenerationStatesClientPurposeEntry
-    | TokenGenerationStatesClientEntry,
+  key: TokenGenerationStatesGenericClient,
   clientAssertionAlgorithm: string
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
@@ -247,28 +243,23 @@ export const verifyClientAssertionSignature = async (
 };
 
 export const validateClientKindAndPlatformState = (
-  key:
-    | TokenGenerationStatesClientEntry
-    | TokenGenerationStatesClientPurposeEntry,
+  key: TokenGenerationStatesGenericClient,
   jwt: ClientAssertion
 ): ValidationResult<ClientAssertion> =>
   match(key)
-    .with({ clientKind: clientKindTokenStates.api }, () =>
+    .with({ clientKind: clientKindTokenGenStates.api }, () =>
       successfulValidation(jwt)
     )
-    .with({ clientKind: clientKindTokenStates.consumer }, (key) => {
-      if (key.PK.startsWith(clientKidPurposePrefix)) {
-        const parsed = key as TokenGenerationStatesClientPurposeEntry;
-        const { errors: platformStateErrors } = validatePlatformState(parsed);
-        const purposeIdError = jwt.payload.purposeId
-          ? undefined
-          : purposeIdNotProvided();
+    .with({ clientKind: clientKindTokenGenStates.consumer }, (key) => {
+      const { errors: platformStateErrors } = validatePlatformState(key);
+      const purposeIdError = jwt.payload.purposeId
+        ? undefined
+        : purposeIdNotProvided();
 
-        if (!platformStateErrors && !purposeIdError) {
-          return successfulValidation(jwt);
-        }
-        return failedValidation([platformStateErrors, purposeIdError]);
+      if (!platformStateErrors && !purposeIdError) {
+        return successfulValidation(jwt);
       }
-      return failedValidation([missingPlatformStates()]);
+
+      return failedValidation([platformStateErrors, purposeIdError]);
     })
     .exhaustive();

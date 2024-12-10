@@ -1899,32 +1899,16 @@ export function catalogServiceBuilder(
   };
 }
 
-async function isUserAllowedToSeeDraft(
+function isRequesterEServiceProducer(
   eservice: EService,
-  authData: AuthData,
-  readModelService: ReadModelService
-): Promise<boolean> {
-  if (
-    !hasPermission(
+  authData: AuthData
+): boolean {
+  return (
+    hasPermission(
       [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
       authData
-    )
-  ) {
-    return false;
-  }
-
-  if (authData.organizationId === eservice.producerId) {
-    return true;
-  }
-
-  const activeProducerDelegation = await readModelService.getLatestDelegation({
-    eserviceId: eservice.id,
-    delegateId: authData.organizationId,
-    kind: delegationKind.delegatedProducer,
-    states: [delegationState.active],
-  });
-
-  return activeProducerDelegation !== undefined;
+    ) && authData.organizationId === eservice.producerId
+  );
 }
 
 async function applyVisibilityToEService(
@@ -1932,16 +1916,27 @@ async function applyVisibilityToEService(
   authData: AuthData,
   readModelService: ReadModelService
 ): Promise<EService> {
-  if (await isUserAllowedToSeeDraft(eservice, authData, readModelService)) {
+  if (isRequesterEServiceProducer(eservice, authData)) {
     return eservice;
   }
 
-  if (
-    eservice.descriptors.length === 0 ||
-    (eservice.descriptors.length === 1 &&
-      (eservice.descriptors[0].state === descriptorState.draft ||
-        eservice.descriptors[0].state === descriptorState.waitingForApproval))
-  ) {
+  const producerDelegation = await readModelService.getLatestDelegation({
+    eserviceId: eservice.id,
+    delegateId: authData.organizationId,
+    kind: delegationKind.delegatedProducer,
+  });
+
+  if (producerDelegation?.state === delegationState.active) {
+    return eservice;
+  }
+
+  const hasNoActiveDescriptor = eservice.descriptors.every(
+    (descriptor) =>
+      descriptor.state === descriptorState.draft ||
+      descriptor.state === delegationState.waitingForApproval
+  );
+
+  if (!producerDelegation && hasNoActiveDescriptor) {
     throw eServiceNotFound(eservice.id);
   }
 

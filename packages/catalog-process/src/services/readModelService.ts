@@ -565,20 +565,22 @@ export function readModelServiceBuilder(
 
     async getLatestDelegation({
       eserviceId,
-      states,
       kind,
+      states,
       delegateId,
     }: {
       eserviceId: EServiceId;
-      states: DelegationState[];
       kind: DelegationKind;
+      states?: DelegationState[];
       delegateId?: TenantId;
     }): Promise<Delegation | undefined> {
       const data = await delegations.findOne(
         {
           "data.eserviceId": eserviceId,
           "data.kind": kind,
-          ...(states.length > 0 ? { "data.state": { $in: states } } : {}),
+          ...(states && states.length > 0
+            ? { "data.state": { $in: states } }
+            : {}),
           ...(delegateId ? { "data.delegateId": delegateId } : {}),
         },
         {
