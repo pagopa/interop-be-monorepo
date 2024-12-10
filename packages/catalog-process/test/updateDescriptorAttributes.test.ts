@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
-import {
-  decodeProtobufPayload,
-  getMockAttribute,
-} from "pagopa-interop-commons-test/index.js";
+import { decodeProtobufPayload, getMockAttribute } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -21,7 +18,8 @@ import {
   attributeNotFound,
   eServiceDescriptorNotFound,
   eServiceNotFound,
-  invalidAttributeSeed,
+  inconsistentAttributesSeedGroupsCount,
+  descriptorAttributeGroupSupersetMissingInAttributesSeed,
   notValidDescriptor,
   unchangedAttributes,
 } from "../src/model/domain/errors.js";
@@ -134,8 +132,7 @@ describe("update descriptor", () => {
         descriptors: [
           {
             ...mockDescriptor,
-            attributes:
-              validMockDescriptorAttributeSeed as Descriptor["attributes"],
+            attributes: validMockDescriptorAttributeSeed as Descriptor["attributes"],
           },
         ],
       };
@@ -252,17 +249,12 @@ describe("update descriptor", () => {
     };
 
     expect(
-      catalogService.updateDescriptorAttributes(
-        mockEService.id,
-        mockDescriptor.id,
-        validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
+      catalogService.updateDescriptorAttributes(mockEService.id, mockDescriptor.id, validMockDescriptorAttributeSeed, {
+        authData: getMockAuthData(mockEService.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
 
@@ -285,20 +277,13 @@ describe("update descriptor", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.updateDescriptorAttributes(
-        mockEService.id,
-        mockDescriptor.id,
-        validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(
-      eServiceDescriptorNotFound(mockEService.id, mockDescriptor.id)
-    );
+      catalogService.updateDescriptorAttributes(mockEService.id, mockDescriptor.id, validMockDescriptorAttributeSeed, {
+        authData: getMockAuthData(mockEService.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(eServiceDescriptorNotFound(mockEService.id, mockDescriptor.id));
   });
 
   it("should throw attributeNotFound if the attribute doesn't exist", async () => {
@@ -372,17 +357,12 @@ describe("update descriptor", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.updateDescriptorAttributes(
-        mockEService.id,
-        mockDescriptor.id,
-        validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
+      catalogService.updateDescriptorAttributes(mockEService.id, mockDescriptor.id, validMockDescriptorAttributeSeed, {
+        authData: getMockAuthData(),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(operationForbidden);
   });
 
@@ -432,43 +412,33 @@ describe("update descriptor", () => {
     // descriptorState.waitingForApproval,
     descriptorState.archived,
     descriptorState.deprecated,
-  ])(
-    "should throw notValidDescriptor if the descriptor is in %s state",
-    async (descriptorState) => {
-      const mockDescriptor: Descriptor = {
-        ...getMockDescriptor(),
-        state: descriptorState,
-        attributes: {
-          certified: validMockDescriptorCertifiedAttributes,
-          verified: validMockDescriptorVerifiedAttributes,
-          declared: [],
-        },
-      };
+  ])("should throw notValidDescriptor if the descriptor is in %s state", async (descriptorState) => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState,
+      attributes: {
+        certified: validMockDescriptorCertifiedAttributes,
+        verified: validMockDescriptorVerifiedAttributes,
+        declared: [],
+      },
+    };
 
-      const mockEService: EService = {
-        ...getMockEService(),
-        descriptors: [mockDescriptor],
-      };
+    const mockEService: EService = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
 
-      await addOneEService(mockEService);
+    await addOneEService(mockEService);
 
-      expect(
-        catalogService.updateDescriptorAttributes(
-          mockEService.id,
-          mockDescriptor.id,
-          validMockDescriptorAttributeSeed,
-          {
-            authData: getMockAuthData(mockEService.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
-        )
-      ).rejects.toThrowError(
-        notValidDescriptor(mockDescriptor.id, descriptorState)
-      );
-    }
-  );
+    expect(
+      catalogService.updateDescriptorAttributes(mockEService.id, mockDescriptor.id, validMockDescriptorAttributeSeed, {
+        authData: getMockAuthData(mockEService.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(notValidDescriptor(mockDescriptor.id, descriptorState));
+  });
 
   it("should throw unchangedAttributes if the passed seed does not differ from the actual descriptor attributes", async () => {
     const mockDescriptor: Descriptor = {
@@ -504,12 +474,10 @@ describe("update descriptor", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(
-      unchangedAttributes(mockEService.id, mockDescriptor.id)
-    );
+    ).rejects.toThrowError(unchangedAttributes(mockEService.id, mockDescriptor.id));
   });
 
-  it("should throw invalidAttributeSeed if the passed seed contains an additional attribute group", async () => {
+  it("should throw inconsistentAttributesSeedGroupsCount if the passed seed contains an additional attribute group", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -551,12 +519,10 @@ describe("update descriptor", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(
-      invalidAttributeSeed(mockEService.id, mockDescriptor.id)
-    );
+    ).rejects.toThrowError(inconsistentAttributesSeedGroupsCount(mockEService.id, mockDescriptor.id));
   });
 
-  it("should throw invalidAttributeSeed if the passed seed does not contains all the actual descriptor attributes", async () => {
+  it("should throw descriptorAttributeGroupSupersetMissingInAttributesSeed if the passed seed does not contains all the actual descriptor attributes", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -597,8 +563,6 @@ describe("update descriptor", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(
-      invalidAttributeSeed(mockEService.id, mockDescriptor.id)
-    );
+    ).rejects.toThrowError(descriptorAttributeGroupSupersetMissingInAttributesSeed(mockEService.id, mockDescriptor.id));
   });
 });
