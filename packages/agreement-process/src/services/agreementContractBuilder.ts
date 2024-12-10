@@ -2,7 +2,6 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import {
-  AuthData,
   FileManager,
   Logger,
   PDFGenerator,
@@ -266,7 +265,6 @@ export const contractBuilder = (
       eservice: EService,
       consumer: Tenant,
       producer: Tenant,
-      authData: AuthData,
       retrievedActiveDelegations: ActiveDelegations
     ): Promise<AgreementDocument> => {
       /*
@@ -278,7 +276,6 @@ export const contractBuilder = (
       const { producerDelegation, consumerDelegation } =
         await getActiveConsumerAndProducerDelegations(
           agreement,
-          authData,
           readModelService,
           retrievedActiveDelegations
         );

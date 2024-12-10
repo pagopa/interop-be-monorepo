@@ -196,12 +196,9 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
         );
       } catch (error) {
         const activeConsumerDelegation =
-          await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
-            {
-              agreement,
-              delegateId: authData.organizationId,
-            }
-          );
+          await readModelService.getActiveConsumerDelegationByAgreement({
+            agreement,
+          });
 
         assertRequesterIsDelegateConsumer(
           agreement,
@@ -310,30 +307,30 @@ export const assertRequesterCanCreateAgrementForTenant = async (
 ): Promise<Promise<void>> => {
   const isSameOrganization = requesterId === tenantIdToVerify;
 
-  const validDelegation = isSameOrganization
-    ? // Retrieve an active delegation where the requester is the delegator
-      await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
-        {
-          agreement: {
-            consumerId: requesterId,
-            eserviceId,
-          },
-        }
-      )
-    : // Retrieve the delegation where the requester is the delegate and the delegator is the tenantToVerify
-      await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
-        {
-          agreement: {
-            eserviceId,
-            consumerId: tenantIdToVerify,
-          },
-          delegateId: requesterId,
-        }
-      );
+  // In case requester wants to create an agreement for tenantIdToVerify (another organization):
+  // - isSameOrganization is false
+  // - we look for an active delegation where the delegator is tenantIdToVerify
+  // - to be authorized, the delegation must exist and the requester must be the delegate
+
+  // In case requester wants to create an agreement for their own organization:
+  // - isSameOrganization is true
+  // - we look for an active delegation where the delegator is the requester
+  // - to be authorized, the delegation must not exist
+  // - why? If there is a consumer delegation, only the delegate can create agreements
+
+  const delegatorId = isSameOrganization ? requesterId : tenantIdToVerify;
+
+  const validDelegation =
+    await readModelService.getActiveConsumerDelegationByEserviceAndDelegator({
+      eserviceId,
+      delegatorId,
+    });
 
   const isAuthorized =
     (isSameOrganization && !validDelegation) ||
-    (!isSameOrganization && validDelegation);
+    (!isSameOrganization &&
+      validDelegation &&
+      validDelegation.delegateId === requesterId);
 
   if (!isAuthorized) {
     throw operationNotAllowed(requesterId);
