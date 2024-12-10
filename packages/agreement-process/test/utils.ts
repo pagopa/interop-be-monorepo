@@ -1,5 +1,6 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { randomInt } from "crypto";
 import {
   StoredEvent,
   readLastEventByStreamId,
@@ -28,6 +29,8 @@ import {
   toReadModelAttribute,
   TenantId,
   Delegation,
+  AgreementStamp,
+  UserId,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -37,6 +40,7 @@ import {
   launchPuppeteerBrowser,
 } from "pagopa-interop-commons";
 import puppeteer, { Browser } from "puppeteer";
+import { subDays } from "date-fns";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/config/config.js";
@@ -256,3 +260,8 @@ export function getMockApiTenantVerifiedAttribute(): agreementApi.TenantAttribut
     },
   };
 }
+
+export const getRandomPastStamp = (userId: UserId): AgreementStamp => ({
+  who: userId,
+  when: subDays(new Date(), randomInt(10)),
+});

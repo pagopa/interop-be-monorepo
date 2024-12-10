@@ -42,6 +42,7 @@ import {
   operationNotAllowed,
 } from "./errors.js";
 import {
+  ActiveDelegations,
   CertifiedAgreementAttribute,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
@@ -126,7 +127,7 @@ export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
 
 /* ========= ASSERTIONS ========= */
 
-export const assertRequesterIsConsumer = (
+const assertRequesterIsConsumer = (
   agreement: Agreement,
   authData: AuthData
 ): void => {
@@ -153,15 +154,19 @@ const assertRequesterIsProducer = (
 export const assertRequesterCanActAsConsumerOrProducer = (
   agreement: Agreement,
   authData: AuthData,
-  activeProducerDelegation: Delegation | undefined
+  activeDelegations: ActiveDelegations
 ): void => {
   try {
-    assertRequesterIsConsumer(agreement, authData);
+    assertRequesterCanActAsConsumer(
+      agreement,
+      authData,
+      activeDelegations.consumerDelegation
+    );
   } catch (error) {
     assertRequesterCanActAsProducer(
       agreement,
       authData,
-      activeProducerDelegation
+      activeDelegations.producerDelegation
     );
   }
 };
@@ -172,22 +177,38 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
   readModelService: ReadModelService
 ): Promise<void> => {
   // This operation has a dedicated assertion because it's the only operation that
-  // can be performed also by the producer even when an active producer delegation exists
+  // can be performed also by the producer/consumer even when active producer/consumer delegations exist
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
     try {
       assertRequesterIsProducer(agreement, authData);
     } catch (error) {
-      const activeProducerDelegation =
-        await readModelService.getActiveProducerDelegationByEserviceId(
-          agreement.eserviceId
+      try {
+        const activeProducerDelegation =
+          await readModelService.getActiveProducerDelegationByEserviceId(
+            agreement.eserviceId
+          );
+        assertRequesterIsDelegateProducer(
+          agreement,
+          authData,
+          activeProducerDelegation
         );
-      assertRequesterIsDelegateProducer(
-        agreement,
-        authData,
-        activeProducerDelegation
-      );
+      } catch (error) {
+        const activeConsumerDelegation =
+          await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+            {
+              agreement,
+              delegateId: authData.organizationId,
+            }
+          );
+
+        assertRequesterIsDelegateConsumer(
+          agreement,
+          authData,
+          activeConsumerDelegation
+        );
+      }
     }
   }
 };
@@ -260,15 +281,16 @@ export const assertActivableState = (agreement: Agreement): void => {
 };
 
 export const assertRequesterIsDelegateConsumer = (
-  activeConsumerDelegation: Delegation,
-  eserviceId: EServiceId,
-  authData: AuthData
+  agreement: Pick<Agreement, "consumerId" | "eserviceId">,
+  authData: AuthData,
+  activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (
-    activeConsumerDelegation.delegateId !== authData.organizationId ||
-    activeConsumerDelegation.eserviceId !== eserviceId ||
-    activeConsumerDelegation.kind !== delegationKind.delegatedConsumer ||
-    activeConsumerDelegation.state !== delegationState.active
+    activeConsumerDelegation?.delegateId !== authData.organizationId ||
+    activeConsumerDelegation?.delegatorId !== agreement.consumerId ||
+    activeConsumerDelegation?.eserviceId !== agreement.eserviceId ||
+    activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
+    activeConsumerDelegation?.state !== delegationState.active
   ) {
     throw operationNotAllowed(authData.organizationId);
   }
@@ -288,14 +310,26 @@ export const assertRequesterCanCreateAgrementForTenant = async (
 ): Promise<Promise<void>> => {
   const isSameOrganization = requesterId === tenantIdToVerify;
 
-  const validDelegation =
-    await readModelService.getActiveConsumerDelegationByEserviceAndIds({
-      eserviceId,
-      // if same organization, there's no delegate, otherwise the requester is the delegate
-      delegateId: isSameOrganization ? undefined : requesterId,
-      // if same organization, we have to check that it is not a delegator, otherwise tenantIdToVerify is the delegator
-      delegatorId: isSameOrganization ? requesterId : tenantIdToVerify,
-    });
+  const validDelegation = isSameOrganization
+    ? // Retrieve an active delegation where the requester is the delegator
+      await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+        {
+          agreement: {
+            consumerId: requesterId,
+            eserviceId,
+          },
+        }
+      )
+    : // Retrieve the delegation where the requester is the delegate and the delegator is the tenantToVerify
+      await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
+        {
+          agreement: {
+            eserviceId,
+            consumerId: tenantIdToVerify,
+          },
+          delegateId: requesterId,
+        }
+      );
 
   const isAuthorized =
     (isSameOrganization && !validDelegation) ||
@@ -303,6 +337,24 @@ export const assertRequesterCanCreateAgrementForTenant = async (
 
   if (!isAuthorized) {
     throw operationNotAllowed(requesterId);
+  }
+};
+
+export const assertRequesterCanActAsConsumer = (
+  agreement: Agreement,
+  authData: AuthData,
+  activeConsumerDelegation: Delegation | undefined
+): void => {
+  if (!activeConsumerDelegation) {
+    // No active consumer delegation, the requester is authorized only if they are the consumer
+    assertRequesterIsConsumer(agreement, authData);
+  } else {
+    // Active consumer delegation, the requester is authorized only if they are the delegate
+    assertRequesterIsDelegateConsumer(
+      agreement,
+      authData,
+      activeConsumerDelegation
+    );
   }
 };
 
@@ -434,19 +486,6 @@ export const verifyConflictingAgreements = async (
 
   if (agreements.length > 0) {
     throw agreementAlreadyExists(consumerId, eserviceId);
-  }
-};
-
-export const verifyConsumerDoesNotActivatePending = (
-  agreement: Agreement,
-  authData: AuthData
-): void => {
-  const activationPendingNotAllowed =
-    agreement.state === agreementState.pending &&
-    agreement.consumerId === authData.organizationId &&
-    agreement.producerId !== agreement.consumerId;
-  if (activationPendingNotAllowed) {
-    throw operationNotAllowed(authData.organizationId);
   }
 };
 
