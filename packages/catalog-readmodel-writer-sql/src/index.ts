@@ -6,18 +6,23 @@ import {
   readmodelRepositorySQL,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
-import { EServiceEvent } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  EServiceEvent,
+  generateId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
 
 const connection = initDB({
-  username: "config.readmodelSQLDbUsername",
-  password: "config.readmodelSQLDbPassword",
-  host: "config.readmodelSQLDbHost",
-  port: 5432,
-  database: "config.readmodelSQLDbName",
-  schema: "config.readmodelSQLDbSchema",
+  username: "root",
+  password: "root",
+  host: "localhost",
+  port: 6002,
+  database: "root",
+  schema: "readmodel",
   useSSL: false,
 });
 
@@ -34,7 +39,9 @@ async function processMessage({
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
-    correlationId: decodedMessage.correlation_id,
+    correlationId: decodedMessage.correlation_id
+      ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+      : generateId<CorrelationId>(),
   });
 
   await match(decodedMessage)
