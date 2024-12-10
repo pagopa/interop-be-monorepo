@@ -196,4 +196,4 @@ const test = testDescriptorSQL
 // console.log(new Date().getMilliseconds() - start);
 */
 
-export * from "./utilsV2.js";
+export * from "./catalog/utilsV2.js";

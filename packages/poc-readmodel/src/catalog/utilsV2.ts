@@ -365,13 +365,14 @@ export const getEServiceById = async (
   );
   const parsedEserviceSQL = parseEserviceSQL(rawEserviceResult);
 
-  if (!parsedEserviceSQL) return undefined;
+  if (!parsedEserviceSQL) {
+    return undefined;
+  }
 
-  const eservice = rebuildEserviceFromEserviceSQL(
+  return rebuildEserviceFromEserviceSQL(
     parsedEserviceSQL,
     readModelRepositorySQL
   );
-  return eservice;
 };
 
 export const getEServiceByNameAndProducerId = async ({
@@ -393,20 +394,21 @@ export const getEServiceByNameAndProducerId = async ({
   );
   const parsedEserviceSQL = parseEserviceSQL(rawEserviceResult);
 
-  if (!parsedEserviceSQL) return undefined;
+  if (!parsedEserviceSQL) {
+    return undefined;
+  }
 
-  const eservice = rebuildEserviceFromEserviceSQL(
+  return rebuildEserviceFromEserviceSQL(
     parsedEserviceSQL,
     readModelRepositorySQL
   );
-  return eservice;
 };
 
 export const rebuildEserviceFromEserviceSQL = async (
   parsedEserviceSQL: EServiceSQL,
   readModelRepositorySQL: ReadModelRepositorySQL
 ): Promise<EService | undefined> => {
-  //descriptors
+  // descriptors
   const readDescriptorsStatement = prepareReadDescriptorsByEserviceId(
     parsedEserviceSQL.id
   );
@@ -461,7 +463,7 @@ export const rebuildEserviceFromEserviceSQL = async (
     .map((answer) => parseRiskAnalysisAnswerSQL(answer))
     .filter((ra) => ra !== undefined) as RiskAnalysisAnswerSQL[];
 
-  const eservice = eserviceSQLtoEservice(
+  return eserviceSQLtoEservice(
     parsedEserviceSQL,
     parsedRiskAnalysises,
     parsedRiskAnalysisesAnswers,
@@ -469,8 +471,6 @@ export const rebuildEserviceFromEserviceSQL = async (
     parsedDocumentsSQL,
     parsedDescriptorAttributesSQL
   );
-
-  return eservice;
 };
 
 export type ApiGetEServicesFilters = {
