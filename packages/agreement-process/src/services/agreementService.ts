@@ -824,6 +824,14 @@ export function agreementServiceBuilder(
 
       assertCanWorkOnConsumerDocuments(agreement.data.state);
 
+      const existentDocument = agreement.data.consumerDocuments.find(
+        (d) => d.id === documentSeed.id
+      );
+
+      if (existentDocument) {
+        throw agreementDocumentAlreadyExists(agreementId);
+      }
+
       const activeConsumerDelegation =
         await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
           {
@@ -837,13 +845,6 @@ export function agreementServiceBuilder(
         activeConsumerDelegation
       );
 
-      const existentDocument = agreement.data.consumerDocuments.find(
-        (d) => d.id === documentSeed.id
-      );
-
-      if (existentDocument) {
-        throw agreementDocumentAlreadyExists(agreementId);
-      }
       const newDocument = apiAgreementDocumentToAgreementDocument(documentSeed);
 
       const updatedAgreement = {
