@@ -30,6 +30,7 @@ import {
   tenantNotFound,
   attributeNotFound,
   delegationNotFound,
+  notAllowedToAddDeclaredAttribute,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -397,5 +398,32 @@ describe("addDeclaredAttribute", async () => {
         genericLogger
       )
     ).rejects.toThrowError(delegationNotFound(delegationId));
+  });
+  it("Should throw notAllowedToAddDeclaredAttribute if the caller is not the delegate", async () => {
+    await addOneTenant(tenant);
+
+    const delegationId: DelegationId = generateId();
+    await addOneDelegation(
+      getMockDelegation({
+        id: delegationId,
+        kind: "DelegatedConsumer",
+        state: "Active",
+        delegatorId: generateId<TenantId>(),
+        delegateId: generateId<TenantId>(),
+      })
+    );
+    expect(
+      tenantService.addDeclaredAttribute(
+        {
+          tenantAttributeSeed: {
+            id: declaredAttribute.id,
+            delegationId,
+          },
+          organizationId: generateId<TenantId>(),
+          correlationId: generateId(),
+        },
+        genericLogger
+      )
+    ).rejects.toThrowError(notAllowedToAddDeclaredAttribute());
   });
 });
