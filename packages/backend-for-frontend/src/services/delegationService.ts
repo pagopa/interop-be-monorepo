@@ -330,16 +330,18 @@ export function delegationServiceBuilder(
         headers,
       });
     },
-    // TODO: implement once rejection is merged
-    // async delegateRejectConsumerDelegation(
-    //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //   delegationId: DelegationId,
-    //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //   rejectBody: bffApi.RejectDelegationPayload,
-    //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //   { headers }: WithLogger<BffAppContext>
-    // ): Promise<void> {
-    // },
+    async delegateRejectConsumerDelegation(
+      delegationId: DelegationId,
+      rejectBody: bffApi.RejectDelegationPayload,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      return delegationClients.consumer.rejectConsumerDelegation(rejectBody, {
+        params: {
+          delegationId,
+        },
+        headers,
+      });
+    },
     async delegateApproveProducerDelegation(
       delegationId: DelegationId,
       { headers }: WithLogger<BffAppContext>

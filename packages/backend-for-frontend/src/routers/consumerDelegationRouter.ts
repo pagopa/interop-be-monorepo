@@ -81,12 +81,11 @@ const consumerDelegationRouter = (
     .post("/consumer/delegations/:delegationId/reject", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        // TODO: implement once rejection is merged
-        // await delegationService.delegateRejectConsumerDelegation(
-        //   unsafeBrandId(req.params.delegationId),
-        //   req.body,
-        //   ctx
-        // );
+        await delegationService.delegateRejectConsumerDelegation(
+          unsafeBrandId(req.params.delegationId),
+          req.body,
+          ctx
+        );
 
         return res.status(204).send();
       } catch (error) {
