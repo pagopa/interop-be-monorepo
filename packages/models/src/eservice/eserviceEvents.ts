@@ -44,6 +44,10 @@ import {
   EServiceDescriptorDelegateSubmittedV2,
   EServiceDescriptorDelegatorApprovedV2,
   EServiceDescriptorDelegatorRejectedV2,
+  EServiceIsDelegableEnabledV2,
+  EServiceIsDelegableDisabledV2,
+  EServiceIsClientAccessDelegableEnabledV2,
+  EServiceIsClientAccessDelegableDisabledV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -176,6 +180,18 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceDescriptorDelegatorRejected" }, ({ data }) =>
       EServiceDescriptorDelegatorRejectedV2.toBinary(data)
+    )
+    .with({ type: "EServiceIsDelegableEnabled" }, ({ data }) =>
+      EServiceIsDelegableEnabledV2.toBinary(data)
+    )
+    .with({ type: "EServiceIsDelegableDisabled" }, ({ data }) =>
+      EServiceIsDelegableDisabledV2.toBinary(data)
+    )
+    .with({ type: "EServiceIsClientAccessDelegableEnabled" }, ({ data }) =>
+      EServiceIsClientAccessDelegableEnabledV2.toBinary(data)
+    )
+    .with({ type: "EServiceIsClientAccessDelegableDisabled" }, ({ data }) =>
+      EServiceIsClientAccessDelegableDisabledV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -379,6 +395,26 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceDescriptorDelegatorRejected"),
     data: protobufDecoder(EServiceDescriptorDelegatorRejectedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceIsDelegableEnabled"),
+    data: protobufDecoder(EServiceIsDelegableEnabledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceIsDelegableDisabled"),
+    data: protobufDecoder(EServiceIsDelegableDisabledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceIsClientAccessDelegableEnabled"),
+    data: protobufDecoder(EServiceIsClientAccessDelegableEnabledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceIsClientAccessDelegableDisabled"),
+    data: protobufDecoder(EServiceIsClientAccessDelegableDisabledV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;

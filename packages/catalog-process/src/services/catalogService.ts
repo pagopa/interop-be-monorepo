@@ -62,6 +62,7 @@ import {
   eserviceWithoutValidDescriptors,
   inconsistentDailyCalls,
   interfaceAlreadyExists,
+  invalidEServiceFlags,
   notValidDescriptorState,
   originNotCompliant,
   prettyNameDuplicate,
@@ -91,6 +92,10 @@ import {
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
   toCreateEventEServiceInterfaceUpdated,
+  toCreateEventEServiceIsClientAccessDelegableDisabled,
+  toCreateEventEServiceIsClientAccessDelegableEnabled,
+  toCreateEventEServiceIsDelegableDisabled,
+  toCreateEventEServiceIsDelegableEnabled,
   toCreateEventEServiceRiskAnalysisAdded,
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
@@ -1809,6 +1814,112 @@ export function catalogServiceBuilder(
           correlationId
         )
       );
+      return updatedEservice;
+    },
+    async updateEServiceFlags(
+      eserviceId: EServiceId,
+      isDelegable: boolean,
+      isClientAccessDelegable: boolean,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Updating EService ${eserviceId} flags`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      const hasValidDescriptor = eservice.data.descriptors.some(
+        // eslint-disable-next-line sonarjs/no-identical-functions
+        (descriptor) =>
+          descriptor.state !== descriptorState.draft &&
+          descriptor.state !== descriptorState.waitingForApproval &&
+          descriptor.state !== descriptorState.archived
+      );
+      if (!hasValidDescriptor) {
+        throw eserviceWithoutValidDescriptors(eserviceId);
+      }
+
+      if (!isDelegable && isClientAccessDelegable) {
+        throw invalidEServiceFlags(eserviceId);
+      }
+
+      if (
+        isDelegable === eservice.data.isDelegable &&
+        isClientAccessDelegable === eservice.data.isClientAccessDelegable
+      ) {
+        return eservice.data;
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        isDelegable,
+        isClientAccessDelegable,
+      };
+
+      await repository.createEvent(
+        match({
+          isDelegable,
+          oldIsDelegable: eservice.data.isDelegable,
+          isClientAccessDelegable,
+          oldIsClientAccessDelegable: eservice.data.isClientAccessDelegable,
+        })
+          .with(
+            {
+              isDelegable: true,
+              oldIsDelegable: false,
+            },
+            () =>
+              toCreateEventEServiceIsDelegableEnabled(
+                eservice.metadata.version,
+                updatedEservice,
+                correlationId
+              )
+          )
+          .with(
+            {
+              isDelegable: false,
+              oldIsDelegable: true,
+            },
+            () =>
+              toCreateEventEServiceIsDelegableDisabled(
+                eservice.metadata.version,
+                updatedEservice,
+                correlationId
+              )
+          )
+          .with(
+            {
+              isClientAccessDelegable: true,
+              oldIsClientAccessDelegable: false,
+            },
+            () =>
+              toCreateEventEServiceIsClientAccessDelegableEnabled(
+                eservice.metadata.version,
+                updatedEservice,
+                correlationId
+              )
+          )
+          .with(
+            {
+              isClientAccessDelegable: false,
+              oldIsClientAccessDelegable: true,
+            },
+            () =>
+              toCreateEventEServiceIsClientAccessDelegableDisabled(
+                eservice.metadata.version,
+                updatedEservice,
+                correlationId
+              )
+          )
+          .otherwise(() => {
+            throw invalidEServiceFlags(eserviceId);
+          })
+      );
+
       return updatedEservice;
     },
     async approveDelegatedEServiceDescriptor(
