@@ -491,7 +491,11 @@ describe("suspend agreement", () => {
 
   it("should throw operationNotAllowed when the requester is not the Consumer or the Producer", async () => {
     const authData = getRandomAuthData();
-    const agreement = getMockAgreement();
+    const agreement = getMockAgreement(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      randomArrayItem(agreementSuspendableStates)
+    );
     await addOneAgreement(agreement);
     await expect(
       agreementService.suspendAgreement(agreement.id, {

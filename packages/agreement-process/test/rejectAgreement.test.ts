@@ -23,6 +23,7 @@ import {
   DeclaredTenantAttribute,
   Descriptor,
   EService,
+  EServiceId,
   Tenant,
   TenantId,
   VerifiedTenantAttribute,
@@ -281,7 +282,11 @@ describe("reject agreement", () => {
 
   it("should throw operationNotAllowed when the requester is not the Producer", async () => {
     const authData = getRandomAuthData();
-    const agreement = getMockAgreement();
+    const agreement = getMockAgreement(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      randomArrayItem(agreementRejectableStates)
+    );
     await addOneAgreement(agreement);
     await expect(
       agreementService.rejectAgreement(

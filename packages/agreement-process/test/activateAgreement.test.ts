@@ -40,6 +40,7 @@ import {
   DeclaredTenantAttribute,
   Descriptor,
   EService,
+  EServiceId,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantAttribute,
@@ -1801,7 +1802,11 @@ describe("activate agreement", () => {
 
     it("should throw an operationNotAllowed error when the requester is not the Consumer or Producer", async () => {
       const authData = getRandomAuthData();
-      const agreement: Agreement = getMockAgreement();
+      const agreement: Agreement = getMockAgreement(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        randomArrayItem(agreementActivableStates)
+      );
       await addOneAgreement(agreement);
       await expect(
         agreementService.activateAgreement(agreement.id, {

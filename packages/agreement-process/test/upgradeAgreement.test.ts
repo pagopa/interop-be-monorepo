@@ -1093,7 +1093,8 @@ describe("upgrade Agreement", () => {
 
     const agreement: Agreement = getMockAgreement(
       generateId<EServiceId>(),
-      generateId<TenantId>()
+      generateId<TenantId>(),
+      randomArrayItem(agreementUpgradableStates)
     );
     await addOneAgreement(agreement);
 
