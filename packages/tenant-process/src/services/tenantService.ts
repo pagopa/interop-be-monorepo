@@ -560,10 +560,8 @@ export function tenantServiceBuilder(
         })
         .otherwise(async (seedDelegationId) => {
           const delegationId: DelegationId = unsafeBrandId(seedDelegationId);
-          const delegation = await readModelService.getDelegationById(
-            delegationId,
-            "DelegatedConsumer",
-            "Active"
+          const delegation = await readModelService.getActiveConsumerDelegation(
+            delegationId
           );
 
           if (!delegation) {
@@ -1986,22 +1984,25 @@ function reassignDeclaredAttribute(
   attributeId: AttributeId,
   delegationId: DelegationId | undefined
 ): TenantAttribute[] {
-  return attributes.map((attr) =>
-    attr.id === attributeId
-      ? attr.type === tenantAttributeType.DECLARED
-        ? {
-            ...attr,
-            assignmentTimestamp: new Date(),
-            revocationTimestamp: undefined,
-            delegationId,
-          }
-        : {
-            ...attr,
-            assignmentTimestamp: new Date(),
-            revocationTimestamp: undefined,
-          }
-      : attr
+  const targetAttribute = attributes.find(
+    (attr): attr is DeclaredTenantAttribute =>
+      attr.type === tenantAttributeType.DECLARED && attr.id === attributeId
   );
+  if (!targetAttribute) {
+    throw attributeNotFound(attributeId);
+  }
+
+  const newAttribute = {
+    ...targetAttribute,
+    delegationId,
+    assignmentTimestamp: new Date(),
+    revocationTimestamp: undefined,
+  };
+
+  return [
+    ...attributes.filter((attr) => attr.id !== attributeId),
+    newAttribute,
+  ];
 }
 
 function assignVerifiedAttribute(
