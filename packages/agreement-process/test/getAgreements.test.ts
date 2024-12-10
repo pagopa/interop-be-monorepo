@@ -615,7 +615,7 @@ describe("get agreements", () => {
     });
   });
 
-  it("should get agreements for a delegated eservice with filters: consumerId sand requester is consumer", async () => {
+  it("should get agreements for a delegated eservice with filters: consumerId and requester is consumer", async () => {
     const agreements = await agreementService.getAgreements(
       {
         consumerId: tenant4.id,
