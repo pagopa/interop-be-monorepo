@@ -301,7 +301,7 @@ export const prepareInsertRiskAnalysisAnswer = (
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "insert-risk-analysis-answer",
-    text: "INSERT INTO readmodel.eservice_risk_analysis(id, risk_analysis_form_id, kind, key, value) VALUES($1, $2, $3, $4, $5)",
+    text: "INSERT INTO readmodel.eservice_risk_analysis_answer(id, risk_analysis_form_id, kind, key, value) VALUES($1, $2, $3, $4, $5)",
     values: [
       riskAnalysisAnswerSQL.id,
       riskAnalysisAnswerSQL.risk_analysis_form_id,
