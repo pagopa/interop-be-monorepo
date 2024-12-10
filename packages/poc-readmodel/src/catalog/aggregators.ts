@@ -29,7 +29,6 @@ export const documentSQLtoDocument = (input: DocumentSQL): Document => {
     checksum: input.checksum,
     uploadDate: input.upload_date || undefined,
   };
-  // console.log(d);
 
   return d;
 };
@@ -100,6 +99,7 @@ export const eserviceSQLtoEservice = (
   descriptorsSQL: DescriptorSQL[],
   documentsSQL: DocumentSQL[],
   attributesSQL: DescriptorAttributeSQL[]
+  // eslint-disable-next-line max-params
 ): EService => {
   const descriptors = descriptorsSQL.map((descriptor) =>
     descriptorSQLtoDescriptor(
@@ -138,6 +138,7 @@ export const eserviceSQLArraytoEserviceArray = (
   descriptorsSQL: DescriptorSQL[],
   documentsSQL: DocumentSQL[],
   attributesSQL: DescriptorAttributeSQL[]
+  // eslint-disable-next-line max-params
 ): EService[] =>
   eservicesSQL.map((eservice) => {
     const riskAnalysisSQLOfCurrentEservice = riskAnalysisSQL.filter(
@@ -232,6 +233,5 @@ export const attributesSQLtoAttributes = (
     }
   });
 
-  const attributes = Array.from(certifiedAttrMap.values());
-  return attributes;
+  return Array.from(certifiedAttrMap.values());
 };
