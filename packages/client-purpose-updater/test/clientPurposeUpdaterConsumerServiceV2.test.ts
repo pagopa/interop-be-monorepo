@@ -1,9 +1,11 @@
 /* eslint-disable functional/no-let */
 import {
+  getMockClient,
   getMockPurpose,
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test/index.js";
 import {
+  Client,
   CorrelationId,
   generateId,
   Purpose,
@@ -25,10 +27,35 @@ import { handleMessageV2 } from "../src/clientPurposeUpdaterConsumerServiceV2.js
 import { getInteropBeClients } from "../src/clients/clientsProvider.js";
 
 describe("PurposeArchived", async () => {
-  const testCorrelationId: CorrelationId = generateId();
-  const testToken = "mockToken";
+  const testToken = {
+    iss: "dev.interop.pagopa.it",
+    aud: "dev.interop.pagopa.it/ui",
+    uid: generateId(),
+    nbf: Math.floor(Date.now() / 1000),
+    name: "Mario",
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    iat: Math.floor(Date.now() / 1000),
+    family_name: "Rossi",
+    jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
+    email: "Mario.rossi@psp.it",
+    role: "internal",
+    sub: generateId(),
+    organization: {
+      id: generateId(),
+      name: "PagoPA S.p.A.",
+      roles: [
+        {
+          partyRole: "MANAGER",
+          role: ["internal"],
+        },
+      ],
+      fiscal_code: "15376371009",
+      ipaCode: "5N2TR557",
+    },
+    "user-roles": "internal",
+  };
+
   const testHeaders = {
-    "X-Correlation-Id": testCorrelationId,
     Authorization: `Bearer ${testToken}`,
   };
 
@@ -37,7 +64,7 @@ describe("PurposeArchived", async () => {
   beforeAll(async () => {
     mockRefreshableToken = {
       get: () => Promise.resolve({ serialized: testToken }),
-    } as RefreshableInteropToken;
+    } as unknown as RefreshableInteropToken;
   });
 
   beforeEach(async () => {
