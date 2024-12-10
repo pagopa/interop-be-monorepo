@@ -1,12 +1,9 @@
 /* eslint-disable functional/no-let */
 import {
-  getMockClient,
   getMockPurpose,
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test/index.js";
 import {
-  Client,
-  CorrelationId,
   generateId,
   Purpose,
   PurposeArchivedV2,
