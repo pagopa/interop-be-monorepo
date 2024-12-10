@@ -312,6 +312,14 @@ export async function handleMessageV2(
       const eservice = parseEservice(message.data.eservice);
       await poc.updateEservice(eservice, readModelRepositorySQL);
     })
+    .with(
+      { type: "EServiceDescriptorDelegateSubmitted" },
+      { type: "EServiceDescriptorDelegatorApproved" },
+      { type: "EServiceDescriptorDelegatorRejected" },
+      () => {
+        console.log("unhandled for now");
+      }
+    )
     .exhaustive();
 }
 
