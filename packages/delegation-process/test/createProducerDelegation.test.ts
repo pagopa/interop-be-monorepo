@@ -427,7 +427,7 @@ describe("create producer delegation", () => {
       delegationService.createProducerDelegation(
         {
           delegateId: delegate.id,
-          eserviceId: generateId<EServiceId>(),
+          eserviceId: eservice.id,
         },
         {
           authData,
