@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable max-params */
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -11,8 +13,6 @@ import {
   dateAtRomeZone,
   emailManagerKind,
   getLatestTenantMailOfKind,
-  initPecEmailManager,
-  initSesMailManager,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -35,11 +35,10 @@ import {
   tenantDigitalAddressNotFound,
   tenantNotFound,
 } from "../models/errors.js";
-import { AgreementEmailSenderConfig } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 // Be careful to change this enum, it's used to find the html template files
-const agreementEventMailTemplateType = {
+export const agreementEventMailTemplateType = {
   activationPEC: "activation-pec-mail",
   activationSES: "activation-ses-mail",
   submission: "submission-mail",
@@ -130,7 +129,7 @@ async function retrieveHTMLTemplate(
   }
 }
 
-function getFormattedAgreementStampDate(
+export function getFormattedAgreementStampDate(
   agreement: Agreement,
   stamp: keyof Agreement["stamps"]
 ): string {
@@ -194,23 +193,14 @@ async function sendAgreementActivationEmail(
 }
 
 export function agreementEmailSenderServiceBuilder(
-  config: AgreementEmailSenderConfig,
+  pecEmailManager: EmailManagerPEC,
+  pecSenderData: { label: string; mail: string },
+  sesEmailManager: EmailManagerSES,
+  sesSenderData: { label: string; mail: string },
   readModelService: ReadModelService,
-  templateService: HtmlTemplateService
+  templateService: HtmlTemplateService,
+  interopFeBaseUrl?: string
 ) {
-  const interopFeBaseUrl = config.interopFeBaseUrl;
-  const sesEmailManager: EmailManagerSES = initSesMailManager(config);
-  const sesEmailsender = {
-    label: config.senderLabel,
-    mail: config.senderLabel,
-  };
-
-  const pecEmailManager: EmailManagerPEC = initPecEmailManager(config);
-  const pecEmailsender = {
-    label: config.pecSenderLabel,
-    mail: config.pecSenderMail,
-  };
-
   return {
     senderAgreementSubmissionEmail: async (
       agreementV2Msg: AgreementV2,
@@ -253,7 +243,7 @@ export function agreementEmailSenderServiceBuilder(
       }
 
       const mail = {
-        from: { name: sesEmailsender.label, address: sesEmailsender.mail },
+        from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: `Nuova richiesta di fruizione per ${eservice.name} ricevuta`,
         to: [producerEmail.address],
         body: templateService.compileHtml(htmlTemplate, {
@@ -300,7 +290,7 @@ export function agreementEmailSenderServiceBuilder(
         templateService,
         agreementEventMailTemplateType.activationPEC,
         logger,
-        pecEmailsender,
+        pecSenderData,
         consumer.name,
         producer.name,
         recepientsEmails
@@ -320,7 +310,7 @@ export function agreementEmailSenderServiceBuilder(
       );
 
       const recepientsEmails = [
-        retrieveTenantMailAddress(consumer, emailManagerKind.pec).address,
+        retrieveTenantMailAddress(consumer, emailManagerKind.ses).address,
       ];
 
       return sendAgreementActivationEmail(
@@ -330,7 +320,7 @@ export function agreementEmailSenderServiceBuilder(
         templateService,
         agreementEventMailTemplateType.activationSES,
         logger,
-        sesEmailsender,
+        sesSenderData,
         consumer.name,
         producer.name,
         recepientsEmails,
@@ -378,7 +368,7 @@ export function agreementEmailSenderServiceBuilder(
       }
 
       const mail = {
-        from: { name: sesEmailsender.label, address: sesEmailsender.mail },
+        from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: `Richiesta di fruizione per ${eservice.name} rifiutata`,
         to: [consumerEmail.address],
         body: templateService.compileHtml(htmlTemplate, {

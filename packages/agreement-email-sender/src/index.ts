@@ -2,9 +2,13 @@
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
+  EmailManagerPEC,
+  EmailManagerSES,
   ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
+  initPecEmailManager,
+  initSesMailManager,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -23,11 +27,27 @@ const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 const templateService = buildHTMLTemplateService();
+const interopFeBaseUrl = config.interopFeBaseUrl;
+const sesEmailManager: EmailManagerSES = initSesMailManager(config);
+const sesEmailsenderData = {
+  label: config.senderLabel,
+  mail: config.senderLabel,
+};
+
+const pecEmailManager: EmailManagerPEC = initPecEmailManager(config);
+const pecEmailsenderData = {
+  label: config.pecSenderLabel,
+  mail: config.pecSenderMail,
+};
 
 const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
-  config,
+  pecEmailManager,
+  pecEmailsenderData,
+  sesEmailManager,
+  sesEmailsenderData,
   readModelService,
-  templateService
+  templateService,
+  interopFeBaseUrl
 );
 
 export async function processMessage({
