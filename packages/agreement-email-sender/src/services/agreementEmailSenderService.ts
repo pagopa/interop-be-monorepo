@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
 import fs from "fs/promises";
-import path from "path";
 import { fileURLToPath } from "url";
+import path from "path";
 import {
   EmailManager,
   EmailManagerKind,
@@ -39,7 +39,7 @@ import { ReadModelService } from "./readModelService.js";
 // Be careful to change this enum, it's used to find the html template files
 export const agreementEventMailTemplateType = {
   activationPEC: "activation-pec-mail",
-  activationSES: "activation-ses-mail",
+  activation: "activation-mail",
   submission: "submission-mail",
   rejection: "rejection-mail",
 } as const;
@@ -322,7 +322,7 @@ export function agreementEmailSenderServiceBuilder(
         readModelService,
         agreementV2Msg,
         templateService,
-        agreementEventMailTemplateType.activationSES,
+        agreementEventMailTemplateType.activation,
         logger,
         sesSenderData,
         consumer.name,

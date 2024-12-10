@@ -1,14 +1,7 @@
 import fs from "fs/promises";
-import { fileURLToPath } from "url";
 import path from "path";
-import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
-import {
-  Tenant,
-  UserId,
-  generateId,
-  tenantMailKind,
-  toAgreementV2,
-} from "pagopa-interop-models";
+import { fileURLToPath } from "url";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockDescriptor,
@@ -16,7 +9,14 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  Tenant,
+  UserId,
+  generateId,
+  tenantMailKind,
+  toAgreementV2,
+} from "pagopa-interop-models";
+import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
 import {
   agreementStampDateNotFound,
   descriptorNotFound,
@@ -89,7 +89,7 @@ describe("sendAgreementActivationEmail", () => {
 
       const filename = fileURLToPath(import.meta.url);
       const dirname = path.dirname(filename);
-      const templatePath = `../src/resources/templates/${agreementEventMailTemplateType.activationSES}.html`;
+      const templatePath = `../src/resources/templates/${agreementEventMailTemplateType.activation}.html`;
 
       const htmlTemplateBuffer = await fs.readFile(
         `${dirname}/${templatePath}`
