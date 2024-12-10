@@ -1,4 +1,6 @@
 import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
@@ -14,8 +16,6 @@ import {
   tenantMailKind,
   toAgreementV2,
 } from "pagopa-interop-models";
-import path from "path";
-import { fileURLToPath } from "url";
 import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
 import {
   agreementStampDateNotFound,
