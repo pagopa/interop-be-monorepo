@@ -33,8 +33,9 @@ export const errorCodes = {
   riskAnalysisDuplicated: "0021",
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
-  invalidAttributeSeed: "0024",
-  unchangedAttributes: "0025",
+  inconsistentAttributesSeedGroupsCount: "0024",
+  descriptorAttributeGroupSupersetMissingInAttributesSeed: "0025",
+  unchangedAttributes: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -274,14 +275,25 @@ export function audienceCannotBeEmpty(
   });
 }
 
-export function invalidAttributeSeed(
+export function inconsistentAttributesSeedGroupsCount(
   eserviceId: EServiceId,
   descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Attributes seed is not valid for EService ${eserviceId} and Descriptor ${descriptorId}`,
-    code: "invalidAttributeSeed",
-    title: "Invalid attribute seed",
+    detail: `Attributes seed contains a different number of groups than the descriptor for EService ${eserviceId} and Descriptor ${descriptorId}`,
+    code: "inconsistentAttributesSeedGroupsCount",
+    title: "Inconsistent attributes seed groups count",
+  });
+}
+
+export function descriptorAttributeGroupSupersetMissingInAttributesSeed(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing required attribute group superset in attributes seed for EService ${eserviceId} and Descriptor ${descriptorId}`,
+    code: "descriptorAttributeGroupSupersetMissingInAttributesSeed",
+    title: "Descriptor attribute group superset missing in attributes seed",
   });
 }
 

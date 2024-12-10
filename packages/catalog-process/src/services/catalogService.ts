@@ -89,8 +89,9 @@ import {
   riskAnalysisDuplicated,
   eserviceWithoutValidDescriptors,
   audienceCannotBeEmpty,
-  invalidAttributeSeed,
   unchangedAttributes,
+  inconsistentAttributesSeedGroupsCount,
+  descriptorAttributeGroupSupersetMissingInAttributesSeed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -1716,7 +1717,7 @@ export function catalogServiceBuilder(
       ): string[] {
         // If the seed has a different number of attribute groups than the descriptor, it's invalid
         if (attributesDescriptor.length !== attributesSeed.length) {
-          throw invalidAttributeSeed(eserviceId, descriptorId);
+          throw inconsistentAttributesSeedGroupsCount(eserviceId, descriptorId);
         }
 
         return attributesDescriptor.flatMap((attributeGroup) => {
@@ -1730,7 +1731,10 @@ export function catalogServiceBuilder(
           );
 
           if (!supersetSeed) {
-            throw invalidAttributeSeed(eserviceId, descriptorId);
+            throw descriptorAttributeGroupSupersetMissingInAttributesSeed(
+              eserviceId,
+              descriptorId
+            );
           }
 
           // Return only the new attributes
