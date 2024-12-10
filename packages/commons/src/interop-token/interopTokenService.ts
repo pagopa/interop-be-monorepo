@@ -155,7 +155,7 @@ export class InteropTokenGenerator {
       );
     }
 
-    const currentTimestamp = Date.now();
+    const currentTimestamp = dateToSeconds(new Date());
 
     const header: InteropJwtHeader = {
       alg: "RS256",
@@ -167,13 +167,13 @@ export class InteropTokenGenerator {
     const payload: InteropJwtApiPayload = {
       jti: generateId(),
       iss: this.config.generatedInteropTokenIssuer,
-      aud: [this.config.generatedInteropTokenM2MAudience],
+      aud: this.toJwtAudience(this.config.generatedInteropTokenM2MAudience),
+      client_id: sub,
       sub,
       iat: currentTimestamp,
       nbf: currentTimestamp,
       exp:
-        currentTimestamp +
-        this.config.generatedInteropTokenM2MDurationSeconds * 1000,
+        currentTimestamp + this.config.generatedInteropTokenM2MDurationSeconds,
       [ORGANIZATION_ID_CLAIM]: consumerId,
       [ROLE_CLAIM]: GENERATED_INTEROP_TOKEN_M2M_ROLE,
     };
@@ -214,7 +214,7 @@ export class InteropTokenGenerator {
       );
     }
 
-    const currentTimestamp = Date.now();
+    const currentTimestamp = dateToSeconds(new Date());
 
     const header: InteropJwtHeader = {
       alg: "RS256",
@@ -226,7 +226,8 @@ export class InteropTokenGenerator {
     const payload: InteropJwtConsumerPayload = {
       jti: generateId(),
       iss: this.config.generatedInteropTokenIssuer,
-      aud: audience,
+      aud: this.toJwtAudience(audience),
+      client_id: sub,
       sub,
       iat: currentTimestamp,
       nbf: currentTimestamp,
@@ -254,7 +255,11 @@ export class InteropTokenGenerator {
     keyId,
   }: {
     header: InteropJwtHeader;
-    payload: InteropJwtPayload | SessionJwtPayload | InteropJwtConsumerPayload;
+    payload:
+      | InteropJwtPayload
+      | SessionJwtPayload
+      | InteropJwtConsumerPayload
+      | InteropJwtApiPayload;
     keyId: string;
   }): Promise<string> {
     const serializedToken = `${b64UrlEncode(
@@ -278,4 +283,7 @@ export class InteropTokenGenerator {
 
     return `${serializedToken}.${jwtSignature}`;
   }
+
+  private toJwtAudience = (input: string | string[]): string | string[] =>
+    Array.isArray(input) && input.length === 1 ? input[0] : input;
 }

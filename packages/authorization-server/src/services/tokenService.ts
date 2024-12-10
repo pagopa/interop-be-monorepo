@@ -44,6 +44,7 @@ import {
   Logger,
   RateLimiter,
   RateLimiterStatus,
+  secondsToMilliseconds,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
 import { config } from "../config/config.js";
@@ -108,7 +109,11 @@ export function tokenServiceBuilder({
       }
 
       const { data: jwt, errors: clientAssertionErrors } =
-        verifyClientAssertion(request.client_assertion, request.client_id);
+        verifyClientAssertion(
+          request.client_assertion,
+          request.client_id,
+          config.clientAssertionAudience
+        );
 
       if (clientAssertionErrors) {
         throw clientAssertionValidationFailed(
@@ -308,7 +313,7 @@ export const publishAudit = async ({
   const messageBody: GeneratedTokenAuditDetails = {
     jwtId: generatedToken.payload.jti,
     correlationId,
-    issuedAt: generatedToken.payload.iat,
+    issuedAt: secondsToMilliseconds(generatedToken.payload.iat),
     clientId: clientAssertion.payload.sub,
     organizationId: key.consumerId,
     agreementId: key.agreementId,
@@ -322,16 +327,16 @@ export const publishAudit = async ({
     purposeVersionId: unsafeBrandId(key.purposeVersionId),
     algorithm: generatedToken.header.alg,
     keyId: generatedToken.header.kid,
-    audience: generatedToken.payload.aud.join(","),
+    audience: [generatedToken.payload.aud].flat().join(","),
     subject: generatedToken.payload.sub,
-    notBefore: generatedToken.payload.nbf,
-    expirationTime: generatedToken.payload.exp,
+    notBefore: secondsToMilliseconds(generatedToken.payload.nbf),
+    expirationTime: secondsToMilliseconds(generatedToken.payload.exp),
     issuer: generatedToken.payload.iss,
     clientAssertion: {
       algorithm: clientAssertion.header.alg,
       audience: [clientAssertion.payload.aud].flat().join(","),
-      expirationTime: clientAssertion.payload.exp,
-      issuedAt: clientAssertion.payload.iat,
+      expirationTime: secondsToMilliseconds(clientAssertion.payload.exp),
+      issuedAt: secondsToMilliseconds(clientAssertion.payload.iat),
       issuer: clientAssertion.payload.iss,
       jwtId: clientAssertion.payload.jti,
       keyId: clientAssertion.header.kid,
