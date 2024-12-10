@@ -401,8 +401,14 @@ describe("create producer delegation", () => {
   it("should throw a tenantNotFound error if delegator tenant does not exist", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "IPA",
+        value: "test",
+      },
+    };
 
-    const delegateId = generateId<TenantId>();
     const delegate = {
       ...getMockTenant(),
       features: [
@@ -412,13 +418,15 @@ describe("create producer delegation", () => {
         },
       ],
     };
-
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
     await addOneTenant(delegate);
+    await addOneTenant(delegator);
+    await addOneEservice(eservice);
 
     await expect(
       delegationService.createProducerDelegation(
         {
-          delegateId,
+          delegateId: delegate.id,
           eserviceId: generateId<EServiceId>(),
         },
         {
@@ -454,7 +462,6 @@ describe("create producer delegation", () => {
   it("should throw a tenantIsNotIPAError error if delegator has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
-    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -472,6 +479,7 @@ describe("create producer delegation", () => {
         },
       ],
     };
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
@@ -481,7 +489,7 @@ describe("create producer delegation", () => {
       delegationService.createProducerDelegation(
         {
           delegateId: delegate.id,
-          eserviceId: generateId<EServiceId>(),
+          eserviceId: eservice.id,
         },
         {
           authData,
@@ -496,7 +504,6 @@ describe("create producer delegation", () => {
   it("should throw a tenantIsNotIPAError error if delegate has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
-    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -518,6 +525,7 @@ describe("create producer delegation", () => {
         },
       ],
     };
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
@@ -527,7 +535,7 @@ describe("create producer delegation", () => {
       delegationService.createProducerDelegation(
         {
           delegateId: delegate.id,
-          eserviceId: generateId<EServiceId>(),
+          eserviceId: eservice.id,
         },
         {
           authData,
@@ -560,16 +568,9 @@ describe("create producer delegation", () => {
       ],
     };
     const eserviceId = generateId<EServiceId>();
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedProducer,
-      id: generateId<DelegationId>(),
-      delegatorId,
-      delegateId: delegate.id,
-    });
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
-    await addOneDelegation(delegation);
 
     await expect(
       delegationService.createProducerDelegation(
@@ -590,7 +591,6 @@ describe("create producer delegation", () => {
   it("should throw a tenantNotAllowedToDelegation error if delegate tenant has no DelegatedProducer feature", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
-    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -598,8 +598,8 @@ describe("create producer delegation", () => {
         value: "test",
       },
     };
-
     const delegate = getMockTenant();
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
@@ -609,7 +609,7 @@ describe("create producer delegation", () => {
       delegationService.createProducerDelegation(
         {
           delegateId: delegate.id,
-          eserviceId: generateId<EServiceId>(),
+          eserviceId: eservice.id,
         },
         {
           authData,
