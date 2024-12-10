@@ -10,16 +10,10 @@ import {
   SendEmailCommandInput,
 } from "@aws-sdk/client-sesv2";
 import { Address, Attachment } from "nodemailer/lib/mailer/index.js";
-import { z } from "zod";
 import { PecEmailManagerConfig } from "../index.js";
 import { AWSSesConfig } from "../config/awsSesConfig.js";
 
-export const emailManagerKind = { pec: "PEC", ses: "SES" } as const;
-export const EmailManagerKind = z.enum([
-  Object.values(emailManagerKind)[0],
-  ...Object.values(emailManagerKind).slice(1),
-]);
-export type EmailManagerKind = z.infer<typeof EmailManagerKind>;
+export type EmailManagerKind = "PEC" | "SES";
 
 export type EmailManager = {
   kind: EmailManagerKind;
@@ -38,11 +32,11 @@ export type EmailManager = {
   ) => Promise<void>;
 };
 export type EmailManagerPEC = EmailManager & {
-  kind: typeof emailManagerKind.pec;
+  kind: "PEC";
 };
 
 export type EmailManagerSES = EmailManager & {
-  kind: typeof emailManagerKind.ses;
+  kind: "SES";
 };
 
 export function initPecEmailManager(
@@ -50,7 +44,7 @@ export function initPecEmailManager(
   rejectUnauthorized = true
 ): EmailManagerPEC {
   return {
-    kind: emailManagerKind.pec,
+    kind: "PEC",
     send: async (
       from: string | Address,
       to: string[],
@@ -127,7 +121,7 @@ export function initSesMailManager(awsConfig: AWSSesConfig): EmailManagerSES {
   });
 
   return {
-    kind: emailManagerKind.ses,
+    kind: "SES",
     send: async (
       from: string | Address,
       to: string[],

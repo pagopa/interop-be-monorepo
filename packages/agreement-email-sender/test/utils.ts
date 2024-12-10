@@ -14,7 +14,6 @@ import {
 import axios, { AxiosResponse } from "axios";
 import {
   buildHTMLTemplateService,
-  emailManagerKind,
   EmailManagerPEC,
   EmailManagerSES,
 } from "pagopa-interop-commons";
@@ -35,7 +34,7 @@ export const readModelService = readModelServiceBuilder(readModelRepository);
 export const templateService = buildHTMLTemplateService();
 
 export const sesEmailManager: EmailManagerSES = {
-  kind: emailManagerKind.ses,
+  kind: "SES",
   send: vi.fn().mockResolvedValue({ status: 200 } as AxiosResponse),
   sendWithAttachments: vi
     .fn()
@@ -43,8 +42,8 @@ export const sesEmailManager: EmailManagerSES = {
 };
 
 export const sesEmailManagerFailure: EmailManagerSES = {
-  kind: emailManagerKind.ses,
-  send: vi.fn().mockReturnThis(),
+  kind: "SES",
+  send: vi.fn().mockRejectedValue(new Error("Generic error during send email")),
   sendWithAttachments: vi.fn().mockReturnThis(),
 };
 
