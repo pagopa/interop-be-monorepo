@@ -401,13 +401,6 @@ describe("create producer delegation", () => {
   it("should throw a tenantNotFound error if delegator tenant does not exist", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
-    const delegator = {
-      ...getMockTenant(delegatorId),
-      externalId: {
-        origin: "IPA",
-        value: "test",
-      },
-    };
 
     const delegate = {
       ...getMockTenant(),
@@ -420,7 +413,6 @@ describe("create producer delegation", () => {
     };
     const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
     await addOneTenant(delegate);
-    await addOneTenant(delegator);
     await addOneEservice(eservice);
 
     await expect(
