@@ -642,7 +642,14 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
+    // TODO 1) add a case where the requester is either the producer or consumer or delegate,
+    // it doesn't matter, if delegations exist they should be retrieved and considered for the
+    // PDF generation
+
+    // TODO 2) add cases where the requester is the delegate consumer, both for the first activation and a subsequent activation
+
     it("should succeed when the requester is the Delegate and first activation", async () => {
+      // TODO 3) update to adhere to same structure/naming of other tests
       const consumerId = generateId<TenantId>();
       const producerId = generateId<TenantId>();
       const verifiedTenantAttributes = [
@@ -891,6 +898,7 @@ describe("activate agreement", () => {
     });
 
     it("should succed when the requester is the Delegate and from Suspended", async () => {
+      // TODO 4) move under the suspended section and update the test to adhere to same structure/naming of other tests
       const producer = getMockTenant();
       const consumer = getMockTenant();
       const authData = getRandomAuthData();
