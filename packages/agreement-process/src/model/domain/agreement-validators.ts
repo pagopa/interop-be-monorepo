@@ -196,9 +196,9 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
         );
       } catch (error) {
         const activeConsumerDelegation =
-          await readModelService.getActiveConsumerDelegationByAgreement({
-            agreement,
-          });
+          await readModelService.getActiveConsumerDelegationByAgreement(
+            agreement
+          );
 
         assertRequesterIsDelegateConsumer(
           agreement,

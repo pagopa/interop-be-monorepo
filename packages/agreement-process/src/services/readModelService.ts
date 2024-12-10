@@ -666,11 +666,9 @@ export function readModelServiceBuilder(
       }
       return result.data;
     },
-    async getActiveConsumerDelegationByAgreement({
-      agreement,
-    }: {
-      agreement: Agreement;
-    }): Promise<Delegation | undefined> {
+    async getActiveConsumerDelegationByAgreement(
+      agreement: Agreement
+    ): Promise<Delegation | undefined> {
       return getDelegation(delegations, {
         "data.eserviceId": agreement.eserviceId,
         "data.delegatorId": agreement.consumerId,
