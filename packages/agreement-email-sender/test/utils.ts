@@ -2,7 +2,7 @@ import {
   setupTestContainersVitest,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
+import { afterEach, inject, vi } from "vitest";
 import {
   Agreement,
   EService,
@@ -12,8 +12,14 @@ import {
   toReadModelTenant,
 } from "pagopa-interop-models";
 import axios, { AxiosResponse } from "axios";
-import { buildHTMLTemplateService } from "pagopa-interop-commons";
+import {
+  buildHTMLTemplateService,
+  emailManagerKind,
+  EmailManagerPEC,
+  EmailManagerSES,
+} from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { agreementEmailSenderServiceBuilder } from "../src/services/agreementEmailSenderService.js";
 
 export const readModelConfig = inject("readModelConfig");
 export const emailManagerConfig = inject("emailManagerConfig");
@@ -27,6 +33,52 @@ export const { cleanup, readModelRepository, emailManager } =
   );
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const templateService = buildHTMLTemplateService();
+
+export const sesEmailManager: EmailManagerSES = {
+  kind: emailManagerKind.ses,
+  send: vi.fn().mockResolvedValue({ status: 200 } as AxiosResponse),
+  sendWithAttachments: vi
+    .fn()
+    .mockResolvedValue({ status: 200 } as AxiosResponse),
+};
+
+export const sesEmailManagerFailure: EmailManagerSES = {
+  kind: emailManagerKind.ses,
+  send: vi.fn().mockReturnThis(),
+  sendWithAttachments: vi.fn().mockReturnThis(),
+};
+
+export const sesEmailsenderData = {
+  label: "ses_sender",
+  mail: "ses_sender@test.com",
+};
+
+export const pecEmailsenderData = {
+  label: "pec_sender",
+  mail: "pec_sender@test.com",
+};
+export const interopFeBaseUrl = "http://localhost/fe";
+
+export const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
+  emailManager as EmailManagerPEC,
+  pecEmailsenderData,
+  sesEmailManager,
+  sesEmailsenderData,
+  readModelService,
+  templateService,
+  interopFeBaseUrl
+);
+
+export const agreementEmailSenderServiceFailure =
+  agreementEmailSenderServiceBuilder(
+    emailManager as EmailManagerPEC,
+    pecEmailsenderData,
+    sesEmailManagerFailure,
+    sesEmailsenderData,
+    readModelService,
+    templateService,
+    interopFeBaseUrl
+  );
 
 export const agreements = readModelRepository.agreements;
 
