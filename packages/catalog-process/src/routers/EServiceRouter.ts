@@ -752,8 +752,7 @@ const eservicesRouter = (
         try {
           const updatedEService = await catalogService.updateEServiceFlags(
             unsafeBrandId(req.params.eServiceId),
-            req.body.isDelegable,
-            req.body.isClientAccessDelegable,
+            req.body,
             ctx
           );
           return res

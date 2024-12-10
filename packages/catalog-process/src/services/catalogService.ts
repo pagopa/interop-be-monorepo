@@ -1818,8 +1818,13 @@ export function catalogServiceBuilder(
     },
     async updateEServiceFlags(
       eserviceId: EServiceId,
-      isDelegable: boolean,
-      isClientAccessDelegable: boolean,
+      {
+        isDelegable,
+        isClientAccessDelegable,
+      }: {
+        isDelegable: boolean;
+        isClientAccessDelegable: boolean;
+      },
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId} flags`);
