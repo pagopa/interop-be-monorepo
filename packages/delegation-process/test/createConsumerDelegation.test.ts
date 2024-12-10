@@ -425,8 +425,11 @@ describe("create consumer delegation", () => {
       ],
     };
 
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
+
     await addOneTenant(delegate);
     await addOneTenant(delegator);
+    await addOneEservice(eservice);
 
     await expect(
       delegationService.createConsumerDelegation(
@@ -468,9 +471,11 @@ describe("create consumer delegation", () => {
         },
       ],
     };
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
+    await addOneEservice(eservice);
 
     await expect(
       delegationService.createConsumerDelegation(
@@ -548,9 +553,11 @@ describe("create consumer delegation", () => {
     };
 
     const delegate = getMockTenant();
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
+    await addOneEservice(eservice);
 
     await expect(
       delegationService.createConsumerDelegation(

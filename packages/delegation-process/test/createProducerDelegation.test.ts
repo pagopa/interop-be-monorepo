@@ -454,6 +454,7 @@ describe("create producer delegation", () => {
   it("should throw a tenantIsNotIPAError error if delegator has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -474,6 +475,7 @@ describe("create producer delegation", () => {
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
+    await addOneEservice(eservice);
 
     await expect(
       delegationService.createProducerDelegation(
@@ -494,6 +496,7 @@ describe("create producer delegation", () => {
   it("should throw a tenantIsNotIPAError error if delegate has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -518,6 +521,7 @@ describe("create producer delegation", () => {
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
+    await addOneEservice(eservice);
 
     await expect(
       delegationService.createProducerDelegation(
@@ -586,6 +590,7 @@ describe("create producer delegation", () => {
   it("should throw a tenantNotAllowedToDelegation error if delegate tenant has no DelegatedProducer feature", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -598,6 +603,7 @@ describe("create producer delegation", () => {
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
+    await addOneEservice(eservice);
 
     await expect(
       delegationService.createProducerDelegation(
