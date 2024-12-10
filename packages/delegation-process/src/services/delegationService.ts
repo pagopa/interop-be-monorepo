@@ -38,6 +38,7 @@ import {
   toCreateEventConsumerDelegationApproved,
   toCreateEventConsumerDelegationRejected,
   toCreateEventConsumerDelegationSubmitted,
+  toCreateEventConsumerDelegationRevoked,
   toCreateEventProducerDelegationApproved,
   toCreateEventProducerDelegationRejected,
   toCreateEventProducerDelegationRevoked,
@@ -174,11 +175,11 @@ export function delegationServiceBuilder(
 
     await repository.createEvent(
       match(kind)
-        .with(delegationKind.delegatedConsumer, () =>
-          toCreateEventConsumerDelegationSubmitted(delegation, correlationId)
-        )
         .with(delegationKind.delegatedProducer, () =>
           toCreateEventProducerDelegationSubmitted(delegation, correlationId)
+        )
+        .with(delegationKind.delegatedConsumer, () =>
+          toCreateEventConsumerDelegationSubmitted(delegation, correlationId)
         )
         .exhaustive()
     );
@@ -244,14 +245,14 @@ export function delegationServiceBuilder(
 
     await repository.createEvent(
       match(kind)
-        .with(delegationKind.delegatedConsumer, () =>
-          toCreateEventConsumerDelegationApproved(
+        .with(delegationKind.delegatedProducer, () =>
+          toCreateEventProducerDelegationApproved(
             { data: approvedDelegation, metadata },
             correlationId
           )
         )
-        .with(delegationKind.delegatedProducer, () =>
-          toCreateEventProducerDelegationApproved(
+        .with(delegationKind.delegatedConsumer, () =>
+          toCreateEventConsumerDelegationApproved(
             { data: approvedDelegation, metadata },
             correlationId
           )
@@ -299,14 +300,14 @@ export function delegationServiceBuilder(
 
     await repository.createEvent(
       match(kind)
-        .with(delegationKind.delegatedConsumer, () =>
-          toCreateEventConsumerDelegationRejected(
+        .with(delegationKind.delegatedProducer, () =>
+          toCreateEventProducerDelegationRejected(
             { data: rejectedDelegation, metadata },
             correlationId
           )
         )
-        .with(delegationKind.delegatedProducer, () =>
-          toCreateEventProducerDelegationRejected(
+        .with(delegationKind.delegatedConsumer, () =>
+          toCreateEventConsumerDelegationRejected(
             { data: rejectedDelegation, metadata },
             correlationId
           )
@@ -373,17 +374,23 @@ export function delegationServiceBuilder(
     };
     await repository.createEvent(
       match(kind)
-        .with(
-          delegationKind.delegatedProducer,
-          delegationKind.delegatedConsumer,
-          () =>
-            toCreateEventProducerDelegationRevoked(
-              {
-                data: revokedDelegation,
-                metadata,
-              },
-              correlationId
-            )
+        .with(delegationKind.delegatedProducer, () =>
+          toCreateEventProducerDelegationRevoked(
+            {
+              data: revokedDelegation,
+              metadata,
+            },
+            correlationId
+          )
+        )
+        .with(delegationKind.delegatedConsumer, () =>
+          toCreateEventConsumerDelegationRevoked(
+            {
+              data: revokedDelegation,
+              metadata,
+            },
+            correlationId
+          )
         )
         .exhaustive()
     );
