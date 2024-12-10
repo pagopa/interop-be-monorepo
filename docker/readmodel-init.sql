@@ -91,7 +91,7 @@ CREATE TABLE readmodel.eservice_risk_analysis(
 
 
 -- alternative: one table for the answers: value always array, adding a type "single/multi"
-CREATE TABLE readmodel.risk_analysis_answer(
+CREATE TABLE readmodel.eservice_risk_analysis_answer(
   id uuid,
   risk_analysis_form_id uuid,
   kind varchar, -- SINGLE/MULTI

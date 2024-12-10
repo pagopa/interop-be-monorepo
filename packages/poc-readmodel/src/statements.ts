@@ -188,7 +188,7 @@ export const prepareDeleteDocument = (
   id: EServiceDocumentId
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
-    name: "delete-descriptor",
+    name: "delete-document",
     text: "DELETE FROM readmodel.descriptor_document WHERE id = $1",
     values: [id],
   });
