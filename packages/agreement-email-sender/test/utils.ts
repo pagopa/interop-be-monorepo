@@ -32,7 +32,7 @@ export const { cleanup, readModelRepository, pecEmailManager } =
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const templateService = buildHTMLTemplateService();
 
-export const emailManager: EmailManagerSES = {
+export const sesEmailManager: EmailManagerSES = {
   kind: "SES",
   send: vi.fn().mockResolvedValue({ status: 200 } as AxiosResponse),
   sendWithAttachments: vi
@@ -60,7 +60,7 @@ export const interopFeBaseUrl = "http://localhost/fe";
 export const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
   pecEmailManager,
   pecEmailsenderData,
-  emailManager,
+  sesEmailManager,
   sesEmailsenderData,
   readModelService,
   templateService,

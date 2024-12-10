@@ -28,15 +28,15 @@ import {
   addOneEService,
   addOneTenant,
   agreementEmailSenderService,
-  emailManager,
   interopFeBaseUrl,
+  sesEmailManager,
   sesEmailsenderData,
   templateService,
 } from "./utils.js";
 
 describe("sendAgreementSubmissionEmail", () => {
   it("should send an email on AgreementSubmitted", async () => {
-    vi.spyOn(emailManager, "send");
+    vi.spyOn(sesEmailManager, "send");
     const tenantMail = "tenant@mail.com";
     const consumer: Tenant = { ...getMockTenant(), name: "Jane Doe" };
     const producer: Tenant = {
@@ -117,7 +117,7 @@ describe("sendAgreementSubmissionEmail", () => {
       }),
     };
 
-    expect(emailManager.send).toHaveBeenCalledWith(
+    expect(sesEmailManager.send).toHaveBeenCalledWith(
       mail.from,
       mail.to,
       mail.subject,
@@ -126,7 +126,7 @@ describe("sendAgreementSubmissionEmail", () => {
   });
 
   it("should should not send email if the producer has no mail", async () => {
-    vi.spyOn(emailManager, "send");
+    vi.spyOn(sesEmailManager, "send");
     const consumer: Tenant = { ...getMockTenant(), name: "Jane Doe" };
     const producer: Tenant = {
       ...getMockTenant(),
@@ -158,6 +158,6 @@ describe("sendAgreementSubmissionEmail", () => {
       genericLogger
     );
 
-    expect(emailManager.send).not.toHaveBeenCalled();
+    expect(sesEmailManager.send).not.toHaveBeenCalled();
   });
 });

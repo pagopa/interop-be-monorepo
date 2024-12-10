@@ -1,6 +1,4 @@
 import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
@@ -16,6 +14,8 @@ import {
   tenantMailKind,
   toAgreementV2,
 } from "pagopa-interop-models";
+import path from "path";
+import { fileURLToPath } from "url";
 import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
 import {
   agreementStampDateNotFound,
@@ -34,10 +34,10 @@ import {
   addOneTenant,
   agreementEmailSenderService,
   agreementEmailSenderServiceFailure,
-  emailManager,
   interopFeBaseUrl,
   pecEmailManager,
   pecEmailsenderData,
+  sesEmailManager,
   sesEmailsenderData,
   templateService,
 } from "./utils.js";
@@ -115,7 +115,7 @@ describe("sendAgreementActivationEmail", () => {
         }),
       };
 
-      expect(emailManager.send).toHaveBeenCalledWith(
+      expect(sesEmailManager.send).toHaveBeenCalledWith(
         mail.from,
         mail.to,
         mail.subject,
@@ -124,7 +124,7 @@ describe("sendAgreementActivationEmail", () => {
     });
 
     it("should throw agreementStampDateNotFound for activation date not found", async () => {
-      vi.spyOn(emailManager, "send");
+      vi.spyOn(sesEmailManager, "send");
       const consumer = {
         ...getMockTenant(),
         mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
@@ -151,11 +151,11 @@ describe("sendAgreementActivationEmail", () => {
       ).rejects.toThrowError(
         agreementStampDateNotFound("activation", agreement.id)
       );
-      expect(emailManager.send).not.toHaveBeenCalled();
+      expect(sesEmailManager.send).not.toHaveBeenCalled();
     });
 
     it("should throw eServiceNotFound for Eservice not found", async () => {
-      vi.spyOn(emailManager, "send");
+      vi.spyOn(sesEmailManager, "send");
       const consumer = {
         ...getMockTenant(),
         mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
@@ -181,11 +181,11 @@ describe("sendAgreementActivationEmail", () => {
         )
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
 
-      expect(emailManager.send).not.toHaveBeenCalled();
+      expect(sesEmailManager.send).not.toHaveBeenCalled();
     });
 
     it("should throw tenantNotFound for Producer not found", async () => {
-      vi.spyOn(emailManager, "send");
+      vi.spyOn(sesEmailManager, "send");
       const eservice = getMockEService();
       const consumer = {
         ...getMockTenant(),
@@ -213,11 +213,11 @@ describe("sendAgreementActivationEmail", () => {
           genericLogger
         )
       ).rejects.toThrowError(tenantNotFound(agreement.producerId));
-      expect(emailManager.send).not.toHaveBeenCalled();
+      expect(sesEmailManager.send).not.toHaveBeenCalled();
     });
 
     it("should throw tenantNotFound for Consumer not found", async () => {
-      vi.spyOn(emailManager, "send");
+      vi.spyOn(sesEmailManager, "send");
       const consumer = {
         ...getMockTenant(),
         mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
@@ -247,11 +247,11 @@ describe("sendAgreementActivationEmail", () => {
         )
       ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
 
-      expect(emailManager.send).not.toHaveBeenCalled();
+      expect(sesEmailManager.send).not.toHaveBeenCalled();
     });
 
     it("should throw tenantDigitalAddressNotFound for Consumer digital address not found", async () => {
-      vi.spyOn(emailManager, "send");
+      vi.spyOn(sesEmailManager, "send");
       const producer = {
         ...getMockTenant(),
         mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
@@ -281,11 +281,11 @@ describe("sendAgreementActivationEmail", () => {
         tenantDigitalAddressNotFound(agreement.consumerId)
       );
 
-      expect(emailManager.send).not.toHaveBeenCalled();
+      expect(sesEmailManager.send).not.toHaveBeenCalled();
     });
 
     it("should throw descriptorNotFound for Descriptor not found", async () => {
-      vi.spyOn(emailManager, "send");
+      vi.spyOn(sesEmailManager, "send");
       const producer = {
         ...getMockTenant(),
         mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
@@ -318,11 +318,11 @@ describe("sendAgreementActivationEmail", () => {
         descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
       );
 
-      expect(emailManager.send).not.toHaveBeenCalled();
+      expect(sesEmailManager.send).not.toHaveBeenCalled();
     });
 
     it("should fail when email manager send fails", async () => {
-      vi.spyOn(emailManager, "send");
+      vi.spyOn(sesEmailManager, "send");
       const consumer: Tenant = {
         ...getMockTenant(),
         mails: [
@@ -366,7 +366,7 @@ describe("sendAgreementActivationEmail", () => {
         genericLogger
       );
 
-      expect(emailManager.send).not.toHaveBeenCalled();
+      expect(sesEmailManager.send).not.toHaveBeenCalled();
     });
   });
 
@@ -478,7 +478,7 @@ describe("sendAgreementActivationEmail", () => {
         tenantDigitalAddressNotFound(agreement.producerId)
       );
 
-      expect(emailManager.send).not.toHaveBeenCalled();
+      expect(sesEmailManager.send).not.toHaveBeenCalled();
     });
   });
 });
