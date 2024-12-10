@@ -18,9 +18,9 @@ import {
   getPurposeStateFromPurposeVersions,
   readPlatformPurposeEntry,
   updatePurposeDataInPlatformStatesEntry,
-  updatePurposeDataInTokenEntries,
+  updatePurposeDataInTokenGenStatesEntries,
   writePlatformPurposeEntry,
-  updateTokenEntriesWithPurposeAndPlatformStatesData,
+  updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData,
   getLastSuspendedOrActivatedPurposeVersion,
 } from "./utils.js";
 
@@ -73,7 +73,7 @@ export async function handleMessageV2(
         }
 
         // token-generation-states
-        await updateTokenEntriesWithPurposeAndPlatformStatesData(
+        await updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData(
           dynamoDBClient,
           purpose,
           purposeState,
@@ -116,7 +116,7 @@ export async function handleMessageV2(
           });
 
           // token-generation-states
-          await updatePurposeDataInTokenEntries({
+          await updatePurposeDataInTokenGenStatesEntries({
             dynamoDBClient,
             purposeId: purpose.id,
             purposeState,
@@ -136,7 +136,7 @@ export async function handleMessageV2(
       await deletePlatformPurposeEntry(dynamoDBClient, primaryKey);
 
       // token-generation-states
-      await updatePurposeDataInTokenEntries({
+      await updatePurposeDataInTokenGenStatesEntries({
         dynamoDBClient,
         purposeId: purpose.id,
         purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
