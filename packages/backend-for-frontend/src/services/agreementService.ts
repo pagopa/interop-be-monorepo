@@ -16,6 +16,7 @@ import {
   tenantApi,
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
+import { match, P } from "ts-pattern";
 import {
   AgreementProcessClient,
   PagoPAInteropBeClients,
@@ -673,9 +674,43 @@ export async function enrichAgreement(
     consumer.attributes,
     attributes
   );
+
+  const delegations =
+    await clients.delegationProcessClient.delegation.getDelegations({
+      queries: {
+        delegatorIds: [agreement.consumerId],
+        eserviceIds: [agreement.eserviceId],
+        offset: 0,
+        limit: 1,
+      },
+      headers: ctx.headers,
+    });
+
+  const requesterId = ctx.authData.organizationId;
+
+  const delegation = delegations.results.find(
+    (d) => d.delegateId === requesterId || d.delegatorId === requesterId
+  );
+
+  const delegationInfo = await match(delegation)
+    .with(P.nullish, () => undefined)
+    .otherwise(async (delegation) => {
+      const tenant = await clients.tenantProcessClient.tenant.getTenant({
+        params: { id: delegation.delegateId },
+        headers: ctx.headers,
+      });
+
+      return {
+        id: delegation.id,
+        delegateId: delegation.delegateId,
+        delegateName: tenant.name,
+      };
+    });
+
   return {
     id: agreement.id,
     descriptorId: agreement.descriptorId,
+    delegation: delegationInfo,
     producer: {
       id: agreement.producerId,
       name: producer.name,

@@ -14105,6 +14105,21 @@ components:
         descriptorId:
           type: string
           format: uuid
+        delegation:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            delegateId:
+              type: string
+              format: uuid
+            delegateName:
+              type: string
+          required:
+            - id
+            - delegateId
+            - delegateName
         producer:
           $ref: "#/components/schemas/CompactOrganization"
         consumer:
