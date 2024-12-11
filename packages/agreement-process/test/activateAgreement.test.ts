@@ -173,7 +173,7 @@ describe("activate agreement", () => {
       { requesterIs: "DelegateProducer", withConsumerDelegation: false },
       { requesterIs: "DelegateProducer", withConsumerDelegation: true },
     ] as const)(
-      "Agreement Pending, Requester === $requesterIs, with consumer delegation: $withConsumerDelegation,valid attributes -- success case: Pending >> Activated",
+      "Agreement Pending, Requester === $requesterIs, with consumer delegation: $withConsumerDelegation, valid attributes -- success case: Pending >> Activated",
       async ({ requesterIs, withConsumerDelegation }) => {
         vi.spyOn(pdfGenerator, "generate");
         const producer: Tenant = getMockTenant();
@@ -718,7 +718,96 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
-    // TODO 1) add cases where the requester is the delegate consumer, both for the first activation and a subsequent activation
+    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws operationNotAllowed", async () => {
+      const delegateId = generateId<TenantId>();
+      const authData = getRandomAuthData(delegateId);
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.pending,
+      };
+
+      const consumerDelegation = getMockDelegation({
+        delegatorId: agreement.consumerId,
+        kind: delegationKind.delegatedConsumer,
+        state: delegationState.active,
+        eserviceId: agreement.eserviceId,
+        delegateId,
+      });
+
+      await addOneAgreement(agreement);
+      await addOneDelegation(consumerDelegation);
+
+      // Adding some more delegations
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: agreement.eserviceId,
+          kind: delegationKind.delegatedProducer,
+          state: delegationState.revoked,
+        })
+      );
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: agreement.eserviceId,
+          kind: delegationKind.delegatedConsumer,
+          state: delegationState.revoked,
+        })
+      );
+
+      await expect(
+        agreementService.activateAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
+
+    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws operationNotAllowed", async () => {
+      const producerId = generateId<TenantId>();
+      const authData = getRandomAuthData(producerId);
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.pending,
+        producerId,
+      };
+
+      const producerDelegation = getMockDelegation({
+        delegatorId: producerId,
+        kind: delegationKind.delegatedProducer,
+        state: delegationState.active,
+        delegateId: generateId<TenantId>(),
+        eserviceId: agreement.eserviceId,
+      });
+
+      await addOneAgreement(agreement);
+      await addOneDelegation(producerDelegation);
+
+      // Adding some more delegations
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: agreement.eserviceId,
+          kind: delegationKind.delegatedProducer,
+          state: delegationState.revoked,
+        })
+      );
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: agreement.eserviceId,
+          kind: delegationKind.delegatedConsumer,
+          state: delegationState.revoked,
+        })
+      );
+
+      await expect(
+        agreementService.activateAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
   });
 
   describe("Agreement Suspended", () => {
