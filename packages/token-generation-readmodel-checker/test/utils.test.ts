@@ -303,8 +303,8 @@ describe("Token Generation Read Model Checker utils tests", () => {
     });
   });
 
-  describe("client utils", () => {
-    it("compareReadModelClientsWithPlatformStates", async () => {
+  describe("client and token-generation-states utils", () => {
+    it("compareReadModelClientsAndTokenGenStates", async () => {
       const descriptor1: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
