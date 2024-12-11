@@ -98,24 +98,33 @@ const authorizationServerRouter = (
       );
       if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
         const cleanedError: Problem = {
-          title: "Bad request",
-          type: "badRequest",
+          title: "The request contains bad syntax or cannot be fulfilled.",
+          type: "about:blank",
           status: constants.HTTP_STATUS_BAD_REQUEST,
-          detail:
-            "The token generation request couldn't be fulfilled due to issues in the request",
-          errors: [],
+          detail: "Bad request",
+          errors: [
+            {
+              code: "15-0008",
+              detail: "Unable to generate a token for the given request",
+            },
+          ],
           correlationId: ctx.correlationId,
         };
 
         return res.status(cleanedError.status).send(cleanedError);
       } else {
         const cleanedError: Problem = {
-          title: "Internal server error",
+          title: "The request couldn't be fulfilled due to an internal error",
           type: "internalServerError",
           status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-          detail:
-            "The token generation request couldn't be fulfilled due to an internal error",
-          errors: [],
+          detail: "Internal server error",
+          errors: [
+            {
+              code: "015-0000",
+              detail:
+                "Unable to generate a token for the given request due to an internal error",
+            },
+          ],
           correlationId: ctx.correlationId,
         };
         return res.status(cleanedError.status).send(cleanedError);
