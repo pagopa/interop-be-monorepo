@@ -1,3 +1,4 @@
+import { constants } from "http2";
 import {
   ExpressContext,
   fromAppContext,
@@ -8,7 +9,7 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { tooManyRequestsError } from "pagopa-interop-models";
+import { Problem, tooManyRequestsError } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { initProducer } from "kafka-iam-auth";
@@ -95,7 +96,39 @@ const authorizationServerRouter = (
         ctx.logger,
         ctx.correlationId
       );
-      return res.status(errorRes.status).send(errorRes);
+      if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
+        const cleanedError: Problem = {
+          title: "The request contains bad syntax or cannot be fulfilled.",
+          type: "about:blank",
+          status: constants.HTTP_STATUS_BAD_REQUEST,
+          detail: "Bad request",
+          errors: [
+            {
+              code: "15-0008",
+              detail: "Unable to generate a token for the given request",
+            },
+          ],
+          correlationId: ctx.correlationId,
+        };
+
+        return res.status(cleanedError.status).send(cleanedError);
+      } else {
+        const cleanedError: Problem = {
+          title: "The request couldn't be fulfilled due to an internal error",
+          type: "internalServerError",
+          status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
+          detail: "Internal server error",
+          errors: [
+            {
+              code: "015-0000",
+              detail:
+                "Unable to generate a token for the given request due to an internal error",
+            },
+          ],
+          correlationId: ctx.correlationId,
+        };
+        return res.status(cleanedError.status).send(cleanedError);
+      }
     }
   });
   return authorizationServerRouter;
