@@ -361,10 +361,12 @@ describe("sendAgreementActivationEmail", () => {
       };
       await addOneAgreement(agreement);
 
-      await agreementEmailSenderServiceFailure.sendAgreementActivationSimpleEmail(
-        toAgreementV2(agreement),
-        genericLogger
-      );
+      await expect(
+        agreementEmailSenderServiceFailure.sendAgreementActivationSimpleEmail(
+          toAgreementV2(agreement),
+          genericLogger
+        )
+      ).rejects.toThrow();
 
       expect(sesEmailManager.send).not.toHaveBeenCalled();
     });

@@ -22,6 +22,7 @@ import {
   TenantId,
   TenantMail,
   fromAgreementV2,
+  genericInternalError,
   tenantMailKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -189,9 +190,12 @@ async function sendAgreementActivationEmail(
     logger.info(
       `Email sent for agreement ${agreement.id} activation (${emailManager.kind})`
     );
-  } catch (error) {
+  } catch (err) {
     logger.error(
-      `Unexpected error sending email for agreement ${agreement.id} activation (${emailManager.kind}): ${error}`
+      `Unexpected error sending email for agreement ${agreement.id} activation (${emailManager.kind}): ${err}`
+    );
+    throw genericInternalError(
+      `Error sending email for agreement ${agreement.id}: ${err}`
     );
   }
 }
@@ -269,6 +273,9 @@ export function agreementEmailSenderServiceBuilder(
         );
       } catch (err) {
         logger.warn(
+          `Error sending email for agreement ${agreement.id}: ${err}`
+        );
+        throw genericInternalError(
           `Error sending email for agreement ${agreement.id}: ${err}`
         );
       }
@@ -396,6 +403,9 @@ export function agreementEmailSenderServiceBuilder(
         logger.info(`Email sent for agreement ${agreement.id} rejection (SES)`);
       } catch (err) {
         logger.warn(
+          `Error sending email for agreement ${agreement.id}: ${err}`
+        );
+        throw genericInternalError(
           `Error sending email for agreement ${agreement.id}: ${err}`
         );
       }

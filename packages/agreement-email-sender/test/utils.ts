@@ -43,7 +43,9 @@ export const sesEmailManager: EmailManagerSES = {
 export const sesEmailManagerFailure: EmailManagerSES = {
   kind: "SES",
   send: vi.fn().mockRejectedValue(new Error("Generic error during send email")),
-  sendWithAttachments: vi.fn().mockReturnThis(),
+  sendWithAttachments: vi
+    .fn()
+    .mockRejectedValue(new Error("Generic error during send email")),
 };
 
 export const sesEmailsenderData = {
