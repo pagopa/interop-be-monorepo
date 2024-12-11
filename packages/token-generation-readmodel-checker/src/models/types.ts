@@ -34,23 +34,9 @@ export type ComparisonPlatformStatesPurposeEntry = z.infer<
   typeof ComparisonPlatformStatesPurposeEntry
 >;
 
-export const ComparisonTokenGenStatesConsumerClientPurpose =
-  TokenGenerationStatesConsumerClient.pick({
-    PK: true,
-    consumerId: true,
-    GSIPK_purposeId: true,
-    purposeState: true,
-    purposeVersionId: true,
-    GSIPK_clientId_purposeId: true,
-  });
-export type ComparisonTokenGenStatesConsumerClientPurpose = z.infer<
-  typeof ComparisonTokenGenStatesConsumerClientPurpose
->;
-
 export type PurposeDifferencesResult = Array<
   [
     ComparisonPlatformStatesPurposeEntry | undefined,
-    ComparisonTokenGenStatesConsumerClientPurpose[] | undefined,
     ComparisonPurpose | undefined
   ]
 >;
@@ -76,23 +62,9 @@ export type ComparisonPlatformStatesAgreementEntry = z.infer<
   typeof ComparisonPlatformStatesAgreementEntry
 >;
 
-export const ComparisonTokenGenStatesConsumerClientAgreement =
-  TokenGenerationStatesConsumerClient.pick({
-    PK: true,
-    consumerId: true,
-    agreementId: true,
-    agreementState: true,
-    GSIPK_consumerId_eserviceId: true,
-    GSIPK_eserviceId_descriptorId: true,
-  });
-export type ComparisonTokenGenStatesConsumerClientAgreement = z.infer<
-  typeof ComparisonTokenGenStatesConsumerClientAgreement
->;
-
 export type AgreementDifferencesResult = Array<
   [
     ComparisonPlatformStatesAgreementEntry | undefined,
-    ComparisonTokenGenStatesConsumerClientAgreement[] | undefined,
     ComparisonAgreement | undefined
   ]
 >;
@@ -115,23 +87,9 @@ export type ComparisonPlatformStatesCatalogEntry = z.infer<
   typeof ComparisonPlatformStatesCatalogEntry
 >;
 
-export const ComparisonTokenGenStatesConsumerClientCatalog =
-  TokenGenerationStatesConsumerClient.pick({
-    PK: true,
-    GSIPK_consumerId_eserviceId: true,
-    GSIPK_eserviceId_descriptorId: true,
-    descriptorState: true,
-    descriptorAudience: true,
-    descriptorVoucherLifespan: true,
-  });
-export type ComparisonTokenGenStatesConsumerClientCatalog = z.infer<
-  typeof ComparisonTokenGenStatesConsumerClientCatalog
->;
-
 export type CatalogDifferencesResult = Array<
   [
     ComparisonPlatformStatesCatalogEntry | undefined,
-    ComparisonTokenGenStatesConsumerClientCatalog[] | undefined,
     ComparisonEService | undefined
   ]
 >;
@@ -160,7 +118,19 @@ export const ComparisonTokenGenStatesGenericClient =
   TokenGenerationStatesConsumerClient.pick({
     consumerId: true,
     GSIPK_clientId: true,
+    GSIPK_kid: true,
+    publicKey: true,
     GSIPK_clientId_purposeId: true,
+    GSIPK_purposeId: true,
+    purposeState: true,
+    purposeVersionId: true,
+    agreementId: true,
+    agreementState: true,
+    GSIPK_consumerId_eserviceId: true,
+    GSIPK_eserviceId_descriptorId: true,
+    descriptorState: true,
+    descriptorAudience: true,
+    descriptorVoucherLifespan: true,
   }).extend({
     PK:
       TokenGenerationStatesConsumerClient.shape.PK ||

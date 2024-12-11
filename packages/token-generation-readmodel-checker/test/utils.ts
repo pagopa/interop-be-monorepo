@@ -36,7 +36,6 @@ export const dynamoDBClient = new DynamoDBClient({
   endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
 });
 
-// TODO: copied
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(
     toReadModelEService(eservice),
