@@ -4,106 +4,76 @@ import {
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test/index.js";
 import {
+  CorrelationId,
   generateId,
   Purpose,
   PurposeArchivedV2,
   PurposeEventEnvelopeV2,
   toPurposeV2,
 } from "pagopa-interop-models";
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { beforeAll, describe, expect, it, vi, afterEach } from "vitest";
 import { RefreshableInteropToken } from "pagopa-interop-commons";
-import { handleMessageV2 } from "../src/clientPurposeUpdaterConsumerServiceV2.js";
-import { getInteropBeClients } from "../src/clients/clientsProvider.js";
 
-describe("PurposeArchived", async () => {
-  const { authorizationClient } = getInteropBeClients();
+const removePurposeFromClientsFn = vi.fn();
 
-  const testToken = {
-    iss: "dev.interop.pagopa.it",
-    aud: "dev.interop.pagopa.it/ui",
-    uid: generateId(),
-    nbf: Math.floor(Date.now() / 1000),
-    name: "Mario",
-    exp: Math.floor(Date.now() / 1000) + 3600,
-    iat: Math.floor(Date.now() / 1000),
-    family_name: "Rossi",
-    jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
-    email: "Mario.rossi@psp.it",
-    role: "internal",
-    sub: generateId(),
-    organization: {
-      id: generateId(),
-      name: "PagoPA S.p.A.",
-      roles: [
-        {
-          partyRole: "MANAGER",
-          role: ["internal"],
-        },
-      ],
-      fiscal_code: "15376371009",
-      ipaCode: "5N2TR557",
-    },
-    "user-roles": "internal",
+vi.doMock("pagopa-interop-api-clients", () => ({
+  authorizationApi: {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    createClientApiClient: () => ({
+      removePurposeFromClients: removePurposeFromClientsFn,
+    }),
+  },
+}));
+
+describe("PurposeArchived", () => {
+  const correlationId: CorrelationId = generateId();
+
+  const activeVersion = getMockPurposeVersion();
+
+  const purpose: Purpose = {
+    ...getMockPurpose(),
+    versions: [activeVersion],
   };
 
+  const testToken = "mockToken";
+
   const testHeaders = {
+    "X-Correlation-Id": correlationId,
     Authorization: `Bearer ${testToken}`,
   };
 
   let mockRefreshableToken: RefreshableInteropToken;
 
-  beforeAll(async () => {
+  beforeAll(() => {
     mockRefreshableToken = {
       get: () => Promise.resolve({ serialized: testToken }),
     } as unknown as RefreshableInteropToken;
   });
 
-  beforeEach(async () => {
-    // eslint-disable-next-line functional/immutable-data
-    authorizationClient.client.removePurposeFromClients = vi.fn();
-  });
-
-  afterEach(async () => {
-    vi.clearAllMocks();
+  afterEach(() => {
+    removePurposeFromClientsFn.mockClear();
   });
 
   it("The consumer should call the removePurposeFromClients route and remove the purpose from the client", async () => {
-    const activeVersion = getMockPurposeVersion();
-
-    const purpose: Purpose = {
-      ...getMockPurpose(),
-      versions: [activeVersion],
-    };
-
-    const updatedPurpose: Purpose = {
-      ...purpose,
-      versions: [
-        { ...activeVersion, updatedAt: new Date(), state: "Archived" },
-      ],
-    };
-
     const payload: PurposeArchivedV2 = {
-      purpose: toPurposeV2(updatedPurpose),
+      purpose: toPurposeV2(purpose),
       versionId: activeVersion.id,
     };
 
     const decodedKafkaMessage: PurposeEventEnvelopeV2 = {
       sequence_num: 1,
-      stream_id: updatedPurpose.id,
+      stream_id: purpose.id,
       version: 2,
       type: "PurposeArchived",
       event_version: 2,
       data: payload,
       log_date: new Date(),
+      correlation_id: correlationId,
     };
+
+    const { handleMessageV2 } = await import(
+      "../src/clientPurposeUpdaterConsumerServiceV2.js"
+    );
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -112,14 +82,11 @@ describe("PurposeArchived", async () => {
       offset: "10",
     });
 
-    expect(
-      authorizationClient.client.removePurposeFromClients
-    ).toHaveBeenCalledWith(undefined, {
+    expect(removePurposeFromClientsFn).toHaveBeenCalledWith(undefined, {
       params: {
         purposeId: purpose.id,
       },
       headers: testHeaders,
     });
-    // expect(1).toEqual(1);
   });
 });
