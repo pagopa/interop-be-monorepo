@@ -1,6 +1,6 @@
+import { randomUUID } from "crypto";
 import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { v4 as uuidv4 } from "uuid";
 import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { CatalogItemEventNotification } from "./catalogItemEventNotification.js";
 
@@ -32,6 +32,9 @@ export const eventV2TypeMapper = (
       "EServiceDescriptorPublished",
       "EServiceDescriptorSuspended",
       "EServiceDescriptorAttributesUpdated",
+      "EServiceDescriptorDelegateSubmitted",
+      "EServiceDescriptorDelegatorApproved",
+      "EServiceDescriptorDelegatorRejected",
       () => "catalog_item_descriptor_updated"
     )
     .with(
@@ -60,7 +63,7 @@ export const eventV2TypeMapper = (
     )
     .exhaustive();
 
-/* 
+/*
   This method is used to build a message for catalog events, that to be sent to the notify queue,
   it will be used to mantains compatibility with the old version of queue consumers.
   Related issue https://pagopa.atlassian.net/browse/IMN-67
@@ -69,7 +72,7 @@ export const buildCatalogMessage = (
   event: EServiceEventEnvelopeV2,
   catalogItemEvent: CatalogItemEventNotification
 ): QueueMessage => ({
-  messageUUID: uuidv4(),
+  messageUUID: randomUUID(),
   eventJournalPersistenceId: event.stream_id,
   eventJournalSequenceNumber: event.version,
   eventTimestamp: Number(event.log_date),
