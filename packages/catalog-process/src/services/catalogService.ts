@@ -77,9 +77,9 @@ import {
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorArchived,
-  toCreateEventEServiceDescriptorDelegateSubmitted,
-  toCreateEventEServiceDescriptorDelegatorApproved,
-  toCreateEventEServiceDescriptorDelegatorRejected,
+  toCreateEventEServiceDescriptorSubmittedByDelegate,
+  toCreateEventEServiceDescriptorApprovedByDelegator,
+  toCreateEventEServiceDescriptorRejectedByDelegator,
   toCreateEventEServiceDescriptorPublished,
   toCreateEventEServiceDescriptorQuotasUpdated,
   toCreateEventEServiceDescriptorSuspended,
@@ -1227,7 +1227,7 @@ export function catalogServiceBuilder(
           updateDescriptorState(descriptor, descriptorState.waitingForApproval)
         );
         await repository.createEvent(
-          toCreateEventEServiceDescriptorDelegateSubmitted(
+          toCreateEventEServiceDescriptorSubmittedByDelegate(
             eservice.metadata.version,
             descriptor.id,
             eserviceWithWaitingForApprovalDescriptor,
@@ -1826,7 +1826,7 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(
-        toCreateEventEServiceDescriptorDelegatorApproved(
+        toCreateEventEServiceDescriptorApprovedByDelegator(
           eservice.metadata.version,
           descriptor.id,
           updatedEService,
@@ -1876,7 +1876,7 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(
-        toCreateEventEServiceDescriptorDelegatorRejected(
+        toCreateEventEServiceDescriptorRejectedByDelegator(
           eservice.metadata.version,
           descriptor.id,
           updatedEService,

@@ -480,7 +480,7 @@ export const toCreateEventEServiceDescriptionUpdated = (
   correlationId,
 });
 
-export const toCreateEventEServiceDescriptorDelegateSubmitted = (
+export const toCreateEventEServiceDescriptorSubmittedByDelegate = (
   version: number,
   descriptorId: DescriptorId,
   eservice: EService,
@@ -489,7 +489,7 @@ export const toCreateEventEServiceDescriptorDelegateSubmitted = (
   streamId: eservice.id,
   version,
   event: {
-    type: "EServiceDescriptorDelegateSubmitted",
+    type: "EServiceDescriptorSubmittedByDelegate",
     event_version: 2,
     data: {
       descriptorId,
@@ -499,7 +499,7 @@ export const toCreateEventEServiceDescriptorDelegateSubmitted = (
   correlationId,
 });
 
-export const toCreateEventEServiceDescriptorDelegatorApproved = (
+export const toCreateEventEServiceDescriptorApprovedByDelegator = (
   version: number,
   descriptorId: DescriptorId,
   eservice: EService,
@@ -508,7 +508,7 @@ export const toCreateEventEServiceDescriptorDelegatorApproved = (
   streamId: eservice.id,
   version,
   event: {
-    type: "EServiceDescriptorDelegatorApproved",
+    type: "EServiceDescriptorApprovedByDelegator",
     event_version: 2,
     data: {
       descriptorId,
@@ -518,7 +518,7 @@ export const toCreateEventEServiceDescriptorDelegatorApproved = (
   correlationId,
 });
 
-export const toCreateEventEServiceDescriptorDelegatorRejected = (
+export const toCreateEventEServiceDescriptorRejectedByDelegator = (
   version: number,
   descriptorId: DescriptorId,
   eservice: EService,
@@ -527,7 +527,7 @@ export const toCreateEventEServiceDescriptorDelegatorRejected = (
   streamId: eservice.id,
   version,
   event: {
-    type: "EServiceDescriptorDelegatorRejected",
+    type: "EServiceDescriptorRejectedByDelegator",
     event_version: 2,
     data: {
       descriptorId,
