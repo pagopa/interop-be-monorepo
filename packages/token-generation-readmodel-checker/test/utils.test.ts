@@ -124,7 +124,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
       };
 
       const differences = await compareReadModelPurposesWithPlatformStates({
-        platformStatesEntries: new Map([
+        platformStatesPurposeMap: new Map([
           [purpose1.id, platformPurposeEntry1],
           [purpose2.id, platformPurposeEntry2],
         ]),
@@ -209,7 +209,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
       };
 
       const differences = await compareReadModelAgreementsWithPlatformStates({
-        platformStatesEntries: new Map([
+        platformStatesAgreementMap: new Map([
           [agreement1.id, platformAgreementEntry1],
           [agreement2.id, platformAgreementEntry2],
         ]),
@@ -282,7 +282,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
       };
 
       const differences = await compareReadModelEServicesWithPlatformStates({
-        platformStatesEntries: new Map([
+        platformStatesEServiceMap: new Map([
           [eservice1.id, platformCatalogEntry1],
           [eservice2.id, platformCatalogEntry2],
         ]),
@@ -468,13 +468,11 @@ describe("Token Generation Read Model Checker utils tests", () => {
       };
 
       const differences = await compareReadModelClientsAndTokenGenStates({
-        platformStatesEntries: new Map([
+        platformStatesClientMap: new Map([
           [client1.id, platformClientEntry1],
           [client2.id, platformClientEntry2],
         ]),
-        tokenGenerationStatesEntries: new Map([
-          [client1.id, [tokenGenStatesEntry]],
-        ]),
+        tokenGenStatesMaps: new Map([[client1.id, [tokenGenStatesEntry]]]),
         clientsMap,
         purposesMap,
         consumerIdEserviceIdMap,

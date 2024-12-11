@@ -144,19 +144,12 @@ export async function compareTokenGenerationReadModel(
     await tokenGenerationService.readAllTokenGenerationStatesItems();
 
   const tokenGenStatesMaps = tokenGenerationStatesEntries.reduce(
-    (
-      acc: {
-        clients: Map<ClientId, TokenGenerationStatesGenericClient[]>;
-      },
-      entry
-    ) => {
+    (acc: Map<ClientId, TokenGenerationStatesGenericClient[]>, entry) => {
       const clientId = getClientIdFromTokenGenStatesPK(entry.PK);
-      acc.clients.set(clientId, [...(acc.clients.get(clientId) || []), entry]);
+      acc.set(clientId, [...(acc.get(clientId) || []), entry]);
       return acc;
     },
-    {
-      clients: new Map<ClientId, TokenGenerationStatesGenericClient[]>(),
-    }
+    new Map<ClientId, TokenGenerationStatesGenericClient[]>()
   );
 
   const platformStatesMap: {
@@ -270,25 +263,25 @@ export async function compareTokenGenerationReadModel(
   );
 
   const purposeDifferences = await compareReadModelPurposesWithPlatformStates({
-    platformStatesEntries: platformStatesMap.purposes,
+    platformStatesPurposeMap: platformStatesMap.purposes,
     purposesMap,
     logger,
   });
   const agreementDifferences =
     await compareReadModelAgreementsWithPlatformStates({
-      platformStatesEntries: platformStatesMap.agreements,
+      platformStatesAgreementMap: platformStatesMap.agreements,
       agreementsMap,
       logger,
     });
   const catalogDifferences = await compareReadModelEServicesWithPlatformStates({
-    platformStatesEntries: platformStatesMap.eservices,
+    platformStatesEServiceMap: platformStatesMap.eservices,
     eservicesMap,
     logger,
   });
   const clientAndTokenGenStatesDifferences =
     await compareReadModelClientsAndTokenGenStates({
-      platformStatesEntries: platformStatesMap.clients,
-      tokenGenerationStatesEntries: tokenGenStatesMaps.clients,
+      platformStatesClientMap: platformStatesMap.clients,
+      tokenGenStatesMaps,
       clientsMap,
       purposesMap,
       consumerIdEserviceIdMap,
@@ -306,21 +299,21 @@ export async function compareTokenGenerationReadModel(
 
 // purposes
 export async function compareReadModelPurposesWithPlatformStates({
-  platformStatesEntries,
+  platformStatesPurposeMap,
   purposesMap,
   logger,
 }: {
-  platformStatesEntries: Map<PurposeId, PlatformStatesPurposeEntry>;
+  platformStatesPurposeMap: Map<PurposeId, PlatformStatesPurposeEntry>;
   purposesMap: Map<PurposeId, Purpose>;
   logger: Logger;
 }): Promise<PurposeDifferencesResult> {
   const allIds = new Set([
-    ...platformStatesEntries.keys(),
+    ...platformStatesPurposeMap.keys(),
     ...purposesMap.keys(),
   ]);
 
   return Array.from(allIds).reduce<PurposeDifferencesResult>((acc, id) => {
-    const platformStatesEntry = platformStatesEntries.get(id);
+    const platformStatesEntry = platformStatesPurposeMap.get(id);
     const purpose = purposesMap.get(id);
 
     if (!platformStatesEntry && !purpose) {
@@ -449,21 +442,21 @@ function validatePurposePlatformStates({
 
 // agreements
 export async function compareReadModelAgreementsWithPlatformStates({
-  platformStatesEntries,
+  platformStatesAgreementMap,
   agreementsMap,
   logger,
 }: {
-  platformStatesEntries: Map<AgreementId, PlatformStatesAgreementEntry>;
+  platformStatesAgreementMap: Map<AgreementId, PlatformStatesAgreementEntry>;
   agreementsMap: Map<AgreementId, Agreement>;
   logger: Logger;
 }): Promise<AgreementDifferencesResult> {
   const allIds = new Set([
-    ...platformStatesEntries.keys(),
+    ...platformStatesAgreementMap.keys(),
     ...agreementsMap.keys(),
   ]);
 
   return Array.from(allIds).reduce<AgreementDifferencesResult>((acc, id) => {
-    const platformStatesEntry = platformStatesEntries.get(id);
+    const platformStatesEntry = platformStatesAgreementMap.get(id);
     const agreement = agreementsMap.get(id);
 
     if (!platformStatesEntry && !agreement) {
@@ -589,21 +582,21 @@ function validateAgreementPlatformStates({
 
 // eservices
 export async function compareReadModelEServicesWithPlatformStates({
-  platformStatesEntries,
+  platformStatesEServiceMap,
   eservicesMap,
   logger,
 }: {
-  platformStatesEntries: Map<EServiceId, PlatformStatesCatalogEntry>;
+  platformStatesEServiceMap: Map<EServiceId, PlatformStatesCatalogEntry>;
   eservicesMap: Map<EServiceId, EService>;
   logger: Logger;
 }): Promise<CatalogDifferencesResult> {
   const allIds = new Set([
-    ...platformStatesEntries.keys(),
+    ...platformStatesEServiceMap.keys(),
     ...eservicesMap.keys(),
   ]);
 
   return Array.from(allIds).reduce<CatalogDifferencesResult>((acc, id) => {
-    const platformStatesEntry = platformStatesEntries.get(id);
+    const platformStatesEntry = platformStatesEServiceMap.get(id);
     const eservice = eservicesMap.get(id);
 
     if (!platformStatesEntry && !eservice) {
@@ -734,19 +727,16 @@ function validateCatalogPlatformStates({
 
 // clients
 export async function compareReadModelClientsAndTokenGenStates({
-  platformStatesEntries,
-  tokenGenerationStatesEntries,
+  platformStatesClientMap,
+  tokenGenStatesMaps,
   clientsMap,
   purposesMap,
   consumerIdEserviceIdMap,
   eserviceIdDescriptorIdMap,
   logger,
 }: {
-  platformStatesEntries: Map<ClientId, PlatformStatesClientEntry>;
-  tokenGenerationStatesEntries: Map<
-    ClientId,
-    TokenGenerationStatesGenericClient[]
-  >;
+  platformStatesClientMap: Map<ClientId, PlatformStatesClientEntry>;
+  tokenGenStatesMaps: Map<ClientId, TokenGenerationStatesGenericClient[]>;
   clientsMap: Map<ClientId, Client>;
   purposesMap: Map<PurposeId, Purpose>;
   consumerIdEserviceIdMap: Map<GSIPKConsumerIdEServiceId, Agreement>;
@@ -754,14 +744,14 @@ export async function compareReadModelClientsAndTokenGenStates({
   logger: Logger;
 }): Promise<ClientDifferencesResult> {
   const allIds = new Set([
-    ...platformStatesEntries.keys(),
-    ...tokenGenerationStatesEntries.keys(),
+    ...platformStatesClientMap.keys(),
+    ...tokenGenStatesMaps.keys(),
     ...clientsMap.keys(),
   ]);
 
   return Array.from(allIds).reduce<ClientDifferencesResult>((acc, id) => {
-    const platformStatesEntry = platformStatesEntries.get(id);
-    const tokenGenStatesEntries = tokenGenerationStatesEntries.get(id);
+    const platformStatesEntry = platformStatesClientMap.get(id);
+    const tokenGenStatesEntries = tokenGenStatesMaps.get(id);
     const client = clientsMap.get(id);
 
     if (!platformStatesEntry && !tokenGenStatesEntries?.length && !client) {
