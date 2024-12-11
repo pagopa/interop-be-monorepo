@@ -150,7 +150,7 @@ async function sendAgreementActivationEmail(
   sender: { label: string; mail: string },
   consumerName: string,
   producerName: string,
-  recepientsEmails: string[],
+  recipientsEmails: string[],
   interopFeUrl?: string
 ): Promise<void> {
   const agreement = fromAgreementV2(agreementV2Msg);
@@ -165,7 +165,7 @@ async function sendAgreementActivationEmail(
   const descriptor = retrieveAgreementDescriptor(eservice, agreement);
   const mail = {
     subject: `Richiesta di fruizione ${agreement.id} attiva`,
-    to: recepientsEmails,
+    to: recipientsEmails,
     body: templateService.compileHtml(htmlTemplate, {
       activationDate,
       agreementId: agreement.id,
