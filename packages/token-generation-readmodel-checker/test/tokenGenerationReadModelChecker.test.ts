@@ -85,7 +85,7 @@ import {
   addOneEService,
   addOnePurpose,
   dynamoDBClient,
-  writeClientEntry,
+  writePlatformStatesClientEntry,
 } from "./utils.js";
 
 describe("Token Generation Read Model Checker tests", () => {
@@ -213,7 +213,10 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformStatesClientEntry, dynamoDBClient);
+      await writePlatformStatesClientEntry(
+        platformStatesClientEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const tokenGenStatesClientKidPurposePK =
@@ -1244,7 +1247,10 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformStatesClientEntry1, dynamoDBClient);
+      await writePlatformStatesClientEntry(
+        platformStatesClientEntry1,
+        dynamoDBClient
+      );
 
       const clientEntryPK2 = makePlatformStatesClientPK(client2.id);
       const platformStatesClientEntry2: PlatformStatesClientEntry = {
@@ -1256,7 +1262,10 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformStatesClientEntry2, dynamoDBClient);
+      await writePlatformStatesClientEntry(
+        platformStatesClientEntry2,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const tokenGenStatesClientKidPurposePK1 =
@@ -1478,7 +1487,10 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformStatesClientEntry1, dynamoDBClient);
+      await writePlatformStatesClientEntry(
+        platformStatesClientEntry1,
+        dynamoDBClient
+      );
 
       const clientEntryPK2 = makePlatformStatesClientPK(client2.id);
       const platformStatesClientEntry2: PlatformStatesClientEntry = {
@@ -1490,7 +1502,10 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformStatesClientEntry2, dynamoDBClient);
+      await writePlatformStatesClientEntry(
+        platformStatesClientEntry2,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const tokenGenStatesClientKidPurposePK =
@@ -1629,7 +1644,10 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformStatesClientEntry, dynamoDBClient);
+      await writePlatformStatesClientEntry(
+        platformStatesClientEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const tokenGenStatesClientKidPK = makeTokenGenerationStatesClientKidPK({
@@ -1844,7 +1862,10 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformStatesClientEntry, dynamoDBClient);
+      await writePlatformStatesClientEntry(
+        platformStatesClientEntry,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 1;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
@@ -1938,7 +1959,10 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformStatesClientEntry, dynamoDBClient);
+      await writePlatformStatesClientEntry(
+        platformStatesClientEntry,
+        dynamoDBClient
+      );
 
       const expectedDifferencesLength = 0;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
@@ -2024,7 +2048,10 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeClientEntry(platformStatesClientEntry, dynamoDBClient);
+      await writePlatformStatesClientEntry(
+        platformStatesClientEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const tokenGenStatesClientKidPurposePK =

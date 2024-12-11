@@ -64,7 +64,7 @@ export const addOneClient = async (client: Client): Promise<void> => {
   );
 };
 
-export const writeClientEntry = async (
+export const writePlatformStatesClientEntry = async (
   clientEntry: PlatformStatesClientEntry,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {

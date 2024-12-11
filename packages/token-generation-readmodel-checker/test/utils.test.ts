@@ -75,7 +75,7 @@ import {
   addOneEService,
   addOnePurpose,
   dynamoDBClient,
-  writeClientEntry,
+  writePlatformStatesClientEntry,
 } from "./utils.js";
 
 describe("Token Generation Read Model Checker utils tests", () => {
@@ -565,10 +565,16 @@ describe("Token Generation Read Model Checker utils tests", () => {
       const platformStatesEntriesLength = 2;
 
       const platformStatesEntry1 = getMockPlatformStatesClientEntry();
-      await writeClientEntry(platformStatesEntry1, dynamoDBClient);
+      await writePlatformStatesClientEntry(
+        platformStatesEntry1,
+        dynamoDBClient
+      );
 
       const platformStatesEntry2 = getMockPlatformStatesClientEntry();
-      await writeClientEntry(platformStatesEntry2, dynamoDBClient);
+      await writePlatformStatesClientEntry(
+        platformStatesEntry2,
+        dynamoDBClient
+      );
 
       vi.spyOn(dynamoDBClient, "send");
       const platformStatesEntries =
