@@ -167,9 +167,14 @@ describe("activate agreement", () => {
   }
 
   describe("Agreement Pending", () => {
-    it.each(["Producer", "DelegateProducer"] as const)(
-      "Agreement Pending, Requester === %s, valid attributes -- success case: Pending >> Activated",
-      async (producerOrDelegateProducer) => {
+    it.each([
+      { requesterIs: "Producer", withConsumerDelegation: false },
+      { requesterIs: "Producer", withConsumerDelegation: true },
+      { requesterIs: "DelegateProducer", withConsumerDelegation: false },
+      { requesterIs: "DelegateProducer", withConsumerDelegation: true },
+    ] as const)(
+      "Agreement Pending, Requester === $requesterIs, with consumer delegation: $withConsumerDelegation,valid attributes -- success case: Pending >> Activated",
+      async ({ requesterIs, withConsumerDelegation }) => {
         vi.spyOn(pdfGenerator, "generate");
         const producer: Tenant = getMockTenant();
 
@@ -265,7 +270,7 @@ describe("activate agreement", () => {
         };
 
         const { authData, delegateProducer, producerDelegation } = match(
-          producerOrDelegateProducer
+          requesterIs
         )
           .with("Producer", () => ({
             authData: getRandomAuthData(producer.id),
@@ -290,6 +295,29 @@ describe("activate agreement", () => {
           })
           .exhaustive();
 
+        const { delegateConsumer, consumerDelegation } = match(
+          withConsumerDelegation
+        )
+          .with(false, () => ({
+            delegateConsumer: undefined,
+            consumerDelegation: undefined,
+          }))
+          .with(true, () => {
+            const delegateConsumer = getMockTenant();
+            const consumerDelegation = getMockDelegation({
+              kind: delegationKind.delegatedConsumer,
+              delegatorId: consumer.id,
+              delegateId: delegateConsumer.id,
+              state: delegationState.active,
+              eserviceId: agreement.eserviceId,
+            });
+            return {
+              delegateConsumer,
+              consumerDelegation,
+            };
+          })
+          .exhaustive();
+
         await addOneAgreement(agreement);
         await addOneTenant(consumer);
         await addOneTenant(producer);
@@ -302,6 +330,11 @@ describe("activate agreement", () => {
         if (delegateProducer && producerDelegation) {
           await addOneTenant(delegateProducer);
           await addOneDelegation(producerDelegation);
+        }
+
+        if (delegateConsumer && consumerDelegation) {
+          await addOneTenant(delegateConsumer);
+          await addOneDelegation(consumerDelegation);
         }
 
         const acrivateAgreementReturnValue =
@@ -438,12 +471,10 @@ describe("activate agreement", () => {
           producerDelegateIpaCode: delegateProducer?.externalId.value,
           producerDelegateName: delegateProducer?.name,
 
-          // TODO 3) add also a consumer delegation (maybe), so that we can test that
-          // its kept into account in any case in the PDF, no matter if I am the delegate producer or not.
-          // Either here or in a dedicated test...
-          consumerDelegationId: undefined,
-          consumerDelegateIpaCode: undefined,
-          consumerDelegateName: undefined,
+          // PDF mentions also consumer delegate in case they exist, even if the caller is the producer/producer delegate
+          consumerDelegationId: consumerDelegation?.id,
+          consumerDelegateIpaCode: delegateConsumer?.externalId.value,
+          consumerDelegateName: delegateConsumer?.name,
         };
         expect(pdfGenerator.generate).toHaveBeenCalledWith(
           path.resolve(
@@ -688,65 +719,6 @@ describe("activate agreement", () => {
     });
 
     // TODO 1) add cases where the requester is the delegate consumer, both for the first activation and a subsequent activation
-
-    it("should succed when the requester is the Delegate and from Suspended", async () => {
-      // TODO 2) move under the suspended section and update the test to adhere to same structure/naming of other tests
-      const producer = getMockTenant();
-      const consumer = getMockTenant();
-      const authData = getRandomAuthData();
-      const eservice = {
-        ...getMockEService(),
-        producerId: producer.id,
-        consumerId: consumer.id,
-        descriptors: [getMockDescriptorPublished()],
-      };
-      const agreement: Agreement = {
-        ...getMockAgreement(eservice.id),
-        state: agreementState.suspended,
-        descriptorId: eservice.descriptors[0].id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedAt: new Date(),
-        suspendedByConsumer: false,
-        suspendedByProducer: false,
-        suspendedByPlatform: false,
-      };
-      const delegation = getMockDelegation({
-        kind: delegationKind.delegatedProducer,
-        eserviceId: agreement.eserviceId,
-        delegateId: authData.organizationId,
-        delegatorId: eservice.producerId,
-        state: delegationState.active,
-      });
-
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await addOneDelegation(delegation);
-
-      const actualAgreement = await agreementService.activateAgreement(
-        agreement.id,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
-      );
-
-      const expectedAgreement = {
-        ...agreement,
-        state: agreementState.active,
-        contract: actualAgreement.contract,
-        certifiedAttributes: actualAgreement.certifiedAttributes,
-        declaredAttributes: actualAgreement.declaredAttributes,
-        verifiedAttributes: actualAgreement.verifiedAttributes,
-        suspendedAt: undefined,
-      };
-
-      expect(actualAgreement).toEqual(expectedAgreement);
-    });
   });
 
   describe("Agreement Suspended", () => {
