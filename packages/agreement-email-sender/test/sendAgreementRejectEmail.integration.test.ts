@@ -8,6 +8,7 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockTenant,
+  getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -16,6 +17,7 @@ import {
   Tenant,
   UserId,
   generateId,
+  tenantMailKind,
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
@@ -34,35 +36,17 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("sendAgreementSubmissionEmail", () => {
-  it("should send an email on AgreementSubmitted", async () => {
+describe("sendAgreementRejectEmail", () => {
+  it("should send an email on AgreementRejected", async () => {
     vi.spyOn(sesEmailManager, "send");
-    const tenantMail = "tenant@mail.com";
-    const consumer: Tenant = { ...getMockTenant(), name: "Jane Doe" };
-    const producer: Tenant = {
+    const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
+    const consumer: Tenant = {
       ...getMockTenant(),
-      name: "John Doe",
-      mails: [
-        {
-          address: "oldmail@old.com",
-          id: generateId(),
-          createdAt: new Date("2021-01-01"),
-          kind: "CONTACT_EMAIL",
-        },
-        {
-          address: tenantMail,
-          id: generateId(),
-          createdAt: new Date(),
-          kind: "CONTACT_EMAIL",
-        },
-        {
-          address: "oldmail2@old.com",
-          id: generateId(),
-          createdAt: new Date("2020-01-01"),
-          kind: "CONTACT_EMAIL",
-        },
-      ],
+      name: "Jane Doe",
+      mails: [consumerEmail],
     };
+    const producer: Tenant = getMockTenant();
+
     await addOneTenant(producer);
     await addOneTenant(consumer);
 
@@ -74,13 +58,13 @@ describe("sendAgreementSubmissionEmail", () => {
     };
     await addOneEService(eservice);
 
-    const submissionDate = new Date("2021-01-01");
+    const rejectDate = new Date("2021-01-01");
 
     const agreement = {
       ...getMockAgreement(),
       id: "37317757-0c8d-4e6e-9ac9-7d2db6a9519e" as AgreementId,
       stamps: {
-        submission: { when: submissionDate, who: generateId<UserId>() },
+        rejection: { when: rejectDate, who: generateId<UserId>() },
       },
       producerId: producer.id,
       descriptorId: descriptor.id,
@@ -89,31 +73,31 @@ describe("sendAgreementSubmissionEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await agreementEmailSenderService.sendAgreementSubmissionSimpleEmail(
+    await agreementEmailSenderService.sendAgreementRejectSimpleEmail(
       toAgreementV2(agreement),
       genericLogger
     );
 
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const templatePath = `../src/resources/templates/${agreementEventMailTemplateType.submission}.html`;
+    const templatePath = `../src/resources/templates/${agreementEventMailTemplateType.rejection}.html`;
 
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
-    const submissionEmailTemplate = htmlTemplateBuffer.toString();
+    const rejectEmailTemplate = htmlTemplateBuffer.toString();
 
     const mail = {
       from: {
         name: sesEmailsenderData.label,
         address: sesEmailsenderData.mail,
       },
-      subject: `Nuova richiesta di fruizione per ${eservice.name} ricevuta`,
-      to: [tenantMail],
-      body: templateService.compileHtml(submissionEmailTemplate, {
+      subject: `Richiesta di fruizione per ${eservice.name} rifiutata`,
+      to: [consumerEmail.address],
+      body: templateService.compileHtml(rejectEmailTemplate, {
         interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
         producerName: producer.name,
         consumerName: consumer.name,
         eserviceName: eservice.name,
-        submissionDate: getFormattedAgreementStampDate(agreement, "submission"),
+        rejectionDate: getFormattedAgreementStampDate(agreement, "rejection"),
       }),
     };
 
