@@ -22,6 +22,7 @@ import { expect, describe, it } from "vitest";
 import {
   eserviceWithoutValidDescriptors,
   eServiceNotFound,
+  invalidEServiceFlags,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -64,6 +65,7 @@ describe("update eService flags", () => {
     const updatedEService: EService = {
       ...eservice,
       isDelegable: true,
+      isClientAccessDelegable: false,
     };
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -110,6 +112,7 @@ describe("update eService flags", () => {
     const updatedEService: EService = {
       ...eservice,
       isDelegable: false,
+      isClientAccessDelegable: false,
     };
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -289,7 +292,7 @@ describe("update eService flags", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
-  it("shoudl throw eserviceWithoutValidDescriptors if the eservice doesn't have any descriptors", async () => {
+  it("should throw eserviceWithoutValidDescriptors if the eservice doesn't have any descriptors", async () => {
     const eservice = getMockEService();
     await addOneEService(eservice);
 
@@ -339,5 +342,32 @@ describe("update eService flags", () => {
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
   );
-  // TODO: add test for wrong flags combination
+  it("should throw invalidEServiceFlags if the isDelegable is false and isClientAccessDelegable is true", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+      isDelegable: false,
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.updateEServiceFlags(
+        eservice.id,
+        {
+          isDelegable: false,
+          isClientAccessDelegable: true,
+        },
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(invalidEServiceFlags(eservice.id));
+  });
 });
