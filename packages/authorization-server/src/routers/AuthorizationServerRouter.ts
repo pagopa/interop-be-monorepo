@@ -104,7 +104,7 @@ const authorizationServerRouter = (
           detail: "Bad request",
           errors: [
             {
-              code: "15-0008",
+              code: "015-0008",
               detail: "Unable to generate a token for the given request",
             },
           ],
