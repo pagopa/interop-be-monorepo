@@ -197,6 +197,7 @@ export async function handleMessageV2(
       { type: "EServiceRiskAnalysisUpdated" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceDescriptionUpdated" },
+      { type: "EServiceDescriptorAttributesUpdated" },
       () => Promise.resolve()
     )
     .exhaustive();
