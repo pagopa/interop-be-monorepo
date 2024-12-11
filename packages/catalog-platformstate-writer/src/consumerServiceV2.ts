@@ -243,6 +243,7 @@ export async function handleMessageV2(
       { type: "EServiceRiskAnalysisUpdated" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceDescriptionUpdated" },
+      { type: "EServiceDescriptorAttributesUpdated" },
       { type: "EServiceDescriptorDelegatorRejected" },
       { type: "EServiceDescriptorDelegateSubmitted" },
       () => Promise.resolve()

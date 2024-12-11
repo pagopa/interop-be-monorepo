@@ -34,7 +34,10 @@ export const errorCodes = {
   riskAnalysisDuplicated: "0021",
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
-  eserviceWithActiveOrPendingDelegation: "0024",
+  inconsistentAttributesSeedGroupsCount: "0024",
+  descriptorAttributeGroupSupersetMissingInAttributesSeed: "0025",
+  unchangedAttributes: "0026",
+  eserviceWithActiveOrPendingDelegation: "0027",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -271,6 +274,39 @@ export function audienceCannotBeEmpty(
     detail: `Descriptor ${descriptorId} can't be published with empty audience`,
     code: "audienceCannotBeEmpty",
     title: "Audience cannot be empty",
+  });
+}
+
+export function inconsistentAttributesSeedGroupsCount(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attributes seed contains a different number of groups than the descriptor for EService ${eserviceId} and Descriptor ${descriptorId}`,
+    code: "inconsistentAttributesSeedGroupsCount",
+    title: "Inconsistent attributes seed groups count",
+  });
+}
+
+export function descriptorAttributeGroupSupersetMissingInAttributesSeed(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing required attribute group superset in attributes seed for EService ${eserviceId} and Descriptor ${descriptorId}`,
+    code: "descriptorAttributeGroupSupersetMissingInAttributesSeed",
+    title: "Descriptor attribute group superset missing in attributes seed",
+  });
+}
+
+export function unchangedAttributes(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No new attributes detected in attribute seed for EService ${eserviceId} and Descriptor ${descriptorId}`,
+    code: "unchangedAttributes",
+    title: "Unchanged attributes",
   });
 }
 
