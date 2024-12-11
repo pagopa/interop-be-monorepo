@@ -1119,6 +1119,41 @@ function validateTokenGenerationStates({
           } else {
             // TokenGenerationStatesConsumerClient with CLIENTKID PK
             if (
+              TokenGenerationStatesClientKidPurposePK.safeParse(e.PK).success
+            ) {
+              console.log(
+                `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKID PK`
+              );
+              logger.error(
+                `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKID PK`
+              );
+
+              return [
+                ...acc,
+                {
+                  PK: e.PK,
+                  consumerId: e.consumerId,
+                  clientKind: e.clientKind,
+                  publicKey: e.publicKey,
+                  GSIPK_clientId: e.GSIPK_clientId,
+                  GSIPK_kid: e.GSIPK_kid,
+                  GSIPK_clientId_purposeId: e.GSIPK_clientId_purposeId,
+                  GSIPK_purposeId: e.GSIPK_purposeId,
+                  purposeState: e.purposeState,
+                  purposeVersionId: e.purposeVersionId,
+                  GSIPK_consumerId_eserviceId: e.GSIPK_consumerId_eserviceId,
+                  agreementId: e.agreementId,
+                  agreementState: e.agreementState,
+                  GSIPK_eserviceId_descriptorId:
+                    e.GSIPK_eserviceId_descriptorId,
+                  descriptorState: e.descriptorState,
+                  descriptorAudience: e.descriptorAudience,
+                  descriptorVoucherLifespan: e.descriptorVoucherLifespan,
+                },
+              ];
+            }
+
+            if (
               getClientIdFromTokenGenStatesPK(e.PK) !== client.id ||
               e.consumerId !== client.consumerId ||
               e.GSIPK_clientId !== client.id ||
