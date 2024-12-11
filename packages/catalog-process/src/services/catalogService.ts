@@ -1852,78 +1852,72 @@ export function catalogServiceBuilder(
         throw invalidEServiceFlags(eserviceId);
       }
 
-      if (
-        isDelegable === eservice.data.isDelegable &&
-        isClientAccessDelegable === eservice.data.isClientAccessDelegable
-      ) {
-        return eservice.data;
-      }
-
       const updatedEservice: EService = {
         ...eservice.data,
         isDelegable,
         isClientAccessDelegable,
       };
 
-      await repository.createEvent(
-        match({
-          isDelegable,
-          oldIsDelegable: eservice.data.isDelegable,
-          isClientAccessDelegable,
-          oldIsClientAccessDelegable: eservice.data.isClientAccessDelegable,
-        })
-          .with(
-            {
-              isDelegable: true,
-              oldIsDelegable: false,
-            },
-            () =>
-              toCreateEventEServiceIsDelegableEnabled(
-                eservice.metadata.version,
-                updatedEservice,
-                correlationId
-              )
-          )
-          .with(
-            {
-              isDelegable: false,
-              oldIsDelegable: true,
-            },
-            () =>
-              toCreateEventEServiceIsDelegableDisabled(
-                eservice.metadata.version,
-                updatedEservice,
-                correlationId
-              )
-          )
-          .with(
-            {
-              isClientAccessDelegable: true,
-              oldIsClientAccessDelegable: false,
-            },
-            () =>
-              toCreateEventEServiceIsClientAccessDelegableEnabled(
-                eservice.metadata.version,
-                updatedEservice,
-                correlationId
-              )
-          )
-          .with(
-            {
-              isClientAccessDelegable: false,
-              oldIsClientAccessDelegable: true,
-            },
-            () =>
-              toCreateEventEServiceIsClientAccessDelegableDisabled(
-                eservice.metadata.version,
-                updatedEservice,
-                correlationId
-              )
-          )
-          .otherwise(() => {
-            throw invalidEServiceFlags(eserviceId);
-          })
-      );
+      const event = match({
+        isDelegable,
+        oldIsDelegable: eservice.data.isDelegable || false,
+        isClientAccessDelegable,
+        oldIsClientAccessDelegable:
+          eservice.data.isClientAccessDelegable || false,
+      })
+        .with(
+          {
+            isDelegable: true,
+            oldIsDelegable: false,
+          },
+          () =>
+            toCreateEventEServiceIsDelegableEnabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            )
+        )
+        .with(
+          {
+            isDelegable: false,
+            oldIsDelegable: true,
+          },
+          () =>
+            toCreateEventEServiceIsDelegableDisabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            )
+        )
+        .with(
+          {
+            isClientAccessDelegable: true,
+            oldIsClientAccessDelegable: false,
+          },
+          () =>
+            toCreateEventEServiceIsClientAccessDelegableEnabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            )
+        )
+        .with(
+          {
+            isClientAccessDelegable: false,
+            oldIsClientAccessDelegable: true,
+          },
+          () =>
+            toCreateEventEServiceIsClientAccessDelegableDisabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            )
+        )
+        .otherwise(() => undefined);
+
+      if (event) {
+        await repository.createEvent(event);
+      }
 
       return updatedEservice;
     },
