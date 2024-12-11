@@ -769,9 +769,9 @@ async function getConsumerProducerEserviceDelegation(
 
   const delegationTask = delegationProcessClient.delegation.getDelegations({
     queries: {
-      delegateIds: [agreement.consumerId],
+      delegatorIds: [agreement.consumerId],
       eserviceIds: [agreement.eserviceId],
-      kind: "DELEGATED_CONSUMER",
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
       offset: 0,
       limit: 1,
     },
@@ -789,7 +789,7 @@ async function getConsumerProducerEserviceDelegation(
     consumer,
     producer,
     eservice,
-    delegation: delegation.results[0] ?? undefined,
+    delegation: delegation.results.at(0) ?? undefined,
   };
 }
 

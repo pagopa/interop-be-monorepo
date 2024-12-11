@@ -324,6 +324,7 @@ const getDelegationLookup = (kind: DelegationKind) => [
     $lookup: {
       from: "delegations",
       let: {
+        // Fields coming from the agreement
         eserviceId: "$data.eserviceId",
         consumerId: "$data.consumerId",
         producerId: "$data.producerId",
@@ -339,9 +340,16 @@ const getDelegationLookup = (kind: DelegationKind) => [
                 {
                   $eq: [
                     "$data.delegatorId",
-                    kind === delegationKind.delegatedConsumer
-                      ? "$$consumerId"
-                      : "$$producerId",
+                    match(kind)
+                      .with(
+                        delegationKind.delegatedConsumer,
+                        () => "$$consumerId"
+                      )
+                      .with(
+                        delegationKind.delegatedProducer,
+                        () => "$$producerId"
+                      )
+                      .exhaustive(),
                   ],
                 },
                 {
@@ -373,10 +381,8 @@ function getProducerOrConsumerWithDelegateFilters(
       ? "Consumer"
       : undefined;
 
-  return match([requesterRole, producerIds.length > 0, consumerIds.length > 0])
-    .with(["Producer", false, P.any], () => []) // Impossible case (producerIds must be set)
-    .with(["Consumer", P.any, false], () => []) // Impossible case (consumerIds must be set)
-    .with([undefined, P.any, P.any], () => [
+  return match(requesterRole)
+    .with(undefined, () => [
       {
         $match: {
           ...makeFilter("producerId", producerIds),
@@ -384,7 +390,7 @@ function getProducerOrConsumerWithDelegateFilters(
         },
       },
     ])
-    .with(["Producer", true, P.any], () => [
+    .with("Producer", () => [
       ...getDelegationLookup(delegationKind.delegatedProducer),
       {
         $match: {
@@ -402,7 +408,7 @@ function getProducerOrConsumerWithDelegateFilters(
         },
       },
     ])
-    .with(["Consumer", P.any, true], () => [
+    .with("Consumer", () => [
       ...getDelegationLookup(delegationKind.delegatedConsumer),
       {
         $match: {
