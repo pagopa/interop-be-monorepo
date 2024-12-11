@@ -32,6 +32,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
+import { Logger } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 
 export const writeAgreementEntry = async (
@@ -196,6 +197,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
     dynamoDBClient,
     GSIPK_eserviceId_descriptorId,
     catalogEntry,
+    logger,
   }: {
     entriesToUpdate: TokenGenStatesConsumerClientGSIAgreement[];
     agreementId: AgreementId;
@@ -203,6 +205,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
     dynamoDBClient: DynamoDBClient;
     GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
     catalogEntry: PlatformStatesCatalogEntry | undefined;
+    logger: Logger;
   }): Promise<void> => {
     for (const entry of entriesToUpdate) {
       const additionalDescriptorInfo =
@@ -211,6 +214,11 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
           !entry.descriptorAudience ||
           !entry.descriptorVoucherLifespan);
 
+      if (additionalDescriptorInfo) {
+        logger.info(
+          `Adding descriptor info to token-generation-states entry with PK ${entry.PK} and GSIPK_eserviceId_descriptorId ${GSIPK_eserviceId_descriptorId}`
+        );
+      }
       const additionalAttributesToSet: Record<string, AttributeValue> =
         additionalDescriptorInfo
           ? {
@@ -336,6 +344,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
   dynamoDBClient,
   GSIPK_eserviceId_descriptorId,
   catalogEntry,
+  logger,
 }: {
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId;
   agreementId: AgreementId;
@@ -343,6 +352,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
   dynamoDBClient: DynamoDBClient;
   GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
   catalogEntry: PlatformStatesCatalogEntry | undefined;
+  logger: Logger;
 }): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
   const runPaginatedQuery = async (
     consumerId_eserviceId: GSIPKConsumerIdEServiceId,
@@ -389,6 +399,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
         dynamoDBClient,
         GSIPK_eserviceId_descriptorId,
         catalogEntry,
+        logger,
       });
 
       if (!data.LastEvaluatedKey) {
