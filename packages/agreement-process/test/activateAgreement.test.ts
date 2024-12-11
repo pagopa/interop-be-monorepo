@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fileURLToPath } from "url";
 import path from "path";
 import {
+  AuthData,
   dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
   genericLogger,
@@ -38,6 +40,7 @@ import {
   Attribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
+  Delegation,
   Descriptor,
   EService,
   EServiceId,
@@ -86,6 +89,108 @@ import {
   readAgreementEventByVersion,
   readLastAgreementEvent,
 } from "./utils.js";
+
+const unsuspensionEventInfoFromRequesterIs = (
+  requesterIs: "Producer" | "Consumer" | "DelegateProducer" | "DelegateConsumer"
+) =>
+  match(requesterIs)
+    .with("Producer", "DelegateProducer", () => ({
+      eventType: "AgreementUnsuspendedByProducer",
+      messageType: AgreementUnsuspendedByProducerV2,
+    }))
+    .with("Consumer", "DelegateConsumer", () => ({
+      eventType: "AgreementUnsuspendedByConsumer",
+      messageType: AgreementUnsuspendedByConsumerV2,
+    }))
+    .exhaustive();
+
+const authDataAndDelegationsFromRequesterIs = (
+  requesterIs:
+    | "Producer"
+    | "Consumer"
+    | "DelegateProducer"
+    | "DelegateConsumer",
+  agreement: Agreement
+): {
+  authData: AuthData;
+  producerDelegation: Delegation | undefined;
+  delegateProducer: Tenant | undefined;
+  consumerDelegation: Delegation | undefined;
+  delegateConsumer: Tenant | undefined;
+} =>
+  match(requesterIs)
+    .with("Producer", () => ({
+      authData: getRandomAuthData(agreement.producerId),
+      producerDelegation: undefined,
+      delegateProducer: undefined,
+      consumerDelegation: undefined,
+      delegateConsumer: undefined,
+    }))
+    .with("Consumer", () => ({
+      authData: getRandomAuthData(agreement.consumerId),
+      producerDelegation: undefined,
+      delegateProducer: undefined,
+      consumerDelegation: undefined,
+      delegateConsumer: undefined,
+    }))
+    .with("DelegateProducer", () => {
+      const delegateProducer = getMockTenant();
+      const producerDelegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegatorId: agreement.producerId,
+        delegateId: delegateProducer.id,
+        state: delegationState.active,
+        eserviceId: agreement.eserviceId,
+      });
+
+      return {
+        authData: getRandomAuthData(delegateProducer.id),
+        producerDelegation,
+        delegateProducer,
+        consumerDelegation: undefined,
+        delegateConsumer: undefined,
+      };
+    })
+    .with("DelegateConsumer", () => {
+      const delegateConsumer = getMockTenant();
+      const consumerDelegation = getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        delegatorId: agreement.consumerId,
+        delegateId: delegateConsumer.id,
+        state: delegationState.active,
+        eserviceId: agreement.eserviceId,
+      });
+      return {
+        authData: getRandomAuthData(delegateConsumer.id),
+        consumerDelegation,
+        delegateConsumer,
+        producerDelegation: undefined,
+        delegateProducer: undefined,
+      };
+    })
+    .exhaustive();
+
+async function addDelegationsAndDelegates({
+  producerDelegation,
+  delegateProducer,
+  consumerDelegation,
+  delegateConsumer,
+}: {
+  producerDelegation: Delegation | undefined;
+  delegateProducer: Tenant | undefined;
+  consumerDelegation: Delegation | undefined;
+  delegateConsumer: Tenant | undefined;
+}): Promise<void> {
+  if (producerDelegation && delegateProducer) {
+    await addOneDelegation(producerDelegation);
+    await addOneTenant(delegateProducer);
+  }
+
+  if (consumerDelegation && delegateConsumer) {
+    await addOneDelegation(consumerDelegation);
+    await addOneTenant(delegateConsumer);
+  }
+}
 
 describe("activate agreement", () => {
   async function addRelatedAgreements(agreement: Agreement): Promise<{
@@ -269,6 +374,7 @@ describe("activate agreement", () => {
           verifiedAttributes: [getMockAgreementAttribute()],
         };
 
+        // TODO
         const { authData, delegateProducer, producerDelegation } = match(
           requesterIs
         )
@@ -920,42 +1026,25 @@ describe("activate agreement", () => {
           verifiedAttributes: [getMockAgreementAttribute()],
         };
 
+        const {
+          authData,
+          producerDelegation,
+          consumerDelegation,
+          delegateProducer,
+          delegateConsumer,
+        } = authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
+
         await addOneTenant(consumer);
         await addOneTenant(producer);
         await addOneEService(eservice);
         await addOneAgreement(agreement);
         const relatedAgreements = await addRelatedAgreements(agreement);
-
-        const authData = await match(requesterIs)
-          .with("Producer", () => getRandomAuthData(producer.id))
-          .with("Consumer", () => getRandomAuthData(consumer.id))
-          .with("DelegateProducer", async () => {
-            const delegateProducer = getMockTenant();
-            const producerDelegation = getMockDelegation({
-              kind: delegationKind.delegatedProducer,
-              delegatorId: producer.id,
-              delegateId: delegateProducer.id,
-              state: delegationState.active,
-              eserviceId: agreement.eserviceId,
-            });
-            await addOneDelegation(producerDelegation);
-            await addOneTenant(delegateProducer);
-            return getRandomAuthData(delegateProducer.id);
-          })
-          .with("DelegateConsumer", async () => {
-            const delegateConsumer = getMockTenant();
-            const consumerDelegation = getMockDelegation({
-              kind: delegationKind.delegatedConsumer,
-              delegatorId: consumer.id,
-              delegateId: delegateConsumer.id,
-              state: delegationState.active,
-              eserviceId: agreement.eserviceId,
-            });
-            await addOneDelegation(consumerDelegation);
-            await addOneTenant(delegateConsumer);
-            return getRandomAuthData(delegateConsumer.id);
-          })
-          .exhaustive();
+        await addDelegationsAndDelegates({
+          producerDelegation,
+          delegateProducer,
+          consumerDelegation,
+          delegateConsumer,
+        });
 
         const activateAgreementReturnValue =
           await agreementService.activateAgreement(agreement.id, {
@@ -967,19 +1056,11 @@ describe("activate agreement", () => {
 
         const agreementEvent = await readLastAgreementEvent(agreement.id);
 
+        const { eventType, messageType } =
+          unsuspensionEventInfoFromRequesterIs(requesterIs);
+
         expect(agreementEvent).toMatchObject({
-          type: match(requesterIs)
-            .with(
-              "Producer",
-              "DelegateProducer",
-              () => "AgreementUnsuspendedByProducer"
-            )
-            .with(
-              "Consumer",
-              "DelegateConsumer",
-              () => "AgreementUnsuspendedByConsumer"
-            )
-            .exhaustive(),
+          type: eventType,
           event_version: 2,
           version: "1",
           stream_id: agreement.id,
@@ -987,18 +1068,7 @@ describe("activate agreement", () => {
 
         const actualAgreementActivated = fromAgreementV2(
           decodeProtobufPayload({
-            messageType: match(requesterIs)
-              .with(
-                "Producer",
-                "DelegateProducer",
-                () => AgreementUnsuspendedByProducerV2
-              )
-              .with(
-                "Consumer",
-                "DelegateConsumer",
-                () => AgreementUnsuspendedByConsumerV2
-              )
-              .exhaustive(),
+            messageType,
             payload: agreementEvent.data,
           }).agreement!
         );
@@ -1271,57 +1341,7 @@ describe("activate agreement", () => {
           consumerDelegation,
           delegateProducer,
           delegateConsumer,
-        } = await match(requesterIs)
-          .with("Producer", () => ({
-            authData: getRandomAuthData(producer.id),
-            producerDelegation: undefined,
-            delegateProducer: undefined,
-            consumerDelegation: undefined,
-            delegateConsumer: undefined,
-          }))
-          .with("Consumer", () => ({
-            authData: getRandomAuthData(consumer.id),
-            producerDelegation: undefined,
-            delegateProducer: undefined,
-            consumerDelegation: undefined,
-            delegateConsumer: undefined,
-          }))
-          .with("DelegateProducer", async () => {
-            const delegateProducer = getMockTenant();
-            const producerDelegation = getMockDelegation({
-              kind: delegationKind.delegatedProducer,
-              delegatorId: producer.id,
-              delegateId: delegateProducer.id,
-              state: delegationState.active,
-              eserviceId: mockAgreement.eserviceId,
-            });
-
-            return {
-              authData: getRandomAuthData(delegateProducer.id),
-              producerDelegation,
-              delegateProducer,
-              consumerDelegation: undefined,
-              delegateConsumer: undefined,
-            };
-          })
-          .with("DelegateConsumer", async () => {
-            const delegateConsumer = getMockTenant();
-            const consumerDelegation = getMockDelegation({
-              kind: delegationKind.delegatedConsumer,
-              delegatorId: consumer.id,
-              delegateId: delegateConsumer.id,
-              state: delegationState.active,
-              eserviceId: mockAgreement.eserviceId,
-            });
-            return {
-              authData: getRandomAuthData(delegateConsumer.id),
-              consumerDelegation,
-              delegateConsumer,
-              producerDelegation: undefined,
-              delegateProducer: undefined,
-            };
-          })
-          .exhaustive();
+        } = authDataAndDelegationsFromRequesterIs(requesterIs, mockAgreement);
 
         const expectedStamps = {
           suspensionByProducer: match(requesterIs)
@@ -1361,31 +1381,8 @@ describe("activate agreement", () => {
             .exhaustive(),
         };
 
-        const eventType = match(requesterIs)
-          .with(
-            "Producer",
-            "DelegateProducer",
-            () => "AgreementUnsuspendedByProducer"
-          )
-          .with(
-            "Consumer",
-            "DelegateConsumer",
-            () => "AgreementUnsuspendedByConsumer"
-          )
-          .exhaustive();
-
-        const messageType = match(requesterIs)
-          .with(
-            "Producer",
-            "DelegateProducer",
-            () => AgreementUnsuspendedByProducerV2
-          )
-          .with(
-            "Consumer",
-            "DelegateConsumer",
-            () => AgreementUnsuspendedByConsumerV2
-          )
-          .exhaustive();
+        const { eventType, messageType } =
+          unsuspensionEventInfoFromRequesterIs(requesterIs);
 
         it("if suspendedByPlatform === false, unsuspends by Producer or Consumer and remains in a Suspended state", async () => {
           const agreement: Agreement = {
@@ -1401,15 +1398,12 @@ describe("activate agreement", () => {
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
-          if (producerDelegation && delegateProducer) {
-            await addOneDelegation(producerDelegation);
-            await addOneTenant(delegateProducer);
-          }
-
-          if (consumerDelegation && delegateConsumer) {
-            await addOneDelegation(consumerDelegation);
-            await addOneTenant(delegateConsumer);
-          }
+          await addDelegationsAndDelegates({
+            producerDelegation,
+            delegateProducer,
+            consumerDelegation,
+            delegateConsumer,
+          });
 
           const activateAgreementReturnValue =
             await agreementService.activateAgreement(agreement.id, {
@@ -1464,15 +1458,12 @@ describe("activate agreement", () => {
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
-          if (producerDelegation && delegateProducer) {
-            await addOneDelegation(producerDelegation);
-            await addOneTenant(delegateProducer);
-          }
-
-          if (consumerDelegation && delegateConsumer) {
-            await addOneDelegation(consumerDelegation);
-            await addOneTenant(delegateConsumer);
-          }
+          await addDelegationsAndDelegates({
+            producerDelegation,
+            delegateProducer,
+            consumerDelegation,
+            delegateConsumer,
+          });
 
           const activateAgreementReturnValue =
             await agreementService.activateAgreement(agreement.id, {
@@ -1653,57 +1644,7 @@ describe("activate agreement", () => {
           consumerDelegation,
           delegateProducer,
           delegateConsumer,
-        } = await match(requesterIs)
-          .with("Producer", () => ({
-            authData: getRandomAuthData(producer.id),
-            producerDelegation: undefined,
-            delegateProducer: undefined,
-            consumerDelegation: undefined,
-            delegateConsumer: undefined,
-          }))
-          .with("Consumer", () => ({
-            authData: getRandomAuthData(consumer.id),
-            producerDelegation: undefined,
-            delegateProducer: undefined,
-            consumerDelegation: undefined,
-            delegateConsumer: undefined,
-          }))
-          .with("DelegateProducer", async () => {
-            const delegateProducer = getMockTenant();
-            const producerDelegation = getMockDelegation({
-              kind: delegationKind.delegatedProducer,
-              delegatorId: producer.id,
-              delegateId: delegateProducer.id,
-              state: delegationState.active,
-              eserviceId: mockAgreement.eserviceId,
-            });
-
-            return {
-              authData: getRandomAuthData(delegateProducer.id),
-              producerDelegation,
-              delegateProducer,
-              consumerDelegation: undefined,
-              delegateConsumer: undefined,
-            };
-          })
-          .with("DelegateConsumer", async () => {
-            const delegateConsumer = getMockTenant();
-            const consumerDelegation = getMockDelegation({
-              kind: delegationKind.delegatedConsumer,
-              delegatorId: consumer.id,
-              delegateId: delegateConsumer.id,
-              state: delegationState.active,
-              eserviceId: mockAgreement.eserviceId,
-            });
-            return {
-              authData: getRandomAuthData(delegateConsumer.id),
-              consumerDelegation,
-              delegateConsumer,
-              producerDelegation: undefined,
-              delegateProducer: undefined,
-            };
-          })
-          .exhaustive();
+        } = authDataAndDelegationsFromRequesterIs(requesterIs, mockAgreement);
 
         const expectedStamps = {
           suspensionByProducer: match(requesterIs)
@@ -1742,31 +1683,8 @@ describe("activate agreement", () => {
             .exhaustive(),
         };
 
-        const eventType = match(requesterIs)
-          .with(
-            "Producer",
-            "DelegateProducer",
-            () => "AgreementUnsuspendedByProducer"
-          )
-          .with(
-            "Consumer",
-            "DelegateConsumer",
-            () => "AgreementUnsuspendedByConsumer"
-          )
-          .exhaustive();
-
-        const messageType = match(requesterIs)
-          .with(
-            "Producer",
-            "DelegateProducer",
-            () => AgreementUnsuspendedByProducerV2
-          )
-          .with(
-            "Consumer",
-            "DelegateConsumer",
-            () => AgreementUnsuspendedByConsumerV2
-          )
-          .exhaustive();
+        const { eventType, messageType } =
+          unsuspensionEventInfoFromRequesterIs(requesterIs);
 
         it("if suspendedByPlatform === true, unsuspends by Producer or Consumer and remains in a Suspended state", async () => {
           const agreement: Agreement = {
@@ -1782,14 +1700,12 @@ describe("activate agreement", () => {
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
-          if (producerDelegation && delegateProducer) {
-            await addOneDelegation(producerDelegation);
-            await addOneTenant(delegateProducer);
-          }
-          if (consumerDelegation && delegateConsumer) {
-            await addOneDelegation(consumerDelegation);
-            await addOneTenant(delegateConsumer);
-          }
+          await addDelegationsAndDelegates({
+            producerDelegation,
+            delegateProducer,
+            consumerDelegation,
+            delegateConsumer,
+          });
 
           const activateAgreementReturnValue =
             await agreementService.activateAgreement(agreement.id, {
@@ -1837,14 +1753,12 @@ describe("activate agreement", () => {
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
-          if (producerDelegation && delegateProducer) {
-            await addOneDelegation(producerDelegation);
-            await addOneTenant(delegateProducer);
-          }
-          if (consumerDelegation && delegateConsumer) {
-            await addOneDelegation(consumerDelegation);
-            await addOneTenant(delegateConsumer);
-          }
+          await addDelegationsAndDelegates({
+            producerDelegation,
+            delegateProducer,
+            consumerDelegation,
+            delegateConsumer,
+          });
 
           const activateAgreementReturnValue =
             await agreementService.activateAgreement(agreement.id, {
