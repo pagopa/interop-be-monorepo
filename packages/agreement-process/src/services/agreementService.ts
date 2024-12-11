@@ -1314,7 +1314,7 @@ export function agreementServiceBuilder(
 
       await assertRequesterCanCreateAgrementForTenant(
         {
-          requesterId: authData.organizationId,
+          authData,
           tenantIdToVerify: tenantId,
           eserviceId,
         },
