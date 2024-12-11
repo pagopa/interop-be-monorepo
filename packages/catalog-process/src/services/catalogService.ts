@@ -1901,7 +1901,12 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eserviceId,
+        authData,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -1909,7 +1914,7 @@ export function catalogServiceBuilder(
         descriptor.state !== descriptorState.published &&
         descriptor.state !== descriptorState.suspended
       ) {
-        throw notValidDescriptor(descriptorId, descriptor.state);
+        throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
       /**
