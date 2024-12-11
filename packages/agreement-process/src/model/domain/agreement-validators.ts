@@ -128,7 +128,7 @@ export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
 /* ========= ASSERTIONS ========= */
 
 const assertRequesterIsConsumer = (
-  agreement: Agreement,
+  agreement: Pick<Agreement, "consumerId">,
   authData: AuthData
 ): void => {
   if (
@@ -196,11 +196,8 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
         );
       } catch (error) {
         const activeConsumerDelegation =
-          await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
-            {
-              agreement,
-              delegateId: authData.organizationId,
-            }
+          await readModelService.getActiveConsumerDelegationByAgreement(
+            agreement
           );
 
         assertRequesterIsDelegateConsumer(
@@ -298,50 +295,35 @@ export const assertRequesterIsDelegateConsumer = (
 
 export const assertRequesterCanCreateAgrementForTenant = async (
   {
-    requesterId,
+    authData,
     tenantIdToVerify,
     eserviceId,
   }: {
-    requesterId: TenantId;
+    authData: AuthData;
     tenantIdToVerify: TenantId;
     eserviceId: EServiceId;
   },
   readModelService: ReadModelService
 ): Promise<Promise<void>> => {
-  const isSameOrganization = requesterId === tenantIdToVerify;
+  const agreementToBeCreated = {
+    consumerId: tenantIdToVerify,
+    eserviceId,
+  };
 
-  const validDelegation = isSameOrganization
-    ? // Retrieve an active delegation where the requester is the delegator
-      await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
-        {
-          agreement: {
-            consumerId: requesterId,
-            eserviceId,
-          },
-        }
-      )
-    : // Retrieve the delegation where the requester is the delegate and the delegator is the tenantToVerify
-      await readModelService.getActiveConsumerDelegationByAgreementAndDelegateId(
-        {
-          agreement: {
-            eserviceId,
-            consumerId: tenantIdToVerify,
-          },
-          delegateId: requesterId,
-        }
-      );
+  const activeConsumerDelegation =
+    await readModelService.getActiveConsumerDelegationByAgreement(
+      agreementToBeCreated
+    );
 
-  const isAuthorized =
-    (isSameOrganization && !validDelegation) ||
-    (!isSameOrganization && validDelegation);
-
-  if (!isAuthorized) {
-    throw operationNotAllowed(requesterId);
-  }
+  assertRequesterCanActAsConsumer(
+    agreementToBeCreated,
+    authData,
+    activeConsumerDelegation
+  );
 };
 
 export const assertRequesterCanActAsConsumer = (
-  agreement: Agreement,
+  agreement: Pick<Agreement, "consumerId" | "eserviceId">,
   authData: AuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
