@@ -1709,7 +1709,7 @@ describe("Token Generation Read Model Checker tests", () => {
       );
     });
 
-    it.only("should detect differences if the token-generation-states entry has a CLIENTKIDPURPOSE PK but should have a CLIENTKID PK", async () => {
+    it("should detect differences if the token-generation-states entry has a CLIENTKIDPURPOSE PK but should have a CLIENTKID PK", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
