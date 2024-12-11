@@ -24,6 +24,7 @@ import {
   ClientAssertion,
   FullTokenGenerationStatesConsumerClient,
   CorrelationId,
+  ClientKindTokenGenStates,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -91,6 +92,8 @@ export function tokenServiceBuilder({
       correlationId: CorrelationId,
       logger: Logger
     ): Promise<GenerateTokenReturnType> {
+      logger.info(`CLIENTID=${request.client_id} Token requested`);
+
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: request.client_assertion,
         client_assertion_type: request.client_assertion_type,
@@ -99,7 +102,10 @@ export function tokenServiceBuilder({
       });
 
       if (parametersErrors) {
-        throw clientAssertionRequestValidationFailed(request.client_id);
+        throw clientAssertionRequestValidationFailed(
+          request.client_id,
+          parametersErrors.map((error) => error.detail).join(", ")
+        );
       }
 
       const { data: jwt, errors: clientAssertionErrors } =
@@ -110,14 +116,23 @@ export function tokenServiceBuilder({
         );
 
       if (clientAssertionErrors) {
-        // TODO double check if errors have to be logged or put inside the error below (check the same for parameters errors)
-        logger.warn(clientAssertionErrors.map((error) => error.detail));
-        throw clientAssertionValidationFailed(request.client_id);
+        throw clientAssertionValidationFailed(
+          request.client_id,
+          clientAssertionErrors.map((error) => error.detail).join(", ")
+        );
       }
 
       const clientId = jwt.payload.sub;
       const kid = jwt.header.kid;
       const purposeId = jwt.payload.purposeId;
+
+      logTokenGenerationInfo({
+        validatedJwt: jwt,
+        clientKind: undefined,
+        tokenJti: undefined,
+        message: "Client assertion validated",
+        logger,
+      });
 
       const pk = purposeId
         ? makeTokenGenerationStatesClientKidPurposePK({
@@ -129,6 +144,14 @@ export function tokenServiceBuilder({
 
       const key = await retrieveKey(dynamoDBClient, pk);
 
+      logTokenGenerationInfo({
+        validatedJwt: jwt,
+        clientKind: key.clientKind,
+        tokenJti: undefined,
+        message: "Key retrieved",
+        logger,
+      });
+
       const { errors: clientAssertionSignatureErrors } =
         await verifyClientAssertionSignature(
           request.client_assertion,
@@ -137,14 +160,17 @@ export function tokenServiceBuilder({
         );
 
       if (clientAssertionSignatureErrors) {
-        throw clientAssertionSignatureValidationFailed(request.client_id);
+        throw clientAssertionSignatureValidationFailed(
+          request.client_id,
+          clientAssertionSignatureErrors.map((error) => error.detail).join(", ")
+        );
       }
 
       const { errors: platformStateErrors } =
         validateClientKindAndPlatformState(key, jwt);
       if (platformStateErrors) {
         throw platformStateValidationFailed(
-          platformStateErrors.map((error) => error.detail)
+          platformStateErrors.map((error) => error.detail).join(", ")
         );
       }
 
@@ -181,6 +207,14 @@ export function tokenServiceBuilder({
               logger,
             });
 
+            logTokenGenerationInfo({
+              validatedJwt: jwt,
+              clientKind: key.clientKind,
+              tokenJti: token.payload.jti,
+              message: "Token generated",
+              logger,
+            });
+
             return {
               limitReached: false as const,
               token,
@@ -192,6 +226,14 @@ export function tokenServiceBuilder({
           const token = await tokenGenerator.generateInteropApiToken({
             sub: jwt.payload.sub,
             consumerId: key.consumerId,
+          });
+
+          logTokenGenerationInfo({
+            validatedJwt: jwt,
+            clientKind: key.clientKind,
+            tokenJti: token.payload.jti,
+            message: "Token generated",
+            logger,
           });
 
           return {
@@ -374,4 +416,25 @@ const deconstructGSIPK_eserviceId_descriptorId = (
     eserviceId: parsedEserviceId.data,
     descriptorId: parsedDescriptorId.data,
   };
+};
+
+export const logTokenGenerationInfo = ({
+  validatedJwt,
+  clientKind,
+  tokenJti,
+  message,
+  logger,
+}: {
+  validatedJwt: ClientAssertion;
+  clientKind: ClientKindTokenGenStates | undefined;
+  tokenJti: string | undefined;
+  message: string;
+  logger: Logger;
+}): void => {
+  const clientId = `[CLIENTID=${validatedJwt.payload.sub}`;
+  const kid = `[KID=${validatedJwt.header.kid}]`;
+  const purposeId = `[PURPOSEID=${validatedJwt.payload.purposeId}]`;
+  const tokenType = `[TYPE=${clientKind}]`;
+  const jti = `[JTI=${tokenJti}]`;
+  logger.info(`${clientId}${kid}${purposeId}${tokenType}${jti} - ${message}`);
 };

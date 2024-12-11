@@ -13,6 +13,7 @@ import {
   PlatformStatesCatalogEntry,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { Logger } from "pagopa-interop-commons";
 import {
   agreementStateToItemState,
   deleteAgreementEntry,
@@ -27,7 +28,8 @@ import {
 
 export async function handleMessageV2(
   message: AgreementEventEnvelopeV2,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with({ type: "AgreementActivated" }, async (msg) => {
@@ -104,6 +106,7 @@ export async function handleMessageV2(
           dynamoDBClient,
           GSIPK_eserviceId_descriptorId,
           catalogEntry,
+          logger,
         });
       }
     })
@@ -229,6 +232,7 @@ export async function handleMessageV2(
             dynamoDBClient,
             GSIPK_eserviceId_descriptorId,
             catalogEntry,
+            logger,
           });
         }
       };
