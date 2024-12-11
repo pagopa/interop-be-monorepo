@@ -37,6 +37,7 @@ import puppeteer, { Browser } from "puppeteer";
 import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
+import { after } from "node:test";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
