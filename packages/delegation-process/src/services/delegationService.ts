@@ -166,7 +166,24 @@ export function delegationServiceBuilder(readModelService: ReadModelService) {
         limit: number;
         offset: number;
       },
-      { logger, authData }: WithLogger<AppContext>
-    ): Promise<delegationApi.CompactDelegationsTenants> {},
+      logger: Logger
+    ): Promise<delegationApi.CompactDelegationsTenants> {
+      logger.info(
+        `Retrieving delegations tenants with filters delegatedIds=${delegatedIds}, delegatorIds=${delegatorIds}, eserviceIds=${eserviceIds}, tenantName=${tenantName}, delegationStates=${delegationStates}, delegationKind=${delegationKind}, limit=${limit}, offset=${offset}`
+      );
+
+      // TODO: implementare una getAll e gestire qui il totalCount dato che bisogna ancora effettuare dei filtri
+
+      return await readModelService.getDelegationsTenants({
+        delegatedIds,
+        delegatorIds,
+        eserviceIds,
+        tenantName,
+        delegationStates,
+        delegationKind,
+        limit,
+        offset,
+      });
+    },
   };
 }

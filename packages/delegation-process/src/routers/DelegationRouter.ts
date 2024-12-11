@@ -203,7 +203,7 @@ const delegationRouter = (
             offset,
             limit,
           },
-          ctx
+          ctx.logger
         );
 
         return res
