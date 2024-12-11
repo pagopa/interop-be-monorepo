@@ -95,7 +95,7 @@ export function initFileManager(
           ChecksumSHA256: crypto
             .createHash("sha256")
             .update(fileContent)
-            .digest("hex")
+            .digest("base64")
             .toString(),
         })
       );
