@@ -257,7 +257,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
       // platform-states
       const catalogEntryPrimaryKey1 = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice1.id,
-        descriptorId: eservice1.descriptors[0].id,
+        descriptorId: descriptor1.id,
       });
       const platformCatalogEntry1: PlatformStatesCatalogEntry = {
         PK: catalogEntryPrimaryKey1,
@@ -270,7 +270,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
 
       const catalogEntryPrimaryKey2 = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice2.id,
-        descriptorId: eservice2.descriptors[0].id,
+        descriptorId: descriptor2.id,
       });
       const platformCatalogEntry2: PlatformStatesCatalogEntry = {
         PK: catalogEntryPrimaryKey2,
