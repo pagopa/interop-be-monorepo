@@ -12,6 +12,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { AppContext, Logger, WithLogger } from "pagopa-interop-commons";
+import { delegationApi } from "pagopa-interop-api-clients";
 import {
   delegationNotFound,
   eserviceNotFound,
@@ -145,5 +146,27 @@ export function delegationServiceBuilder(readModelService: ReadModelService) {
 
       throw delegationContractNotFound(delegationId, contractId);
     },
+    async getDelegationsTenants(
+      {
+        delegatedIds,
+        delegatorIds,
+        eserviceIds,
+        tenantName,
+        delegationStates,
+        delegationKind,
+        limit,
+        offset,
+      }: {
+        delegatedIds: TenantId[];
+        delegatorIds: TenantId[];
+        eserviceIds: EServiceId[];
+        tenantName: string | undefined;
+        delegationStates: DelegationState[];
+        delegationKind: DelegationKind | undefined;
+        limit: number;
+        offset: number;
+      },
+      { logger, authData }: WithLogger<AppContext>
+    ): Promise<delegationApi.CompactDelegationsTenants> {},
   };
 }

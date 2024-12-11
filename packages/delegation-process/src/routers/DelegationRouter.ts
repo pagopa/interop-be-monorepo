@@ -172,7 +172,56 @@ const delegationRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .get("/delegationTenants", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const {
+          offset,
+          limit,
+          delegatedIds,
+          delegatorIds,
+          eserviceIds,
+          delegationStates,
+          delegationKind,
+          q,
+        } = req.query;
+
+        const delegationTenants = await delegationService.getDelegationsTenants(
+          {
+            delegatedIds: delegatedIds.map(unsafeBrandId<TenantId>),
+            delegatorIds: delegatorIds.map(unsafeBrandId<TenantId>),
+            delegationStates: delegationStates.map(
+              apiDelegationStateToDelegationState
+            ),
+            eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
+            delegationKind:
+              delegationKind &&
+              apiDelegationKindToDelegationKind(delegationKind),
+            tenantName: q,
+            offset,
+            limit,
+          },
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(
+            delegationApi.CompactDelegationsTenants.parse(delegationTenants)
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getDelegationTenantsErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return delegationRouter;
 };

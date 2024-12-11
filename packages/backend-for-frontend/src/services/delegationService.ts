@@ -364,5 +364,40 @@ export function delegationServiceBuilder(
         headers,
       });
     },
+    async getConsumerDelegators(
+      {
+        q,
+        offset,
+        limit,
+      }: {
+        q?: string;
+        offset: number;
+        limit: number;
+      },
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.DelegationTenantsWithId> {
+      logger.info(
+        `Retrieving consumer delegators with name ${q}, limit ${limit}, offset ${offset}`
+      );
+
+      const delegationTenants =
+        await delegationClients.delegation.getDelegationTenants({
+          queries: {
+            q,
+            offset,
+            limit,
+          },
+          headers,
+        });
+
+      return {
+        results: delegationTenants.results,
+        pagination: {
+          limit,
+          offset,
+          totalCount: delegationTenants.totalCount,
+        },
+      };
+    },
   };
 }
