@@ -20,8 +20,11 @@ async function main(): Promise<void> {
     loggerInstance
   );
 
-  loggerInstance.info(`Differences count: ${differencesCount}`);
-  loggerInstance.info("No differences found");
+  if (differencesCount > 0) {
+    loggerInstance.info(`Differences count: ${differencesCount}`);
+  } else {
+    loggerInstance.info("No differences found");
+  }
 }
 
 await main();
