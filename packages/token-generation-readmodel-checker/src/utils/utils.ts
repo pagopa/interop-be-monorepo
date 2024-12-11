@@ -946,7 +946,6 @@ function validateTokenGenerationStates({
             const purpose = purposeId ? purposesMap.get(purposeId) : undefined;
 
             if (!purpose) {
-              // If an entry has a CLIENTKID PK but should have a CLIENTKIDPURPOSE PK, it enters here
               if (TokenGenerationStatesClientKidPK.safeParse(e.PK).success) {
                 console.log(
                   `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKIDPURPOSE PK`
