@@ -34,6 +34,8 @@ describe("get agreements", () => {
   let tenant2: Tenant;
   let tenant3: Tenant;
   let tenant4: Tenant;
+  let tenant5: Tenant;
+  let tenant6: Tenant;
   let descriptor1: Descriptor;
   let descriptor2: Descriptor;
   let descriptor3: Descriptor;
@@ -56,12 +58,17 @@ describe("get agreements", () => {
   let agreement6: Agreement;
   let agreement7: Agreement;
   let agreement8: Agreement;
+  let agreement9: Agreement;
+  let agreement10: Agreement;
+  let agreement11: Agreement;
 
   beforeEach(async () => {
     tenant1 = getMockTenant();
     tenant2 = getMockTenant();
     tenant3 = getMockTenant();
     tenant4 = getMockTenant();
+    tenant5 = getMockTenant();
+    tenant6 = getMockTenant();
 
     descriptor1 = {
       ...getMockDescriptorPublished(),
@@ -181,6 +188,24 @@ describe("get agreements", () => {
       producerId: eservice5.producerId,
     };
 
+    agreement9 = {
+      ...getMockAgreement(eservice5.id, tenant5.id, agreementState.draft),
+      descriptorId: eservice5.descriptors[0].id,
+      producerId: eservice5.producerId,
+    };
+
+    agreement10 = {
+      ...getMockAgreement(eservice5.id, tenant6.id, agreementState.draft),
+      descriptorId: eservice5.descriptors[0].id,
+      producerId: eservice5.producerId,
+    };
+
+    agreement11 = {
+      ...getMockAgreement(eservice5.id, tenant4.id, agreementState.draft),
+      descriptorId: eservice5.descriptors[0].id,
+      producerId: eservice5.producerId,
+    };
+
     await addOneAgreement(agreement1);
     await addOneAgreement(agreement2);
     await addOneAgreement(agreement3);
@@ -189,6 +214,9 @@ describe("get agreements", () => {
     await addOneAgreement(agreement6);
     await addOneAgreement(agreement7);
     await addOneAgreement(agreement8);
+    await addOneAgreement(agreement9);
+    await addOneAgreement(agreement10);
+    await addOneAgreement(agreement11);
 
     const delegation1 = getMockDelegation({
       kind: delegationKind.delegatedProducer,
@@ -204,9 +232,25 @@ describe("get agreements", () => {
       eserviceId: eservice5.id,
       state: agreementState.active,
     });
+    const delegation3 = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      delegateId: tenant6.id,
+      delegatorId: tenant5.id,
+      eserviceId: eservice5.id,
+      state: agreementState.active,
+    });
+    const delegation4 = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      delegateId: tenant5.id,
+      delegatorId: tenant6.id,
+      eserviceId: eservice5.id,
+      state: agreementState.active,
+    });
 
     await addOneDelegation(delegation1);
     await addOneDelegation(delegation2);
+    await addOneDelegation(delegation3);
+    await addOneDelegation(delegation4);
   });
 
   it("should get all agreements if no filters are provided", async () => {
@@ -626,8 +670,8 @@ describe("get agreements", () => {
       genericLogger
     );
     expect(agreements).toEqual({
-      totalCount: 1,
-      results: expect.arrayContaining([agreement8]),
+      totalCount: 2,
+      results: expect.arrayContaining([agreement8, agreement11]),
     });
   });
 });
