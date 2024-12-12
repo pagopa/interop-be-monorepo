@@ -222,6 +222,10 @@ const handleActivationOrSuspension = async (
       )
     ) {
       // token-generation-states
+      /* In consumerServiceV2, the handler for reactivation and suspension doesn't have to update 
+      the descriptor info in the token-generation-states. Here is needed because this handler also 
+      includes the agreement upgrade (which requires updating descriptor info).
+      */
       await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
         GSIPK_consumerId_eserviceId,
         agreementId: agreement.id,
