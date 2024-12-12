@@ -1,0 +1,26 @@
+meta {
+  name: Rejects a delegation
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-delegation}}/producer/delegations/:delegationId/reject
+  body: json
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+}
+
+headers {
+  Authorization: {{JWT2}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "rejectionReason": "test rejection reason"
+  }
+}
