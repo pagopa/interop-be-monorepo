@@ -11,7 +11,6 @@ import {
   makePlatformStatesEServiceDescriptorPK,
   PlatformStatesAgreementEntry,
   agreementState,
-  PlatformStatesCatalogEntry,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Logger } from "pagopa-interop-commons";
@@ -25,6 +24,7 @@ import {
   updateAgreementStateAndDescriptorInfoOnTokenGenStates,
   deleteAgreementEntry,
   isLatestAgreement,
+  updateLatestAgreementOnTokenGenStates,
 } from "./utils.js";
 
 export async function handleMessageV1(
@@ -82,7 +82,6 @@ export async function handleMessageV1(
       const agreement = parseAgreement(msg.data.agreement);
 
       await match(agreement.state)
-        // eslint-disable-next-line sonarjs/no-identical-functions
         .with(agreementState.active, async () => {
           // this case is for agreement upgraded
           const agreement = parseAgreement(msg.data.agreement);
@@ -164,36 +163,11 @@ const handleFirstActivation = async (
     await writeAgreementEntry(agreementEntry, dynamoDBClient);
   }
 
-  if (
-    await isLatestAgreement(
-      GSIPK_consumerId_eserviceId,
-      agreement.id,
-      dynamoDBClient
-    )
-  ) {
-    const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
-      eserviceId: agreement.eserviceId,
-      descriptorId: agreement.descriptorId,
-    });
-
-    const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
-
-    const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-      eserviceId: agreement.eserviceId,
-      descriptorId: agreement.descriptorId,
-    });
-
-    // token-generation-states
-    await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
-      GSIPK_consumerId_eserviceId,
-      agreementId: agreement.id,
-      agreementState: agreement.state,
-      dynamoDBClient,
-      GSIPK_eserviceId_descriptorId,
-      catalogEntry,
-      logger,
-    });
-  }
+  await updateLatestAgreementOnTokenGenStates(
+    dynamoDBClient,
+    agreement,
+    logger
+  );
 };
 
 const handleActivationOrSuspension = async (
@@ -296,12 +270,6 @@ const handleUpgrade = async (
   const primaryKey = makePlatformStatesAgreementPK(agreement.id);
   const agreementEntry = await readAgreementEntry(primaryKey, dynamoDBClient);
 
-  const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
-    eserviceId: agreement.eserviceId,
-    descriptorId: agreement.descriptorId,
-  });
-  const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
-
   const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
     consumerId: agreement.consumerId,
     eserviceId: agreement.eserviceId,
@@ -334,44 +302,9 @@ const handleUpgrade = async (
     await writeAgreementEntry(newAgreementEntry, dynamoDBClient);
   }
 
-  const updateLatestAgreementOnTokenGenStates = async (
-    catalogEntry: PlatformStatesCatalogEntry | undefined
-  ): Promise<void> => {
-    if (
-      await isLatestAgreement(
-        GSIPK_consumerId_eserviceId,
-        agreement.id,
-        dynamoDBClient
-      )
-    ) {
-      // token-generation-states only if agreement is the latest
-      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-        eserviceId: agreement.eserviceId,
-        descriptorId: agreement.descriptorId,
-      });
-
-      await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
-        GSIPK_consumerId_eserviceId,
-        agreementId: agreement.id,
-        agreementState: agreement.state,
-        dynamoDBClient,
-        GSIPK_eserviceId_descriptorId,
-        catalogEntry,
-        logger,
-      });
-    }
-  };
-
-  await updateLatestAgreementOnTokenGenStates(catalogEntry);
-
-  const secondRetrievalCatalogEntry = await readCatalogEntry(
-    pkCatalogEntry,
-    dynamoDBClient
+  await updateLatestAgreementOnTokenGenStates(
+    dynamoDBClient,
+    agreement,
+    logger
   );
-  if (
-    secondRetrievalCatalogEntry &&
-    (!catalogEntry || secondRetrievalCatalogEntry.state !== catalogEntry.state)
-  ) {
-    await updateLatestAgreementOnTokenGenStates(secondRetrievalCatalogEntry);
-  }
 };

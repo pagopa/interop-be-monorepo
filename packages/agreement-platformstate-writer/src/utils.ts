@@ -13,6 +13,10 @@ import {
   PlatformStatesEServiceDescriptorPK,
   PlatformStatesAgreementGSIAgreement,
   TokenGenStatesConsumerClientGSIAgreement,
+  Agreement,
+  makePlatformStatesEServiceDescriptorPK,
+  makeGSIPKEServiceIdDescriptorId,
+  makeGSIPKConsumerIdEServiceId,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
@@ -564,4 +568,70 @@ export const isLatestAgreement = async (
     agreementEntries[0].PK
   );
   return agreementIdFromEntry === agreementId;
+};
+
+export const updateLatestAgreementOnTokenGenStates = async (
+  dynamoDBClient: DynamoDBClient,
+  agreement: Agreement,
+  logger: Logger
+): Promise<void> => {
+  const processAgreementUpdateOnTokenGenStates = async (
+    platformStatesCatalogEntry: PlatformStatesCatalogEntry | undefined
+  ): Promise<void> => {
+    const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+      consumerId: agreement.consumerId,
+      eserviceId: agreement.eserviceId,
+    });
+
+    if (
+      await isLatestAgreement(
+        GSIPK_consumerId_eserviceId,
+        agreement.id,
+        dynamoDBClient
+      )
+    ) {
+      // token-generation-states only if agreement is the latest
+      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: agreement.eserviceId,
+        descriptorId: agreement.descriptorId,
+      });
+
+      await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
+        GSIPK_consumerId_eserviceId,
+        agreementId: agreement.id,
+        agreementState: agreement.state,
+        dynamoDBClient,
+        GSIPK_eserviceId_descriptorId,
+        catalogEntry: platformStatesCatalogEntry,
+        logger,
+      });
+    }
+  };
+
+  const platformsStatesCatalogEntryPK = makePlatformStatesEServiceDescriptorPK({
+    eserviceId: agreement.eserviceId,
+    descriptorId: agreement.descriptorId,
+  });
+  const platformStatesCatalogEntry = await readCatalogEntry(
+    platformsStatesCatalogEntryPK,
+    dynamoDBClient
+  );
+
+  await processAgreementUpdateOnTokenGenStates(platformStatesCatalogEntry);
+
+  const updatedPlatformStatesCatalogEntry = await readCatalogEntry(
+    platformsStatesCatalogEntryPK,
+    dynamoDBClient
+  );
+
+  if (
+    updatedPlatformStatesCatalogEntry &&
+    (!platformStatesCatalogEntry ||
+      updatedPlatformStatesCatalogEntry.state !==
+        platformStatesCatalogEntry.state)
+  ) {
+    await processAgreementUpdateOnTokenGenStates(
+      updatedPlatformStatesCatalogEntry
+    );
+  }
 };
