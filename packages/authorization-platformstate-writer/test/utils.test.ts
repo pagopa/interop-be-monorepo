@@ -69,7 +69,6 @@ import {
   vi,
 } from "vitest";
 import { z } from "zod";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   setClientPurposeIdsInPlatformStatesEntry,
   convertEntriesToClientKidInTokenGenerationStates,
@@ -612,8 +611,7 @@ describe("utils", () => {
 
     const res = await retrievePlatformStatesByPurpose(
       purposeId,
-      dynamoDBClient,
-      genericLogger
+      dynamoDBClient
     );
 
     expect(res).toEqual({

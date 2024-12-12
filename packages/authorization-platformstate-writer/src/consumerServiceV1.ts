@@ -25,7 +25,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { Logger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
   convertEntriesToClientKidInTokenGenerationStates,
@@ -49,8 +48,7 @@ import {
 
 export async function handleMessageV1(
   message: AuthorizationEventEnvelopeV1,
-  dynamoDBClient: DynamoDBClient,
-  logger: Logger
+  dynamoDBClient: DynamoDBClient
 ): Promise<void> {
   await match(message)
     .with({ type: "ClientAdded" }, async (msg) => {

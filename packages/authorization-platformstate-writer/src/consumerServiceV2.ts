@@ -22,7 +22,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
   convertEntriesToClientKidInTokenGenerationStates,
@@ -46,8 +45,7 @@ import {
 
 export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
-  dynamoDBClient: DynamoDBClient,
-  logger: Logger
+  dynamoDBClient: DynamoDBClient
 ): Promise<void> {
   await match(message)
     // eslint-disable-next-line sonarjs/cognitive-complexity

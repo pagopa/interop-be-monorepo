@@ -52,7 +52,6 @@ import {
   TokenGenStatesGenericClientGSIKid,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
 import { z } from "zod";
 import { config } from "./config/config.js";
 
