@@ -13,7 +13,10 @@ import { Address, Attachment } from "nodemailer/lib/mailer/index.js";
 import { PecEmailManagerConfig } from "../index.js";
 import { AWSSesConfig } from "../config/awsSesConfig.js";
 
+export type EmailManagerKind = "PEC" | "SES";
+
 export type EmailManager = {
+  kind: EmailManagerKind;
   send: (
     from: string | { name: string; address: string },
     to: string[],
@@ -28,12 +31,20 @@ export type EmailManager = {
     attachments: Attachment[]
   ) => Promise<void>;
 };
+export type EmailManagerPEC = EmailManager & {
+  kind: "PEC";
+};
+
+export type EmailManagerSES = EmailManager & {
+  kind: "SES";
+};
 
 export function initPecEmailManager(
   config: PecEmailManagerConfig,
   rejectUnauthorized = true
-): EmailManager {
+): EmailManagerPEC {
   return {
+    kind: "PEC",
     send: async (
       from: string | Address,
       to: string[],
@@ -103,13 +114,14 @@ export function initPecEmailManager(
   };
 }
 
-export function initSesMailManager(awsConfig: AWSSesConfig): EmailManager {
+export function initSesMailManager(awsConfig: AWSSesConfig): EmailManagerSES {
   const client = new SESv2Client({
     region: awsConfig.awsRegion,
     endpoint: awsConfig.awsSesEndpoint,
   });
 
   return {
+    kind: "SES",
     send: async (
       from: string | Address,
       to: string[],
