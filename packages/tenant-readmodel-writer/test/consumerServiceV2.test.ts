@@ -37,14 +37,12 @@ import { tenants } from "./utils.js";
 
 describe("Tenant Events V2", async () => {
   const mockTenant = getMockTenant();
-  const mockMessage: TenantEventEnvelopeV2 = {
+  const mockMessage: Omit<TenantEventEnvelopeV2, "type" | "data"> = {
     event_version: 2,
     stream_id: mockTenant.id,
     version: 1,
     sequence_num: 1,
     log_date: new Date(),
-    type: "TenantOnboarded",
-    data: {},
   };
 
   it("TenantOnboarded", async () => {

@@ -19,14 +19,12 @@ describe("Events V2", async () => {
   const mockDelegation = getMockDelegation({
     kind: randomArrayItem(Object.values(delegationKind)),
   });
-  const mockMessage: DelegationEventEnvelopeV2 = {
+  const mockMessage: Omit<DelegationEventEnvelopeV2, "type" | "data"> = {
     event_version: 2,
     stream_id: mockDelegation.id,
     version: 1,
     sequence_num: 1,
     log_date: new Date(),
-    type: "ProducerDelegationApproved",
-    data: {},
   };
 
   it("ProducerDelegationApproved", async () => {
