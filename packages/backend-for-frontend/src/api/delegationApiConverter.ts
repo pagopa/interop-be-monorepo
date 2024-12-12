@@ -70,12 +70,12 @@ export function toBffDelegationApiDelegation(
   delegation: delegationApi.Delegation,
   delegator: tenantApi.Tenant,
   delegate: tenantApi.Tenant,
-  eservice: catalogApi.EService,
+  eservice: catalogApi.EService | undefined,
   producer: tenantApi.Tenant
 ): bffApi.Delegation {
   return {
     id: delegation.id,
-    eservice: {
+    eservice: eservice && {
       id: eservice.id,
       name: eservice.name,
       description: eservice.description,
@@ -108,11 +108,11 @@ export function toBffDelegationApiCompactDelegation(
   delegation: delegationApi.Delegation,
   delegator: tenantApi.Tenant,
   delegate: tenantApi.Tenant,
-  eservice: catalogApi.EService
+  eservice: catalogApi.EService | undefined
 ): bffApi.CompactDelegation {
   return {
     id: delegation.id,
-    eservice: toCompactEserviceLight(eservice),
+    eservice: eservice && toCompactEserviceLight(eservice),
     delegate: {
       name: delegate.name,
       id: delegate.id,
