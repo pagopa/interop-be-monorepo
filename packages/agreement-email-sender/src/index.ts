@@ -31,7 +31,7 @@ const interopFeBaseUrl = config.interopFeBaseUrl;
 const sesEmailManager: EmailManagerSES = initSesMailManager(config);
 const sesEmailsenderData = {
   label: config.senderLabel,
-  mail: config.senderLabel,
+  mail: config.senderMail,
 };
 
 const pecEmailManager: EmailManagerPEC = initPecEmailManager(config);
