@@ -6,6 +6,7 @@ import {
 import {
   CorrelationId,
   generateId,
+  missingKafkaMessageDataError,
   Purpose,
   PurposeArchivedV2,
   PurposeEventEnvelopeV2,
@@ -88,5 +89,33 @@ describe("PurposeArchived", () => {
       },
       headers: testHeaders,
     });
+  });
+
+  it("Should throw missingKafkaMessageDataError when purpose data is missing", async () => {
+    const decodedKafkaMessage: PurposeEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: "stream-id",
+      version: 2,
+      type: "PurposeArchived",
+      event_version: 2,
+      data: { purpose: undefined, versionId: generateId() },
+      log_date: new Date(),
+      correlation_id: correlationId,
+    };
+
+    const { handleMessageV2 } = await import(
+      "../src/clientPurposeUpdaterConsumerServiceV2.js"
+    );
+
+    await expect(
+      handleMessageV2({
+        decodedKafkaMessage,
+        refreshableToken: mockRefreshableToken,
+        partition: 0,
+        offset: "10",
+      })
+    ).rejects.toThrow(
+      missingKafkaMessageDataError("purpose", "PurposeArchived")
+    );
   });
 });
