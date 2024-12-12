@@ -11,6 +11,7 @@ import {
   PurposeVersionId,
   TenantId,
 } from "../brandedIds.js";
+import { ClientKindTokenGenStates } from "./commons.js";
 
 export const itemState = {
   active: "ACTIVE",
@@ -60,8 +61,32 @@ export type PlatformStatesAgreementEntry = z.infer<
 
 export const PlatformStatesClientEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesClientPK,
+  clientKind: ClientKindTokenGenStates,
+  clientConsumerId: TenantId,
   clientPurposesIds: z.array(PurposeId),
 });
 export type PlatformStatesClientEntry = z.infer<
   typeof PlatformStatesClientEntry
+>;
+
+export const PlatformStatesGenericEntry = PlatformStatesCatalogEntry.or(
+  PlatformStatesAgreementEntry
+)
+  .or(PlatformStatesPurposeEntry)
+  .or(PlatformStatesClientEntry);
+export type PlatformStatesGenericEntry = z.infer<
+  typeof PlatformStatesGenericEntry
+>;
+
+// GSI projection types
+export const PlatformStatesAgreementGSIAgreement =
+  PlatformStatesAgreementEntry.pick({
+    PK: true,
+    GSIPK_consumerId_eserviceId: true,
+    GSISK_agreementTimestamp: true,
+    agreementDescriptorId: true,
+    state: true,
+  });
+export type PlatformStatesAgreementGSIAgreement = z.infer<
+  typeof PlatformStatesAgreementGSIAgreement
 >;

@@ -16,7 +16,6 @@ import {
   USER_ROLES,
   WithLogger,
   decodeJwtToken,
-  getJwksClients,
   userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
@@ -54,8 +53,6 @@ export function authorizationServiceBuilder(
   allowList: string[],
   rateLimiter: RateLimiter
 ) {
-  const jwksClients = getJwksClients(config);
-
   const readJwt = async (
     identityToken: string,
     logger: Logger
@@ -64,12 +61,7 @@ export function authorizationServiceBuilder(
     sessionClaims: SessionClaims;
     selfcareId: string;
   }> => {
-    const verified = await verifyJwtToken(
-      identityToken,
-      jwksClients,
-      config,
-      logger
-    );
+    const verified = await verifyJwtToken(identityToken, config, logger);
     if (!verified) {
       throw tokenVerificationFailed();
     }

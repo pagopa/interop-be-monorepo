@@ -5,23 +5,41 @@ import {
   DeclaredTenantAttribute,
   TenantAttribute,
   TenantId,
+  TenantVerifier,
   VerifiedTenantAttribute,
   tenantAttributeType,
 } from "pagopa-interop-models";
+import { isVerificationRevoked } from "../utils/verifiedAttributes.js";
 
 export const filterVerifiedAttributes = (
-  producerId: TenantId,
+  verifierId: TenantId,
   tenantAttributes: TenantAttribute[]
-): VerifiedTenantAttribute[] =>
-  tenantAttributes.filter(
+): VerifiedTenantAttribute[] => {
+  const now = new Date();
+
+  const isVerificationExpired = (verification: TenantVerifier): boolean => {
+    if (verification.extensionDate) {
+      return verification.extensionDate <= now;
+    }
+
+    if (verification.expirationDate) {
+      return verification.expirationDate <= now;
+    }
+
+    return false;
+  };
+
+  return tenantAttributes.filter(
     (att) =>
       att.type === tenantAttributeType.VERIFIED &&
-      att.verifiedBy.find(
+      att.verifiedBy.some(
         (v) =>
-          v.id === producerId &&
-          (!v.extensionDate || v.extensionDate > new Date())
+          v.id === verifierId &&
+          !isVerificationRevoked(verifierId, att) &&
+          !isVerificationExpired(v)
       )
   ) as VerifiedTenantAttribute[];
+};
 
 export const filterCertifiedAttributes = (
   tenantAttributes: TenantAttribute[]

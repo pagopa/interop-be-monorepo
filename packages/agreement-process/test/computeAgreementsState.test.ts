@@ -32,6 +32,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger, userRoles } from "pagopa-interop-commons";
+import { addDays } from "date-fns";
 import {
   addOneAgreement,
   addOneEService,
@@ -259,7 +260,7 @@ describe("compute Agreements state by attribute", () => {
         {
           id: producerId,
           verificationDate: new Date(),
-          extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+          extensionDate: addDays(new Date(), 30),
         },
       ],
     };
