@@ -110,8 +110,7 @@ export async function handleMessageV1(
                   const { purposeEntry, agreementEntry, catalogEntry } =
                     await retrievePlatformStatesByPurpose(
                       purposeId,
-                      dynamoDBClient,
-                      logger
+                      dynamoDBClient
                     );
 
                   const tokenClientKidPurposePK =
@@ -187,8 +186,7 @@ export async function handleMessageV1(
                     catalogEntry: catalogEntry2,
                   } = await retrievePlatformStatesByPurpose(
                     purposeId,
-                    dynamoDBClient,
-                    logger
+                    dynamoDBClient
                   );
 
                   const addedTokenGenStatesConsumerClient = addedEntries[index];
@@ -300,11 +298,7 @@ export async function handleMessageV1(
           return Promise.resolve();
         } else {
           const { purposeEntry, agreementEntry, catalogEntry } =
-            await retrievePlatformStatesByPurpose(
-              purposeId,
-              dynamoDBClient,
-              logger
-            );
+            await retrievePlatformStatesByPurpose(purposeId, dynamoDBClient);
 
           const seenKids = new Set<string>();
           const addedTokenGenStatesConsumerClients: TokenGenerationStatesConsumerClient[] =
@@ -378,8 +372,7 @@ export async function handleMessageV1(
                 catalogEntry: catalogEntry2,
               } = await retrievePlatformStatesByPurpose(
                 purposeId,
-                dynamoDBClient,
-                logger
+                dynamoDBClient
               );
 
               await updateTokenGenStatesDataForSecondRetrieval({

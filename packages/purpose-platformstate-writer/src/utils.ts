@@ -272,12 +272,6 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
               gsiPKEServiceIdDescriptorId: undefined,
             };
 
-      if (catalogEntryPK) {
-        logger.info(
-          `Retrieving platform-states catalog entry ${catalogEntryPK} to add descriptor info in token-generation-states`
-        );
-      }
-
       const catalogEntry = catalogEntryPK
         ? await readCatalogEntry(dynamoDBClient, catalogEntryPK)
         : undefined;

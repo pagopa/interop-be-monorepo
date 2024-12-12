@@ -907,8 +907,7 @@ export const extractAgreementIdFromAgreementPK = (
 
 export const retrievePlatformStatesByPurpose = async (
   purposeId: PurposeId,
-  dynamoDBClient: DynamoDBClient,
-  logger: Logger
+  dynamoDBClient: DynamoDBClient
 ): Promise<{
   purposeEntry?: PlatformStatesPurposeEntry;
   agreementEntry?: PlatformStatesAgreementGSIAgreement;
@@ -949,9 +948,6 @@ export const retrievePlatformStatesByPurpose = async (
     descriptorId: agreementEntry.agreementDescriptorId,
   });
 
-  logger.info(
-    `Retrieving platform-states catalog entry ${catalogPK} to add descriptor info in token-generation-states`
-  );
   const catalogEntry = await readPlatformCatalogEntry(
     catalogPK,
     dynamoDBClient
