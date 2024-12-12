@@ -67,10 +67,10 @@ const enhanceCatalogEService = (
   headers: Headers,
   requesterId: TenantId
 ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) => {
-  const tenantsCachedList: Record<string, tenantApi.Tenant> = {};
+  const tenantsCachedList: Record<TenantId, tenantApi.Tenant> = {};
 
   const getCachedTenant = async (
-    tenantId: string
+    tenantId: TenantId
   ): Promise<tenantApi.Tenant> => {
     if (tenantsCachedList[tenantId]) {
       return tenantsCachedList[tenantId];
@@ -88,7 +88,9 @@ const enhanceCatalogEService = (
   return async (
     eservice: catalogApi.EService
   ): Promise<bffApi.CatalogEService> => {
-    const producerTenant = await getCachedTenant(eservice.producerId);
+    const producerTenant = await getCachedTenant(
+      eservice.producerId as TenantId
+    );
     const requesterTenant = await getCachedTenant(requesterId);
 
     const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
