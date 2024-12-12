@@ -52,6 +52,7 @@ import {
   TokenGenStatesGenericClientGSIKid,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { Logger } from "pagopa-interop-commons";
 import { z } from "zod";
 import { config } from "./config/config.js";
 
@@ -906,7 +907,8 @@ export const extractAgreementIdFromAgreementPK = (
 
 export const retrievePlatformStatesByPurpose = async (
   purposeId: PurposeId,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<{
   purposeEntry?: PlatformStatesPurposeEntry;
   agreementEntry?: PlatformStatesAgreementGSIAgreement;
@@ -947,6 +949,9 @@ export const retrievePlatformStatesByPurpose = async (
     descriptorId: agreementEntry.agreementDescriptorId,
   });
 
+  logger.info(
+    `Retrieving platform-states catalog entry ${catalogPK} to add descriptor info in token-generation-states`
+  );
   const catalogEntry = await readPlatformCatalogEntry(
     catalogPK,
     dynamoDBClient
