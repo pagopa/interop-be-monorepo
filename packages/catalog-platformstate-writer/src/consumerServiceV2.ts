@@ -33,7 +33,7 @@ export async function handleMessageV2(
   await match(message)
     .with(
       { type: "EServiceDescriptorPublished" },
-      { type: "EServiceDescriptorDelegatorApproved" },
+      { type: "EServiceDescriptorApprovedByDelegator" },
       async (msg) => {
         const { eservice, descriptor } = parseEServiceAndDescriptor(
           msg.data.eservice,
@@ -243,9 +243,9 @@ export async function handleMessageV2(
       { type: "EServiceRiskAnalysisUpdated" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceDescriptionUpdated" },
+      { type: "EServiceDescriptorRejectedByDelegator" },
+      { type: "EServiceDescriptorSubmittedByDelegate" },
       { type: "EServiceDescriptorAttributesUpdated" },
-      { type: "EServiceDescriptorDelegatorRejected" },
-      { type: "EServiceDescriptorDelegateSubmitted" },
       () => Promise.resolve()
     )
     .exhaustive();
