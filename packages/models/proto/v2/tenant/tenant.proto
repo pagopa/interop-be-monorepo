@@ -95,6 +95,7 @@ message TenantDeclaredAttributeV2 {
   string id = 1;
   int64 assignmentTimestamp = 2;
   optional int64 revocationTimestamp = 3;
+  optional string delegationId = 4;
 }
 
 message TenantVerifiedAttributeV2 {
