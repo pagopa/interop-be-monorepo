@@ -21,6 +21,7 @@ import {
   getDelegationsErrorMapper,
   getDelegationByIdErrorMapper,
   getDelegationContractErrorMapper,
+  getDelegationTenantsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
@@ -183,23 +184,21 @@ const delegationRouter = (
           delegatedIds,
           delegatorIds,
           eserviceIds,
-          delegationStates,
-          delegationKind,
-          q,
+          states,
+          kind,
+          delegateName,
+          delegatorName,
         } = req.query;
 
         const delegationTenants = await delegationService.getDelegationsTenants(
           {
             delegatedIds: delegatedIds.map(unsafeBrandId<TenantId>),
             delegatorIds: delegatorIds.map(unsafeBrandId<TenantId>),
-            delegationStates: delegationStates.map(
-              apiDelegationStateToDelegationState
-            ),
+            states: states.map(apiDelegationStateToDelegationState),
             eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
-            delegationKind:
-              delegationKind &&
-              apiDelegationKindToDelegationKind(delegationKind),
-            tenantName: q,
+            kind: apiDelegationKindToDelegationKind(kind),
+            delegateName,
+            delegatorName,
             offset,
             limit,
           },

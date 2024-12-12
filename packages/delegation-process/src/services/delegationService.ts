@@ -147,43 +147,35 @@ export function delegationServiceBuilder(readModelService: ReadModelService) {
       throw delegationContractNotFound(delegationId, contractId);
     },
     async getDelegationsTenants(
-      {
-        delegatedIds,
-        delegatorIds,
-        eserviceIds,
-        tenantName,
-        delegationStates,
-        delegationKind,
-        limit,
-        offset,
-      }: {
+      filters: {
         delegatedIds: TenantId[];
         delegatorIds: TenantId[];
         eserviceIds: EServiceId[];
-        tenantName: string | undefined;
-        delegationStates: DelegationState[];
-        delegationKind: DelegationKind | undefined;
+        delegateName: string | undefined;
+        delegatorName: string | undefined;
+        states: DelegationState[];
+        kind: DelegationKind;
         limit: number;
         offset: number;
       },
       logger: Logger
     ): Promise<delegationApi.CompactDelegationsTenants> {
+      const { limit, offset } = filters;
+
       logger.info(
-        `Retrieving delegations tenants with filters delegatedIds=${delegatedIds}, delegatorIds=${delegatorIds}, eserviceIds=${eserviceIds}, tenantName=${tenantName}, delegationStates=${delegationStates}, delegationKind=${delegationKind}, limit=${limit}, offset=${offset}`
+        `Retrieving delegations tenants with filters: ${JSON.stringify(
+          filters
+        )}`
       );
 
-      // TODO: implementare una getAll e gestire qui il totalCount dato che bisogna ancora effettuare dei filtri
+      const delegationTenants = await readModelService.getDelegationTenants(
+        filters
+      );
 
-      return await readModelService.getDelegationsTenants({
-        delegatedIds,
-        delegatorIds,
-        eserviceIds,
-        tenantName,
-        delegationStates,
-        delegationKind,
-        limit,
-        offset,
-      });
+      return {
+        results: delegationTenants.slice(offset, offset + limit),
+        totalCount: delegationTenants.length,
+      };
     },
   };
 }

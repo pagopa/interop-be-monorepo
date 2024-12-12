@@ -41,7 +41,11 @@ paths:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
-        name: q
+        name: delegatorName
+        schema:
+          type: string
+      - in: query
+        name: delegateName
         schema:
           type: string
       - in: query
@@ -63,7 +67,7 @@ paths:
           default: []
         explode: false
       - in: query
-        name: delegationStates
+        name: states
         schema:
           type: array
           items:
@@ -71,7 +75,8 @@ paths:
           default: []
         explode: false
       - in: query
-        name: delegationKind
+        name: kind
+        required: true
         schema:
           $ref: "#/components/schemas/DelegationKind"
       - in: query

@@ -375,7 +375,7 @@ export function delegationServiceBuilder(
         limit: number;
       },
       { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<bffApi.DelegationTenantsWithId> {
+    ): Promise<bffApi.CompactDelegators> {
       logger.info(
         `Retrieving consumer delegators with name ${q}, limit ${limit}, offset ${offset}`
       );
@@ -383,7 +383,9 @@ export function delegationServiceBuilder(
       const delegationTenants =
         await delegationClients.delegation.getDelegationTenants({
           queries: {
-            q,
+            delegatorName: q,
+            kind: bffApi.DelegationKind.Values.DELEGATED_CONSUMER,
+            states: [bffApi.DelegationState.Values.ACTIVE],
             offset,
             limit,
           },
@@ -391,7 +393,11 @@ export function delegationServiceBuilder(
         });
 
       return {
-        results: delegationTenants.results,
+        results: delegationTenants.results.map((t) => ({
+          delegationId: t.delegationId,
+          delegatorName: t.delegator.name,
+          delegatorId: t.delegator.id,
+        })),
         pagination: {
           limit,
           offset,

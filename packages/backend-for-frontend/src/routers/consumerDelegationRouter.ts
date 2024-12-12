@@ -131,16 +131,14 @@ const consumerDelegationRouter = (
           ctx
         );
 
-        return res
-          .status(200)
-          .send(bffApi.DelegationTenantsWithId.parse(result));
+        return res.status(200).send(bffApi.CompactDelegators.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx.logger,
           ctx.correlationId,
-          `Error getting delegators`
+          `Error getting consumer delegators`
         );
 
         return res.status(errorRes.status).send(errorRes);
