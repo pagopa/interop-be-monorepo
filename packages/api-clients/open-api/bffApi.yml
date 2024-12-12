@@ -15842,7 +15842,6 @@ components:
           $ref: "#/components/schemas/DelegationKind"
       required:
         - id
-        - eservice
         - delegate
         - delegator
         - state
@@ -15866,7 +15865,6 @@ components:
           $ref: "#/components/schemas/DelegationKind"
       required:
         - id
-        - eserviceName
         - delegate
         - delegator
         - state
