@@ -41,10 +41,10 @@ export async function handleMessageV2(
       { type: "EServiceRiskAnalysisUpdated" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceDescriptionUpdated" },
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      { type: "EServiceDescriptorApprovedByDelegator" },
+      { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorAttributesUpdated" },
-      { type: "EServiceDescriptorDelegateSubmitted" },
-      { type: "EServiceDescriptorDelegatorApproved" },
-      { type: "EServiceDescriptorDelegatorRejected" },
       async (message) =>
         await eservices.updateOne(
           {
