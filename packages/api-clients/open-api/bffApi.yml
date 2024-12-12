@@ -10537,6 +10537,11 @@ paths:
   /purposes/riskAnalysis/latest:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantKind
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/TenantKind"
     get:
       tags:
         - purposes
