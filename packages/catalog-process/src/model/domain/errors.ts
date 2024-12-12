@@ -35,6 +35,7 @@ export const errorCodes = {
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
   eserviceWithActiveOrPendingDelegation: "0024",
+  invalidEServiceFlags: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -282,5 +283,15 @@ export function eserviceWithActiveOrPendingDelegation(
     detail: `E-service ${eserviceId} can't be deleted with an active or pending delegation ${delegationId}`,
     code: "eserviceWithActiveOrPendingDelegation",
     title: "E-service with active or pending delegation",
+  });
+}
+
+export function invalidEServiceFlags(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} flags are not valid`,
+    code: "invalidEServiceFlags",
+    title: "Invalid EService flags",
   });
 }
