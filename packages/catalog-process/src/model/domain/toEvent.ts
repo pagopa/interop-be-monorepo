@@ -7,6 +7,7 @@ import {
   RiskAnalysisId,
   toEServiceV2,
   CorrelationId,
+  AttributeId,
 } from "pagopa-interop-models";
 
 export const toCreateEventEServiceAdded = (
@@ -531,6 +532,27 @@ export const toCreateEventEServiceDescriptorDelegatorRejected = (
     event_version: 2,
     data: {
       descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorAttributesUpdated = (
+  version: number,
+  descriptorId: DescriptorId,
+  attributeIds: AttributeId[],
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorAttributesUpdated",
+    event_version: 2,
+    data: {
+      descriptorId,
+      attributeIds,
       eservice: toEServiceV2(eservice),
     },
   },
