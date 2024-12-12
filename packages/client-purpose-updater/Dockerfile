@@ -34,6 +34,7 @@ RUN pnpm build && \
       packages/commons \
       packages/models \
       packages/kafka-iam-auth \
+      packages/api-clients \
       packages/client-purpose-updater/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
