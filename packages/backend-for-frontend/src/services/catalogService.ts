@@ -61,30 +61,35 @@ import { assertRequesterIsProducer } from "./validators.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
-const enhanceCatalogEService =
-  (
-    tenantProcessClient: TenantProcessClient,
-    agreementProcessClient: AgreementProcessClient,
-    headers: Headers,
-    requesterId: TenantId
-  ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
-  async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
-    const producerTenant = await tenantProcessClient.tenant.getTenant({
+const enhanceCatalogEService = (
+  tenantProcessClient: TenantProcessClient,
+  agreementProcessClient: AgreementProcessClient,
+  headers: Headers,
+  requesterId: TenantId
+): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) => {
+  const tenantsCachedList: Record<string, tenantApi.Tenant> = {};
+
+  const getCachedTenant = async (
+    tenantId: string
+  ): Promise<tenantApi.Tenant> => {
+    if (tenantsCachedList[tenantId]) {
+      return tenantsCachedList[tenantId];
+    }
+
+    const tenant = await tenantProcessClient.tenant.getTenant({
       headers,
-      params: {
-        id: eservice.producerId,
-      },
+      params: { id: tenantId },
     });
 
-    const requesterTenant: tenantApi.Tenant =
-      requesterId !== eservice.producerId
-        ? await tenantProcessClient.tenant.getTenant({
-            headers,
-            params: {
-              id: requesterId,
-            },
-          })
-        : producerTenant;
+    tenantsCachedList[tenantId] = tenant;
+    return tenant;
+  };
+
+  return async (
+    eservice: catalogApi.EService
+  ): Promise<bffApi.CatalogEService> => {
+    const producerTenant = await getCachedTenant(eservice.producerId);
+    const requesterTenant = await getCachedTenant(requesterId);
 
     const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
 
@@ -106,6 +111,7 @@ const enhanceCatalogEService =
       latestAgreement
     );
   };
+};
 
 const enhanceProducerEService = (
   eservice: catalogApi.EService
