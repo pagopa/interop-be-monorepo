@@ -94,13 +94,15 @@ export function createActivationUpdateAgreementSeed({
             agreement,
             authData.organizationId,
             agreementState.active,
-            stamp
+            stamp,
+            activeDelegations.consumerDelegation?.delegateId
           ),
           suspensionByProducer: suspendedByProducerStamp(
             agreement,
             authData.organizationId,
             agreementState.active,
-            stamp
+            stamp,
+            activeDelegations.producerDelegation?.delegateId
           ),
         },
         suspendedByPlatform,
