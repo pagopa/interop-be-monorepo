@@ -98,8 +98,11 @@ export async function handleMessageV1(
         )
         .exhaustive();
     })
+    .with({ type: "AgreementDeactivated" }, async (msg) => {
+      const agreement = parseAgreement(msg.data.agreement);
+      await handleArchiving(agreement, dynamoDBClient);
+    })
     .with(
-      { type: "AgreementDeactivated" },
       { type: "AgreementDeleted" },
       { type: "VerifiedAttributeUpdated" },
       { type: "AgreementConsumerDocumentAdded" },
