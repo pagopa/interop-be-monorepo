@@ -13,7 +13,7 @@ import { fromBffAppContext } from "../utilities/context.js";
 import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
-const producerDelegationRouter = (
+const consumerDelegationRouter = (
   ctx: ZodiosContext,
   {
     delegationProcessClient,
@@ -22,8 +22,8 @@ const producerDelegationRouter = (
   }: PagoPAInteropBeClients,
   fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const producerDelegationRouter = ctx.router(
-    bffApi.producerDelegationsApi.api,
+  const consumerDelegationRouter = ctx.router(
+    bffApi.consumerDelegationsApi.api,
     {
       validationErrorHandler: zodiosValidationErrorToApiProblem,
     }
@@ -35,12 +35,12 @@ const producerDelegationRouter = (
     fileManager
   );
 
-  producerDelegationRouter
-    .post("/producer/delegations", async (req, res) => {
+  consumerDelegationRouter
+    .post("/consumer/delegations", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const delegationResource =
-          await delegationService.createProducerDelegation(req.body, ctx);
+          await delegationService.createConsumerDelegation(req.body, ctx);
 
         return res
           .status(200)
@@ -57,10 +57,10 @@ const producerDelegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/producer/delegations/:delegationId/approve", async (req, res) => {
+    .post("/consumer/delegations/:delegationId/approve", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        await delegationService.delegateApproveProducerDelegation(
+        await delegationService.delegateApproveConsumerDelegation(
           unsafeBrandId(req.params.delegationId),
           ctx
         );
@@ -78,10 +78,10 @@ const producerDelegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/producer/delegations/:delegationId/reject", async (req, res) => {
+    .post("/consumer/delegations/:delegationId/reject", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        await delegationService.delegateRejectProducerDelegation(
+        await delegationService.delegateRejectConsumerDelegation(
           unsafeBrandId(req.params.delegationId),
           req.body,
           ctx
@@ -100,11 +100,11 @@ const producerDelegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .delete("/producer/delegations/:delegationId", async (req, res) => {
+    .delete("/consumer/delegations/:delegationId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        await delegationService.delegatorRevokeProducerDelegation(
+        await delegationService.delegatorRevokeConsumerDelegation(
           unsafeBrandId(req.params.delegationId),
           ctx
         );
@@ -123,7 +123,7 @@ const producerDelegationRouter = (
       }
     });
 
-  return producerDelegationRouter;
+  return consumerDelegationRouter;
 };
 
-export default producerDelegationRouter;
+export default consumerDelegationRouter;
