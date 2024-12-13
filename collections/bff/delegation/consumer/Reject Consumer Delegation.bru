@@ -5,19 +5,19 @@ meta {
 }
 
 post {
-  url: {{host-bff}}/producer/delegations/:delegationId/reject
+  url: {{host-bff}}/consumer/delegations/:delegationId/reject
   body: json
   auth: none
 }
 
 body:json {
   {
-    "rejectionReason": "I'm not feel comfortable with this delegation"
+    "rejectionReason": "I don't like computers, please send me a pigeon"
   }
 }
 
 params:path {
-  delegationId: dd10132c-f3c9-45cf-994c-3a312bc4ab4e
+  delegationId: {{delegationId}}
 }
 
 headers {

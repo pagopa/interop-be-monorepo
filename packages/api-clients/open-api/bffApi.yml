@@ -12827,8 +12827,18 @@ paths:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
+      tags:
+        - producerDelegations
       summary: Producer delegation creation
+      description: creates the producer delegation
       operationId: createProducerDelegation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationSeed"
+        description: payload for producer delegation creation
+        required: true
       responses:
         "200":
           description: Delegation created
@@ -12887,16 +12897,6 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-      tags:
-        - producerDelegations
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DelegationSeed"
-        description: payload for producer delegation creation
-        required: true
-      description: creates the producer delegation
   /producer/delegations/{delegationId}/approve:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -13124,8 +13124,18 @@ paths:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
+      tags:
+        - consumerDelegations
       summary: Consumer delegation creation
+      description: creates the consumer delegation
       operationId: createConsumerDelegation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationSeed"
+        description: payload for consumer delegation creation
+        required: true
       responses:
         "200":
           description: Delegation created
@@ -13184,16 +13194,6 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-      tags:
-        - consumerDelegations
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DelegationSeed"
-        description: payload for consumer delegation creation
-        required: true
-      description: creates the consumer delegation
   /consumer/delegations/{delegationId}/approve:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -13311,12 +13311,12 @@ paths:
         - consumerDelegations
       summary: Rejects a consumer delegation
       description: Rejects a consumer delegation
+      operationId: rejectConsumerDelegation
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/RejectDelegationPayload"
-      operationId: rejectConsumerDelegation
       parameters:
         - name: delegationId
           in: path

@@ -37,7 +37,7 @@ import {
   addOneDelegation,
   addOneEservice,
   addOneTenant,
-  delegationConsumerService,
+  delegationService,
   readLastDelegationEvent,
 } from "./utils.js";
 
@@ -111,19 +111,18 @@ describe("create consumer delegation", () => {
     await addOneTenant(delegate);
     await addOneEservice(eservice);
 
-    const actualDelegation =
-      await delegationConsumerService.createConsumerDelegation(
-        {
-          delegateId: delegate.id,
-          eserviceId: eservice.id,
-        },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
-      );
+    const actualDelegation = await delegationService.createConsumerDelegation(
+      {
+        delegateId: delegate.id,
+        eserviceId: eservice.id,
+      },
+      {
+        authData,
+        logger: genericLogger,
+        correlationId: generateId(),
+        serviceName: "DelegationServiceTest",
+      }
+    );
 
     const expectedDelegation: Delegation = {
       id: actualDelegation.id,
@@ -190,19 +189,18 @@ describe("create consumer delegation", () => {
       await addOneEservice(eservice);
       await addOneDelegation(existentDelegation);
 
-      const actualDelegation =
-        await delegationConsumerService.createConsumerDelegation(
-          {
-            delegateId: delegate.id,
-            eserviceId: eservice.id,
-          },
-          {
-            authData,
-            logger: genericLogger,
-            correlationId: generateId(),
-            serviceName: "DelegationServiceTest",
-          }
-        );
+      const actualDelegation = await delegationService.createConsumerDelegation(
+        {
+          delegateId: delegate.id,
+          eserviceId: eservice.id,
+        },
+        {
+          authData,
+          logger: genericLogger,
+          correlationId: generateId(),
+          serviceName: "DelegationServiceTest",
+        }
+      );
 
       const expectedDelegation: Delegation = {
         id: actualDelegation.id,
@@ -306,7 +304,7 @@ describe("create consumer delegation", () => {
       );
 
       await expect(
-        delegationConsumerService.createConsumerDelegation(
+        delegationService.createConsumerDelegation(
           {
             delegateId: delegate.id,
             eserviceId: eservice.id,
@@ -331,17 +329,24 @@ describe("create consumer delegation", () => {
   it("should throw a tenantNotFound error if delegated tenant does not exist", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
-    const delegator = getMockTenant(delegatorId);
-
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "IPA",
+        value: "test",
+      },
+    };
     const delegateId = generateId<TenantId>();
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegator);
+    await addOneEservice(eservice);
 
     await expect(
-      delegationConsumerService.createConsumerDelegation(
+      delegationService.createConsumerDelegation(
         {
           delegateId,
-          eserviceId: generateId<EServiceId>(),
+          eserviceId: eservice.id,
         },
         {
           authData,
@@ -357,7 +362,6 @@ describe("create consumer delegation", () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
 
-    const delegateId = generateId<TenantId>();
     const delegate = {
       ...getMockTenant(),
       features: [
@@ -367,14 +371,16 @@ describe("create consumer delegation", () => {
         },
       ],
     };
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegate);
+    await addOneEservice(eservice);
 
     await expect(
-      delegationConsumerService.createConsumerDelegation(
+      delegationService.createConsumerDelegation(
         {
-          delegateId,
-          eserviceId: generateId<EServiceId>(),
+          delegateId: delegate.id,
+          eserviceId: eservice.id,
         },
         {
           authData,
@@ -391,7 +397,7 @@ describe("create consumer delegation", () => {
     const authData = getRandomAuthData(sameTenantId);
 
     await expect(
-      delegationConsumerService.createConsumerDelegation(
+      delegationService.createConsumerDelegation(
         {
           delegateId: sameTenantId,
           eserviceId: generateId<EServiceId>(),
@@ -416,7 +422,6 @@ describe("create consumer delegation", () => {
         value: "test",
       },
     };
-
     const delegate = {
       ...getMockTenant(),
       features: [
@@ -426,15 +431,17 @@ describe("create consumer delegation", () => {
         },
       ],
     };
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
-    await addOneTenant(delegate);
     await addOneTenant(delegator);
+    await addOneTenant(delegate);
+    await addOneEservice(eservice);
 
     await expect(
-      delegationConsumerService.createConsumerDelegation(
+      delegationService.createConsumerDelegation(
         {
           delegateId: delegate.id,
-          eserviceId: generateId<EServiceId>(),
+          eserviceId: eservice.id,
         },
         {
           authData,
@@ -470,15 +477,17 @@ describe("create consumer delegation", () => {
         },
       ],
     };
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
-    await addOneTenant(delegate);
     await addOneTenant(delegator);
+    await addOneTenant(delegate);
+    await addOneEservice(eservice);
 
     await expect(
-      delegationConsumerService.createConsumerDelegation(
+      delegationService.createConsumerDelegation(
         {
           delegateId: delegate.id,
-          eserviceId: generateId<EServiceId>(),
+          eserviceId: eservice.id,
         },
         {
           authData,
@@ -511,19 +520,12 @@ describe("create consumer delegation", () => {
       ],
     };
     const eserviceId = generateId<EServiceId>();
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedConsumer,
-      id: generateId<DelegationId>(),
-      delegatorId,
-      delegateId: delegate.id,
-    });
 
-    await addOneTenant(delegate);
     await addOneTenant(delegator);
-    await addOneDelegation(delegation);
+    await addOneTenant(delegate);
 
     await expect(
-      delegationConsumerService.createConsumerDelegation(
+      delegationService.createConsumerDelegation(
         {
           delegateId: delegate.id,
           eserviceId,
@@ -550,15 +552,17 @@ describe("create consumer delegation", () => {
     };
 
     const delegate = getMockTenant();
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
+    await addOneEservice(eservice);
 
     await expect(
-      delegationConsumerService.createConsumerDelegation(
+      delegationService.createConsumerDelegation(
         {
           delegateId: delegate.id,
-          eserviceId: generateId<EServiceId>(),
+          eserviceId: eservice.id,
         },
         {
           authData,
