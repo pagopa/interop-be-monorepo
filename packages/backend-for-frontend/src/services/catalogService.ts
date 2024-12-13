@@ -312,6 +312,7 @@ export function catalogServiceBuilder(
           eservice,
           producerTenant
         ),
+        rejectionReasons: descriptor.rejectionReasons,
       };
     },
     getProducerEServiceDetails: async (
