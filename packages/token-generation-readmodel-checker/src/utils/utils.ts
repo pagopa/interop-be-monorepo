@@ -260,12 +260,12 @@ export async function compareTokenGenerationReadModel(
   }
 
   const clients = await readModelService.getAllReadModelClients();
-  const clientsMap = new Map<ClientId, Client>(
+  const clientsById = new Map<ClientId, Client>(
     clients.map((client) => [unsafeBrandId<ClientId>(client.id), client])
   );
 
   const purposeDifferences = await compareReadModelPurposesWithPlatformStates({
-    platformStatesPurposeMap: platformStates.purposes,
+    platformStatesPurposeById: platformStates.purposes,
     purposesById,
     logger,
   });
@@ -284,7 +284,7 @@ export async function compareTokenGenerationReadModel(
     await compareReadModelClientsAndTokenGenStates({
       platformStatesClientMap: platformStates.clients,
       tokenGenStatesByClient,
-      clientsMap,
+      clientsById,
       purposesById,
       agreementsByConsumerIdEserviceId,
       eservicesByEserviceIdDescriptorId,
@@ -301,21 +301,21 @@ export async function compareTokenGenerationReadModel(
 
 // purposes
 export async function compareReadModelPurposesWithPlatformStates({
-  platformStatesPurposeMap,
+  platformStatesPurposeById,
   purposesById,
   logger,
 }: {
-  platformStatesPurposeMap: Map<PurposeId, PlatformStatesPurposeEntry>;
+  platformStatesPurposeById: Map<PurposeId, PlatformStatesPurposeEntry>;
   purposesById: Map<PurposeId, Purpose>;
   logger: Logger;
 }): Promise<PurposeDifferencesResult> {
   const allIds = new Set([
-    ...platformStatesPurposeMap.keys(),
+    ...platformStatesPurposeById.keys(),
     ...purposesById.keys(),
   ]);
 
   return Array.from(allIds).reduce<PurposeDifferencesResult>((acc, id) => {
-    const platformStatesEntry = platformStatesPurposeMap.get(id);
+    const platformStatesEntry = platformStatesPurposeById.get(id);
     const purpose = purposesById.get(id);
 
     if (!platformStatesEntry && !purpose) {
@@ -731,7 +731,7 @@ function validateCatalogPlatformStates({
 export async function compareReadModelClientsAndTokenGenStates({
   platformStatesClientMap,
   tokenGenStatesByClient,
-  clientsMap,
+  clientsById,
   purposesById,
   agreementsByConsumerIdEserviceId,
   eservicesByEserviceIdDescriptorId,
@@ -739,7 +739,7 @@ export async function compareReadModelClientsAndTokenGenStates({
 }: {
   platformStatesClientMap: Map<ClientId, PlatformStatesClientEntry>;
   tokenGenStatesByClient: Map<ClientId, TokenGenerationStatesGenericClient[]>;
-  clientsMap: Map<ClientId, Client>;
+  clientsById: Map<ClientId, Client>;
   purposesById: Map<PurposeId, Purpose>;
   agreementsByConsumerIdEserviceId: Map<GSIPKConsumerIdEServiceId, Agreement>;
   eservicesByEserviceIdDescriptorId: Map<GSIPKEServiceIdDescriptorId, EService>;
@@ -748,13 +748,13 @@ export async function compareReadModelClientsAndTokenGenStates({
   const allIds = new Set([
     ...platformStatesClientMap.keys(),
     ...tokenGenStatesByClient.keys(),
-    ...clientsMap.keys(),
+    ...clientsById.keys(),
   ]);
 
   return Array.from(allIds).reduce<ClientDifferencesResult>((acc, id) => {
     const platformStatesEntry = platformStatesClientMap.get(id);
     const tokenGenStatesEntries = tokenGenStatesByClient.get(id);
-    const client = clientsMap.get(id);
+    const client = clientsById.get(id);
 
     if (!platformStatesEntry && !tokenGenStatesEntries?.length && !client) {
       return acc;

@@ -317,7 +317,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const expectedDifferencesLength = 0;
       const purposeDifferences =
         await compareReadModelPurposesWithPlatformStates({
-          platformStatesPurposeMap: new Map([
+          platformStatesPurposeById: new Map([
             [purpose1.id, platformStatesPurposeEntry1],
             [purpose2.id, platformStatesPurposeEntry2],
           ]),
@@ -375,7 +375,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const expectedDifferencesLength = 2;
       const purposeDifferences =
         await compareReadModelPurposesWithPlatformStates({
-          platformStatesPurposeMap: new Map([
+          platformStatesPurposeById: new Map([
             [purpose1.id, platformStatesPurposeEntry1],
             [purpose2.id, platformStatesPurposeEntry2],
           ]),
@@ -414,7 +414,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const expectedDifferencesLength = 1;
       const purposeDifferences =
         await compareReadModelPurposesWithPlatformStates({
-          platformStatesPurposeMap: new Map(),
+          platformStatesPurposeById: new Map(),
           purposesById: new Map([[purpose.id, purpose]]),
           logger: genericLogger,
         });
@@ -434,7 +434,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const expectedDifferencesLength = 0;
       const purposeDifferences =
         await compareReadModelPurposesWithPlatformStates({
-          platformStatesPurposeMap: new Map(),
+          platformStatesPurposeById: new Map(),
           purposesById: new Map([[purpose.id, purpose]]),
           logger: genericLogger,
         });
@@ -465,7 +465,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const expectedDifferencesLength = 1;
       const purposeDifferences =
         await compareReadModelPurposesWithPlatformStates({
-          platformStatesPurposeMap: new Map([
+          platformStatesPurposeById: new Map([
             [purpose.id, platformStatesPurposeEntry],
           ]),
           purposesById: new Map(),
@@ -1229,7 +1229,7 @@ describe("Token Generation Read Model Checker tests", () => {
         consumerId: purpose2.consumerId,
         keys: [getMockKey()],
       };
-      const clientsMap = new Map([
+      const clientsById = new Map([
         [client1.id, client1],
         [client2.id, client2],
       ]);
@@ -1348,7 +1348,7 @@ describe("Token Generation Read Model Checker tests", () => {
           [client1.id, [tokenGenStatesConsumerClient1]],
           [client2.id, [tokenGenStatesConsumerClient2]],
         ]),
-        clientsMap,
+        clientsById,
         purposesById,
         agreementsByConsumerIdEserviceId,
         eservicesByEserviceIdDescriptorId,
@@ -1469,7 +1469,7 @@ describe("Token Generation Read Model Checker tests", () => {
         consumerId: purpose2.consumerId,
         keys: [getMockKey()],
       };
-      const clientsMap = new Map([
+      const clientsById = new Map([
         [client1.id, client1],
         [client2.id, client2],
       ]);
@@ -1543,7 +1543,7 @@ describe("Token Generation Read Model Checker tests", () => {
         tokenGenStatesByClient: new Map([
           [client1.id, [tokenGenStatesConsumerClient]],
         ]),
-        clientsMap,
+        clientsById,
         purposesById,
         agreementsByConsumerIdEserviceId,
         eservicesByEserviceIdDescriptorId,
@@ -1629,7 +1629,7 @@ describe("Token Generation Read Model Checker tests", () => {
         consumerId: purpose.consumerId,
         keys: [getMockKey()],
       };
-      const clientsMap = new Map([[client.id, client]]);
+      const clientsById = new Map([[client.id, client]]);
 
       await addOneClient(client);
 
@@ -1686,7 +1686,7 @@ describe("Token Generation Read Model Checker tests", () => {
         tokenGenStatesByClient: new Map([
           [client.id, [tokenGenStatesConsumerClient]],
         ]),
-        clientsMap,
+        clientsById,
         purposesById,
         agreementsByConsumerIdEserviceId,
         eservicesByEserviceIdDescriptorId,
@@ -1767,7 +1767,7 @@ describe("Token Generation Read Model Checker tests", () => {
         consumerId: purpose.consumerId,
         keys: [getMockKey()],
       };
-      const clientsMap = new Map([[client.id, client]]);
+      const clientsById = new Map([[client.id, client]]);
 
       await addOneClient(client);
 
@@ -1818,7 +1818,7 @@ describe("Token Generation Read Model Checker tests", () => {
         tokenGenStatesByClient: new Map([
           [client.id, [tokenGenStatesConsumerClient]],
         ]),
-        clientsMap,
+        clientsById,
         purposesById,
         agreementsByConsumerIdEserviceId,
         eservicesByEserviceIdDescriptorId,
@@ -1899,14 +1899,14 @@ describe("Token Generation Read Model Checker tests", () => {
         consumerId: purpose.consumerId,
         keys: [getMockKey()],
       };
-      const clientsMap = new Map([[client.id, client]]);
+      const clientsById = new Map([[client.id, client]]);
       await addOneClient(client);
 
       const expectedDifferencesLength = 1;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
         platformStatesClientMap: new Map(),
         tokenGenStatesByClient: new Map(),
-        clientsMap,
+        clientsById,
         purposesById,
         agreementsByConsumerIdEserviceId,
         eservicesByEserviceIdDescriptorId,
@@ -1979,7 +1979,7 @@ describe("Token Generation Read Model Checker tests", () => {
         consumerId: purpose.consumerId,
         keys: [getMockKey()],
       };
-      const clientsMap = new Map([[client.id, client]]);
+      const clientsById = new Map([[client.id, client]]);
 
       await addOneClient(client);
 
@@ -2005,7 +2005,7 @@ describe("Token Generation Read Model Checker tests", () => {
           [client.id, platformStatesClientEntry],
         ]),
         tokenGenStatesByClient: new Map(),
-        clientsMap,
+        clientsById,
         purposesById,
         agreementsByConsumerIdEserviceId,
         eservicesByEserviceIdDescriptorId,
@@ -2077,7 +2077,7 @@ describe("Token Generation Read Model Checker tests", () => {
         purposes: [purpose.id, generateId()],
         consumerId: purpose.consumerId,
       };
-      const clientsMap = new Map([[client.id, client]]);
+      const clientsById = new Map([[client.id, client]]);
       await addOneClient(client);
 
       // platform-states
@@ -2102,7 +2102,7 @@ describe("Token Generation Read Model Checker tests", () => {
           [client.id, platformStatesClientEntry],
         ]),
         tokenGenStatesByClient: new Map(),
-        clientsMap,
+        clientsById,
         purposesById,
         agreementsByConsumerIdEserviceId,
         eservicesByEserviceIdDescriptorId,
@@ -2220,7 +2220,7 @@ describe("Token Generation Read Model Checker tests", () => {
         tokenGenStatesByClient: new Map([
           [client.id, [tokenGenStatesConsumerClient]],
         ]),
-        clientsMap: new Map(),
+        clientsById: new Map(),
         purposesById,
         agreementsByConsumerIdEserviceId,
         eservicesByEserviceIdDescriptorId,

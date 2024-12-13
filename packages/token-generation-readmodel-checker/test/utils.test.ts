@@ -124,7 +124,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
       };
 
       const differences = await compareReadModelPurposesWithPlatformStates({
-        platformStatesPurposeMap: new Map([
+        platformStatesPurposeById: new Map([
           [purpose1.id, platformPurposeEntry1],
           [purpose2.id, platformPurposeEntry2],
         ]),
@@ -416,7 +416,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
         consumerId: purpose2.consumerId,
         keys: [getMockKey()],
       };
-      const clientsMap = new Map([
+      const clientsById = new Map([
         [client1.id, client1],
         [client2.id, client2],
       ]);
@@ -473,7 +473,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
           [client2.id, platformClientEntry2],
         ]),
         tokenGenStatesByClient: new Map([[client1.id, [tokenGenStatesEntry]]]),
-        clientsMap,
+        clientsById,
         purposesById,
         agreementsByConsumerIdEserviceId,
         eservicesByEserviceIdDescriptorId,
