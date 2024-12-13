@@ -74,7 +74,6 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
-import { suspendedByProducerFlag } from "../src/services/agreementStateProcessor.js";
 import {
   addOneAgreement,
   addOneAttribute,
