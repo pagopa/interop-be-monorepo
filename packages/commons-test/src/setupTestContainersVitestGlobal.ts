@@ -4,10 +4,8 @@
 /* eslint-disable functional/no-let */
 
 import { config as dotenv } from "dotenv-flow";
-import { StartedTestContainer } from "testcontainers";
-import type { GlobalSetupContext } from "vitest/node";
-import type {} from "vitest";
 import {
+  AWSSesConfig,
   EventStoreConfig,
   FileManagerConfig,
   LoggerConfig,
@@ -16,21 +14,25 @@ import {
   S3Config,
   TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
+import { StartedTestContainer } from "testcontainers";
+import type {} from "vitest";
+import type { GlobalSetupContext } from "vitest/node";
 import { z } from "zod";
 import {
+  TEST_DYNAMODB_PORT,
+  TEST_MAILPIT_HTTP_PORT,
+  TEST_MAILPIT_SMTP_PORT,
   TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
+  TEST_REDIS_PORT,
+  awsSESContainer,
+  dynamoDBContainer,
+  mailpitContainer,
   minioContainer,
   mongoDBContainer,
   postgreSQLContainer,
-  mailpitContainer,
-  TEST_MAILPIT_SMTP_PORT,
-  TEST_MAILPIT_HTTP_PORT,
-  dynamoDBContainer,
-  TEST_DYNAMODB_PORT,
   redisContainer,
-  TEST_REDIS_PORT,
 } from "./containerTestUtils.js";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
@@ -50,6 +52,7 @@ declare module "vitest" {
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
     redisRateLimiterConfig?: RedisRateLimiterConfig;
     emailManagerConfig?: PecEmailManagerConfigTest;
+    sesEmailManagerConfig?: AWSSesConfig;
   }
 }
 
@@ -70,6 +73,7 @@ export function setupTestContainersVitestGlobal() {
     .safeParse(process.env);
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
+  const awsSESConfig = AWSSesConfig.safeParse(process.env);
   const tokenGenerationReadModelConfig =
     TokenGenerationReadModelDbConfig.safeParse(process.env);
 
@@ -82,6 +86,7 @@ export function setupTestContainersVitestGlobal() {
     let startedMailpitContainer: StartedTestContainer | undefined;
     let startedRedisContainer: StartedTestContainer | undefined;
     let startedDynamoDbContainer: StartedTestContainer | undefined;
+    let startedAWSSesContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -164,6 +169,13 @@ export function setupTestContainersVitestGlobal() {
       provide("redisRateLimiterConfig", redisRateLimiterConfig.data);
     }
 
+    if (awsSESConfig.success) {
+      console.log("Starting AWS SES container");
+      startedAWSSesContainer = await awsSESContainer().start();
+      console.log("Successfully started AWS SES container");
+      provide("sesEmailManagerConfig", awsSESConfig.data);
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedMongodbContainer?.stop();
@@ -171,6 +183,7 @@ export function setupTestContainersVitestGlobal() {
       await startedMailpitContainer?.stop();
       await startedDynamoDbContainer?.stop();
       await startedRedisContainer?.stop();
+      await startedAWSSesContainer?.stop();
     };
   };
 }
