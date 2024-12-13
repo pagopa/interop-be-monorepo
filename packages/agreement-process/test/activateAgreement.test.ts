@@ -41,6 +41,7 @@ import {
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Delegation,
+  DelegationState,
   Descriptor,
   EService,
   EServiceId,
@@ -201,19 +202,23 @@ async function addDelegationsAndDelegates({
 
 async function addSomeRandomDelegations(agreement: Agreement): Promise<void> {
   // Adding some more delegations
-  await addOneDelegation(
-    getMockDelegation({
-      eserviceId: agreement.eserviceId,
-      kind: delegationKind.delegatedProducer,
-      state: delegationState.revoked,
-    })
-  );
-  await addOneDelegation(
-    getMockDelegation({
-      eserviceId: agreement.eserviceId,
-      kind: delegationKind.delegatedConsumer,
-      state: delegationState.revoked,
-    })
+  [delegationState.rejected, delegationState.revoked].forEach(
+    async (state: DelegationState) => {
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: agreement.eserviceId,
+          kind: delegationKind.delegatedProducer,
+          state,
+        })
+      );
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: agreement.eserviceId,
+          kind: delegationKind.delegatedConsumer,
+          state,
+        })
+      );
+    }
   );
 }
 
