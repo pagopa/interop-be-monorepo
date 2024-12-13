@@ -154,19 +154,14 @@ export function readModelServiceBuilder(
           "data.id": { $in: ids },
         });
 
-      const delegationLookup =
-        producersIds.length > 0 || delegated !== undefined
-          ? [
-              {
-                $lookup: {
-                  from: "delegations",
-                  localField: "data.id",
-                  foreignField: "data.eserviceId",
-                  as: "delegations",
-                },
-              },
-            ]
-          : [];
+      const delegationLookup = {
+        $lookup: {
+          from: "delegations",
+          localField: "data.id",
+          foreignField: "data.eserviceId",
+          as: "delegations",
+        },
+      };
 
       const producersIdsFilter = ReadModelRepository.arrayToFilter(
         producersIds,
@@ -224,13 +219,39 @@ export function readModelServiceBuilder(
             $nor: [
               {
                 $and: [
-                  { "data.producerId": { $ne: authData.organizationId } },
+                  {
+                    $nor: [
+                      { "data.producerId": authData.organizationId },
+                      {
+                        delegations: {
+                          $elemMatch: {
+                            "data.delegateId": authData.organizationId,
+                            "data.state": delegationState.active,
+                            "data.kind": delegationKind.delegatedProducer,
+                          },
+                        },
+                      },
+                    ],
+                  },
                   { "data.descriptors": { $size: 0 } },
                 ],
               },
               {
                 $and: [
-                  { "data.producerId": { $ne: authData.organizationId } },
+                  {
+                    $nor: [
+                      { "data.producerId": authData.organizationId },
+                      {
+                        delegations: {
+                          $elemMatch: {
+                            "data.delegateId": authData.organizationId,
+                            "data.state": delegationState.active,
+                            "data.kind": delegationKind.delegatedProducer,
+                          },
+                        },
+                      },
+                    ],
+                  },
                   { "data.descriptors": { $size: 1 } },
                   {
                     "data.descriptors.state": {
@@ -292,7 +313,7 @@ export function readModelServiceBuilder(
         .otherwise(() => ({}));
 
       const aggregationPipeline = [
-        ...delegationLookup,
+        delegationLookup,
         { $match: nameFilter },
         { $match: idsFilter },
         { $match: producersIdsFilter },
@@ -565,20 +586,22 @@ export function readModelServiceBuilder(
 
     async getLatestDelegation({
       eserviceId,
-      states,
       kind,
+      states,
       delegateId,
     }: {
       eserviceId: EServiceId;
-      states: DelegationState[];
       kind: DelegationKind;
+      states?: DelegationState[];
       delegateId?: TenantId;
     }): Promise<Delegation | undefined> {
       const data = await delegations.findOne(
         {
           "data.eserviceId": eserviceId,
           "data.kind": kind,
-          ...(states.length > 0 ? { "data.state": { $in: states } } : {}),
+          ...(states && states.length > 0
+            ? { "data.state": { $in: states } }
+            : {}),
           ...(delegateId ? { "data.delegateId": delegateId } : {}),
         },
         {

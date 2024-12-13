@@ -244,7 +244,9 @@ export function toBffCatalogApiProducerDescriptorEService(
     .map(toCompactDescriptor);
 
   const draftDescriptor = eservice.descriptors.find(
-    (d) => d.state === catalogApiDescriptorState.DRAFT
+    (d) =>
+      d.state === catalogApiDescriptorState.DRAFT ||
+      d.state === catalogApiDescriptorState.WAITING_FOR_APPROVAL
   );
 
   return {
@@ -252,6 +254,10 @@ export function toBffCatalogApiProducerDescriptorEService(
     name: eservice.name,
     description: eservice.description,
     technology: eservice.technology,
+    producer: {
+      id: producer.id,
+      tenantKind: producer.kind,
+    },
     mode: eservice.mode,
     mail: producerMail && {
       address: producerMail.address,

@@ -14,33 +14,41 @@ import {
   PlatformStatesCatalogEntry,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   readAgreementEntry,
   updateAgreementStateInPlatformStatesEntry,
   agreementStateToItemState,
-  updateAgreementStateOnTokenStates,
+  updateAgreementStateOnTokenGenStates,
   writeAgreementEntry,
   readCatalogEntry,
-  updateAgreementStateAndDescriptorInfoOnTokenStates,
+  updateAgreementStateAndDescriptorInfoOnTokenGenStates,
   deleteAgreementEntry,
   isLatestAgreement,
 } from "./utils.js";
 
 export async function handleMessageV1(
   message: AgreementEventEnvelopeV1,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with({ type: "AgreementActivated" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
-      await handleFirstActivation(agreement, dynamoDBClient, msg.version);
+      await handleFirstActivation(
+        agreement,
+        dynamoDBClient,
+        msg.version,
+        logger
+      );
     })
     .with({ type: "AgreementSuspended" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
       await handleActivationOrSuspension(
         agreement,
         dynamoDBClient,
-        msg.version
+        msg.version,
+        logger
       );
     })
     .with({ type: "AgreementUpdated" }, async (msg) => {
@@ -53,7 +61,8 @@ export async function handleMessageV1(
           await handleActivationOrSuspension(
             agreement,
             dynamoDBClient,
-            msg.version
+            msg.version,
+            logger
           );
         })
         .with(agreementState.archived, async () => {
@@ -77,7 +86,7 @@ export async function handleMessageV1(
         .with(agreementState.active, async () => {
           // this case is for agreement upgraded
           const agreement = parseAgreement(msg.data.agreement);
-          await handleUpgrade(agreement, dynamoDBClient, msg.version);
+          await handleUpgrade(agreement, dynamoDBClient, msg.version, logger);
         })
         .with(
           agreementState.draft,
@@ -113,7 +122,8 @@ const parseAgreement = (agreementV1: AgreementV1 | undefined): Agreement => {
 const handleFirstActivation = async (
   agreement: Agreement,
   dynamoDBClient: DynamoDBClient,
-  incomingVersion: number
+  incomingVersion: number,
+  logger: Logger
 ): Promise<void> => {
   const primaryKey = makePlatformStatesAgreementPK(agreement.id);
 
@@ -174,13 +184,14 @@ const handleFirstActivation = async (
     });
 
     // token-generation-states
-    await updateAgreementStateAndDescriptorInfoOnTokenStates({
+    await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
       GSIPK_consumerId_eserviceId,
       agreementId: agreement.id,
       agreementState: agreement.state,
       dynamoDBClient,
       GSIPK_eserviceId_descriptorId,
       catalogEntry,
+      logger,
     });
   }
 };
@@ -188,7 +199,8 @@ const handleFirstActivation = async (
 const handleActivationOrSuspension = async (
   agreement: Agreement,
   dynamoDBClient: DynamoDBClient,
-  incomingVersion: number
+  incomingVersion: number,
+  logger: Logger
 ): Promise<void> => {
   const primaryKey = makePlatformStatesAgreementPK(agreement.id);
 
@@ -234,13 +246,14 @@ const handleActivationOrSuspension = async (
     )
   ) {
     // token-generation-states
-    await updateAgreementStateAndDescriptorInfoOnTokenStates({
+    await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
       GSIPK_consumerId_eserviceId,
       agreementId: agreement.id,
       agreementState: agreement.state,
       dynamoDBClient,
       GSIPK_eserviceId_descriptorId,
       catalogEntry,
+      logger,
     });
   }
 };
@@ -264,7 +277,7 @@ const handleArchiving = async (
   ) {
     // token-generation-states only if agreement is the latest
 
-    await updateAgreementStateOnTokenStates({
+    await updateAgreementStateOnTokenGenStates({
       GSIPK_consumerId_eserviceId,
       agreementState: agreement.state,
       dynamoDBClient,
@@ -277,7 +290,8 @@ const handleArchiving = async (
 const handleUpgrade = async (
   agreement: Agreement,
   dynamoDBClient: DynamoDBClient,
-  msgVersion: number
+  msgVersion: number,
+  logger: Logger
 ): Promise<void> => {
   const primaryKey = makePlatformStatesAgreementPK(agreement.id);
   const agreementEntry = await readAgreementEntry(primaryKey, dynamoDBClient);
@@ -320,7 +334,7 @@ const handleUpgrade = async (
     await writeAgreementEntry(newAgreementEntry, dynamoDBClient);
   }
 
-  const updateLatestAgreementOnTokenStates = async (
+  const updateLatestAgreementOnTokenGenStates = async (
     catalogEntry: PlatformStatesCatalogEntry | undefined
   ): Promise<void> => {
     if (
@@ -336,18 +350,19 @@ const handleUpgrade = async (
         descriptorId: agreement.descriptorId,
       });
 
-      await updateAgreementStateAndDescriptorInfoOnTokenStates({
+      await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
         GSIPK_consumerId_eserviceId,
         agreementId: agreement.id,
         agreementState: agreement.state,
         dynamoDBClient,
         GSIPK_eserviceId_descriptorId,
         catalogEntry,
+        logger,
       });
     }
   };
 
-  await updateLatestAgreementOnTokenStates(catalogEntry);
+  await updateLatestAgreementOnTokenGenStates(catalogEntry);
 
   const secondRetrievalCatalogEntry = await readCatalogEntry(
     pkCatalogEntry,
@@ -357,6 +372,6 @@ const handleUpgrade = async (
     secondRetrievalCatalogEntry &&
     (!catalogEntry || secondRetrievalCatalogEntry.state !== catalogEntry.state)
   ) {
-    await updateLatestAgreementOnTokenStates(secondRetrievalCatalogEntry);
+    await updateLatestAgreementOnTokenGenStates(secondRetrievalCatalogEntry);
   }
 };
