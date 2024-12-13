@@ -10537,6 +10537,11 @@ paths:
   /purposes/riskAnalysis/latest:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantKind
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/TenantKind"
     get:
       tags:
         - purposes
@@ -13845,6 +13850,7 @@ components:
         - id
         - name
         - description
+        - producer
         - technology
         - mode
         - riskAnalysis
@@ -13857,6 +13863,8 @@ components:
           type: string
         description:
           type: string
+        producer:
+          $ref: "#/components/schemas/ProducerDescriptorEServiceProducer"
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -13875,6 +13883,17 @@ components:
           $ref: "#/components/schemas/Mail"
         isSignalHubEnabled:
           type: boolean
+    ProducerDescriptorEServiceProducer:
+      type: object
+      additionalProperties: false
+      required:
+        - id        
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
     EServiceDoc:
       type: object
       additionalProperties: false
@@ -15842,7 +15861,6 @@ components:
           $ref: "#/components/schemas/DelegationKind"
       required:
         - id
-        - eservice
         - delegate
         - delegator
         - state
@@ -15866,7 +15884,6 @@ components:
           $ref: "#/components/schemas/DelegationKind"
       required:
         - id
-        - eserviceName
         - delegate
         - delegator
         - state

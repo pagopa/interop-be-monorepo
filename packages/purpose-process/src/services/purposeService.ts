@@ -43,6 +43,7 @@ import {
   CorrelationId,
   delegationKind,
   Delegation,
+  DelegationKind,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -217,6 +218,14 @@ async function retrieveTenantKind(
     throw tenantKindNotFound(tenant.id);
   }
   return tenant.kind;
+}
+
+async function retrieveActiveDelegation(
+  eserviceId: EServiceId,
+  delegationKind: DelegationKind,
+  readModelService: ReadModelService
+): Promise<Delegation | undefined> {
+  return readModelService.getActiveDelegation(eserviceId, delegationKind);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -623,18 +632,27 @@ export function purposeServiceBuilder(
           if (eservice === undefined) {
             throw eserviceNotFound(purpose.eserviceId);
           }
+
+          const activeProducerDelegation = await retrieveActiveDelegation(
+            eservice.id,
+            delegationKind.delegatedProducer,
+            readModelService
+          );
+
           return {
             purpose,
             eservice,
+            activeProducerDelegation,
           };
         })
       );
 
       const purposesToReturn = mappingPurposeEservice.map(
-        ({ purpose, eservice }) => {
+        ({ purpose, eservice, activeProducerDelegation }) => {
           const isProducerOrConsumer =
             organizationId === purpose.consumerId ||
-            organizationId === eservice.producerId;
+            organizationId === eservice.producerId ||
+            organizationId === activeProducerDelegation?.delegateId;
 
           return {
             ...purpose,

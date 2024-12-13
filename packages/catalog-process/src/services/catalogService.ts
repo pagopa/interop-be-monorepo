@@ -81,10 +81,10 @@ import {
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorArchived,
+  toCreateEventEServiceDescriptorSubmittedByDelegate,
+  toCreateEventEServiceDescriptorApprovedByDelegator,
+  toCreateEventEServiceDescriptorRejectedByDelegator,
   toCreateEventEServiceDescriptorAttributesUpdated,
-  toCreateEventEServiceDescriptorDelegateSubmitted,
-  toCreateEventEServiceDescriptorDelegatorApproved,
-  toCreateEventEServiceDescriptorDelegatorRejected,
   toCreateEventEServiceDescriptorPublished,
   toCreateEventEServiceDescriptorQuotasUpdated,
   toCreateEventEServiceDescriptorSuspended,
@@ -528,6 +528,7 @@ export function catalogServiceBuilder(
         archivedAt: undefined,
         createdAt: creationDate,
         attributes: { certified: [], declared: [], verified: [] },
+        rejectionReasons: undefined,
       };
 
       const eserviceWithDescriptor: EService = {
@@ -1001,6 +1002,7 @@ export function catalogServiceBuilder(
         archivedAt: undefined,
         createdAt: new Date(),
         attributes: parsedAttributes,
+        rejectionReasons: undefined,
       };
 
       const newEservice: EService = {
@@ -1232,7 +1234,7 @@ export function catalogServiceBuilder(
           updateDescriptorState(descriptor, descriptorState.waitingForApproval)
         );
         await repository.createEvent(
-          toCreateEventEServiceDescriptorDelegateSubmitted(
+          toCreateEventEServiceDescriptorSubmittedByDelegate(
             eservice.metadata.version,
             descriptor.id,
             eserviceWithWaitingForApprovalDescriptor,
@@ -1831,7 +1833,7 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(
-        toCreateEventEServiceDescriptorDelegatorApproved(
+        toCreateEventEServiceDescriptorApprovedByDelegator(
           eservice.metadata.version,
           descriptor.id,
           updatedEService,
@@ -1881,7 +1883,7 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(
-        toCreateEventEServiceDescriptorDelegatorRejected(
+        toCreateEventEServiceDescriptorRejectedByDelegator(
           eservice.metadata.version,
           descriptor.id,
           updatedEService,
