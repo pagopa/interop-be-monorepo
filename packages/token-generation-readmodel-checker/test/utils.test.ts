@@ -128,7 +128,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
           [purpose1.id, platformPurposeEntry1],
           [purpose2.id, platformPurposeEntry2],
         ]),
-        purposesMap: new Map([
+        purposesById: new Map([
           [purpose1.id, purpose1],
           [purpose2.id, purpose2],
         ]),
@@ -213,7 +213,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
           [agreement1.id, platformAgreementEntry1],
           [agreement2.id, platformAgreementEntry2],
         ]),
-        agreementsMap: new Map([
+        agreementsById: new Map([
           [agreement1.id, agreement1],
           [agreement2.id, agreement2],
         ]),
@@ -286,7 +286,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
           [eservice1.id, platformCatalogEntry1],
           [eservice2.id, platformCatalogEntry2],
         ]),
-        eservicesMap: new Map([
+        eservicesById: new Map([
           [eservice1.id, eservice1],
           [eservice2.id, eservice2],
         ]),
@@ -323,7 +323,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
         ...getMockEService(),
         descriptors: [descriptor2],
       };
-      const eserviceIdDescriptorIdMap = new Map([
+      const eservicesByEserviceIdDescriptorId = new Map([
         [
           makeGSIPKEServiceIdDescriptorId({
             eserviceId: eservice1.id,
@@ -352,7 +352,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
         ]),
         eserviceId: eservice2.id,
       };
-      const purposesMap = new Map([
+      const purposesById = new Map([
         [purpose1.id, purpose1],
         [purpose2.id, purpose2],
       ]);
@@ -385,7 +385,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
           },
         },
       };
-      const consumerIdEserviceIdMap = new Map([
+      const agreementsByConsumerIdEserviceId = new Map([
         [
           makeGSIPKConsumerIdEServiceId({
             consumerId: purpose1.consumerId,
@@ -472,11 +472,11 @@ describe("Token Generation Read Model Checker utils tests", () => {
           [client1.id, platformClientEntry1],
           [client2.id, platformClientEntry2],
         ]),
-        tokenGenStatesMaps: new Map([[client1.id, [tokenGenStatesEntry]]]),
+        tokenGenStatesByClient: new Map([[client1.id, [tokenGenStatesEntry]]]),
         clientsMap,
-        purposesMap,
-        consumerIdEserviceIdMap,
-        eserviceIdDescriptorIdMap,
+        purposesById,
+        agreementsByConsumerIdEserviceId,
+        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedDifferences: ClientDifferencesResult = [

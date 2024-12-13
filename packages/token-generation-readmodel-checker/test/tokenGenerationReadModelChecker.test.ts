@@ -321,7 +321,7 @@ describe("Token Generation Read Model Checker tests", () => {
             [purpose1.id, platformStatesPurposeEntry1],
             [purpose2.id, platformStatesPurposeEntry2],
           ]),
-          purposesMap: new Map([
+          purposesById: new Map([
             [purpose1.id, purpose1],
             [purpose2.id, purpose2],
           ]),
@@ -379,7 +379,7 @@ describe("Token Generation Read Model Checker tests", () => {
             [purpose1.id, platformStatesPurposeEntry1],
             [purpose2.id, platformStatesPurposeEntry2],
           ]),
-          purposesMap: new Map([
+          purposesById: new Map([
             [purpose1.id, purpose1],
             [purpose2.id, purpose2],
           ]),
@@ -415,7 +415,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const purposeDifferences =
         await compareReadModelPurposesWithPlatformStates({
           platformStatesPurposeMap: new Map(),
-          purposesMap: new Map([[purpose.id, purpose]]),
+          purposesById: new Map([[purpose.id, purpose]]),
           logger: genericLogger,
         });
       const expectedPurposeDifferences: PurposeDifferencesResult = [
@@ -435,7 +435,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const purposeDifferences =
         await compareReadModelPurposesWithPlatformStates({
           platformStatesPurposeMap: new Map(),
-          purposesMap: new Map([[purpose.id, purpose]]),
+          purposesById: new Map([[purpose.id, purpose]]),
           logger: genericLogger,
         });
       expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
@@ -468,7 +468,7 @@ describe("Token Generation Read Model Checker tests", () => {
           platformStatesPurposeMap: new Map([
             [purpose.id, platformStatesPurposeEntry],
           ]),
-          purposesMap: new Map(),
+          purposesById: new Map(),
           logger: genericLogger,
         });
       const expectedPurposeDifferences: PurposeDifferencesResult = [
@@ -558,7 +558,7 @@ describe("Token Generation Read Model Checker tests", () => {
             [agreement1.id, platformStatesAgreementEntry1],
             [agreement2.id, platformStatesAgreementEntry2],
           ]),
-          agreementsMap: new Map([
+          agreementsById: new Map([
             [agreement1.id, agreement1],
             [agreement2.id, agreement2],
           ]),
@@ -640,7 +640,7 @@ describe("Token Generation Read Model Checker tests", () => {
             [agreement1.id, platformStatesAgreementEntry1],
             [agreement2.id, platformStatesAgreementEntry2],
           ]),
-          agreementsMap: new Map([
+          agreementsById: new Map([
             [agreement1.id, agreement1],
             [agreement2.id, agreement2],
           ]),
@@ -683,7 +683,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const agreementDifferences =
         await compareReadModelAgreementsWithPlatformStates({
           platformStatesAgreementMap: new Map(),
-          agreementsMap: new Map([[agreement.id, agreement]]),
+          agreementsById: new Map([[agreement.id, agreement]]),
           logger: genericLogger,
         });
       const expectedAgreementDifferences: AgreementDifferencesResult = [
@@ -710,7 +710,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const agreementDifferences =
         await compareReadModelAgreementsWithPlatformStates({
           platformStatesAgreementMap: new Map(),
-          agreementsMap: new Map([[agreement.id, agreement]]),
+          agreementsById: new Map([[agreement.id, agreement]]),
           logger: genericLogger,
         });
       expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
@@ -755,7 +755,7 @@ describe("Token Generation Read Model Checker tests", () => {
           platformStatesAgreementMap: new Map([
             [agreement.id, platformStatesAgreementEntry],
           ]),
-          agreementsMap: new Map(),
+          agreementsById: new Map(),
           logger: genericLogger,
         });
       const expectedAgreementDifferences: AgreementDifferencesResult = [
@@ -865,7 +865,7 @@ describe("Token Generation Read Model Checker tests", () => {
             [eservice1.id, platformStatesCatalogEntry1],
             [eservice2.id, platformStatesCatalogEntry2],
           ]),
-          eservicesMap: new Map([
+          eservicesById: new Map([
             [eservice1.id, eservice1],
             [eservice2.id, eservice2],
           ]),
@@ -939,7 +939,7 @@ describe("Token Generation Read Model Checker tests", () => {
             [eservice1.id, platformStatesCatalogEntry1],
             [eservice2.id, platformStatesCatalogEntry2],
           ]),
-          eservicesMap: new Map([
+          eservicesById: new Map([
             [eservice1.id, eservice1],
             [eservice2.id, eservice2],
           ]),
@@ -981,7 +981,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const catalogDifferences =
         await compareReadModelEServicesWithPlatformStates({
           platformStatesEServiceMap: new Map(),
-          eservicesMap: new Map([[eservice.id, eservice]]),
+          eservicesById: new Map([[eservice.id, eservice]]),
           logger: genericLogger,
         });
       const expectedCatalogDifferences: CatalogDifferencesResult = [
@@ -1035,7 +1035,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const catalogDifferences =
         await compareReadModelEServicesWithPlatformStates({
           platformStatesEServiceMap: new Map(),
-          eservicesMap: new Map([[eservice.id, eservice]]),
+          eservicesById: new Map([[eservice.id, eservice]]),
           logger: genericLogger,
         });
       expect(catalogDifferences).toHaveLength(expectedDifferencesLength);
@@ -1100,7 +1100,7 @@ describe("Token Generation Read Model Checker tests", () => {
           platformStatesEServiceMap: new Map([
             [eservice.id, platformStatesCatalogEntry],
           ]),
-          eservicesMap: new Map(),
+          eservicesById: new Map(),
           logger: genericLogger,
         });
       const expectedAgreementDifferences: CatalogDifferencesResult = [
@@ -1136,7 +1136,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor2],
       };
-      const eserviceIdDescriptorIdMap = new Map([
+      const eservicesByEserviceIdDescriptorId = new Map([
         [
           makeGSIPKEServiceIdDescriptorId({
             eserviceId: eservice1.id,
@@ -1165,7 +1165,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ]),
         eserviceId: eservice2.id,
       };
-      const purposesMap = new Map([
+      const purposesById = new Map([
         [purpose1.id, purpose1],
         [purpose2.id, purpose2],
       ]);
@@ -1198,7 +1198,7 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      const consumerIdEserviceIdMap = new Map([
+      const agreementsByConsumerIdEserviceId = new Map([
         [
           makeGSIPKConsumerIdEServiceId({
             consumerId: purpose1.consumerId,
@@ -1344,14 +1344,14 @@ describe("Token Generation Read Model Checker tests", () => {
           [client1.id, platformStatesClientEntry1],
           [client2.id, platformStatesClientEntry2],
         ]),
-        tokenGenStatesMaps: new Map([
+        tokenGenStatesByClient: new Map([
           [client1.id, [tokenGenStatesConsumerClient1]],
           [client2.id, [tokenGenStatesConsumerClient2]],
         ]),
         clientsMap,
-        purposesMap,
-        consumerIdEserviceIdMap,
-        eserviceIdDescriptorIdMap,
+        purposesById,
+        agreementsByConsumerIdEserviceId,
+        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
@@ -1376,7 +1376,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor2],
       };
-      const eserviceIdDescriptorIdMap = new Map([
+      const eservicesByEserviceIdDescriptorId = new Map([
         [
           makeGSIPKEServiceIdDescriptorId({
             eserviceId: eservice1.id,
@@ -1405,7 +1405,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ]),
         eserviceId: eservice2.id,
       };
-      const purposesMap = new Map([
+      const purposesById = new Map([
         [purpose1.id, purpose1],
         [purpose2.id, purpose2],
       ]);
@@ -1438,7 +1438,7 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      const consumerIdEserviceIdMap = new Map([
+      const agreementsByConsumerIdEserviceId = new Map([
         [
           makeGSIPKConsumerIdEServiceId({
             consumerId: purpose1.consumerId,
@@ -1540,13 +1540,13 @@ describe("Token Generation Read Model Checker tests", () => {
           [client1.id, platformStatesClientEntry1],
           [client2.id, platformStatesClientEntry2],
         ]),
-        tokenGenStatesMaps: new Map([
+        tokenGenStatesByClient: new Map([
           [client1.id, [tokenGenStatesConsumerClient]],
         ]),
         clientsMap,
-        purposesMap,
-        consumerIdEserviceIdMap,
-        eserviceIdDescriptorIdMap,
+        purposesById,
+        agreementsByConsumerIdEserviceId,
+        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedClientDifferences: ClientDifferencesResult = [
@@ -1581,7 +1581,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      const eserviceIdDescriptorIdMap = new Map([
+      const eservicesByEserviceIdDescriptorId = new Map([
         [
           makeGSIPKEServiceIdDescriptorId({
             eserviceId: eservice.id,
@@ -1596,7 +1596,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
-      const purposesMap = new Map([[purpose.id, purpose]]);
+      const purposesById = new Map([[purpose.id, purpose]]);
       await addOnePurpose(purpose);
 
       const agreement: Agreement = {
@@ -1612,7 +1612,7 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      const consumerIdEserviceIdMap = new Map([
+      const agreementsByConsumerIdEserviceId = new Map([
         [
           makeGSIPKConsumerIdEServiceId({
             consumerId: purpose.consumerId,
@@ -1683,13 +1683,13 @@ describe("Token Generation Read Model Checker tests", () => {
         platformStatesClientMap: new Map([
           [client.id, platformStatesClientEntry],
         ]),
-        tokenGenStatesMaps: new Map([
+        tokenGenStatesByClient: new Map([
           [client.id, [tokenGenStatesConsumerClient]],
         ]),
         clientsMap,
-        purposesMap,
-        consumerIdEserviceIdMap,
-        eserviceIdDescriptorIdMap,
+        purposesById,
+        agreementsByConsumerIdEserviceId,
+        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedClientDifferences: ClientDifferencesResult = [
@@ -1719,7 +1719,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      const eserviceIdDescriptorIdMap = new Map([
+      const eservicesByEserviceIdDescriptorId = new Map([
         [
           makeGSIPKEServiceIdDescriptorId({
             eserviceId: eservice.id,
@@ -1734,7 +1734,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
-      const purposesMap = new Map([[purpose.id, purpose]]);
+      const purposesById = new Map([[purpose.id, purpose]]);
       await addOnePurpose(purpose);
 
       const agreement: Agreement = {
@@ -1750,7 +1750,7 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      const consumerIdEserviceIdMap = new Map([
+      const agreementsByConsumerIdEserviceId = new Map([
         [
           makeGSIPKConsumerIdEServiceId({
             consumerId: purpose.consumerId,
@@ -1815,13 +1815,13 @@ describe("Token Generation Read Model Checker tests", () => {
         platformStatesClientMap: new Map([
           [client.id, platformStatesClientEntry],
         ]),
-        tokenGenStatesMaps: new Map([
+        tokenGenStatesByClient: new Map([
           [client.id, [tokenGenStatesConsumerClient]],
         ]),
         clientsMap,
-        purposesMap,
-        consumerIdEserviceIdMap,
-        eserviceIdDescriptorIdMap,
+        purposesById,
+        agreementsByConsumerIdEserviceId,
+        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedClientDifferences: ClientDifferencesResult = [
@@ -1851,7 +1851,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      const eserviceIdDescriptorIdMap = new Map([
+      const eservicesByEserviceIdDescriptorId = new Map([
         [
           makeGSIPKEServiceIdDescriptorId({
             eserviceId: eservice.id,
@@ -1866,7 +1866,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
-      const purposesMap = new Map([[purpose.id, purpose]]);
+      const purposesById = new Map([[purpose.id, purpose]]);
       await addOnePurpose(purpose);
 
       const agreement: Agreement = {
@@ -1882,7 +1882,7 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      const consumerIdEserviceIdMap = new Map([
+      const agreementsByConsumerIdEserviceId = new Map([
         [
           makeGSIPKConsumerIdEServiceId({
             consumerId: purpose.consumerId,
@@ -1905,11 +1905,11 @@ describe("Token Generation Read Model Checker tests", () => {
       const expectedDifferencesLength = 1;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
         platformStatesClientMap: new Map(),
-        tokenGenStatesMaps: new Map(),
+        tokenGenStatesByClient: new Map(),
         clientsMap,
-        purposesMap,
-        consumerIdEserviceIdMap,
-        eserviceIdDescriptorIdMap,
+        purposesById,
+        agreementsByConsumerIdEserviceId,
+        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedClientDifferences: ClientDifferencesResult = [
@@ -1931,7 +1931,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      const eserviceIdDescriptorIdMap = new Map([
+      const eservicesByEserviceIdDescriptorId = new Map([
         [
           makeGSIPKEServiceIdDescriptorId({
             eserviceId: eservice.id,
@@ -1946,7 +1946,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
-      const purposesMap = new Map([[purpose.id, purpose]]);
+      const purposesById = new Map([[purpose.id, purpose]]);
       await addOnePurpose(purpose);
 
       const agreement: Agreement = {
@@ -1962,7 +1962,7 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      const consumerIdEserviceIdMap = new Map([
+      const agreementsByConsumerIdEserviceId = new Map([
         [
           makeGSIPKConsumerIdEServiceId({
             consumerId: purpose.consumerId,
@@ -2004,11 +2004,11 @@ describe("Token Generation Read Model Checker tests", () => {
         platformStatesClientMap: new Map([
           [client.id, platformStatesClientEntry],
         ]),
-        tokenGenStatesMaps: new Map(),
+        tokenGenStatesByClient: new Map(),
         clientsMap,
-        purposesMap,
-        consumerIdEserviceIdMap,
-        eserviceIdDescriptorIdMap,
+        purposesById,
+        agreementsByConsumerIdEserviceId,
+        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedClientDifferences: ClientDifferencesResult = [
@@ -2030,7 +2030,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      const eserviceIdDescriptorIdMap = new Map([
+      const eservicesByEserviceIdDescriptorId = new Map([
         [
           makeGSIPKEServiceIdDescriptorId({
             eserviceId: eservice.id,
@@ -2045,7 +2045,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
-      const purposesMap = new Map([[purpose.id, purpose]]);
+      const purposesById = new Map([[purpose.id, purpose]]);
       await addOnePurpose(purpose);
 
       const agreement: Agreement = {
@@ -2061,7 +2061,7 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      const consumerIdEserviceIdMap = new Map([
+      const agreementsByConsumerIdEserviceId = new Map([
         [
           makeGSIPKConsumerIdEServiceId({
             consumerId: purpose.consumerId,
@@ -2101,11 +2101,11 @@ describe("Token Generation Read Model Checker tests", () => {
         platformStatesClientMap: new Map([
           [client.id, platformStatesClientEntry],
         ]),
-        tokenGenStatesMaps: new Map(),
+        tokenGenStatesByClient: new Map(),
         clientsMap,
-        purposesMap,
-        consumerIdEserviceIdMap,
-        eserviceIdDescriptorIdMap,
+        purposesById,
+        agreementsByConsumerIdEserviceId,
+        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
@@ -2121,7 +2121,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      const eserviceIdDescriptorIdMap = new Map([
+      const eservicesByEserviceIdDescriptorId = new Map([
         [
           makeGSIPKEServiceIdDescriptorId({
             eserviceId: eservice.id,
@@ -2136,7 +2136,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
-      const purposesMap = new Map([[purpose.id, purpose]]);
+      const purposesById = new Map([[purpose.id, purpose]]);
       await addOnePurpose(purpose);
 
       const agreement: Agreement = {
@@ -2152,7 +2152,7 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      const consumerIdEserviceIdMap = new Map([
+      const agreementsByConsumerIdEserviceId = new Map([
         [
           makeGSIPKConsumerIdEServiceId({
             consumerId: purpose.consumerId,
@@ -2217,13 +2217,13 @@ describe("Token Generation Read Model Checker tests", () => {
         platformStatesClientMap: new Map([
           [client.id, platformStatesClientEntry],
         ]),
-        tokenGenStatesMaps: new Map([
+        tokenGenStatesByClient: new Map([
           [client.id, [tokenGenStatesConsumerClient]],
         ]),
         clientsMap: new Map(),
-        purposesMap,
-        consumerIdEserviceIdMap,
-        eserviceIdDescriptorIdMap,
+        purposesById,
+        agreementsByConsumerIdEserviceId,
+        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedClientDifferences: ClientDifferencesResult = [
