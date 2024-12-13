@@ -429,6 +429,7 @@ describe("activate agreement", () => {
         await addOneAttribute(verifiedAttribute);
         const relatedAgreements = await addRelatedAgreements(agreement);
 
+        await addSomeRandomDelegations(agreement);
         await addDelegationsAndDelegates({
           producerDelegation,
           delegateProducer,
@@ -997,6 +998,8 @@ describe("activate agreement", () => {
         await addOneEService(eservice);
         await addOneAgreement(agreement);
         const relatedAgreements = await addRelatedAgreements(agreement);
+
+        await addSomeRandomDelegations(agreement);
         await addDelegationsAndDelegates({
           producerDelegation,
           delegateProducer,
@@ -1351,6 +1354,8 @@ describe("activate agreement", () => {
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
+
+          await addSomeRandomDelegations(agreement);
           await addDelegationsAndDelegates({
             producerDelegation,
             delegateProducer,
@@ -1411,6 +1416,8 @@ describe("activate agreement", () => {
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
+
+          await addSomeRandomDelegations(agreement);
           await addDelegationsAndDelegates({
             producerDelegation,
             delegateProducer,
@@ -1648,6 +1655,8 @@ describe("activate agreement", () => {
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
+
+          await addSomeRandomDelegations(agreement);
           await addDelegationsAndDelegates({
             producerDelegation,
             delegateProducer,
@@ -1701,6 +1710,8 @@ describe("activate agreement", () => {
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
+
+          await addSomeRandomDelegations(agreement);
           await addDelegationsAndDelegates({
             producerDelegation,
             delegateProducer,
