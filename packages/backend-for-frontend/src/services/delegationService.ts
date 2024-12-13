@@ -375,30 +375,20 @@ export function delegationServiceBuilder(
         limit: number;
       },
       { headers, authData, logger }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CompactDelegationTenants> {
+    ): Promise<bffApi.DelegationTenants> {
       logger.info(
-        `Retrieving consumer delegators with name ${q}, limit ${limit}, offset ${offset}`
+        `Retrieving consumer delegators of delegate ${authData.organizationId} with name ${q}, limit ${limit}, offset ${offset}`
       );
 
-      const delegators = await delegationClients.consumer.getConsumerDelegators(
-        {
-          queries: {
-            delegateId: authData.organizationId,
-            delegatorName: q,
-            offset,
-            limit,
-          },
-          headers,
-        }
-      );
-
-      return {
-        results: delegators.results.map((d) => ({
-          delegatorId: d.id,
-          delegatorName: d.name,
-        })),
-        pagination: delegators.pagination,
-      };
+      return await delegationClients.consumer.getConsumerDelegators({
+        queries: {
+          delegateId: authData.organizationId,
+          delegatorName: q,
+          offset,
+          limit,
+        },
+        headers,
+      });
     },
   };
 }
