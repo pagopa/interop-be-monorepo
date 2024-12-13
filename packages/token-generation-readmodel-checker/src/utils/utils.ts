@@ -271,18 +271,18 @@ export async function compareTokenGenerationReadModel(
   });
   const agreementDifferences =
     await compareReadModelAgreementsWithPlatformStates({
-      platformStatesAgreementMap: platformStates.agreements,
+      platformStatesAgreementById: platformStates.agreements,
       agreementsById,
       logger,
     });
   const catalogDifferences = await compareReadModelEServicesWithPlatformStates({
-    platformStatesEServiceMap: platformStates.eservices,
+    platformStatesEServiceById: platformStates.eservices,
     eservicesById,
     logger,
   });
   const clientAndTokenGenStatesDifferences =
     await compareReadModelClientsAndTokenGenStates({
-      platformStatesClientMap: platformStates.clients,
+      platformStatesClientById: platformStates.clients,
       tokenGenStatesByClient,
       clientsById,
       purposesById,
@@ -444,21 +444,21 @@ function validatePurposePlatformStates({
 
 // agreements
 export async function compareReadModelAgreementsWithPlatformStates({
-  platformStatesAgreementMap,
+  platformStatesAgreementById,
   agreementsById,
   logger,
 }: {
-  platformStatesAgreementMap: Map<AgreementId, PlatformStatesAgreementEntry>;
+  platformStatesAgreementById: Map<AgreementId, PlatformStatesAgreementEntry>;
   agreementsById: Map<AgreementId, Agreement>;
   logger: Logger;
 }): Promise<AgreementDifferencesResult> {
   const allIds = new Set([
-    ...platformStatesAgreementMap.keys(),
+    ...platformStatesAgreementById.keys(),
     ...agreementsById.keys(),
   ]);
 
   return Array.from(allIds).reduce<AgreementDifferencesResult>((acc, id) => {
-    const platformStatesEntry = platformStatesAgreementMap.get(id);
+    const platformStatesEntry = platformStatesAgreementById.get(id);
     const agreement = agreementsById.get(id);
 
     if (!platformStatesEntry && !agreement) {
@@ -584,21 +584,21 @@ function validateAgreementPlatformStates({
 
 // eservices
 export async function compareReadModelEServicesWithPlatformStates({
-  platformStatesEServiceMap,
+  platformStatesEServiceById,
   eservicesById,
   logger,
 }: {
-  platformStatesEServiceMap: Map<EServiceId, PlatformStatesCatalogEntry>;
+  platformStatesEServiceById: Map<EServiceId, PlatformStatesCatalogEntry>;
   eservicesById: Map<EServiceId, EService>;
   logger: Logger;
 }): Promise<CatalogDifferencesResult> {
   const allIds = new Set([
-    ...platformStatesEServiceMap.keys(),
+    ...platformStatesEServiceById.keys(),
     ...eservicesById.keys(),
   ]);
 
   return Array.from(allIds).reduce<CatalogDifferencesResult>((acc, id) => {
-    const platformStatesEntry = platformStatesEServiceMap.get(id);
+    const platformStatesEntry = platformStatesEServiceById.get(id);
     const eservice = eservicesById.get(id);
 
     if (!platformStatesEntry && !eservice) {
@@ -729,7 +729,7 @@ function validateCatalogPlatformStates({
 
 // clients
 export async function compareReadModelClientsAndTokenGenStates({
-  platformStatesClientMap,
+  platformStatesClientById,
   tokenGenStatesByClient,
   clientsById,
   purposesById,
@@ -737,7 +737,7 @@ export async function compareReadModelClientsAndTokenGenStates({
   eservicesByEserviceIdDescriptorId,
   logger,
 }: {
-  platformStatesClientMap: Map<ClientId, PlatformStatesClientEntry>;
+  platformStatesClientById: Map<ClientId, PlatformStatesClientEntry>;
   tokenGenStatesByClient: Map<ClientId, TokenGenerationStatesGenericClient[]>;
   clientsById: Map<ClientId, Client>;
   purposesById: Map<PurposeId, Purpose>;
@@ -746,13 +746,13 @@ export async function compareReadModelClientsAndTokenGenStates({
   logger: Logger;
 }): Promise<ClientDifferencesResult> {
   const allIds = new Set([
-    ...platformStatesClientMap.keys(),
+    ...platformStatesClientById.keys(),
     ...tokenGenStatesByClient.keys(),
     ...clientsById.keys(),
   ]);
 
   return Array.from(allIds).reduce<ClientDifferencesResult>((acc, id) => {
-    const platformStatesEntry = platformStatesClientMap.get(id);
+    const platformStatesEntry = platformStatesClientById.get(id);
     const tokenGenStatesEntries = tokenGenStatesByClient.get(id);
     const client = clientsById.get(id);
 

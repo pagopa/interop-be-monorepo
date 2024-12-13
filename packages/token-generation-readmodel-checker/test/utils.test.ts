@@ -209,7 +209,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
       };
 
       const differences = await compareReadModelAgreementsWithPlatformStates({
-        platformStatesAgreementMap: new Map([
+        platformStatesAgreementById: new Map([
           [agreement1.id, platformAgreementEntry1],
           [agreement2.id, platformAgreementEntry2],
         ]),
@@ -282,7 +282,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
       };
 
       const differences = await compareReadModelEServicesWithPlatformStates({
-        platformStatesEServiceMap: new Map([
+        platformStatesEServiceById: new Map([
           [eservice1.id, platformCatalogEntry1],
           [eservice2.id, platformCatalogEntry2],
         ]),
@@ -468,7 +468,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
       };
 
       const differences = await compareReadModelClientsAndTokenGenStates({
-        platformStatesClientMap: new Map([
+        platformStatesClientById: new Map([
           [client1.id, platformClientEntry1],
           [client2.id, platformClientEntry2],
         ]),
@@ -630,7 +630,6 @@ describe("Token Generation Read Model Checker utils tests", () => {
       ...getMockPurposeVersion(),
       createdAt: date2,
     };
-
     expect(getLastPurposeVersion([purposeVersion1, purposeVersion2])).toEqual(
       purposeVersion2
     );
