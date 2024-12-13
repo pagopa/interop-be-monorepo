@@ -11,6 +11,7 @@ import {
   DelegationId,
   delegationKind,
   DelegationKind,
+  delegationState,
   DelegationState,
   EService,
   EServiceId,
@@ -248,28 +249,23 @@ export function readModelServiceBuilder(
 
       return result.data;
     },
-    async getDelegationTenants(filters: {
-      delegatedIds: TenantId[];
-      delegatorIds: TenantId[];
-      eserviceIds: EServiceId[];
-      delegateName: string | undefined;
-      delegatorName: string | undefined;
-      states: DelegationState[];
-      kind: DelegationKind;
-    }): Promise<delegationApi.CompactDelegationTenants[]> {
+    async getConsumerDelegators(filters: {
+      delegateId: TenantId;
+      limit: number;
+      offset: number;
+      delegatorName?: string;
+    }): Promise<delegationApi.CompactTenants> {
       const getEservicesWithActiveAgreements = async (
-        delegations: delegationApi.CompactDelegationTenants[]
+        delegationTenants: Array<{
+          id: string;
+          name: string;
+          eserviceId: string;
+        }>
       ): Promise<string[]> => {
-        const conditions =
-          filters.kind === delegationKind.delegatedConsumer
-            ? delegations.map((d) => ({
-                "data.eserviceId": d.eserviceId,
-                "data.consumerId": d.delegator.id,
-              }))
-            : delegations.map((d) => ({
-                "data.eserviceId": d.eserviceId,
-                "data.producerId": d.delegator.id,
-              }));
+        const conditions = delegationTenants.map((d) => ({
+          "data.eserviceId": d.eserviceId,
+          "data.consumerId": d.id,
+        }));
 
         const data = await agreements.distinct("data.eserviceId", {
           $or: conditions,
@@ -289,22 +285,26 @@ export function readModelServiceBuilder(
         return result.data;
       };
 
-      const nameFilters = [
-        filters.delegateName
-          ? [
-              {
-                $match: {
-                  "delegate.name": {
-                    $regex: ReadModelRepository.escapeRegExp(
-                      filters.delegateName
-                    ),
-                    $options: "i",
-                  },
-                },
-              },
-            ]
-          : [],
-        filters.delegatorName
+      const aggregationPipeline = [
+        {
+          $match: {
+            "data.kind": delegationKind.delegatedConsumer,
+            "data.state": delegationState.active,
+            "data.delegateId": filters.delegateId,
+          } satisfies ReadModelFilter<Delegation>,
+        },
+        {
+          $lookup: {
+            from: "tenants",
+            localField: "delegatorId",
+            foreignField: "id",
+            as: "delegator",
+          },
+        },
+        {
+          $unwind: "$delegator",
+        },
+        ...(filters.delegatorName
           ? [
               {
                 $match: {
@@ -317,66 +317,19 @@ export function readModelServiceBuilder(
                 },
               },
             ]
-          : [],
-      ];
-
-      const aggregationPipeline = [
+          : []),
         {
-          $match: {
-            ...ReadModelRepository.arrayToFilter(filters.delegatedIds, {
-              "data.delegateId": { $in: filters.delegatedIds },
-            }),
-            ...ReadModelRepository.arrayToFilter(filters.delegatorIds, {
-              "data.delegatorId": { $in: filters.delegatorIds },
-            }),
-            ...ReadModelRepository.arrayToFilter(filters.eserviceIds, {
-              "data.eserviceId": { $in: filters.eserviceIds },
-            }),
-            ...ReadModelRepository.arrayToFilter(filters.states, {
-              "data.state": { $in: filters.states },
-            }),
-            ...(filters.kind && {
-              "data.kind": filters.kind,
-            }),
-          } satisfies ReadModelFilter<Delegation>,
-        },
-        {
-          $lookup: {
-            from: "tenants",
-            localField: "delegateId",
-            foreignField: "id",
-            as: "delegate",
+          $group: {
+            _id: "$delegator.id",
+            delegatorName: { $first: "$delegator.name" },
           },
         },
-        {
-          $lookup: {
-            from: "tenants",
-            localField: "delegatorId",
-            foreignField: "id",
-            as: "delegator",
-          },
-        },
-        {
-          $unwind: "$delegate",
-        },
-        {
-          $unwind: "$delegator",
-        },
-        ...nameFilters,
         {
           $project: {
-            delegationId: "$id",
-            eserviceId: "$eserviceId",
-            state: "$state",
-            kind: "$kind",
-            delegate: {
-              id: "$delegate.id",
-              name: "$delegate.name",
-            },
-            delegator: {
-              id: "$delegator.id",
-              name: "$delegator.name",
-            },
+            id: "$_id",
+            name: 1,
+            eserviceId: "$data.eserviceId",
+            _id: 0,
           },
         },
       ];
@@ -386,7 +339,9 @@ export function readModelServiceBuilder(
         .toArray();
 
       const result = z
-        .array(delegationApi.CompactDelegationTenants)
+        .array(
+          z.object({ id: z.string(), name: z.string(), eserviceId: z.string() })
+        )
         .safeParse(data.map((d) => d.data));
 
       if (!result.success) {
@@ -400,9 +355,21 @@ export function readModelServiceBuilder(
       const eservicesWithActiveAgreements =
         await getEservicesWithActiveAgreements(result.data);
 
-      return result.data.filter((delegation) =>
+      const filteredDelegators = result.data.filter((delegation) =>
         eservicesWithActiveAgreements.includes(delegation.eserviceId)
       );
+
+      return {
+        results: filteredDelegators.slice(
+          filters.offset,
+          filters.offset + filters.limit
+        ),
+        pagination: {
+          offset: filters.offset,
+          limit: filters.limit,
+          totalCount: filteredDelegators.length,
+        },
+      };
     },
   };
 }

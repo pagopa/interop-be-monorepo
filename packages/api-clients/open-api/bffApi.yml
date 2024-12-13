@@ -2202,7 +2202,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CompactDelegators"
+                $ref: "#/components/schemas/CompactDelegationTenants"
         "429":
           description: Too Many Requests
           content:
@@ -16528,30 +16528,26 @@ components:
       required:
         - results
         - pagination
-    CompactDelegator:
+    CompactDelegationTenant:
       type: object
       additionalProperties: false
       properties:
-        delegationId:
-          type: string
-          format: uuid
         delegatorId:
           type: string
           format: uuid
         delegatorName:
           type: string
       required:
-        - delegationId
         - delegatorId
         - delegatorName
-    CompactDelegators:
+    CompactDelegationTenants:
       type: object
       additionalProperties: false
       properties:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/CompactDelegator"
+            $ref: "#/components/schemas/CompactDelegationTenant"
         pagination:
           $ref: "#/components/schemas/Pagination"
       required:

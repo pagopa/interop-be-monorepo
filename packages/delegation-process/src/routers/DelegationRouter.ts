@@ -31,7 +31,7 @@ import {
   approveDelegationErrorMapper,
   rejectDelegationErrorMapper,
   revokeDelegationErrorMapper,
-  getDelegationTenantsErrorMapper,
+  getConsumerDelegatorsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
@@ -191,54 +191,7 @@ const delegationRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    )
-    .get("/delegationTenants", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-
-      try {
-        const {
-          offset,
-          limit,
-          delegatedIds,
-          delegatorIds,
-          eserviceIds,
-          states,
-          kind,
-          delegateName,
-          delegatorName,
-        } = req.query;
-
-        const delegationTenants = await delegationService.getDelegationsTenants(
-          {
-            delegatedIds: delegatedIds.map(unsafeBrandId<TenantId>),
-            delegatorIds: delegatorIds.map(unsafeBrandId<TenantId>),
-            states: states.map(apiDelegationStateToDelegationState),
-            eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
-            kind: apiDelegationKindToDelegationKind(kind),
-            delegateName,
-            delegatorName,
-            offset,
-            limit,
-          },
-          ctx.logger
-        );
-
-        return res
-          .status(200)
-          .send(
-            delegationApi.CompactDelegationsTenants.parse(delegationTenants)
-          );
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getDelegationTenantsErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
-
-        return res.status(errorRes.status).send(errorRes);
-      }
-    });
+    );
 
   const delegationProducerRouter = ctx.router(delegationApi.producerApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -475,46 +428,29 @@ const delegationRouter = (
         }
       }
     )
-    .get("/delegationTenants", async (req, res) => {
+    .get("/consumer/delegators", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
-      try {
-        const {
-          offset,
-          limit,
-          delegatedIds,
-          delegatorIds,
-          eserviceIds,
-          states,
-          kind,
-          delegateName,
-          delegatorName,
-        } = req.query;
+      const { delegateId, delegatorName, limit, offset } = req.query;
 
-        const delegationTenants = await delegationService.getDelegationsTenants(
+      try {
+        const delegators = await delegationService.getConsumerDelegators(
           {
-            delegatedIds: delegatedIds.map(unsafeBrandId<TenantId>),
-            delegatorIds: delegatorIds.map(unsafeBrandId<TenantId>),
-            states: states.map(apiDelegationStateToDelegationState),
-            eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
-            kind: apiDelegationKindToDelegationKind(kind),
-            delegateName,
+            delegateId: unsafeBrandId(delegateId),
             delegatorName,
-            offset,
             limit,
+            offset,
           },
           ctx.logger
         );
 
         return res
           .status(200)
-          .send(
-            delegationApi.CompactDelegationsTenants.parse(delegationTenants)
-          );
+          .send(delegationApi.CompactTenants.parse(delegators));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getDelegationTenantsErrorMapper,
+          getConsumerDelegatorsErrorMapper,
           ctx.logger,
           ctx.correlationId
         );

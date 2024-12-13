@@ -576,36 +576,21 @@ export function delegationServiceBuilder(
         ctx
       );
     },
-    async getDelegationsTenants(
+    async getConsumerDelegators(
       filters: {
-        delegatedIds: TenantId[];
-        delegatorIds: TenantId[];
-        eserviceIds: EServiceId[];
-        delegateName: string | undefined;
-        delegatorName: string | undefined;
-        states: DelegationState[];
-        kind: DelegationKind;
+        delegateId: TenantId;
         limit: number;
         offset: number;
+        delegatorName?: string;
       },
       logger: Logger
-    ): Promise<delegationApi.CompactDelegationsTenants> {
-      const { limit, offset } = filters;
-
+    ): Promise<delegationApi.CompactTenants> {
       logger.info(
         `Retrieving delegations tenants with filters: ${JSON.stringify(
           filters
         )}`
       );
-
-      const delegationTenants = await readModelService.getDelegationTenants(
-        filters
-      );
-
-      return {
-        results: delegationTenants.slice(offset, offset + limit),
-        totalCount: delegationTenants.length,
-      };
+      return await readModelService.getConsumerDelegators(filters);
     },
   };
 }

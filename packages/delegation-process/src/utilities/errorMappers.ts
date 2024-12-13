@@ -19,7 +19,7 @@ export const getDelegationsErrorMapper = (
 ): number =>
   match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getDelegationTenantsErrorMapper = getDelegationsErrorMapper;
+export const getConsumerDelegatorsErrorMapper = getDelegationsErrorMapper;
 
 export const getDelegationByIdErrorMapper = (
   error: ApiError<ErrorCodes>

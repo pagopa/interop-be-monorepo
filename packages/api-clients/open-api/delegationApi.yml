@@ -37,7 +37,7 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
-  /delegationTenants:
+  /consumer/delegators:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
@@ -45,49 +45,11 @@ paths:
         schema:
           type: string
       - in: query
-        name: delegateName
-        schema:
-          type: string
-      - in: query
-        name: delegatorIds
-        schema:
-          type: array
-          items:
-            type: string
-            format: uuid
-          default: []
-        explode: false
-      - in: query
-        name: delegatedIds
-        schema:
-          type: array
-          items:
-            type: string
-            format: uuid
-          default: []
-        explode: false
-      - in: query
-        name: states
-        schema:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegationState"
-          default: []
-        explode: false
-      - in: query
-        name: kind
+        name: delegateId
         required: true
         schema:
-          $ref: "#/components/schemas/DelegationKind"
-      - in: query
-        name: eserviceIds
-        schema:
-          type: array
-          items:
-            type: string
-            format: uuid
-          default: []
-        explode: false
+          type: string
+          format: uuid
       - in: query
         name: offset
         required: true
@@ -105,16 +67,16 @@ paths:
           maximum: 50
     get:
       tags:
-        - delegation
-      operationId: getDelegationTenants
-      description: Retrieve Tenants that are subscribed to at least one EService
+        - consumer
+      operationId: getConsumerDelegators
+      description: Retrieve delegators of a delegate with active delegation and agreement
       responses:
         "200":
           description: Tenants retrieved
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CompactDelegationsTenants"
+                $ref: "#/components/schemas/CompactTenants"
         "400":
           description: Bad Request
           content:
@@ -721,45 +683,6 @@ components:
       schema:
         type: string
   schemas:
-    CompactDelegationTenants:
-      type: object
-      additionalProperties: false
-      properties:
-        delegationId:
-          type: string
-          format: uuid
-        eserviceId:
-          type: string
-          format: uuid
-        delegate:
-          $ref: "#/components/schemas/CompactTenant"
-        delegator:
-          $ref: "#/components/schemas/CompactTenant"
-        state:
-          $ref: "#/components/schemas/DelegationState"
-        kind:
-          $ref: "#/components/schemas/DelegationKind"
-      required:
-        - delegationId
-        - eserviceId
-        - delegate
-        - delegator
-        - state
-        - kind
-    CompactDelegationsTenants:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/CompactDelegationTenants"
-        totalCount:
-          type: integer
-          format: int32
-      required:
-        - results
-        - totalCount
     CompactTenant:
       type: object
       additionalProperties: false
@@ -772,6 +695,19 @@ components:
       required:
         - id
         - name
+    CompactTenants:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactTenant"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     Delegations:
       type: object
       additionalProperties: false
@@ -965,6 +901,23 @@ components:
         - status
         - title
         - errors
+    Pagination:
+      type: object
+      additionalProperties: false
+      properties:
+        offset:
+          type: integer
+          format: int32
+        limit:
+          type: integer
+          format: int32
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - offset
+        - limit
+        - totalCount
     ProblemError:
       properties:
         code:
