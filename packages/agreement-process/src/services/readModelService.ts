@@ -330,12 +330,6 @@ function getDelegateAgreementsFilters(producerIds: TenantId[] | undefined) {
           },
         },
         {
-          $unwind: {
-            path: "$delegations",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
           $match: {
             $or: [
               {
