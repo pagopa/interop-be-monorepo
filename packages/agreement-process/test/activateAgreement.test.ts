@@ -199,6 +199,24 @@ async function addDelegationsAndDelegates({
   }
 }
 
+async function addSomeRandomDelegations(agreement: Agreement): Promise<void> {
+  // Adding some more delegations
+  await addOneDelegation(
+    getMockDelegation({
+      eserviceId: agreement.eserviceId,
+      kind: delegationKind.delegatedProducer,
+      state: delegationState.revoked,
+    })
+  );
+  await addOneDelegation(
+    getMockDelegation({
+      eserviceId: agreement.eserviceId,
+      kind: delegationKind.delegatedConsumer,
+      state: delegationState.revoked,
+    })
+  );
+}
+
 describe("activate agreement", () => {
   async function addRelatedAgreements(agreement: Agreement): Promise<{
     archivableRelatedAgreement1: Agreement;
@@ -813,22 +831,7 @@ describe("activate agreement", () => {
 
       await addOneAgreement(agreement);
       await addOneDelegation(consumerDelegation);
-
-      // Adding some more delegations
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedProducer,
-          state: delegationState.revoked,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedConsumer,
-          state: delegationState.revoked,
-        })
-      );
+      await addSomeRandomDelegations(agreement);
 
       await expect(
         agreementService.activateAgreement(agreement.id, {
@@ -859,22 +862,7 @@ describe("activate agreement", () => {
 
       await addOneAgreement(agreement);
       await addOneDelegation(producerDelegation);
-
-      // Adding some more delegations
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedProducer,
-          state: delegationState.revoked,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedConsumer,
-          state: delegationState.revoked,
-        })
-      );
+      await addSomeRandomDelegations(agreement);
 
       await expect(
         agreementService.activateAgreement(agreement.id, {
@@ -1787,22 +1775,7 @@ describe("activate agreement", () => {
 
       await addOneAgreement(agreement);
       await addOneDelegation(producerDelegation);
-
-      // Adding some more delegations
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedProducer,
-          state: delegationState.revoked,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedConsumer,
-          state: delegationState.revoked,
-        })
-      );
+      await addSomeRandomDelegations(agreement);
 
       await expect(
         agreementService.activateAgreement(agreement.id, {
@@ -1833,22 +1806,7 @@ describe("activate agreement", () => {
 
       await addOneAgreement(agreement);
       await addOneDelegation(consumerDelegation);
-
-      // Adding some more delegations
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedProducer,
-          state: delegationState.revoked,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedConsumer,
-          state: delegationState.revoked,
-        })
-      );
+      await addSomeRandomDelegations(agreement);
 
       await expect(
         agreementService.activateAgreement(agreement.id, {
@@ -1899,9 +1857,10 @@ describe("activate agreement", () => {
         eserviceId: agreement.eserviceId,
       });
 
+      await addOneAgreement(agreement);
       await addOneDelegation(producerDelegation);
       await addOneDelegation(consumerDelegation);
-      await addOneAgreement(agreement);
+      await addSomeRandomDelegations(agreement);
 
       await expect(
         agreementService.activateAgreement(agreement.id, {
