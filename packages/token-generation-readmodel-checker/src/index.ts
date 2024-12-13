@@ -16,7 +16,7 @@ async function main(): Promise<void> {
   );
 
   if (differencesCount > 0) {
-    loggerInstance.info(`Differences count: ${differencesCount}`);
+    loggerInstance.error(`Differences count: ${differencesCount}`);
   } else {
     loggerInstance.info("No differences found");
   }
