@@ -355,7 +355,7 @@ describe("verifyVerifiedAttribute", async () => {
       )
     );
   });
-  it.only("Should throw verifiedAttributeSelfVerificationNotAllowed if the organizations are not allowed to revoke own attributes", async () => {
+  it("Should throw verifiedAttributeSelfVerificationNotAllowed if the organizations are not allowed to revoke own attributes", async () => {
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
     await addOneEService(eService1);
