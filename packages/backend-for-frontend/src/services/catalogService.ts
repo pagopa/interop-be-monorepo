@@ -322,6 +322,7 @@ export function catalogServiceBuilder(
           eservice,
           producerTenant
         ),
+        rejectionReasons: descriptor.rejectionReasons,
       };
     },
     getProducerEServiceDetails: async (
@@ -1297,6 +1298,23 @@ export function catalogServiceBuilder(
     ): Promise<void> => {
       logger.info(`Rejecting e-service ${eServiceId} version ${descriptorId}`);
       await catalogProcessClient.rejectDelegatedEServiceDescriptor(body, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+    updateDescriptorAttributes: async (
+      eServiceId: EServiceId,
+      descriptorId: EServiceId,
+      body: bffApi.DescriptorAttributesSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Updating attributes of Descriptor ${descriptorId} for EService ${eServiceId}`
+      );
+      await catalogProcessClient.updateDescriptorAttributes(body, {
         headers,
         params: {
           eServiceId,

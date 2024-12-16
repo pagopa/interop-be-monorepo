@@ -10,11 +10,9 @@ import {
 } from "pagopa-interop-commons";
 
 import healthRouter from "./routers/HealthRouter.js";
-import delegationProducerRouter from "./routers/DelegationProducerRouter.js";
 import delegationRouter from "./routers/DelegationRouter.js";
 import { config } from "./config/config.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
-import delegationConsumerRouter from "./routers/DelegationConsumerRouter.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -45,21 +43,11 @@ app.use(healthRouter);
 app.use(contextMiddleware(serviceName));
 app.use(authenticationMiddleware(config));
 app.use(loggerMiddleware(serviceName));
-app.use(delegationRouter(zodiosCtx, readModelService));
 app.use(
-  delegationProducerRouter(
+  delegationRouter(
     zodiosCtx,
-    eventStore,
     readModelService,
-    pdfGenerator,
-    fileManager
-  )
-);
-app.use(
-  delegationConsumerRouter(
-    zodiosCtx,
     eventStore,
-    readModelService,
     pdfGenerator,
     fileManager
   )

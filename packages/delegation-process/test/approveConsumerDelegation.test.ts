@@ -38,10 +38,10 @@ import {
   addOneDelegation,
   addOneTenant,
   addOneEservice,
-  delegationConsumerService,
   fileManager,
   readLastDelegationEvent,
   pdfGenerator,
+  delegationService,
 } from "./utils.js";
 
 describe("approve consumer delegation", () => {
@@ -81,7 +81,7 @@ describe("approve consumer delegation", () => {
     const { version } = await readLastDelegationEvent(delegation.id);
     expect(version).toBe("0");
 
-    await delegationConsumerService.approveConsumerDelegation(delegation.id, {
+    await delegationService.approveConsumerDelegation(delegation.id, {
       authData,
       serviceName: "",
       correlationId: generateId(),
@@ -108,7 +108,7 @@ describe("approve consumer delegation", () => {
       createdAt: currentExecutionTime,
       name: expectedContractName,
       path: `${config.delegationDocumentPath}/${delegation.id}/${expectedContractId}/${expectedContractName}`,
-      prettyName: "Delega",
+      prettyName: `Delega_${eservice.name}`,
     };
 
     expect(
@@ -168,15 +168,12 @@ describe("approve consumer delegation", () => {
       unsafeBrandId<DelegationId>("non-existent-id");
 
     await expect(
-      delegationConsumerService.approveConsumerDelegation(
-        nonExistentDelegationId,
-        {
-          authData: getRandomAuthData(delegateId),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
-      )
+      delegationService.approveConsumerDelegation(nonExistentDelegationId, {
+        authData: getRandomAuthData(delegateId),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrow(
       delegationNotFound(
         nonExistentDelegationId,
@@ -196,7 +193,7 @@ describe("approve consumer delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationConsumerService.approveConsumerDelegation(delegation.id, {
+      delegationService.approveConsumerDelegation(delegation.id, {
         authData: getRandomAuthData(delegate.id),
         serviceName: "",
         correlationId: generateId(),
@@ -220,7 +217,7 @@ describe("approve consumer delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationConsumerService.approveConsumerDelegation(delegation.id, {
+      delegationService.approveConsumerDelegation(delegation.id, {
         authData: getRandomAuthData(wrongDelegate.id),
         serviceName: "",
         correlationId: generateId(),
@@ -248,7 +245,7 @@ describe("approve consumer delegation", () => {
       await addOneDelegation(delegation);
 
       await expect(
-        delegationConsumerService.approveConsumerDelegation(delegation.id, {
+        delegationService.approveConsumerDelegation(delegation.id, {
           authData: getRandomAuthData(delegate.id),
           serviceName: "",
           correlationId: generateId(),
@@ -272,7 +269,7 @@ describe("approve consumer delegation", () => {
     const { version } = await readLastDelegationEvent(delegation.id);
     expect(version).toBe("0");
 
-    await delegationConsumerService.approveConsumerDelegation(delegation.id, {
+    await delegationService.approveConsumerDelegation(delegation.id, {
       authData: getRandomAuthData(delegate.id),
       serviceName: "",
       correlationId: generateId(),

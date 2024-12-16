@@ -29,7 +29,6 @@ import {
 import {
   Agreement,
   AgreementActivatedV2,
-  AgreementContractPDFPayload,
   AgreementId,
   AgreementSetMissingCertifiedAttributesByPlatformV2,
   AgreementSuspendedByPlatformV2,
@@ -41,6 +40,7 @@ import {
   DeclaredTenantAttribute,
   Descriptor,
   EService,
+  EServiceId,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantAttribute,
@@ -74,6 +74,7 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
+import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -876,10 +877,11 @@ describe("activate agreement", () => {
           },
         ],
         producerDelegationId: delegation.id,
-        producerDelegatorName: producer.name,
-        producerDelegatorIpaCode: getIpaCode(producer),
         producerDelegateName: delegate.name,
         producerDelegateIpaCode: getIpaCode(delegate),
+        consumerDelegationId: undefined,
+        consumerDelegateName: undefined,
+        consumerDelegateIpaCode: undefined,
       };
 
       expect(pdfGenerator.generate).toHaveBeenCalledWith(
@@ -898,6 +900,7 @@ describe("activate agreement", () => {
         consumerId: consumer.id,
         descriptors: [getMockDescriptorPublished()],
       };
+      const mockAgreement = getMockAgreement(eservice.id);
       const agreement: Agreement = {
         ...getMockAgreement(eservice.id),
         state: agreementState.suspended,
@@ -906,8 +909,15 @@ describe("activate agreement", () => {
         consumerId: consumer.id,
         suspendedAt: new Date(),
         suspendedByConsumer: false,
-        suspendedByProducer: false,
+        suspendedByProducer: true,
         suspendedByPlatform: false,
+        stamps: {
+          ...mockAgreement.stamps,
+          suspensionByProducer: {
+            who: authData.userId,
+            when: new Date(),
+          },
+        },
       };
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedProducer,
@@ -941,6 +951,11 @@ describe("activate agreement", () => {
         declaredAttributes: actualAgreement.declaredAttributes,
         verifiedAttributes: actualAgreement.verifiedAttributes,
         suspendedAt: undefined,
+        suspendedByProducer: false,
+        stamps: {
+          ...agreement.stamps,
+          suspensionByProducer: undefined,
+        },
       };
 
       expect(actualAgreement).toEqual(expectedAgreement);
@@ -1800,7 +1815,11 @@ describe("activate agreement", () => {
 
     it("should throw an operationNotAllowed error when the requester is not the Consumer or Producer", async () => {
       const authData = getRandomAuthData();
-      const agreement: Agreement = getMockAgreement();
+      const agreement: Agreement = getMockAgreement(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        randomArrayItem(agreementActivableStates)
+      );
       await addOneAgreement(agreement);
       await expect(
         agreementService.activateAgreement(agreement.id, {

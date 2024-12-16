@@ -330,12 +330,6 @@ function getDelegateAgreementsFilters(producerIds: TenantId[] | undefined) {
           },
         },
         {
-          $unwind: {
-            path: "$delegations",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
           $match: {
             $or: [
               {
@@ -666,19 +660,12 @@ export function readModelServiceBuilder(
       }
       return result.data;
     },
-    async getActiveConsumerDelegationByEserviceAndIds({
-      eserviceId,
-      delegatorId,
-      delegateId,
-    }: {
-      eserviceId: EServiceId;
-      delegatorId: TenantId;
-      delegateId?: TenantId;
-    }): Promise<Delegation | undefined> {
+    async getActiveConsumerDelegationByAgreement(
+      agreement: Pick<Agreement, "consumerId" | "eserviceId">
+    ): Promise<Delegation | undefined> {
       return getDelegation(delegations, {
-        "data.eserviceId": eserviceId,
-        "data.delegatorId": delegatorId,
-        "data.delegateId": delegateId,
+        "data.eserviceId": agreement.eserviceId,
+        "data.delegatorId": agreement.consumerId,
         "data.state": delegationState.active,
         "data.kind": delegationKind.delegatedConsumer,
       });
