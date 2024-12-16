@@ -257,17 +257,17 @@ export function readModelServiceBuilder(
     }): Promise<delegationApi.CompactTenants> {
       const getEservicesWithActiveAgreements = async (
         delegationTenants: Array<{
-          id: string;
-          name: string;
-          eserviceId: string;
+          consumerId: string;
+          consumerName: string;
+          producerId: string;
         }>
       ): Promise<string[]> => {
         const conditions = delegationTenants.map((d) => ({
-          "data.eserviceId": d.eserviceId,
-          "data.consumerId": d.id,
+          "data.producerId": d.producerId,
+          "data.consumerId": d.consumerId,
         }));
 
-        const data = await agreements.distinct("data.eserviceId", {
+        const data = await agreements.distinct("data.consumerId", {
           $or: conditions,
           "data.state": agreementState.active,
         } satisfies ReadModelFilter<Agreement>);
@@ -296,19 +296,30 @@ export function readModelServiceBuilder(
         {
           $lookup: {
             from: "tenants",
-            localField: "delegatorId",
-            foreignField: "id",
+            localField: "data.delegatorId",
+            foreignField: "data.id",
             as: "delegator",
           },
         },
         {
           $unwind: "$delegator",
         },
+        {
+          $lookup: {
+            from: "eservices",
+            localField: "data.eserviceId",
+            foreignField: "data.id",
+            as: "eservice",
+          },
+        },
+        {
+          $unwind: "$eservice",
+        },
         ...(filters.delegatorName
           ? [
               {
                 $match: {
-                  "delegator.name": {
+                  "delegator.data.name": {
                     $regex: ReadModelRepository.escapeRegExp(
                       filters.delegatorName
                     ),
@@ -319,17 +330,11 @@ export function readModelServiceBuilder(
             ]
           : []),
         {
-          $group: {
-            _id: "$delegator.id",
-            delegatorName: { $first: "$delegator.name" },
-          },
-        },
-        {
           $project: {
-            id: "$_id",
-            name: 1,
-            eserviceId: "$data.eserviceId",
             _id: 0,
+            consumerId: "$delegator.data.id",
+            consumerName: "$delegator.data.name",
+            producerId: "$eservice.data.producerId",
           },
         },
       ];
@@ -340,9 +345,13 @@ export function readModelServiceBuilder(
 
       const result = z
         .array(
-          z.object({ id: z.string(), name: z.string(), eserviceId: z.string() })
+          z.object({
+            consumerId: z.string(),
+            consumerName: z.string(),
+            producerId: z.string(),
+          })
         )
-        .safeParse(data.map((d) => d.data));
+        .safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(
@@ -352,12 +361,37 @@ export function readModelServiceBuilder(
         );
       }
 
-      const eservicesWithActiveAgreements =
-        await getEservicesWithActiveAgreements(result.data);
+      if (result.data.length === 0) {
+        return {
+          results: [],
+          pagination: {
+            offset: filters.offset,
+            limit: filters.limit,
+            totalCount: 0,
+          },
+        };
+      }
 
-      const filteredDelegators = result.data.filter((delegation) =>
-        eservicesWithActiveAgreements.includes(delegation.eserviceId)
+      const activeDelegators = await getEservicesWithActiveAgreements(
+        result.data
       );
+
+      const uniqueDelegators = result.data
+        .filter((delegation) =>
+          activeDelegators.includes(delegation.consumerId)
+        )
+        .reduce((map, delegation) => {
+          if (!map.has(delegation.consumerId)) {
+            map.set(delegation.consumerId, {
+              id: delegation.consumerId,
+              name: delegation.consumerName,
+            });
+          }
+          return map;
+        }, new Map<string, delegationApi.CompactTenant>())
+        .values();
+
+      const filteredDelegators = Array.from(uniqueDelegators);
 
       return {
         results: filteredDelegators.slice(
