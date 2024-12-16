@@ -930,14 +930,9 @@ function validateTokenGenerationStates({
             const purpose = purposeId ? purposesById.get(purposeId) : undefined;
 
             if (!purpose) {
-              if (TokenGenerationStatesClientKidPK.safeParse(e.PK).success) {
-                console.log(
-                  `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKIDPURPOSE PK`
-                );
-                logger.error(
-                  `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKIDPURPOSE PK`
-                );
-              } else {
+              if (
+                TokenGenerationStatesClientKidPurposePK.safeParse(e.PK).success
+              ) {
                 console.log(
                   `no purpose found in read model for token-generation-states entry with PK ${e.PK}`
                 );
@@ -946,6 +941,12 @@ function validateTokenGenerationStates({
                 );
               }
 
+              console.log(
+                `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKIDPURPOSE PK`
+              );
+              logger.error(
+                `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKIDPURPOSE PK`
+              );
               return [
                 ...acc,
                 {
@@ -1116,9 +1117,30 @@ function validateTokenGenerationStates({
             }
           } else {
             // TokenGenerationStatesConsumerClient with CLIENTKID PK
-            if (
-              TokenGenerationStatesClientKidPurposePK.safeParse(e.PK).success
-            ) {
+            if (TokenGenerationStatesClientKidPK.safeParse(e.PK).success) {
+              if (
+                getClientIdFromTokenGenStatesPK(e.PK) !== client.id ||
+                e.consumerId !== client.consumerId ||
+                e.GSIPK_clientId !== client.id ||
+                client.keys.every(
+                  (k) =>
+                    !(k.kid === e.GSIPK_kid && k.encodedPem === e.publicKey)
+                ) ||
+                e.GSIPK_kid !== getKidFromTokenGenStatesPK(e.PK)
+              ) {
+                return [
+                  ...acc,
+                  {
+                    PK: e.PK,
+                    consumerId: e.consumerId,
+                    clientKind: e.clientKind,
+                    publicKey: e.publicKey,
+                    GSIPK_clientId: e.GSIPK_clientId,
+                    GSIPK_kid: e.GSIPK_kid,
+                  },
+                ];
+              }
+            } else {
               console.log(
                 `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKID PK`
               );
@@ -1147,28 +1169,6 @@ function validateTokenGenerationStates({
                   descriptorState: e.descriptorState,
                   descriptorAudience: e.descriptorAudience,
                   descriptorVoucherLifespan: e.descriptorVoucherLifespan,
-                },
-              ];
-            }
-
-            if (
-              getClientIdFromTokenGenStatesPK(e.PK) !== client.id ||
-              e.consumerId !== client.consumerId ||
-              e.GSIPK_clientId !== client.id ||
-              client.keys.every(
-                (k) => !(k.kid === e.GSIPK_kid && k.encodedPem === e.publicKey)
-              ) ||
-              e.GSIPK_kid !== getKidFromTokenGenStatesPK(e.PK)
-            ) {
-              return [
-                ...acc,
-                {
-                  PK: e.PK,
-                  consumerId: e.consumerId,
-                  clientKind: e.clientKind,
-                  publicKey: e.publicKey,
-                  GSIPK_clientId: e.GSIPK_clientId,
-                  GSIPK_kid: e.GSIPK_kid,
                 },
               ];
             }
