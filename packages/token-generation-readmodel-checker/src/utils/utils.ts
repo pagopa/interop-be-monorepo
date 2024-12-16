@@ -662,7 +662,7 @@ function validateCatalogPlatformStates({
     };
   }
 
-  const extractedDescriptorId = getIdFromPlatformStatesPK<ClientId>(
+  const extractedDescriptorId = getIdFromPlatformStatesPK<EServiceId>(
     platformCatalogEntry.PK
   ).descriptorId;
   if (descriptor.id !== extractedDescriptorId) {
