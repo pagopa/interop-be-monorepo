@@ -378,11 +378,11 @@ export function readModelServiceBuilder(
 
       const filteredDelegators = Array.from(
         result.data
-          .filter((delegation) =>
-            activeDelegators.includes(delegation.consumerId)
-          )
           .reduce((map, delegation) => {
-            if (!map.has(delegation.consumerId)) {
+            if (
+              activeDelegators.includes(delegation.consumerId) &&
+              !map.has(delegation.consumerId)
+            ) {
               map.set(delegation.consumerId, {
                 id: delegation.consumerId,
                 name: delegation.consumerName,
