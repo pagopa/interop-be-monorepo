@@ -1119,6 +1119,7 @@ describe("submit agreement", () => {
     const validDeclaredTenantAttribute: TenantAttribute = {
       ...getMockDeclaredTenantAttribute(),
       revocationTimestamp: undefined,
+      delegationId: undefined,
     };
 
     const producerAndConsumer = {
@@ -1297,6 +1298,73 @@ describe("submit agreement", () => {
       },
     };
 
+    const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
+      todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+      agreementId: expectedAgreement.id,
+      submitterId: expectedAgreement.stamps.submission.who,
+      submissionDate: dateAtRomeZone(expectedAgreement.stamps.submission.when!),
+      submissionTime: timeAtRomeZone(expectedAgreement.stamps.submission.when!),
+      activatorId: expectedAgreement.stamps.activation.who,
+      activationDate: dateAtRomeZone(expectedAgreement.stamps.activation.when!),
+      activationTime: timeAtRomeZone(expectedAgreement.stamps.activation.when!),
+      eserviceId: eservice.id,
+      eserviceName: eservice.name,
+      descriptorId: eservice.descriptors[0].id,
+      descriptorVersion: eservice.descriptors[0].version,
+      producerName: producerAndConsumer.name,
+      producerIpaCode: producerAndConsumer.externalId.value,
+      consumerName: producerAndConsumer.name,
+      consumerIpaCode: producerAndConsumer.externalId.value,
+      consumerDelegateName: undefined,
+      consumerDelegateIpaCode: undefined,
+      consumerDelegationId: undefined,
+      producerDelegateName: undefined,
+      producerDelegateIpaCode: undefined,
+      producerDelegationId: undefined,
+      certifiedAttributes: [
+        {
+          assignmentDate: dateAtRomeZone(
+            validCertifiedTenantAttribute.assignmentTimestamp
+          ),
+          assignmentTime: timeAtRomeZone(
+            validCertifiedTenantAttribute.assignmentTimestamp
+          ),
+          attributeName: certifiedAttribute.name,
+          attributeId: validCertifiedTenantAttribute.id,
+        },
+      ],
+      declaredAttributes: [
+        {
+          assignmentDate: dateAtRomeZone(
+            validDeclaredTenantAttribute.assignmentTimestamp
+          ),
+          assignmentTime: timeAtRomeZone(
+            validDeclaredTenantAttribute.assignmentTimestamp
+          ),
+          attributeName: declaredAttribute.name,
+          attributeId: validDeclaredTenantAttribute.id,
+          delegationId: undefined,
+        },
+      ],
+      verifiedAttributes: [
+        {
+          assignmentDate: dateAtRomeZone(
+            validVerifiedTenantAttribute.assignmentTimestamp
+          ),
+          assignmentTime: timeAtRomeZone(
+            validVerifiedTenantAttribute.assignmentTimestamp
+          ),
+          attributeName: verifiedAttribute.name,
+          attributeId: validVerifiedTenantAttribute.id,
+          expirationDate: dateAtRomeZone(
+            validVerifiedTenantAttribute.verifiedBy[0].expirationDate!
+          ),
+          delegationId: undefined,
+        },
+      ],
+    };
+
     expect(pdfGenerator.generate).toHaveBeenCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
@@ -1304,72 +1372,7 @@ describe("submit agreement", () => {
         "resources/templates/documents/",
         "agreementContractTemplate.html"
       ),
-      {
-        todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-        todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
-        agreementId: expectedAgreement.id,
-        submitterId: expectedAgreement.stamps.submission.who,
-        submissionDate: dateAtRomeZone(
-          expectedAgreement.stamps.submission.when!
-        ),
-        submissionTime: timeAtRomeZone(
-          expectedAgreement.stamps.submission.when!
-        ),
-        activatorId: expectedAgreement.stamps.activation.who,
-        activationDate: dateAtRomeZone(
-          expectedAgreement.stamps.activation.when!
-        ),
-        activationTime: timeAtRomeZone(
-          expectedAgreement.stamps.activation.when!
-        ),
-        eserviceId: eservice.id,
-        eserviceName: eservice.name,
-        descriptorId: eservice.descriptors[0].id,
-        descriptorVersion: eservice.descriptors[0].version,
-        producerName: producerAndConsumer.name,
-        producerIpaCode: producerAndConsumer.externalId.value,
-        consumerName: producerAndConsumer.name,
-        consumerIpaCode: producerAndConsumer.externalId.value,
-        certifiedAttributes: [
-          {
-            assignmentDate: dateAtRomeZone(
-              validCertifiedTenantAttribute.assignmentTimestamp
-            ),
-            assignmentTime: timeAtRomeZone(
-              validCertifiedTenantAttribute.assignmentTimestamp
-            ),
-            attributeName: certifiedAttribute.name,
-            attributeId: validCertifiedTenantAttribute.id,
-          },
-        ],
-        declaredAttributes: [
-          {
-            assignmentDate: dateAtRomeZone(
-              validDeclaredTenantAttribute.assignmentTimestamp
-            ),
-            assignmentTime: timeAtRomeZone(
-              validDeclaredTenantAttribute.assignmentTimestamp
-            ),
-            attributeName: declaredAttribute.name,
-            attributeId: validDeclaredTenantAttribute.id,
-          },
-        ],
-        verifiedAttributes: [
-          {
-            assignmentDate: dateAtRomeZone(
-              validVerifiedTenantAttribute.assignmentTimestamp
-            ),
-            assignmentTime: timeAtRomeZone(
-              validVerifiedTenantAttribute.assignmentTimestamp
-            ),
-            attributeName: verifiedAttribute.name,
-            attributeId: validVerifiedTenantAttribute.id,
-            expirationDate: dateAtRomeZone(
-              validVerifiedTenantAttribute.verifiedBy[0].expirationDate!
-            ),
-          },
-        ],
-      }
+      expectedAgreementPDFPayload
     );
 
     expect(
@@ -1629,7 +1632,7 @@ describe("submit agreement", () => {
     });
 
     const validVerifiedTenantAttribute: TenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
+      ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
       verifiedBy: [
         {
           id: producer.id,
@@ -1642,12 +1645,12 @@ describe("submit agreement", () => {
     };
 
     const validCertifiedTenantAttribute: TenantAttribute = {
-      ...getMockCertifiedTenantAttribute(),
+      ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
       revocationTimestamp: undefined,
     };
 
     const validDeclaredTenantAttribute: TenantAttribute = {
-      ...getMockDeclaredTenantAttribute(),
+      ...getMockDeclaredTenantAttribute(declaredAttribute.id),
       revocationTimestamp: undefined,
       delegationId: undefined,
     };
@@ -1854,7 +1857,12 @@ describe("submit agreement", () => {
     };
 
     expect(pdfGenerator.generate).toHaveBeenCalledWith(
-      expect.any(String),
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents/",
+        "agreementContractTemplate.html"
+      ),
       expectedAgreementPDFPayload
     );
   });
