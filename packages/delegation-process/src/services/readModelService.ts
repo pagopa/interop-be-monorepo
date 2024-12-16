@@ -255,7 +255,7 @@ export function readModelServiceBuilder(
       offset: number;
       delegatorName?: string;
     }): Promise<delegationApi.CompactTenants> {
-      const getEservicesWithActiveAgreements = async (
+      const getDelegatorsWithActiveAgreements = async (
         delegationTenants: Array<{
           consumerId: string;
           consumerName: string;
@@ -372,7 +372,7 @@ export function readModelServiceBuilder(
         };
       }
 
-      const activeDelegators = await getEservicesWithActiveAgreements(
+      const activeDelegators = await getDelegatorsWithActiveAgreements(
         result.data
       );
 
