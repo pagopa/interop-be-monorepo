@@ -88,6 +88,7 @@ export type AgreementContractPDFPayload = {
     assignmentTime: string;
     attributeName: string;
     attributeId: string;
+    delegationId: string | undefined;
   }>;
   verifiedAttributes: Array<{
     assignmentDate: string;
@@ -95,6 +96,7 @@ export type AgreementContractPDFPayload = {
     attributeName: string;
     attributeId: string;
     expirationDate: string | undefined;
+    delegationId: string | undefined;
   }>;
   producerDelegationId: string | undefined;
   producerDelegateName: string | undefined;
