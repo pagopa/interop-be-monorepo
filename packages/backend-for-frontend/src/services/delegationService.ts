@@ -10,16 +10,13 @@ import {
   getAllFromPaginated,
   WithLogger,
 } from "pagopa-interop-commons";
-import {
-  DelegationContractId,
-  DelegationId,
-  delegationKind,
-} from "pagopa-interop-models";
+import { DelegationContractId, DelegationId } from "pagopa-interop-models";
+import { isAxiosError } from "axios";
+import { match } from "ts-pattern";
 import {
   DelegationsQueryParams,
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
-  toDelegationKind,
 } from "../api/delegationApiConverter.js";
 import {
   CatalogProcessClient,
@@ -42,7 +39,7 @@ async function enhanceDelegation<
     delegation: delegationApi.Delegation,
     delegator: tenantApi.Tenant,
     delegate: tenantApi.Tenant,
-    eservice: catalogApi.EService,
+    eservice: catalogApi.EService | undefined,
     producer: tenantApi.Tenant
   ) => T,
   cachedTenants: Map<string, tenantApi.Tenant> = new Map()
@@ -61,24 +58,59 @@ async function enhanceDelegation<
     cachedTenants
   );
 
-  const eservice: catalogApi.EService = await catalogClient.getEServiceById({
-    params: { eServiceId: delegation.eserviceId },
-    headers,
-  });
-
-  // NOTE: If the delegation kind is DELEGATED_PRODUCER, the producer is the same as the delegator tenant.
-  // In the case of DELEGATED_CONSUMER, the producer can be different.
-  const producer =
-    delegation.kind === toDelegationKind(delegationKind.delegatedProducer)
-      ? await getTenantById(
-          tenantClient,
+  return await match(delegation.kind)
+    /**
+     * NOTE:
+     * If the delegation kind is DELEGATED_PRODUCER, the producer is the same as the delegator tenant.
+     * Plus the eservice might not exist anymore, since the delegator can delegate a deletable eservice,
+     * then revoke the delegation, and delete the e-service.
+     */
+    .with(bffApi.DelegationKind.Values.DELEGATED_PRODUCER, async () => {
+      const eservice: catalogApi.EService | undefined = await (async () => {
+        try {
+          return await catalogClient.getEServiceById({
+            params: { eServiceId: delegation.eserviceId },
+            headers,
+          });
+        } catch (err) {
+          if (isAxiosError(err) && err.response?.status === 404) {
+            return undefined;
+          }
+          throw err;
+        }
+      })();
+      return toApiConverter(
+        delegation,
+        delegator,
+        delegate,
+        eservice,
+        delegator
+      );
+    })
+    .with(bffApi.DelegationKind.Values.DELEGATED_CONSUMER, async () => {
+      const eservice: catalogApi.EService = await catalogClient.getEServiceById(
+        {
+          params: { eServiceId: delegation.eserviceId },
           headers,
-          eservice.producerId,
-          cachedTenants
-        )
-      : delegator;
+        }
+      );
 
-  return toApiConverter(delegation, delegator, delegate, eservice, producer);
+      const producer = await getTenantById(
+        tenantClient,
+        headers,
+        eservice.producerId,
+        cachedTenants
+      );
+
+      return toApiConverter(
+        delegation,
+        delegator,
+        delegate,
+        eservice,
+        producer
+      );
+    })
+    .exhaustive();
 }
 
 export async function getDelegation(
@@ -272,7 +304,7 @@ export function delegationServiceBuilder(
       return Buffer.from(contractBytes);
     },
 
-    async createDelegation(
+    async createProducerDelegation(
       createDelegationBody: bffApi.DelegationSeed,
       { headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
@@ -284,7 +316,19 @@ export function delegationServiceBuilder(
 
       return { id: delegation.id };
     },
-    async delegatorRevokeDelegation(
+    async createConsumerDelegation(
+      createDelegationBody: bffApi.DelegationSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      const delegation =
+        await delegationClients.consumer.createConsumerDelegation(
+          createDelegationBody,
+          { headers }
+        );
+
+      return { id: delegation.id };
+    },
+    async delegatorRevokeProducerDelegation(
       delegationId: DelegationId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
@@ -295,7 +339,18 @@ export function delegationServiceBuilder(
         headers,
       });
     },
-    async delegateRejectDelegation(
+    async delegatorRevokeConsumerDelegation(
+      delegationId: DelegationId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      return delegationClients.consumer.revokeConsumerDelegation(undefined, {
+        params: {
+          delegationId,
+        },
+        headers,
+      });
+    },
+    async delegateRejectProducerDelegation(
       delegationId: DelegationId,
       rejectBody: bffApi.RejectDelegationPayload,
       { headers }: WithLogger<BffAppContext>
@@ -307,11 +362,34 @@ export function delegationServiceBuilder(
         headers,
       });
     },
-    async delegateApproveDelegation(
+    async delegateRejectConsumerDelegation(
+      delegationId: DelegationId,
+      rejectBody: bffApi.RejectDelegationPayload,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      return delegationClients.consumer.rejectConsumerDelegation(rejectBody, {
+        params: {
+          delegationId,
+        },
+        headers,
+      });
+    },
+    async delegateApproveProducerDelegation(
       delegationId: DelegationId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       return delegationClients.producer.approveProducerDelegation(undefined, {
+        params: {
+          delegationId,
+        },
+        headers,
+      });
+    },
+    async delegateApproveConsumerDelegation(
+      delegationId: DelegationId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      return delegationClients.consumer.approveConsumerDelegation(undefined, {
         params: {
           delegationId,
         },

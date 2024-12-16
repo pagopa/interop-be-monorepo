@@ -118,7 +118,6 @@ export async function createUpgradeOrNewDraft({
       eservice,
       consumer,
       producer,
-      authData,
       activeDelegations
     );
 
