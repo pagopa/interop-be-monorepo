@@ -246,7 +246,7 @@ describe("getConsumerDelegators", () => {
       },
     });
   });
-  it.only("should return no results if no delegations match the criteria", async () => {
+  it("should return no results if no delegations match the criteria", async () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
