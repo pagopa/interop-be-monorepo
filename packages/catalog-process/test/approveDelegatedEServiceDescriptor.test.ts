@@ -14,7 +14,7 @@ import {
   generateId,
   operationForbidden,
   delegationState,
-  EServiceDescriptorDelegatorApprovedV2,
+  EServiceDescriptorApprovedByDelegatorV2,
   delegationKind,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
@@ -74,11 +74,11 @@ describe("publish descriptor", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptorDelegatorApproved",
+      type: "EServiceDescriptorApprovedByDelegator",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorDelegatorApprovedV2,
+      messageType: EServiceDescriptorApprovedByDelegatorV2,
       payload: writtenEvent.data,
     });
 
@@ -131,12 +131,12 @@ describe("publish descriptor", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptorDelegatorApproved",
+      type: "EServiceDescriptorApprovedByDelegator",
       event_version: 2,
     });
 
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorDelegatorApprovedV2,
+      messageType: EServiceDescriptorApprovedByDelegatorV2,
       payload: writtenEvent.data,
     });
 
@@ -206,11 +206,11 @@ describe("publish descriptor", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptorDelegatorApproved",
+      type: "EServiceDescriptorApprovedByDelegator",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorDelegatorApprovedV2,
+      messageType: EServiceDescriptorApprovedByDelegatorV2,
       payload: writtenEvent.data,
     });
 

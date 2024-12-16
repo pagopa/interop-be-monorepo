@@ -100,7 +100,8 @@ export function createActivationUpdateAgreementSeed({
             agreement,
             authData.organizationId,
             agreementState.active,
-            stamp
+            stamp,
+            activeDelegations.producerDelegation?.delegateId
           ),
         },
         suspendedByPlatform,
