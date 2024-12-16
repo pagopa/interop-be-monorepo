@@ -224,6 +224,10 @@ export async function setupTestContainersVitest(
           `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
         );
       }
+
+      if (awsSESConfig?.awsSesEndpoint) {
+        await axios.post(`${awsSESConfig?.awsSesEndpoint}/clear-store`);
+      }
     },
   };
 }

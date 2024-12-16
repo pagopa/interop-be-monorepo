@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
@@ -19,6 +20,7 @@ import type {} from "vitest";
 import type { GlobalSetupContext } from "vitest/node";
 import { z } from "zod";
 import {
+  TEST_AWS_SES_PORT,
   TEST_DYNAMODB_PORT,
   TEST_MAILPIT_HTTP_PORT,
   TEST_MAILPIT_SMTP_PORT,
@@ -170,10 +172,13 @@ export function setupTestContainersVitestGlobal() {
     }
 
     if (awsSESConfig.success) {
-      console.log("Starting AWS SES container");
       startedAWSSesContainer = await awsSESContainer().start();
-      console.log("Successfully started AWS SES container");
-      provide("sesEmailManagerConfig", awsSESConfig.data);
+      provide("sesEmailManagerConfig", {
+        awsRegion: awsSESConfig.data.awsRegion,
+        awsSesEndpoint: `http://localhost:${startedAWSSesContainer.getMappedPort(
+          TEST_AWS_SES_PORT
+        )}`,
+      });
     }
 
     return async (): Promise<void> => {

@@ -132,17 +132,8 @@ export const redisContainer = (): GenericContainer =>
  */
 export const awsSESContainer = (): GenericContainer =>
   new GenericContainer("node:20")
-    // .withCommand([
-    //   `/bin/bash`,
-    //   `-c`,
-    //   `npm`,
-    //   `install`,
-    //   `-g`,
-    //   `aws-ses-v2-local`,
-    // ])
-    // .withCommand([
-    //   `aws-ses-v2-local`,
-    //   `--port=${TEST_AWS_SES_PORT}`,
-    //   `--host=0.0.0.0'`,
-    // ])
+    .withEntrypoint(["bash", "-c"])
+    .withCommand([
+      `npm install -g aws-ses-v2-local; aws-ses-v2-local --port=${TEST_AWS_SES_PORT} --host=0.0.0.0`,
+    ])
     .withExposedPorts(TEST_AWS_SES_PORT);
