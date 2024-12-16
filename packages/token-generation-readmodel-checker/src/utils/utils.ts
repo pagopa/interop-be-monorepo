@@ -63,6 +63,7 @@ import {
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerationReadModelService.js";
 
+// TODO: this should ignore WAITING_FOR_APPROVAL and REJECTED versions. Double check DRAFT state
 export function getLastPurposeVersion(
   purposeVersions: PurposeVersion[]
 ): PurposeVersion {
@@ -398,15 +399,14 @@ function validatePurposePlatformStates({
     };
   }
 
-  const isPlatformStatesPurposeCorrect = !platformStatesPurposeEntry
-    ? isArchived
-    : !isArchived &&
-      getIdFromPlatformStatesPK<PurposeId>(platformStatesPurposeEntry.PK).id ===
-        purpose.id &&
-      purposeState === platformStatesPurposeEntry.state &&
-      platformStatesPurposeEntry.purposeConsumerId === purpose.consumerId &&
-      platformStatesPurposeEntry.purposeEserviceId === purpose.eserviceId &&
-      platformStatesPurposeEntry.purposeVersionId === lastPurposeVersion.id;
+  const isPlatformStatesPurposeCorrect =
+    !isArchived &&
+    getIdFromPlatformStatesPK<PurposeId>(platformStatesPurposeEntry.PK).id ===
+      purpose.id &&
+    purposeState === platformStatesPurposeEntry.state &&
+    platformStatesPurposeEntry.purposeConsumerId === purpose.consumerId &&
+    platformStatesPurposeEntry.purposeEserviceId === purpose.eserviceId &&
+    platformStatesPurposeEntry.purposeVersionId === lastPurposeVersion.id;
 
   if (!isPlatformStatesPurposeCorrect) {
     console.log(`Purpose states are not equal:
@@ -541,16 +541,15 @@ function validateAgreementPlatformStates({
     };
   }
 
-  const isPlatformStatesAgreementCorrect = !platformAgreementEntry
-    ? isArchived
-    : !isArchived &&
-      agreementItemState === platformAgreementEntry.state &&
-      platformAgreementEntry.GSIPK_consumerId_eserviceId ===
-        makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement.consumerId,
-          eserviceId: agreement.eserviceId,
-        }) &&
-      platformAgreementEntry.agreementDescriptorId === agreement.descriptorId;
+  const isPlatformStatesAgreementCorrect =
+    !isArchived &&
+    agreementItemState === platformAgreementEntry.state &&
+    platformAgreementEntry.GSIPK_consumerId_eserviceId ===
+      makeGSIPKConsumerIdEServiceId({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      }) &&
+    platformAgreementEntry.agreementDescriptorId === agreement.descriptorId;
 
   if (!isPlatformStatesAgreementCorrect) {
     console.log(`Agreement states are not equal:
@@ -854,17 +853,16 @@ function validateClientPlatformStates({
     return { isPlatformStatesClientCorrect: false, data: undefined };
   }
 
-  const isPlatformStatesClientCorrect = !platformStatesClientEntry
-    ? true
-    : platformStatesClientEntry.state === itemState.active &&
-      getIdFromPlatformStatesPK<ClientId>(platformStatesClientEntry.PK).id ===
-        client.id &&
-      platformStatesClientEntry.clientKind ===
-        clientKindToTokenGenerationStatesClientKind(client.kind) &&
-      platformStatesClientEntry.clientConsumerId === client.consumerId &&
-      platformStatesClientEntry.clientPurposesIds.every((p) =>
-        client.purposes.includes(p)
-      );
+  const isPlatformStatesClientCorrect =
+    platformStatesClientEntry.state === itemState.active &&
+    getIdFromPlatformStatesPK<ClientId>(platformStatesClientEntry.PK).id ===
+      client.id &&
+    platformStatesClientEntry.clientKind ===
+      clientKindToTokenGenerationStatesClientKind(client.kind) &&
+    platformStatesClientEntry.clientConsumerId === client.consumerId &&
+    platformStatesClientEntry.clientPurposesIds.every((p) =>
+      client.purposes.includes(p)
+    );
 
   if (!isPlatformStatesClientCorrect) {
     console.log(`Client states are not equal:
