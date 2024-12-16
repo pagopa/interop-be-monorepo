@@ -79,6 +79,7 @@ import {
   verifiedAttributeSelfRevocationNotAllowed,
   agreementNotFound,
   notValidMailAddress,
+  verifiedAttributeSelfVerificationNotAllowed,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -708,6 +709,7 @@ export function tenantServiceBuilder(
         agreementState.active,
         agreementState.suspended,
       ];
+
       if (!allowedStatuses.includes(agreement.state)) {
         throw error;
       }
@@ -717,18 +719,20 @@ export function tenantServiceBuilder(
           agreement.eserviceId
         );
 
-      const delegateProducerId = producerDelegation?.delegateId;
-      const producerDelegator = producerDelegation?.delegatorId;
-
       await assertVerifiedAttributeOperationAllowed({
         requesterId: organizationId,
-        delegateProducerId,
-        consumerId: tenantId,
+        producerDelegation,
         attributeId,
         agreement,
         readModelService,
         error,
       });
+
+      const verifierId = agreement.producerId;
+
+      if (verifierId === tenantId) {
+        throw verifiedAttributeSelfVerificationNotAllowed();
+      }
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
@@ -749,13 +753,13 @@ export function tenantServiceBuilder(
           ? reassignVerifiedAttribute(
               targetTenant.data.attributes,
               verifiedTenantAttribute,
-              producerDelegator ?? organizationId,
+              verifierId,
               producerDelegation?.id,
               expirationDate
             )
           : assignVerifiedAttribute(
               targetTenant.data.attributes,
-              producerDelegator ?? organizationId,
+              verifierId,
               producerDelegation?.id,
               attributeId,
               expirationDate
@@ -791,10 +795,6 @@ export function tenantServiceBuilder(
         `Revoking verified attribute ${attributeId} to tenant ${tenantId}`
       );
 
-      if (authData.organizationId === tenantId) {
-        throw verifiedAttributeSelfRevocationNotAllowed();
-      }
-
       const targetTenant = await retrieveTenant(tenantId, readModelService);
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
@@ -805,6 +805,7 @@ export function tenantServiceBuilder(
         agreementState.active,
         agreementState.suspended,
       ];
+
       if (!allowedStatuses.includes(agreement.state)) {
         throw error;
       }
@@ -814,18 +815,20 @@ export function tenantServiceBuilder(
           agreement.eserviceId
         );
 
-      const delegateProducerId = producerDelegation?.delegateId;
-      const producerDelegator = producerDelegation?.delegatorId;
-
       await assertVerifiedAttributeOperationAllowed({
         requesterId: authData.organizationId,
-        delegateProducerId,
-        consumerId: tenantId,
+        producerDelegation,
         attributeId,
         agreement,
         readModelService,
         error,
       });
+
+      const revokerId = agreement.producerId;
+
+      if (revokerId === tenantId) {
+        throw verifiedAttributeSelfRevocationNotAllowed();
+      }
 
       const verifiedTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is VerifiedTenantAttribute =>
@@ -837,7 +840,7 @@ export function tenantServiceBuilder(
       }
 
       const verifier = verifiedTenantAttribute.verifiedBy.find(
-        (a) => a.id === authData.organizationId
+        (a) => a.id === revokerId
       );
 
       if (!verifier) {
@@ -845,15 +848,11 @@ export function tenantServiceBuilder(
       }
 
       const isInRevokedBy = verifiedTenantAttribute.revokedBy.some(
-        (a) => a.id === authData.organizationId
+        (a) => a.id === revokerId
       );
 
       if (isInRevokedBy) {
-        throw attributeAlreadyRevoked(
-          tenantId,
-          authData.organizationId,
-          attributeId
-        );
+        throw attributeAlreadyRevoked(tenantId, revokerId, attributeId);
       }
 
       const updatedTenant: Tenant = {
@@ -864,13 +863,13 @@ export function tenantServiceBuilder(
             ? ({
                 ...verifiedTenantAttribute,
                 verifiedBy: verifiedTenantAttribute.verifiedBy.filter(
-                  (v) => v.id !== authData.organizationId
+                  (v) => v.id !== revokerId
                 ),
                 revokedBy: [
                   ...verifiedTenantAttribute.revokedBy,
                   {
                     ...verifier,
-                    id: producerDelegator ?? verifier.id,
+                    id: revokerId,
                     delegationId: producerDelegation?.id,
                     revocationDate: new Date(),
                   },
@@ -879,6 +878,7 @@ export function tenantServiceBuilder(
             : attr
         ),
       };
+
       await repository.createEvent(
         toCreateEventTenantVerifiedAttributeRevoked(
           targetTenant.metadata.version,
@@ -887,6 +887,7 @@ export function tenantServiceBuilder(
           correlationId
         )
       );
+
       return updatedTenant;
     },
 

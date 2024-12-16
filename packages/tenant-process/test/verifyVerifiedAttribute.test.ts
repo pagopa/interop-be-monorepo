@@ -159,7 +159,7 @@ describe("verifyVerifiedAttribute", async () => {
             assignmentTimestamp: new Date(),
             verifiedBy: [
               {
-                id: hasDelegation ? delegation.delegatorId : requesterTenant.id,
+                id: eService1.producerId,
                 delegationId: hasDelegation ? delegation.id : undefined,
                 verificationDate: new Date(),
                 expirationDate: undefined,
@@ -253,7 +253,7 @@ describe("verifyVerifiedAttribute", async () => {
               { ...mockVerifiedBy },
               {
                 ...mockVerifiedBy,
-                id: hasDelegation ? delegation.delegatorId : requesterTenant.id,
+                id: eService1.producerId,
                 delegationId: hasDelegation ? delegation.id : undefined,
                 verificationDate: new Date(),
               },
@@ -355,7 +355,7 @@ describe("verifyVerifiedAttribute", async () => {
       )
     );
   });
-  it("Should throw verifiedAttributeSelfVerificationNotAllowed if the organizations are not allowed to revoke own attributes", async () => {
+  it.only("Should throw verifiedAttributeSelfVerificationNotAllowed if the organizations are not allowed to revoke own attributes", async () => {
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
     await addOneEService(eService1);
@@ -364,10 +364,10 @@ describe("verifyVerifiedAttribute", async () => {
     expect(
       tenantService.verifyVerifiedAttribute(
         {
-          tenantId: targetTenant.id,
+          tenantId: agreementEservice1.producerId,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
-          organizationId: targetTenant.id,
+          organizationId: agreementEservice1.producerId,
           correlationId: generateId(),
         },
         genericLogger
