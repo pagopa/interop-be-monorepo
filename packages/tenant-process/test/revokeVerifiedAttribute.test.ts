@@ -172,7 +172,7 @@ describe("revokeVerifiedAttribute", async () => {
             verifiedBy: [],
             revokedBy: [
               {
-                id: hasDelegation ? delegation.delegatorId : revokerTenant.id,
+                id: revokerTenant.id,
                 delegationId: hasDelegation ? delegation.id : undefined,
                 verificationDate: mockVerifiedBy.verificationDate,
                 revocationDate: new Date(),
