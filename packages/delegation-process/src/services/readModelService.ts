@@ -259,12 +259,14 @@ export function readModelServiceBuilder(
         delegationTenants: Array<{
           consumerId: string;
           consumerName: string;
+          eserviceId: string;
           producerId: string;
         }>
       ): Promise<string[]> => {
         const conditions = delegationTenants.map((d) => ({
           "data.producerId": d.producerId,
           "data.consumerId": d.consumerId,
+          "data.eserviceId": d.eserviceId,
         }));
 
         const data = await agreements.distinct("data.consumerId", {
@@ -334,6 +336,7 @@ export function readModelServiceBuilder(
             _id: 0,
             consumerId: "$delegator.data.id",
             consumerName: "$delegator.data.name",
+            eserviceId: "$eservice.data.id",
             producerId: "$eservice.data.producerId",
           },
         },
@@ -348,6 +351,7 @@ export function readModelServiceBuilder(
           z.object({
             consumerId: z.string(),
             consumerName: z.string(),
+            eserviceId: z.string(),
             producerId: z.string(),
           })
         )
