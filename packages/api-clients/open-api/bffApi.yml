@@ -12919,7 +12919,7 @@ paths:
       tags:
         - producerDelegations
       summary: Producer delegation creation
-      description: creates the producer delegation
+      description: creates a producer delegation
       operationId: createProducerDelegation
       requestBody:
         content:
@@ -13216,7 +13216,7 @@ paths:
       tags:
         - consumerDelegations
       summary: Consumer delegation creation
-      description: creates the consumer delegation
+      description: creates a consumer delegation
       operationId: createConsumerDelegation
       requestBody:
         content:
@@ -13523,7 +13523,7 @@ paths:
       operationId: getDelegation
       responses:
         "200":
-          description: Producer delegation retrieved
+          description: delegation retrieved
           content:
             application/json:
               schema:
