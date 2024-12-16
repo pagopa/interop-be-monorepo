@@ -30,7 +30,7 @@ import {
   tenantNotFound,
   attributeNotFound,
   delegationNotFound,
-  notAllowedToAddDeclaredAttribute,
+  operationRestrictedToDelegate,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -424,6 +424,6 @@ describe("addDeclaredAttribute", async () => {
         },
         genericLogger
       )
-    ).rejects.toThrowError(notAllowedToAddDeclaredAttribute());
+    ).rejects.toThrowError(operationRestrictedToDelegate());
   });
 });
