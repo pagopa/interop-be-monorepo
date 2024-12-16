@@ -13,6 +13,7 @@ import { addDays, subDays } from "date-fns";
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
@@ -1568,6 +1569,65 @@ describe("submit agreement", () => {
     const producer = getMockTenant();
     const consumerNotesText = "This is a test";
 
+    const certifiedAttribute: Attribute = {
+      ...getMockAttribute(),
+      kind: "Certified",
+    };
+
+    const declaredAttribute: Attribute = {
+      ...getMockAttribute(),
+      kind: "Declared",
+    };
+
+    const verifiedAttribute: Attribute = {
+      ...getMockAttribute(),
+      kind: "Verified",
+    };
+
+    const descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.suspended,
+      agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+      attributes: {
+        certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
+        declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
+        verified: [[getMockEServiceAttribute(verifiedAttribute.id)]],
+      },
+    };
+
+    const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+      descriptor,
+    ]);
+
+    const authData = getRandomAuthData(consumerId);
+    const agreement: Agreement = {
+      ...getMockAgreement(eservice.id, consumerId),
+      producerId: producer.id,
+      descriptorId: eservice.descriptors[0].id,
+      state: agreementState.draft,
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
+      stamps: {
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
+      },
+      suspendedAt: new Date(),
+      // The agreement is draft, so it doens't have a contract or attributes
+      contract: undefined,
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      verifiedAttributes: [],
+    };
+
+    const delegate = getMockTenant(generateId<TenantId>());
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      state: delegationState.active,
+      delegatorId: producer.id,
+      delegateId: delegate.id,
+      eserviceId: eservice.id,
+    });
+
     const validVerifiedTenantAttribute: TenantAttribute = {
       ...getMockVerifiedTenantAttribute(),
       verifiedBy: [
@@ -1576,6 +1636,7 @@ describe("submit agreement", () => {
           verificationDate: new Date(new Date().getFullYear() - 1),
           expirationDate: undefined,
           extensionDate: undefined,
+          delegationId: delegation.id,
         },
       ],
     };
@@ -1588,6 +1649,7 @@ describe("submit agreement", () => {
     const validDeclaredTenantAttribute: TenantAttribute = {
       ...getMockDeclaredTenantAttribute(),
       revocationTimestamp: undefined,
+      delegationId: undefined,
     };
 
     const consumer = {
@@ -1607,83 +1669,13 @@ describe("submit agreement", () => {
       ],
     };
 
-    const descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.suspended,
-      agreementApprovalPolicy: agreementApprovalPolicy.automatic,
-      attributes: {
-        certified: [
-          [getMockEServiceAttribute(validCertifiedTenantAttribute.id)],
-        ],
-        declared: [[getMockEServiceAttribute(validDeclaredTenantAttribute.id)]],
-        verified: [[getMockEServiceAttribute(validVerifiedTenantAttribute.id)]],
-      },
-    };
-
-    const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
-      descriptor,
-    ]);
-
-    const authData = getRandomAuthData(consumer.id);
-    const agreement: Agreement = {
-      ...getMockAgreement(eservice.id, consumer.id),
-      producerId: producer.id,
-      descriptorId: eservice.descriptors[0].id,
-      state: agreementState.draft,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: getRandomPastStamp(authData.userId),
-        suspensionByProducer: getRandomPastStamp(authData.userId),
-      },
-      suspendedAt: new Date(),
-      // The agreement is draft, so it doens't have a contract or attributes
-      contract: undefined,
-      certifiedAttributes: [],
-      declaredAttributes: [],
-      verifiedAttributes: [],
-    };
-
-    const verifiedAttribute: Attribute = {
-      id: validVerifiedTenantAttribute.id,
-      kind: attributeKind.verified,
-      description: "A verified attribute",
-      name: "A verified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
-    };
-
-    const declareAttribute: Attribute = {
-      id: validDeclaredTenantAttribute.id,
-      kind: attributeKind.declared,
-      description: "A declared attribute",
-      name: "A declared attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
-    };
-
-    const certifiedAttribute: Attribute = {
-      id: validCertifiedTenantAttribute.id,
-      kind: attributeKind.certified,
-      description: "A certified attribute",
-      name: "A certified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
-    };
-
-    const delegate = getMockTenant(generateId<TenantId>());
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedProducer,
-      state: delegationState.active,
-      delegatorId: producer.id,
-      delegateId: delegate.id,
-      eserviceId: eservice.id,
-    });
-
     await addOneTenant(delegate);
     await addOneDelegation(delegation);
     await addOneEService(eservice);
     await addOneTenant(consumer);
     await addOneTenant(producer);
     await addOneAttribute(verifiedAttribute);
-    await addOneAttribute(declareAttribute);
+    await addOneAttribute(declaredAttribute);
     await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
@@ -1834,8 +1826,9 @@ describe("submit agreement", () => {
           assignmentTime: timeAtRomeZone(
             validDeclaredTenantAttribute.assignmentTimestamp
           ),
-          attributeName: declareAttribute.name,
+          attributeName: declaredAttribute.name,
           attributeId: validDeclaredTenantAttribute.id,
+          delegationId: undefined,
         },
       ],
       verifiedAttributes: [
@@ -1849,6 +1842,7 @@ describe("submit agreement", () => {
           attributeName: verifiedAttribute.name,
           attributeId: validVerifiedTenantAttribute.id,
           expirationDate: undefined,
+          delegationId: delegation.id,
         },
       ],
       producerDelegationId: delegation.id,
