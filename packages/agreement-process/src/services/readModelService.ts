@@ -7,6 +7,7 @@ import {
   RemoveDataPrefix,
   Metadata,
   AttributeCollection,
+  DelegationCollection,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -23,6 +24,7 @@ import {
   descriptorState,
   EServiceId,
   AttributeReadmodel,
+  DelegationReadModel,
   TenantId,
   genericInternalError,
   Delegation,
@@ -255,6 +257,27 @@ async function getAttribute(
   return undefined;
 }
 
+async function getDelegation(
+  delegations: DelegationCollection,
+  filter: Filter<{ data: DelegationReadModel }>
+): Promise<Delegation | undefined> {
+  const data = await delegations.findOne(filter, {
+    projection: { data: true },
+  });
+  if (data) {
+    const result = Delegation.safeParse(data.data);
+    if (!result.success) {
+      throw genericInternalError(
+        `Unable to parse delegation item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return result.data;
+  }
+  return undefined;
+}
+
 // eslint-disable-next-line max-params
 async function searchTenantsByName(
   agreements: AgreementCollection,
@@ -340,11 +363,8 @@ function getDelegateAgreementsFilters(producerIds: TenantId[] | undefined) {
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const agreements = readModelRepository.agreements;
-  const eservices = readModelRepository.eservices;
-  const tenants = readModelRepository.tenants;
-  const attributes = readModelRepository.attributes;
-  const delegations = readModelRepository.delegations;
+  const { agreements, eservices, tenants, attributes, delegations } =
+    readModelRepository;
   return {
     async getAgreements(
       filters: AgreementQueryFilters,
@@ -610,19 +630,27 @@ export function readModelServiceBuilder(
     async getActiveProducerDelegationByEserviceId(
       eserviceId: EServiceId
     ): Promise<Delegation | undefined> {
-      const data = await delegations.findOne(
-        {
-          "data.eserviceId": eserviceId,
-          "data.state": delegationState.active,
-          "data.kind": delegationKind.delegatedProducer,
-        },
-        { projection: { data: true } }
-      );
+      return getDelegation(delegations, {
+        "data.eserviceId": eserviceId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedProducer,
+      });
+    },
+    async getActiveConsumerDelegationsByEserviceId(
+      eserviceId: EServiceId
+    ): Promise<Delegation[]> {
+      const data = await delegations
+        .find(
+          {
+            "data.eserviceId": eserviceId,
+            "data.state": delegationState.active,
+            "data.kind": delegationKind.delegatedConsumer,
+          },
+          { projection: { data: true } }
+        )
+        .toArray();
 
-      if (!data) {
-        return undefined;
-      }
-      const result = z.object({ data: Delegation }).safeParse(data);
+      const result = z.array(Delegation).safeParse(data.map((d) => d.data));
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse delegation item: result ${JSON.stringify(
@@ -630,7 +658,17 @@ export function readModelServiceBuilder(
           )} - data ${JSON.stringify(data)} `
         );
       }
-      return result.data.data;
+      return result.data;
+    },
+    async getActiveConsumerDelegationByAgreement(
+      agreement: Pick<Agreement, "consumerId" | "eserviceId">
+    ): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.eserviceId": agreement.eserviceId,
+        "data.delegatorId": agreement.consumerId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedConsumer,
+      });
     },
   };
 }

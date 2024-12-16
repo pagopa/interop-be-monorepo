@@ -18,6 +18,7 @@ import {
   tenantAttributeType,
   tenantKind,
   SCP,
+  TenantFeature,
   Agreement,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -30,8 +31,9 @@ import {
   tenantIsNotACertifier,
   verifiedAttributeSelfVerificationNotAllowed,
   attributeNotFound,
-  tenantAlreadyHasDelegatedProducerFeature,
-  tenantHasNoDelegatedProducerFeature,
+  tenantDoesNotHaveFeature,
+  tenantAlreadyHasFeature,
+  tenantIsNotIPA,
   eServiceNotFound,
   descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
@@ -159,7 +161,7 @@ export async function assertRequesterAllowed(
 
 export function assertRequesterIPAOrigin(authData: AuthData): void {
   if (authData.externalId.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
-    throw operationForbidden;
+    throw tenantIsNotIPA(authData.organizationId);
   }
 }
 
@@ -258,16 +260,27 @@ export function retrieveCertifierId(tenant: Tenant): string {
   return certifierFeature;
 }
 
-export function assertDelegatedProducerFeatureNotAssigned(
-  tenant: Tenant
+function isFeatureAssigned(
+  tenant: Tenant,
+  featureType: TenantFeature["type"]
+): boolean {
+  return tenant.features.some((f) => f.type === featureType);
+}
+
+export function assertFeatureNotAssigned(
+  tenant: Tenant,
+  featureType: TenantFeature["type"]
 ): void {
-  if (tenant.features.some((f) => f.type === "DelegatedProducer")) {
-    throw tenantAlreadyHasDelegatedProducerFeature(tenant.id);
+  if (isFeatureAssigned(tenant, featureType)) {
+    throw tenantAlreadyHasFeature(tenant.id, featureType);
   }
 }
 
-export function assertDelegatedProducerFeatureAssigned(tenant: Tenant): void {
-  if (!tenant.features.some((f) => f.type === "DelegatedProducer")) {
-    throw tenantHasNoDelegatedProducerFeature(tenant.id);
+export function assertFeatureAssigned(
+  tenant: Tenant,
+  featureType: TenantFeature["type"]
+): void {
+  if (!isFeatureAssigned(tenant, featureType)) {
+    throw tenantDoesNotHaveFeature(tenant.id, featureType);
   }
 }

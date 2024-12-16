@@ -223,7 +223,11 @@ describe("clone agreement", () => {
 
   it("should throw an operationNotAllowed error when the requester is not the Consumer", async () => {
     const authData = getRandomAuthData();
-    const agreement = getMockAgreement();
+    const agreement = getMockAgreement(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      randomArrayItem(agreementClonableStates)
+    );
     await addOneAgreement(agreement);
     await expect(
       agreementService.cloneAgreement(agreement.id, {

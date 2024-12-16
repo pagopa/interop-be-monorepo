@@ -526,6 +526,20 @@ export function agreementServiceBuilder(
         results: consumers.results.map((c) => toBffCompactOrganization(c)),
       };
     },
+    async verifyTenantCertifiedAttributes(
+      body: bffApi.verifyTenantCertifiedAttributes_Body,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.HasCertifiedAttributes> {
+      logger.info(
+        `Veryfing tenant ${body.tenantId} has required certified attributes for descriptor ${body.descriptorId} of eservice ${body.eserviceId}`
+      );
+      return await agreementProcessClient.verifyTenantCertifiedAttributes(
+        body,
+        {
+          headers,
+        }
+      );
+    },
   };
 }
 

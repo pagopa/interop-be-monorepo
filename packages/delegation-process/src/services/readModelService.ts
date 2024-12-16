@@ -100,11 +100,12 @@ export function readModelServiceBuilder(
         };
       }
     },
-    async getDelegationById(
-      id: DelegationId
+    async getDelegation(
+      id: DelegationId,
+      kind: DelegationKind | undefined = undefined
     ): Promise<WithMetadata<Delegation> | undefined> {
       const data = await delegations.findOne(
-        { "data.id": id },
+        { "data.id": id, ...(kind ? { "data.kind": kind } : {}) },
         {
           projection: { data: true, metadata: true },
         }

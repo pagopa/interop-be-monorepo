@@ -33,10 +33,13 @@ export type ErrorCodes = keyof typeof errorCodes;
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function delegationNotFound(
-  delegationId: DelegationId
+  delegationId: DelegationId,
+  kind: DelegationKind | undefined = undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegation ${delegationId} not found`,
+    detail: kind
+      ? `Delegation ${delegationId} of kind ${kind} not found`
+      : `Delegation ${delegationId} not found`,
     code: "delegationNotFound",
     title: "Delegation not found",
   });

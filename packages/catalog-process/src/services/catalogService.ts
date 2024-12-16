@@ -43,7 +43,7 @@ import {
   operationForbidden,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { RejectDelegatedEServiceDescriptorSeed } from "../../../api-clients/dist/catalogApi.js";
 import { config } from "../config/config.js";
 import {
@@ -493,6 +493,12 @@ export function catalogServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
+        isDelegable: seed.isDelegable,
+        isClientAccessDelegable: match(seed.isDelegable)
+          .with(P.nullish, () => undefined)
+          .with(false, () => false)
+          .with(true, () => seed.isClientAccessDelegable)
+          .exhaustive(),
       };
 
       const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -619,6 +625,12 @@ export function catalogServiceBuilder(
             }))
           : eservice.data.descriptors,
         isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
+        isDelegable: eserviceSeed.isDelegable,
+        isClientAccessDelegable: match(eserviceSeed.isDelegable)
+          .with(P.nullish, () => undefined)
+          .with(false, () => false)
+          .with(true, () => eserviceSeed.isClientAccessDelegable)
+          .exhaustive(),
       };
 
       const event = toCreateEventEServiceUpdated(

@@ -46,13 +46,13 @@ import {
   operationNotAllowed,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { createStamp } from "../src/services/agreementStampUtils.js";
 import {
   addOneAgreement,
   addOneDelegation,
   addOneEService,
   addOneTenant,
   agreementService,
+  getRandomPastStamp,
   readLastAgreementEvent,
 } from "./utils.js";
 
@@ -318,13 +318,13 @@ describe("suspend agreement", () => {
       suspendedByProducer: randomBoolean(),
       suspendedByPlatform: randomBoolean(),
       stamps: {
-        activation: createStamp(authData.userId),
-        archiving: createStamp(authData.userId),
-        rejection: createStamp(authData.userId),
-        submission: createStamp(authData.userId),
-        upgrade: createStamp(authData.userId),
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        activation: getRandomPastStamp(authData.userId),
+        archiving: getRandomPastStamp(authData.userId),
+        rejection: getRandomPastStamp(authData.userId),
+        submission: getRandomPastStamp(authData.userId),
+        upgrade: getRandomPastStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
     };
 
@@ -491,7 +491,11 @@ describe("suspend agreement", () => {
 
   it("should throw operationNotAllowed when the requester is not the Consumer or the Producer", async () => {
     const authData = getRandomAuthData();
-    const agreement = getMockAgreement();
+    const agreement = getMockAgreement(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      randomArrayItem(agreementSuspendableStates)
+    );
     await addOneAgreement(agreement);
     await expect(
       agreementService.suspendAgreement(agreement.id, {
