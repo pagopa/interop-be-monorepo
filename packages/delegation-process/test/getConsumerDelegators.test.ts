@@ -27,6 +27,7 @@ describe("getConsumerDelegators", () => {
   const delegator3 = { ...getMockTenant(), name: "DeleganteTre" };
   const delegator4 = { ...getMockTenant(), name: "DeleganteQuattro" };
   const delegator5 = { ...getMockTenant(), name: "PagoPA" };
+  const delegator6 = getMockTenant();
   const delegateId = generateId<TenantId>();
   const eserviceId1 = getMockEService();
   const eserviceId2 = getMockEService();
@@ -115,6 +116,21 @@ describe("getConsumerDelegators", () => {
 
   // Delegator5 has 1 active delegation and 1 active agreement
 
+  const mockDelegation6 = getMockDelegation({
+    kind: delegationKind.delegatedConsumer,
+    state: delegationState.active,
+    delegateId: generateId<TenantId>(),
+    delegatorId: delegator6.id,
+    eserviceId: eserviceId3.id,
+  });
+
+  const mockAgreement6 = {
+    ...getMockAgreement(eserviceId3.id, delegator6.id, agreementState.active),
+    producerId: eserviceId3.producerId,
+  };
+
+  // Delegator6 has 1 active delegation and 1 active agreement but a different delegateId
+
   beforeEach(async () => {
     await addOneEservice(eserviceId1);
     await addOneEservice(eserviceId2);
@@ -125,16 +141,19 @@ describe("getConsumerDelegators", () => {
     await addOneDelegation(mockDelegation3);
     await addOneDelegation(mockDelegation4);
     await addOneDelegation(mockDelegation5);
+    await addOneDelegation(mockDelegation6);
     await addOneTenant(delegator1);
     await addOneTenant(delegator2);
     await addOneTenant(delegator3);
     await addOneTenant(delegator4);
     await addOneTenant(delegator5);
+    await addOneTenant(delegator6);
     await addOneAgreement(mockAgreement1);
     await addOneAgreement(mockAgreement1bis);
     await addOneAgreement(mockAgreement2);
     await addOneAgreement(mockAgreement4);
     await addOneAgreement(mockAgreement5);
+    await addOneAgreement(mockAgreement6);
   });
 
   it("should get delegators filtered by delegateId", async () => {
