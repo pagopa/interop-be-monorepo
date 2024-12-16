@@ -257,12 +257,12 @@ describe("get agreements", () => {
     const allAgreements = await agreementService.getAgreements(
       {},
       agreement1.producerId,
-      10,
+      20,
       0,
       genericLogger
     );
     expect(allAgreements).toEqual({
-      totalCount: 8,
+      totalCount: 11,
       results: expect.arrayContaining([
         agreement1,
         agreement2,
@@ -272,6 +272,9 @@ describe("get agreements", () => {
         agreement6,
         agreement7,
         agreement8,
+        agreement9,
+        agreement10,
+        agreement11,
       ]),
     });
   });
@@ -416,7 +419,7 @@ describe("get agreements", () => {
       genericLogger
     );
     expect(agreements2).toEqual({
-      totalCount: 6,
+      totalCount: 9,
       results: expect.arrayContaining([
         agreement1,
         agreement3,
@@ -424,6 +427,9 @@ describe("get agreements", () => {
         agreement6,
         agreement7,
         agreement8,
+        agreement9,
+        agreement10,
+        agreement11,
       ]),
     });
   });
