@@ -304,17 +304,6 @@ export function readModelServiceBuilder(
         {
           $unwind: "$delegator",
         },
-        {
-          $lookup: {
-            from: "eservices",
-            localField: "data.eserviceId",
-            foreignField: "data.id",
-            as: "eservice",
-          },
-        },
-        {
-          $unwind: "$eservice",
-        },
         ...(filters.delegatorName
           ? [
               {
@@ -329,6 +318,17 @@ export function readModelServiceBuilder(
               },
             ]
           : []),
+        {
+          $lookup: {
+            from: "eservices",
+            localField: "data.eserviceId",
+            foreignField: "data.id",
+            as: "eservice",
+          },
+        },
+        {
+          $unwind: "$eservice",
+        },
         {
           $project: {
             _id: 0,
