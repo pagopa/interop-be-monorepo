@@ -425,16 +425,13 @@ function validatePurposePlatformStates({
 
   return {
     isPlatformStatesPurposeCorrect,
-    data:
-      !isPlatformStatesPurposeCorrect && platformStatesPurposeEntry
-        ? {
-            PK: platformStatesPurposeEntry.PK,
-            state: platformStatesPurposeEntry.state,
-            purposeConsumerId: platformStatesPurposeEntry.purposeConsumerId,
-            purposeEserviceId: platformStatesPurposeEntry.purposeEserviceId,
-            purposeVersionId: platformStatesPurposeEntry.purposeVersionId,
-          }
-        : undefined,
+    data: {
+      PK: platformStatesPurposeEntry.PK,
+      state: platformStatesPurposeEntry.state,
+      purposeConsumerId: platformStatesPurposeEntry.purposeConsumerId,
+      purposeEserviceId: platformStatesPurposeEntry.purposeEserviceId,
+      purposeVersionId: platformStatesPurposeEntry.purposeVersionId,
+    },
   };
 }
 
@@ -560,16 +557,13 @@ function validateAgreementPlatformStates({
 
   return {
     isPlatformStatesAgreementCorrect,
-    data:
-      !isPlatformStatesAgreementCorrect && platformAgreementEntry
-        ? {
-            PK: platformAgreementEntry.PK,
-            state: platformAgreementEntry.state,
-            GSIPK_consumerId_eserviceId:
-              platformAgreementEntry.GSIPK_consumerId_eserviceId,
-            agreementDescriptorId: platformAgreementEntry.agreementDescriptorId,
-          }
-        : undefined,
+    data: {
+      PK: platformAgreementEntry.PK,
+      state: platformAgreementEntry.state,
+      GSIPK_consumerId_eserviceId:
+        platformAgreementEntry.GSIPK_consumerId_eserviceId,
+      agreementDescriptorId: platformAgreementEntry.agreementDescriptorId,
+    },
   };
 }
 
@@ -710,15 +704,12 @@ function validateCatalogPlatformStates({
 
   return {
     isPlatformStatesCatalogCorrect,
-    data: !isPlatformStatesCatalogCorrect
-      ? {
-          PK: platformCatalogEntry.PK,
-          state: platformCatalogEntry.state,
-          descriptorVoucherLifespan:
-            platformCatalogEntry.descriptorVoucherLifespan,
-          descriptorAudience: platformCatalogEntry.descriptorAudience,
-        }
-      : undefined,
+    data: {
+      PK: platformCatalogEntry.PK,
+      state: platformCatalogEntry.state,
+      descriptorVoucherLifespan: platformCatalogEntry.descriptorVoucherLifespan,
+      descriptorAudience: platformCatalogEntry.descriptorAudience,
+    },
   };
 }
 
@@ -861,19 +852,21 @@ function validateClientPlatformStates({
   )}
   client read-model: ${JSON.stringify(ComparisonClient.parse(client))}`
     );
+
+    return {
+      isPlatformStatesClientCorrect,
+      data: {
+        PK: platformStatesClientEntry.PK,
+        clientKind: platformStatesClientEntry.clientKind,
+        clientConsumerId: platformStatesClientEntry.clientConsumerId,
+        clientPurposesIds: platformStatesClientEntry.clientPurposesIds,
+      },
+    };
   }
 
   return {
     isPlatformStatesClientCorrect,
-    data:
-      !isPlatformStatesClientCorrect && platformStatesClientEntry
-        ? {
-            PK: platformStatesClientEntry.PK,
-            clientKind: platformStatesClientEntry.clientKind,
-            clientConsumerId: platformStatesClientEntry.clientConsumerId,
-            clientPurposesIds: platformStatesClientEntry.clientPurposesIds,
-          }
-        : undefined,
+    data: undefined,
   };
 }
 
