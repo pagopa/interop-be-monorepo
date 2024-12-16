@@ -939,10 +939,10 @@ function validateTokenGenerationStates({
                 );
               } else {
                 console.log(
-                  `token-generation-states entry with PK ${e.PK} has no purpose`
+                  `no purpose found in read model for token-generation-states entry with PK ${e.PK}`
                 );
                 logger.error(
-                  `token-generation-states entry with PK ${e.PK} has no purpose`
+                  `no purpose found in read model for token-generation-states entry with PK ${e.PK}`
                 );
               }
 
@@ -973,10 +973,10 @@ function validateTokenGenerationStates({
 
             if (!agreement) {
               logger.error(
-                `token-generation-states entry with PK ${e.PK} has no agreement`
+                `no agreement found in read model for token-generation-states entry with PK ${e.PK}`
               );
               console.log(
-                `token-generation-states entry with PK ${e.PK} has no agreement`
+                `no agreement found in read model for token-generation-states entry with PK ${e.PK}`
               );
 
               return [
@@ -1010,10 +1010,10 @@ function validateTokenGenerationStates({
 
             if (!eservice) {
               console.log(
-                `token-generation-states entry with PK ${e.PK} has no eservice`
+                `no e-service found in read model for token-generation-states entry with PK ${e.PK}`
               );
               logger.error(
-                `token-generation-states entry with PK ${e.PK} has no eservice`
+                `no e-service found in read model for token-generation-states entry with PK ${e.PK}`
               );
 
               return [
@@ -1098,6 +1098,11 @@ function validateTokenGenerationStates({
   ${JSON.stringify(wrongTokenGenStatesEntry)}
                 `
               );
+              logger.error(`token-generation-states entry with PK ${
+                e.PK
+              } is incorrect:
+  ${JSON.stringify(wrongTokenGenStatesEntry)}
+                `);
               return [...acc, wrongTokenGenStatesEntry];
             }
           } else {
