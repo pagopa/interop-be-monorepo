@@ -87,7 +87,8 @@ export function createSuspensionUpdatedAgreement({
     agreement,
     authData.organizationId,
     agreementState.suspended,
-    stamp
+    stamp,
+    activeDelegations.consumerDelegation?.delegateId
   );
 
   const updateSeed: UpdateAgreementSeed = {
