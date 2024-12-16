@@ -376,22 +376,22 @@ export function readModelServiceBuilder(
         result.data
       );
 
-      const uniqueDelegators = result.data
-        .filter((delegation) =>
-          activeDelegators.includes(delegation.consumerId)
-        )
-        .reduce((map, delegation) => {
-          if (!map.has(delegation.consumerId)) {
-            map.set(delegation.consumerId, {
-              id: delegation.consumerId,
-              name: delegation.consumerName,
-            });
-          }
-          return map;
-        }, new Map<string, delegationApi.CompactTenant>())
-        .values();
-
-      const filteredDelegators = Array.from(uniqueDelegators);
+      const filteredDelegators = Array.from(
+        result.data
+          .filter((delegation) =>
+            activeDelegators.includes(delegation.consumerId)
+          )
+          .reduce((map, delegation) => {
+            if (!map.has(delegation.consumerId)) {
+              map.set(delegation.consumerId, {
+                id: delegation.consumerId,
+                name: delegation.consumerName,
+              });
+            }
+            return map;
+          }, new Map<string, delegationApi.CompactTenant>())
+          .values()
+      );
 
       return {
         results: filteredDelegators.slice(
