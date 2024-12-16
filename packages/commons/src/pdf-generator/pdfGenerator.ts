@@ -8,7 +8,7 @@ import { buildHTMLTemplateService } from "../index.js";
 export interface PDFGenerator {
   generate: (
     templatePath: string,
-    context: Record<string, string>
+    context: Record<string, unknown>
   ) => Promise<Buffer>;
 }
 
@@ -54,7 +54,7 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
   return {
     generate: async (
       templatePath: string,
-      context: Record<string, string>
+      context: Record<string, unknown>
     ): Promise<Buffer> => {
       const filename = fileURLToPath(import.meta.url);
       const dirname = path.dirname(filename);
@@ -73,7 +73,9 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
           ...context,
           "paged-pdf-polyfill": `<script src="file://${polyfillFilePath}"></script>`,
         });
-        await page.setContent(htmlCompiled, { waitUntil: "networkidle2" });
+        await page.setContent(htmlCompiled, {
+          waitUntil: "networkidle2",
+        });
 
         return await page.pdf({
           format: "A4",
