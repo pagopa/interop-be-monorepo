@@ -577,6 +577,7 @@ describe("upgrade Agreement", () => {
     const validDeclaredTenantAttribute = {
       ...getMockDeclaredTenantAttribute(),
       revocationTimestamp: undefined,
+      delegationId: undefined,
     };
 
     const declaredAttribute = getMockAttribute(
