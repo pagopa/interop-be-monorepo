@@ -319,20 +319,24 @@ export async function compareReadModelPurposesWithPlatformStates({
     const purpose = purposesById.get(id);
 
     if (!platformStatesEntry && !purpose) {
-      return acc;
-    } else if (!purpose) {
-      const purposeDifferencesEntry: [
-        ComparisonPlatformStatesPurposeEntry | undefined,
-        ComparisonPurpose | undefined
-      ] = [
-        platformStatesEntry
-          ? ComparisonPlatformStatesPurposeEntry.parse(platformStatesEntry)
-          : undefined,
-        undefined,
-      ];
+      throw genericInternalError(
+        `Purpose and platform-states entry are missing for id: ${id}`
+      );
+    }
+
+    if (!purpose) {
       console.log(`Read model purpose not found for id: ${id}`);
       logger.error(`Read model purpose not found for id: ${id}`);
-      return [...acc, purposeDifferencesEntry];
+
+      return [
+        ...acc,
+        [
+          platformStatesEntry
+            ? ComparisonPlatformStatesPurposeEntry.parse(platformStatesEntry)
+            : undefined,
+          purpose,
+        ],
+      ];
     }
 
     const purposeState = getPurposeStateFromPurposeVersions(purpose.versions);
@@ -462,20 +466,24 @@ export async function compareReadModelAgreementsWithPlatformStates({
     const agreement = agreementsById.get(id);
 
     if (!platformStatesEntry && !agreement) {
-      return acc;
-    } else if (!agreement) {
-      const agreementDifferencesEntry: [
-        ComparisonPlatformStatesAgreementEntry | undefined,
-        ComparisonAgreement | undefined
-      ] = [
-        platformStatesEntry
-          ? ComparisonPlatformStatesAgreementEntry.parse(platformStatesEntry)
-          : undefined,
-        undefined,
-      ];
+      throw genericInternalError(
+        `Agreement and platform-states entry are missing for id: ${id}`
+      );
+    }
+
+    if (!agreement) {
       console.log(`Read model agreement not found for id: ${id}`);
       logger.error(`Read model agreement not found for id: ${id}`);
-      return [...acc, agreementDifferencesEntry];
+
+      return [
+        ...acc,
+        [
+          platformStatesEntry
+            ? ComparisonPlatformStatesAgreementEntry.parse(platformStatesEntry)
+            : undefined,
+          agreement,
+        ],
+      ];
     }
 
     const agreementItemState = agreementStateToItemState(agreement.state);
@@ -602,20 +610,24 @@ export async function compareReadModelEServicesWithPlatformStates({
     const eservice = eservicesById.get(id);
 
     if (!platformStatesEntry && !eservice) {
-      return acc;
-    } else if (!eservice) {
-      const catalogDifferences: [
-        ComparisonPlatformStatesCatalogEntry | undefined,
-        ComparisonEService | undefined
-      ] = [
-        platformStatesEntry
-          ? ComparisonPlatformStatesCatalogEntry.parse(platformStatesEntry)
-          : undefined,
-        undefined,
-      ];
+      throw genericInternalError(
+        `E-Service and platform-states entry are missing for id: ${id}`
+      );
+    }
+
+    if (!eservice) {
       console.log(`Read model eservice not found for id: ${id}`);
       logger.error(`Read model eservice not found for id: ${id}`);
-      return [...acc, catalogDifferences];
+
+      return [
+        ...acc,
+        [
+          platformStatesEntry
+            ? ComparisonPlatformStatesCatalogEntry.parse(platformStatesEntry)
+            : undefined,
+          eservice,
+        ],
+      ];
     }
 
     const lastEServiceDescriptor = getLastEServiceDescriptor(
@@ -757,26 +769,29 @@ export async function compareReadModelClientsAndTokenGenStates({
     const client = clientsById.get(id);
 
     if (!platformStatesEntry && !tokenGenStatesEntries?.length && !client) {
-      return acc;
-    } else if (!client) {
-      const clientDifferencesEntry: [
-        ComparisonPlatformStatesClientEntry | undefined,
-        ComparisonTokenGenStatesGenericClient[] | undefined,
-        ComparisonClient | undefined
-      ] = [
-        platformStatesEntry
-          ? ComparisonPlatformStatesClientEntry.parse(platformStatesEntry)
-          : undefined,
-        tokenGenStatesEntries && tokenGenStatesEntries.length > 0
-          ? ComparisonTokenGenStatesGenericClient.array().parse(
-              tokenGenStatesEntries
-            )
-          : undefined,
-        undefined,
-      ];
+      throw genericInternalError(
+        `Client, platform-states entry and token-generation states entries are missing for id: ${id}`
+      );
+    }
+
+    if (!client) {
       console.log(`Read model client not found for id: ${id}`);
       logger.error(`Read model client not found for id: ${id}`);
-      return [...acc, clientDifferencesEntry];
+
+      return [
+        ...acc,
+        [
+          platformStatesEntry
+            ? ComparisonPlatformStatesClientEntry.parse(platformStatesEntry)
+            : undefined,
+          tokenGenStatesEntries && tokenGenStatesEntries.length > 0
+            ? ComparisonTokenGenStatesGenericClient.array().parse(
+                tokenGenStatesEntries
+              )
+            : undefined,
+          client,
+        ],
+      ];
     }
 
     const {
