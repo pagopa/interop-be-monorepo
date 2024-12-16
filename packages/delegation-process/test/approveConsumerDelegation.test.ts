@@ -108,7 +108,7 @@ describe("approve consumer delegation", () => {
       createdAt: currentExecutionTime,
       name: expectedContractName,
       path: `${config.delegationDocumentPath}/${delegation.id}/${expectedContractId}/${expectedContractName}`,
-      prettyName: "Delega",
+      prettyName: `Delega_${eservice.name}`,
     };
 
     expect(
