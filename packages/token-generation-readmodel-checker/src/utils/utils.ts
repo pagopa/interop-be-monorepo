@@ -1007,13 +1007,23 @@ function validateTokenGenerationStates({
                 descriptorId: agreement.descriptorId,
               })
             );
+            const descriptor = eservice?.descriptors.find(
+              (d) => d.id === agreement.descriptorId
+            );
 
-            if (!eservice) {
+            if (!eservice || !descriptor) {
+              const missingEServiceDescriptor = [
+                !eservice ? "e-service" : null,
+                !descriptor ? "descriptor" : null,
+              ]
+                .filter(Boolean)
+                .join(" and ");
+
               console.log(
-                `no e-service found in read model for token-generation-states entry with PK ${e.PK}`
+                `no ${missingEServiceDescriptor} for token-generation-states entry with PK ${e.PK}`
               );
               logger.error(
-                `no e-service found in read model for token-generation-states entry with PK ${e.PK}`
+                `no ${missingEServiceDescriptor} for token-generation-states entry with PK ${e.PK}`
               );
 
               return [
@@ -1036,7 +1046,6 @@ function validateTokenGenerationStates({
                 },
               ];
             }
-            const descriptor = getLastEServiceDescriptor(eservice.descriptors);
 
             if (
               getClientIdFromTokenGenStatesPK(e.PK) !== client.id ||
