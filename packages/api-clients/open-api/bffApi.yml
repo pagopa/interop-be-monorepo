@@ -14867,6 +14867,8 @@ components:
           type: boolean
         descriptor:
           $ref: "#/components/schemas/CompactDescriptor"
+        isDelegated:
+          type: boolean
     CompactAttribute:
       type: object
       additionalProperties: false
