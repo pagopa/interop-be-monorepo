@@ -6979,6 +6979,25 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Not found
           content:
@@ -12900,7 +12919,7 @@ paths:
       tags:
         - producerDelegations
       summary: Producer delegation creation
-      description: creates the producer delegation
+      description: creates a producer delegation
       operationId: createProducerDelegation
       requestBody:
         content:
@@ -13197,7 +13216,7 @@ paths:
       tags:
         - consumerDelegations
       summary: Consumer delegation creation
-      description: creates the consumer delegation
+      description: creates a consumer delegation
       operationId: createConsumerDelegation
       requestBody:
         content:
@@ -13504,7 +13523,7 @@ paths:
       operationId: getDelegation
       responses:
         "200":
-          description: Producer delegation retrieved
+          description: delegation retrieved
           content:
             application/json:
               schema:
@@ -16219,6 +16238,9 @@ components:
         revocationTimestamp:
           type: string
           format: date-time
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
         - name
@@ -16229,6 +16251,9 @@ components:
       additionalProperties: false
       properties:
         id:
+          type: string
+          format: uuid
+        delegationId:
           type: string
           format: uuid
       required:

@@ -104,6 +104,7 @@ export function toApiTenantAttribute(
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
         revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
+        delegationId: attribute.delegationId,
       },
     }))
     .exhaustive();

@@ -118,6 +118,7 @@ export const DeclaredTenantAttribute = z.object({
   id: AttributeId,
   assignmentTimestamp: z.coerce.date(),
   revocationTimestamp: z.coerce.date().optional(),
+  delegationId: DelegationId.optional(),
 });
 export type DeclaredTenantAttribute = z.infer<typeof DeclaredTenantAttribute>;
 

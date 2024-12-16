@@ -60,7 +60,7 @@ const consumerDelegationRouter = (
     .post("/consumer/delegations/:delegationId/approve", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        await delegationService.delegateApproveConsumerDelegation(
+        await delegationService.approveConsumerDelegation(
           unsafeBrandId(req.params.delegationId),
           ctx
         );
@@ -81,7 +81,7 @@ const consumerDelegationRouter = (
     .post("/consumer/delegations/:delegationId/reject", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        await delegationService.delegateRejectConsumerDelegation(
+        await delegationService.rejectConsumerDelegation(
           unsafeBrandId(req.params.delegationId),
           req.body,
           ctx
@@ -104,7 +104,7 @@ const consumerDelegationRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        await delegationService.delegatorRevokeConsumerDelegation(
+        await delegationService.revokeConsumerDelegation(
           unsafeBrandId(req.params.delegationId),
           ctx
         );
