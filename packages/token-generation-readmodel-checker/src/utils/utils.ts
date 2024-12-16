@@ -410,23 +410,15 @@ function validatePurposePlatformStates({
 
   if (!isPlatformStatesPurposeCorrect) {
     console.log(`Purpose states are not equal:
-  platform-states entry: ${
-    platformStatesPurposeEntry
-      ? JSON.stringify(
-          ComparisonPlatformStatesPurposeEntry.parse(platformStatesPurposeEntry)
-        )
-      : platformStatesPurposeEntry
-  }
+  platform-states entry: ${JSON.stringify(
+    ComparisonPlatformStatesPurposeEntry.parse(platformStatesPurposeEntry)
+  )}
   purpose read-model: ${JSON.stringify(ComparisonPurpose.parse(purpose))}`);
     logger.error(
       `Purpose states are not equal:
-  platform-states entry: ${
-    platformStatesPurposeEntry
-      ? JSON.stringify(
-          ComparisonPlatformStatesPurposeEntry.parse(platformStatesPurposeEntry)
-        )
-      : platformStatesPurposeEntry
-  }
+  platform-states entry: ${JSON.stringify(
+    ComparisonPlatformStatesPurposeEntry.parse(platformStatesPurposeEntry)
+  )}
   purpose read-model: ${JSON.stringify(ComparisonPurpose.parse(purpose))}`
     );
   }
@@ -553,23 +545,15 @@ function validateAgreementPlatformStates({
 
   if (!isPlatformStatesAgreementCorrect) {
     console.log(`Agreement states are not equal:
-  platform-states entry: ${
-    platformAgreementEntry
-      ? JSON.stringify(
-          ComparisonPlatformStatesAgreementEntry.parse(platformAgreementEntry)
-        )
-      : platformAgreementEntry
-  }
+  platform-states entry: ${JSON.stringify(
+    ComparisonPlatformStatesAgreementEntry.parse(platformAgreementEntry)
+  )}
   agreement: ${JSON.stringify(ComparisonAgreement.parse(agreement))}`);
     logger.error(
       `Agreement states are not equal:
-  platform-states entry: ${
-    platformAgreementEntry
-      ? JSON.stringify(
-          ComparisonPlatformStatesAgreementEntry.parse(platformAgreementEntry)
-        )
-      : platformAgreementEntry
-  }
+  platform-states entry: ${JSON.stringify(
+    ComparisonPlatformStatesAgreementEntry.parse(platformAgreementEntry)
+  )}
   agreement: ${JSON.stringify(ComparisonAgreement.parse(agreement))}`
     );
   }
@@ -866,23 +850,15 @@ function validateClientPlatformStates({
 
   if (!isPlatformStatesClientCorrect) {
     console.log(`Client states are not equal:
-  platform-states entry: ${
-    platformStatesClientEntry
-      ? JSON.stringify(
-          ComparisonPlatformStatesClientEntry.parse(platformStatesClientEntry)
-        )
-      : platformStatesClientEntry
-  }
+  platform-states entry: ${JSON.stringify(
+    ComparisonPlatformStatesClientEntry.parse(platformStatesClientEntry)
+  )}
   client read-model: ${JSON.stringify(ComparisonClient.parse(client))}`);
     logger.error(
       `Client states are not equal:
-  platform-states entry: ${
-    platformStatesClientEntry
-      ? JSON.stringify(
-          ComparisonPlatformStatesClientEntry.parse(platformStatesClientEntry)
-        )
-      : platformStatesClientEntry
-  }
+  platform-states entry: ${JSON.stringify(
+    ComparisonPlatformStatesClientEntry.parse(platformStatesClientEntry)
+  )}
   client read-model: ${JSON.stringify(ComparisonClient.parse(client))}`
     );
   }
