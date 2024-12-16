@@ -83,7 +83,7 @@ import {
   agreementNotFound,
   notValidMailAddress,
   delegationNotFound,
-  notAllowedToAddDeclaredAttribute,
+  operationRestrictedToDelegate,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -572,7 +572,7 @@ export function tenantServiceBuilder(
           );
 
           if (delegation.delegateId !== organizationId) {
-            throw notAllowedToAddDeclaredAttribute();
+            throw operationRestrictedToDelegate();
           }
 
           const targetTenant = await retrieveTenant(

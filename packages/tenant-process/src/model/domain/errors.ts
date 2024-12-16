@@ -41,7 +41,7 @@ export const errorCodes = {
   agreementNotFound: "0030",
   descriptorNotFoundInEservice: "0031",
   delegationNotFound: "0032",
-  notAllowedToAddDeclaredAttribute: "0033",
+  operationRestrictedToDelegate: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -369,10 +369,10 @@ export function delegationNotFound(
   });
 }
 
-export function notAllowedToAddDeclaredAttribute(): ApiError<ErrorCodes> {
+export function operationRestrictedToDelegate(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organizations are not allowed to add declared attributes`,
-    code: "notAllowedToAddDeclaredAttribute",
+    detail: "Not allowed to add declared attribute",
+    code: "operationRestrictedToDelegate",
     title: "Not allowed to add declared attribute",
   });
 }
