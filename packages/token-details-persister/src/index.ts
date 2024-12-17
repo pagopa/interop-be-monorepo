@@ -1,7 +1,11 @@
 import { EachBatchPayload } from "kafkajs";
 import { initFileManager, logger } from "pagopa-interop-commons";
 import { runBatchConsumer } from "kafka-iam-auth";
-import { config } from "./config/config.js";
+import {
+  baseConsumerConfig,
+  config,
+  batchConsumerConfig,
+} from "./config/config.js";
 import { handleMessages } from "./consumerService.js";
 
 const fileManager = initFileManager(config);
@@ -19,4 +23,9 @@ async function processMessage({ batch }: EachBatchPayload): Promise<void> {
   );
 }
 
-await runBatchConsumer(config, [config.tokenAuditingTopic], processMessage);
+await runBatchConsumer(
+  baseConsumerConfig,
+  batchConsumerConfig,
+  [config.tokenAuditingTopic],
+  processMessage
+);
