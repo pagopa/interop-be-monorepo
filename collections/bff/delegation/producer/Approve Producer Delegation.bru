@@ -1,5 +1,5 @@
 meta {
-  name: Approve delegation
+  name: Approve producer delegation
   type: http
   seq: 1
 }
@@ -11,10 +11,10 @@ post {
 }
 
 params:path {
-  delegationId: dd10132c-f3c9-45cf-994c-3a312bc4ab4e
+  delegationId: {{delegationId}}
 }
 
 headers {
-  Authorization: {{JWT}}
+  Authorization: {{JWT2}}
   X-Correlation-Id: {{correlation-id}}
 }

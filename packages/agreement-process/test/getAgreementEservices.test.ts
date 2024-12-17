@@ -106,6 +106,7 @@ describe("get agreement eservices", () => {
         producerIds: [],
         agreeementStates: [],
       },
+      tenant1.id,
       10,
       0,
       genericLogger
@@ -127,6 +128,7 @@ describe("get agreement eservices", () => {
         producerIds: [],
         agreeementStates: [],
       },
+      tenant1.id,
       10,
       0,
       genericLogger
@@ -148,6 +150,7 @@ describe("get agreement eservices", () => {
         producerIds: [],
         agreeementStates: [],
       },
+      tenant1.id,
       10,
       0,
       genericLogger
@@ -169,6 +172,7 @@ describe("get agreement eservices", () => {
         producerIds: [tenant1.id, tenant2.id],
         agreeementStates: [],
       },
+      tenant1.id,
       10,
       0,
       genericLogger
@@ -190,6 +194,7 @@ describe("get agreement eservices", () => {
         producerIds: [],
         agreeementStates: [agreementState.active, agreementState.pending],
       },
+      tenant1.id,
       10,
       0,
       genericLogger
@@ -211,6 +216,7 @@ describe("get agreement eservices", () => {
         producerIds: [tenant1.id],
         agreeementStates: [],
       },
+      tenant1.id,
       10,
       0,
       genericLogger
@@ -230,6 +236,7 @@ describe("get agreement eservices", () => {
         producerIds: [],
         agreeementStates: [agreementState.pending, agreementState.draft],
       },
+      tenant1.id,
       10,
       0,
       genericLogger
@@ -249,6 +256,7 @@ describe("get agreement eservices", () => {
         producerIds: [tenant3.id],
         agreeementStates: [agreementState.pending],
       },
+      tenant1.id,
       10,
       0,
       genericLogger
@@ -268,6 +276,7 @@ describe("get agreement eservices", () => {
         producerIds: [],
         agreeementStates: [],
       },
+      tenant1.id,
       2,
       0,
       genericLogger
@@ -289,6 +298,7 @@ describe("get agreement eservices", () => {
         producerIds: [],
         agreeementStates: [],
       },
+      tenant1.id,
       2,
       1,
       genericLogger
@@ -310,6 +320,7 @@ describe("get agreement eservices", () => {
         producerIds: [],
         agreeementStates: [],
       },
+      tenant1.id,
       10,
       0,
       genericLogger
@@ -329,6 +340,7 @@ describe("get agreement eservices", () => {
         consumerIds: [],
         agreeementStates: [],
       },
+      tenant1.id,
       10,
       0,
       genericLogger

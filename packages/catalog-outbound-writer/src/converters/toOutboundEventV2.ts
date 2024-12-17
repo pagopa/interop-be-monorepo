@@ -102,9 +102,9 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorPublished" },
       { type: "EServiceDescriptorSuspended" },
       { type: "EServiceDraftDescriptorDeleted" },
-      { type: "EServiceDescriptorDelegateSubmitted" },
-      { type: "EServiceDescriptorDelegatorApproved" },
-      { type: "EServiceDescriptorDelegatorRejected" },
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      { type: "EServiceDescriptorApprovedByDelegator" },
+      { type: "EServiceDescriptorRejectedByDelegator" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -139,6 +139,18 @@ export function toOutboundEventV2(
         timestamp: new Date(),
       })
     )
+    .with({ type: "EServiceDescriptorAttributesUpdated" }, (msg) => ({
+      event_version: msg.event_version,
+      type: msg.type,
+      version: msg.version,
+      data: {
+        descriptorId: msg.data.descriptorId,
+        attributeIds: msg.data.attributeIds,
+        eservice: msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
+      },
+      stream_id: msg.stream_id,
+      timestamp: new Date(),
+    }))
     .with(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },

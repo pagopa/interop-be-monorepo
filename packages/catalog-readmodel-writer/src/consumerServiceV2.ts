@@ -45,9 +45,10 @@ export async function handleMessageV2(
       { type: "EServiceIsDelegableDisabled" },
       { type: "EServiceIsClientAccessDelegableEnabled" },
       { type: "EServiceIsClientAccessDelegableDisabled" },
-      { type: "EServiceDescriptorDelegateSubmitted" },
-      { type: "EServiceDescriptorDelegatorApproved" },
-      { type: "EServiceDescriptorDelegatorRejected" },
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      { type: "EServiceDescriptorApprovedByDelegator" },
+      { type: "EServiceDescriptorRejectedByDelegator" },
+      { type: "EServiceDescriptorAttributesUpdated" },
       async (message) =>
         await eservices.updateOne(
           {

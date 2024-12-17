@@ -13,7 +13,7 @@ export async function exportInterfaceV2(
   await match(decodedMsg)
     .with(
       { type: "EServiceDescriptorPublished" },
-      { type: "EServiceDescriptorDelegatorApproved" },
+      { type: "EServiceDescriptorApprovedByDelegator" },
       async ({ data }) => {
         if (data.eservice) {
           logger.info(
@@ -60,8 +60,9 @@ export async function exportInterfaceV2(
       { type: "EServiceIsDelegableDisabled" },
       { type: "EServiceIsClientAccessDelegableEnabled" },
       { type: "EServiceIsClientAccessDelegableDisabled" },
-      { type: "EServiceDescriptorDelegateSubmitted" },
-      { type: "EServiceDescriptorDelegatorRejected" },
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      { type: "EServiceDescriptorRejectedByDelegator" },
+      { type: "EServiceDescriptorAttributesUpdated" },
       () => undefined
     )
     .exhaustive();
