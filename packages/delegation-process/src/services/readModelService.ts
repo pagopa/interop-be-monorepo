@@ -73,6 +73,38 @@ export function readModelServiceBuilder(
 ) {
   const { delegations, eservices, tenants, agreements } = readModelRepository;
 
+  async function getItemsWithActiveAgreements(
+    entities: Array<{
+      consumerId?: string;
+      eserviceId?: string;
+      producerId: string;
+    }>,
+    itemField: "data.consumerId" | "data.eserviceId"
+  ): Promise<string[]> {
+    const conditions = entities.map((d) => ({
+      "data.producerId": d.producerId,
+      "data.consumerId": d.consumerId,
+      "data.eserviceId": d.eserviceId,
+    }));
+
+    const data = await agreements.distinct(`${itemField}`, {
+      $or: conditions,
+      "data.state": agreementState.active,
+    } satisfies ReadModelFilter<Agreement>);
+
+    const result = z.array(z.string()).safeParse(data);
+
+    if (!result.success) {
+      throw genericInternalError(
+        `Unable to parse agreements: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)}`
+      );
+    }
+
+    return result.data;
+  }
+
   return {
     async getEService(
       eservices: EServiceCollection,
@@ -255,38 +287,6 @@ export function readModelServiceBuilder(
       offset: number;
       delegatorName?: string;
     }): Promise<delegationApi.CompactTenants> {
-      const getDelegatorsWithActiveAgreements = async (
-        delegationTenants: Array<{
-          consumerId: string;
-          consumerName: string;
-          eserviceId: string;
-          producerId: string;
-        }>
-      ): Promise<string[]> => {
-        const conditions = delegationTenants.map((d) => ({
-          "data.producerId": d.producerId,
-          "data.consumerId": d.consumerId,
-          "data.eserviceId": d.eserviceId,
-        }));
-
-        const data = await agreements.distinct("data.consumerId", {
-          $or: conditions,
-          "data.state": agreementState.active,
-        } satisfies ReadModelFilter<Agreement>);
-
-        const result = z.array(z.string()).safeParse(data);
-
-        if (!result.success) {
-          throw genericInternalError(
-            `Unable to parse agreements: result ${JSON.stringify(
-              result
-            )} - data ${JSON.stringify(data)}`
-          );
-        }
-
-        return result.data;
-      };
-
       const aggregationPipeline = [
         {
           $match: {
@@ -376,8 +376,9 @@ export function readModelServiceBuilder(
         };
       }
 
-      const activeDelegators = await getDelegatorsWithActiveAgreements(
-        result.data
+      const activeDelegators = await getItemsWithActiveAgreements(
+        result.data,
+        "data.consumerId"
       );
 
       const filteredDelegators = Array.from(
@@ -406,6 +407,128 @@ export function readModelServiceBuilder(
           offset: filters.offset,
           limit: filters.limit,
           totalCount: filteredDelegators.length,
+        },
+      };
+    },
+    async getConsumerEservices(filters: {
+      delegateId: TenantId;
+      delegatorId: TenantId;
+      limit: number;
+      offset: number;
+      eserviceName?: string;
+    }): Promise<delegationApi.CompactEservices> {
+      const aggregationPipeline = [
+        {
+          $match: {
+            "data.kind": delegationKind.delegatedConsumer,
+            "data.state": delegationState.active,
+            "data.delegateId": filters.delegateId,
+            "data.delegatorId": filters.delegatorId,
+          } satisfies ReadModelFilter<Delegation>,
+        },
+        {
+          $lookup: {
+            from: "eservices",
+            localField: "data.eserviceId",
+            foreignField: "data.id",
+            as: "eservice",
+          },
+        },
+        {
+          $unwind: "$eservice",
+        },
+        ...(filters.eserviceName
+          ? [
+              {
+                $match: {
+                  "eservice.data.name": {
+                    $regex: ReadModelRepository.escapeRegExp(
+                      filters.eserviceName
+                    ),
+                    $options: "i",
+                  },
+                },
+              },
+            ]
+          : []),
+        {
+          $project: {
+            _id: 0,
+            id: "$data.id",
+            eserviceId: "$eservice.data.id",
+            eserviceName: "$eservice.data.name",
+            producerId: "$eservice.data.producerId",
+            consumerId: "$eservice.data.consumerId",
+          },
+        },
+      ];
+
+      const data = await delegations
+        .aggregate(aggregationPipeline, { allowDiskUse: true })
+        .toArray();
+
+      const result = z
+        .array(
+          z.object({
+            id: z.string(),
+            consumerId: z.string(),
+            eserviceName: z.string(),
+            eserviceId: z.string(),
+            producerId: z.string(),
+          })
+        )
+        .safeParse(data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse compact delegation eservices: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)}`
+        );
+      }
+
+      if (result.data.length === 0) {
+        return {
+          results: [],
+          pagination: {
+            offset: filters.offset,
+            limit: filters.limit,
+            totalCount: 0,
+          },
+        };
+      }
+
+      const activeEservices = await getItemsWithActiveAgreements(
+        result.data,
+        "data.eserviceId"
+      );
+
+      const filteredEservices = Array.from(
+        result.data
+          .reduce((map, delegation) => {
+            if (
+              activeEservices.includes(delegation.eserviceId) &&
+              !map.has(delegation.eserviceId)
+            ) {
+              map.set(delegation.eserviceId, {
+                id: delegation.id,
+                eserviceId: delegation.eserviceId,
+                eserviceName: delegation.eserviceName,
+              });
+            }
+            return map;
+          }, new Map<string, delegationApi.CompactEservice>())
+          .values()
+      );
+      return {
+        results: filteredEservices.slice(
+          filters.offset,
+          filters.offset + filters.limit
+        ),
+        pagination: {
+          offset: filters.offset,
+          limit: filters.limit,
+          totalCount: filteredEservices.length,
         },
       };
     },

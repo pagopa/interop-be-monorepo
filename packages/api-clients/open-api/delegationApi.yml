@@ -37,6 +37,58 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
+  /consumer/eservices:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - in: query
+        name: eserviceName
+        schema:
+          type: string
+      - in: query
+        name: delegateId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: delegatorId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - consumer
+      operationId: getConsumerEservices
+      description: Retrieve eservices of a consumer delegate with active delegation and agreement
+      responses:
+        "200":
+          description: Eservices retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactEservices"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /consumer/delegators:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -683,6 +735,35 @@ components:
       schema:
         type: string
   schemas:
+    CompactEservice:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eserviceId:
+          type: string
+          format: uuid
+        eserviceName:
+          type: string
+      required:
+        - id
+        - eserviceId
+        - eserviceName
+    CompactEservices:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactEservice"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     CompactTenant:
       type: object
       additionalProperties: false

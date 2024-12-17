@@ -422,5 +422,34 @@ export function delegationServiceBuilder(
         headers,
       });
     },
+    async getConsumerDelegatedEservices(
+      {
+        delegatorId,
+        q,
+        offset,
+        limit,
+      }: {
+        delegatorId: string;
+        q?: string;
+        offset: number;
+        limit: number;
+      },
+      { headers, authData, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.DelegatedEservices> {
+      logger.info(
+        `Retrieving consumer delegated eservices of delegator ${delegatorId} with name ${q}, limit ${limit}, offset ${offset}`
+      );
+
+      return await delegationClients.consumer.getConsumerEservices({
+        queries: {
+          delegateId: authData.organizationId,
+          delegatorId,
+          eserviceName: q,
+          offset,
+          limit,
+        },
+        headers,
+      });
+    },
   };
 }
