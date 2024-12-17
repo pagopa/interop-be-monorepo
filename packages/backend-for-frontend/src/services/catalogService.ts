@@ -389,15 +389,13 @@ export function catalogServiceBuilder(
       updateSeed: bffApi.EServiceFlagsSeed
     ): Promise<bffApi.CreatedResource> => {
       logger.info(`Updating EService Flags for eserviceId = ${eServiceId}`);
-      const updatedEservice = await catalogProcessClient.updateEServiceFlags(
-        updateSeed,
-        {
+      const updatedEservice =
+        await catalogProcessClient.updateEServiceDelegationFlags(updateSeed, {
           headers,
           params: {
             eServiceId,
           },
-        }
-      );
+        });
 
       return {
         id: updatedEservice.id,
