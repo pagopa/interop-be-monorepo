@@ -286,16 +286,16 @@ export function agreementServiceBuilder(
 
       const descriptor = validateCreationOnDescriptor(eservice, descriptorId);
 
-      await verifyCreationConflictingAgreements(
-        authData.organizationId,
-        eserviceId,
-        readModelService
-      );
-
       const consumer = await getConsumerFromDelegationOrRequester(
         eserviceId,
         delegationId,
         authData,
+        readModelService
+      );
+
+      await verifyCreationConflictingAgreements(
+        consumer.id,
+        eserviceId,
         readModelService
       );
 
