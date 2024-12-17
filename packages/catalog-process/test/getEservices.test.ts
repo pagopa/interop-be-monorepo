@@ -1218,6 +1218,60 @@ describe("get eservices", () => {
     }
   );
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should include eservices whose only descriptor is %s (requester is delegate, admin)",
+    async (state) => {
+      const descriptor9: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        interface: mockDocument,
+        publishedAt: new Date(),
+        state,
+      };
+      const eservice9: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor9],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegateId: organizationId2,
+        eserviceId: eservice9.id,
+        state: delegationState.active,
+      });
+      const authData: AuthData = {
+        ...getMockAuthData(organizationId2),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      await addOneEService(eservice9);
+      await addOneDelegation(delegation);
+      const result = await catalogService.getEServices(
+        authData,
+        {
+          eservicesIds: [],
+          producersIds: [],
+          states: [],
+          agreementStates: [],
+          attributesIds: [],
+        },
+        0,
+        50,
+        genericLogger
+      );
+      expect(result.totalCount).toBe(7);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        eservice9,
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
     "should not include eservices whose only descriptor is %s (requester is the producer, not admin nor api, nor support)",
     async (state) => {
       const descriptor8: Descriptor = {

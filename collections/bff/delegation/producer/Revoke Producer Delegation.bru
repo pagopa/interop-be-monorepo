@@ -1,5 +1,5 @@
 meta {
-  name: Revoke a delegation by ID
+  name: Revoke producer delegation
   type: http
   seq: 1
 }
@@ -11,7 +11,7 @@ delete {
 }
 
 params:path {
-  delegationId: dd10132c-f3c9-45cf-994c-3a312bc4ab4e
+  delegationId: {{delegationId}}
 }
 
 headers {

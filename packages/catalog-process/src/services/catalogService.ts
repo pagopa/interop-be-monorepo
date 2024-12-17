@@ -23,6 +23,7 @@ import {
   DescriptorState,
   Document,
   EService,
+  EServiceAttribute,
   EServiceDocumentId,
   EServiceId,
   EserviceAttributes,
@@ -67,6 +68,9 @@ import {
   prettyNameDuplicate,
   riskAnalysisDuplicated,
   tenantNotFound,
+  unchangedAttributes,
+  inconsistentAttributesSeedGroupsCount,
+  descriptorAttributeGroupSupersetMissingInAttributesSeed,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -77,9 +81,10 @@ import {
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorArchived,
-  toCreateEventEServiceDescriptorDelegateSubmitted,
-  toCreateEventEServiceDescriptorDelegatorApproved,
-  toCreateEventEServiceDescriptorDelegatorRejected,
+  toCreateEventEServiceDescriptorSubmittedByDelegate,
+  toCreateEventEServiceDescriptorApprovedByDelegator,
+  toCreateEventEServiceDescriptorRejectedByDelegator,
+  toCreateEventEServiceDescriptorAttributesUpdated,
   toCreateEventEServiceDescriptorPublished,
   toCreateEventEServiceDescriptorQuotasUpdated,
   toCreateEventEServiceDescriptorSuspended,
@@ -529,6 +534,7 @@ export function catalogServiceBuilder(
         archivedAt: undefined,
         createdAt: creationDate,
         attributes: { certified: [], declared: [], verified: [] },
+        rejectionReasons: undefined,
       };
 
       const eserviceWithDescriptor: EService = {
@@ -1008,6 +1014,7 @@ export function catalogServiceBuilder(
         archivedAt: undefined,
         createdAt: new Date(),
         attributes: parsedAttributes,
+        rejectionReasons: undefined,
       };
 
       const newEservice: EService = {
@@ -1239,7 +1246,7 @@ export function catalogServiceBuilder(
           updateDescriptorState(descriptor, descriptorState.waitingForApproval)
         );
         await repository.createEvent(
-          toCreateEventEServiceDescriptorDelegateSubmitted(
+          toCreateEventEServiceDescriptorSubmittedByDelegate(
             eservice.metadata.version,
             descriptor.id,
             eserviceWithWaitingForApprovalDescriptor,
@@ -1838,7 +1845,7 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(
-        toCreateEventEServiceDescriptorDelegatorApproved(
+        toCreateEventEServiceDescriptorApprovedByDelegator(
           eservice.metadata.version,
           descriptor.id,
           updatedEService,
@@ -1888,13 +1895,131 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(
-        toCreateEventEServiceDescriptorDelegatorRejected(
+        toCreateEventEServiceDescriptorRejectedByDelegator(
           eservice.metadata.version,
           descriptor.id,
           updatedEService,
           correlationId
         )
       );
+    },
+    async updateDescriptorAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.AttributesSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(
+        `Updating attributes of Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eserviceId,
+        authData,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended
+      ) {
+        throw notValidDescriptorState(descriptorId, descriptor.state);
+      }
+
+      /**
+       * In order for the descriptor attributes to be updatable,
+       * each attribute group contained in the seed must be a superset
+       * of the corresponding attribute group in the descriptor,
+       * meaning that each attribute group in the seed must contain all the attributes
+       * of his corresponding group in the descriptor, plus, optionally, some ones.
+       */
+      function validateAndRetrieveNewAttributes(
+        attributesDescriptor: EServiceAttribute[][],
+        attributesSeed: catalogApi.Attribute[][]
+      ): string[] {
+        // If the seed has a different number of attribute groups than the descriptor, it's invalid
+        if (attributesDescriptor.length !== attributesSeed.length) {
+          throw inconsistentAttributesSeedGroupsCount(eserviceId, descriptorId);
+        }
+
+        return attributesDescriptor.flatMap((attributeGroup) => {
+          // Get the seed group that is a superset of the descriptor group
+          const supersetSeed = attributesSeed.find((seedGroup) =>
+            attributeGroup.every((descriptorAttribute) =>
+              seedGroup.some(
+                (seedAttribute) => descriptorAttribute.id === seedAttribute.id
+              )
+            )
+          );
+
+          if (!supersetSeed) {
+            throw descriptorAttributeGroupSupersetMissingInAttributesSeed(
+              eserviceId,
+              descriptorId
+            );
+          }
+
+          // Return only the new attributes
+          return supersetSeed
+            .filter(
+              (seedAttribute) =>
+                !attributeGroup.some((att) => att.id === seedAttribute.id)
+            )
+            .flatMap((seedAttribute) => seedAttribute.id);
+        });
+      }
+
+      const certifiedAttributes = validateAndRetrieveNewAttributes(
+        descriptor.attributes.certified,
+        seed.certified
+      );
+
+      const verifiedAttributes = validateAndRetrieveNewAttributes(
+        descriptor.attributes.verified,
+        seed.verified
+      );
+
+      const declaredAttributes = validateAndRetrieveNewAttributes(
+        descriptor.attributes.declared,
+        seed.declared
+      );
+
+      const newAttributes = [
+        ...certifiedAttributes,
+        ...verifiedAttributes,
+        ...declaredAttributes,
+      ].map(unsafeBrandId<AttributeId>);
+
+      if (newAttributes.length === 0) {
+        throw unchangedAttributes(eserviceId, descriptorId);
+      }
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        attributes: await parseAndCheckAttributes(seed, readModelService),
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptorAttributesUpdated(
+          eservice.metadata.version,
+          descriptor.id,
+          newAttributes,
+          updatedEService,
+          correlationId
+        )
+      );
+
+      return updatedEService;
     },
   };
 }

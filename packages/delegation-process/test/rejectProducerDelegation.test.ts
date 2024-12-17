@@ -23,7 +23,7 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneDelegation,
-  delegationProducerService,
+  delegationService,
   readLastDelegationEvent,
 } from "./utils.js";
 
@@ -44,7 +44,7 @@ describe("reject producer delegation", () => {
 
     const rejectionReason = "I don't like computers, please send me a pigeon";
 
-    await delegationProducerService.rejectProducerDelegation(
+    await delegationService.rejectProducerDelegation(
       delegation.id,
       rejectionReason,
       {
@@ -80,16 +80,12 @@ describe("reject producer delegation", () => {
       unsafeBrandId<DelegationId>("non-existent-id");
 
     await expect(
-      delegationProducerService.rejectProducerDelegation(
-        nonExistentDelegationId,
-        "",
-        {
-          authData: getRandomAuthData(delegateId),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
-      )
+      delegationService.rejectProducerDelegation(nonExistentDelegationId, "", {
+        authData: getRandomAuthData(delegateId),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrow(
       delegationNotFound(
         nonExistentDelegationId,
@@ -110,7 +106,7 @@ describe("reject producer delegation", () => {
     const rejectionReason = "I don't like computers, please send me a pigeon";
 
     await expect(
-      delegationProducerService.rejectProducerDelegation(
+      delegationService.rejectProducerDelegation(
         delegation.id,
         rejectionReason,
         {
@@ -136,7 +132,7 @@ describe("reject producer delegation", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      delegationProducerService.rejectProducerDelegation(delegation.id, "", {
+      delegationService.rejectProducerDelegation(delegation.id, "", {
         authData: getRandomAuthData(wrongDelegate.id),
         serviceName: "",
         correlationId: generateId(),
@@ -163,7 +159,7 @@ describe("reject producer delegation", () => {
       await addOneDelegation(delegation);
 
       await expect(
-        delegationProducerService.rejectProducerDelegation(delegation.id, "", {
+        delegationService.rejectProducerDelegation(delegation.id, "", {
           authData: getRandomAuthData(delegate.id),
           serviceName: "",
           correlationId: generateId(),

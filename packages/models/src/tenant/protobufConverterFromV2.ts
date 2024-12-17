@@ -149,6 +149,9 @@ export const fromTenantAttributesV2 = (
         revocationTimestamp: bigIntToDate(
           declaredAttribute.revocationTimestamp
         ),
+        delegationId: declaredAttribute.delegationId
+          ? unsafeBrandId<DelegationId>(declaredAttribute.delegationId)
+          : undefined,
         type: tenantAttributeType.DECLARED,
       };
     default:

@@ -15,6 +15,7 @@ import {
   agreementApi,
   tenantApi,
   attributeRegistryApi,
+  delegationApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
 import {
@@ -603,11 +604,8 @@ async function enrichAgreementListEntry(
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.AgreementListEntry> {
-  const { consumer, producer, eservice } = await getConsumerProducerEservice(
-    agreement,
-    clients,
-    ctx
-  );
+  const { consumer, producer, eservice, delegation } =
+    await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
 
   const currentDescriptor = getCurrentDescriptor(eservice, agreement);
 
@@ -625,6 +623,7 @@ async function enrichAgreementListEntry(
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
     suspendedByPlatform: agreement.suspendedByPlatform,
+    isDelegated: !!delegation,
   };
 }
 
@@ -633,11 +632,8 @@ export async function enrichAgreement(
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Agreement> {
-  const { consumer, producer, eservice } = await getConsumerProducerEservice(
-    agreement,
-    clients,
-    ctx
-  );
+  const { consumer, producer, eservice } =
+    await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
 
   const currentDescriptior = getCurrentDescriptor(eservice, agreement);
 
@@ -777,14 +773,19 @@ function tenantAttributesIds(tenant: tenantApi.Tenant): string[] {
   );
 }
 
-async function getConsumerProducerEservice(
+async function getConsumerProducerEserviceDelegation(
   agreement: agreementApi.Agreement,
-  { tenantProcessClient, catalogProcessClient }: PagoPAInteropBeClients,
+  {
+    tenantProcessClient,
+    catalogProcessClient,
+    delegationProcessClient,
+  }: PagoPAInteropBeClients,
   { headers }: WithLogger<BffAppContext>
 ): Promise<{
   consumer: tenantApi.Tenant;
   producer: tenantApi.Tenant;
   eservice: catalogApi.EService;
+  delegation: delegationApi.Delegation | undefined;
 }> {
   const consumerTask = tenantProcessClient.tenant.getTenant({
     params: { id: agreement.consumerId },
@@ -795,20 +796,35 @@ async function getConsumerProducerEservice(
     params: { id: agreement.producerId },
     headers,
   });
+
   const eserviceTask = catalogProcessClient.getEServiceById({
     params: { eServiceId: agreement.eserviceId },
     headers,
   });
-  const [consumer, producer, eservice] = await Promise.all([
+
+  const delegationTask = delegationProcessClient.delegation.getDelegations({
+    queries: {
+      delegatorIds: [agreement.consumerId],
+      eserviceIds: [agreement.eserviceId],
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+      offset: 0,
+      limit: 1,
+    },
+    headers,
+  });
+
+  const [consumer, producer, eservice, delegation] = await Promise.all([
     consumerTask,
     producerTask,
     eserviceTask,
+    delegationTask,
   ]);
 
   return {
     consumer,
     producer,
     eservice,
+    delegation: delegation.results.at(0) ?? undefined,
   };
 }
 

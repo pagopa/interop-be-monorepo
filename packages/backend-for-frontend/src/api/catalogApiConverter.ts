@@ -263,6 +263,10 @@ export function toBffCatalogApiProducerDescriptorEService(
     name: eservice.name,
     description: eservice.description,
     technology: eservice.technology,
+    producer: {
+      id: producer.id,
+      tenantKind: producer.kind,
+    },
     mode: eservice.mode,
     mail: producerMail && {
       address: producerMail.address,

@@ -26,6 +26,7 @@ import {
   delegationState,
   Delegation,
   DelegationKind,
+  delegationKind,
 } from "pagopa-interop-models";
 import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
@@ -176,10 +177,47 @@ async function buildGetPurposesAggregation(
       }
     : {};
 
+  const eserviceIdsFilters =
+    producersIds.length > 0
+      ? [
+          {
+            $lookup: {
+              from: "delegations",
+              localField: "data.id",
+              foreignField: "data.eserviceId",
+              as: "matchingDelegations",
+            },
+          },
+          {
+            $match: {
+              $or: [
+                { "data.producerId": { $in: producersIds } },
+                {
+                  $and: [
+                    {
+                      "matchingDelegations.data.delegateId": {
+                        $in: producersIds,
+                      },
+                    },
+                    {
+                      "matchingDelegations.data.state": delegationState.active,
+                    },
+                    {
+                      "matchingDelegations.data.kind":
+                        delegationKind.delegatedProducer,
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ]
+      : [];
+
   const producerEServicesIds =
     producersIds.length > 0
       ? await eservices
-          .find({ "data.producerId": { $in: producersIds } })
+          .aggregate(eserviceIdsFilters)
           .toArray()
           .then((results) =>
             results.map((eservice) => eservice.data.id.toString())
