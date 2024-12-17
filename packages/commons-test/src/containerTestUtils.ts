@@ -25,6 +25,7 @@ export const TEST_MAILPIT_IMAGE = "axllent/mailpit:v1.19";
 export const TEST_REDIS_IMAGE = "redis:7.2.5-alpine3.20";
 export const TEST_REDIS_PORT = 6379;
 
+export const TEST_NODE_IMAGE = "node:20";
 export const TEST_AWS_SES_PORT = 8021;
 
 /**
@@ -131,7 +132,7 @@ export const redisContainer = (): GenericContainer =>
  * @returns A promise that resolves to the started test container.
  */
 export const awsSESContainer = (): GenericContainer =>
-  new GenericContainer("node:20")
+  new GenericContainer(TEST_NODE_IMAGE)
     .withEntrypoint(["bash", "-c"])
     .withCommand([
       `npm install -g aws-ses-v2-local; aws-ses-v2-local --port=${TEST_AWS_SES_PORT} --host=0.0.0.0`,
