@@ -73,6 +73,10 @@ export function getLastPurposeVersion(
         pv.state === purposeVersionState.archived
     )
     .toSorted(
+      (purposeVersion1, purposeVersion2) =>
+        purposeVersion2.createdAt.getTime() -
+        purposeVersion1.createdAt.getTime()
+    )[0];
 }
 
 export function getValidDescriptors(descriptors: Descriptor[]): Descriptor[] {
