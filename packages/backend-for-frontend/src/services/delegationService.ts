@@ -412,15 +412,25 @@ export function delegationServiceBuilder(
         `Retrieving consumer delegators of delegate ${authData.organizationId} with name ${q}, limit ${limit}, offset ${offset}`
       );
 
-      return await delegationClients.consumer.getConsumerDelegators({
-        queries: {
-          delegateId: authData.organizationId,
-          delegatorName: q,
+      const delegatorsData =
+        await delegationClients.consumer.getConsumerDelegators({
+          queries: {
+            delegateId: authData.organizationId,
+            delegatorName: q,
+            offset,
+            limit,
+          },
+          headers,
+        });
+
+      return {
+        results: delegatorsData.results,
+        pagination: {
           offset,
           limit,
+          totalCount: delegatorsData.totalCount,
         },
-        headers,
-      });
+      };
     },
   };
 }

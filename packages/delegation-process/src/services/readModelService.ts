@@ -376,14 +376,10 @@ export function readModelServiceBuilder(
 
       return {
         results: result.data,
-        pagination: {
-          totalCount: await ReadModelRepository.getTotalCount(
-            delegations,
-            aggregationPipeline
-          ),
-          limit: filters.limit,
-          offset: filters.offset,
-        },
+        totalCount: await ReadModelRepository.getTotalCount(
+          delegations,
+          aggregationPipeline
+        ),
       };
     },
   };
