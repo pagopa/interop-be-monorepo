@@ -608,18 +608,25 @@ describe("Token Generation Read Model Checker utils tests", () => {
   it("getLastPurposeVersion", () => {
     const date1 = new Date();
     const date2 = new Date();
+    const date3 = new Date();
     date2.setDate(date1.getDate() + 1);
+    date3.setDate(date1.getDate() + 2);
     const purposeVersion1: PurposeVersion = {
-      ...getMockPurposeVersion(),
+      ...getMockPurposeVersion(purposeVersionState.archived),
       createdAt: date1,
     };
     const purposeVersion2: PurposeVersion = {
-      ...getMockPurposeVersion(),
+      ...getMockPurposeVersion(purposeVersionState.active),
       createdAt: date2,
     };
-    expect(getLastPurposeVersion([purposeVersion1, purposeVersion2])).toEqual(
-      purposeVersion2
-    );
+    const purposeVersion3: PurposeVersion = {
+      ...getMockPurposeVersion(purposeVersionState.rejected),
+      createdAt: date3,
+    };
+
+    expect(
+      getLastPurposeVersion([purposeVersion1, purposeVersion2, purposeVersion3])
+    ).toEqual(purposeVersion2);
   });
 
   it("getValidDescriptors", () => {
