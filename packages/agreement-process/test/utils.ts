@@ -273,23 +273,21 @@ export const getRandomPastStamp = (userId: UserId): AgreementStamp => ({
 export const addSomeRandomDelegations = async (
   agreement: Agreement
 ): Promise<void> => {
-  // Adding some more delegations
-  [delegationState.rejected, delegationState.revoked].forEach(
-    async (state: DelegationState) => {
+  const states = [delegationState.rejected, delegationState.revoked];
+  const kinds = [
+    delegationKind.delegatedProducer,
+    delegationKind.delegatedConsumer,
+  ];
+
+  for (const state of states) {
+    for (const kind of kinds) {
       await addOneDelegation(
         getMockDelegation({
           eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedProducer,
-          state,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedConsumer,
+          kind,
           state,
         })
       );
     }
-  );
+  }
 };
