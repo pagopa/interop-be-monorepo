@@ -1074,7 +1074,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/flags:
+  /eservices/{eServiceId}/delegationFlags:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1083,7 +1083,7 @@ paths:
       tags:
         - process
       summary: Update an e-service isDelegable and isClientAccessDelegable flags
-      operationId: updateEServiceFlags
+      operationId: updateEServiceDelegationFlags
       parameters:
         - name: eServiceId
           in: path
@@ -1120,6 +1120,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/json:
               schema:
