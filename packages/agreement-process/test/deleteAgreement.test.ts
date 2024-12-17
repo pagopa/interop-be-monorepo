@@ -160,22 +160,20 @@ describe("delete agreement", () => {
 
     expect(agreementDeletedId).toEqual(agreement.id);
 
-    expect(fileManager.delete).toHaveBeenCalledWith(
+    const filePaths = await fileManager.listFiles(
       config.s3Bucket,
-      consumerDocuments[0].path,
       genericLogger
     );
-    expect(fileManager.delete).toHaveBeenCalledWith(
-      config.s3Bucket,
-      consumerDocuments[1].path,
-      genericLogger
-    );
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).not.toContain(consumerDocuments[0].path);
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).not.toContain(consumerDocuments[1].path);
+
+    consumerDocuments.forEach((doc) => {
+      expect(fileManager.delete).toHaveBeenCalledWith(
+        config.s3Bucket,
+        doc.path,
+        genericLogger
+      );
+
+      expect(filePaths).not.toContain(doc.path);
+    });
   });
 
   it("should throw operationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
