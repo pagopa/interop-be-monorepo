@@ -29,21 +29,21 @@ describe("getConsumerDelegators", () => {
   const delegator5 = { ...getMockTenant(), name: "PagoPA" };
   const delegator6 = getMockTenant();
   const delegateId = generateId<TenantId>();
-  const eserviceId1 = getMockEService();
-  const eserviceId2 = getMockEService();
-  const eserviceId3 = getMockEService();
+  const eservice1 = getMockEService();
+  const eservice2 = getMockEService();
+  const eservice3 = getMockEService();
 
   const mockDelegation1 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
     delegateId,
     delegatorId: delegator1.id,
-    eserviceId: eserviceId1.id,
+    eserviceId: eservice1.id,
   });
 
   const mockAgreement1 = {
-    ...getMockAgreement(eserviceId1.id, delegator1.id, agreementState.active),
-    producerId: eserviceId1.producerId,
+    ...getMockAgreement(eservice1.id, delegator1.id, agreementState.active),
+    producerId: eservice1.producerId,
   };
 
   const mockDelegation1Bis = getMockDelegation({
@@ -51,12 +51,12 @@ describe("getConsumerDelegators", () => {
     state: delegationState.active,
     delegateId,
     delegatorId: delegator1.id,
-    eserviceId: eserviceId2.id,
+    eserviceId: eservice2.id,
   });
 
   const mockAgreement1bis = {
-    ...getMockAgreement(eserviceId2.id, delegator1.id, agreementState.active),
-    producerId: eserviceId2.producerId,
+    ...getMockAgreement(eservice2.id, delegator1.id, agreementState.active),
+    producerId: eservice2.producerId,
   };
 
   // Delegator1 has 2 active delegations and 2 active agreements
@@ -66,12 +66,12 @@ describe("getConsumerDelegators", () => {
     state: delegationState.active,
     delegateId,
     delegatorId: delegator2.id,
-    eserviceId: eserviceId1.id,
+    eserviceId: eservice1.id,
   });
 
   const mockAgreement2 = {
-    ...getMockAgreement(eserviceId1.id, delegator2.id, agreementState.active),
-    producerId: eserviceId1.producerId,
+    ...getMockAgreement(eservice1.id, delegator2.id, agreementState.active),
+    producerId: eservice1.producerId,
   };
 
   // Delegator2 has 1 active delegation and 1 active agreement
@@ -81,7 +81,7 @@ describe("getConsumerDelegators", () => {
     state: delegationState.rejected,
     delegateId,
     delegatorId: delegator3.id,
-    eserviceId: eserviceId1.id,
+    eserviceId: eservice1.id,
   });
 
   // Delegator3 has 1 rejected delegation
@@ -91,12 +91,12 @@ describe("getConsumerDelegators", () => {
     state: delegationState.active,
     delegateId,
     delegatorId: delegator4.id,
-    eserviceId: eserviceId1.id,
+    eserviceId: eservice1.id,
   });
 
   const mockAgreement4 = {
-    ...getMockAgreement(eserviceId1.id, delegator4.id, agreementState.rejected),
-    producerId: eserviceId1.producerId,
+    ...getMockAgreement(eservice1.id, delegator4.id, agreementState.rejected),
+    producerId: eservice1.producerId,
   };
 
   // Delegator4 has 1 active delegation and 1 rejected agreement
@@ -106,12 +106,12 @@ describe("getConsumerDelegators", () => {
     state: delegationState.active,
     delegateId,
     delegatorId: delegator5.id,
-    eserviceId: eserviceId3.id,
+    eserviceId: eservice3.id,
   });
 
   const mockAgreement5 = {
-    ...getMockAgreement(eserviceId3.id, delegator5.id, agreementState.active),
-    producerId: eserviceId3.producerId,
+    ...getMockAgreement(eservice3.id, delegator5.id, agreementState.active),
+    producerId: eservice3.producerId,
   };
 
   // Delegator5 has 1 active delegation and 1 active agreement
@@ -121,20 +121,20 @@ describe("getConsumerDelegators", () => {
     state: delegationState.active,
     delegateId: generateId<TenantId>(),
     delegatorId: delegator6.id,
-    eserviceId: eserviceId3.id,
+    eserviceId: eservice3.id,
   });
 
   const mockAgreement6 = {
-    ...getMockAgreement(eserviceId3.id, delegator6.id, agreementState.active),
-    producerId: eserviceId3.producerId,
+    ...getMockAgreement(eservice3.id, delegator6.id, agreementState.active),
+    producerId: eservice3.producerId,
   };
 
   // Delegator6 has 1 active delegation and 1 active agreement but a different delegateId
 
   beforeEach(async () => {
-    await addOneEservice(eserviceId1);
-    await addOneEservice(eserviceId2);
-    await addOneEservice(eserviceId3);
+    await addOneEservice(eservice1);
+    await addOneEservice(eservice2);
+    await addOneEservice(eservice3);
     await addOneDelegation(mockDelegation1);
     await addOneDelegation(mockDelegation1Bis);
     await addOneDelegation(mockDelegation2);
