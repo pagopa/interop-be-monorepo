@@ -27,6 +27,7 @@ import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneDelegation,
+  addSomeRandomDelegations,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -123,6 +124,7 @@ describe("delete agreement", () => {
 
     await addOneAgreement(agreement);
     await addOneDelegation(delegation);
+    await addSomeRandomDelegations(agreement);
 
     await Promise.all(
       consumerDocuments.map((doc) =>
