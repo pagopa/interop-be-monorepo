@@ -33,7 +33,6 @@ import {
   AgreementStamp,
   UserId,
   delegationState,
-  DelegationState,
   delegationKind,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
