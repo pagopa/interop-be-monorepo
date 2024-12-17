@@ -1,5 +1,5 @@
 meta {
-  name: Create new delegation
+  name: Create producer delegation
   type: http
   seq: 1
 }
@@ -10,6 +10,11 @@ post {
   auth: none
 }
 
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
 body:json {
   {
     "eserviceId": "{{eserviceId}}",
@@ -17,7 +22,6 @@ body:json {
   }
 }
 
-headers {
-  Authorization: {{JWT}}
-  X-Correlation-Id: {{correlation-id}}
+vars:post-response {
+  delegationId: res.body.id
 }
