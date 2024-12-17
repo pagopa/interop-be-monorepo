@@ -5,7 +5,7 @@ import {
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
-import { PurposeEventV2 } from "pagopa-interop-models";
+import { PurposeEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV2 } from "./clientPurposeUpdaterConsumerServiceV2.js";
 import { config } from "./config/config.js";
@@ -19,12 +19,13 @@ async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  const decodedKafkaMessage = decodeKafkaMessage(message, PurposeEventV2);
+  const decodedKafkaMessage = decodeKafkaMessage(message, PurposeEvent);
 
   await match(decodedKafkaMessage)
-    .with({ event_version: 2 }, () =>
+    .with({ event_version: 1 }, () => Promise.resolve)
+    .with({ event_version: 2 }, (msg) =>
       handleMessageV2({
-        decodedKafkaMessage,
+        decodedKafkaMessage: msg,
         refreshableToken,
         partition,
         offset: message.offset,

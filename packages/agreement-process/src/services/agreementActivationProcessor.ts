@@ -6,7 +6,7 @@ import {
   AgreementEventV2,
   AgreementState,
   CorrelationId,
-  DelegationId,
+  Delegation,
   Descriptor,
   EService,
   Tenant,
@@ -49,7 +49,7 @@ export function createActivationUpdateAgreementSeed({
   suspendedByConsumer,
   suspendedByProducer,
   suspendedByPlatform,
-  producerDelegationId,
+  producerDelegation,
 }: {
   isFirstActivation: boolean;
   newState: AgreementState;
@@ -61,9 +61,9 @@ export function createActivationUpdateAgreementSeed({
   suspendedByConsumer: boolean | undefined;
   suspendedByProducer: boolean | undefined;
   suspendedByPlatform: boolean | undefined;
-  producerDelegationId?: DelegationId | undefined;
+  producerDelegation: Delegation | undefined;
 }): UpdateAgreementSeed {
-  const stamp = createStamp(authData.userId, producerDelegationId);
+  const stamp = createStamp(authData.userId, producerDelegation?.id);
 
   return isFirstActivation
     ? {
@@ -99,7 +99,8 @@ export function createActivationUpdateAgreementSeed({
             agreement,
             authData.organizationId,
             agreementState.active,
-            stamp
+            stamp,
+            producerDelegation?.delegateId
           ),
         },
         suspendedByPlatform,
