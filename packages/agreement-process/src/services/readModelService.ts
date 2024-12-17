@@ -33,7 +33,6 @@ import {
   DescriptorReadModel,
   EServiceReadModel,
   delegationKind,
-  DelegationKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -319,7 +318,10 @@ async function searchTenantsByName(
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const getDelegationLookup = (kind: DelegationKind) => [
+const getDelegationLookup = (
+  producerIds: TenantId[],
+  consumerIds: TenantId[]
+) => [
   {
     $lookup: {
       from: "delegations",
@@ -338,25 +340,55 @@ const getDelegationLookup = (kind: DelegationKind) => [
                   $eq: ["$data.eserviceId", "$$eserviceId"],
                 },
                 {
-                  $eq: [
-                    "$data.delegatorId",
-                    match(kind)
-                      .with(
-                        delegationKind.delegatedConsumer,
-                        () => "$$consumerId"
-                      )
-                      .with(
-                        delegationKind.delegatedProducer,
-                        () => "$$producerId"
-                      )
-                      .exhaustive(),
-                  ],
-                },
-                {
-                  $eq: ["$data.kind", kind],
-                },
-                {
                   $eq: ["$data.state", delegationState.active],
+                },
+                {
+                  $or: [
+                    {
+                      $or: [
+                        {
+                          $and: [
+                            {
+                              $eq: [
+                                "$data.kind",
+                                delegationKind.delegatedProducer,
+                              ],
+                            },
+                            {
+                              $eq: ["$data.delegatorId", "$$producerId"],
+                            },
+                            {
+                              $in: ["$data.delegateId", producerIds],
+                            },
+                            makeFilter("consumerId", consumerIds),
+                          ].filter((a) => a !== undefined),
+                        },
+                        makeFilter("producerId", producerIds),
+                      ].filter((a) => a !== undefined),
+                    },
+                    {
+                      $or: [
+                        {
+                          $and: [
+                            {
+                              $eq: [
+                                "$data.kind",
+                                delegationKind.delegatedConsumer,
+                              ],
+                            },
+                            {
+                              $eq: ["$data.delegatorId", "$$consumerId"],
+                            },
+                            {
+                              $in: ["$data.delegateId", consumerIds],
+                            },
+                            makeFilter("producerId", producerIds),
+                          ].filter((a) => a !== undefined),
+                        },
+                        makeFilter("consumerId", consumerIds),
+                      ].filter((a) => a !== undefined),
+                    },
+                  ],
                 },
               ],
             },
@@ -369,67 +401,6 @@ const getDelegationLookup = (kind: DelegationKind) => [
 ];
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getProducerOrConsumerWithDelegateFilters(
-  producerIds: TenantId[],
-  consumerIds: TenantId[],
-  requesterId: TenantId
-) {
-  const requesterRole: "Consumer" | "Producer" | undefined =
-    producerIds.length === 1 && producerIds[0] === requesterId
-      ? "Producer"
-      : consumerIds.length === 1 && consumerIds[0] === requesterId
-      ? "Consumer"
-      : undefined;
-
-  return match(requesterRole)
-    .with(undefined, () => [
-      {
-        $match: {
-          ...makeFilter("producerId", producerIds),
-          ...makeFilter("consumerId", consumerIds),
-        },
-      },
-    ])
-    .with("Producer", () => [
-      ...getDelegationLookup(delegationKind.delegatedProducer),
-      {
-        $match: {
-          $and: [
-            {
-              $or: [
-                {
-                  "delegations.data.delegateId": requesterId,
-                },
-                makeFilter("producerId", requesterId),
-              ],
-            },
-            makeFilter("consumerId", consumerIds),
-          ].filter((a) => a !== undefined),
-        },
-      },
-    ])
-    .with("Consumer", () => [
-      ...getDelegationLookup(delegationKind.delegatedConsumer),
-      {
-        $match: {
-          $and: [
-            {
-              $or: [
-                {
-                  "delegations.data.delegateId": requesterId,
-                },
-                makeFilter("consumerId", requesterId),
-              ],
-            },
-            makeFilter("producerId", producerIds),
-          ].filter((a) => a !== undefined),
-        },
-      },
-    ])
-    .exhaustive();
-}
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
@@ -438,7 +409,6 @@ export function readModelServiceBuilder(
   return {
     async getAgreements(
       filters: AgreementQueryFilters,
-      requesterId: TenantId,
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
@@ -454,11 +424,11 @@ export function readModelServiceBuilder(
           : [consumerId]
         : [];
 
-      const delegateAgreementFilters = getProducerOrConsumerWithDelegateFilters(
+      const delegateAgreementFilters = getDelegationLookup(
         producerIds,
-        consumerIds,
-        requesterId
+        consumerIds
       );
+      console.log(JSON.stringify(delegateAgreementFilters));
 
       const pipeline = [
         getAgreementsFilters(otherFilters),
@@ -628,7 +598,6 @@ export function readModelServiceBuilder(
     },
     async getAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
-      requesterId: TenantId,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactEService>> {
@@ -639,11 +608,7 @@ export function readModelServiceBuilder(
       };
 
       const agreementAggregationPipeline = [
-        ...getProducerOrConsumerWithDelegateFilters(
-          filters.producerIds,
-          filters.consumerIds,
-          requesterId
-        ),
+        ...getDelegationLookup(filters.producerIds, filters.consumerIds),
         {
           $match: agreementFilter,
         },

@@ -242,18 +242,12 @@ export function agreementServiceBuilder(
   return {
     async getAgreements(
       filters: AgreementQueryFilters,
-      requesterId: TenantId,
       limit: number,
       offset: number,
       logger: Logger
     ): Promise<ListResult<Agreement>> {
       logger.info("Retrieving agreements");
-      return await readModelService.getAgreements(
-        filters,
-        requesterId,
-        limit,
-        offset
-      );
+      return await readModelService.getAgreements(filters, limit, offset);
     },
     async getAgreementById(
       agreementId: AgreementId,
@@ -928,7 +922,6 @@ export function agreementServiceBuilder(
     },
     async getAgreementEServices(
       filters: AgreementEServicesQueryFilters,
-      requesterId: TenantId,
       limit: number,
       offset: number,
       logger: Logger
@@ -939,7 +932,6 @@ export function agreementServiceBuilder(
 
       return await readModelService.getAgreementsEServices(
         filters,
-        requesterId,
         limit,
         offset
       );
