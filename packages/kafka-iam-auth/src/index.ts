@@ -242,7 +242,12 @@ const initCustomConsumer = async ({
   config: KafkaConsumerConfig;
   topics: string[];
   consumerRunConfig: (consumer: Consumer) => ConsumerRunConfig;
-  batchConfig?: { minBytes: number; maxWaitTimeInMs: number };
+  batchConfig?: {
+    minBytes: number;
+    maxWaitTimeInMs: number;
+    sessionTimeout: number;
+    maxBytes: number | undefined;
+  };
 }): Promise<Consumer> => {
   genericLogger.debug(
     `Consumer connecting to topics ${JSON.stringify(topics)}`
@@ -262,7 +267,6 @@ const initCustomConsumer = async ({
       },
     },
     ...batchConfig,
-    maxBytes: batchConfig ? batchConfig.minBytes * 1.25 : undefined, // TODO double-check
   });
 
   if (config.resetConsumerOffsets) {
@@ -404,14 +408,17 @@ export const runBatchConsumer = async (
         }
       },
     });
+    const minBytes =
+      config.averageKafkaMessageSizeInBytes * config.messagesToReadPerBatch;
     await initCustomConsumer({
       config,
       topics,
       consumerRunConfig,
       batchConfig: {
-        minBytes:
-          config.averageKafkaMessageSizeInBytes * config.messagesToReadPerBatch,
+        minBytes,
         maxWaitTimeInMs: config.maxWaitKafkaBatchMillis,
+        sessionTimeout: config.maxWaitKafkaBatchMillis * 1.5,
+        maxBytes: minBytes * 1.25,
       },
     });
   } catch (e) {
