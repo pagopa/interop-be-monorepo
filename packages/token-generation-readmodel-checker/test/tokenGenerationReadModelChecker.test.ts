@@ -783,6 +783,11 @@ describe("Token Generation Read Model Checker tests", () => {
         state: descriptorState.published,
         audience: ["pagopa.it"],
       };
+      const descriptor3: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.deprecated,
+        audience: ["pagopa.it"],
+      };
 
       const eservice1: EService = {
         ...getMockEService(),
@@ -790,7 +795,7 @@ describe("Token Generation Read Model Checker tests", () => {
       };
       const eservice2: EService = {
         ...getMockEService(),
-        descriptors: [descriptor2],
+        descriptors: [descriptor2, descriptor3],
       };
       await addOneEService(eservice1);
       await addOneEService(eservice2);
@@ -798,7 +803,7 @@ describe("Token Generation Read Model Checker tests", () => {
       // platform-states
       const catalogEntryPK1 = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice1.id,
-        descriptorId: eservice1.descriptors[0].id,
+        descriptorId: descriptor1.id,
       });
       const platformStatesCatalogEntry1: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK1,
@@ -815,7 +820,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       const catalogEntryPK2 = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice2.id,
-        descriptorId: eservice2.descriptors[0].id,
+        descriptorId: descriptor2.id,
       });
       const platformStatesCatalogEntry2: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK2,
@@ -827,6 +832,23 @@ describe("Token Generation Read Model Checker tests", () => {
       };
       await writePlatformCatalogEntry(
         platformStatesCatalogEntry2,
+        dynamoDBClient
+      );
+
+      const catalogEntryPK3 = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice2.id,
+        descriptorId: descriptor3.id,
+      });
+      const platformStatesCatalogEntry3: PlatformStatesCatalogEntry = {
+        PK: catalogEntryPK3,
+        state: itemState.active,
+        descriptorAudience: descriptor3.audience,
+        descriptorVoucherLifespan: descriptor3.voucherLifespan,
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      await writePlatformCatalogEntry(
+        platformStatesCatalogEntry3,
         dynamoDBClient
       );
 
@@ -862,8 +884,17 @@ describe("Token Generation Read Model Checker tests", () => {
       const catalogDifferences =
         await compareReadModelEServicesWithPlatformStates({
           platformStatesEServiceById: new Map([
-            [eservice1.id, platformStatesCatalogEntry1],
-            [eservice2.id, platformStatesCatalogEntry2],
+            [
+              eservice1.id,
+              new Map([[descriptor1.id, platformStatesCatalogEntry1]]),
+            ],
+            [
+              eservice2.id,
+              new Map([
+                [descriptor2.id, platformStatesCatalogEntry2],
+                [descriptor3.id, platformStatesCatalogEntry3],
+              ]),
+            ],
           ]),
           eservicesById: new Map([
             [eservice1.id, eservice1],
@@ -936,8 +967,14 @@ describe("Token Generation Read Model Checker tests", () => {
       const catalogDifferences =
         await compareReadModelEServicesWithPlatformStates({
           platformStatesEServiceById: new Map([
-            [eservice1.id, platformStatesCatalogEntry1],
-            [eservice2.id, platformStatesCatalogEntry2],
+            [
+              eservice1.id,
+              new Map([[descriptor1.id, platformStatesCatalogEntry1]]),
+            ],
+            [
+              eservice2.id,
+              new Map([[descriptor2.id, platformStatesCatalogEntry2]]),
+            ],
           ]),
           eservicesById: new Map([
             [eservice1.id, eservice1],
@@ -994,7 +1031,7 @@ describe("Token Generation Read Model Checker tests", () => {
     it("should not detect differences when the platform-states entry is missing and the descriptor is archived", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
-        state: descriptorState.archived,
+        state: descriptorState.draft,
         audience: ["pagopa.it"],
       };
       const eservice: EService = {
@@ -1098,7 +1135,10 @@ describe("Token Generation Read Model Checker tests", () => {
       const catalogDifferences =
         await compareReadModelEServicesWithPlatformStates({
           platformStatesEServiceById: new Map([
-            [eservice.id, platformStatesCatalogEntry],
+            [
+              eservice.id,
+              new Map([[descriptor.id, platformStatesCatalogEntry]]),
+            ],
           ]),
           eservicesById: new Map(),
           logger: genericLogger,
@@ -1136,21 +1176,9 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor2],
       };
-      const eservicesByEserviceIdDescriptorId = new Map([
-        [
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice1.id,
-            descriptorId: descriptor1.id,
-          }),
-          eservice1,
-        ],
-        [
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice2.id,
-            descriptorId: descriptor2.id,
-          }),
-          eservice2,
-        ],
+      const eservicesById = new Map([
+        [eservice1.id, eservice1],
+        [eservice2.id, eservice2],
       ]);
       await addOneEService(eservice1);
       await addOneEService(eservice2);
@@ -1350,8 +1378,8 @@ describe("Token Generation Read Model Checker tests", () => {
         ]),
         clientsById,
         purposesById,
+        eservicesById,
         agreementsByConsumerIdEserviceId,
-        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
@@ -1376,21 +1404,9 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor2],
       };
-      const eservicesByEserviceIdDescriptorId = new Map([
-        [
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice1.id,
-            descriptorId: descriptor1.id,
-          }),
-          eservice1,
-        ],
-        [
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice2.id,
-            descriptorId: descriptor2.id,
-          }),
-          eservice2,
-        ],
+      const eservicesById = new Map([
+        [eservice1.id, eservice1],
+        [eservice2.id, eservice2],
       ]);
       await addOneEService(eservice1);
       await addOneEService(eservice2);
@@ -1545,8 +1561,8 @@ describe("Token Generation Read Model Checker tests", () => {
         ]),
         clientsById,
         purposesById,
+        eservicesById,
         agreementsByConsumerIdEserviceId,
-        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedClientDifferences: ClientDifferencesResult = [
@@ -1581,15 +1597,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      const eservicesByEserviceIdDescriptorId = new Map([
-        [
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice.id,
-            descriptorId: descriptor.id,
-          }),
-          eservice,
-        ],
-      ]);
+      const eservicesById = new Map([[eservice.id, eservice]]);
       await addOneEService(eservice);
 
       const purpose: Purpose = {
@@ -1688,8 +1696,8 @@ describe("Token Generation Read Model Checker tests", () => {
         ]),
         clientsById,
         purposesById,
+        eservicesById,
         agreementsByConsumerIdEserviceId,
-        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedClientDifferences: ClientDifferencesResult = [
@@ -1719,15 +1727,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      const eservicesByEserviceIdDescriptorId = new Map([
-        [
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice.id,
-            descriptorId: descriptor.id,
-          }),
-          eservice,
-        ],
-      ]);
+      const eservicesById = new Map([[eservice.id, eservice]]);
       await addOneEService(eservice);
 
       const purpose: Purpose = {
@@ -1820,8 +1820,8 @@ describe("Token Generation Read Model Checker tests", () => {
         ]),
         clientsById,
         purposesById,
+        eservicesById,
         agreementsByConsumerIdEserviceId,
-        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedClientDifferences: ClientDifferencesResult = [
@@ -1851,15 +1851,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      const eservicesByEserviceIdDescriptorId = new Map([
-        [
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice.id,
-            descriptorId: descriptor.id,
-          }),
-          eservice,
-        ],
-      ]);
+      const eservicesById = new Map([[eservice.id, eservice]]);
       await addOneEService(eservice);
 
       const purpose: Purpose = {
@@ -1908,8 +1900,8 @@ describe("Token Generation Read Model Checker tests", () => {
         tokenGenStatesByClient: new Map(),
         clientsById,
         purposesById,
+        eservicesById,
         agreementsByConsumerIdEserviceId,
-        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedClientDifferences: ClientDifferencesResult = [
@@ -1931,15 +1923,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      const eservicesByEserviceIdDescriptorId = new Map([
-        [
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice.id,
-            descriptorId: descriptor.id,
-          }),
-          eservice,
-        ],
-      ]);
+      const eservicesById = new Map([[eservice.id, eservice]]);
       await addOneEService(eservice);
 
       const purpose: Purpose = {
@@ -2007,8 +1991,8 @@ describe("Token Generation Read Model Checker tests", () => {
         tokenGenStatesByClient: new Map(),
         clientsById,
         purposesById,
+        eservicesById,
         agreementsByConsumerIdEserviceId,
-        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedClientDifferences: ClientDifferencesResult = [
@@ -2030,15 +2014,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      const eservicesByEserviceIdDescriptorId = new Map([
-        [
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice.id,
-            descriptorId: descriptor.id,
-          }),
-          eservice,
-        ],
-      ]);
+      const eservicesById = new Map([[eservice.id, eservice]]);
       await addOneEService(eservice);
 
       const purpose: Purpose = {
@@ -2104,8 +2080,8 @@ describe("Token Generation Read Model Checker tests", () => {
         tokenGenStatesByClient: new Map(),
         clientsById,
         purposesById,
+        eservicesById,
         agreementsByConsumerIdEserviceId,
-        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       expect(clientDifferences).toHaveLength(expectedDifferencesLength);
@@ -2121,15 +2097,7 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      const eservicesByEserviceIdDescriptorId = new Map([
-        [
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice.id,
-            descriptorId: descriptor.id,
-          }),
-          eservice,
-        ],
-      ]);
+      const eservicesById = new Map([[eservice.id, eservice]]);
       await addOneEService(eservice);
 
       const purpose: Purpose = {
@@ -2222,8 +2190,8 @@ describe("Token Generation Read Model Checker tests", () => {
         ]),
         clientsById: new Map(),
         purposesById,
+        eservicesById,
         agreementsByConsumerIdEserviceId,
-        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedClientDifferences: ClientDifferencesResult = [

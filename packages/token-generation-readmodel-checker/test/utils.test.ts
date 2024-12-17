@@ -27,7 +27,6 @@ import {
   itemState,
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
-  makeGSIPKEServiceIdDescriptorId,
   makeGSIPKKid,
   makePlatformStatesAgreementPK,
   makePlatformStatesClientPK,
@@ -66,8 +65,8 @@ import {
   compareReadModelClientsAndTokenGenStates,
   compareReadModelEServicesWithPlatformStates,
   compareReadModelPurposesWithPlatformStates,
-  getLastEServiceDescriptor,
   getLastPurposeVersion,
+  getValidDescriptors,
 } from "../src/utils/utils.js";
 import {
   addOneAgreement,
@@ -283,8 +282,8 @@ describe("Token Generation Read Model Checker utils tests", () => {
 
       const differences = await compareReadModelEServicesWithPlatformStates({
         platformStatesEServiceById: new Map([
-          [eservice1.id, platformCatalogEntry1],
-          [eservice2.id, platformCatalogEntry2],
+          [eservice1.id, new Map([[descriptor1.id, platformCatalogEntry1]])],
+          [eservice2.id, new Map([[descriptor2.id, platformCatalogEntry2]])],
         ]),
         eservicesById: new Map([
           [eservice1.id, eservice1],
@@ -323,21 +322,9 @@ describe("Token Generation Read Model Checker utils tests", () => {
         ...getMockEService(),
         descriptors: [descriptor2],
       };
-      const eservicesByEserviceIdDescriptorId = new Map([
-        [
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice1.id,
-            descriptorId: descriptor1.id,
-          }),
-          eservice1,
-        ],
-        [
-          makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice2.id,
-            descriptorId: descriptor2.id,
-          }),
-          eservice2,
-        ],
+      const eservicesById = new Map([
+        [eservice1.id, eservice1],
+        [eservice2.id, eservice2],
       ]);
       await addOneEService(eservice1);
       await addOneEService(eservice2);
@@ -475,8 +462,8 @@ describe("Token Generation Read Model Checker utils tests", () => {
         tokenGenStatesByClient: new Map([[client1.id, [tokenGenStatesEntry]]]),
         clientsById,
         purposesById,
+        eservicesById,
         agreementsByConsumerIdEserviceId,
-        eservicesByEserviceIdDescriptorId,
         logger: genericLogger,
       });
       const expectedDifferences: ClientDifferencesResult = [
@@ -635,21 +622,32 @@ describe("Token Generation Read Model Checker utils tests", () => {
     );
   });
 
-  it("getLastEServiceDescriptor", () => {
-    const date1 = new Date();
-    const date2 = new Date();
-    date2.setDate(date1.getDate() + 1);
-    const descriptor1: Descriptor = {
-      ...getMockDescriptor(),
-      createdAt: date1,
-    };
-    const descriptor2: Descriptor = {
-      ...getMockDescriptor(),
-      createdAt: date2,
-    };
+  it("getValidDescriptors", () => {
+    const publishedDescriptor = getMockDescriptor(descriptorState.published);
+    const waitingForApprovalDescriptor = getMockDescriptor(
+      descriptorState.waitingForApproval
+    );
+    const deprecatedDescriptor = getMockDescriptor(descriptorState.deprecated);
+    const archivedDescriptor = getMockDescriptor(descriptorState.archived);
+    const suspendedDescriptor = getMockDescriptor(descriptorState.suspended);
+    const draftDescriptor = getMockDescriptor(descriptorState.draft);
 
-    expect(getLastEServiceDescriptor([descriptor1, descriptor2])).toEqual(
-      descriptor2
+    expect(
+      getValidDescriptors([
+        publishedDescriptor,
+        waitingForApprovalDescriptor,
+        deprecatedDescriptor,
+        archivedDescriptor,
+        suspendedDescriptor,
+        draftDescriptor,
+      ])
+    ).toEqual(
+      expect.arrayContaining([
+        publishedDescriptor,
+        deprecatedDescriptor,
+        archivedDescriptor,
+        suspendedDescriptor,
+      ])
     );
   });
 });

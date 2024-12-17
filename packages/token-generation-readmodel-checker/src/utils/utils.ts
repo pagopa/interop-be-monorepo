@@ -20,7 +20,6 @@ import {
   EServiceId,
   genericInternalError,
   GSIPKConsumerIdEServiceId,
-  GSIPKEServiceIdDescriptorId,
   itemState,
   ItemState,
   makeGSIPKClientIdPurposeId,
@@ -73,23 +72,23 @@ export function getLastPurposeVersion(
   )[0];
 }
 
-export function getLastEServiceDescriptor(
-  descriptors: Descriptor[]
-): Descriptor {
-  return descriptors.toSorted(
-    (descriptor1, descriptor2) =>
-      descriptor2.createdAt.getTime() - descriptor1.createdAt.getTime()
-  )[0];
+export function getValidDescriptors(descriptors: Descriptor[]): Descriptor[] {
+  return descriptors.filter(
+    (descriptor) =>
+      descriptor.state === descriptorState.published ||
+      descriptor.state === descriptorState.suspended ||
+      descriptor.state === descriptorState.archived ||
+      descriptor.state === descriptorState.deprecated
+  );
 }
 
 function getIdFromPlatformStatesPK<
-  T extends PurposeId | AgreementId | ClientId | EServiceId
+  T extends PurposeId | AgreementId | ClientId
 >(
   pk:
     | PlatformStatesPurposePK
     | PlatformStatesAgreementPK
     | PlatformStatesClientPK
-    | PlatformStatesEServiceDescriptorPK
 ): {
   id: T;
   descriptorId?: DescriptorId;
@@ -102,6 +101,19 @@ function getIdFromPlatformStatesPK<
     };
   }
   return { id: unsafeBrandId<T>(splitPK[1]) };
+}
+
+function getCatalogIdsFromPlatformStatesPK(
+  pk: PlatformStatesEServiceDescriptorPK
+): {
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+} {
+  const splitPK = pk.split("#");
+  return {
+    eserviceId: unsafeBrandId<EServiceId>(splitPK[1]),
+    descriptorId: unsafeBrandId<DescriptorId>(splitPK[2]),
+  };
 }
 
 function getClientIdFromTokenGenStatesPK(
@@ -156,12 +168,12 @@ export async function compareTokenGenerationReadModel(
   const platformStates: {
     purposes: Map<PurposeId, PlatformStatesPurposeEntry>;
     agreements: Map<AgreementId, PlatformStatesAgreementEntry>;
-    eservices: Map<EServiceId, PlatformStatesCatalogEntry>;
+    eservices: Map<EServiceId, Map<DescriptorId, PlatformStatesCatalogEntry>>;
     clients: Map<ClientId, PlatformStatesClientEntry>;
   } = platformStatesEntries.reduce<{
     purposes: Map<PurposeId, PlatformStatesPurposeEntry>;
     agreements: Map<AgreementId, PlatformStatesAgreementEntry>;
-    eservices: Map<EServiceId, PlatformStatesCatalogEntry>;
+    eservices: Map<EServiceId, Map<DescriptorId, PlatformStatesCatalogEntry>>;
     clients: Map<ClientId, PlatformStatesClientEntry>;
   }>(
     (acc, e) => {
@@ -189,12 +201,21 @@ export async function compareTokenGenerationReadModel(
 
       const parsedCatalog = PlatformStatesCatalogEntry.safeParse(e);
       if (parsedCatalog.success) {
-        acc.eservices.set(
-          unsafeBrandId<EServiceId>(
-            getIdFromPlatformStatesPK(parsedCatalog.data.PK).id
-          ),
-          parsedCatalog.data
+        const catalogIds = getCatalogIdsFromPlatformStatesPK(
+          parsedCatalog.data.PK
         );
+        const platformStatesCatalogEntries = acc.eservices.get(
+          catalogIds.eserviceId
+        );
+
+        acc.eservices.set(
+          catalogIds.eserviceId,
+          (
+            platformStatesCatalogEntries ??
+            new Map<DescriptorId, PlatformStatesCatalogEntry>()
+          ).set(catalogIds.descriptorId, parsedCatalog.data)
+        );
+
         return acc;
       }
 
@@ -216,7 +237,10 @@ export async function compareTokenGenerationReadModel(
     {
       purposes: new Map<PurposeId, PlatformStatesPurposeEntry>(),
       agreements: new Map<AgreementId, PlatformStatesAgreementEntry>(),
-      eservices: new Map<EServiceId, PlatformStatesCatalogEntry>(),
+      eservices: new Map<
+        EServiceId,
+        Map<DescriptorId, PlatformStatesCatalogEntry>
+      >(),
       clients: new Map<ClientId, PlatformStatesClientEntry>(),
     }
   );
@@ -245,19 +269,8 @@ export async function compareTokenGenerationReadModel(
 
   const eservices = await readModelService.getAllReadModelEServices();
   const eservicesById = new Map<EServiceId, EService>();
-  const eservicesByEserviceIdDescriptorId = new Map<
-    GSIPKEServiceIdDescriptorId,
-    EService
-  >();
   for (const eservice of eservices) {
-    const descriptor = getLastEServiceDescriptor(eservice.descriptors);
     eservicesById.set(eservice.id, eservice);
-    eservicesByEserviceIdDescriptorId.set(
-      unsafeBrandId<GSIPKEServiceIdDescriptorId>(
-        `${eservice.id}#${descriptor.id}`
-      ),
-      eservice
-    );
   }
 
   const clients = await readModelService.getAllReadModelClients();
@@ -287,8 +300,8 @@ export async function compareTokenGenerationReadModel(
       tokenGenStatesByClient,
       clientsById,
       purposesById,
+      eservicesById,
       agreementsByConsumerIdEserviceId,
-      eservicesByEserviceIdDescriptorId,
       logger,
     });
 
@@ -321,7 +334,7 @@ export async function compareReadModelPurposesWithPlatformStates({
 
     if (!platformStatesEntry && !purpose) {
       throw genericInternalError(
-        `Purpose and platform-states entry are missing for id: ${id}`
+        `Purpose and platform-states entry not found for id: ${id}`
       );
     }
 
@@ -456,7 +469,7 @@ export async function compareReadModelAgreementsWithPlatformStates({
 
     if (!platformStatesEntry && !agreement) {
       throw genericInternalError(
-        `Agreement and platform-states entry are missing for id: ${id}`
+        `Agreement and platform-states entry not found for id: ${id}`
       );
     }
 
@@ -573,7 +586,10 @@ export async function compareReadModelEServicesWithPlatformStates({
   eservicesById,
   logger,
 }: {
-  platformStatesEServiceById: Map<EServiceId, PlatformStatesCatalogEntry>;
+  platformStatesEServiceById: Map<
+    EServiceId,
+    Map<DescriptorId, PlatformStatesCatalogEntry>
+  >;
   eservicesById: Map<EServiceId, EService>;
   logger: Logger;
 }): Promise<CatalogDifferencesResult> {
@@ -583,49 +599,52 @@ export async function compareReadModelEServicesWithPlatformStates({
   ]);
 
   return Array.from(allIds).reduce<CatalogDifferencesResult>((acc, id) => {
-    const platformStatesEntry = platformStatesEServiceById.get(id);
+    const platformStatesEntries = platformStatesEServiceById.get(id);
     const eservice = eservicesById.get(id);
 
-    if (!platformStatesEntry && !eservice) {
+    if (!platformStatesEntries && !eservice) {
       throw genericInternalError(
-        `E-Service and platform-states entry are missing for id: ${id}`
+        `E-Service and platform-states entries not found for id: ${id}`
       );
     }
 
     if (!eservice) {
-      console.log(`Read model eservice not found for id: ${id}`);
-      logger.error(`Read model eservice not found for id: ${id}`);
+      console.log(`Read model e-service not found for id: ${id}`);
+      logger.error(`Read model e-service not found for id: ${id}`);
 
-      return [
-        ...acc,
-        [
-          platformStatesEntry
-            ? ComparisonPlatformStatesCatalogEntry.parse(platformStatesEntry)
-            : undefined,
-          eservice,
-        ],
-      ];
+      if (platformStatesEntries) {
+        const parsedEntries = Array.from(platformStatesEntries.values()).map(
+          (entry) => ComparisonPlatformStatesCatalogEntry.parse(entry)
+        );
+        const wrongPlatformStatesCatalogEntries: Array<
+          [ComparisonPlatformStatesCatalogEntry, undefined]
+        > = parsedEntries.map((entry) => [entry, eservice]);
+        return [...acc, ...wrongPlatformStatesCatalogEntries];
+      }
+
+      return acc;
     }
 
-    const lastEServiceDescriptor = getLastEServiceDescriptor(
-      eservice.descriptors
-    );
-    const {
-      isPlatformStatesCatalogCorrect: isPlatformStatesCorrect,
-      data: platformCatalogEntryDiff,
-    } = validateCatalogPlatformStates({
-      platformCatalogEntry: platformStatesEntry,
-      eservice,
-      descriptor: lastEServiceDescriptor,
-      logger,
-    });
+    const descriptors = getValidDescriptors(eservice.descriptors);
+    for (const descriptor of descriptors) {
+      const platformCatalogEntry = platformStatesEntries?.get(descriptor.id);
+      const {
+        isPlatformStatesCatalogCorrect: isPlatformStatesCorrect,
+        data: platformCatalogEntryDiff,
+      } = validateCatalogPlatformStates({
+        platformCatalogEntry,
+        eservice,
+        descriptor,
+        logger,
+      });
 
-    if (!isPlatformStatesCorrect) {
-      const catalogDifferencesEntry: [
-        ComparisonPlatformStatesCatalogEntry | undefined,
-        ComparisonEService | undefined
-      ] = [platformCatalogEntryDiff, ComparisonEService.parse(eservice)];
-      return [...acc, catalogDifferencesEntry];
+      if (!isPlatformStatesCorrect) {
+        const catalogDifferencesEntry: [
+          ComparisonPlatformStatesCatalogEntry | undefined,
+          ComparisonEService | undefined
+        ] = [platformCatalogEntryDiff, ComparisonEService.parse(eservice)];
+        return [...acc, catalogDifferencesEntry];
+      }
     }
 
     return acc;
@@ -662,15 +681,15 @@ function validateCatalogPlatformStates({
     };
   }
 
-  const extractedDescriptorId = getIdFromPlatformStatesPK<EServiceId>(
+  const extractedDescriptorId = getCatalogIdsFromPlatformStatesPK(
     platformCatalogEntry.PK
   ).descriptorId;
   if (descriptor.id !== extractedDescriptorId) {
     console.log(
-      `Catalog platform-states entry descriptor id ${extractedDescriptorId} is not equal to eservice descriptor id ${descriptor.id}`
+      `Catalog platform-states entry with descriptor id ${extractedDescriptorId} is not equal to eservice descriptor id ${descriptor.id}`
     );
     logger.error(
-      `Catalog platform-states entry descriptor id ${extractedDescriptorId} is not equal to eservice descriptor id ${descriptor.id}`
+      `Catalog platform-states entry with descriptor id ${extractedDescriptorId} is not equal to eservice descriptor id ${descriptor.id}`
     );
     return {
       isPlatformStatesCatalogCorrect: false,
@@ -719,16 +738,16 @@ export async function compareReadModelClientsAndTokenGenStates({
   tokenGenStatesByClient,
   clientsById,
   purposesById,
+  eservicesById,
   agreementsByConsumerIdEserviceId,
-  eservicesByEserviceIdDescriptorId,
   logger,
 }: {
   platformStatesClientById: Map<ClientId, PlatformStatesClientEntry>;
   tokenGenStatesByClient: Map<ClientId, TokenGenerationStatesGenericClient[]>;
   clientsById: Map<ClientId, Client>;
   purposesById: Map<PurposeId, Purpose>;
+  eservicesById: Map<EServiceId, EService>;
   agreementsByConsumerIdEserviceId: Map<GSIPKConsumerIdEServiceId, Agreement>;
-  eservicesByEserviceIdDescriptorId: Map<GSIPKEServiceIdDescriptorId, EService>;
   logger: Logger;
 }): Promise<ClientDifferencesResult> {
   const allIds = new Set([
@@ -744,7 +763,7 @@ export async function compareReadModelClientsAndTokenGenStates({
 
     if (!platformStatesEntry && !tokenGenStatesEntries?.length && !client) {
       throw genericInternalError(
-        `Client, platform-states entry and token-generation states entries are missing for id: ${id}`
+        `Client, platform-states entry and token-generation states entries not found for id: ${id}`
       );
     }
 
@@ -784,8 +803,8 @@ export async function compareReadModelClientsAndTokenGenStates({
       tokenGenStatesEntries,
       client,
       purposesById,
+      eservicesById,
       agreementsByConsumerIdEserviceId,
-      eservicesByEserviceIdDescriptorId,
       logger,
     });
 
@@ -875,15 +894,15 @@ function validateTokenGenerationStates({
   tokenGenStatesEntries,
   client,
   purposesById,
+  eservicesById,
   agreementsByConsumerIdEserviceId,
-  eservicesByEserviceIdDescriptorId,
   logger,
 }: {
   tokenGenStatesEntries: TokenGenerationStatesGenericClient[] | undefined;
   client: Client;
   purposesById: Map<PurposeId, Purpose>;
+  eservicesById: Map<EServiceId, EService>;
   agreementsByConsumerIdEserviceId: Map<GSIPKConsumerIdEServiceId, Agreement>;
-  eservicesByEserviceIdDescriptorId: Map<GSIPKEServiceIdDescriptorId, EService>;
   logger: Logger;
 }): {
   isTokenGenerationStatesClientCorrect: boolean;
@@ -1002,12 +1021,8 @@ function validateTokenGenerationStates({
               agreement.state
             );
 
-            const eservice = eservicesByEserviceIdDescriptorId.get(
-              makeGSIPKEServiceIdDescriptorId({
-                eserviceId: agreement.eserviceId,
-                descriptorId: agreement.descriptorId,
-              })
-            );
+            const eservice = eservicesById.get(agreement.eserviceId);
+
             const descriptor = eservice?.descriptors.find(
               (d) => d.id === agreement.descriptorId
             );
@@ -1021,10 +1036,10 @@ function validateTokenGenerationStates({
                 .join(" and ");
 
               console.log(
-                `no ${missingEServiceDescriptor} for token-generation-states entry with PK ${e.PK}`
+                `no ${missingEServiceDescriptor} in read model for token-generation-states entry with PK ${e.PK}`
               );
               logger.error(
-                `no ${missingEServiceDescriptor} for token-generation-states entry with PK ${e.PK}`
+                `no ${missingEServiceDescriptor} in read model for token-generation-states entry with PK ${e.PK}`
               );
 
               return [
