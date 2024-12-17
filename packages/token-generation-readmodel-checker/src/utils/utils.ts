@@ -62,14 +62,17 @@ import {
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerationReadModelService.js";
 
-// TODO: this should ignore WAITING_FOR_APPROVAL and REJECTED versions. Double check DRAFT state
 export function getLastPurposeVersion(
   purposeVersions: PurposeVersion[]
 ): PurposeVersion {
-  return purposeVersions.toSorted(
-    (purposeVersion1, purposeVersion2) =>
-      purposeVersion2.createdAt.getTime() - purposeVersion1.createdAt.getTime()
-  )[0];
+  return purposeVersions
+    .filter(
+      (pv) =>
+        pv.state === purposeVersionState.active ||
+        pv.state === purposeVersionState.suspended ||
+        pv.state === purposeVersionState.archived
+    )
+    .toSorted(
 }
 
 export function getValidDescriptors(descriptors: Descriptor[]): Descriptor[] {
