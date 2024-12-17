@@ -112,13 +112,14 @@ describe("delete agreement", () => {
       consumerDocuments,
     };
 
-    const authData = getRandomAuthData(agreement.consumerId);
+    const delegateId = generateId<TenantId>();
+    const authData = getRandomAuthData(delegateId);
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: agreement.eserviceId,
       delegatorId: agreement.consumerId,
-      delegateId: authData.organizationId,
+      delegateId,
       state: delegationState.active,
     });
 
