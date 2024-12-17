@@ -13281,8 +13281,7 @@ paths:
     get:
       tags:
         - consumerDelegations
-      summary: Get consumer delegated eservices
-      description: Get consumer delegated eservices
+      description: Retrieve requester's delegated eservices
       operationId: getConsumerDelegatedEservices
       responses:
         "200":
