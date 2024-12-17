@@ -41,7 +41,6 @@ import {
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Delegation,
-  DelegationState,
   Descriptor,
   EService,
   EServiceId,
@@ -85,6 +84,7 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
+  addSomeRandomDelegations,
   agreementService,
   fileManager,
   pdfGenerator,
@@ -198,28 +198,6 @@ async function addDelegationsAndDelegates({
     await addOneDelegation(consumerDelegation);
     await addOneTenant(delegateConsumer);
   }
-}
-
-async function addSomeRandomDelegations(agreement: Agreement): Promise<void> {
-  // Adding some more delegations
-  [delegationState.rejected, delegationState.revoked].forEach(
-    async (state: DelegationState) => {
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedProducer,
-          state,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedConsumer,
-          state,
-        })
-      );
-    }
-  );
 }
 
 describe("activate agreement", () => {

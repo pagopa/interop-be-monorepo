@@ -38,27 +38,22 @@ describe("delete agreement", () => {
   it("should succeed when requester is Consumer and the Agreement is in a deletable state", async () => {
     vi.spyOn(fileManager, "delete");
     const agreementId = generateId<AgreementId>();
+    const consumerDocuments = [
+      getMockConsumerDocument(agreementId, "doc1"),
+      getMockConsumerDocument(agreementId, "doc2"),
+    ];
     const agreement = {
       ...getMockAgreement(),
       id: agreementId,
       state: randomArrayItem(agreementDeletableStates),
-      consumerDocuments: [
-        getMockConsumerDocument(agreementId, "doc1"),
-        getMockConsumerDocument(agreementId, "doc2"),
-      ],
+      consumerDocuments,
     };
     await addOneAgreement(agreement);
 
-    await uploadDocument(
-      agreementId,
-      agreement.consumerDocuments[0].id,
-      agreement.consumerDocuments[0].name
-    );
-
-    await uploadDocument(
-      agreementId,
-      agreement.consumerDocuments[1].id,
-      agreement.consumerDocuments[1].name
+    await Promise.all(
+      consumerDocuments.map((doc) =>
+        uploadDocument(agreementId, doc.id, doc.name)
+      )
     );
 
     const authData = getRandomAuthData(agreement.consumerId);
@@ -85,22 +80,20 @@ describe("delete agreement", () => {
 
     expect(agreementDeletedId).toEqual(agreement.id);
 
-    expect(fileManager.delete).toHaveBeenCalledWith(
+    const filePaths = await fileManager.listFiles(
       config.s3Bucket,
-      agreement.consumerDocuments[0].path,
       genericLogger
     );
-    expect(fileManager.delete).toHaveBeenCalledWith(
-      config.s3Bucket,
-      agreement.consumerDocuments[1].path,
-      genericLogger
-    );
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).not.toContain(agreement.consumerDocuments[0].path);
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).not.toContain(agreement.consumerDocuments[1].path);
+
+    consumerDocuments.forEach((doc) => {
+      expect(fileManager.delete).toHaveBeenCalledWith(
+        config.s3Bucket,
+        doc.path,
+        genericLogger
+      );
+
+      expect(filePaths).not.toContain(doc.path);
+    });
   });
 
   it("should succeed when requester is Consumer Delegate and the Agreement is in a deletable state", async () => {
@@ -165,6 +158,7 @@ describe("delete agreement", () => {
       genericLogger
     );
 
+    // eslint-disable-next-line sonarjs/no-identical-functions
     consumerDocuments.forEach((doc) => {
       expect(fileManager.delete).toHaveBeenCalledWith(
         config.s3Bucket,

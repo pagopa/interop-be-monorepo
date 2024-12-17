@@ -10,6 +10,7 @@ import {
   ReadEvent,
   readEventByStreamIdAndVersion,
   randomArrayItem,
+  getMockDelegation,
 } from "pagopa-interop-commons-test";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
@@ -31,6 +32,9 @@ import {
   Delegation,
   AgreementStamp,
   UserId,
+  delegationState,
+  DelegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -265,3 +269,27 @@ export const getRandomPastStamp = (userId: UserId): AgreementStamp => ({
   who: userId,
   when: subDays(new Date(), randomInt(10)),
 });
+
+export const addSomeRandomDelegations = async (
+  agreement: Agreement
+): Promise<void> => {
+  // Adding some more delegations
+  [delegationState.rejected, delegationState.revoked].forEach(
+    async (state: DelegationState) => {
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: agreement.eserviceId,
+          kind: delegationKind.delegatedProducer,
+          state,
+        })
+      );
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: agreement.eserviceId,
+          kind: delegationKind.delegatedConsumer,
+          state,
+        })
+      );
+    }
+  );
+};
