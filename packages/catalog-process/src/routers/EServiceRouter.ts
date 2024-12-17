@@ -745,7 +745,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/flags",
+      "/eservices/:eServiceId/delegationFlags",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);

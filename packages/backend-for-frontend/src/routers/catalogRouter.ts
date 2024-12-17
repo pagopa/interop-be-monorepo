@@ -607,7 +607,7 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/eservices/:eServiceId/flags", async (req, res) => {
+    .post("/eservices/:eServiceId/delegationFlags", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const id = await catalogService.updateEServiceFlags(
@@ -622,7 +622,7 @@ const catalogRouter = (
           emptyErrorMapper,
           ctx.logger,
           ctx.correlationId,
-          `Error updating description of eservice with Id: ${req.params.eServiceId}`
+          `Error updating delegation flags of eservice with Id: ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
