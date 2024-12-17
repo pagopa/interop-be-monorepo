@@ -337,7 +337,7 @@ describe("create consumer delegation", () => {
       },
     };
     const delegateId = generateId<TenantId>();
-    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
+    const eservice = getMockEService();
 
     await addOneTenant(delegator);
     await addOneEservice(eservice);
