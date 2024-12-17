@@ -751,11 +751,12 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const updatedEService = await catalogService.updateEServiceFlags(
-            unsafeBrandId(req.params.eServiceId),
-            req.body,
-            ctx
-          );
+          const updatedEService =
+            await catalogService.updateEServiceDelegationFlags(
+              unsafeBrandId(req.params.eServiceId),
+              req.body,
+              ctx
+            );
           return res
             .status(200)
             .send(

@@ -1823,7 +1823,7 @@ export function catalogServiceBuilder(
       );
       return updatedEservice;
     },
-    async updateEServiceFlags(
+    async updateEServiceDelegationFlags(
       eserviceId: EServiceId,
       {
         isDelegable,
@@ -1834,7 +1834,7 @@ export function catalogServiceBuilder(
       },
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
-      logger.info(`Updating EService ${eserviceId} flags`);
+      logger.info(`Updating EService ${eserviceId} delegation flags`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       await assertRequesterIsDelegateProducerOrProducer(
