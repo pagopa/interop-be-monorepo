@@ -63,15 +63,7 @@ describe("archive agreement", () => {
     const agreementId = returnedAgreement.id;
 
     expect(agreementId).toBeDefined();
-    if (!agreementId) {
-      fail("Unhandled error: returned agreementId is undefined");
-    }
-
     const actualAgreementData = await readLastAgreementEvent(agreementId);
-
-    if (!actualAgreementData) {
-      fail("Creation fails: agreement not found in event-store");
-    }
 
     expect(actualAgreementData).toMatchObject({
       type: "AgreementArchivedByConsumer",
@@ -100,6 +92,7 @@ describe("archive agreement", () => {
         },
       },
     };
+
     expect(actualAgreement).toMatchObject(
       toAgreementV2(expectedAgreemenentArchived)
     );
