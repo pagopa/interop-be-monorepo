@@ -701,10 +701,10 @@ function validateCatalogPlatformStates({
   if (!platformCatalogEntries) {
     if (!areLengthsEqual) {
       console.log(
-        `Catalog platform-states entry is missing for eservice with id ${eservice.id} `
+        `platform-states catalog entries length is incorrect for e-service with id ${eservice.id}`
       );
       logger.error(
-        `Catalog platform-states entry is missing for eservice with id ${eservice.id} `
+        `platform-states catalog entries length is incorrect for e-service with id ${eservice.id}`
       );
     }
     return {
@@ -722,7 +722,7 @@ function validateCatalogPlatformStates({
       );
       if (!descriptor || descriptor.id !== descriptorId) {
         throw genericInternalError(
-          `Catalog platform-states entry with descriptor id ${descriptorId} is missing for e-service with id ${eservice.id} `
+          `Catalog platform-states entry with descriptor id ${descriptorId} is missing from e-service with id ${eservice.id}`
         );
       }
 
@@ -737,7 +737,7 @@ function validateCatalogPlatformStates({
         );
 
       if (!isPlatformStatesCatalogCorrect) {
-        const errorData = {
+        const wrongPlatformStatesCatalogEntry = {
           PK: platformStatesEntry.PK,
           state: platformStatesEntry.state,
           descriptorVoucherLifespan:
@@ -760,7 +760,7 @@ function validateCatalogPlatformStates({
             ComparisonEService.parse(eservice)
           )}`);
 
-        return [...acc, errorData];
+        return [...acc, wrongPlatformStatesCatalogEntry];
       }
 
       return acc;
@@ -1168,14 +1168,12 @@ function validateTokenGenerationStates({
 
               console.log(
                 `token-generation-states entry with PK ${e.PK} is incorrect:
-  ${JSON.stringify(wrongTokenGenStatesEntry)}
-                `
+  ${JSON.stringify(wrongTokenGenStatesEntry)}`
               );
               logger.error(`token-generation-states entry with PK ${
                 e.PK
               } is incorrect:
-  ${JSON.stringify(wrongTokenGenStatesEntry)}
-                `);
+  ${JSON.stringify(wrongTokenGenStatesEntry)}`);
               return [...acc, wrongTokenGenStatesEntry];
             }
           } else {
