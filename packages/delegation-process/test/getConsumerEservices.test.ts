@@ -2,6 +2,7 @@ import {
   getMockAgreement,
   getMockDelegation,
   getMockEService,
+  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -22,10 +23,8 @@ import {
 describe("getConsumerEservices", () => {
   const delegatorId1 = generateId<TenantId>();
   const delegatorId2 = generateId<TenantId>();
-  const delegatorId3 = generateId<TenantId>();
-  const delegateId = generateId<TenantId>();
+  const delegateId1 = generateId<TenantId>();
   const delegateId2 = generateId<TenantId>();
-  const delegateId3 = generateId<TenantId>();
 
   const eservice1 = { ...getMockEService(), name: "Servizio 1" };
   const eservice2 = { ...getMockEService(), name: "Servizio 2" };
@@ -34,128 +33,159 @@ describe("getConsumerEservices", () => {
   const eservice5 = { ...getMockEService(), name: "Paperino" };
   const eservice6 = getMockEService();
 
-  const mockDelegation1 = getMockDelegation({
+  const agreementInvalidStates = Object.values(agreementState).filter(
+    (state) => state !== agreementState.active
+  );
+
+  const delegationInvalidStates = Object.values(delegationState).filter(
+    (state) => state !== delegationState.active
+  );
+
+  const delegationDelegator1Eservice1 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: delegateId1,
     delegatorId: delegatorId1,
     eserviceId: eservice1.id,
   });
 
-  const mockAgreement1 = {
+  const agreementDelegator1Eservice1 = {
     ...getMockAgreement(eservice1.id, delegatorId1, agreementState.active),
     producerId: eservice1.producerId,
   };
 
-  const mockDelegation1Bis = getMockDelegation({
+  const delegationDelegator1Eservice2 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: delegateId1,
     delegatorId: delegatorId1,
     eserviceId: eservice2.id,
   });
 
-  const mockAgreement1bis = {
+  const agreementDelegator1Eservice2 = {
     ...getMockAgreement(eservice2.id, delegatorId1, agreementState.active),
     producerId: eservice2.producerId,
   };
 
-  // Delegator1 has 2 active delegations and 2 active agreements
-
-  const mockDelegation2 = getMockDelegation({
+  const delegationDelegator1Eservice3 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: delegateId1,
+    delegatorId: delegatorId1,
+    eserviceId: eservice3.id,
+  });
+
+  const agreementDelegator1Eservice3 = {
+    ...getMockAgreement(eservice3.id, delegatorId1, agreementState.active),
+    producerId: eservice3.producerId,
+  };
+
+  const delegationDelegator1Eservice4 = getMockDelegation({
+    kind: delegationKind.delegatedConsumer,
+    state: delegationState.active,
+    delegateId: delegateId1,
+    delegatorId: delegatorId1,
+    eserviceId: eservice4.id,
+  });
+
+  const agreementDelegator1Eservice4 = {
+    ...getMockAgreement(eservice4.id, delegatorId1, agreementState.active),
+    producerId: eservice4.producerId,
+  };
+
+  const invalidDelegationDelegator1Eservice5 = getMockDelegation({
+    kind: delegationKind.delegatedConsumer,
+    state: randomArrayItem(delegationInvalidStates),
+    delegateId: delegateId1,
+    delegatorId: delegatorId1,
+    eserviceId: eservice5.id,
+  });
+
+  const agreementDelegator1Eservice5 = {
+    ...getMockAgreement(eservice5.id, delegatorId1, agreementState.active),
+    producerId: eservice5.producerId,
+  };
+
+  const delegationDelegator1Eservice6 = getMockDelegation({
+    kind: delegationKind.delegatedConsumer,
+    state: delegationState.active,
+    delegateId: delegateId1,
+    delegatorId: delegatorId1,
+    eserviceId: eservice6.id,
+  });
+
+  const invalidAgreementDelegator1Eservice6 = {
+    ...getMockAgreement(
+      eservice6.id,
+      delegatorId1,
+      randomArrayItem(agreementInvalidStates)
+    ),
+    producerId: eservice6.producerId,
+  };
+
+  // Delegator1 and delegate1 have 4 active delegations with 4 active agreements, 1 invalid delegation and 1 invalid agreement
+
+  const delegationDelegator2Eservice1 = getMockDelegation({
+    kind: delegationKind.delegatedConsumer,
+    state: delegationState.active,
+    delegateId: delegateId1,
     delegatorId: delegatorId2,
     eserviceId: eservice1.id,
   });
 
-  const mockAgreement2 = {
+  const agreementDelegator2Eservice1 = {
     ...getMockAgreement(eservice1.id, delegatorId2, agreementState.active),
     producerId: eservice1.producerId,
   };
 
-  // Delegator2 has 1 active delegation and 1 active agreement
+  // Delegator2 and delegate1 have 1 active delegation and 1 active agreement
 
-  const mockDelegation3 = getMockDelegation({
-    kind: delegationKind.delegatedConsumer,
-    state: delegationState.rejected,
-    delegateId,
-    delegatorId: delegatorId3,
-    eserviceId: eservice1.id,
-  });
-
-  // Delegator3 has 1 rejected delegation
-
-  const mockDelegation4 = getMockDelegation({
+  const delegationDelegator1Delegate2Eservice1 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
-    delegatorId: delegatorId4,
+    delegateId: delegateId2,
+    delegatorId: delegatorId1,
     eserviceId: eservice1.id,
   });
 
-  const mockAgreement4 = {
-    ...getMockAgreement(eservice1.id, delegatorId4, agreementState.rejected),
+  const agreementDelegator1Delegate2Eservice1 = {
+    ...getMockAgreement(eservice1.id, delegatorId1, agreementState.active),
     producerId: eservice1.producerId,
   };
 
-  // Delegator4 has 1 active delegation and 1 rejected agreement
-
-  const mockDelegation5 = getMockDelegation({
-    kind: delegationKind.delegatedConsumer,
-    state: delegationState.active,
-    delegateId,
-    delegatorId: delegatorId5,
-    eserviceId: eservice3.id,
-  });
-
-  const mockAgreement5 = {
-    ...getMockAgreement(eservice3.id, delegatorId5, agreementState.active),
-    producerId: eservice3.producerId,
-  };
-
-  // Delegator5 has 1 active delegation and 1 active agreement
-
-  const mockDelegation6 = getMockDelegation({
-    kind: delegationKind.delegatedConsumer,
-    state: delegationState.active,
-    delegateId: generateId<TenantId>(),
-    delegatorId: delegatorId6,
-    eserviceId: eservice3.id,
-  });
-
-  const mockAgreement6 = {
-    ...getMockAgreement(eservice3.id, delegatorId6, agreementState.active),
-    producerId: eservice3.producerId,
-  };
-
-  // Delegator6 has 1 active delegation and 1 active agreement but a different delegateId
+  // Delegator1 and delegate2 have 1 active delegation and 1 active agreement
 
   beforeEach(async () => {
     await addOneEservice(eservice1);
     await addOneEservice(eservice2);
     await addOneEservice(eservice3);
-    await addOneDelegation(mockDelegation1);
-    await addOneDelegation(mockDelegation1Bis);
-    await addOneDelegation(mockDelegation2);
-    await addOneDelegation(mockDelegation3);
-    await addOneDelegation(mockDelegation4);
-    await addOneDelegation(mockDelegation5);
-    await addOneDelegation(mockDelegation6);
-    await addOneAgreement(mockAgreement1);
-    await addOneAgreement(mockAgreement1bis);
-    await addOneAgreement(mockAgreement2);
-    await addOneAgreement(mockAgreement4);
-    await addOneAgreement(mockAgreement5);
-    await addOneAgreement(mockAgreement6);
+    await addOneEservice(eservice4);
+    await addOneEservice(eservice5);
+    await addOneEservice(eservice6);
+    await addOneDelegation(delegationDelegator1Eservice1);
+    await addOneDelegation(delegationDelegator1Eservice2);
+    await addOneDelegation(delegationDelegator1Eservice3);
+    await addOneDelegation(delegationDelegator1Eservice4);
+    await addOneDelegation(invalidDelegationDelegator1Eservice5);
+    await addOneDelegation(delegationDelegator1Eservice6);
+    await addOneDelegation(delegationDelegator1Delegate2Eservice1);
+    await addOneDelegation(delegationDelegator2Eservice1);
+    await addOneAgreement(agreementDelegator1Eservice1);
+    await addOneAgreement(agreementDelegator1Eservice2);
+    await addOneAgreement(agreementDelegator1Eservice3);
+    await addOneAgreement(agreementDelegator1Eservice4);
+    await addOneAgreement(agreementDelegator1Eservice5);
+    await addOneAgreement(invalidAgreementDelegator1Eservice6);
+    await addOneAgreement(agreementDelegator2Eservice1);
+    await addOneAgreement(agreementDelegator1Delegate2Eservice1);
   });
 
   it("should get delegators filtered by delegateId", async () => {
     expect(
-      await delegationService.getConsumerDelegators(
+      await delegationService.getConsumerEservices(
         {
-          delegateId,
+          delegatorId: delegatorId1,
+          delegateId: delegateId1,
           offset: 0,
           limit: 50,
         },
@@ -164,30 +194,35 @@ describe("getConsumerEservices", () => {
     ).toEqual({
       results: [
         {
-          id: delegatorId1,
-          name: delegator1.name,
+          id: delegationDelegator1Eservice3.id,
+          eserviceName: eservice3.name,
+          eserviceId: eservice3.id,
         },
         {
-          id: delegatorId2,
-          name: delegator2.name,
+          id: delegationDelegator1Eservice4.id,
+          eserviceName: eservice4.name,
+          eserviceId: eservice4.id,
         },
         {
-          id: delegatorId5,
-          name: delegator5.name,
+          id: delegationDelegator1Eservice1.id,
+          eserviceName: eservice1.name,
+          eserviceId: eservice1.id,
+        },
+        {
+          id: delegationDelegator1Eservice2.id,
+          eserviceName: eservice2.name,
+          eserviceId: eservice2.id,
         },
       ],
-      pagination: {
-        totalCount: 3,
-        offset: 0,
-        limit: 50,
-      },
+      totalCount: 4,
     });
   });
   it("should apply offset and limit", async () => {
     expect(
-      await delegationService.getConsumerDelegators(
+      await delegationService.getConsumerEservices(
         {
-          delegateId,
+          delegatorId: delegatorId1,
+          delegateId: delegateId1,
           offset: 1,
           limit: 1,
         },
@@ -196,74 +231,84 @@ describe("getConsumerEservices", () => {
     ).toEqual({
       results: [
         {
-          id: delegatorId2,
-          name: delegator2.name,
+          id: delegationDelegator1Eservice4.id,
+          eserviceName: eservice4.name,
+          eserviceId: eservice4.id,
         },
       ],
-      pagination: {
-        totalCount: 3,
-        offset: 1,
-        limit: 1,
-      },
+      totalCount: 4,
     });
   });
   it("should filter delegators by the 'delegatorName' parameter", async () => {
     expect(
-      await delegationService.getConsumerDelegators(
+      await delegationService.getConsumerEservices(
         {
-          delegateId,
+          delegatorId: delegatorId1,
+          delegateId: delegateId1,
+          eserviceName: "servizio",
           offset: 0,
           limit: 50,
-          delegatorName: "Comune",
         },
         genericLogger
       )
     ).toEqual({
       results: [
         {
-          id: delegatorId1,
-          name: delegator1.name,
+          id: delegationDelegator1Eservice1.id,
+          eserviceName: eservice1.name,
+          eserviceId: eservice1.id,
         },
         {
-          id: delegatorId2,
-          name: delegator2.name,
+          id: delegationDelegator1Eservice2.id,
+          eserviceName: eservice2.name,
+          eserviceId: eservice2.id,
         },
       ],
-      pagination: {
-        totalCount: 2,
-        offset: 0,
-        limit: 50,
-      },
+      totalCount: 2,
     });
 
     expect(
-      await delegationService.getConsumerDelegators(
+      await delegationService.getConsumerEservices(
         {
-          delegateId,
+          delegatorId: delegatorId1,
+          delegateId: delegateId1,
+          eserviceName: "pippo",
           offset: 0,
           limit: 50,
-          delegatorName: "PagoPA",
         },
         genericLogger
       )
     ).toEqual({
       results: [
         {
-          id: delegatorId5,
-          name: delegator5.name,
+          id: delegationDelegator1Eservice4.id,
+          eserviceName: eservice4.name,
+          eserviceId: eservice4.id,
         },
       ],
-      pagination: {
-        totalCount: 1,
-        offset: 0,
-        limit: 50,
-      },
+      totalCount: 1,
     });
   });
   it("should return no results if no delegations match the criteria", async () => {
     expect(
-      await delegationService.getConsumerDelegators(
+      await delegationService.getConsumerEservices(
         {
+          delegatorId: generateId<TenantId>(),
+          delegateId: delegateId1,
+          offset: 0,
+          limit: 50,
+        },
+        genericLogger
+      )
+    ).toEqual({
+      results: [],
+      totalCount: 0,
+    });
+
+    expect(
+      await delegationService.getConsumerEservices(
+        {
+          delegatorId: delegatorId1,
           delegateId: generateId<TenantId>(),
           offset: 0,
           limit: 50,
@@ -272,47 +317,7 @@ describe("getConsumerEservices", () => {
       )
     ).toEqual({
       results: [],
-      pagination: {
-        totalCount: 0,
-        offset: 0,
-        limit: 50,
-      },
-    });
-
-    expect(
-      await delegationService.getConsumerDelegators(
-        {
-          delegateId: delegatorId3, // No active delegation
-          offset: 0,
-          limit: 50,
-        },
-        genericLogger
-      )
-    ).toEqual({
-      results: [],
-      pagination: {
-        totalCount: 0,
-        offset: 0,
-        limit: 50,
-      },
-    });
-
-    expect(
-      await delegationService.getConsumerDelegators(
-        {
-          delegateId: delegatorId4, // No active agreements
-          offset: 0,
-          limit: 50,
-        },
-        genericLogger
-      )
-    ).toEqual({
-      results: [],
-      pagination: {
-        totalCount: 0,
-        offset: 0,
-        limit: 50,
-      },
+      totalCount: 0,
     });
   });
 });
