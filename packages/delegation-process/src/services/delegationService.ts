@@ -28,7 +28,6 @@ import {
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import { delegationApi } from "pagopa-interop-api-clients";
-import { delegationApi } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 import {
   delegationNotFound,

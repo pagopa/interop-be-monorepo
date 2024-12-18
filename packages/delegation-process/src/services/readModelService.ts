@@ -6,13 +6,10 @@ import {
 } from "pagopa-interop-commons";
 import {
   agreementState,
-  agreementState,
   Delegation,
   DelegationId,
   delegationKind,
-  delegationKind,
   DelegationKind,
-  delegationState,
   delegationState,
   DelegationState,
   EService,
@@ -24,7 +21,6 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import { delegationApi } from "pagopa-interop-api-clients";
 import { delegationApi } from "pagopa-interop-api-clients";
 import { GetDelegationsFilters } from "../model/domain/models.js";
 
@@ -74,7 +70,6 @@ const toReadModelFilter = (
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { delegations, eservices, tenants } = readModelRepository;
   const { delegations, eservices, tenants } = readModelRepository;
 
   return {
