@@ -25,6 +25,7 @@ import {
   delegationState,
   generateId,
   toAgreementV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
 import { agreementConsumerDocumentChangeValidStates } from "../src/model/domain/agreement-validators.js";
@@ -41,6 +42,7 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
+  addSomeRandomDelegations,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -226,7 +228,7 @@ describe("agreement consumer document", () => {
   });
 
   describe("add", () => {
-    it("should succeed on happy path", async () => {
+    it("should succeed on happy path when the requester is the Consumer", async () => {
       const authData = getRandomAuthData();
       const organizationId = authData.organizationId;
       const agreement = getMockAgreement(
@@ -237,6 +239,74 @@ describe("agreement consumer document", () => {
       const consumerDocument = getMockConsumerDocument(agreement.id);
 
       await addOneAgreement(agreement);
+
+      const returnedConsumerDocument =
+        await agreementService.addConsumerDocument(
+          agreement.id,
+          consumerDocument,
+          {
+            authData,
+            serviceName: "",
+            correlationId: generateId(),
+            logger: genericLogger,
+          }
+        );
+      const { data: payload } = await readLastAgreementEvent(agreement.id);
+
+      const actualConsumerDocument = decodeProtobufPayload({
+        messageType: AgreementConsumerDocumentAddedV2,
+        payload,
+      });
+
+      const expectedConsumerDocument = {
+        ...consumerDocument,
+        createdAt: returnedConsumerDocument.createdAt,
+      };
+
+      const expectedAgreement = {
+        ...agreement,
+        consumerDocuments: [
+          ...agreement.consumerDocuments,
+          expectedConsumerDocument,
+        ],
+      };
+
+      expect(actualConsumerDocument).toMatchObject({
+        agreement: toAgreementV2(expectedAgreement),
+        documentId: consumerDocument.id,
+      });
+
+      expect(actualConsumerDocument).toEqual({
+        agreement: toAgreementV2({
+          ...agreement,
+          consumerDocuments: [
+            ...agreement.consumerDocuments,
+            returnedConsumerDocument,
+          ],
+        }),
+        documentId: returnedConsumerDocument.id,
+      });
+    });
+
+    it("should succeed on happy path when the requester is the Consumer Delegate", async () => {
+      const authData = getRandomAuthData();
+      const consumerId = generateId<TenantId>();
+      const organizationId = authData.organizationId;
+      const agreement = getMockAgreement(generateId<EServiceId>(), consumerId);
+
+      const consumerDocument = getMockConsumerDocument(agreement.id);
+
+      await addOneAgreement(agreement);
+
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        delegateId: organizationId,
+        delegatorId: consumerId,
+        eserviceId: agreement.eserviceId,
+        state: delegationState.active,
+      });
+      await addOneDelegation(delegation);
+      await addSomeRandomDelegations(agreement);
 
       const returnedConsumerDocument =
         await agreementService.addConsumerDocument(
@@ -330,6 +400,41 @@ describe("agreement consumer document", () => {
 
       await expect(actualConsumerDocument).rejects.toThrowError(
         operationNotAllowed(organizationId)
+      );
+    });
+
+    it("should throw an operationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+      const authData = getRandomAuthData();
+      const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
+      const agreement = getMockAgreement(generateId<EServiceId>(), consumerId);
+
+      const consumerDocument = getMockConsumerDocument(agreement.id);
+
+      await addOneAgreement(agreement);
+
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        delegateId: generateId<TenantId>(),
+        delegatorId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+        state: delegationState.active,
+      });
+      await addOneDelegation(delegation);
+      await addSomeRandomDelegations(agreement);
+
+      const actualConsumerDocument = agreementService.addConsumerDocument(
+        agreement.id,
+        consumerDocument,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+
+      await expect(actualConsumerDocument).rejects.toThrowError(
+        operationNotAllowed(consumerId)
       );
     });
 
