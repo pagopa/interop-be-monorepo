@@ -79,6 +79,19 @@ export function getLastPurposeVersion(
     )[0];
 }
 
+export function getLastAgreement(agreements: Agreement[]): Agreement {
+  return agreements
+    .filter(
+      (a) =>
+        a.state === agreementState.active ||
+        a.state === agreementState.suspended
+    )
+    .toSorted(
+      (agreement1, agreement2) =>
+        agreement2.createdAt.getTime() - agreement1.createdAt.getTime()
+    )[0];
+}
+
 export function getValidDescriptors(descriptors: Descriptor[]): Descriptor[] {
   return descriptors.filter(
     (descriptor) =>
@@ -261,17 +274,23 @@ export async function compareTokenGenerationReadModel(
   const agreementsById = new Map<AgreementId, Agreement>();
   const agreementsByConsumerIdEserviceId = new Map<
     GSIPKConsumerIdEServiceId,
-    Agreement
+    Agreement[]
   >();
 
   for (const agreement of agreements) {
     agreementsById.set(agreement.id, agreement);
-    agreementsByConsumerIdEserviceId.set(
-      unsafeBrandId<GSIPKConsumerIdEServiceId>(
-        `${agreement.consumerId}#${agreement.eserviceId}`
-      ),
-      agreement
-    );
+
+    const consumerIdEServiceId = makeGSIPKConsumerIdEServiceId({
+      consumerId: agreement.consumerId,
+      eserviceId: agreement.eserviceId,
+    });
+    const existingAgreements =
+      agreementsByConsumerIdEserviceId.get(consumerIdEServiceId);
+
+    agreementsByConsumerIdEserviceId.set(consumerIdEServiceId, [
+      ...(existingAgreements || []),
+      agreement,
+    ]);
   }
 
   const eservices = await readModelService.getAllReadModelEServices();
@@ -754,7 +773,7 @@ export async function compareReadModelClientsAndTokenGenStates({
   clientsById: Map<ClientId, Client>;
   purposesById: Map<PurposeId, Purpose>;
   eservicesById: Map<EServiceId, EService>;
-  agreementsByConsumerIdEserviceId: Map<GSIPKConsumerIdEServiceId, Agreement>;
+  agreementsByConsumerIdEserviceId: Map<GSIPKConsumerIdEServiceId, Agreement[]>;
   logger: Logger;
 }): Promise<ClientDifferencesResult> {
   const allIds = new Set([
@@ -909,7 +928,7 @@ function validateTokenGenerationStates({
   client: Client;
   purposesById: Map<PurposeId, Purpose>;
   eservicesById: Map<EServiceId, EService>;
-  agreementsByConsumerIdEserviceId: Map<GSIPKConsumerIdEServiceId, Agreement>;
+  agreementsByConsumerIdEserviceId: Map<GSIPKConsumerIdEServiceId, Agreement[]>;
   logger: Logger;
 }): {
   isTokenGenerationStatesClientCorrect: boolean;
@@ -991,19 +1010,19 @@ function validateTokenGenerationStates({
               purpose.versions
             );
             const lastPurposeVersion = getLastPurposeVersion(purpose.versions);
-            const agreement = agreementsByConsumerIdEserviceId.get(
+            const agreements = agreementsByConsumerIdEserviceId.get(
               makeGSIPKConsumerIdEServiceId({
                 consumerId: client.consumerId,
                 eserviceId: purpose.eserviceId,
               })
             );
 
-            if (!agreement) {
+            if (!agreements) {
               logger.error(
-                `no agreement found in read model for token-generation-states entry with PK ${e.PK}`
+                `no agreements found in read model for token-generation-states entry with PK ${e.PK}`
               );
               console.log(
-                `no agreement found in read model for token-generation-states entry with PK ${e.PK}`
+                `no agreements found in read model for token-generation-states entry with PK ${e.PK}`
               );
 
               return [
@@ -1024,6 +1043,8 @@ function validateTokenGenerationStates({
                 },
               ];
             }
+
+            const agreement = getLastAgreement(agreements);
             const agreementItemState = agreementStateToItemState(
               agreement.state
             );

@@ -23,6 +23,7 @@ import {
   Descriptor,
   descriptorState,
   EService,
+  EServiceId,
   generateId,
   itemState,
   makeGSIPKClientIdPurposeId,
@@ -40,6 +41,7 @@ import {
   Purpose,
   PurposeVersion,
   purposeVersionState,
+  TenantId,
   TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -65,6 +67,7 @@ import {
   compareReadModelClientsAndTokenGenStates,
   compareReadModelEServicesWithPlatformStates,
   compareReadModelPurposesWithPlatformStates,
+  getLastAgreement,
   getLastPurposeVersion,
   getValidDescriptors,
 } from "../src/utils/utils.js";
@@ -378,14 +381,14 @@ describe("Token Generation Read Model Checker utils tests", () => {
             consumerId: purpose1.consumerId,
             eserviceId: eservice1.id,
           }),
-          agreement1,
+          [agreement1],
         ],
         [
           makeGSIPKConsumerIdEServiceId({
             consumerId: purpose2.consumerId,
             eserviceId: eservice2.id,
           }),
-          agreement2,
+          [agreement2],
         ],
       ]);
       await addOneAgreement(agreement1);
@@ -627,6 +630,25 @@ describe("Token Generation Read Model Checker utils tests", () => {
     expect(
       getLastPurposeVersion([purposeVersion1, purposeVersion2, purposeVersion3])
     ).toEqual(purposeVersion2);
+  });
+
+  it("getLastAgreement", () => {
+    const date1 = new Date();
+    const date2 = new Date();
+    date2.setDate(date1.getDate() + 1);
+
+    const eserviceId = generateId<EServiceId>();
+    const consumerId = generateId<TenantId>();
+    const agreement1: Agreement = {
+      ...getMockAgreement(eserviceId, consumerId, agreementState.active),
+      createdAt: date1,
+    };
+    const agreement2: Agreement = {
+      ...getMockAgreement(eserviceId, consumerId, agreementState.pending),
+      createdAt: date2,
+    };
+
+    expect(getLastAgreement([agreement1, agreement2])).toEqual(agreement1);
   });
 
   it("getValidDescriptors", () => {

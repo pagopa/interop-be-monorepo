@@ -1152,14 +1152,14 @@ describe("Token Generation Read Model Checker tests", () => {
             consumerId: purpose1.consumerId,
             eserviceId: eservice1.id,
           }),
-          agreement1,
+          [agreement1],
         ],
         [
           makeGSIPKConsumerIdEServiceId({
             consumerId: purpose2.consumerId,
             eserviceId: eservice2.id,
           }),
-          agreement2,
+          [agreement2],
         ],
       ]);
       await addOneAgreement(agreement1);
@@ -1380,14 +1380,14 @@ describe("Token Generation Read Model Checker tests", () => {
             consumerId: purpose1.consumerId,
             eserviceId: eservice1.id,
           }),
-          agreement1,
+          [agreement1],
         ],
         [
           makeGSIPKConsumerIdEServiceId({
             consumerId: purpose2.consumerId,
             eserviceId: eservice2.id,
           }),
-          agreement2,
+          [agreement2],
         ],
       ]);
       await addOneAgreement(agreement1);
@@ -1546,7 +1546,7 @@ describe("Token Generation Read Model Checker tests", () => {
             consumerId: purpose.consumerId,
             eserviceId: eservice.id,
           }),
-          agreement,
+          [agreement],
         ],
       ]);
       await addOneAgreement(agreement);
@@ -1676,7 +1676,7 @@ describe("Token Generation Read Model Checker tests", () => {
             consumerId: purpose.consumerId,
             eserviceId: eservice.id,
           }),
-          agreement,
+          [agreement],
         ],
       ]);
       await addOneAgreement(agreement);
@@ -1800,7 +1800,7 @@ describe("Token Generation Read Model Checker tests", () => {
             consumerId: purpose.consumerId,
             eserviceId: eservice.id,
           }),
-          agreement,
+          [agreement],
         ],
       ]);
       await addOneAgreement(agreement);
@@ -1872,7 +1872,7 @@ describe("Token Generation Read Model Checker tests", () => {
             consumerId: purpose.consumerId,
             eserviceId: eservice.id,
           }),
-          agreement,
+          [agreement],
         ],
       ]);
       await addOneAgreement(agreement);
@@ -1963,7 +1963,7 @@ describe("Token Generation Read Model Checker tests", () => {
             consumerId: purpose.consumerId,
             eserviceId: eservice.id,
           }),
-          agreement,
+          [agreement],
         ],
       ]);
       await addOneAgreement(agreement);
@@ -2046,7 +2046,7 @@ describe("Token Generation Read Model Checker tests", () => {
             consumerId: purpose.consumerId,
             eserviceId: eservice.id,
           }),
-          agreement,
+          [agreement],
         ],
       ]);
       await addOneAgreement(agreement);
