@@ -447,12 +447,22 @@ export function readModelServiceBuilder(
           },
         },
         {
+          $group: {
+            _id: "$eservice.data.id",
+            eserviceName: { $first: "$eservice.data.name" },
+            delegationId: { $first: "$data.id" },
+          },
+        },
+        {
           $project: {
             _id: 0,
-            id: "$data.id",
-            eserviceId: "$eservice.data.id",
-            eserviceName: "$eservice.data.name",
+            id: "$delegationId",
+            eserviceId: "$_id",
+            eserviceName: 1,
           },
+        },
+        {
+          $sort: { eserviceName: 1 },
         },
       ];
 
