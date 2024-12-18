@@ -41,6 +41,7 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
+  addSomeRandomDelegations,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -82,7 +83,7 @@ describe("agreement consumer document", () => {
       expect(result).toEqual(agreement1.consumerDocuments[0]);
     });
 
-    it("should succed when the requester is the delegate", async () => {
+    it("should succed when the requester is the producer delegate", async () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
       const authData = getRandomAuthData();
@@ -125,6 +126,49 @@ describe("agreement consumer document", () => {
       );
 
       expect(result).toEqual(agreement.consumerDocuments[0]);
+    });
+
+    it("should succeed when requester is Consumer Delegate", async () => {
+      const agreementId = generateId<AgreementId>();
+      const consumerDocuments = [
+        getMockConsumerDocument(agreementId, "doc1"),
+        getMockConsumerDocument(agreementId, "doc2"),
+      ];
+      const agreement = {
+        ...getMockAgreement(),
+        id: agreementId,
+        consumerDocuments,
+      };
+
+      const authData = getRandomAuthData();
+      const delegateId = authData.organizationId;
+
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        eserviceId: agreement.eserviceId,
+        delegatorId: agreement.consumerId,
+        delegateId,
+        state: delegationState.active,
+      });
+
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+      await addSomeRandomDelegations(agreement);
+
+      for (const document of consumerDocuments) {
+        const result = await agreementService.getAgreementConsumerDocument(
+          agreement.id,
+          document.id,
+          {
+            authData,
+            serviceName: "",
+            correlationId: generateId(),
+            logger: genericLogger,
+          }
+        );
+
+        expect(result).toEqual(document);
+      }
     });
 
     it("should throw operationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
