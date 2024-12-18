@@ -10,7 +10,6 @@ import {
   RiskAnalysisFormRules,
   answerNotFoundInConfigError,
   dataType,
-  dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
   getFormRulesByVersion,
   incompatibleConfigError,
@@ -177,7 +176,6 @@ const getPdfPayload = ({
     ),
     freeOfCharge: freeOfChargeHtml,
     freeOfChargeReason: freeOfChargeReasonHtml,
-    date: dateAtRomeZone(new Date()),
     eServiceMode,
   };
 };
