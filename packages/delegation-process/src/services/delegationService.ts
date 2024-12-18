@@ -27,6 +27,7 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
+import { delegationApi } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 import {
   delegationNotFound,
@@ -574,6 +575,22 @@ export function delegationServiceBuilder(
         delegationKind.delegatedConsumer,
         ctx
       );
+    },
+    async getConsumerDelegators(
+      filters: {
+        delegateId: TenantId;
+        limit: number;
+        offset: number;
+        delegatorName?: string;
+      },
+      logger: Logger
+    ): Promise<delegationApi.CompactTenants> {
+      logger.info(
+        `Retrieving delegations tenants with filters: ${JSON.stringify(
+          filters
+        )}`
+      );
+      return await readModelService.getConsumerDelegators(filters);
     },
   };
 }
