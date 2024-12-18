@@ -1898,6 +1898,8 @@ export function catalogServiceBuilder(
         )
         .with(
           {
+            isDelegable: true,
+            oldIsDelegable: true,
             isClientAccessDelegable: true,
             oldIsClientAccessDelegable: false,
           },
@@ -1910,6 +1912,8 @@ export function catalogServiceBuilder(
         )
         .with(
           {
+            isDelegable: true,
+            oldIsDelegable: true,
             isClientAccessDelegable: false,
             oldIsClientAccessDelegable: true,
           },
@@ -1920,7 +1924,26 @@ export function catalogServiceBuilder(
               correlationId
             )
         )
-        .otherwise(() => undefined);
+        .with(
+          {
+            isDelegable: true,
+            oldIsDelegable: true,
+          },
+          {
+            isDelegable: false,
+            oldIsDelegable: false,
+          },
+          {
+            isClientAccessDelegable: true,
+            oldIsClientAccessDelegable: true,
+          },
+          {
+            isClientAccessDelegable: false,
+            oldIsClientAccessDelegable: false,
+          },
+          () => undefined
+        )
+        .exhaustive();
 
       if (event) {
         await repository.createEvent(event);
