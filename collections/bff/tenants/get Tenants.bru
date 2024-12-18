@@ -11,16 +11,15 @@ get {
 }
 
 params:query {
-  name: 
   limit: 10
+  features: ["DELEGATED_CONSUMER", "DELEGATED_PRODUCER"]
+  name: Test
 }
 
 headers {
   Authorization: {{JWT}}
   x-correlation-id: {{correlation-id}}
 }
-
-
 
 docs {
   Retrieve Tenants by name
