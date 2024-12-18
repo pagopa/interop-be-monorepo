@@ -30,8 +30,6 @@ export const KafkaBatchConsumerConfig = z
     const minBytes =
       c.AVERAGE_KAFKA_MESSAGE_SIZE_IN_BYTES * c.MESSAGES_TO_READ_PER_BATCH;
     return {
-      averageKafkaMessageSizeInBytes: c.AVERAGE_KAFKA_MESSAGE_SIZE_IN_BYTES,
-      messagesToReadPerBatch: c.MESSAGES_TO_READ_PER_BATCH,
       minBytes,
       maxWaitKafkaBatchMillis: c.MAX_WAIT_KAFKA_BATCH_MILLIS,
       sessionTimeoutMillis: Math.round(c.MAX_WAIT_KAFKA_BATCH_MILLIS * 1.5),
