@@ -183,19 +183,57 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw an operationNotAllowed error when requester is not consumer", async () => {
-    const consumer = getMockTenant();
-    const producer = getMockTenant();
+  it("should throw an operationNotAllowed error when requester is not Consumer or Delegate Consumer", async () => {
+    const agreement = {
+      ...getMockAgreement(),
+      state: agreementState.draft,
+    };
 
-    const agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      consumer.id,
-      agreementState.draft
-    );
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      delegatorId: agreement.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+      eserviceId: agreement.eserviceId,
+    });
 
     await addOneAgreement(agreement);
+    await addOneDelegation(consumerDelegation);
 
-    const authData = getRandomAuthData(producer.id);
+    const authData = getRandomAuthData(agreement.producerId);
+
+    await expect(
+      agreementService.submitAgreement(
+        agreement.id,
+        { consumerNotes: "This is a test" },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "AgreementServiceTest",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+  });
+
+  it("should throw operationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+    const agreement = {
+      ...getMockAgreement(),
+      state: agreementState.draft,
+    };
+
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      delegatorId: agreement.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+      eserviceId: agreement.eserviceId,
+    });
+
+    await addOneAgreement(agreement);
+    await addOneDelegation(consumerDelegation);
+
+    const authData = getRandomAuthData(agreement.consumerId);
 
     await expect(
       agreementService.submitAgreement(
@@ -1094,6 +1132,7 @@ describe("submit agreement", () => {
   });
 
   it("should create a new agreement contract for first activation with new state ACTIVE when producer is equal to consumer, generates AgreementActivated event", async () => {
+    // TODO merge this test and the one above, they are the same success case
     vi.spyOn(pdfGenerator, "generate");
     const producerAndConsumerId = generateId<TenantId>();
     const consumerNotesText = "This is a test";
@@ -1567,6 +1606,7 @@ describe("submit agreement", () => {
   });
 
   it("should create a new agreement contract for first activation with new state ACTIVE when producer and consumer are different, generates AgreementActivated and eservice has a delegation", async () => {
+    // TODO merge this test and the one above, they are the same test
     vi.spyOn(pdfGenerator, "generate");
     const consumerId = generateId<TenantId>();
     const producer = getMockTenant();
@@ -1868,6 +1908,7 @@ describe("submit agreement", () => {
   });
 
   it("should create a new agreement contract for first activation with new state ACTIVE when producer and consumer are different, generates AgreementActivated", async () => {
+    // TODO merge this test and the one above, they are the same test
     const consumerId = generateId<TenantId>();
     const producer = getMockTenant(consumerId);
     const consumerNotesText = "This is a test";
@@ -2084,6 +2125,7 @@ describe("submit agreement", () => {
     expect(submittedAgreement).toEqual(expectedAgreement);
   });
 
+  // TODO add also the delegate case in these last two tests for new state pending
   it("should submit agreement with new state PENDING when producer is different from consumer and no related agreements exist, and approval policy is manual, generates AgreementSubmitted event", async () => {
     const consumerId = generateId<TenantId>();
     const producer = getMockTenant();
