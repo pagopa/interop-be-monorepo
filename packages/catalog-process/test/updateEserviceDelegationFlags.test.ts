@@ -48,7 +48,7 @@ describe("update eService flags", () => {
     };
     await addOneEService(eservice);
 
-    const returnedEService = await catalogService.updateEServiceFlags(
+    const returnedEService = await catalogService.updateEServiceDelegationFlags(
       eservice.id,
       {
         isDelegable: true,
@@ -95,7 +95,7 @@ describe("update eService flags", () => {
     };
     await addOneEService(eservice);
 
-    const returnedEService = await catalogService.updateEServiceFlags(
+    const returnedEService = await catalogService.updateEServiceDelegationFlags(
       eservice.id,
       {
         isDelegable: false,
@@ -143,7 +143,7 @@ describe("update eService flags", () => {
     };
     await addOneEService(eservice);
 
-    const returnedEService = await catalogService.updateEServiceFlags(
+    const returnedEService = await catalogService.updateEServiceDelegationFlags(
       eservice.id,
       {
         isDelegable: true,
@@ -191,7 +191,7 @@ describe("update eService flags", () => {
     };
     await addOneEService(eservice);
 
-    const returnedEService = await catalogService.updateEServiceFlags(
+    const returnedEService = await catalogService.updateEServiceDelegationFlags(
       eservice.id,
       {
         isDelegable: true,
@@ -230,7 +230,7 @@ describe("update eService flags", () => {
     const eservice = getMockEService();
 
     expect(
-      catalogService.updateEServiceFlags(
+      catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
           isDelegable: true,
@@ -250,7 +250,7 @@ describe("update eService flags", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.updateEServiceFlags(
+      catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
           isDelegable: true,
@@ -277,7 +277,7 @@ describe("update eService flags", () => {
     await addOneDelegation(delegation);
 
     expect(
-      catalogService.updateEServiceFlags(
+      catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
           isDelegable: true,
@@ -297,7 +297,7 @@ describe("update eService flags", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.updateEServiceFlags(
+      catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
           isDelegable: true,
@@ -326,7 +326,7 @@ describe("update eService flags", () => {
       await addOneEService(eservice);
 
       expect(
-        catalogService.updateEServiceFlags(
+        catalogService.updateEServiceDelegationFlags(
           eservice.id,
           {
             isDelegable: true,
@@ -355,7 +355,7 @@ describe("update eService flags", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.updateEServiceFlags(
+      catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
           isDelegable: false,
