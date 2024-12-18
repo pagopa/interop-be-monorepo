@@ -376,7 +376,6 @@ const agreementRouter = (
             ),
             showOnlyUpgradeable: req.query.showOnlyUpgradeable || false,
           },
-          ctx.authData.organizationId,
           req.query.limit,
           req.query.offset,
           ctx.logger
@@ -668,7 +667,6 @@ const agreementRouter = (
               apiAgreementStateToAgreementState
             ),
           },
-          ctx.authData.organizationId,
           req.query.limit,
           req.query.offset,
           ctx.logger
