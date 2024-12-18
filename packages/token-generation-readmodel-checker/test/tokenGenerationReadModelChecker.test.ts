@@ -1003,7 +1003,7 @@ describe("Token Generation Read Model Checker tests", () => {
     it("should not detect differences when the platform-states entry is missing and the descriptor is archived", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
-        state: descriptorState.draft,
+        state: descriptorState.archived,
         audience: ["pagopa.it"],
       };
       const eservice: EService = {
