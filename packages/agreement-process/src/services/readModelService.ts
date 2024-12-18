@@ -393,6 +393,26 @@ function getConsumerDelegateAgreementsFilters(consumerIds: TenantId[]) {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function getDelegationsFilterPipeline(
+  filters: Pick<AgreementEServicesQueryFilters, "consumerIds" | "producerIds">
+) {
+  return filters.producerIds.length > 0 || filters.consumerIds.length > 0
+    ? [
+        {
+          $lookup: {
+            from: "delegations",
+            localField: "data.eserviceId",
+            foreignField: "data.eserviceId",
+            as: "delegations",
+          },
+        },
+        ...getProducerDelegateAgreementsFilters(filters.producerIds),
+        ...getConsumerDelegateAgreementsFilters(filters.consumerIds),
+      ]
+    : [];
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
@@ -417,26 +437,16 @@ export function readModelServiceBuilder(
           : [consumerId]
         : [];
 
-      const delegationsFilter =
-        producerIds.length > 0 || consumerIds.length > 0
-          ? [
-              {
-                $lookup: {
-                  from: "delegations",
-                  localField: "data.eserviceId",
-                  foreignField: "data.eserviceId",
-                  as: "delegations",
-                },
-              },
-              ...getProducerDelegateAgreementsFilters(producerIds),
-              ...getConsumerDelegateAgreementsFilters(consumerIds),
-            ]
-          : [];
-
       const agreementsData = await agreements
-        .aggregate([getAgreementsFilters(otherFilters), ...delegationsFilter], {
-          allowDiskUse: true,
-        })
+        .aggregate(
+          [
+            getAgreementsFilters(otherFilters),
+            ...getDelegationsFilterPipeline({ producerIds, consumerIds }),
+          ],
+          {
+            allowDiskUse: true,
+          }
+        )
         .toArray();
 
       const eserviceIds = agreementsData.map(
@@ -605,24 +615,8 @@ export function readModelServiceBuilder(
           : { "data.state": { $in: filters.agreeementStates } }),
       };
 
-      const delegationsFilter =
-        filters.producerIds.length > 0 || filters.consumerIds.length > 0
-          ? [
-              {
-                $lookup: {
-                  from: "delegations",
-                  localField: "data.eserviceId",
-                  foreignField: "data.eserviceId",
-                  as: "delegations",
-                },
-              },
-              ...getProducerDelegateAgreementsFilters(filters.producerIds),
-              ...getConsumerDelegateAgreementsFilters(filters.consumerIds),
-            ]
-          : [];
-
       const agreementAggregationPipeline = [
-        ...delegationsFilter,
+        ...getDelegationsFilterPipeline(filters),
         {
           $match: agreementFilter,
         },
