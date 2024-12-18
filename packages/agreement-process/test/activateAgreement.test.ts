@@ -290,6 +290,7 @@ describe("activate agreement", () => {
       async ({ requesterIs, withConsumerDelegation }) => {
         vi.spyOn(pdfGenerator, "generate");
         const producer: Tenant = getMockTenant();
+        const consumerId: TenantId = generateId();
 
         const certifiedAttribute: Attribute = {
           ...getMockAttribute(),
@@ -306,50 +307,13 @@ describe("activate agreement", () => {
           kind: "Verified",
         };
 
-        const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
-          ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
-          revocationTimestamp: undefined,
-        };
-
-        const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
-          ...getMockDeclaredTenantAttribute(declaredAttribute.id),
-          revocationTimestamp: undefined,
-        };
-
-        const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-          ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
-          verifiedBy: [
-            {
-              id: producer.id,
-              verificationDate: new Date(),
-              extensionDate: addDays(new Date(), 30),
-            },
-          ],
-        };
-
-        const consumer: Tenant = {
-          ...getMockTenant(),
-          selfcareId: generateId(),
-          attributes: [
-            validTenantCertifiedAttribute,
-            validTenantDeclaredAttribute,
-            validTenantVerifiedAttribute,
-          ],
-        };
-
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
           state: randomArrayItem(agreementActivationAllowedDescriptorStates),
           attributes: {
-            certified: [
-              [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
-            ],
-            declared: [
-              [getMockEServiceAttribute(validTenantDeclaredAttribute.id)],
-            ],
-            verified: [
-              [getMockEServiceAttribute(validTenantVerifiedAttribute.id)],
-            ],
+            certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
+            declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
+            verified: [[getMockEServiceAttribute(verifiedAttribute.id)]],
           },
         };
 
@@ -365,7 +329,7 @@ describe("activate agreement", () => {
           eserviceId: eservice.id,
           descriptorId: descriptor.id,
           producerId: producer.id,
-          consumerId: consumer.id,
+          consumerId,
           suspendedByConsumer: false, // Must be false, otherwise the agreement would be suspended
           suspendedByProducer: randomBoolean(), // will be set to false by the activation
           stamps: {
@@ -397,6 +361,39 @@ describe("activate agreement", () => {
         const delegateConsumer = withConsumerDelegation
           ? _delegateConsumer
           : undefined;
+
+        const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
+          ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+          revocationTimestamp: undefined,
+        };
+
+        const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
+          ...getMockDeclaredTenantAttribute(declaredAttribute.id),
+          revocationTimestamp: undefined,
+          delegationId: consumerDelegation?.id,
+        };
+
+        const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
+          ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
+          verifiedBy: [
+            {
+              id: producer.id,
+              verificationDate: new Date(),
+              extensionDate: addDays(new Date(), 30),
+              delegationId: producerDelegation?.id,
+            },
+          ],
+        };
+
+        const consumer: Tenant = {
+          ...getMockTenant(consumerId),
+          selfcareId: generateId(),
+          attributes: [
+            validTenantCertifiedAttribute,
+            validTenantDeclaredAttribute,
+            validTenantVerifiedAttribute,
+          ],
+        };
 
         await addOneAgreement(agreement);
         await addOneTenant(consumer);
@@ -529,6 +526,7 @@ describe("activate agreement", () => {
               ),
               attributeName: declaredAttribute.name,
               attributeId: validTenantDeclaredAttribute.id,
+              delegationId: consumerDelegation?.id,
             },
           ],
           verifiedAttributes: [
@@ -544,6 +542,7 @@ describe("activate agreement", () => {
               expirationDate: dateAtRomeZone(
                 validTenantVerifiedAttribute.verifiedBy[0].extensionDate!
               ),
+              delegationId: producerDelegation?.id,
             },
           ],
           producerDelegationId: producerDelegation?.id,
