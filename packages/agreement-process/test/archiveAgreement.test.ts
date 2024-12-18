@@ -186,6 +186,36 @@ describe("archive agreement", () => {
     vi.useRealTimers();
   });
 
+  it("should throw operationNotAllowed when the requester is the consumer but there is a consumer delegation", async () => {
+    const authData = getRandomAuthData();
+
+    const agreement = {
+      ...getMockAgreement(),
+      consumerId: authData.organizationId,
+      state: randomArrayItem(agreementArchivableStates),
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: agreement.eserviceId,
+      delegatorId: agreement.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOneAgreement(agreement);
+    await addOneDelegation(delegation);
+
+    await expect(
+      agreementService.archiveAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+  });
+
   it("should throw a agreementNotFound error when the Agreement doesn't exist", async () => {
     const authData = getRandomAuthData();
     const eserviceId = generateId<EServiceId>();
