@@ -31,6 +31,7 @@ import {
   approveDelegationErrorMapper,
   rejectDelegationErrorMapper,
   revokeDelegationErrorMapper,
+  getConsumerDelegatorsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
@@ -426,7 +427,37 @@ const delegationRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .get("/consumer/delegators", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      const { delegateId, delegatorName, limit, offset } = req.query;
+
+      try {
+        const delegators = await delegationService.getConsumerDelegators(
+          {
+            delegateId: unsafeBrandId(delegateId),
+            delegatorName,
+            limit,
+            offset,
+          },
+          ctx.logger
+        );
+
+        return res
+          .status(200)
+          .send(delegationApi.CompactTenants.parse(delegators));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getConsumerDelegatorsErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return [delegationRouter, delegationProducerRouter, delegationConsumerRouter];
 };

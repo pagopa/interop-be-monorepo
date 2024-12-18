@@ -5,9 +5,12 @@ import {
   ReadModelRepository,
 } from "pagopa-interop-commons";
 import {
+  agreementState,
   Delegation,
   DelegationId,
+  delegationKind,
   DelegationKind,
+  delegationState,
   DelegationState,
   EService,
   EServiceId,
@@ -18,6 +21,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { delegationApi } from "pagopa-interop-api-clients";
 import { GetDelegationsFilters } from "../model/domain/models.js";
 
 const toReadModelFilter = (
@@ -66,9 +70,7 @@ const toReadModelFilter = (
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const delegations = readModelRepository.delegations;
-  const eservices = readModelRepository.eservices;
-  const tenants = readModelRepository.tenants;
+  const { delegations, eservices, tenants } = readModelRepository;
 
   return {
     async getEService(
@@ -245,6 +247,133 @@ export function readModelServiceBuilder(
       }
 
       return result.data;
+    },
+    async getConsumerDelegators(filters: {
+      delegateId: TenantId;
+      limit: number;
+      offset: number;
+      delegatorName?: string;
+    }): Promise<delegationApi.CompactTenants> {
+      const aggregationPipeline = [
+        {
+          $match: {
+            "data.kind": delegationKind.delegatedConsumer,
+            "data.state": delegationState.active,
+            "data.delegateId": filters.delegateId,
+          } satisfies ReadModelFilter<Delegation>,
+        },
+        {
+          $lookup: {
+            from: "eservices",
+            localField: "data.eserviceId",
+            foreignField: "data.id",
+            as: "eservice",
+          },
+        },
+        {
+          $unwind: "$eservice",
+        },
+        {
+          $lookup: {
+            from: "agreements",
+            let: {
+              producerId: "$eservice.data.producerId",
+              consumerId: "$data.delegatorId",
+              eserviceId: "$eservice.data.id",
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$data.producerId", "$$producerId"] },
+                      { $eq: ["$data.consumerId", "$$consumerId"] },
+                      { $eq: ["$data.eserviceId", "$$eserviceId"] },
+                      { $eq: ["$data.state", agreementState.active] },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: "activeAgreements",
+          },
+        },
+        {
+          $match: {
+            activeAgreements: { $ne: [] }, // Keep only delegations with active agreements
+          },
+        },
+        {
+          $lookup: {
+            from: "tenants",
+            localField: "data.delegatorId",
+            foreignField: "data.id",
+            as: "delegator",
+          },
+        },
+        {
+          $unwind: "$delegator",
+        },
+        ...(filters.delegatorName
+          ? [
+              {
+                $match: {
+                  "delegator.data.name": {
+                    $regex: ReadModelRepository.escapeRegExp(
+                      filters.delegatorName
+                    ),
+                    $options: "i",
+                  },
+                },
+              },
+            ]
+          : []),
+        {
+          $group: {
+            _id: "$delegator.data.id",
+            name: { $first: "$delegator.data.name" },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            id: "$_id",
+            name: 1,
+          },
+        },
+        {
+          $sort: { name: 1 },
+        },
+      ];
+
+      const data = await delegations
+        .aggregate(
+          [
+            ...aggregationPipeline,
+            { $skip: filters.offset },
+            { $limit: filters.limit },
+          ],
+          { allowDiskUse: true }
+        )
+        .toArray();
+
+      const result = z.array(delegationApi.CompactTenant).safeParse(data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse compact delegation tenants: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)}`
+        );
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          delegations,
+          aggregationPipeline
+        ),
+      };
     },
   };
 }

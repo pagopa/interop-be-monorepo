@@ -9,12 +9,14 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   Delegation,
   DelegationEvent,
   DelegationId,
   EService,
   Tenant,
   toDelegationV2,
+  toReadModelAgreement,
   toReadModelEService,
   toReadModelTenant,
 } from "pagopa-interop-models";
@@ -35,9 +37,8 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
   );
 afterEach(cleanup);
 
-export const delegations = readModelRepository.delegations;
-export const eservices = readModelRepository.eservices;
-export const tenants = readModelRepository.tenants;
+export const { delegations, agreements, eservices, tenants } =
+  readModelRepository;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
@@ -113,4 +114,8 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 };
 export const addOneEservice = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+};
+
+export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
+  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 };

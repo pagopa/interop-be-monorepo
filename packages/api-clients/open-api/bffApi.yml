@@ -2159,6 +2159,69 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/consumer/delegations/delegators":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - in: query
+        name: q
+        schema:
+          type: string
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+    get:
+      tags:
+        - consumerDelegations
+      operationId: getConsumerDelegators
+      description: Retrieve requester's delegators
+      responses:
+        "200":
+          description: Delegators retrieved
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DelegationTenants"
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/consumers":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -16543,6 +16606,19 @@ components:
       required:
         - id
         - name
+    DelegationTenants:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegationTenant"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     DelegationEService:
       type: object
       additionalProperties: false
