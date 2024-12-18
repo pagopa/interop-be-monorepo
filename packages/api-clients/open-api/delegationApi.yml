@@ -759,11 +759,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactEservice"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
+        totalCount:
+          type: integer
+          format: int32
       required:
         - results
-        - pagination
+        - totalCount
     CompactTenant:
       type: object
       additionalProperties: false

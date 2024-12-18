@@ -424,154 +424,57 @@ export function readModelServiceBuilder(
             ]
           : []),
         {
-          $project: {
-            _id: 0,
-            id: "$data.id",
-            eserviceId: "$eservice.data.id",
-            eserviceName: "$eservice.data.name",
-            producerId: "$eservice.data.producerId",
-            consumerId: "$eservice.data.consumerId",
-          },
-        },
-      ];
-
-      const data = await delegations
-        .aggregate(aggregationPipeline, { allowDiskUse: true })
-        .toArray();
-
-      const result = z
-        .array(
-          z.object({
-            id: z.string(),
-            consumerId: z.string(),
-            eserviceName: z.string(),
-            eserviceId: z.string(),
-            producerId: z.string(),
-          })
-        )
-        .safeParse(data);
-
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse compact delegation eservices: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)}`
-        );
-      }
-
-      if (result.data.length === 0) {
-        return {
-          results: [],
-          pagination: {
-            offset: filters.offset,
-            limit: filters.limit,
-            totalCount: 0,
-          },
-        };
-      }
-
-      const activeEservices = await getItemsWithActiveAgreements(
-        result.data,
-        "data.eserviceId"
-      );
-
-      const filteredEservices = Array.from(
-        result.data
-          .reduce((map, delegation) => {
-            if (
-              activeEservices.includes(delegation.eserviceId) &&
-              !map.has(delegation.eserviceId)
-            ) {
-              map.set(delegation.eserviceId, {
-                id: delegation.id,
-                eserviceId: delegation.eserviceId,
-                eserviceName: delegation.eserviceName,
-              });
-            }
-            return map;
-          }, new Map<string, delegationApi.CompactEservice>())
-          .values()
-      );
-      return {
-        results: filteredEservices.slice(
-          filters.offset,
-          filters.offset + filters.limit
-        ),
-        pagination: {
-          offset: filters.offset,
-          limit: filters.limit,
-          totalCount: filteredEservices.length,
-        },
-      };
-    },
-    async getConsumerEservices(filters: {
-      delegateId: TenantId;
-      delegatorId: TenantId;
-      limit: number;
-      offset: number;
-      eserviceName?: string;
-    }): Promise<delegationApi.CompactEservices> {
-      const aggregationPipeline = [
-        {
-          $match: {
-            "data.kind": delegationKind.delegatedConsumer,
-            "data.state": delegationState.active,
-            "data.delegateId": filters.delegateId,
-            "data.delegatorId": filters.delegatorId,
-          } satisfies ReadModelFilter<Delegation>,
-        },
-        {
           $lookup: {
-            from: "eservices",
-            localField: "data.eserviceId",
-            foreignField: "data.id",
-            as: "eservice",
-          },
-        },
-        {
-          $unwind: "$eservice",
-        },
-        ...(filters.eserviceName
-          ? [
+            from: "agreements",
+            let: {
+              producerId: "$eservice.data.producerId",
+              consumerId: "$data.delegatorId",
+              eserviceId: "$eservice.data.id",
+            },
+            pipeline: [
               {
                 $match: {
-                  "eservice.data.name": {
-                    $regex: ReadModelRepository.escapeRegExp(
-                      filters.eserviceName
-                    ),
-                    $options: "i",
+                  $expr: {
+                    $and: [
+                      { $eq: ["$data.producerId", "$$producerId"] },
+                      { $eq: ["$data.consumerId", "$$consumerId"] },
+                      { $eq: ["$data.eserviceId", "$$eserviceId"] },
+                      { $eq: ["$data.state", agreementState.active] },
+                    ],
                   },
                 },
               },
-            ]
-          : []),
+            ],
+            as: "activeAgreements",
+          },
+        },
+        {
+          $match: {
+            activeAgreements: { $ne: [] }, // Keep only delegations with active agreements
+          },
+        },
         {
           $project: {
             _id: 0,
             id: "$data.id",
             eserviceId: "$eservice.data.id",
             eserviceName: "$eservice.data.name",
-            producerId: "$eservice.data.producerId",
-            consumerId: "$eservice.data.consumerId",
           },
         },
       ];
 
       const data = await delegations
-        .aggregate(aggregationPipeline, { allowDiskUse: true })
+        .aggregate(
+          [
+            ...aggregationPipeline,
+            { $skip: filters.offset },
+            { $limit: filters.limit },
+          ],
+          { allowDiskUse: true }
+        )
         .toArray();
 
-      const result = z
-        .array(
-          z.object({
-            id: z.string(),
-            consumerId: z.string(),
-            eserviceName: z.string(),
-            eserviceId: z.string(),
-            producerId: z.string(),
-          })
-        )
-        .safeParse(data);
+      const result = z.array(delegationApi.CompactEservice).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(
@@ -581,49 +484,12 @@ export function readModelServiceBuilder(
         );
       }
 
-      if (result.data.length === 0) {
-        return {
-          results: [],
-          pagination: {
-            offset: filters.offset,
-            limit: filters.limit,
-            totalCount: 0,
-          },
-        };
-      }
-
-      const activeEservices = await getItemsWithActiveAgreements(
-        result.data,
-        "data.eserviceId"
-      );
-
-      const filteredEservices = Array.from(
-        result.data
-          .reduce((map, delegation) => {
-            if (
-              activeEservices.includes(delegation.eserviceId) &&
-              !map.has(delegation.eserviceId)
-            ) {
-              map.set(delegation.eserviceId, {
-                id: delegation.id,
-                eserviceId: delegation.eserviceId,
-                eserviceName: delegation.eserviceName,
-              });
-            }
-            return map;
-          }, new Map<string, delegationApi.CompactEservice>())
-          .values()
-      );
       return {
-        results: filteredEservices.slice(
-          filters.offset,
-          filters.offset + filters.limit
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          delegations,
+          aggregationPipeline
         ),
-        pagination: {
-          offset: filters.offset,
-          limit: filters.limit,
-          totalCount: filteredEservices.length,
-        },
       };
     },
   };
