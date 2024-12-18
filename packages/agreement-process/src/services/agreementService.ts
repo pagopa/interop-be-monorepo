@@ -162,6 +162,7 @@ export const retrieveAgreement = async (
   if (!agreement) {
     throw agreementNotFound(agreementId);
   }
+
   return agreement;
 };
 

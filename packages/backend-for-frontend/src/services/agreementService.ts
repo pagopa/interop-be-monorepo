@@ -671,7 +671,7 @@ export async function enrichAgreement(
     attributes
   );
 
-  const delegations =
+  const delegation = (
     await clients.delegationProcessClient.delegation.getDelegations({
       queries: {
         delegatorIds: [agreement.consumerId],
@@ -680,13 +680,8 @@ export async function enrichAgreement(
         limit: 1,
       },
       headers: ctx.headers,
-    });
-
-  const requesterId = ctx.authData.organizationId;
-
-  const delegation = delegations.results.find(
-    (d) => d.delegateId === requesterId || d.delegatorId === requesterId
-  );
+    })
+  ).results.at(0);
 
   const delegationInfo = await match(delegation)
     .with(P.nullish, () => undefined)
