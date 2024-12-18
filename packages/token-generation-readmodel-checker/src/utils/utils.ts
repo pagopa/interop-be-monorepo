@@ -108,18 +108,8 @@ function getIdFromPlatformStatesPK<
     | PlatformStatesPurposePK
     | PlatformStatesAgreementPK
     | PlatformStatesClientPK
-): {
-  id: T;
-  descriptorId?: DescriptorId;
-} {
-  const splitPK = pk.split("#");
-  if (PlatformStatesEServiceDescriptorPK.safeParse(pk).success) {
-    return {
-      id: unsafeBrandId<T>(splitPK[1]),
-      descriptorId: unsafeBrandId<DescriptorId>(splitPK[2]),
-    };
-  }
-  return { id: unsafeBrandId<T>(splitPK[1]) };
+): T {
+  return unsafeBrandId<T>(pk.split("#")[1]);
 }
 
 function getCatalogIdsFromPlatformStatesPK(
@@ -200,7 +190,7 @@ export async function compareTokenGenerationReadModel(
       if (parsedPurpose.success) {
         acc.purposes.set(
           unsafeBrandId<PurposeId>(
-            getIdFromPlatformStatesPK(parsedPurpose.data.PK).id
+            getIdFromPlatformStatesPK(parsedPurpose.data.PK)
           ),
           parsedPurpose.data
         );
@@ -211,7 +201,7 @@ export async function compareTokenGenerationReadModel(
       if (parsedAgreement.success) {
         acc.agreements.set(
           unsafeBrandId<AgreementId>(
-            getIdFromPlatformStatesPK(parsedAgreement.data.PK).id
+            getIdFromPlatformStatesPK(parsedAgreement.data.PK)
           ),
           parsedAgreement.data
         );
@@ -242,7 +232,7 @@ export async function compareTokenGenerationReadModel(
       if (parsedClient.success) {
         acc.clients.set(
           unsafeBrandId<ClientId>(
-            getIdFromPlatformStatesPK(parsedClient.data.PK).id
+            getIdFromPlatformStatesPK(parsedClient.data.PK)
           ),
           parsedClient.data
         );
@@ -439,7 +429,7 @@ function validatePurposePlatformStates({
 
   const isPlatformStatesPurposeCorrect =
     !isArchived &&
-    getIdFromPlatformStatesPK<PurposeId>(platformStatesPurposeEntry.PK).id ===
+    getIdFromPlatformStatesPK<PurposeId>(platformStatesPurposeEntry.PK) ===
       purpose.id &&
     purposeState === platformStatesPurposeEntry.state &&
     platformStatesPurposeEntry.purposeConsumerId === purpose.consumerId &&
@@ -895,7 +885,7 @@ function validateClientPlatformStates({
 
   const isPlatformStatesClientCorrect =
     platformStatesClientEntry.state === itemState.active &&
-    getIdFromPlatformStatesPK<ClientId>(platformStatesClientEntry.PK).id ===
+    getIdFromPlatformStatesPK<ClientId>(platformStatesClientEntry.PK) ===
       client.id &&
     platformStatesClientEntry.clientKind ===
       clientKindToTokenGenerationStatesClientKind(client.kind) &&
