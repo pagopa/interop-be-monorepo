@@ -42,6 +42,7 @@ import {
   Tenant,
   TenantAttribute,
   TenantId,
+  UserId,
   agreementApprovalPolicy,
   agreementState,
   attributeKind,
@@ -81,6 +82,27 @@ import {
   pdfGenerator,
   readLastAgreementEvent,
 } from "./utils.js";
+
+const draftAgreementSubmissionSeed = {
+  state: agreementState.draft,
+
+  // The agreement is draft, so it doens't have a contract or attributes
+  contract: undefined,
+  certifiedAttributes: [],
+  declaredAttributes: [],
+  verifiedAttributes: [],
+
+  // We set these flags because it's a possible case:
+  // suspension flags are preserved in draft agreements that are created
+  // during an upgrade operation (see agreementStatesFlows.test.ts)
+  suspendedByConsumer: randomBoolean(),
+  suspendedByProducer: randomBoolean(),
+  stamps: {
+    suspensionByConsumer: getRandomPastStamp(generateId<UserId>()),
+    suspensionByProducer: getRandomPastStamp(generateId<UserId>()),
+  },
+  suspendedAt: new Date(),
+};
 
 describe("submit agreement", () => {
   async function addRelatedAgreements(agreement: Agreement): Promise<{
@@ -999,12 +1021,11 @@ describe("submit agreement", () => {
 
     const consumer = {
       ...getMockTenant(producerAndConsumerId),
-      selfcareId: generateId<SelfcareId>(),
       mails: [
         {
           id: generateId(),
           kind: tenantMailKind.ContactEmail,
-          address: "avalidemailaddressfortenant@testingagreement.com",
+          address: "test@test.com",
           createdAt: new Date(),
         },
       ],
@@ -1030,19 +1051,7 @@ describe("submit agreement", () => {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
-      state: agreementState.draft,
-      // The agreement is draft, so it doens't have a contract or attributes
-      contract: undefined,
-      certifiedAttributes: [],
-      declaredAttributes: [],
-      verifiedAttributes: [],
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: getRandomPastStamp(authData.userId),
-        suspensionByProducer: getRandomPastStamp(authData.userId),
-      },
-      suspendedAt: new Date(),
+      ...draftAgreementSubmissionSeed,
     };
 
     await addOneEService(eservice);
@@ -1070,11 +1079,7 @@ describe("submit agreement", () => {
     );
 
     const actualAgreementData = await readLastAgreementEvent(agreement.id);
-    if (!actualAgreementData) {
-      fail("Creation fails: agreement not found in event-store");
-    }
 
-    expect(actualAgreementData.type).toEqual("AgreementActivated");
     expect(actualAgreementData).toMatchObject({
       type: "AgreementActivated",
       event_version: 2,
@@ -1082,14 +1087,10 @@ describe("submit agreement", () => {
       stream_id: submittedAgreement.id,
     });
 
-    const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
+    const actualAgreement: AgreementV2 = decodeProtobufPayload({
       messageType: AgreementActivatedV2,
       payload: actualAgreementData.data,
-    }).agreement;
-
-    if (!actualAgreement) {
-      fail("impossible to decode AgreementAddedV1 data");
-    }
+    }).agreement!;
 
     const uploadedFiles = await fileManager.listFiles(
       config.s3Bucket,
@@ -1132,7 +1133,6 @@ describe("submit agreement", () => {
   });
 
   it("should create a new agreement contract for first activation with new state ACTIVE when producer is equal to consumer, generates AgreementActivated event", async () => {
-    // TODO merge this test and the one above, they are the same success case
     vi.spyOn(pdfGenerator, "generate");
     const producerAndConsumerId = generateId<TenantId>();
     const consumerNotesText = "This is a test";
@@ -1201,14 +1201,7 @@ describe("submit agreement", () => {
       ...getMockAgreement(eservice.id, producerAndConsumer.id),
       producerId: producerAndConsumer.id,
       descriptorId: eservice.descriptors[0].id,
-      state: agreementState.draft,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: getRandomPastStamp(authData.userId),
-        suspensionByProducer: getRandomPastStamp(authData.userId),
-      },
-      suspendedAt: new Date(),
+      ...draftAgreementSubmissionSeed,
     };
 
     const verifiedAttribute: Attribute = {
@@ -1489,19 +1482,7 @@ describe("submit agreement", () => {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
-      state: agreementState.draft,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: getRandomPastStamp(authData.userId),
-        suspensionByProducer: getRandomPastStamp(authData.userId),
-      },
-      suspendedAt: new Date(),
-      // The agreement is draft, so it doens't have a contract or attributes
-      contract: undefined,
-      certifiedAttributes: [],
-      declaredAttributes: [],
-      verifiedAttributes: [],
+      ...draftAgreementSubmissionSeed,
     };
 
     await addOneEService(eservice);
@@ -1606,7 +1587,6 @@ describe("submit agreement", () => {
   });
 
   it("should create a new agreement contract for first activation with new state ACTIVE when producer and consumer are different, generates AgreementActivated and eservice has a delegation", async () => {
-    // TODO merge this test and the one above, they are the same test
     vi.spyOn(pdfGenerator, "generate");
     const consumerId = generateId<TenantId>();
     const producer = getMockTenant();
@@ -1647,19 +1627,7 @@ describe("submit agreement", () => {
       ...getMockAgreement(eservice.id, consumerId),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
-      state: agreementState.draft,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: getRandomPastStamp(authData.userId),
-        suspensionByProducer: getRandomPastStamp(authData.userId),
-      },
-      suspendedAt: new Date(),
-      // The agreement is draft, so it doens't have a contract or attributes
-      contract: undefined,
-      certifiedAttributes: [],
-      declaredAttributes: [],
-      verifiedAttributes: [],
+      ...draftAgreementSubmissionSeed,
     };
 
     const delegate = getMockTenant(generateId<TenantId>());
@@ -1975,19 +1943,7 @@ describe("submit agreement", () => {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
-      state: agreementState.draft,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: getRandomPastStamp(authData.userId),
-        suspensionByProducer: getRandomPastStamp(authData.userId),
-      },
-      suspendedAt: new Date(),
-      // The agreement is draft, so it doens't have a contract or attributes
-      contract: undefined,
-      certifiedAttributes: [],
-      declaredAttributes: [],
-      verifiedAttributes: [],
+      ...draftAgreementSubmissionSeed,
     };
 
     const verifiedAttribute: Attribute = {
@@ -2182,19 +2138,7 @@ describe("submit agreement", () => {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
-      state: agreementState.draft,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: getRandomPastStamp(authData.userId),
-        suspensionByProducer: getRandomPastStamp(authData.userId),
-      },
-      suspendedAt: new Date(),
-      // The agreement is draft, so it doens't have a contract or attributes
-      contract: undefined,
-      certifiedAttributes: [],
-      declaredAttributes: [],
-      verifiedAttributes: [],
+      ...draftAgreementSubmissionSeed,
     };
 
     await addOneEService(eservice);
@@ -2324,19 +2268,7 @@ describe("submit agreement", () => {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
-      state: agreementState.draft,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        suspensionByConsumer: getRandomPastStamp(authData.userId),
-        suspensionByProducer: getRandomPastStamp(authData.userId),
-      },
-      suspendedAt: new Date(),
-      // The agreement is draft, so it doens't have a contract or attributes
-      contract: undefined,
-      certifiedAttributes: [],
-      declaredAttributes: [],
-      verifiedAttributes: [],
+      ...draftAgreementSubmissionSeed,
     };
 
     await addOneEService(eservice);
