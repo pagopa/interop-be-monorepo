@@ -8,7 +8,6 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
-  DelegationState,
   DraftAgreementUpdatedV2,
   TenantId,
   agreementState,
@@ -16,7 +15,6 @@ import {
   delegationState,
   generateId,
   toAgreementV2,
-  Agreement,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -29,31 +27,10 @@ import { agreementUpdatableStates } from "../src/model/domain/agreement-validato
 import {
   addOneAgreement,
   addOneDelegation,
+  addSomeRandomDelegations,
   agreementService,
   readLastAgreementEvent,
 } from "./utils.js";
-
-async function addSomeRandomDelegations(agreement: Agreement): Promise<void> {
-  // Adding some more delegations
-  [delegationState.rejected, delegationState.revoked].forEach(
-    async (state: DelegationState): Promise<void> => {
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedProducer,
-          state,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedConsumer,
-          state,
-        })
-      );
-    }
-  );
-}
 
 describe("update agreement", () => {
   it("should succeed when requester is Consumer and the Agreement is in an updatable state", async () => {

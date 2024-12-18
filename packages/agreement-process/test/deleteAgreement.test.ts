@@ -3,6 +3,7 @@ import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockDelegation,
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
@@ -10,7 +11,10 @@ import {
   AgreementDeletedV2,
   AgreementId,
   agreementState,
+  delegationKind,
+  delegationState,
   generateId,
+  TenantId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { agreementDeletableStates } from "../src/model/domain/agreement-validators.js";
@@ -22,6 +26,8 @@ import {
 import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
+  addOneDelegation,
+  addSomeRandomDelegations,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -33,27 +39,22 @@ describe("delete agreement", () => {
   it("should succeed when requester is Consumer and the Agreement is in a deletable state", async () => {
     vi.spyOn(fileManager, "delete");
     const agreementId = generateId<AgreementId>();
+    const consumerDocuments = [
+      getMockConsumerDocument(agreementId, "doc1"),
+      getMockConsumerDocument(agreementId, "doc2"),
+    ];
     const agreement = {
       ...getMockAgreement(),
       id: agreementId,
       state: randomArrayItem(agreementDeletableStates),
-      consumerDocuments: [
-        getMockConsumerDocument(agreementId, "doc1"),
-        getMockConsumerDocument(agreementId, "doc2"),
-      ],
+      consumerDocuments,
     };
     await addOneAgreement(agreement);
 
-    await uploadDocument(
-      agreementId,
-      agreement.consumerDocuments[0].id,
-      agreement.consumerDocuments[0].name
-    );
-
-    await uploadDocument(
-      agreementId,
-      agreement.consumerDocuments[1].id,
-      agreement.consumerDocuments[1].name
+    await Promise.all(
+      consumerDocuments.map((doc) =>
+        uploadDocument(agreementId, doc.id, doc.name)
+      )
     );
 
     const authData = getRandomAuthData(agreement.consumerId);
@@ -80,22 +81,124 @@ describe("delete agreement", () => {
 
     expect(agreementDeletedId).toEqual(agreement.id);
 
-    expect(fileManager.delete).toHaveBeenCalledWith(
+    const filePaths = await fileManager.listFiles(
       config.s3Bucket,
-      agreement.consumerDocuments[0].path,
       genericLogger
     );
-    expect(fileManager.delete).toHaveBeenCalledWith(
+
+    consumerDocuments.forEach((doc) => {
+      expect(fileManager.delete).toHaveBeenCalledWith(
+        config.s3Bucket,
+        doc.path,
+        genericLogger
+      );
+
+      expect(filePaths).not.toContain(doc.path);
+    });
+  });
+
+  it("should succeed when requester is Consumer Delegate and the Agreement is in a deletable state", async () => {
+    vi.spyOn(fileManager, "delete");
+    const agreementId = generateId<AgreementId>();
+    const consumerDocuments = [
+      getMockConsumerDocument(agreementId, "doc1"),
+      getMockConsumerDocument(agreementId, "doc2"),
+    ];
+
+    const agreement = {
+      ...getMockAgreement(),
+      id: agreementId,
+      state: randomArrayItem(agreementDeletableStates),
+      consumerDocuments,
+    };
+
+    const delegateId = generateId<TenantId>();
+    const authData = getRandomAuthData(delegateId);
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: agreement.eserviceId,
+      delegatorId: agreement.consumerId,
+      delegateId,
+      state: delegationState.active,
+    });
+
+    await addOneAgreement(agreement);
+    await addOneDelegation(delegation);
+    await addSomeRandomDelegations(agreement);
+
+    await Promise.all(
+      consumerDocuments.map((doc) =>
+        uploadDocument(agreementId, doc.id, doc.name)
+      )
+    );
+
+    await agreementService.deleteAgreementById(agreement.id, {
+      authData,
+      serviceName: "",
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
+
+    const agreementEvent = await readLastAgreementEvent(agreement.id);
+
+    expect(agreementEvent).toMatchObject({
+      type: "AgreementDeleted",
+      event_version: 2,
+      version: "1",
+      stream_id: agreement.id,
+    });
+
+    const agreementDeletedId = decodeProtobufPayload({
+      messageType: AgreementDeletedV2,
+      payload: agreementEvent.data,
+    }).agreement?.id;
+
+    expect(agreementDeletedId).toEqual(agreement.id);
+
+    const filePaths = await fileManager.listFiles(
       config.s3Bucket,
-      agreement.consumerDocuments[1].path,
       genericLogger
     );
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).not.toContain(agreement.consumerDocuments[0].path);
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).not.toContain(agreement.consumerDocuments[1].path);
+
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    consumerDocuments.forEach((doc) => {
+      expect(fileManager.delete).toHaveBeenCalledWith(
+        config.s3Bucket,
+        doc.path,
+        genericLogger
+      );
+
+      expect(filePaths).not.toContain(doc.path);
+    });
+  });
+
+  it("should throw operationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+    const authData = getRandomAuthData();
+
+    const agreement = {
+      ...getMockAgreement(),
+      consumerId: authData.organizationId,
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: agreement.eserviceId,
+      delegatorId: agreement.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOneAgreement(agreement);
+    await addOneDelegation(delegation);
+
+    await expect(
+      agreementService.deleteAgreementById(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
