@@ -127,6 +127,39 @@ describe("agreement consumer document", () => {
       expect(result).toEqual(agreement.consumerDocuments[0]);
     });
 
+    it("should throw operationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+      const authData = getRandomAuthData();
+
+      const agreement = {
+        ...getMockAgreement(),
+        consumerDocuments: [generateMock(AgreementDocument)],
+      };
+
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        eserviceId: agreement.eserviceId,
+        delegatorId: agreement.consumerId,
+        delegateId: generateId<TenantId>(),
+        state: delegationState.active,
+      });
+
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+
+      await expect(
+        agreementService.getAgreementConsumerDocument(
+          agreement.id,
+          agreement.consumerDocuments[0].id,
+          {
+            authData,
+            serviceName: "",
+            correlationId: generateId(),
+            logger: genericLogger,
+          }
+        )
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
+
     it("should succed when the requester is the producer, even if there is an active producer delegation", async () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
