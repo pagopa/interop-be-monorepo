@@ -50,6 +50,7 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
+  addSomeRandomDelegations,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -274,6 +275,7 @@ describe("clone agreement", () => {
       state: delegationState.active,
     });
     await addOneDelegation(delegation);
+    await addSomeRandomDelegations(agreementToBeCloned);
 
     const anotherNonConflictingAgreement = {
       ...getMockAgreement(
@@ -413,6 +415,7 @@ describe("clone agreement", () => {
       state: delegationState.active,
     });
     await addOneDelegation(delegation);
+    await addSomeRandomDelegations(agreement);
     await expect(
       agreementService.cloneAgreement(agreement.id, {
         authData,
