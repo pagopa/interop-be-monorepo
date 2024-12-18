@@ -577,6 +577,7 @@ describe("upgrade Agreement", () => {
     const validDeclaredTenantAttribute = {
       ...getMockDeclaredTenantAttribute(),
       revocationTimestamp: undefined,
+      delegationId: undefined,
     };
 
     const declaredAttribute = getMockAttribute(
@@ -857,6 +858,7 @@ describe("upgrade Agreement", () => {
           ),
           attributeName: declaredAttribute.name,
           attributeId: declaredAttribute.id,
+          delegationId: undefined,
         },
       ],
       verifiedAttributes: [
@@ -870,6 +872,7 @@ describe("upgrade Agreement", () => {
           attributeName: verifiedAttribute.name,
           attributeId: verifiedAttribute.id,
           expirationDate: undefined,
+          delegationId: undefined,
         },
       ],
       consumerDelegateIpaCode: undefined,

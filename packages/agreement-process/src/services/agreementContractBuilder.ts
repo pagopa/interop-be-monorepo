@@ -27,7 +27,10 @@ import {
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { getVerifiedAttributeExpirationDate } from "pagopa-interop-agreement-lifecycle";
+import {
+  getVerifiedAttributeExpirationDate,
+  getVerifiedAttributeDelegationId,
+} from "pagopa-interop-agreement-lifecycle";
 import { attributeNotFound } from "../model/domain/errors.js";
 import { AgreementProcessConfig } from "../config/config.js";
 import { assertStampExists } from "../model/domain/agreement-validators.js";
@@ -200,6 +203,7 @@ const getPdfPayload = async (
       assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
       attributeName: attribute.name,
       attributeId: attribute.id,
+      delegationId: tenantAttribute.delegationId,
     })),
     verifiedAttributes: verified.map(({ attribute, tenantAttribute }) => {
       const expirationDate = getVerifiedAttributeExpirationDate(
@@ -214,6 +218,10 @@ const getPdfPayload = async (
         expirationDate: expirationDate
           ? dateAtRomeZone(expirationDate)
           : undefined,
+        delegationId: getVerifiedAttributeDelegationId(
+          producer.id,
+          tenantAttribute
+        ),
       };
     }),
     producerDelegationId: producerDelegationData?.delegation.id,
