@@ -398,9 +398,9 @@ describe("clone agreement", () => {
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
   });
 
-  it("should throw an operationNotAllowed error when the requester is not the Consumer Delegate", async () => {
+  it("should throw an operationNotAllowed error when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getRandomAuthData();
-    const consumerId = generateId<TenantId>();
+    const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
       consumerId,
