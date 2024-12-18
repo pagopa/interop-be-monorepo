@@ -329,16 +329,9 @@ export function readModelServiceBuilder(
             ]
           : []),
         {
-          $project: {
-            _id: 0,
-            consumerId: "$delegator.data.id",
-            consumerName: "$delegator.data.name",
-          },
-        },
-        {
           $group: {
-            _id: "$consumerId",
-            name: { $first: "$consumerName" },
+            _id: "$delegator.data.id",
+            name: { $first: "$delegator.data.name" },
           },
         },
         {
