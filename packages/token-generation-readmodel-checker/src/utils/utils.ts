@@ -213,14 +213,11 @@ export async function compareTokenGenerationReadModel(
         const catalogIds = getCatalogIdsFromPlatformStatesPK(
           parsedCatalog.data.PK
         );
-        const platformStatesCatalogEntries = acc.eservices.get(
-          catalogIds.eserviceId
-        );
 
         acc.eservices.set(
           catalogIds.eserviceId,
           (
-            platformStatesCatalogEntries ??
+            acc.eservices.get(catalogIds.eserviceId) ??
             new Map<DescriptorId, PlatformStatesCatalogEntry>()
           ).set(catalogIds.descriptorId, parsedCatalog.data)
         );
