@@ -12,7 +12,7 @@ import {
   operationForbidden,
   delegationState,
   DescriptorRejectionReason,
-  EServiceDescriptorDelegatorRejectedV2,
+  EServiceDescriptorRejectedByDelegatorV2,
   generateId,
   delegationKind,
 } from "pagopa-interop-models";
@@ -76,11 +76,11 @@ describe("reject descriptor", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptorDelegatorRejected",
+      type: "EServiceDescriptorRejectedByDelegator",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorDelegatorRejectedV2,
+      messageType: EServiceDescriptorRejectedByDelegatorV2,
       payload: writtenEvent.data,
     });
 
