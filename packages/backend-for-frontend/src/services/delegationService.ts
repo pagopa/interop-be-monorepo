@@ -196,7 +196,7 @@ export function delegationServiceBuilder(
   fileManager: FileManager
 ) {
   return {
-    async getDelegationById(
+    async getDelegation(
       delegationId: DelegationId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.Delegation> {
@@ -328,7 +328,7 @@ export function delegationServiceBuilder(
 
       return { id: delegation.id };
     },
-    async delegatorRevokeProducerDelegation(
+    async revokeProducerDelegation(
       delegationId: DelegationId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
@@ -339,7 +339,7 @@ export function delegationServiceBuilder(
         headers,
       });
     },
-    async delegatorRevokeConsumerDelegation(
+    async revokeConsumerDelegation(
       delegationId: DelegationId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
@@ -350,7 +350,7 @@ export function delegationServiceBuilder(
         headers,
       });
     },
-    async delegateRejectProducerDelegation(
+    async rejectProducerDelegation(
       delegationId: DelegationId,
       rejectBody: bffApi.RejectDelegationPayload,
       { headers }: WithLogger<BffAppContext>
@@ -362,7 +362,7 @@ export function delegationServiceBuilder(
         headers,
       });
     },
-    async delegateRejectConsumerDelegation(
+    async rejectConsumerDelegation(
       delegationId: DelegationId,
       rejectBody: bffApi.RejectDelegationPayload,
       { headers }: WithLogger<BffAppContext>
@@ -374,7 +374,7 @@ export function delegationServiceBuilder(
         headers,
       });
     },
-    async delegateApproveProducerDelegation(
+    async approveProducerDelegation(
       delegationId: DelegationId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
@@ -385,7 +385,7 @@ export function delegationServiceBuilder(
         headers,
       });
     },
-    async delegateApproveConsumerDelegation(
+    async approveConsumerDelegation(
       delegationId: DelegationId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
@@ -412,15 +412,25 @@ export function delegationServiceBuilder(
         `Retrieving consumer delegators of delegate ${authData.organizationId} with name ${q}, limit ${limit}, offset ${offset}`
       );
 
-      return await delegationClients.consumer.getConsumerDelegators({
-        queries: {
-          delegateId: authData.organizationId,
-          delegatorName: q,
+      const delegatorsData =
+        await delegationClients.consumer.getConsumerDelegators({
+          queries: {
+            delegateId: authData.organizationId,
+            delegatorName: q,
+            offset,
+            limit,
+          },
+          headers,
+        });
+
+      return {
+        results: delegatorsData.results,
+        pagination: {
           offset,
           limit,
+          totalCount: delegatorsData.totalCount,
         },
-        headers,
-      });
+      };
     },
     async getConsumerDelegatedEservices(
       {

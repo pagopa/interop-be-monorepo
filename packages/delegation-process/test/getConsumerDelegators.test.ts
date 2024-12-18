@@ -181,11 +181,7 @@ describe("getConsumerDelegators", () => {
           name: delegator5.name,
         },
       ],
-      pagination: {
-        totalCount: 3,
-        offset: 0,
-        limit: 50,
-      },
+      totalCount: 3,
     });
   });
   it("should apply offset and limit", async () => {
@@ -205,11 +201,7 @@ describe("getConsumerDelegators", () => {
           name: delegator2.name,
         },
       ],
-      pagination: {
-        totalCount: 3,
-        offset: 1,
-        limit: 1,
-      },
+      totalCount: 3,
     });
   });
   it("should filter delegators by the 'delegatorName' parameter", async () => {
@@ -234,11 +226,7 @@ describe("getConsumerDelegators", () => {
           name: delegator2.name,
         },
       ],
-      pagination: {
-        totalCount: 2,
-        offset: 0,
-        limit: 50,
-      },
+      totalCount: 2,
     });
 
     expect(
@@ -258,11 +246,7 @@ describe("getConsumerDelegators", () => {
           name: delegator5.name,
         },
       ],
-      pagination: {
-        totalCount: 1,
-        offset: 0,
-        limit: 50,
-      },
+      totalCount: 1,
     });
   });
   it("should return no results if no delegations match the criteria", async () => {
@@ -277,11 +261,7 @@ describe("getConsumerDelegators", () => {
       )
     ).toEqual({
       results: [],
-      pagination: {
-        totalCount: 0,
-        offset: 0,
-        limit: 50,
-      },
+      totalCount: 0,
     });
 
     expect(
@@ -295,11 +275,7 @@ describe("getConsumerDelegators", () => {
       )
     ).toEqual({
       results: [],
-      pagination: {
-        totalCount: 0,
-        offset: 0,
-        limit: 50,
-      },
+      totalCount: 0,
     });
 
     expect(
@@ -313,11 +289,7 @@ describe("getConsumerDelegators", () => {
       )
     ).toEqual({
       results: [],
-      pagination: {
-        totalCount: 0,
-        offset: 0,
-        limit: 50,
-      },
+      totalCount: 0,
     });
   });
 });

@@ -265,6 +265,12 @@ describe("create agreement", () => {
       [descriptor]
     );
 
+    const existingAgreementForDelegateAsConsumer: Agreement = getMockAgreement(
+      eservice.id,
+      delegate.id,
+      randomArrayItem(agreementCreationConflictingStates)
+    );
+
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       state: delegationState.active,
@@ -278,6 +284,7 @@ describe("create agreement", () => {
     await addOneTenant(delegate);
     await addOneEService(eservice);
     await addOneDelegation(delegation);
+    await addOneAgreement(existingAgreementForDelegateAsConsumer);
 
     const createdAgreement = await agreementService.createAgreement(
       {
@@ -610,6 +617,61 @@ describe("create agreement", () => {
         }
       )
     ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
+  });
+
+  it("should throw an agreementAlreadyExists when the delegationId is provided, the requester is the delegate and an Agreement in a conflicting state already exists for the same EService and the delegator as Consumer", async () => {
+    const authData = getRandomAuthData();
+    const eserviceProducer: Tenant = getMockTenant();
+
+    const delegator = getMockTenant(generateId<TenantId>(), [
+      getMockDeclaredTenantAttribute(),
+    ]);
+
+    const delegate = getMockTenant(authData.organizationId);
+
+    const descriptor = getMockDescriptorPublished();
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      eserviceProducer.id,
+      [descriptor]
+    );
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      state: delegationState.active,
+      eserviceId: eservice.id,
+      delegatorId: delegator.id,
+      delegateId: delegate.id,
+    });
+
+    const conflictingAgreement = getMockAgreement(
+      eservice.id,
+      delegator.id,
+      randomArrayItem(agreementCreationConflictingStates)
+    );
+
+    await addOneTenant(eserviceProducer);
+    await addOneTenant(delegator);
+    await addOneTenant(delegate);
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+    await addOneAgreement(conflictingAgreement);
+
+    await expect(
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+          delegationId: delegation.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(agreementAlreadyExists(delegator.id, eservice.id));
   });
 
   it("should throw a tenantNotFound error when the consumer Tenant does not exist", async () => {

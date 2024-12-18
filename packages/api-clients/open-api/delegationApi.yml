@@ -784,11 +784,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactTenant"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
+        totalCount:
+          type: integer
+          format: int32
       required:
         - results
-        - pagination
+        - totalCount
     Delegations:
       type: object
       additionalProperties: false
@@ -982,23 +983,6 @@ components:
         - status
         - title
         - errors
-    Pagination:
-      type: object
-      additionalProperties: false
-      properties:
-        offset:
-          type: integer
-          format: int32
-        limit:
-          type: integer
-          format: int32
-        totalCount:
-          type: integer
-          format: int32
-      required:
-        - offset
-        - limit
-        - totalCount
     ProblemError:
       properties:
         code:
