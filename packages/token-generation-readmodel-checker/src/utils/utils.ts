@@ -97,7 +97,6 @@ export function getValidDescriptors(descriptors: Descriptor[]): Descriptor[] {
     (descriptor) =>
       descriptor.state === descriptorState.published ||
       descriptor.state === descriptorState.suspended ||
-      descriptor.state === descriptorState.archived ||
       descriptor.state === descriptorState.deprecated
   );
 }
@@ -632,44 +631,48 @@ export async function compareReadModelEServicesWithPlatformStates({
       throw genericInternalError(
         `E-Service and platform-states entries not found for id: ${id}`
       );
-    }
-
-    if (!eservice) {
+    } else if (platformStatesEntries && !eservice) {
       console.log(`Read model e-service not found for id: ${id}`);
       logger.error(`Read model e-service not found for id: ${id}`);
 
-      if (platformStatesEntries) {
-        const parsedEntries = Array.from(platformStatesEntries.values()).map(
-          (entry) => ComparisonPlatformStatesCatalogEntry.parse(entry)
-        );
-        const wrongPlatformStatesCatalogEntries: Array<
-          [ComparisonPlatformStatesCatalogEntry, undefined]
-        > = parsedEntries.map((entry) => [entry, eservice]);
-        return [...acc, ...wrongPlatformStatesCatalogEntries];
-      }
+      const parsedEntries = Array.from(platformStatesEntries.values()).map(
+        (entry) => ComparisonPlatformStatesCatalogEntry.parse(entry)
+      );
+      const wrongPlatformStatesCatalogEntries: Array<
+        [ComparisonPlatformStatesCatalogEntry, undefined]
+      > = parsedEntries.map((entry) => [entry, eservice]);
 
-      return acc;
-    }
-
-    const descriptors = getValidDescriptors(eservice.descriptors);
-    for (const descriptor of descriptors) {
-      const platformCatalogEntry = platformStatesEntries?.get(descriptor.id);
+      return [...acc, ...wrongPlatformStatesCatalogEntries];
+    } else if (eservice) {
       const {
         isPlatformStatesCatalogCorrect: isPlatformStatesCorrect,
-        data: platformCatalogEntryDiff,
+        data: platformCatalogEntriesDiff,
       } = validateCatalogPlatformStates({
-        platformCatalogEntry,
+        platformCatalogEntries: platformStatesEntries,
         eservice,
-        descriptor,
         logger,
       });
 
       if (!isPlatformStatesCorrect) {
-        const catalogDifferencesEntry: [
-          ComparisonPlatformStatesCatalogEntry | undefined,
-          ComparisonEService | undefined
-        ] = [platformCatalogEntryDiff, ComparisonEService.parse(eservice)];
-        return [...acc, catalogDifferencesEntry];
+        const catalogDifferences: CatalogDifferencesResult =
+          platformCatalogEntriesDiff
+            ? platformCatalogEntriesDiff.reduce<CatalogDifferencesResult>(
+                (accDiff, platformCatalogEntryDiff) => {
+                  const catalogDifferencesEntry: [
+                    ComparisonPlatformStatesCatalogEntry | undefined,
+                    ComparisonEService | undefined
+                  ] = [
+                    platformCatalogEntryDiff,
+                    ComparisonEService.parse(eservice),
+                  ];
+
+                  return [...accDiff, catalogDifferencesEntry];
+                },
+                []
+              )
+            : [[undefined, ComparisonEService.parse(eservice)]];
+
+        return [...acc, ...catalogDifferences];
       }
     }
 
@@ -678,83 +681,100 @@ export async function compareReadModelEServicesWithPlatformStates({
 }
 
 function validateCatalogPlatformStates({
-  platformCatalogEntry,
+  platformCatalogEntries,
   eservice,
-  descriptor,
   logger,
 }: {
-  platformCatalogEntry: PlatformStatesCatalogEntry | undefined;
+  platformCatalogEntries:
+    | Map<DescriptorId, PlatformStatesCatalogEntry>
+    | undefined;
   eservice: EService;
-  descriptor: Descriptor;
   logger: Logger;
 }): {
   isPlatformStatesCatalogCorrect: boolean;
-  data: ComparisonPlatformStatesCatalogEntry | undefined;
+  data: ComparisonPlatformStatesCatalogEntry[] | undefined;
 } {
-  const isArchived = descriptor.state === descriptorState.archived;
-  if (!platformCatalogEntry) {
-    if (!isArchived) {
+  const areLengthsEqual =
+    getValidDescriptors(eservice.descriptors).length ===
+    (platformCatalogEntries ? platformCatalogEntries.size : 0);
+
+  if (!platformCatalogEntries) {
+    if (!areLengthsEqual) {
       console.log(
-        `Catalog platform-states entry is missing for eservice with id ${eservice.id} and descriptor with id ${descriptor.id}`
+        `Catalog platform-states entry is missing for eservice with id ${eservice.id} `
       );
       logger.error(
-        `Catalog platform-states entry is missing for eservice with id ${eservice.id} and descriptor with id ${descriptor.id}`
+        `Catalog platform-states entry is missing for eservice with id ${eservice.id} `
       );
     }
     return {
-      isPlatformStatesCatalogCorrect: isArchived,
+      isPlatformStatesCatalogCorrect: areLengthsEqual,
       data: undefined,
     };
   }
 
-  const extractedDescriptorId = getCatalogIdsFromPlatformStatesPK(
-    platformCatalogEntry.PK
-  ).descriptorId;
-  if (descriptor.id !== extractedDescriptorId) {
-    console.log(
-      `Catalog platform-states entry with descriptor id ${extractedDescriptorId} is not equal to eservice descriptor id ${descriptor.id}`
-    );
-    logger.error(
-      `Catalog platform-states entry with descriptor id ${extractedDescriptorId} is not equal to eservice descriptor id ${descriptor.id}`
-    );
-    return {
-      isPlatformStatesCatalogCorrect: false,
-      data: ComparisonPlatformStatesCatalogEntry.parse(platformCatalogEntry),
-    };
-  }
+  const wrongPlatformStatesCatalogEntries = Array.from(
+    platformCatalogEntries.entries()
+  ).reduce<ComparisonPlatformStatesCatalogEntry[]>(
+    (acc, [descriptorId, platformStatesEntry]) => {
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === descriptorId
+      );
+      if (!descriptor || descriptor.id !== descriptorId) {
+        throw genericInternalError(
+          `Catalog platform-states entry with descriptor id ${descriptorId} is missing for e-service with id ${eservice.id} `
+        );
+      }
 
-  const catalogState = descriptorStateToItemState(descriptor.state);
+      const catalogState = descriptorStateToItemState(descriptor.state);
+      const isPlatformStatesCatalogCorrect =
+        areLengthsEqual &&
+        platformStatesEntry.state === catalogState &&
+        platformStatesEntry.descriptorVoucherLifespan ===
+          descriptor.voucherLifespan &&
+        descriptor.audience.every((aud) =>
+          platformStatesEntry.descriptorAudience.includes(aud)
+        );
 
-  const isPlatformStatesCatalogCorrect =
-    !isArchived &&
-    platformCatalogEntry.state === catalogState &&
-    platformCatalogEntry.descriptorVoucherLifespan ===
-      descriptor.voucherLifespan &&
-    descriptor.audience.every((aud) =>
-      platformCatalogEntry.descriptorAudience.includes(aud)
-    );
+      if (!isPlatformStatesCatalogCorrect) {
+        const errorData = {
+          PK: platformStatesEntry.PK,
+          state: platformStatesEntry.state,
+          descriptorVoucherLifespan:
+            platformStatesEntry.descriptorVoucherLifespan,
+          descriptorAudience: platformStatesEntry.descriptorAudience,
+        };
 
-  if (!isPlatformStatesCatalogCorrect) {
-    console.log(`Catalog states are not equal:
-  platform-states entry: ${JSON.stringify(
-    ComparisonPlatformStatesCatalogEntry.parse(platformCatalogEntry)
-  )}
-  eservice read-model: ${JSON.stringify(ComparisonEService.parse(eservice))}`);
-    logger.error(`Catalog states are not equal:
-  platform-states entry: ${JSON.stringify(
-    ComparisonPlatformStatesCatalogEntry.parse(platformCatalogEntry)
-  )}
-  eservice read-model: ${JSON.stringify(ComparisonEService.parse(eservice))}`);
-  }
+        console.log(`Catalog states are not equal:
+          platform-states entry: ${JSON.stringify(
+            ComparisonPlatformStatesCatalogEntry.parse(platformStatesEntry)
+          )}
+          eservice read-model: ${JSON.stringify(
+            ComparisonEService.parse(eservice)
+          )}`);
+        logger.error(`Catalog states are not equal:
+          platform-states entry: ${JSON.stringify(
+            ComparisonPlatformStatesCatalogEntry.parse(platformStatesEntry)
+          )}
+          eservice read-model: ${JSON.stringify(
+            ComparisonEService.parse(eservice)
+          )}`);
+
+        return [...acc, errorData];
+      }
+
+      return acc;
+    },
+    []
+  );
 
   return {
-    isPlatformStatesCatalogCorrect,
-    data: {
-      PK: platformCatalogEntry.PK,
-      state: platformCatalogEntry.state,
-      descriptorVoucherLifespan: platformCatalogEntry.descriptorVoucherLifespan,
-      descriptorAudience: platformCatalogEntry.descriptorAudience,
-    },
+    isPlatformStatesCatalogCorrect:
+      wrongPlatformStatesCatalogEntries.length === 0 && areLengthsEqual,
+    data:
+      wrongPlatformStatesCatalogEntries.length > 0
+        ? wrongPlatformStatesCatalogEntries
+        : undefined,
   };
 }
 

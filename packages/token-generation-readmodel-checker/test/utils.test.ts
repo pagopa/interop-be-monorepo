@@ -674,7 +674,6 @@ describe("Token Generation Read Model Checker utils tests", () => {
       expect.arrayContaining([
         publishedDescriptor,
         deprecatedDescriptor,
-        archivedDescriptor,
         suspendedDescriptor,
       ])
     );
