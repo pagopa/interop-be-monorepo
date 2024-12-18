@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-bff}}/tenants
+  url: {{host-bff}}/tenants?limit=10&features=["DELEGATED_CONSUMER", "DELEGATED_PRODUCER"]&name=Test
   body: none
   auth: none
 }
