@@ -6,19 +6,24 @@ import {
   delegationApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
-import { operationForbidden, TenantId } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { operationForbidden, TenantId } from "pagopa-interop-models";
+import { validCatalogApiDescriptor } from "../api/catalogApiConverter.js";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
   attributeNotFoundInRegistry,
   invalidAgreementState,
   missingActivePurposeVersion,
   missingAvailableDescriptor,
+  multipleActiveProducerDelegationsForEservice,
   multipleAgreementForEserviceAndConsumer,
   unexpectedDescriptorState,
-  multipleActiveProducerDelegationsForEservice,
 } from "../models/errors.js";
-import { NonDraftCatalogApiDescriptor } from "../api/catalogApiConverter.js";
+
+export const invalidDescriptorStates: catalogApi.EServiceDescriptorState[] = [
+  catalogApi.EServiceDescriptorState.Values.DRAFT,
+  catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
+];
 
 export function assertAgreementStateNotDraft(
   agreementState: agreementApi.AgreementState,
@@ -71,17 +76,16 @@ export function assertAvailableDescriptorExists(
   }
 }
 
-export function assertNonDraftDescriptor(
+export function assertNonValidDescriptor(
   descriptor: catalogApi.EServiceDescriptor,
-  descriptorId: catalogApi.EServiceDescriptor["id"],
   eserviceId: catalogApi.EService["id"],
   logger: Logger
-): asserts descriptor is NonDraftCatalogApiDescriptor {
-  if (descriptor.state === catalogApi.EServiceDescriptorState.Values.DRAFT) {
+): asserts descriptor is validCatalogApiDescriptor {
+  if (invalidDescriptorStates.includes(descriptor.state)) {
     throw unexpectedDescriptorState(
       descriptor.state,
       eserviceId,
-      descriptorId,
+      descriptor.id,
       logger
     );
   }
