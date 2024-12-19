@@ -114,6 +114,10 @@ import {
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
   assertTenantKindExists,
+  descriptorStatesAllowingDocumentOperations,
+  isActiveDescriptor,
+  isNotActiveDescriptor,
+  isNotDescriptorUpdeatable,
   validateRiskAnalysisSchemaOrThrow,
 } from "./validators.js";
 
@@ -709,10 +713,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (
-        descriptor.state !== descriptorState.draft &&
-        descriptor.state !== descriptorState.deprecated &&
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended
+        !descriptorStatesAllowingDocumentOperations.includes(descriptor.state)
       ) {
         throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
@@ -876,10 +877,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (
-        descriptor.state !== descriptorState.draft &&
-        descriptor.state !== descriptorState.deprecated &&
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended
+        !descriptorStatesAllowingDocumentOperations.includes(descriptor.state)
       ) {
         throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
@@ -1081,6 +1079,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
+      // Descriptor in state WaitingForApproval can be deleted
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(descriptorId, descriptor.state);
       }
@@ -1137,6 +1136,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
+      //  Descriptor in state WaitingForApproval can be updated
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(
           descriptorId,
@@ -1204,6 +1204,7 @@ export function catalogServiceBuilder(
       assertRequesterCanPublish(producerDelegation, eservice.data, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
+      // Descriptor in state WaitingForApproval can be published
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(
           descriptor.id,
@@ -1783,10 +1784,7 @@ export function catalogServiceBuilder(
       );
 
       const hasValidDescriptor = eservice.data.descriptors.some(
-        (descriptor) =>
-          descriptor.state !== descriptorState.draft &&
-          descriptor.state !== descriptorState.waitingForApproval &&
-          descriptor.state !== descriptorState.archived
+        isNotDescriptorUpdeatable
       );
       if (!hasValidDescriptor) {
         throw eserviceWithoutValidDescriptors(eserviceId);
@@ -2044,9 +2042,7 @@ async function applyVisibilityToEService(
   }
 
   const hasNoActiveDescriptor = eservice.descriptors.every(
-    (descriptor) =>
-      descriptor.state === descriptorState.draft ||
-      descriptor.state === delegationState.waitingForApproval
+    isNotActiveDescriptor
   );
 
   if (!producerDelegation && hasNoActiveDescriptor) {
@@ -2055,11 +2051,7 @@ async function applyVisibilityToEService(
 
   return {
     ...eservice,
-    descriptors: eservice.descriptors.filter(
-      (d) =>
-        d.state !== descriptorState.draft &&
-        d.state !== descriptorState.waitingForApproval
-    ),
+    descriptors: eservice.descriptors.filter(isActiveDescriptor),
   };
 }
 

@@ -373,6 +373,8 @@ export function toCompactProducerDescriptor(
     version: descriptor.version,
     requireCorrections:
       isRequesterProducerDelegate &&
+      // The WAITING_FOR_APPROVAL state is not relevant for the producer descriptor's requireCorrections field,
+      // so we don't consider it when determining whether corrections are required.
       descriptor.state === catalogApi.EServiceDescriptorState.Values.DRAFT &&
       descriptor.rejectionReasons &&
       descriptor.rejectionReasons.length > 0,
