@@ -10,6 +10,7 @@ import {
   operationForbidden,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
+  tenantFeatureType,
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -76,8 +77,14 @@ export const assertTenantAllowedToReceiveDelegation = (
     (f) =>
       f.type ===
       match(kind)
-        .with(delegationKind.delegatedProducer, () => "DelegatedProducer")
-        .with(delegationKind.delegatedConsumer, () => "DelegatedConsumer")
+        .with(
+          delegationKind.delegatedProducer,
+          () => tenantFeatureType.delegatedProducer
+        )
+        .with(
+          delegationKind.delegatedConsumer,
+          () => tenantFeatureType.delegatedConsumer
+        )
         .exhaustive()
   );
 
