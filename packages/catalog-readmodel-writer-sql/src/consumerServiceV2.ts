@@ -313,9 +313,10 @@ export async function handleMessageV2(
       await poc.updateEservice(eservice, readModelRepositorySQL);
     })
     .with(
-      { type: "EServiceDescriptorDelegateSubmitted" },
-      { type: "EServiceDescriptorDelegatorApproved" },
-      { type: "EServiceDescriptorDelegatorRejected" },
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      { type: "EServiceDescriptorApprovedByDelegator" },
+      { type: "EServiceDescriptorRejectedByDelegator" },
+      { type: "EServiceDescriptorAttributesUpdated" },
       () => {
         // unhandled for now
       }
