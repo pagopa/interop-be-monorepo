@@ -1,5 +1,5 @@
 {
-  "name": "pagopa-interop-catalog-outbound-writer",
+  "name": "pagopa-interop-delegation-outbound-writer",
   "private": true,
   "version": "1.0.0",
   "main": "dist",
