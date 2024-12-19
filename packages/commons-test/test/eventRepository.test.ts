@@ -20,7 +20,7 @@ export const toCreateEventEServiceAdded = (
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
-  version: 0,
+  version: undefined,
   event: {
     type: "EServiceAdded",
     event_version: 2,
@@ -136,20 +136,28 @@ describe("EventRepository tests", async () => {
       correlationId
     );
 
-    const descriptor = getMockDescriptor(descriptorState.draft);
-    const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
-      { ...eservice, descriptors: [descriptor] },
+    const descriptor1 = getMockDescriptor(descriptorState.draft);
+    const descriptor2 = getMockDescriptor(descriptorState.draft);
+
+    const descriptorCreationEvent1 = toCreateEventEServiceDescriptorAdded(
+      { ...eservice, descriptors: [descriptor1] },
       0,
-      descriptor.id,
+      descriptor1.id,
+      correlationId
+    );
+    const descriptorCreationEvent2 = toCreateEventEServiceDescriptorAdded(
+      { ...eservice, descriptors: [descriptor1, descriptor2] },
+      1,
+      descriptor2.id,
       correlationId
     );
 
-    await expect(
-      repository.createEvents([eserviceCreationEvent, descriptorCreationEvent])
-    ).rejects.toThrowError(
-      genericInternalError(
-        `Error creating event: error: duplicate key value violates unique constraint "events_stream_id_version_key"`
-      )
-    );
+    expect(
+      await repository.createEvents([
+        eserviceCreationEvent,
+        descriptorCreationEvent1,
+        descriptorCreationEvent2,
+      ])
+    ).toStrictEqual([eservice.id, eservice.id, eservice.id]);
   });
 });
