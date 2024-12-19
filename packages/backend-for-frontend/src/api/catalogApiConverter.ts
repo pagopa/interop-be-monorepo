@@ -15,19 +15,19 @@ import {
 import { attributeNotExists } from "../model/errors.js";
 import {
   getLatestActiveDescriptor,
-  getNotDraftDescriptor,
   getLatestTenantContactEmail,
+  getValidDescriptor,
 } from "../model/modelMappingUtils.js";
-import {
-  isRequesterEserviceProducer,
-  isAgreementSubscribed,
-  isAgreementUpgradable,
-  hasCertifiedAttributes,
-} from "../services/validators.js";
 import {
   ConfigurationRiskAnalysis,
   catalogApiDescriptorState,
 } from "../model/types.js";
+import {
+  hasCertifiedAttributes,
+  isAgreementSubscribed,
+  isAgreementUpgradable,
+  isRequesterEserviceProducer,
+} from "../services/validators.js";
 import { toBffCompactAgreement } from "./agreementApiConverter.js";
 
 export function toEserviceCatalogProcessQueryParams(
@@ -105,7 +105,7 @@ export function toBffCatalogDescriptorEService(
     },
     description: eservice.description,
     technology: eservice.technology,
-    descriptors: getNotDraftDescriptor(eservice).map(toCompactDescriptor),
+    descriptors: getValidDescriptor(eservice).map(toCompactDescriptor),
     agreement: agreement && toBffCompactAgreement(agreement, eservice),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
     hasCertifiedAttributes: hasCertifiedAttributes(descriptor, requesterTenant),
