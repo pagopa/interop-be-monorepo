@@ -18,15 +18,14 @@ import {
   getLatestTenantContactEmail,
   getValidDescriptor,
 } from "../model/modelMappingUtils.js";
-import {
-  ConfigurationRiskAnalysis,
-  catalogApiDescriptorState,
-} from "../model/types.js";
+import { ConfigurationRiskAnalysis } from "../model/types.js";
 import {
   hasCertifiedAttributes,
   isAgreementSubscribed,
   isAgreementUpgradable,
+  isInvalidDescriptor,
   isRequesterEserviceProducer,
+  isValidDescriptor,
 } from "../services/validators.js";
 import { toBffCompactAgreement } from "./agreementApiConverter.js";
 
@@ -240,14 +239,10 @@ export function toBffCatalogApiProducerDescriptorEService(
   const producerMail = getLatestTenantContactEmail(producer);
 
   const notDraftDecriptors = eservice.descriptors
-    .filter((d) => d.state !== catalogApiDescriptorState.DRAFT)
+    .filter(isValidDescriptor)
     .map(toCompactDescriptor);
 
-  const draftDescriptor = eservice.descriptors.find(
-    (d) =>
-      d.state === catalogApiDescriptorState.DRAFT ||
-      d.state === catalogApiDescriptorState.WAITING_FOR_APPROVAL
-  );
+  const draftDescriptor = eservice.descriptors.find(isInvalidDescriptor);
 
   return {
     id: eservice.id,
