@@ -217,7 +217,7 @@ export const prepareReadDocumentsByDescriptorIds = (
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "read-descriptor-documents-by-descriptors-ids",
-    text: "SELECT * FROM readmodel.document WHERE descriptor_id ANY ($1)",
+    text: "SELECT * FROM readmodel.descriptor_document WHERE descriptor_id = ANY ($1)",
     values: [ids],
   });
 
@@ -335,7 +335,7 @@ export const prepareReadRiskAnalysesAnswersByFormIds = (
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "read-risk-analysis-answers-by-form-ids",
-    text: "SELECT * FROM readmodel.risk_analysis_answer WHERE risk_analysis_form_id = ANY ($1)",
+    text: "SELECT * FROM readmodel.eservice_risk_analysis_answer WHERE risk_analysis_form_id = ANY ($1)",
     values: [formIds],
   });
 
