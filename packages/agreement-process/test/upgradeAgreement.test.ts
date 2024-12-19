@@ -67,18 +67,22 @@ import {
 import { config } from "../src/config/config.js";
 import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
 import {
+  addDelegationsAndDelegates,
   addOneAgreement,
   addOneAttribute,
   addOneDelegation,
   addOneEService,
   addOneTenant,
+  addSomeRandomDelegations,
   agreementService,
+  authDataAndDelegationsFromRequesterIs,
   fileManager,
   getMockConsumerDocument,
   getMockContract,
   getRandomPastStamp,
   pdfGenerator,
   readAgreementEventByVersion,
+  requesterIs,
   uploadDocument,
 } from "./utils.js";
 
@@ -92,236 +96,257 @@ describe("upgrade Agreement", () => {
     vi.useRealTimers();
   });
 
-  it("should succeed with valid Verified and Declared attributes when consumer and producer are the same", async () => {
-    const producerAndConsumerId = generateId<TenantId>();
+  it.only.each(
+    Object.values([
+      requesterIs.consumer,
+      requesterIs.delegateConsumer,
+      requesterIs.producer,
+      // ^ Producer can upgrade because it's the same as the consumer
+    ])
+  )(
+    "Requester === %s, should succeed with valid Verified and Declared attributes when consumer and producer are the same",
+    async (requesterIs) => {
+      const producerAndConsumerId = generateId<TenantId>();
 
-    // Certified attributes are not verified when producer and consumer are the same,
-    // so the test shall pass even with this invalid attribute
-    const invalidCertifiedTenantAttribute = {
-      ...getMockCertifiedTenantAttribute(),
-      revocationTimestamp: new Date(),
-    };
+      const verifiedAttribute = getMockAttribute("Verified");
+      const declaredAttribute = getMockAttribute("Declared");
+      const certifiedAttribute = getMockAttribute("Certified");
+      await addOneAttribute(verifiedAttribute);
+      await addOneAttribute(declaredAttribute);
+      await addOneAttribute(certifiedAttribute);
 
-    const validVerifiedTenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
-      verifiedBy: [
-        {
-          id: producerAndConsumerId,
-          verificationDate: new Date(),
-          expirationDate: addDays(new Date(), 30),
-          extensionDate: undefined,
+      // Certified attributes are not verified when producer and consumer are the same,
+      // so the test shall pass even with this invalid attribute
+      const invalidCertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+        revocationTimestamp: new Date(),
+      };
+
+      const newPublishedDescriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        version: "2",
+        attributes: {
+          certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
+          declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
+          verified: [[getMockEServiceAttribute(verifiedAttribute.id)]],
         },
-      ],
-      revokedBy: [],
-    };
-    await addOneAttribute(
-      getMockAttribute(attributeKind.verified, validVerifiedTenantAttribute.id)
-    );
+      };
 
-    const validDeclaredTenantAttribute = {
-      ...getMockDeclaredTenantAttribute(),
-      revocationTimestamp: undefined,
-    };
-    await addOneAttribute(
-      getMockAttribute(attributeKind.declared, validDeclaredTenantAttribute.id)
-    );
+      const currentDescriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        state: descriptorState.deprecated,
+        version: "1",
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerAndConsumerId,
+        descriptors: [newPublishedDescriptor, currentDescriptor],
+      };
+      await addOneEService(eservice);
 
-    const producerAndConsumer: Tenant = {
-      ...getMockTenant(),
-      id: producerAndConsumerId,
-      selfcareId: generateId(),
-      attributes: [
-        invalidCertifiedTenantAttribute,
-        validDeclaredTenantAttribute,
-        validVerifiedTenantAttribute,
-      ],
-    };
-    await addOneTenant(producerAndConsumer);
+      const agreementId: AgreementId = generateId<AgreementId>();
 
-    const authData = getRandomAuthData(producerAndConsumer.id);
+      const docsNumber = Math.floor(Math.random() * 10) + 1;
+      const agreementConsumerDocuments = Array.from(
+        { length: docsNumber },
+        () => getMockConsumerDocument(agreementId)
+      );
 
-    const newPublishedDescriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      version: "2",
-      attributes: {
-        certified: [
-          [getMockEServiceAttribute(invalidCertifiedTenantAttribute.id)],
+      const agreement: Agreement = {
+        ...getMockAgreement(
+          eservice.id,
+          producerAndConsumerId,
+          randomArrayItem(agreementUpgradableStates)
+        ),
+        id: agreementId,
+        producerId: eservice.producerId,
+        descriptorId: currentDescriptor.id,
+        createdAt: new Date(),
+        consumerDocuments: agreementConsumerDocuments,
+        suspendedByConsumer: randomBoolean(),
+        suspendedByProducer: randomBoolean(),
+        stamps: {
+          submission: getRandomPastStamp(),
+          activation: getRandomPastStamp(),
+          suspensionByConsumer: getRandomPastStamp(),
+          suspensionByProducer: getRandomPastStamp(),
+        },
+        contract: getMockContract(
+          agreementId,
+          producerAndConsumerId,
+          producerAndConsumerId
+        ),
+        suspendedAt: new Date(),
+      };
+      await addOneAgreement(agreement);
+
+      const { authData, consumerDelegation, delegateConsumer } =
+        authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
+      await addSomeRandomDelegations(agreement);
+      await addDelegationsAndDelegates({
+        producerDelegation: undefined,
+        delegateProducer: undefined,
+        consumerDelegation,
+        delegateConsumer,
+      });
+
+      const validVerifiedTenantAttribute = {
+        ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
+        verifiedBy: [
+          {
+            id: producerAndConsumerId,
+            verificationDate: new Date(),
+            expirationDate: addDays(new Date(), 30),
+            extensionDate: undefined,
+          },
         ],
-        declared: [[getMockEServiceAttribute(validDeclaredTenantAttribute.id)]],
-        verified: [[getMockEServiceAttribute(validVerifiedTenantAttribute.id)]],
-      },
-    };
+        revokedBy: [],
+      };
 
-    const currentDescriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      state: descriptorState.deprecated,
-      version: "1",
-    };
-    const eservice: EService = {
-      ...getMockEService(),
-      producerId: producerAndConsumer.id,
-      descriptors: [newPublishedDescriptor, currentDescriptor],
-    };
-    await addOneEService(eservice);
+      const validDeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(declaredAttribute.id),
+        revocationTimestamp: undefined,
+        delegationId: consumerDelegation?.id,
+      };
 
-    const agreementId: AgreementId = generateId<AgreementId>();
+      const producerAndConsumer: Tenant = {
+        ...getMockTenant(),
+        id: producerAndConsumerId,
+        selfcareId: generateId(),
+        attributes: [
+          invalidCertifiedTenantAttribute,
+          validDeclaredTenantAttribute,
+          validVerifiedTenantAttribute,
+        ],
+      };
+      await addOneTenant(producerAndConsumer);
 
-    const docsNumber = Math.floor(Math.random() * 10) + 1;
-    const agreementConsumerDocuments = Array.from({ length: docsNumber }, () =>
-      getMockConsumerDocument(agreementId)
-    );
-
-    const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        producerAndConsumer.id,
-        randomArrayItem(agreementUpgradableStates)
-      ),
-      id: agreementId,
-      producerId: eservice.producerId,
-      descriptorId: currentDescriptor.id,
-      createdAt: new Date(),
-      consumerDocuments: agreementConsumerDocuments,
-      suspendedByConsumer: randomBoolean(),
-      suspendedByProducer: randomBoolean(),
-      stamps: {
-        submission: getRandomPastStamp(authData.userId),
-        activation: getRandomPastStamp(authData.userId),
-        suspensionByConsumer: getRandomPastStamp(authData.userId),
-        suspensionByProducer: getRandomPastStamp(authData.userId),
-      },
-      contract: getMockContract(
-        agreementId,
-        producerAndConsumer.id,
-        producerAndConsumer.id
-      ),
-      suspendedAt: new Date(),
-    };
-    await addOneAgreement(agreement);
-
-    for (const doc of agreementConsumerDocuments) {
-      await uploadDocument(agreementId, doc.id, doc.name);
-    }
-
-    const returnedAgreement = await agreementService.upgradeAgreement(
-      agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
+      for (const doc of agreementConsumerDocuments) {
+        await uploadDocument(agreementId, doc.id, doc.name);
       }
-    );
-    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
-    const actualAgreementArchivedEvent = await readAgreementEventByVersion(
-      agreement.id,
-      1
-    );
+      const returnedAgreement = await agreementService.upgradeAgreement(
+        agreement.id,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+      const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
-    expect(actualAgreementArchivedEvent).toMatchObject({
-      type: "AgreementArchivedByUpgrade",
-      event_version: 2,
-      version: "1",
-      stream_id: agreement.id,
-    });
+      const actualAgreementArchivedEvent = await readAgreementEventByVersion(
+        agreement.id,
+        1
+      );
 
-    const actualAgreementArchived = decodeProtobufPayload({
-      messageType: AgreementArchivedByUpgradeV2,
-      payload: actualAgreementArchivedEvent.data,
-    }).agreement;
+      expect(actualAgreementArchivedEvent).toMatchObject({
+        type: "AgreementArchivedByUpgrade",
+        event_version: 2,
+        version: "1",
+        stream_id: agreement.id,
+      });
 
-    const expectedAgreementArchived: Agreement = {
-      ...agreement,
-      state: agreementState.archived,
-      stamps: {
-        ...agreement.stamps,
-        archiving: {
-          who: authData.userId,
-          when: new Date(),
+      const actualAgreementArchived = decodeProtobufPayload({
+        messageType: AgreementArchivedByUpgradeV2,
+        payload: actualAgreementArchivedEvent.data,
+      }).agreement;
+
+      const expectedAgreementArchived: Agreement = {
+        ...agreement,
+        state: agreementState.archived,
+        stamps: {
+          ...agreement.stamps,
+          archiving: {
+            who: authData.userId,
+            when: new Date(),
+            delegationId: consumerDelegation?.id,
+          },
         },
-      },
-    };
+      };
 
-    expect(actualAgreementArchived).toEqual(
-      toAgreementV2(expectedAgreementArchived)
-    );
+      expect(actualAgreementArchived).toEqual(
+        toAgreementV2(expectedAgreementArchived)
+      );
 
-    expect(newAgreementId).toBeDefined();
+      expect(newAgreementId).toBeDefined();
 
-    const actualAgreementUpgradedEvent = await readAgreementEventByVersion(
-      newAgreementId,
-      0
-    );
+      const actualAgreementUpgradedEvent = await readAgreementEventByVersion(
+        newAgreementId,
+        0
+      );
 
-    expect(actualAgreementUpgradedEvent).toMatchObject({
-      type: "AgreementUpgraded",
-      event_version: 2,
-      version: "0",
-      stream_id: newAgreementId,
-    });
+      expect(actualAgreementUpgradedEvent).toMatchObject({
+        type: "AgreementUpgraded",
+        event_version: 2,
+        version: "0",
+        stream_id: newAgreementId,
+      });
 
-    const actualAgreementUpgraded: Agreement = fromAgreementV2(
-      decodeProtobufPayload({
-        messageType: AgreementUpgradedV2,
-        payload: actualAgreementUpgradedEvent.data,
-      }).agreement!
-    );
+      const actualAgreementUpgraded: Agreement = fromAgreementV2(
+        decodeProtobufPayload({
+          messageType: AgreementUpgradedV2,
+          payload: actualAgreementUpgradedEvent.data,
+        }).agreement!
+      );
 
-    const contractDocumentId = actualAgreementUpgraded.contract!.id;
-    const contractCreatedAt = actualAgreementUpgraded.contract!.createdAt;
-    const contractDocumentName = `${producerAndConsumer.id}_${
-      producerAndConsumer.id
-    }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
+      const contractDocumentId = actualAgreementUpgraded.contract!.id;
+      const contractCreatedAt = actualAgreementUpgraded.contract!.createdAt;
+      const contractDocumentName = `${producerAndConsumer.id}_${
+        producerAndConsumer.id
+      }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
 
-    const expectedContract = {
-      id: contractDocumentId,
-      contentType: "application/pdf",
-      createdAt: contractCreatedAt,
-      path: `${config.agreementContractsPath}/${actualAgreementUpgraded.id}/${contractDocumentId}/${contractDocumentName}`,
-      prettyName: "Richiesta di fruizione",
-      name: contractDocumentName,
-    };
+      const expectedContract = {
+        id: contractDocumentId,
+        contentType: "application/pdf",
+        createdAt: contractCreatedAt,
+        path: `${config.agreementContractsPath}/${actualAgreementUpgraded.id}/${contractDocumentId}/${contractDocumentName}`,
+        prettyName: "Richiesta di fruizione",
+        name: contractDocumentName,
+      };
 
-    const expectedUpgradedAgreement = {
-      ...agreement,
-      id: newAgreementId,
-      descriptorId: newPublishedDescriptor.id,
-      createdAt: agreement.createdAt,
-      stamps: {
-        ...agreement.stamps,
-        upgrade: {
-          who: authData.userId,
-          when: new Date(),
+      const expectedUpgradedAgreement = {
+        ...agreement,
+        id: newAgreementId,
+        descriptorId: newPublishedDescriptor.id,
+        createdAt: agreement.createdAt,
+        stamps: {
+          ...agreement.stamps,
+          upgrade: {
+            who: authData.userId,
+            when: new Date(),
+            delegationId: consumerDelegation?.id,
+          },
         },
-      },
-      verifiedAttributes: [{ id: validVerifiedTenantAttribute.id }],
-      certifiedAttributes: [],
-      declaredAttributes: [{ id: validDeclaredTenantAttribute.id }],
-      consumerDocuments: agreementConsumerDocuments.map<AgreementDocument>(
-        (doc, i) => ({
-          ...doc,
-          id: actualAgreementUpgraded?.consumerDocuments[i].id,
-          path: actualAgreementUpgraded?.consumerDocuments[i].path,
-        })
-      ),
-      contract: expectedContract,
-      suspendedByPlatform: undefined,
-      updatedAt: undefined,
-      rejectionReason: undefined,
-    };
+        verifiedAttributes: [{ id: validVerifiedTenantAttribute.id }],
+        certifiedAttributes: [],
+        declaredAttributes: [{ id: validDeclaredTenantAttribute.id }],
+        consumerDocuments: agreementConsumerDocuments.map<AgreementDocument>(
+          (doc, i) => ({
+            ...doc,
+            id: actualAgreementUpgraded?.consumerDocuments[i].id,
+            path: actualAgreementUpgraded?.consumerDocuments[i].path,
+          })
+        ),
+        contract: expectedContract,
+        suspendedByPlatform: undefined,
+        updatedAt: undefined,
+        rejectionReason: undefined,
+      };
 
-    expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
-    expect(actualAgreementUpgraded).toEqual(returnedAgreement);
+      expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
+      expect(actualAgreementUpgraded).toEqual(returnedAgreement);
 
-    for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
-      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
+      for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
+        const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
 
-      expect(
-        await fileManager.listFiles(config.s3Bucket, genericLogger)
-      ).toContainEqual(expectedUploadedDocumentPath);
+        expect(
+          await fileManager.listFiles(config.s3Bucket, genericLogger)
+        ).toContainEqual(expectedUploadedDocumentPath);
+      }
     }
-  });
+  );
 
   it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different", async () => {
     const producer = getMockTenant();
@@ -555,6 +580,7 @@ describe("upgrade Agreement", () => {
   });
 
   it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different, requester is consumer, an active producer delegation exists and is taken into account for the PDF contract generation", async () => {
+    // TODO merge this with test above, they are the same.
     const producer = getMockTenant();
 
     const validVerifiedTenantAttribute = {
