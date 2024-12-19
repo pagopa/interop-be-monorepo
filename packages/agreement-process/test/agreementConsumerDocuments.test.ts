@@ -41,6 +41,7 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
+  addSomeRandomDelegations,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -413,7 +414,7 @@ describe("agreement consumer document", () => {
       await addOneAgreement(agreement1);
     });
 
-    it("should succeed on happy path", async () => {
+    it("should succeed on happy path when the requester is the consumer", async () => {
       const authData = getRandomAuthData(agreement1.consumerId);
       const consumerDocument = agreement1.consumerDocuments[0];
 
@@ -458,6 +459,66 @@ describe("agreement consumer document", () => {
       });
 
       const expectedAgreement = { ...agreement1, consumerDocuments: [] };
+
+      expect(actualConsumerDocument).toMatchObject({
+        agreement: toAgreementV2(expectedAgreement),
+        documentId: consumerDocument.id,
+      });
+      expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
+    });
+
+    it("should succeed on happy path when the requester is the consumer delegate", async () => {
+      const agreementId = generateId<AgreementId>();
+      const consumerDocument = getMockConsumerDocument(agreementId, "doc");
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        id: agreementId,
+        consumerDocuments: [consumerDocument],
+      };
+
+      const authData = getRandomAuthData();
+      const delegateId = authData.organizationId;
+
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        eserviceId: agreement.eserviceId,
+        delegatorId: agreement.consumerId,
+        delegateId,
+        state: delegationState.active,
+      });
+
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+      await addSomeRandomDelegations(agreement);
+
+      expect(
+        await fileManager.listFiles(config.s3Bucket, genericLogger)
+      ).toContain(consumerDocument.path);
+
+      const returnedAgreementId =
+        await agreementService.removeAgreementConsumerDocument(
+          agreement.id,
+          consumerDocument.id,
+          {
+            authData,
+            serviceName: "",
+            correlationId: generateId(),
+            logger: genericLogger,
+          }
+        );
+
+      expect(
+        await fileManager.listFiles(config.s3Bucket, genericLogger)
+      ).toMatchObject([]);
+
+      const { data: payload } = await readLastAgreementEvent(agreement.id);
+
+      const actualConsumerDocument = decodeProtobufPayload({
+        messageType: AgreementConsumerDocumentRemovedV2,
+        payload,
+      });
+
+      const expectedAgreement = { ...agreement, consumerDocuments: [] };
 
       expect(actualConsumerDocument).toMatchObject({
         agreement: toAgreementV2(expectedAgreement),
