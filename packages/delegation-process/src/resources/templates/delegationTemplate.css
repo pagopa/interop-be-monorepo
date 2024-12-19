@@ -128,3 +128,23 @@ h2 {
 .content > div {
   margin-bottom: 8px;
 }
+
+
+.signature-date {
+  margin: 32px 0;
+}
+
+.signature-date::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.signature-date .date {
+  float: left;
+}
+
+.signature-date .date{
+  display: inline-block;
+  width: 50%;
+}

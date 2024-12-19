@@ -125,28 +125,23 @@ h1 {
   font-weight: 600;
 }
 
-.signature {
+.signature-date {
   margin: 32px 0;
 }
 
-.signature::after {
+.signature-date::after {
   content: "";
   display: block;
   clear: both;
 }
 
-.signature .date {
+.signature-date .date {
   float: left;
 }
 
-.signature .date,
-.signature .message {
+.signature-date .date{
   display: inline-block;
   width: 50%;
-}
-
-.signature .message {
-  font-weight: 500;
 }
 
 .footer hr {
@@ -181,4 +176,23 @@ h1 {
   margin-bottom: 12px;
   font-size: 6px;
   line-height: 7.5px;
+}
+
+.signature-date {
+  margin: 32px 0;
+}
+
+.signature-date::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.signature-date .date {
+  float: left;
+}
+
+.signature-date .date{
+  display: inline-block;
+  width: 50%;
 }
