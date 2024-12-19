@@ -1,8 +1,8 @@
 import { CorrelationId, genericInternalError } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+import { z } from "zod";
 import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
-import { z } from "zod";
 
 export interface Event {
   readonly type: string;
