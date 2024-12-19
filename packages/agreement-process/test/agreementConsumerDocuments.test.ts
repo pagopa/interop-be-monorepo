@@ -188,6 +188,7 @@ describe("agreement consumer document", () => {
 
       const agreement = {
         ...getMockAgreement(),
+        consumerId: authData.organizationId,
         consumerDocuments: [generateMock(AgreementDocument)],
       };
 
