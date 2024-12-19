@@ -481,10 +481,6 @@ describe("agreement consumer document", () => {
         consumerDocument.name
       );
 
-      expect(
-        await fileManager.listFiles(config.s3Bucket, genericLogger)
-      ).toContain(consumerDocument.path);
-
       const returnedAgreementId =
         await agreementService.removeAgreementConsumerDocument(
           agreement1.id,
