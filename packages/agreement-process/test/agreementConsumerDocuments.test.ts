@@ -46,6 +46,7 @@ import {
   fileManager,
   getMockConsumerDocument,
   readLastAgreementEvent,
+  uploadDocument,
 } from "./utils.js";
 
 describe("agreement consumer document", () => {
@@ -418,21 +419,11 @@ describe("agreement consumer document", () => {
       const authData = getRandomAuthData(agreement1.consumerId);
       const consumerDocument = agreement1.consumerDocuments[0];
 
-      await fileManager.storeBytes(
-        {
-          bucket: config.s3Bucket,
-          path: `${config.consumerDocumentsPath}/${agreement1.id}`,
-          resourceId: agreement1.consumerDocuments[0].id,
-          name: agreement1.consumerDocuments[0].name,
-          content: Buffer.from("test content"),
-        },
-        genericLogger
+      await uploadDocument(
+        agreement1.id,
+        consumerDocument.id,
+        consumerDocument.name
       );
-
-      // Check that the file is stored in the bucket before removing it
-      expect(
-        await fileManager.listFiles(config.s3Bucket, genericLogger)
-      ).toContain(agreement1.consumerDocuments[0].path);
 
       const returnedAgreementId =
         await agreementService.removeAgreementConsumerDocument(
@@ -483,6 +474,12 @@ describe("agreement consumer document", () => {
 
       await addOneDelegation(delegation);
       await addSomeRandomDelegations(agreement1);
+
+      await uploadDocument(
+        agreement1.id,
+        consumerDocument.id,
+        consumerDocument.name
+      );
 
       expect(
         await fileManager.listFiles(config.s3Bucket, genericLogger)
