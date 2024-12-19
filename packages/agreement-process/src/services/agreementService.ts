@@ -1081,7 +1081,7 @@ export function agreementServiceBuilder(
           suspendedByConsumer,
           suspendedByProducer,
           suspendedByPlatform,
-          producerDelegationId: activeProducerDelegation?.id,
+          producerDelegation: activeProducerDelegation,
         });
 
       const updatedAgreementWithoutContract: Agreement = {

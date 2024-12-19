@@ -22,6 +22,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+import { Logger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
   convertEntriesToClientKidInTokenGenerationStates,
@@ -45,7 +46,8 @@ import {
 
 export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -90,7 +92,8 @@ export async function handleMessageV2(
                 const { purposeEntry, agreementEntry, catalogEntry } =
                   await retrievePlatformStatesByPurpose(
                     purposeId,
-                    dynamoDBClient
+                    dynamoDBClient,
+                    logger
                   );
 
                 const tokenClientKidPurposePK =
@@ -165,7 +168,8 @@ export async function handleMessageV2(
                   catalogEntry: catalogEntry2,
                 } = await retrievePlatformStatesByPurpose(
                   purposeId,
-                  dynamoDBClient
+                  dynamoDBClient,
+                  logger
                 );
 
                 const addedTokenGenStatesConsumerClient = addedEntries[index];
@@ -278,7 +282,11 @@ export async function handleMessageV2(
       } else {
         const purposeId = unsafeBrandId<PurposeId>(msg.data.purposeId);
         const { purposeEntry, agreementEntry, catalogEntry } =
-          await retrievePlatformStatesByPurpose(purposeId, dynamoDBClient);
+          await retrievePlatformStatesByPurpose(
+            purposeId,
+            dynamoDBClient,
+            logger
+          );
 
         const seenKids = new Set<string>();
         const addedTokenGenStatesConsumerClients: TokenGenerationStatesConsumerClient[] =
@@ -352,7 +360,8 @@ export async function handleMessageV2(
               catalogEntry: catalogEntry2,
             } = await retrievePlatformStatesByPurpose(
               purposeId,
-              dynamoDBClient
+              dynamoDBClient,
+              logger
             );
 
             await updateTokenGenStatesDataForSecondRetrieval({

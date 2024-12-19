@@ -20,7 +20,7 @@ import {
   generateId,
   operationForbidden,
   delegationState,
-  EServiceDescriptorDelegateSubmittedV2,
+  EServiceDescriptorSubmittedByDelegateV2,
   delegationKind,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
@@ -220,11 +220,11 @@ describe("publish descriptor", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptorDelegateSubmitted",
+      type: "EServiceDescriptorSubmittedByDelegate",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorDelegateSubmittedV2,
+      messageType: EServiceDescriptorSubmittedByDelegateV2,
       payload: writtenEvent.data,
     });
 

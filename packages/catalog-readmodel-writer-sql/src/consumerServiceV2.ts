@@ -369,9 +369,10 @@ export async function handleMessageV2(
       );
     })
     .with(
-      { type: "EServiceDescriptorDelegateSubmitted" },
-      { type: "EServiceDescriptorDelegatorApproved" },
-      { type: "EServiceDescriptorDelegatorRejected" },
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      { type: "EServiceDescriptorApprovedByDelegator" },
+      { type: "EServiceDescriptorRejectedByDelegator" },
+      { type: "EServiceDescriptorAttributesUpdated" },
       () => {
         // unhandled for now
       }
