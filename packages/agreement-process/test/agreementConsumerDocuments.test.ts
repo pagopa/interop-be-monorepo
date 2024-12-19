@@ -183,7 +183,7 @@ describe("agreement consumer document", () => {
       }
     });
 
-    it("should throw operationNotAllowed when the requester is the consumer but there is a consumer delegation", async () => {
+    it("should succeed when the requester is the consumer, even if there is an active consumer delegation", async () => {
       const authData = getRandomAuthData();
 
       const agreement = {
@@ -203,18 +203,18 @@ describe("agreement consumer document", () => {
       await addOneAgreement(agreement);
       await addOneDelegation(delegation);
 
-      await expect(
-        agreementService.getAgreementConsumerDocument(
-          agreement.id,
-          agreement.consumerDocuments[0].id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
-        )
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      const result = await agreementService.getAgreementConsumerDocument(
+        agreement.id,
+        agreement.consumerDocuments[0].id,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+
+      expect(result).toEqual(agreement.consumerDocuments[0]);
     });
 
     it("should succed when the requester is the producer, even if there is an active producer delegation", async () => {
