@@ -468,28 +468,21 @@ describe("agreement consumer document", () => {
     });
 
     it("should succeed on happy path when the requester is the consumer delegate", async () => {
-      const agreementId = generateId<AgreementId>();
-      const consumerDocument = getMockConsumerDocument(agreementId, "doc");
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        id: agreementId,
-        consumerDocuments: [consumerDocument],
-      };
-
       const authData = getRandomAuthData();
       const delegateId = authData.organizationId;
 
+      const consumerDocument = agreement1.consumerDocuments[0];
+
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedConsumer,
-        eserviceId: agreement.eserviceId,
-        delegatorId: agreement.consumerId,
+        eserviceId: agreement1.eserviceId,
+        delegatorId: agreement1.consumerId,
         delegateId,
         state: delegationState.active,
       });
 
-      await addOneAgreement(agreement);
       await addOneDelegation(delegation);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement1);
 
       expect(
         await fileManager.listFiles(config.s3Bucket, genericLogger)
@@ -497,7 +490,7 @@ describe("agreement consumer document", () => {
 
       const returnedAgreementId =
         await agreementService.removeAgreementConsumerDocument(
-          agreement.id,
+          agreement1.id,
           consumerDocument.id,
           {
             authData,
@@ -511,14 +504,14 @@ describe("agreement consumer document", () => {
         await fileManager.listFiles(config.s3Bucket, genericLogger)
       ).toMatchObject([]);
 
-      const { data: payload } = await readLastAgreementEvent(agreement.id);
+      const { data: payload } = await readLastAgreementEvent(agreement1.id);
 
       const actualConsumerDocument = decodeProtobufPayload({
         messageType: AgreementConsumerDocumentRemovedV2,
         payload,
       });
 
-      const expectedAgreement = { ...agreement, consumerDocuments: [] };
+      const expectedAgreement = { ...agreement1, consumerDocuments: [] };
 
       expect(actualConsumerDocument).toMatchObject({
         agreement: toAgreementV2(expectedAgreement),
