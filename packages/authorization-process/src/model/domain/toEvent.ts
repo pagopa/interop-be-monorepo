@@ -17,7 +17,7 @@ export function toCreateEventClientAdded(
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: client.id,
-    version: 0,
+    version: undefined,
     event: {
       type: "ClientAdded",
       event_version: 2,
@@ -181,7 +181,7 @@ export function toCreateEventProducerKeychainAdded(
 ): CreateEvent<AuthorizationEventV2> {
   return {
     streamId: producerKeychain.id,
-    version: 0,
+    version: undefined,
     event: {
       type: "ProducerKeychainAdded",
       event_version: 2,
