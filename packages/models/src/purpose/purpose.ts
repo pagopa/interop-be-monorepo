@@ -94,5 +94,6 @@ export type RiskAnalysisDocumentPDFPayload = {
   consumerText: string;
   freeOfCharge: string;
   freeOfChargeReason: string;
+  date: string;
   eServiceMode: string;
 };
