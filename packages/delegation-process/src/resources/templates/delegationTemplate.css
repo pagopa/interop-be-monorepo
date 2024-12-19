@@ -130,21 +130,21 @@ h2 {
 }
 
 
-.signature-date {
+.release-date {
   margin: 32px 0;
 }
 
-.signature-date::after {
+.release-date::after {
   content: "";
   display: block;
   clear: both;
 }
 
-.signature-date .date {
+.release-date .date {
   float: left;
 }
 
-.signature-date .date{
+.release-date .date{
   display: inline-block;
   width: 50%;
 }
