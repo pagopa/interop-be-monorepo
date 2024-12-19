@@ -8,6 +8,7 @@ import {
   getMockPurpose,
   getMockTenant,
   getMockValidRiskAnalysis,
+  getRandomAuthData,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
@@ -105,12 +106,12 @@ describe("createReversePurpose", () => {
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     const { purpose, isRiskAnalysisValid } =
-      await purposeService.createReversePurpose(
-        consumer.id,
-        reversePurposeSeed,
-        generateId(),
-        genericLogger
-      );
+      await purposeService.createReversePurpose(reversePurposeSeed, {
+        authData: getRandomAuthData(consumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -200,12 +201,12 @@ describe("createReversePurpose", () => {
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
-      purposeService.createReversePurpose(
-        producer.id,
-        reversePurposeSeed,
-        generateId(),
-        genericLogger
-      )
+      purposeService.createReversePurpose(reversePurposeSeed, {
+        authData: getRandomAuthData(producer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
     ).rejects.toThrowError(organizationIsNotTheConsumer(producer.id));
   });
   it("should throw eserviceModeNotAllowed if the eservice is in deliver mode", async () => {
@@ -252,12 +253,12 @@ describe("createReversePurpose", () => {
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
-      purposeService.createReversePurpose(
-        consumer.id,
-        reversePurposeSeed,
-        generateId(),
-        genericLogger
-      )
+      purposeService.createReversePurpose(reversePurposeSeed, {
+        authData: getRandomAuthData(consumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
     ).rejects.toThrowError(
       eServiceModeNotAllowed(mockEService.id, eserviceMode.receive)
     );
@@ -306,12 +307,12 @@ describe("createReversePurpose", () => {
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
-      purposeService.createReversePurpose(
-        consumer.id,
-        reversePurposeSeed,
-        generateId(),
-        genericLogger
-      )
+      purposeService.createReversePurpose(reversePurposeSeed, {
+        authData: getRandomAuthData(consumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
     ).rejects.toThrowError(
       eserviceRiskAnalysisNotFound(mockEService.id, randomRiskAnalysisId)
     );
@@ -360,12 +361,12 @@ describe("createReversePurpose", () => {
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
-      purposeService.createReversePurpose(
-        consumer.id,
-        reversePurposeSeed,
-        generateId(),
-        genericLogger
-      )
+      purposeService.createReversePurpose(reversePurposeSeed, {
+        authData: getRandomAuthData(consumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
   it("should throw tenantKindNotFound if the tenant kind doesn't exist", async () => {
@@ -412,12 +413,12 @@ describe("createReversePurpose", () => {
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
-      purposeService.createReversePurpose(
-        consumer.id,
-        reversePurposeSeed,
-        generateId(),
-        genericLogger
-      )
+      purposeService.createReversePurpose(reversePurposeSeed, {
+        authData: getRandomAuthData(consumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
   it("should throw agreementNotFound if the requester doesn't have an agreement for the selected eservice", async () => {
@@ -456,12 +457,12 @@ describe("createReversePurpose", () => {
     await writeInReadmodel(toReadModelTenant(consumer), tenants);
 
     expect(
-      purposeService.createReversePurpose(
-        consumer.id,
-        reversePurposeSeed,
-        generateId(),
-        genericLogger
-      )
+      purposeService.createReversePurpose(reversePurposeSeed, {
+        authData: getRandomAuthData(consumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
     ).rejects.toThrowError(agreementNotFound(mockEService.id, consumer.id));
   });
   it("should throw duplicatedPurposeTitle if a purpose with the same name already exists", async () => {
@@ -517,12 +518,12 @@ describe("createReversePurpose", () => {
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
-      purposeService.createReversePurpose(
-        consumer.id,
-        reversePurposeSeed,
-        generateId(),
-        genericLogger
-      )
+      purposeService.createReversePurpose(reversePurposeSeed, {
+        authData: getRandomAuthData(consumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeTitle));
   });
   it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
@@ -577,12 +578,12 @@ describe("createReversePurpose", () => {
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
-      purposeService.createReversePurpose(
-        consumer.id,
-        reversePurposeSeed,
-        generateId(),
-        genericLogger
-      )
+      purposeService.createReversePurpose(reversePurposeSeed, {
+        authData: getRandomAuthData(consumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([
         unexpectedRulesVersionError(mockRiskAnalysis.riskAnalysisForm.version),

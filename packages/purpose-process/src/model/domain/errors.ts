@@ -41,6 +41,7 @@ export const errorCodes = {
   missingRiskAnalysis: "0024",
   purposeVersionStateConflict: "0025",
   riskAnalysisConfigLatestVersionNotFound: "0026",
+  operationNotAllowed: "0027",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -304,5 +305,13 @@ export function purposeVersionStateConflict(
     detail: `Operation is not allowed on state ${state} for Version ${versionId} of Purpose ${purposeId}`,
     code: "purposeVersionStateConflict",
     title: "Purpose version state conflict",
+  });
+}
+
+export function operationNotAllowed(requesterId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Operation not allowed by ${requesterId}`,
+    code: "operationNotAllowed",
+    title: "Operation not allowed",
   });
 }

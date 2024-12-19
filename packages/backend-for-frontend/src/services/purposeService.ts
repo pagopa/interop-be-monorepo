@@ -260,7 +260,13 @@ export function purposeServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
       logger.info(
-        `Creating purpose with eService ${createSeed.eserviceId} and consumer ${createSeed.consumerId}`
+        `Creating purpose with eService ${createSeed.eserviceId} and consumer ${
+          createSeed.consumerId
+        }${
+          createSeed.delegationId
+            ? ` with delegation ${createSeed.delegationId}`
+            : ""
+        }`
       );
       const result = await purposeProcessClient.createPurpose(createSeed, {
         headers,

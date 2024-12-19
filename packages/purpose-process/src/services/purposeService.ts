@@ -1,11 +1,14 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import {
+  AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
   Logger,
   PDFGenerator,
   RiskAnalysisFormRules,
+  WithLogger,
   eventRepository,
   formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
@@ -41,9 +44,8 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
-  delegationKind,
   Delegation,
-  DelegationKind,
+  DelegationId,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -92,7 +94,6 @@ import {
 import { config } from "../config/config.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
-  assertOrganizationIsAConsumer,
   assertEserviceMode,
   assertConsistentFreeOfCharge,
   isRiskAnalysisFormValid,
@@ -110,6 +111,7 @@ import {
   isOverQuota,
   assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
   assertRequesterIsProducer,
+  assertRequesterCanActAsConsumer,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -220,14 +222,6 @@ async function retrieveTenantKind(
   return tenant.kind;
 }
 
-async function retrieveActiveDelegation(
-  eserviceId: EServiceId,
-  delegationKind: DelegationKind,
-  readModelService: ReadModelService
-): Promise<Delegation | undefined> {
-  return readModelService.getActiveDelegation(eserviceId, delegationKind);
-}
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   dbInstance: DB,
@@ -252,9 +246,8 @@ export function purposeServiceBuilder(
       );
 
       const activeProducerDelegation =
-        await readModelService.getActiveDelegation(
-          purpose.data.eserviceId,
-          delegationKind.delegatedProducer
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          purpose.data.eserviceId
         );
 
       return authorizeRiskAnalysisForm({
@@ -399,19 +392,11 @@ export function purposeServiceBuilder(
       });
       await repository.createEvent(event);
     },
-    async updatePurpose({
-      purposeId,
-      purposeUpdateContent,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      purposeId: PurposeId;
-      purposeUpdateContent: purposeApi.PurposeUpdateContent;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+    async updatePurpose(
+      purposeId: PurposeId,
+      purposeUpdateContent: purposeApi.PurposeUpdateContent,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Updating Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -419,25 +404,17 @@ export function purposeServiceBuilder(
           updateContent: purposeUpdateContent,
           mode: eserviceMode.deliver,
         },
-        organizationId,
+        authData,
         readModelService,
         correlationId,
         repository
       );
     },
-    async updateReversePurpose({
-      purposeId,
-      reversePurposeUpdateContent,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      purposeId: PurposeId;
-      reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+    async updateReversePurpose(
+      purposeId: PurposeId,
+      reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Updating Reverse Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -445,32 +422,31 @@ export function purposeServiceBuilder(
           updateContent: reversePurposeUpdateContent,
           mode: eserviceMode.receive,
         },
-        organizationId,
+        authData,
         readModelService,
         correlationId,
         repository
       );
     },
-    async deletePurpose({
-      purposeId,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      purposeId: PurposeId;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async deletePurpose(
+      purposeId: PurposeId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
       logger.info(`Deleting Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
-
       if (!isDeletable(purpose.data)) {
         throw purposeCannotBeDeleted(purpose.data.id);
       }
+
+      assertRequesterCanActAsConsumer(
+        purpose.data,
+        authData,
+        await readModelService.getActiveConsumerDelegationByEserviceId(
+          purpose.data.eserviceId
+        )
+      );
 
       const event = purposeIsDraft(purpose.data)
         ? toCreateEventDraftPurposeDeleted({
@@ -486,24 +462,28 @@ export function purposeServiceBuilder(
 
       await repository.createEvent(event);
     },
-    async archivePurposeVersion({
-      purposeId,
-      versionId,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      purposeId: PurposeId;
-      versionId: PurposeVersionId;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<PurposeVersion> {
+    async archivePurposeVersion(
+      {
+        purposeId,
+        versionId,
+      }: {
+        purposeId: PurposeId;
+        versionId: PurposeVersionId;
+      },
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<PurposeVersion> {
       logger.info(`Archiving Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
+      assertRequesterCanActAsConsumer(
+        purpose.data,
+        authData,
+        await readModelService.getActiveConsumerDelegationByEserviceId(
+          purpose.data.eserviceId
+        )
+      );
+
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
       if (!isArchivable(purposeVersion)) {
@@ -633,11 +613,10 @@ export function purposeServiceBuilder(
             throw eserviceNotFound(purpose.eserviceId);
           }
 
-          const activeProducerDelegation = await retrieveActiveDelegation(
-            eservice.id,
-            delegationKind.delegatedProducer,
-            readModelService
-          );
+          const activeProducerDelegation =
+            await readModelService.getActiveProducerDelegationByEserviceId(
+              eservice.id
+            );
 
           return {
             purpose,
@@ -668,24 +647,22 @@ export function purposeServiceBuilder(
         totalCount: purposesList.totalCount,
       };
     },
-    async createPurposeVersion({
-      purposeId,
-      seed,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      purposeId: PurposeId;
-      seed: purposeApi.PurposeVersionSeed;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<PurposeVersion> {
+    async createPurposeVersion(
+      purposeId: PurposeId,
+      seed: purposeApi.PurposeVersionSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<PurposeVersion> {
       logger.info(`Creating Version for Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
+      assertRequesterCanActAsConsumer(
+        purpose.data,
+        authData,
+        await readModelService.getActiveConsumerDelegationByEserviceId(
+          purpose.data.eserviceId
+        )
+      );
 
       const previousVersion = [
         ...purpose.data.versions.filter(
@@ -1032,16 +1009,30 @@ export function purposeServiceBuilder(
     },
     async createPurpose(
       purposeSeed: purposeApi.PurposeSeed,
-      organizationId: TenantId,
-      correlationId: CorrelationId,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(
-        `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
+        `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${
+          purposeSeed.consumerId
+        }${
+          purposeSeed.delegationId
+            ? ` with delegation ${purposeSeed.delegationId}`
+            : ""
+        }`
       );
       const eserviceId = unsafeBrandId<EServiceId>(purposeSeed.eserviceId);
       const consumerId = unsafeBrandId<TenantId>(purposeSeed.consumerId);
-      assertOrganizationIsAConsumer(organizationId, consumerId);
+      const delegationId = purposeSeed.delegationId
+        ? unsafeBrandId<DelegationId>(purposeSeed.delegationId)
+        : undefined;
+
+      assertRequesterCanActAsConsumer(
+        { eserviceId, consumerId },
+        authData,
+        delegationId
+          ? await readModelService.getActiveConsumerDelegationById(delegationId)
+          : undefined
+      );
 
       assertConsistentFreeOfCharge(
         purposeSeed.isFreeOfCharge,
@@ -1051,7 +1042,7 @@ export function purposeServiceBuilder(
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,
         false,
-        await retrieveTenantKind(organizationId, readModelService)
+        await retrieveTenantKind(authData.organizationId, readModelService)
       );
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
@@ -1070,6 +1061,7 @@ export function purposeServiceBuilder(
         createdAt: new Date(),
         eserviceId,
         consumerId,
+        delegationId,
         versions: [
           {
             id: generateId(),
@@ -1089,10 +1081,8 @@ export function purposeServiceBuilder(
       return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
     },
     async createReversePurpose(
-      organizationId: TenantId,
       seed: purposeApi.EServicePurposeSeed,
-      correlationId: CorrelationId,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(
         `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
@@ -1101,7 +1091,14 @@ export function purposeServiceBuilder(
       const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
 
-      assertOrganizationIsAConsumer(organizationId, consumerId);
+      assertRequesterCanActAsConsumer(
+        { eserviceId, consumerId },
+        authData,
+        await readModelService.getActiveConsumerDelegationByEserviceId(
+          eserviceId
+        )
+      );
+
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertEserviceMode(eservice, eserviceMode.receive);
 
@@ -1395,10 +1392,8 @@ const getOrganizationRole = async ({
     return ownership.CONSUMER;
   }
 
-  const activeProducerDelegation = await readModelService.getActiveDelegation(
-    eserviceId,
-    delegationKind.delegatedProducer
-  );
+  const activeProducerDelegation =
+    await readModelService.getActiveProducerDelegationByEserviceId(eserviceId);
 
   if (
     (activeProducerDelegation &&
@@ -1462,7 +1457,7 @@ const performUpdatePurpose = async (
         mode: "Receive";
         updateContent: purposeApi.ReversePurposeUpdateContent;
       },
-  organizationId: TenantId,
+  authData: AuthData,
   readModelService: ReadModelService,
   correlationId: CorrelationId,
   repository: {
@@ -1471,7 +1466,6 @@ const performUpdatePurpose = async (
   // eslint-disable-next-line max-params
 ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
-  assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
   assertPurposeIsDraft(purpose.data);
 
   if (updateContent.title !== purpose.data.title) {
@@ -1482,6 +1476,15 @@ const performUpdatePurpose = async (
       title: updateContent.title,
     });
   }
+
+  assertRequesterCanActAsConsumer(
+    purpose.data,
+    authData,
+    await readModelService.getActiveConsumerDelegationByEserviceId(
+      purpose.data.eserviceId
+    )
+  );
+
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
     readModelService
