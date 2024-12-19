@@ -139,7 +139,7 @@ describe("agreement consumer document", () => {
       expect(result).toEqual(agreement.consumerDocuments[0]);
     });
 
-    it("should succeed when requester is Consumer Delegate", async () => {
+    it("should succeed when requester is the consumer delegate", async () => {
       const agreementId = generateId<AgreementId>();
       const consumerDocuments = [
         getMockConsumerDocument(agreementId, "doc1"),
@@ -182,7 +182,7 @@ describe("agreement consumer document", () => {
       }
     });
 
-    it("should throw operationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+    it("should throw operationNotAllowed when the requester is the consumer but there is a consumer delegation", async () => {
       const authData = getRandomAuthData();
 
       const agreement = {
