@@ -522,12 +522,12 @@ describe("agreement consumer document", () => {
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
       const authData = getRandomAuthData();
-      const notExistentAgreement = getMockAgreement();
+      const nonExistentAgreement = getMockAgreement();
 
       const removeAgreementConsumerDocument =
         agreementService.removeAgreementConsumerDocument(
-          notExistentAgreement.id,
-          getMockConsumerDocument(notExistentAgreement.id).id,
+          nonExistentAgreement.id,
+          getMockConsumerDocument(nonExistentAgreement.id).id,
           {
             authData,
             serviceName: "",
@@ -537,7 +537,7 @@ describe("agreement consumer document", () => {
         );
 
       await expect(removeAgreementConsumerDocument).rejects.toThrowError(
-        agreementNotFound(notExistentAgreement.id)
+        agreementNotFound(nonExistentAgreement.id)
       );
     });
 
@@ -596,12 +596,12 @@ describe("agreement consumer document", () => {
 
     it("should throw a agreementDocumentNotFound if document does not exist", async () => {
       const authData = getRandomAuthData(agreement1.consumerId);
-      const notExistendDocumentId = generateId<AgreementDocumentId>();
+      const nonExistentDocumentId = generateId<AgreementDocumentId>();
 
       const removeAgreementConsumerDocument =
         agreementService.removeAgreementConsumerDocument(
           agreement1.id,
-          notExistendDocumentId,
+          nonExistentDocumentId,
           {
             authData,
             serviceName: "",
@@ -610,7 +610,7 @@ describe("agreement consumer document", () => {
           }
         );
       await expect(removeAgreementConsumerDocument).rejects.toThrowError(
-        agreementDocumentNotFound(notExistendDocumentId, agreement1.id)
+        agreementDocumentNotFound(nonExistentDocumentId, agreement1.id)
       );
     });
 
