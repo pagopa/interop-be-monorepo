@@ -6,28 +6,29 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
+  toApiGatewayCatalogEservice,
+  toApiGatewayDescriptorIfIsValid,
+  toApiGatewayEserviceAttributes,
+  validCatalogApiDescriptor,
+} from "../api/catalogApiConverter.js";
+import { clientStatusCodeToError } from "../clients/catchClientError.js";
+import {
   AttributeProcessClient,
   CatalogProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
-import { ApiGatewayAppContext } from "../utilities/context.js";
-import {
-  NonDraftCatalogApiDescriptor,
-  toApiGatewayCatalogEservice,
-  toApiGatewayDescriptorIfNotDraft,
-  toApiGatewayEserviceAttributes,
-} from "../api/catalogApiConverter.js";
 import {
   eserviceDescriptorNotFound,
   eserviceNotFound,
 } from "../models/errors.js";
-import { clientStatusCodeToError } from "../clients/catchClientError.js";
-import {
-  assertAvailableDescriptorExists,
-  assertNonDraftDescriptor,
-} from "./validators.js";
+import { ApiGatewayAppContext } from "../utilities/context.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import { getOrganization } from "./tenantService.js";
+import {
+  assertAvailableDescriptorExists,
+  assertNonValidDescriptor,
+  invalidDescriptorStates,
+} from "./validators.js";
 
 export function getAllEservices(
   catalogProcessClient: CatalogProcessClient,
@@ -132,7 +133,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
 
-      return toApiGatewayDescriptorIfNotDraft(descriptor, eserviceId, logger);
+      return toApiGatewayDescriptorIfIsValid(descriptor, eserviceId, logger);
     },
     getEserviceDescriptors: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
@@ -147,16 +148,16 @@ export function catalogServiceBuilder(
       );
 
       const descriptors = eservice.descriptors
-        .filter(isNonDraft)
-        .map((d) => toApiGatewayDescriptorIfNotDraft(d, eserviceId, logger));
+        .filter(isValidDescriptorState)
+        .map((d) => toApiGatewayDescriptorIfIsValid(d, eserviceId, logger));
 
       return { descriptors };
     },
   };
 }
 
-const isNonDraft = (d: catalogApi.EServiceDescriptor): boolean =>
-  d.state !== catalogApi.EServiceDescriptorState.Values.DRAFT;
+const isValidDescriptorState = (d: catalogApi.EServiceDescriptor): boolean =>
+  !invalidDescriptorStates.includes(d.state);
 
 function retrieveEserviceDescriptor(
   eservice: catalogApi.EService,
@@ -171,34 +172,25 @@ function retrieveEserviceDescriptor(
   return descriptor;
 }
 
-function getLatestNonDraftDescriptor(
+function getLatestValidDescriptor(
   eservice: catalogApi.EService,
   logger: Logger
-): NonDraftCatalogApiDescriptor {
-  const latestNonDraftDescriptor = eservice.descriptors
-    .filter(isNonDraft)
+): validCatalogApiDescriptor {
+  const latestValidDescriptor = eservice.descriptors
+    .filter(isValidDescriptorState)
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
 
-  assertAvailableDescriptorExists(
-    latestNonDraftDescriptor,
-    eservice.id,
-    logger
-  );
-  assertNonDraftDescriptor(
-    latestNonDraftDescriptor,
-    latestNonDraftDescriptor.id,
-    eservice.id,
-    logger
-  );
+  assertAvailableDescriptorExists(latestValidDescriptor, eservice.id, logger);
+  assertNonValidDescriptor(latestValidDescriptor, eservice.id, logger);
 
-  return latestNonDraftDescriptor;
+  return latestValidDescriptor;
 }
 
 async function getDescriptorAttributes(
   attributeProcessClient: AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
-  descriptor: NonDraftCatalogApiDescriptor
+  descriptor: validCatalogApiDescriptor
 ): Promise<apiGatewayApi.EServiceAttributes> {
   const allDescriptorAttributesIds = removeDuplicates(
     [
@@ -227,14 +219,11 @@ export async function enhanceEservice(
   eservice: catalogApi.EService,
   logger: Logger
 ): Promise<apiGatewayApi.EService> {
-  const latestNonDraftDescriptor = getLatestNonDraftDescriptor(
-    eservice,
-    logger
-  );
+  const latestValidDescriptor = getLatestValidDescriptor(eservice, logger);
   const descriptorAttributes = await getDescriptorAttributes(
     attributeProcessClient,
     headers,
-    latestNonDraftDescriptor
+    latestValidDescriptor
   );
 
   const producerOrganization = await getOrganization(
@@ -249,10 +238,10 @@ export async function enhanceEservice(
     name: eservice.name,
     description: eservice.description,
     technology: eservice.technology,
-    version: latestNonDraftDescriptor.version,
+    version: latestValidDescriptor.version,
     attributes: descriptorAttributes,
-    state: latestNonDraftDescriptor.state,
-    serverUrls: latestNonDraftDescriptor.serverUrls,
+    state: latestValidDescriptor.state,
+    serverUrls: latestValidDescriptor.serverUrls,
     producer: producerOrganization,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
   };
