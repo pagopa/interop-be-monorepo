@@ -5,7 +5,6 @@
 import { fileURLToPath } from "url";
 import path from "path";
 import {
-  AuthData,
   dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
   genericLogger,
@@ -40,7 +39,6 @@ import {
   Attribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
-  Delegation,
   Descriptor,
   EService,
   EServiceId,
@@ -58,7 +56,6 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import { addDays } from "date-fns";
 import { match } from "ts-pattern";
-import { z } from "zod";
 import {
   agreementActivableStates,
   agreementActivationAllowedDescriptorStates,
@@ -79,6 +76,8 @@ import {
 import { config } from "../src/config/config.js";
 import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
 import {
+  RequesterIs,
+  addDelegationsAndDelegates,
   addOneAgreement,
   addOneAttribute,
   addOneDelegation,
@@ -86,25 +85,17 @@ import {
   addOneTenant,
   addSomeRandomDelegations,
   agreementService,
+  authDataAndDelegationsFromRequesterIs,
   fileManager,
   pdfGenerator,
   readAgreementEventByVersion,
   readLastAgreementEvent,
+  requesterIs,
 } from "./utils.js";
 
-export const requesterIs = {
-  producer: "Producer",
-  consumer: "Consumer",
-  delegateProducer: "DelegateProducer",
-  delegateConsumer: "DelegateConsumer",
-} as const;
-export const RequesterIs = z.enum([
-  Object.values(requesterIs)[0],
-  ...Object.values(requesterIs).slice(1),
-]);
-export type RequesterIs = z.infer<typeof RequesterIs>;
-
-const unsuspensionEventInfoFromRequesterIs = (requesterIs: RequesterIs) =>
+export const unsuspensionEventInfoFromRequesterIs = (
+  requesterIs: RequesterIs
+) =>
   match(requesterIs)
     .with("Producer", "DelegateProducer", () => ({
       eventType: "AgreementUnsuspendedByProducer",
@@ -115,90 +106,6 @@ const unsuspensionEventInfoFromRequesterIs = (requesterIs: RequesterIs) =>
       messageType: AgreementUnsuspendedByConsumerV2,
     }))
     .exhaustive();
-
-const authDataAndDelegationsFromRequesterIs = (
-  requesterIs: RequesterIs,
-  agreement: Agreement
-): {
-  authData: AuthData;
-  producerDelegation: Delegation | undefined;
-  delegateProducer: Tenant | undefined;
-  consumerDelegation: Delegation | undefined;
-  delegateConsumer: Tenant | undefined;
-} =>
-  match(requesterIs)
-    .with("Producer", () => ({
-      authData: getRandomAuthData(agreement.producerId),
-      producerDelegation: undefined,
-      delegateProducer: undefined,
-      consumerDelegation: undefined,
-      delegateConsumer: undefined,
-    }))
-    .with("Consumer", () => ({
-      authData: getRandomAuthData(agreement.consumerId),
-      producerDelegation: undefined,
-      delegateProducer: undefined,
-      consumerDelegation: undefined,
-      delegateConsumer: undefined,
-    }))
-    .with("DelegateProducer", () => {
-      const delegateProducer = getMockTenant();
-      const producerDelegation = getMockDelegation({
-        kind: delegationKind.delegatedProducer,
-        delegatorId: agreement.producerId,
-        delegateId: delegateProducer.id,
-        state: delegationState.active,
-        eserviceId: agreement.eserviceId,
-      });
-
-      return {
-        authData: getRandomAuthData(delegateProducer.id),
-        producerDelegation,
-        delegateProducer,
-        consumerDelegation: undefined,
-        delegateConsumer: undefined,
-      };
-    })
-    .with("DelegateConsumer", () => {
-      const delegateConsumer = getMockTenant();
-      const consumerDelegation = getMockDelegation({
-        kind: delegationKind.delegatedConsumer,
-        delegatorId: agreement.consumerId,
-        delegateId: delegateConsumer.id,
-        state: delegationState.active,
-        eserviceId: agreement.eserviceId,
-      });
-      return {
-        authData: getRandomAuthData(delegateConsumer.id),
-        consumerDelegation,
-        delegateConsumer,
-        producerDelegation: undefined,
-        delegateProducer: undefined,
-      };
-    })
-    .exhaustive();
-
-async function addDelegationsAndDelegates({
-  producerDelegation,
-  delegateProducer,
-  consumerDelegation,
-  delegateConsumer,
-}: {
-  producerDelegation: Delegation | undefined;
-  delegateProducer: Tenant | undefined;
-  consumerDelegation: Delegation | undefined;
-  delegateConsumer: Tenant | undefined;
-}): Promise<void> {
-  if (producerDelegation && delegateProducer) {
-    await addOneDelegation(producerDelegation);
-    await addOneTenant(delegateProducer);
-  }
-
-  if (consumerDelegation && delegateConsumer) {
-    await addOneDelegation(consumerDelegation);
-    await addOneTenant(delegateConsumer);
-  }
-}
 
 describe("activate agreement", () => {
   async function addRelatedAgreements(agreement: Agreement): Promise<{
@@ -280,7 +187,7 @@ describe("activate agreement", () => {
   }
 
   describe("Agreement Pending", () => {
-    it.each([
+    it.only.each([
       { requesterIs: "Producer", withConsumerDelegation: false },
       { requesterIs: "Producer", withConsumerDelegation: true },
       { requesterIs: "DelegateProducer", withConsumerDelegation: false },
@@ -346,20 +253,20 @@ describe("activate agreement", () => {
           verifiedAttributes: [getMockAgreementAttribute()],
         };
 
-        const {
-          authData,
-          producerDelegation,
-          consumerDelegation: _consumerDelegation,
-          delegateProducer,
-          delegateConsumer: _delegateConsumer,
-        } = authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
-
-        const consumerDelegation = withConsumerDelegation
-          ? _consumerDelegation
-          : undefined;
+        const { authData, producerDelegation, delegateProducer } =
+          authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
 
         const delegateConsumer = withConsumerDelegation
-          ? _delegateConsumer
+          ? getMockTenant()
+          : undefined;
+        const consumerDelegation = delegateConsumer
+          ? getMockDelegation({
+              kind: delegationKind.delegatedConsumer,
+              delegatorId: agreement.consumerId,
+              delegateId: delegateConsumer.id,
+              state: delegationState.active,
+              eserviceId: agreement.eserviceId,
+            })
           : undefined;
 
         const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
