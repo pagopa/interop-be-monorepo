@@ -19,7 +19,7 @@ export const prepareInsertEservice = (
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "insert-eservice",
-    text: "INSERT INTO readmodel.eservice(id, producer_id, name, description, technology, created_at, mode) VALUES($1, $2, $3, $4, $5, $6, $7)",
+    text: "INSERT INTO readmodel.eservice(id, producer_id, name, description, technology, created_at, mode, version) VALUES($1, $2, $3, $4, $5, $6, $7, $8)",
     values: [
       eserviceSQL.id,
       eserviceSQL.producer_id,
@@ -28,6 +28,7 @@ export const prepareInsertEservice = (
       eserviceSQL.technology,
       eserviceSQL.created_at,
       eserviceSQL.mode,
+      eserviceSQL.version,
     ],
   });
 
@@ -292,7 +293,7 @@ export const prepareDeleteRiskAnalysis = (
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "delete-risk-analysis",
-    text: "DELETE FROM readmodel.eservice_risk_analysis WHERE id = $1",
+    text: "DELETE FROM readmodel.eservice_risk_analysis WHERE risk_analysis_id = $1",
     values: [riskAnalysisId],
   });
 
@@ -336,4 +337,14 @@ export const prepareReadRiskAnalysesAnswersByFormIds = (
     name: "read-risk-analysis-answers-by-form-ids",
     text: "SELECT * FROM readmodel.risk_analysis_answer WHERE risk_analysis_form_id = ANY ($1)",
     values: [formIds],
+  });
+
+export const prepareSetEserviceVersion = (
+  eserviceId: EServiceId,
+  eserviceVersion: number
+): pgPromise.PreparedStatement =>
+  new pgPromise.PreparedStatement({
+    name: "set-eservice-version",
+    text: "UPDATE readmodel.eservice SET version = $1 WHERE id = $2",
+    values: [eserviceVersion, eserviceId],
   });

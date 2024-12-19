@@ -30,7 +30,11 @@ export async function handleMessageV2(
       { type: "DraftEServiceUpdated" },
       async (message) => {
         const eservice = parseEservice(message.data.eservice);
-        await poc.upsertEService(eservice, readModelRepositorySQL);
+        await poc.upsertEService(
+          eservice,
+          readModelRepositorySQL,
+          message.version
+        );
       }
     )
     .with({ type: "EServiceDescriptorAdded" }, async (message) => {
@@ -47,14 +51,25 @@ export async function handleMessageV2(
         throw genericInternalError("");
       }
 
-      await poc.addDescriptor(eservice.id, descriptor, readModelRepositorySQL);
+      await poc.addDescriptor(
+        eservice.id,
+        descriptor,
+        readModelRepositorySQL,
+        message.version
+      );
     })
     .with({ type: "EServiceDraftDescriptorDeleted" }, async (message) => {
+      const eservice = parseEservice(message.data.eservice);
       const descriptorId = unsafeBrandId<DescriptorId>(
         message.data.descriptorId
       );
 
-      await poc.deleteDescriptor(descriptorId, readModelRepositorySQL);
+      await poc.deleteDescriptor(
+        eservice.id,
+        descriptorId,
+        readModelRepositorySQL,
+        message.version
+      );
     })
     .with({ type: "EServiceDraftDescriptorUpdated" }, async (message) => {
       const eservice = parseEservice(message.data.eservice);
@@ -73,7 +88,8 @@ export async function handleMessageV2(
       await poc.replaceDescriptor(
         eservice.id,
         descriptor,
-        readModelRepositorySQL
+        readModelRepositorySQL,
+        message.version
       );
     })
     .with(
@@ -98,7 +114,8 @@ export async function handleMessageV2(
         await poc.updateDescriptor(
           eservice.id,
           descriptor,
-          readModelRepositorySQL
+          readModelRepositorySQL,
+          message.version
         );
       }
     )
@@ -128,7 +145,8 @@ export async function handleMessageV2(
         publishedDescriptor,
         previousDescriptor,
         eservice.id,
-        readModelRepositorySQL
+        readModelRepositorySQL,
+        message.version
       );
     })
     .with({ type: "EServiceDescriptorInterfaceAdded" }, async (message) => {
@@ -145,7 +163,12 @@ export async function handleMessageV2(
         throw genericInternalError("");
       }
 
-      await poc.addInterface(eservice.id, descriptor, readModelRepositorySQL);
+      await poc.addInterface(
+        eservice.id,
+        descriptor,
+        readModelRepositorySQL,
+        message.version
+      );
     })
     .with({ type: "EServiceDescriptorDocumentAdded" }, async (message) => {
       const eservice = parseEservice(message.data.eservice);
@@ -170,7 +193,13 @@ export async function handleMessageV2(
         throw genericInternalError("");
       }
 
-      await poc.addDocument(document, descriptor.id, readModelRepositorySQL);
+      await poc.addDocument(
+        eservice.id,
+        document,
+        descriptor.id,
+        readModelRepositorySQL,
+        message.version
+      );
     })
     .with({ type: "EServiceDescriptorInterfaceUpdated" }, async (message) => {
       const eservice = parseEservice(message.data.eservice);
@@ -191,9 +220,11 @@ export async function handleMessageV2(
       }
 
       await poc.updateDocument(
+        eservice.id,
         descriptor.id,
         descriptor.interface,
-        readModelRepositorySQL
+        readModelRepositorySQL,
+        message.version
       );
     })
     .with({ type: "EServiceDescriptorDocumentUpdated" }, async (message) => {
@@ -219,7 +250,13 @@ export async function handleMessageV2(
         throw genericInternalError("");
       }
 
-      await poc.updateDocument(descriptor.id, document, readModelRepositorySQL);
+      await poc.updateDocument(
+        eservice.id,
+        descriptor.id,
+        document,
+        readModelRepositorySQL,
+        message.version
+      );
     })
     .with({ type: "EServiceDescriptorInterfaceDeleted" }, async (message) => {
       const eservice = parseEservice(message.data.eservice);
@@ -242,7 +279,8 @@ export async function handleMessageV2(
         eservice.id,
         descriptor,
         interfaceId,
-        readModelRepositorySQL
+        readModelRepositorySQL,
+        message.version
       );
     })
     .with({ type: "EServiceDescriptorDocumentDeleted" }, async (message) => {
@@ -262,7 +300,12 @@ export async function handleMessageV2(
         throw genericInternalError("");
       }
 
-      await poc.deleteDocument(documentId, readModelRepositorySQL);
+      await poc.deleteDocument(
+        eservice.id,
+        documentId,
+        readModelRepositorySQL,
+        message.version
+      );
     })
     .with({ type: "EServiceRiskAnalysisAdded" }, async (message) => {
       const eservice = parseEservice(message.data.eservice);
@@ -280,7 +323,8 @@ export async function handleMessageV2(
       await poc.addRiskAnalysis(
         eservice.id,
         newRiskAnalysis,
-        readModelRepositorySQL
+        readModelRepositorySQL,
+        message.version
       );
     })
     .with({ type: "EServiceRiskAnalysisUpdated" }, async (message) => {
@@ -299,18 +343,30 @@ export async function handleMessageV2(
       await poc.updateRiskAnalysis(
         updatedRiskAnalysis,
         eservice.id,
-        readModelRepositorySQL
+        readModelRepositorySQL,
+        message.version
       );
     })
     .with({ type: "EServiceRiskAnalysisDeleted" }, async (message) => {
+      const eservice = parseEservice(message.data.eservice);
+
       const riskAnalysisId = unsafeBrandId<RiskAnalysisId>(
         message.data.riskAnalysisId
       );
-      await poc.deleteRiskAnalysis(riskAnalysisId, readModelRepositorySQL);
+      await poc.deleteRiskAnalysis(
+        eservice.id,
+        riskAnalysisId,
+        readModelRepositorySQL,
+        message.version
+      );
     })
     .with({ type: "EServiceDescriptionUpdated" }, async (message) => {
       const eservice = parseEservice(message.data.eservice);
-      await poc.updateEservice(eservice, readModelRepositorySQL);
+      await poc.updateEservice(
+        eservice,
+        readModelRepositorySQL,
+        message.version
+      );
     })
     .with(
       { type: "EServiceDescriptorDelegateSubmitted" },

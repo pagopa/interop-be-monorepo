@@ -11,6 +11,7 @@ CREATE TABLE readmodel.eservice(
   created_at timestamp with time zone,
   -- to do riskAnalysis
   mode varchar,
+  version integer,
   PRIMARY KEY(id)
 );
 

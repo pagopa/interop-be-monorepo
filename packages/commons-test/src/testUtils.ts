@@ -192,6 +192,7 @@ export const getMockEServiceSQL = (): EServiceSQL => ({
   description: "description - test",
   technology: technology.rest,
   mode: eserviceMode.deliver,
+  version: 0,
 });
 
 export const getMockVerifiedTenantAttribute = (

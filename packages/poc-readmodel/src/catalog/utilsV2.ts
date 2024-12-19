@@ -22,6 +22,7 @@ import {
   RiskAnalysisAnswerSQL,
   RiskAnalysisId,
   TenantId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { AuthData, ReadModelRepositorySQL } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
@@ -46,6 +47,7 @@ import {
   prepareReadRiskAnalysesAnswersByFormIds,
   prepareReadRiskAnalysesByEserviceId,
   prepareReadRiskAnalysesByEserviceIds,
+  prepareSetEserviceVersion,
   prepareUpdateDescriptor,
   prepareUpdateDescriptorDocument,
   prepareUpdateEservice,
@@ -83,13 +85,14 @@ export const deleteEService = async (
 // "EServiceAdded" -> create in all the tables -> TODO must handle also upsert!
 export const upsertEService = async (
   eservice: EService,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  version: number
 ): Promise<void> => {
   // cascade delete at the beginning (related to upsert)
   await deleteEService(eservice.id, readModelRepositorySQL);
 
   const { eserviceSQL, descriptorsSQL, attributesSQL, documentsSQL } =
-    splitEserviceIntoObjectsSQL(eservice);
+    splitEserviceIntoObjectsSQL(eservice, version);
 
   const insertEserviceStatement = prepareInsertEservice(eserviceSQL);
   const insertDescriptorsStatements = descriptorsSQL.map((d) =>
@@ -124,7 +127,8 @@ export const upsertEService = async (
 export const addDescriptor = async (
   eserviceId: EServiceId,
   descriptor: Descriptor,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
   const { descriptorSQL, attributesSQL, documentsSQL } =
     splitDescriptorIntoObjectsSQL(eserviceId, descriptor);
@@ -138,43 +142,78 @@ export const addDescriptor = async (
     prepareInsertDescriptorDocument(d)
   );
 
+  const setEserviceVersionStatement = prepareSetEserviceVersion(
+    eserviceId,
+    eserviceVersion
+  );
+
   await readModelRepositorySQL.writeItems([
     insertDescriptorStatements,
     ...insertAttributesStatements,
     ...insertDocumentsStatements,
+    setEserviceVersionStatement,
   ]);
 };
 
 // "EServiceDraftDescriptorDeleted" -> cascade delete from descriptor
 export const deleteDescriptor = async (
+  eserviceId: EServiceId,
   descriptorId: DescriptorId,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
   const deleteStatement = prepareDeleteDescriptor(descriptorId);
   await readModelRepositorySQL.deleteItem(deleteStatement);
+
+  const setEserviceVersionStatement = prepareSetEserviceVersion(
+    eserviceId,
+    eserviceVersion
+  );
+
+  await readModelRepositorySQL.writeItem(setEserviceVersionStatement); // TODO this has to be made together with the operation above, otherwise there would be sync issues
 };
 
 // "EServiceDraftDescriptorUpdated" -> cascade replace in all the tables starting from descriptor
 export const replaceDescriptor = async (
   eserviceId: EServiceId,
   descriptor: Descriptor,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
-  await deleteDescriptor(descriptor.id, readModelRepositorySQL);
+  await deleteDescriptor(
+    eserviceId,
+    descriptor.id,
+    readModelRepositorySQL,
+    eserviceVersion
+  );
 
-  await addDescriptor(eserviceId, descriptor, readModelRepositorySQL);
+  await addDescriptor(
+    eserviceId,
+    descriptor,
+    readModelRepositorySQL,
+    eserviceVersion
+  );
 };
 
 // "EServiceDescriptorQuotasUpdated" -> update only in descriptor table
 export const updateDescriptor = async (
   eserviceId: EServiceId,
   descriptor: Descriptor,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
   const descriptorSQL = descriptorToDescriptorSQL(eserviceId, descriptor);
   const updateStatement = prepareUpdateDescriptor(descriptorSQL);
 
-  await readModelRepositorySQL.writeItem(updateStatement);
+  const setEserviceVersionStatement = prepareSetEserviceVersion(
+    eserviceId,
+    eserviceVersion
+  );
+
+  await readModelRepositorySQL.writeItems([
+    updateStatement,
+    setEserviceVersionStatement,
+  ]);
 };
 
 // "EServiceDescriptorActivated" -> update only in descriptor table
@@ -188,13 +227,19 @@ export const publishDescriptor = async (
   publishedDescriptor: Descriptor,
   previousDescriptor: Descriptor | undefined,
   eserviceId: EServiceId,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
   const publishedDescriptorSQL = descriptorToDescriptorSQL(
     eserviceId,
     publishedDescriptor
   );
   const updateStatement = prepareUpdateDescriptor(publishedDescriptorSQL);
+
+  const setEserviceVersionStatement = prepareSetEserviceVersion(
+    eserviceId,
+    eserviceVersion
+  );
 
   if (previousDescriptor) {
     const previousDescriptorSQL = descriptorToDescriptorSQL(
@@ -208,9 +253,13 @@ export const publishDescriptor = async (
     await readModelRepositorySQL.writeItems([
       updateStatement,
       updateStatementPreviousDescriptor,
+      setEserviceVersionStatement,
     ]);
   } else {
-    await readModelRepositorySQL.writeItem(updateStatement);
+    await readModelRepositorySQL.writeItems([
+      updateStatement,
+      setEserviceVersionStatement,
+    ]);
   }
 };
 
@@ -222,7 +271,8 @@ export const publishDescriptor = async (
 export const addInterface = async (
   eserviceId: EServiceId,
   descriptor: Descriptor,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
   const interfaceDocument = descriptor.interface;
 
@@ -240,14 +290,21 @@ export const addInterface = async (
   await readModelRepositorySQL.writeItem(insertDocumentStatement);
 
   // update in descriptor table only for server urls. Todo: make more specific query?
-  await updateDescriptor(eserviceId, descriptor, readModelRepositorySQL);
+  await updateDescriptor(
+    eserviceId,
+    descriptor,
+    readModelRepositorySQL,
+    eserviceVersion
+  );
 };
 
 // "EServiceDescriptorDocumentAdded" -> create in document table
 export const addDocument = async (
+  eserviceId: EServiceId,
   document: Document,
   descriptorId: DescriptorId,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
   const documentSQL = documentToDocumentSQL(
     document,
@@ -256,14 +313,25 @@ export const addDocument = async (
   );
 
   const insertDocumentStatement = prepareInsertDescriptorDocument(documentSQL);
-  await readModelRepositorySQL.writeItem(insertDocumentStatement);
+
+  const setEserviceVersionStatement = prepareSetEserviceVersion(
+    eserviceId,
+    eserviceVersion
+  );
+
+  await readModelRepositorySQL.writeItems([
+    insertDocumentStatement,
+    setEserviceVersionStatement,
+  ]);
 };
 
 // "EServiceDescriptorInterfaceUpdated" -> update only in document table
 export const updateDocument = async (
+  eserviceId: EServiceId,
   descriptorId: DescriptorId,
   document: Document,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
   const documentSQL = documentToDocumentSQL(
     document,
@@ -271,8 +339,15 @@ export const updateDocument = async (
     descriptorId
   );
   const updateDocumentStatement = prepareUpdateDescriptorDocument(documentSQL);
+  const setEserviceVersionStatement = prepareSetEserviceVersion(
+    eserviceId,
+    eserviceVersion
+  );
 
-  await readModelRepositorySQL.writeItem(updateDocumentStatement);
+  await readModelRepositorySQL.writeItems([
+    updateDocumentStatement,
+    setEserviceVersionStatement,
+  ]);
 };
 
 // "EServiceDescriptorDocumentUpdated" -> update only in document table
@@ -284,29 +359,44 @@ export const deleteInterface = async (
   eserviceId: EServiceId,
   descriptor: Descriptor,
   interfaceId: EServiceDocumentId,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
   const deleteStatement = prepareDeleteDocument(interfaceId);
   await readModelRepositorySQL.deleteItem(deleteStatement);
 
   // update in descriptor table only for server urls. Todo: make more specific query?
-  await updateDescriptor(eserviceId, descriptor, readModelRepositorySQL);
+  await updateDescriptor(
+    eserviceId,
+    descriptor,
+    readModelRepositorySQL,
+    eserviceVersion
+  );
 };
 
 // "EServiceDescriptorDocumentDeleted" -> delete in document table
 export const deleteDocument = async (
+  eserviceId: EServiceId,
   documentId: EServiceDocumentId,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
   const deleteStatement = prepareDeleteDocument(documentId);
+  const setEserviceVersionStatement = prepareSetEserviceVersion(
+    eserviceId,
+    eserviceVersion
+  );
+
   await readModelRepositorySQL.deleteItem(deleteStatement);
+  await readModelRepositorySQL.writeItem(setEserviceVersionStatement);
 };
 
 // "EServiceRiskAnalysisAdded" -> add in riskAnalysis and riskAnalysisAnswers tables
 export const addRiskAnalysis = async (
   eserviceId: EServiceId,
   newRiskAnalysis: RiskAnalysis,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
   const { eserviceRiskAnalysisSQL, riskAnalysisAnswersSQL } =
     splitRiskAnalysisIntoObjectsSQL(newRiskAnalysis, eserviceId);
@@ -318,9 +408,15 @@ export const addRiskAnalysis = async (
     prepareInsertRiskAnalysisAnswer
   );
 
+  const setEserviceVersionStatement = prepareSetEserviceVersion(
+    eserviceId,
+    eserviceVersion
+  );
+
   await readModelRepositorySQL.writeItems([
     insertRiskAnalysisStatement,
     ...insertRiskAnalysiAnswersStatements,
+    setEserviceVersionStatement,
   ]);
 };
 
@@ -328,28 +424,61 @@ export const addRiskAnalysis = async (
 export const updateRiskAnalysis = async (
   riskAnalysis: RiskAnalysis,
   eserviceId: EServiceId,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
-  await deleteRiskAnalysis(riskAnalysis.id, readModelRepositorySQL);
-  await addRiskAnalysis(eserviceId, riskAnalysis, readModelRepositorySQL);
+  const deleteRiskAnalysisStatement = prepareDeleteRiskAnalysis(
+    riskAnalysis.id
+  );
+
+  const { eserviceRiskAnalysisSQL, riskAnalysisAnswersSQL } =
+    splitRiskAnalysisIntoObjectsSQL(riskAnalysis, eserviceId);
+
+  const insertRiskAnalysisStatement = prepareInsertRiskAnalysis(
+    eserviceRiskAnalysisSQL
+  );
+  const insertRiskAnalysiAnswersStatements = riskAnalysisAnswersSQL.map(
+    prepareInsertRiskAnalysisAnswer
+  );
+
+  const setEserviceVersionStatement = prepareSetEserviceVersion(
+    eserviceId,
+    eserviceVersion
+  );
+
+  await readModelRepositorySQL.writeItems([
+    deleteRiskAnalysisStatement,
+    insertRiskAnalysisStatement,
+    ...insertRiskAnalysiAnswersStatements,
+    setEserviceVersionStatement,
+  ]);
 };
 
 // "EServiceRiskAnalysisDeleted" -> delete cascade from riskAnalysis table (important beware of purposes using that risk analysis)
 export const deleteRiskAnalysis = async (
+  eserviceId: EServiceId,
   riskAnalysisId: RiskAnalysisId,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  eserviceVersion: number
 ): Promise<void> => {
   const deleteRiskAnalysisStatement = prepareDeleteRiskAnalysis(riskAnalysisId);
 
+  const setEserviceVersionStatement = prepareSetEserviceVersion(
+    eserviceId,
+    eserviceVersion
+  );
+
   await readModelRepositorySQL.deleteItem(deleteRiskAnalysisStatement);
+  await readModelRepositorySQL.writeItem(setEserviceVersionStatement); // this and the previous should me handled in one transaction
 };
 
 // "EServiceDescriptionUpdated" -> update only in eservice table
 export const updateEservice = async (
   eservice: EService,
-  readModelRepositorySQL: ReadModelRepositorySQL
+  readModelRepositorySQL: ReadModelRepositorySQL,
+  version: number
 ): Promise<void> => {
-  const eserviceSQL = eserviceToEserviceSQL(eservice);
+  const eserviceSQL = eserviceToEserviceSQL(eservice, version);
   const updateEserviceStatement = prepareUpdateEservice(eserviceSQL);
   await readModelRepositorySQL.writeItem(updateEserviceStatement);
 };
@@ -357,7 +486,7 @@ export const updateEservice = async (
 export const getEServiceById = async (
   eserviceId: EServiceId,
   readModelRepositorySQL: ReadModelRepositorySQL
-): Promise<EService | undefined> => {
+): Promise<WithMetadata<EService> | undefined> => {
   // eservice
   const readEserviceStatement = prepareReadEservice(eserviceId);
   const rawEserviceResult = await readModelRepositorySQL.readItem(
@@ -383,7 +512,7 @@ export const getEServiceByNameAndProducerId = async ({
   name: string;
   producerId: TenantId;
   readModelRepositorySQL: ReadModelRepositorySQL;
-}): Promise<EService | undefined> => {
+}): Promise<WithMetadata<EService> | undefined> => {
   // eservice
   const readEserviceStatement = prepareReadEserviceByNameAndProducerId(
     name,
@@ -407,7 +536,7 @@ export const getEServiceByNameAndProducerId = async ({
 export const rebuildEserviceFromEserviceSQL = async (
   parsedEserviceSQL: EServiceSQL,
   readModelRepositorySQL: ReadModelRepositorySQL
-): Promise<EService | undefined> => {
+): Promise<WithMetadata<EService> | undefined> => {
   // descriptors
   const readDescriptorsStatement = prepareReadDescriptorsByEserviceId(
     parsedEserviceSQL.id
@@ -496,7 +625,7 @@ export const listEservices = async ({
   filters: ApiGetEServicesFilters;
   offset: number;
   limit: number;
-}): Promise<EService[]> => {
+}): Promise<Array<WithMetadata<EService>>> => {
   // TODO implement actual query
 
   const {

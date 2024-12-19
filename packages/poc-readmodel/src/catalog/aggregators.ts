@@ -17,6 +17,7 @@ import {
   RiskAnalysisSingleAnswerId,
   RiskAnalysisMultiAnswer,
   RiskAnalysisMultiAnswerId,
+  WithMetadata,
 } from "pagopa-interop-models";
 
 export const documentSQLtoDocument = (input: DocumentSQL): Document => {
@@ -100,7 +101,7 @@ export const eserviceSQLtoEservice = (
   documentsSQL: DocumentSQL[],
   attributesSQL: DescriptorAttributeSQL[]
   // eslint-disable-next-line max-params
-): EService => {
+): WithMetadata<EService> => {
   const descriptors = descriptorsSQL.map((descriptor) =>
     descriptorSQLtoDescriptor(
       descriptor,
@@ -128,7 +129,10 @@ export const eserviceSQLtoEservice = (
     riskAnalysis,
     mode: eserviceSQL.mode,
   };
-  return eservice;
+  return {
+    data: eservice,
+    metadata: { version: eserviceSQL.version },
+  };
 };
 
 export const eserviceSQLArraytoEserviceArray = (
@@ -139,7 +143,7 @@ export const eserviceSQLArraytoEserviceArray = (
   documentsSQL: DocumentSQL[],
   attributesSQL: DescriptorAttributeSQL[]
   // eslint-disable-next-line max-params
-): EService[] =>
+): Array<WithMetadata<EService>> =>
   eservicesSQL.map((eservice) => {
     const riskAnalysisSQLOfCurrentEservice = riskAnalysisSQL.filter(
       (ra) => ra.eservice_id === eservice.id

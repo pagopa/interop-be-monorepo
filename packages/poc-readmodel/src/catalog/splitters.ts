@@ -19,7 +19,8 @@ import {
 } from "pagopa-interop-models";
 
 export const splitEserviceIntoObjectsSQL = (
-  eservice: EService
+  eservice: EService,
+  version: number
 ): {
   eserviceSQL: EServiceSQL;
   riskAnalysisSQL: EserviceRiskAnalysisSQL[];
@@ -36,6 +37,7 @@ export const splitEserviceIntoObjectsSQL = (
     description: eservice.description,
     technology: eservice.technology,
     mode: eservice.mode,
+    version,
   };
 
   const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
@@ -252,7 +254,10 @@ export const descriptorToDescriptorSQL = (
   archived_at: descriptor.archivedAt,
 });
 
-export const eserviceToEserviceSQL = (eservice: EService): EServiceSQL => ({
+export const eserviceToEserviceSQL = (
+  eservice: EService,
+  version: number
+): EServiceSQL => ({
   name: eservice.name,
   id: eservice.id,
   created_at: eservice.createdAt,
@@ -260,6 +265,7 @@ export const eserviceToEserviceSQL = (eservice: EService): EServiceSQL => ({
   description: eservice.description,
   technology: eservice.technology,
   mode: eservice.mode,
+  version,
 });
 
 /*

@@ -95,7 +95,7 @@ export const DocumentSQL = z.object({
   document_kind: DocumentKind,
 });
 export type DocumentSQL = z.infer<typeof DocumentSQL>;
-  
+
 export const DescriptorRejectionReason = z.object({
   rejectionReason: z.string(),
   rejectedAt: z.coerce.date(),
@@ -186,5 +186,6 @@ export const EServiceSQL = z.object({
   created_at: z.coerce.date(),
   // riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
+  version: z.number(),
 });
 export type EServiceSQL = z.infer<typeof EServiceSQL>;
