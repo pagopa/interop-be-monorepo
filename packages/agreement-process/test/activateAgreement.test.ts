@@ -187,7 +187,7 @@ describe("activate agreement", () => {
   }
 
   describe("Agreement Pending", () => {
-    it.only.each([
+    it.each([
       { requesterIs: "Producer", withConsumerDelegation: false },
       { requesterIs: "Producer", withConsumerDelegation: true },
       { requesterIs: "DelegateProducer", withConsumerDelegation: false },
