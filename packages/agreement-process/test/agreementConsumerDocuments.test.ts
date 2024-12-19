@@ -63,7 +63,7 @@ describe("agreement consumer document", () => {
 
       const consumerAuthData = getRandomAuthData(agreement.consumerId);
       for (const document of agreement.consumerDocuments) {
-        const consumerResult =
+        const retrievedDocument =
           await agreementService.getAgreementConsumerDocument(
             agreement.id,
             document.id,
@@ -74,12 +74,12 @@ describe("agreement consumer document", () => {
               logger: genericLogger,
             }
           );
-        expect(consumerResult).toEqual(document);
+        expect(retrievedDocument).toEqual(document);
       }
 
       const producerAuthData = getRandomAuthData(agreement.producerId);
       for (const document of agreement.consumerDocuments) {
-        const producerResult =
+        const retrievedDocument =
           await agreementService.getAgreementConsumerDocument(
             agreement.id,
             document.id,
@@ -90,7 +90,7 @@ describe("agreement consumer document", () => {
               logger: genericLogger,
             }
           );
-        expect(producerResult).toEqual(document);
+        expect(retrievedDocument).toEqual(document);
       }
     });
 
