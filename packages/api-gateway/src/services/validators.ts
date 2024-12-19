@@ -83,7 +83,7 @@ export function assertAvailableDescriptorExists(
   }
 }
 
-export function assertNonValidDescriptor(
+export function assertNotValidDescriptor(
   descriptor: catalogApi.EServiceDescriptor,
   eserviceId: catalogApi.EService["id"],
   logger: Logger

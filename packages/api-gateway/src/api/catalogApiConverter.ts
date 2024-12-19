@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { Logger } from "pagopa-interop-commons";
 import {
-  assertNonValidDescriptor,
+  assertNotValidDescriptor,
   assertRegistryAttributeExists,
 } from "../services/validators.js";
 
@@ -102,7 +102,7 @@ export function toApiGatewayDescriptorIfIsValid(
   eserviceId: catalogApi.EService["id"],
   logger: Logger
 ): apiGatewayApi.EServiceDescriptor {
-  assertNonValidDescriptor(descriptor, eserviceId, logger);
+  assertNotValidDescriptor(descriptor, eserviceId, logger);
 
   return {
     id: descriptor.id,

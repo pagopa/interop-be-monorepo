@@ -26,7 +26,7 @@ import { getAllBulkAttributes } from "./attributeService.js";
 import { getOrganization } from "./tenantService.js";
 import {
   assertAvailableDescriptorExists,
-  assertNonValidDescriptor,
+  assertNotValidDescriptor,
   validDescriptorStates,
 } from "./validators.js";
 
@@ -182,7 +182,7 @@ function getLatestValidDescriptor(
     .at(-1);
 
   assertAvailableDescriptorExists(latestValidDescriptor, eservice.id, logger);
-  assertNonValidDescriptor(latestValidDescriptor, eservice.id, logger);
+  assertNotValidDescriptor(latestValidDescriptor, eservice.id, logger);
 
   return latestValidDescriptor;
 }
