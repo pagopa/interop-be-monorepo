@@ -6,6 +6,7 @@ import {
   DelegationKind,
   DelegationState,
   EServiceId,
+  ListResult,
   TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -62,7 +63,7 @@ export function delegationServiceBuilder(readModelService: ReadModelService) {
         limit: number;
       },
       logger: Logger
-    ): Promise<Delegation[]> {
+    ): Promise<ListResult<Delegation>> {
       logger.info(
         `Retrieving delegations with filters: delegateIds=${delegateIds}, delegatorIds=${delegatorIds}, delegationStates=${delegationStates}, eserviceIds=${eserviceIds}, kind=${kind}, offset=${offset}, limit=${limit}`
       );

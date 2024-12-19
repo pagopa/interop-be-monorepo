@@ -13,6 +13,7 @@ import {
   EServiceId,
   EServiceReadModel,
   genericInternalError,
+  ListResult,
   Tenant,
   TenantId,
   WithMetadata,
@@ -196,7 +197,7 @@ export function readModelServiceBuilder(
       kind: DelegationKind | undefined;
       offset: number;
       limit: number;
-    }): Promise<Delegation[]> {
+    }): Promise<ListResult<Delegation>> {
       const aggregationPipeline = [
         {
           $match: {
@@ -243,7 +244,13 @@ export function readModelServiceBuilder(
         );
       }
 
-      return result.data;
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          delegations,
+          aggregationPipeline
+        ),
+      };
     },
   };
 }
