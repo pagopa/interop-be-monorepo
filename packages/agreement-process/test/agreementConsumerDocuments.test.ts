@@ -50,7 +50,7 @@ import {
 
 describe("agreement consumer document", () => {
   describe("get", () => {
-    it("should succed when the requester is the consumer or producer", async () => {
+    it("should succeed when the requester is the consumer or producer", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         consumerDocuments: [
@@ -94,7 +94,7 @@ describe("agreement consumer document", () => {
       }
     });
 
-    it("should succed when the requester is the producer delegate", async () => {
+    it("should succeed when the requester is the producer delegate", async () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
       const authData = getRandomAuthData();
@@ -217,7 +217,7 @@ describe("agreement consumer document", () => {
       expect(result).toEqual(agreement.consumerDocuments[0]);
     });
 
-    it("should succed when the requester is the producer, even if there is an active producer delegation", async () => {
+    it("should succeed when the requester is the producer, even if there is an active producer delegation", async () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
       const authData = getRandomAuthData(producer.id);
