@@ -513,6 +513,33 @@ describe("agreement consumer document", () => {
       expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
     });
 
+    it("should throw operationNotAllowed when the requester is the consumer but there is a consumer delegation", async () => {
+      const authData = getRandomAuthData(agreement1.consumerId);
+
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        eserviceId: agreement1.eserviceId,
+        delegatorId: agreement1.consumerId,
+        delegateId: generateId<TenantId>(),
+        state: delegationState.active,
+      });
+
+      await addOneDelegation(delegation);
+
+      await expect(
+        agreementService.removeAgreementConsumerDocument(
+          agreement1.id,
+          agreement1.consumerDocuments[0].id,
+          {
+            authData,
+            serviceName: "",
+            correlationId: generateId(),
+            logger: genericLogger,
+          }
+        )
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
+
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
       const authData = getRandomAuthData();
       const nonExistentAgreement = getMockAgreement();
