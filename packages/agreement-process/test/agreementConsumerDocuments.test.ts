@@ -124,6 +124,7 @@ describe("agreement consumer document", () => {
       await addOneEService(eservice);
       await addOneAgreement(agreement);
       await addOneDelegation(delegation);
+      await addSomeRandomDelegations(agreement);
 
       const result = await agreementService.getAgreementConsumerDocument(
         agreement.id,
