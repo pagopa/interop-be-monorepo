@@ -149,6 +149,7 @@ export const getMockDescriptorPublished = (
     declared: declaredAttributes,
     verified: verifiedAttributes,
   },
+  rejectionReasons: undefined,
 });
 
 export const getMockEServiceAttribute = (
@@ -340,6 +341,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
     verified: [],
     declared: [],
   },
+  rejectionReasons: undefined,
 });
 
 export const getMockDescriptorSQL = (): DescriptorSQL => ({

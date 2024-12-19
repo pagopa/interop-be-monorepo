@@ -434,7 +434,10 @@ const purposeRouter = (
 
       try {
         const result =
-          await purposeService.retrieveLatestRiskAnalysisConfiguration(ctx);
+          await purposeService.retrieveLatestRiskAnalysisConfiguration(
+            req.query.tenantKind,
+            ctx
+          );
 
         return res
           .status(200)
