@@ -1111,6 +1111,33 @@ describe("upgrade Agreement", () => {
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
   });
 
+  it("should throw an operationNotAllowed error when the requester is the consumer but there is an active consumer delegation", async () => {
+    const authData = getRandomAuthData();
+    const agreement = {
+      ...getMockAgreement(),
+      consumerId: authData.organizationId,
+      state: randomArrayItem(agreementUpgradableStates),
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: agreement.eserviceId,
+      delegatorId: agreement.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+    await addOneAgreement(agreement);
+    await addOneDelegation(delegation);
+
+    await expect(
+      agreementService.upgradeAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+  });
+
   it("should throw an agreementNotInExpectedState error when the agreement doesn't have an upgradable states", async () => {
     const consumerId = generateId<TenantId>();
     const authData = getRandomAuthData(consumerId);
