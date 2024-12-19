@@ -27,7 +27,7 @@ import { getOrganization } from "./tenantService.js";
 import {
   assertAvailableDescriptorExists,
   assertNonValidDescriptor,
-  invalidDescriptorStates,
+  validDescriptorStates,
 } from "./validators.js";
 
 export function getAllEservices(
@@ -157,7 +157,7 @@ export function catalogServiceBuilder(
 }
 
 const isValidDescriptorState = (d: catalogApi.EServiceDescriptor): boolean =>
-  !invalidDescriptorStates.includes(d.state);
+  validDescriptorStates.includes(d.state);
 
 function retrieveEserviceDescriptor(
   eservice: catalogApi.EService,

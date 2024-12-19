@@ -25,6 +25,13 @@ export const invalidDescriptorStates: catalogApi.EServiceDescriptorState[] = [
   catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
 ];
 
+export const validDescriptorStates: catalogApi.EServiceDescriptorState[] = [
+  catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+  catalogApi.EServiceDescriptorState.Values.DEPRECATED,
+  catalogApi.EServiceDescriptorState.Values.PUBLISHED,
+  catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+];
+
 export function assertAgreementStateNotDraft(
   agreementState: agreementApi.AgreementState,
   agreementId: agreementApi.Agreement["id"],
