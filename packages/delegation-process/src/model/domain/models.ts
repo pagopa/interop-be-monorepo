@@ -22,9 +22,9 @@ export type DelegationActivationPDFPayload = {
   todayTime: string;
   delegationId: DelegationId;
   delegatorName: Tenant["name"];
-  delegatorCode: Tenant["externalId"]["value"];
+  delegatorIpaCode: Tenant["externalId"]["value"] | undefined;
   delegateName: Tenant["name"];
-  delegateCode: Tenant["externalId"]["value"];
+  delegateIpaCode: Tenant["externalId"]["value"] | undefined;
   eserviceId: EService["id"];
   eserviceName: EService["name"];
   submitterId: UserId;
@@ -40,9 +40,9 @@ export type DelegationRevocationPDFPayload = {
   todayTime: string;
   delegationId: DelegationId;
   delegatorName: Tenant["name"];
-  delegatorCode: Tenant["externalId"]["value"];
+  delegatorIpaCode: Tenant["externalId"]["value"] | undefined;
   delegateName: Tenant["name"];
-  delegateCode: Tenant["externalId"]["value"];
+  delegateIpaCode: Tenant["externalId"]["value"] | undefined;
   eserviceId: EService["id"];
   eserviceName: EService["name"];
   submitterId: UserId;
