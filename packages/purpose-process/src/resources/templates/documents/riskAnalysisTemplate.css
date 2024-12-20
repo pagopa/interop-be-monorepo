@@ -125,30 +125,6 @@ h1 {
   font-weight: 600;
 }
 
-.signature {
-  margin: 32px 0;
-}
-
-.signature::after {
-  content: "";
-  display: block;
-  clear: both;
-}
-
-.signature .date {
-  float: left;
-}
-
-.signature .date,
-.signature .message {
-  display: inline-block;
-  width: 50%;
-}
-
-.signature .message {
-  font-weight: 500;
-}
-
 .footer hr {
   border: 0;
   border-top: 1px solid #e3e7eb;
@@ -181,4 +157,23 @@ h1 {
   margin-bottom: 12px;
   font-size: 6px;
   line-height: 7.5px;
+}
+
+.release-date {
+  margin: 32px 0;
+}
+
+.release-date::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.release-date .date {
+  float: left;
+}
+
+.release-date .date {
+  display: inline-block;
+  width: 50%;
 }
