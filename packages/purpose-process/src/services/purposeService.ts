@@ -1480,6 +1480,7 @@ const performUpdatePurpose = async (
   repository: {
     createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
   }
+  // eslint-disable-next-line max-params
 ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
   assertPurposeIsDraft(purpose.data);
