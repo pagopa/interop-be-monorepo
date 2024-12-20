@@ -131,7 +131,7 @@ export const DescriptorSQL = z.object({
   id: DescriptorId,
   eservice_id: EServiceId,
   version: z.string(),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   // interface: Document.optional(),
   // docs: z.array(Document),
   state: DescriptorState,
