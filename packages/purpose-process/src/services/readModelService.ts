@@ -407,11 +407,12 @@ export function readModelServiceBuilder(
         "data.kind": delegationKind.delegatedProducer,
       });
     },
-    async getActiveConsumerDelegationByEserviceId(
-      eserviceId: EServiceId
+    async getActiveConsumerDelegationByPurpose(
+      purpose: Pick<Purpose, "consumerId" | "eserviceId">
     ): Promise<Delegation | undefined> {
       return getDelegation(delegations, {
-        "data.eserviceId": eserviceId,
+        "data.eserviceId": purpose.eserviceId,
+        "data.delegatorId": purpose.consumerId,
         "data.state": delegationState.active,
         "data.kind": delegationKind.delegatedConsumer,
       });

@@ -331,7 +331,7 @@ export const assertRequesterCanActAsConsumer = (
 
 const assertRequesterIsDelegateConsumer = (
   purpose: Pick<Purpose, "consumerId" | "eserviceId">,
-  authData: Pick<AuthData, "organizationId">,
+  authData: AuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (

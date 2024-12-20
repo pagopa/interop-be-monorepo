@@ -443,8 +443,8 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        await readModelService.getActiveConsumerDelegationByEserviceId(
-          purpose.data.eserviceId
+        await readModelService.getActiveConsumerDelegationByPurpose(
+          purpose.data
         )
       );
 
@@ -479,8 +479,8 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        await readModelService.getActiveConsumerDelegationByEserviceId(
-          purpose.data.eserviceId
+        await readModelService.getActiveConsumerDelegationByPurpose(
+          purpose.data
         )
       );
 
@@ -659,8 +659,8 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        await readModelService.getActiveConsumerDelegationByEserviceId(
-          purpose.data.eserviceId
+        await readModelService.getActiveConsumerDelegationByPurpose(
+          purpose.data
         )
       );
 
@@ -1094,9 +1094,10 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         { eserviceId, consumerId },
         authData,
-        await readModelService.getActiveConsumerDelegationByEserviceId(
-          eserviceId
-        )
+        await readModelService.getActiveConsumerDelegationByPurpose({
+          eserviceId,
+          consumerId,
+        })
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -1463,7 +1464,6 @@ const performUpdatePurpose = async (
   repository: {
     createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
   }
-  // eslint-disable-next-line max-params
 ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
   assertPurposeIsDraft(purpose.data);
@@ -1480,9 +1480,7 @@ const performUpdatePurpose = async (
   assertRequesterCanActAsConsumer(
     purpose.data,
     authData,
-    await readModelService.getActiveConsumerDelegationByEserviceId(
-      purpose.data.eserviceId
-    )
+    await readModelService.getActiveConsumerDelegationByPurpose(purpose.data)
   );
 
   const eservice = await retrieveEService(
