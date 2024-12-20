@@ -16,6 +16,7 @@ import {
   EserviceRiskAnalysisSQL,
   RiskAnalysisAnswerSQL,
   riskAnalysisAnswerKind,
+  AttributeKind,
 } from "pagopa-interop-models";
 
 export const splitEserviceIntoObjectsSQL = (
@@ -100,21 +101,24 @@ const attributeToAttributeSQL = ({
   attribute,
   descriptorId,
   group_set,
+  kind,
 }: {
   attribute: EServiceAttribute;
   descriptorId: DescriptorId;
   group_set: number;
+  kind: AttributeKind;
 }): DescriptorAttributeSQL => ({
   attribute_id: attribute.id,
   descriptor_id: descriptorId,
   explicit_attribute_verification: attribute.explicitAttributeVerification,
-  kind: attributeKind.certified,
+  kind,
   group_set,
 });
 
 const attributesNestedArrayToAttributeSQLarray = (
   descriptorId: DescriptorId,
-  attributes: EServiceAttribute[][]
+  attributes: EServiceAttribute[][],
+  kind: AttributeKind
 ): DescriptorAttributeSQL[] =>
   attributes.flatMap((group, index) =>
     group.map((attribute) =>
@@ -122,6 +126,7 @@ const attributesNestedArrayToAttributeSQLarray = (
         attribute,
         descriptorId,
         group_set: index,
+        kind,
       })
     )
   );
@@ -139,15 +144,18 @@ export const splitDescriptorIntoObjectsSQL = (
   const attributesSQL = [
     ...attributesNestedArrayToAttributeSQLarray(
       descriptor.id,
-      descriptor.attributes.certified
+      descriptor.attributes.certified,
+      attributeKind.certified
     ),
     ...attributesNestedArrayToAttributeSQLarray(
       descriptor.id,
-      descriptor.attributes.declared
+      descriptor.attributes.declared,
+      attributeKind.declared
     ),
     ...attributesNestedArrayToAttributeSQLarray(
       descriptor.id,
-      descriptor.attributes.verified
+      descriptor.attributes.verified,
+      attributeKind.verified
     ),
   ];
   const interfaceSQL = descriptor.interface

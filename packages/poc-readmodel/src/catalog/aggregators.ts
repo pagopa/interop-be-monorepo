@@ -85,8 +85,8 @@ export const descriptorSQLtoDescriptor = (
     archivedAt: input.archived_at || undefined,
     attributes: {
       certified: certifiedAttributes,
-      verified: declaredAttributes,
-      declared: verifiedAttributes,
+      declared: declaredAttributes,
+      verified: verifiedAttributes,
     },
   };
   // console.log(d);
