@@ -26,7 +26,7 @@ import {
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
-  operationNotAllowed,
+  operationRestrictedToDelegate,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
@@ -332,15 +332,18 @@ export const assertRequesterCanActAsConsumer = (
 const assertRequesterIsDelegateConsumer = (
   purpose: Pick<Purpose, "consumerId" | "eserviceId">,
   authData: AuthData,
-  activeConsumerDelegation: Delegation | undefined
+  activeConsumerDelegation: Delegation
 ): void => {
   if (
-    activeConsumerDelegation?.delegateId !== authData.organizationId ||
-    activeConsumerDelegation?.delegatorId !== purpose.consumerId ||
-    activeConsumerDelegation?.eserviceId !== purpose.eserviceId ||
-    activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
-    activeConsumerDelegation?.state !== delegationState.active
+    activeConsumerDelegation.delegateId !== authData.organizationId ||
+    activeConsumerDelegation.delegatorId !== purpose.consumerId ||
+    activeConsumerDelegation.eserviceId !== purpose.eserviceId ||
+    activeConsumerDelegation.kind !== delegationKind.delegatedConsumer ||
+    activeConsumerDelegation.state !== delegationState.active
   ) {
-    throw operationNotAllowed(authData.organizationId);
+    throw operationRestrictedToDelegate(
+      authData.organizationId,
+      activeConsumerDelegation.id
+    );
   }
 };

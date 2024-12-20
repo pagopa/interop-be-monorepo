@@ -1404,6 +1404,22 @@ const getOrganizationRole = async ({
     return ownership.PRODUCER;
   }
 
+  const activeConsumerDelegation =
+    await readModelService.getActiveConsumerDelegationByPurpose({
+      eserviceId,
+      consumerId,
+    });
+
+  if (
+    (activeConsumerDelegation &&
+      organizationId === activeConsumerDelegation.delegateId) ||
+    (!activeConsumerDelegation &&
+      producerId !== consumerId &&
+      organizationId === consumerId)
+  ) {
+    return ownership.CONSUMER;
+  }
+
   throw organizationNotAllowed(organizationId);
 };
 
