@@ -68,7 +68,7 @@ export const descriptorSQLtoDescriptor = (
   const d: Descriptor = {
     id: input.id,
     version: input.version,
-    description: input.version,
+    description: input.description || undefined,
     interface: parsedInterface,
     docs: docsSQL.map(documentSQLtoDocument),
     state: input.state,
