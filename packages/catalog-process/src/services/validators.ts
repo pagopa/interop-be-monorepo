@@ -59,8 +59,8 @@ export function isActiveDescriptor(descriptor: Descriptor): boolean {
   return !notActiveDescriptorState.includes(descriptor.state);
 }
 
-export function isNotDescriptorUpdeatable(descriptor: Descriptor): boolean {
-  return !updatableDescriptorStates.includes(descriptor.state);
+export function isDescriptorUpdeatable(descriptor: Descriptor): boolean {
+  return updatableDescriptorStates.includes(descriptor.state);
 }
 
 export async function assertRequesterIsDelegateProducerOrProducer(

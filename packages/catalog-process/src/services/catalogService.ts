@@ -54,6 +54,7 @@ import {
 import {
   attributeNotFound,
   audienceCannotBeEmpty,
+  descriptorAttributeGroupSupersetMissingInAttributesSeed,
   eServiceDescriptorNotFound,
   eServiceDescriptorWithoutInterface,
   eServiceDocumentNotFound,
@@ -61,6 +62,7 @@ import {
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
   eserviceWithoutValidDescriptors,
+  inconsistentAttributesSeedGroupsCount,
   inconsistentDailyCalls,
   interfaceAlreadyExists,
   notValidDescriptorState,
@@ -69,8 +71,6 @@ import {
   riskAnalysisDuplicated,
   tenantNotFound,
   unchangedAttributes,
-  inconsistentAttributesSeedGroupsCount,
-  descriptorAttributeGroupSupersetMissingInAttributesSeed,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -80,13 +80,13 @@ import {
   toCreateEventEServiceDescriptionUpdated,
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
-  toCreateEventEServiceDescriptorArchived,
-  toCreateEventEServiceDescriptorSubmittedByDelegate,
   toCreateEventEServiceDescriptorApprovedByDelegator,
-  toCreateEventEServiceDescriptorRejectedByDelegator,
+  toCreateEventEServiceDescriptorArchived,
   toCreateEventEServiceDescriptorAttributesUpdated,
   toCreateEventEServiceDescriptorPublished,
   toCreateEventEServiceDescriptorQuotasUpdated,
+  toCreateEventEServiceDescriptorRejectedByDelegator,
+  toCreateEventEServiceDescriptorSubmittedByDelegate,
   toCreateEventEServiceDescriptorSuspended,
   toCreateEventEServiceDocumentAdded,
   toCreateEventEServiceDocumentDeleted,
@@ -116,8 +116,8 @@ import {
   assertTenantKindExists,
   descriptorStatesAllowingDocumentOperations,
   isActiveDescriptor,
+  isDescriptorUpdeatable,
   isNotActiveDescriptor,
-  isNotDescriptorUpdeatable,
   validateRiskAnalysisSchemaOrThrow,
 } from "./validators.js";
 
@@ -1784,7 +1784,7 @@ export function catalogServiceBuilder(
       );
 
       const hasValidDescriptor = eservice.data.descriptors.some(
-        isNotDescriptorUpdeatable
+        isDescriptorUpdeatable
       );
       if (!hasValidDescriptor) {
         throw eserviceWithoutValidDescriptors(eserviceId);
