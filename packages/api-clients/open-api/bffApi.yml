@@ -15053,9 +15053,6 @@ components:
         consumerId:
           type: string
           format: uuid
-        delegationId:
-          type: string
-          format: uuid
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
         title:

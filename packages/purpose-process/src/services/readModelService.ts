@@ -28,7 +28,6 @@ import {
   Delegation,
   delegationKind,
   DelegationReadModel,
-  DelegationId,
 } from "pagopa-interop-models";
 import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
@@ -413,15 +412,6 @@ export function readModelServiceBuilder(
       return getDelegation(delegations, {
         "data.eserviceId": purpose.eserviceId,
         "data.delegatorId": purpose.consumerId,
-        "data.state": delegationState.active,
-        "data.kind": delegationKind.delegatedConsumer,
-      });
-    },
-    async getActiveConsumerDelegationById(
-      delegationId: DelegationId
-    ): Promise<Delegation | undefined> {
-      return getDelegation(delegations, {
-        "data.id": delegationId,
         "data.state": delegationState.active,
         "data.kind": delegationKind.delegatedConsumer,
       });

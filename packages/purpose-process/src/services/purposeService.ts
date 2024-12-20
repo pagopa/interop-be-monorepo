@@ -45,7 +45,6 @@ import {
   RiskAnalysis,
   CorrelationId,
   Delegation,
-  DelegationId,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -1012,31 +1011,26 @@ export function purposeServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(
-        `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${
-          purposeSeed.consumerId
-        }${
-          purposeSeed.delegationId
-            ? ` with delegation ${purposeSeed.delegationId}`
-            : ""
-        }`
+        `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
       );
       const eserviceId = unsafeBrandId<EServiceId>(purposeSeed.eserviceId);
       const consumerId = unsafeBrandId<TenantId>(purposeSeed.consumerId);
-      const delegationId = purposeSeed.delegationId
-        ? unsafeBrandId<DelegationId>(purposeSeed.delegationId)
-        : undefined;
-
-      assertRequesterCanActAsConsumer(
-        { eserviceId, consumerId },
-        authData,
-        delegationId
-          ? await readModelService.getActiveConsumerDelegationById(delegationId)
-          : undefined
-      );
 
       assertConsistentFreeOfCharge(
         purposeSeed.isFreeOfCharge,
         purposeSeed.freeOfChargeReason
+      );
+
+      const consumerDelegation =
+        await readModelService.getActiveConsumerDelegationByPurpose({
+          eserviceId,
+          consumerId,
+        });
+
+      assertRequesterCanActAsConsumer(
+        { eserviceId, consumerId },
+        authData,
+        consumerDelegation
       );
 
       const validatedFormSeed = validateAndTransformRiskAnalysis(
@@ -1061,7 +1055,7 @@ export function purposeServiceBuilder(
         createdAt: new Date(),
         eserviceId,
         consumerId,
-        delegationId,
+        delegationId: consumerDelegation?.id,
         versions: [
           {
             id: generateId(),
