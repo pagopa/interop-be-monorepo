@@ -50,6 +50,7 @@ export const PublicEService = z.object({
   activeDescriptor: PublicEServiceDescriptor,
   technology: z.enum(["REST", "SOAP"]),
   producerName: z.string(),
+  producerId: z.string(),
   id: z.string(),
   name: z.string(),
   description: z.string(),
