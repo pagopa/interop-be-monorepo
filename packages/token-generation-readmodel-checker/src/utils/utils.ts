@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
@@ -351,7 +350,6 @@ export async function compareReadModelPurposesWithPlatformStates({
     }
 
     if (!purpose) {
-      console.log(`Read model purpose not found for id: ${id}`);
       logger.error(`Read model purpose not found for id: ${id}`);
 
       return [
@@ -410,9 +408,6 @@ function validatePurposePlatformStates({
   const isArchived = lastPurposeVersion.state === purposeVersionState.archived;
   if (!platformStatesPurposeEntry) {
     if (!isArchived) {
-      console.log(
-        `Purpose platform-states entry is missing for purpose with id: ${purpose.id}`
-      );
       logger.error(
         `Purpose platform-states entry is missing for purpose with id: ${purpose.id}`
       );
@@ -434,11 +429,6 @@ function validatePurposePlatformStates({
     platformStatesPurposeEntry.purposeVersionId === lastPurposeVersion.id;
 
   if (!isPlatformStatesPurposeCorrect) {
-    console.log(`Purpose states are not equal:
-  platform-states entry: ${JSON.stringify(
-    ComparisonPlatformStatesPurposeEntry.parse(platformStatesPurposeEntry)
-  )}
-  purpose read-model: ${JSON.stringify(ComparisonPurpose.parse(purpose))}`);
     logger.error(
       `Purpose states are not equal:
   platform-states entry: ${JSON.stringify(
@@ -486,7 +476,6 @@ export async function compareReadModelAgreementsWithPlatformStates({
     }
 
     if (!agreement) {
-      console.log(`Read model agreement not found for id: ${id}`);
       logger.error(`Read model agreement not found for id: ${id}`);
 
       return [
@@ -541,9 +530,6 @@ function validateAgreementPlatformStates({
 
   if (!platformAgreementEntry) {
     if (!isArchived) {
-      console.log(
-        `Agreement platform-states entry is missing for agreement with id: ${agreement.id}`
-      );
       logger.error(
         `Agreement platform-states entry is missing for agreement with id: ${agreement.id}`
       );
@@ -566,11 +552,6 @@ function validateAgreementPlatformStates({
     platformAgreementEntry.agreementDescriptorId === agreement.descriptorId;
 
   if (!isPlatformStatesAgreementCorrect) {
-    console.log(`Agreement states are not equal:
-  platform-states entry: ${JSON.stringify(
-    ComparisonPlatformStatesAgreementEntry.parse(platformAgreementEntry)
-  )}
-  agreement: ${JSON.stringify(ComparisonAgreement.parse(agreement))}`);
     logger.error(
       `Agreement states are not equal:
   platform-states entry: ${JSON.stringify(
@@ -619,7 +600,6 @@ export async function compareReadModelEServicesWithPlatformStates({
         `E-Service and platform-states entries not found for id: ${id}`
       );
     } else if (platformStatesEntries && !eservice) {
-      console.log(`Read model e-service not found for id: ${id}`);
       logger.error(`Read model e-service not found for id: ${id}`);
 
       const parsedEntries = Array.from(platformStatesEntries.values()).map(
@@ -687,9 +667,6 @@ function validateCatalogPlatformStates({
 
   if (!platformCatalogEntries) {
     if (!areLengthsEqual) {
-      console.log(
-        `platform-states catalog entries length is incorrect for e-service with id ${eservice.id}`
-      );
       logger.error(
         `platform-states catalog entries length is incorrect for e-service with id ${eservice.id}`
       );
@@ -732,13 +709,6 @@ function validateCatalogPlatformStates({
           descriptorAudience: platformStatesEntry.descriptorAudience,
         };
 
-        console.log(`Catalog states are not equal:
-          platform-states entry: ${JSON.stringify(
-            ComparisonPlatformStatesCatalogEntry.parse(platformStatesEntry)
-          )}
-          eservice read-model: ${JSON.stringify(
-            ComparisonEService.parse(eservice)
-          )}`);
         logger.error(`Catalog states are not equal:
           platform-states entry: ${JSON.stringify(
             ComparisonPlatformStatesCatalogEntry.parse(platformStatesEntry)
@@ -801,7 +771,6 @@ export async function compareReadModelClientsAndTokenGenStates({
     }
 
     if (!client) {
-      console.log(`Read model client not found for id: ${id}`);
       logger.error(`Read model client not found for id: ${id}`);
 
       return [
@@ -871,9 +840,6 @@ function validateClientPlatformStates({
   data: ComparisonPlatformStatesClientEntry | undefined;
 } {
   if (!platformStatesClientEntry) {
-    console.log(
-      `Client platform-states entry is missing for client with id: ${client.id}`
-    );
     logger.error(
       `Client platform-states entry is missing for client with id: ${client.id}`
     );
@@ -892,11 +858,6 @@ function validateClientPlatformStates({
     );
 
   if (!isPlatformStatesClientCorrect) {
-    console.log(`Client states are not equal:
-  platform-states entry: ${JSON.stringify(
-    ComparisonPlatformStatesClientEntry.parse(platformStatesClientEntry)
-  )}
-  client read-model: ${JSON.stringify(ComparisonClient.parse(client))}`);
     logger.error(
       `Client states are not equal:
   platform-states entry: ${JSON.stringify(
@@ -949,11 +910,6 @@ function validateTokenGenerationStates({
       };
     }
 
-    console.log(
-      `Client ${client.id} has ${client.keys.length} ${
-        client.keys.length > 1 ? "keys" : "key"
-      } but zero token-generation-states entries`
-    );
     logger.error(
       `Client ${client.id} has ${client.keys.length} ${
         client.keys.length > 1 ? "keys" : "key"
@@ -985,17 +941,11 @@ function validateTokenGenerationStates({
               if (
                 TokenGenerationStatesClientKidPurposePK.safeParse(e.PK).success
               ) {
-                console.log(
-                  `no purpose found in read model for token-generation-states entry with PK ${e.PK}`
-                );
                 logger.error(
                   `no purpose found in read model for token-generation-states entry with PK ${e.PK}`
                 );
               }
 
-              console.log(
-                `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKIDPURPOSE PK`
-              );
               logger.error(
                 `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKIDPURPOSE PK`
               );
@@ -1026,9 +976,6 @@ function validateTokenGenerationStates({
 
             if (!agreements) {
               logger.error(
-                `no agreements found in read model for token-generation-states entry with PK ${e.PK}`
-              );
-              console.log(
                 `no agreements found in read model for token-generation-states entry with PK ${e.PK}`
               );
 
@@ -1070,9 +1017,6 @@ function validateTokenGenerationStates({
                 .filter(Boolean)
                 .join(" and ");
 
-              console.log(
-                `no ${missingEServiceDescriptor} in read model for token-generation-states entry with PK ${e.PK}`
-              );
               logger.error(
                 `no ${missingEServiceDescriptor} in read model for token-generation-states entry with PK ${e.PK}`
               );
@@ -1153,10 +1097,6 @@ function validateTokenGenerationStates({
                   descriptorVoucherLifespan: e.descriptorVoucherLifespan,
                 };
 
-              console.log(
-                `token-generation-states entry with PK ${e.PK} is incorrect:
-  ${JSON.stringify(wrongTokenGenStatesEntry)}`
-              );
               logger.error(`token-generation-states entry with PK ${
                 e.PK
               } is incorrect:
@@ -1189,9 +1129,6 @@ function validateTokenGenerationStates({
                 ];
               }
             } else {
-              console.log(
-                `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKID PK`
-              );
               logger.error(
                 `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKID PK`
               );
