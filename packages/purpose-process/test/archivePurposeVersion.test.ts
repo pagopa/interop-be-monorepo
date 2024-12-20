@@ -3,6 +3,7 @@ import {
   getMockPurposeVersion,
   getMockPurpose,
   decodeProtobufPayload,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -45,13 +46,18 @@ describe("archivePurposeVersion", () => {
     };
     await addOnePurpose(mockPurpose);
 
-    const returnedPurposeVersion = await purposeService.archivePurposeVersion({
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion.id,
-      organizationId: mockPurpose.consumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const returnedPurposeVersion = await purposeService.archivePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      {
+        authData: getRandomAuthData(mockPurpose.consumerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -106,13 +112,18 @@ describe("archivePurposeVersion", () => {
     };
     await addOnePurpose(mockPurpose);
 
-    const returnedPurposeVersion = await purposeService.archivePurposeVersion({
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion1.id,
-      organizationId: mockPurpose.consumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const returnedPurposeVersion = await purposeService.archivePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion1.id,
+      },
+      {
+        authData: getRandomAuthData(mockPurpose.consumerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -156,13 +167,18 @@ describe("archivePurposeVersion", () => {
     await addOnePurpose(mockPurpose);
 
     expect(
-      purposeService.archivePurposeVersion({
-        purposeId: randomPurposeId,
-        versionId: randomVersionId,
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      purposeService.archivePurposeVersion(
+        {
+          purposeId: randomPurposeId,
+          versionId: randomVersionId,
+        },
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
     ).rejects.toThrowError(purposeNotFound(randomPurposeId));
   });
   it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
@@ -180,13 +196,18 @@ describe("archivePurposeVersion", () => {
     await addOnePurpose(mockPurpose);
 
     expect(
-      purposeService.archivePurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: randomOrganizationId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      purposeService.archivePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(randomOrganizationId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
     ).rejects.toThrowError(organizationIsNotTheConsumer(randomOrganizationId));
   });
   it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
@@ -199,13 +220,18 @@ describe("archivePurposeVersion", () => {
     await addOnePurpose(mockPurpose);
 
     expect(
-      purposeService.archivePurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: randomVersionId,
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      purposeService.archivePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: randomVersionId,
+        },
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
     ).rejects.toThrowError(
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
     );
@@ -229,13 +255,18 @@ describe("archivePurposeVersion", () => {
       await addOnePurpose(mockPurpose);
 
       expect(
-        purposeService.archivePurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          organizationId: mockPurpose.consumerId,
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        purposeService.archivePurposeVersion(
+          {
+            purposeId: mockPurpose.id,
+            versionId: mockPurposeVersion.id,
+          },
+          {
+            authData: getRandomAuthData(mockPurpose.consumerId),
+            correlationId: generateId(),
+            logger: genericLogger,
+            serviceName: "",
+          }
+        )
       ).rejects.toThrowError(
         notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
       );
