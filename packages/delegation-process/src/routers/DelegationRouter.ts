@@ -32,6 +32,7 @@ import {
   rejectDelegationErrorMapper,
   revokeDelegationErrorMapper,
   getConsumerDelegatorsErrorMapper,
+  getConsumerEservicesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
@@ -451,6 +452,38 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getConsumerDelegatorsErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/consumer/eservices", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      const { delegatorId, delegateId, eserviceName, limit, offset } =
+        req.query;
+
+      try {
+        const eservices = await delegationService.getConsumerEservices(
+          {
+            delegatorId: unsafeBrandId(delegatorId),
+            delegateId: unsafeBrandId(delegateId),
+            eserviceName,
+            limit,
+            offset,
+          },
+          ctx.logger
+        );
+
+        return res
+          .status(200)
+          .send(delegationApi.CompactEservices.parse(eservices));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getConsumerEservicesErrorMapper,
           ctx.logger,
           ctx.correlationId
         );

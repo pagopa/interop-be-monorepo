@@ -143,6 +143,28 @@ const consumerDelegationRouter = (
 
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .get("/consumer/delegations/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const eservices = await delegationService.getConsumerDelegatedEservices(
+          req.query,
+          ctx
+        );
+
+        return res.status(200).send(bffApi.DelegatedEservices.parse(eservices));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error getting consumer delegated eservices`
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return consumerDelegationRouter;

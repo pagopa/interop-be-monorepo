@@ -592,5 +592,22 @@ export function delegationServiceBuilder(
       );
       return await readModelService.getConsumerDelegators(filters);
     },
+    async getConsumerEservices(
+      filters: {
+        delegateId: TenantId;
+        delegatorId: TenantId;
+        limit: number;
+        offset: number;
+        eserviceName?: string;
+      },
+      logger: Logger
+    ): Promise<delegationApi.CompactEservices> {
+      logger.info(
+        `Retrieving delegated consumer eservices with filters: ${JSON.stringify(
+          filters
+        )}`
+      );
+      return await readModelService.getConsumerEservices(filters);
+    },
   };
 }
