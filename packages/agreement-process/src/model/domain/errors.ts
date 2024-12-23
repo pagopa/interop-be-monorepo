@@ -10,6 +10,7 @@ import {
   makeApiProblemBuilder,
   AttributeId,
   Agreement,
+  DelegationId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -36,6 +37,7 @@ export const errorCodes = {
   invalidAttributeStructure: "0023",
   consumerWithNotValidEmail: "0024",
   agreementDocumentAlreadyExists: "0025",
+  delegationNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -275,5 +277,15 @@ export function attributeNotFound(
     detail: `Attribute ${attributeId} not found`,
     code: "attributeNotFound",
     title: "Attribute not found",
+  });
+}
+
+export function delegationNotFound(
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} not found`,
+    code: "delegationNotFound",
+    title: "Delegation not found",
   });
 }

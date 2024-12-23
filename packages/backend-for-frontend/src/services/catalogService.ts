@@ -3,7 +3,12 @@
 /* eslint-disable functional/immutable-data */
 import { randomUUID } from "crypto";
 import AdmZip from "adm-zip";
-import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  bffApi,
+  catalogApi,
+  delegationApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
 import {
   FileManager,
   WithLogger,
@@ -26,6 +31,7 @@ import {
   invalidZipStructure,
   missingDescriptorInClonedEservice,
   noDescriptorInEservice,
+  tenantNotFound,
 } from "../model/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import {
@@ -63,6 +69,10 @@ import {
   assertRequesterIsProducer,
   assertRequesterCanActAsProducer,
 } from "./validators.js";
+import {
+  getAllDelegations,
+  getTenantsFromDelegation,
+} from "./delegationService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -349,6 +359,8 @@ export function catalogServiceBuilder(
           toBffCatalogApiEserviceRiskAnalysis
         ),
         isSignalHubEnabled: eservice.isSignalHubEnabled,
+        isDelegable: eservice.isDelegable,
+        isClientAccessDelegable: eservice.isClientAccessDelegable,
       };
     },
     updateEServiceDescription: async (
@@ -562,6 +574,26 @@ export function catalogServiceBuilder(
           id: requesterId,
         },
       });
+      if (!requesterTenant) {
+        throw tenantNotFound(requesterId);
+      }
+
+      const delegationTenantsSet = await getTenantsFromDelegation(
+        tenantProcessClient,
+        await getAllDelegations(delegationProcessClient, headers, {
+          delegateIds: [requesterId],
+          delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
+          kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+          eserviceIds: [eserviceId],
+        }),
+        headers
+      );
+
+      const delegationTenants = Array.from(delegationTenantsSet.values());
+      const consumerDelegators = delegationTenants.filter(
+        (t) => t.id !== requesterId
+      );
+
       const producerTenant = await tenantProcessClient.tenant.getTenant({
         headers,
         params: {
@@ -599,7 +631,8 @@ export function catalogServiceBuilder(
           descriptor,
           producerTenant,
           agreement,
-          requesterTenant
+          requesterTenant,
+          consumerDelegators
         ),
       };
     },
@@ -1159,6 +1192,8 @@ export function catalogServiceBuilder(
             importedEservice.descriptor.agreementApprovalPolicy,
         },
         isSignalHubEnabled: importedEservice.isSignalHubEnabled,
+        isDelegable: importedEservice.isDelegable,
+        isClientAccessDelegable: importedEservice.isClientAccessDelegable,
       };
 
       const pollEServiceById = createPollingByCondition(() =>
