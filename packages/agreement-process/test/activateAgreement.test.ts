@@ -93,9 +93,7 @@ import {
   requesterIs,
 } from "./utils.js";
 
-export const unsuspensionEventInfoFromRequesterIs = (
-  requesterIs: RequesterIs
-) =>
+const unsuspensionEventInfoFromRequesterIs = (requesterIs: RequesterIs) =>
   match(requesterIs)
     .with("Producer", "DelegateProducer", () => ({
       eventType: "AgreementUnsuspendedByProducer",

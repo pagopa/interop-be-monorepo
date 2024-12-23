@@ -269,7 +269,9 @@ export function getMockApiTenantVerifiedAttribute(): agreementApi.TenantAttribut
   };
 }
 
-export const getRandomPastStamp = (userId: UserId): AgreementStamp => ({
+export const getRandomPastStamp = (
+  userId: UserId = generateId<UserId>()
+): AgreementStamp => ({
   who: userId,
   when: subDays(new Date(), randomInt(10)),
 });
