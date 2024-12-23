@@ -251,20 +251,20 @@ describe("activate agreement", () => {
           verifiedAttributes: [getMockAgreementAttribute()],
         };
 
-        const {
-          authData,
-          producerDelegation,
-          consumerDelegation: _consumerDelegation,
-          delegateProducer,
-          delegateConsumer: _delegateConsumer,
-        } = authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
-
-        const consumerDelegation = withConsumerDelegation
-          ? _consumerDelegation
-          : undefined;
+        const { authData, producerDelegation, delegateProducer } =
+          authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
 
         const delegateConsumer = withConsumerDelegation
-          ? _delegateConsumer
+          ? getMockTenant()
+          : undefined;
+        const consumerDelegation = delegateConsumer
+          ? getMockDelegation({
+              kind: delegationKind.delegatedConsumer,
+              delegatorId: agreement.consumerId,
+              delegateId: delegateConsumer.id,
+              state: delegationState.active,
+              eserviceId: agreement.eserviceId,
+            })
           : undefined;
 
         const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
