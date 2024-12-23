@@ -47,6 +47,7 @@ import {
   fileManager,
   getMockConsumerDocument,
   readLastAgreementEvent,
+  uploadDocument,
 } from "./utils.js";
 
 describe("agreement consumer document", () => {
@@ -640,25 +641,15 @@ describe("agreement consumer document", () => {
       await addOneAgreement(agreement1);
     });
 
-    it("should succeed on happy path", async () => {
+    it("should succeed on happy path when the requester is the consumer", async () => {
       const authData = getRandomAuthData(agreement1.consumerId);
       const consumerDocument = agreement1.consumerDocuments[0];
 
-      await fileManager.storeBytes(
-        {
-          bucket: config.s3Bucket,
-          path: `${config.consumerDocumentsPath}/${agreement1.id}`,
-          resourceId: agreement1.consumerDocuments[0].id,
-          name: agreement1.consumerDocuments[0].name,
-          content: Buffer.from("test content"),
-        },
-        genericLogger
+      await uploadDocument(
+        agreement1.id,
+        consumerDocument.id,
+        consumerDocument.name
       );
-
-      // Check that the file is stored in the bucket before removing it
-      expect(
-        await fileManager.listFiles(config.s3Bucket, genericLogger)
-      ).toContain(agreement1.consumerDocuments[0].path);
 
       const returnedAgreementId =
         await agreementService.removeAgreementConsumerDocument(
@@ -693,14 +684,96 @@ describe("agreement consumer document", () => {
       expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
     });
 
+    it("should succeed on happy path when the requester is the consumer delegate", async () => {
+      const authData = getRandomAuthData();
+      const delegateId = authData.organizationId;
+
+      const consumerDocument = agreement1.consumerDocuments[0];
+
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        eserviceId: agreement1.eserviceId,
+        delegatorId: agreement1.consumerId,
+        delegateId,
+        state: delegationState.active,
+      });
+
+      await addOneDelegation(delegation);
+      await addSomeRandomDelegations(agreement1);
+
+      await uploadDocument(
+        agreement1.id,
+        consumerDocument.id,
+        consumerDocument.name
+      );
+
+      const returnedAgreementId =
+        await agreementService.removeAgreementConsumerDocument(
+          agreement1.id,
+          consumerDocument.id,
+          {
+            authData,
+            serviceName: "",
+            correlationId: generateId(),
+            logger: genericLogger,
+          }
+        );
+
+      expect(
+        await fileManager.listFiles(config.s3Bucket, genericLogger)
+      ).toMatchObject([]);
+
+      const { data: payload } = await readLastAgreementEvent(agreement1.id);
+
+      const actualConsumerDocument = decodeProtobufPayload({
+        messageType: AgreementConsumerDocumentRemovedV2,
+        payload,
+      });
+
+      const expectedAgreement = { ...agreement1, consumerDocuments: [] };
+
+      expect(actualConsumerDocument).toMatchObject({
+        agreement: toAgreementV2(expectedAgreement),
+        documentId: consumerDocument.id,
+      });
+      expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
+    });
+
+    it("should throw operationNotAllowed when the requester is the consumer but there is a consumer delegation", async () => {
+      const authData = getRandomAuthData(agreement1.consumerId);
+
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        eserviceId: agreement1.eserviceId,
+        delegatorId: agreement1.consumerId,
+        delegateId: generateId<TenantId>(),
+        state: delegationState.active,
+      });
+
+      await addOneDelegation(delegation);
+
+      await expect(
+        agreementService.removeAgreementConsumerDocument(
+          agreement1.id,
+          agreement1.consumerDocuments[0].id,
+          {
+            authData,
+            serviceName: "",
+            correlationId: generateId(),
+            logger: genericLogger,
+          }
+        )
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
+
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
       const authData = getRandomAuthData();
-      const notExistentAgreement = getMockAgreement();
+      const nonExistentAgreement = getMockAgreement();
 
       const removeAgreementConsumerDocument =
         agreementService.removeAgreementConsumerDocument(
-          notExistentAgreement.id,
-          getMockConsumerDocument(notExistentAgreement.id).id,
+          nonExistentAgreement.id,
+          getMockConsumerDocument(nonExistentAgreement.id).id,
           {
             authData,
             serviceName: "",
@@ -710,7 +783,7 @@ describe("agreement consumer document", () => {
         );
 
       await expect(removeAgreementConsumerDocument).rejects.toThrowError(
-        agreementNotFound(notExistentAgreement.id)
+        agreementNotFound(nonExistentAgreement.id)
       );
     });
 
@@ -769,12 +842,12 @@ describe("agreement consumer document", () => {
 
     it("should throw a agreementDocumentNotFound if document does not exist", async () => {
       const authData = getRandomAuthData(agreement1.consumerId);
-      const notExistendDocumentId = generateId<AgreementDocumentId>();
+      const nonExistentDocumentId = generateId<AgreementDocumentId>();
 
       const removeAgreementConsumerDocument =
         agreementService.removeAgreementConsumerDocument(
           agreement1.id,
-          notExistendDocumentId,
+          nonExistentDocumentId,
           {
             authData,
             serviceName: "",
@@ -783,7 +856,7 @@ describe("agreement consumer document", () => {
           }
         );
       await expect(removeAgreementConsumerDocument).rejects.toThrowError(
-        agreementDocumentNotFound(notExistendDocumentId, agreement1.id)
+        agreementDocumentNotFound(nonExistentDocumentId, agreement1.id)
       );
     });
 
