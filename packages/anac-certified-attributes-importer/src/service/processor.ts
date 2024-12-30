@@ -105,7 +105,7 @@ async function processFileContent(
         if ("codice_ipa" in org) {
           return {
             ...org,
-            codice_ipa: org.codice_ipa.toLocaleLowerCase()
+            codice_ipa: org.codice_ipa.toLocaleLowerCase(),
           };
         } else {
           return null;
