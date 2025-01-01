@@ -4,6 +4,7 @@ import {
   ClientId,
   CorrelationId,
   EService,
+  invalidKeyLenght,
   ProducerKeychain,
   ProducerKeychainId,
   Purpose,
@@ -126,3 +127,22 @@ export const assertKeyDoesNotAlreadyExist = async (
     throw keyAlreadyExists(kid);
   }
 };
+
+export function assertValidateRsaKeyLength(
+  base64Key: string,
+  minLength: number = 2048
+): void {
+  const bitLength = getByteLengthFromBase64(base64Key) * 8;
+  // Verifica la lunghezza
+  if (bitLength < minLength) {
+    throw invalidKeyLenght(base64Key);
+  }
+}
+
+function getByteLengthFromBase64(base64Key: string): number {
+  // remove padding '=' from the end of the base64 string
+  const trimmedBase64 = base64Key.replace(/=+$/, "");
+  const byteLength = (trimmedBase64.length * 3) / 4;
+
+  return Math.floor(byteLength);
+}
