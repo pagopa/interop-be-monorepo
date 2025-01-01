@@ -18,7 +18,7 @@ export const errorCodes = {
   delegationAlreadyExists: "0003",
   tenantNotFound: "0004",
   invalidDelegatorAndDelegateIds: "0005",
-  tenantIsNotIPAError: "0006",
+  originNotCompliant: "0006",
   tenantNotAllowedToDelegation: "0007",
   stampNotFound: "0008",
   operationRestrictedToDelegator: "0009",
@@ -78,7 +78,7 @@ export function delegatorAndDelegateSameIdError(): ApiError<ErrorCodes> {
   });
 }
 
-export function tenantIsNotIPAError(
+export function originNotCompliant(
   tenant: Tenant,
   delegatorOrDelegate: "Delegator" | "Delegate"
 ): ApiError<ErrorCodes> {
@@ -87,9 +87,9 @@ export function tenantIsNotIPAError(
     .with("Delegate", () => "Delegate")
     .exhaustive();
   return new ApiError({
-    detail: `${delegatorOrDelegateString} ${tenant.id} with external origin ${tenant.externalId.origin} is not an IPA`,
-    code: "tenantIsNotIPAError",
-    title: `Invalid external origin`,
+    detail: `${delegatorOrDelegateString} ${tenant.id} with external origin ${tenant.externalId?.origin} is not allowed`,
+    code: "originNotCompliant",
+    title: "Origin is not compliant",
   });
 }
 
