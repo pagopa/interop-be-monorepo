@@ -264,6 +264,7 @@ const initCustomConsumer = async ({
     maxWaitTimeInMs: batchConsumerConfig?.maxWaitKafkaBatchMillis,
     minBytes: batchConsumerConfig?.minBytes,
     maxBytes: batchConsumerConfig?.maxBytes,
+    sessionTimeout: batchConsumerConfig?.sessionTimeoutMillis,
   });
 
   if (config.resetConsumerOffsets) {
