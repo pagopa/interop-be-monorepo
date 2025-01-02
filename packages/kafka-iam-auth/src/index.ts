@@ -261,7 +261,9 @@ const initCustomConsumer = async ({
         return Promise.resolve(false);
       },
     },
-    ...batchConsumerConfig,
+    maxWaitTimeInMs: batchConsumerConfig?.maxWaitKafkaBatchMillis,
+    minBytes: batchConsumerConfig?.minBytes,
+    maxBytes: batchConsumerConfig?.maxBytes,
   });
 
   if (config.resetConsumerOffsets) {

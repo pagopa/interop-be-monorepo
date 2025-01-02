@@ -32,7 +32,6 @@ export const KafkaBatchConsumerConfig = z
     return {
       minBytes,
       maxWaitKafkaBatchMillis: c.MAX_WAIT_KAFKA_BATCH_MILLIS,
-      sessionTimeoutMillis: Math.round(c.MAX_WAIT_KAFKA_BATCH_MILLIS * 1.5),
       maxBytes: Math.round(minBytes * 1.25),
     };
   });
