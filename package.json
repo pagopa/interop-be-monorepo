@@ -38,6 +38,7 @@
     "start:client-purpose-updater": "turbo start --filter pagopa-interop-client-purpose-updater",
     "start:authorization-server": "turbo start --filter pagopa-interop-authorization-server",
     "start:token-details-persister": "turbo start --filter pagopa-interop-token-details-persister",
+    "start:token-generation-readmodel-checker": "turbo start --filter pagopa-interop-token-generation-readmodel-checker",
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",
