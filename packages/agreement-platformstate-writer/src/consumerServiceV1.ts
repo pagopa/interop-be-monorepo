@@ -149,15 +149,22 @@ const handleFirstActivation = async (
       );
     }
   } else {
+    const agreementTimestamp = agreement.stamps.activation
+      ? agreement.stamps.activation.when.toISOString()
+      : agreement.createdAt.toISOString();
+    if (agreement.stamps.activation === undefined) {
+      logger.info(
+        `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
+      );
+    }
+
     const agreementEntry: PlatformStatesAgreementEntry = {
       PK: primaryKey,
       state: agreementStateToItemState(agreement.state),
       version: incomingVersion,
       updatedAt: new Date().toISOString(),
       GSIPK_consumerId_eserviceId,
-      GSISK_agreementTimestamp:
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        agreement.stamps.activation!.when.toISOString(),
+      GSISK_agreementTimestamp: agreementTimestamp,
       agreementDescriptorId: agreement.descriptorId,
     };
 
@@ -319,15 +326,22 @@ const handleUpgrade = async (
       );
     }
   } else {
+    const agreementTimestamp = agreement.stamps.activation
+      ? agreement.stamps.activation.when.toISOString()
+      : agreement.createdAt.toISOString();
+    if (agreement.stamps.activation === undefined) {
+      logger.info(
+        `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
+      );
+    }
+
     const newAgreementEntry: PlatformStatesAgreementEntry = {
       PK: primaryKey,
       state: agreementStateToItemState(agreement.state),
       version: msgVersion,
       updatedAt: new Date().toISOString(),
       GSIPK_consumerId_eserviceId,
-      GSISK_agreementTimestamp:
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        agreement.stamps.activation!.when.toISOString(),
+      GSISK_agreementTimestamp: agreementTimestamp,
       agreementDescriptorId: agreement.descriptorId,
     };
 
