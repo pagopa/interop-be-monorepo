@@ -144,26 +144,28 @@ const handleActivationOrSuspension = async (
       );
     }
   } else {
-    const agreementTimestamp = agreement.stamps.activation
-      ? agreement.stamps.activation.when.toISOString()
-      : agreement.createdAt.toISOString();
-    if (agreement.stamps.activation === undefined) {
-      logger.info(
-        `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
-      );
+    if (agreement.state === agreementState.active) {
+      const agreementTimestamp = agreement.stamps.activation
+        ? agreement.stamps.activation.when.toISOString()
+        : agreement.createdAt.toISOString();
+      if (agreement.stamps.activation === undefined) {
+        logger.info(
+          `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
+        );
+      }
+
+      const agreementEntry: PlatformStatesAgreementEntry = {
+        PK: primaryKey,
+        state: agreementStateToItemState(agreement.state),
+        version: incomingVersion,
+        updatedAt: new Date().toISOString(),
+        GSIPK_consumerId_eserviceId,
+        GSISK_agreementTimestamp: agreementTimestamp,
+        agreementDescriptorId: agreement.descriptorId,
+      };
+
+      await writeAgreementEntry(agreementEntry, dynamoDBClient);
     }
-
-    const agreementEntry: PlatformStatesAgreementEntry = {
-      PK: primaryKey,
-      state: agreementStateToItemState(agreement.state),
-      version: incomingVersion,
-      updatedAt: new Date().toISOString(),
-      GSIPK_consumerId_eserviceId,
-      GSISK_agreementTimestamp: agreementTimestamp,
-      agreementDescriptorId: agreement.descriptorId,
-    };
-
-    await writeAgreementEntry(agreementEntry, dynamoDBClient);
   }
 
   if (
