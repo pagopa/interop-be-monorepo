@@ -1633,8 +1633,8 @@ describe("integration tests V1 events", async () => {
     });
   });
 
-  describe("AgreementUpdated (unsuspended by producer)", async () => {
-    it("should do no operation if the entry doesn't exist", async () => {
+  describe("AgreementUpdated (first activation)", () => {
+    it("should add the if the entry doesn't exist", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -1668,8 +1668,25 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      expect(retrievedAgreementEntry).toBeUndefined();
+      const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
+        PK: agreementEntryPrimaryKey,
+        state: itemState.active,
+        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+          consumerId: agreement.consumerId,
+          eserviceId: agreement.eserviceId,
+        }),
+        GSISK_agreementTimestamp:
+          agreement.stamps.activation!.when.toISOString(),
+        version: 0,
+        updatedAt: new Date().toISOString(),
+        agreementDescriptorId: agreement.descriptorId,
+      };
+
+      expect(retrievedAgreementEntry).toEqual(expectedAgreementStateEntry);
     });
+  });
+
+  describe("AgreementUpdated (unsuspended by producer)", async () => {
     it("should update the entry (agreement is not the latest -> no operation on token states)", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
