@@ -1677,7 +1677,7 @@ describe("integration tests V1 events", async () => {
         }),
         GSISK_agreementTimestamp:
           agreement.stamps.activation!.when.toISOString(),
-        version: 0,
+        version: 1,
         updatedAt: new Date().toISOString(),
         agreementDescriptorId: agreement.descriptorId,
       };
