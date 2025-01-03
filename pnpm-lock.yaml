@@ -3146,6 +3146,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      json-diff:
+        specifier: 1.0.6
+        version: 1.0.6
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -3162,6 +3165,9 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/json-diff':
+        specifier: 1.0.3
+        version: 1.0.3
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6

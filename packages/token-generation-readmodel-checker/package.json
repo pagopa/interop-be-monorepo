@@ -19,6 +19,7 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
+    "@types/json-diff": "1.0.3",
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.6",
     "pagopa-interop-commons-test": "workspace:*",
@@ -32,6 +33,7 @@
     "@aws-sdk/client-dynamodb": "3.693.0",
     "@aws-sdk/util-dynamodb": "3.693.0",
     "dotenv-flow": "4.1.0",
+    "json-diff": "1.0.6",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "zod": "3.23.8",

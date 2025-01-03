@@ -57,6 +57,7 @@ export const ComparisonPlatformStatesAgreementEntry =
     state: true,
     GSIPK_consumerId_eserviceId: true,
     agreementDescriptorId: true,
+    GSISK_agreementTimestamp: true,
   });
 export type ComparisonPlatformStatesAgreementEntry = z.infer<
   typeof ComparisonPlatformStatesAgreementEntry
