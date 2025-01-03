@@ -1634,7 +1634,7 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("AgreementUpdated (first activation)", () => {
-    it("should add the if the entry doesn't exist", async () => {
+    it("should add the entry if it doesn't exist", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
