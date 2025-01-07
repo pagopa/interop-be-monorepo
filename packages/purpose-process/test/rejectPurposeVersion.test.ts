@@ -126,6 +126,7 @@ describe("rejectPurposeVersion", () => {
       eserviceId: mockEService.id,
       delegateId: delegate.organizationId,
       state: delegationState.active,
+      delegatorId: mockEService.producerId,
     });
 
     await writeInReadmodel(delegation, delegations);
