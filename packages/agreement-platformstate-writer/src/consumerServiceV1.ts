@@ -149,7 +149,7 @@ const handleActivationOrSuspension = async (
         ? agreement.stamps.activation.when.toISOString()
         : agreement.createdAt.toISOString();
       if (agreement.stamps.activation === undefined) {
-        logger.info(
+        logger.warn(
           `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
         );
       }
@@ -264,7 +264,7 @@ const handleUpgrade = async (
       ? agreement.stamps.activation.when.toISOString()
       : agreement.createdAt.toISOString();
     if (agreement.stamps.activation === undefined) {
-      logger.info(
+      logger.warn(
         `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
       );
     }
