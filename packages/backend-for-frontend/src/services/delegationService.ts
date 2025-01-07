@@ -444,7 +444,7 @@ export function delegationServiceBuilder(
         offset: number;
         limit: number;
       },
-      { headers, authData, logger }: WithLogger<BffAppContext>
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactEServicesLight> {
       logger.info(
         `Retrieving consumer delegated eservices of delegator ${delegatorId} with name ${q}, limit ${limit}, offset ${offset}`
@@ -453,7 +453,6 @@ export function delegationServiceBuilder(
       const eservicesData =
         await delegationClients.consumer.getConsumerEservices({
           queries: {
-            delegateId: authData.organizationId,
             delegatorId,
             eserviceName: q,
             offset,
