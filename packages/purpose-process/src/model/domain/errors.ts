@@ -1,6 +1,5 @@
 import {
   ApiError,
-  DelegationId,
   DescriptorId,
   EServiceId,
   EServiceMode,
@@ -42,7 +41,6 @@ export const errorCodes = {
   missingRiskAnalysis: "0024",
   purposeVersionStateConflict: "0025",
   riskAnalysisConfigLatestVersionNotFound: "0026",
-  operationRestrictedToDelegate: "0027",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -306,16 +304,5 @@ export function purposeVersionStateConflict(
     detail: `Operation is not allowed on state ${state} for Version ${versionId} of Purpose ${purposeId}`,
     code: "purposeVersionStateConflict",
     title: "Purpose version state conflict",
-  });
-}
-
-export function operationRestrictedToDelegate(
-  tenantId: TenantId,
-  delegationId: DelegationId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${tenantId} is not a delegate for delegation ${delegationId}`,
-    code: "operationRestrictedToDelegate",
-    title: "Operation restricted to delegate",
   });
 }
