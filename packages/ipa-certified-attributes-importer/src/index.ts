@@ -222,27 +222,12 @@ export async function getAttributesToAssign(
 
       const tenantCurrentAttributes = new Map(
         tenant.attributes
-          .map((a) => {
-            const withRevocation = match(a)
-              .with({ type: tenantAttributeType.CERTIFIED }, (certified) => ({
-                ...a,
-                revocationTimestamp: certified.revocationTimestamp,
-              }))
-              .otherwise((_) => undefined);
-
-            if (withRevocation) {
-              const attribute = certifiedsAttribute.get(withRevocation.id);
-
-              if (attribute) {
-                return {
-                  ...attribute,
-                  revocationTimestamp: withRevocation.revocationTimestamp,
-                };
-              }
-            }
-
-            return undefined;
-          })
+          .filter(
+            (attribute) =>
+              attribute.type === tenantAttributeType.CERTIFIED &&
+              !attribute.revocationTimestamp
+          )
+          .map((attribute) => certifiedsAttribute.get(attribute.id))
           .filter((a): a is NonNullable<typeof a> => a !== undefined)
           .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a])
       );
@@ -251,20 +236,15 @@ export async function getAttributesToAssign(
         externalId,
         name: tenant.name,
         certifiedAttributes: seed.attributes
-          .filter((a) => {
-            const attribute = tenantCurrentAttributes.get(
-              toAttributeKey({
-                origin: a.origin,
-                code: a.code,
-              })
-            );
-
-            if (!attribute) {
-              return true;
-            }
-
-            return attribute.revocationTimestamp !== undefined;
-          })
+          .filter(
+            (a) =>
+              !tenantCurrentAttributes.get(
+                toAttributeKey({
+                  origin: a.origin,
+                  code: a.code,
+                })
+              )
+          )
           .map((a) => ({
             origin: a.origin,
             code: a.code,
@@ -355,47 +335,30 @@ export async function getAttributesToRevoke(
 
   return platformTenants.flatMap((t) =>
     t.attributes
-      // eslint-disable-next-line sonarjs/no-identical-functions
-      .map((a) => {
-        const withRevocation = match(a)
-          .with({ type: tenantAttributeType.CERTIFIED }, (certified) => ({
-            ...a,
-            revocationTimestamp: certified.revocationTimestamp,
-          }))
-          .otherwise((_) => undefined);
-
-        if (withRevocation) {
-          const attribute = certifiedAttributes.get(withRevocation.id);
-
-          if (attribute) {
-            return {
-              ...attribute,
-              revocationTimestamp: withRevocation.revocationTimestamp,
-            };
-          }
-        }
-
-        return undefined;
-      })
       .filter(
-        (a) =>
-          a !== undefined &&
-          a.revocationTimestamp === undefined &&
-          a.origin &&
-          a.code &&
-          canBeRevoked(
-            {
-              origin: a.origin,
-              code: a.code,
-            },
-            t.externalId
-          )
+        (attribute) =>
+          attribute.type === tenantAttributeType.CERTIFIED &&
+          !attribute.revocationTimestamp
+      )
+      .map((attribute) => certifiedAttributes.get(attribute.id))
+      .filter(
+        (a): a is NonNullable<typeof a & { origin: string; code: string }> =>
+          a?.origin !== undefined && a?.code !== undefined
+      )
+      .filter((a) =>
+        canBeRevoked(
+          {
+            origin: a.origin,
+            code: a.code,
+          },
+          t.externalId
+        )
       )
       .map((a) => ({
         tOrigin: t.externalId.origin,
         tExtenalId: t.externalId.value,
-        aOrigin: a?.origin as string,
-        aCode: a?.code as string,
+        aOrigin: a.origin,
+        aCode: a.code,
       }))
   );
 }
