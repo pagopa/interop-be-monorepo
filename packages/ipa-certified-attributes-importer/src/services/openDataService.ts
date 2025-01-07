@@ -85,11 +85,7 @@ async function loadCertifiedAttributes(
     ...attributeSeedsCategoriesKinds,
   ];
 
-  const attributeSeedsInstitutions = [
-    ...data.institutions,
-    ...data.aoo,
-    ...data.uo,
-  ].map((i) => ({
+  const attributeSeedsInstitutions = data.institutions.map((i) => ({
     code: i.originId,
     description: i.description,
     origin: i.origin,
