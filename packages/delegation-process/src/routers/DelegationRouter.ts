@@ -432,12 +432,12 @@ const delegationRouter = (
     .get("/consumer/delegators", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
-      const { delegateId, delegatorName, limit, offset } = req.query;
+      const { delegatorName, limit, offset } = req.query;
 
       try {
         const delegators = await delegationService.getConsumerDelegators(
           {
-            delegateId: unsafeBrandId(delegateId),
+            organizationId: ctx.authData.organizationId,
             delegatorName,
             limit,
             offset,

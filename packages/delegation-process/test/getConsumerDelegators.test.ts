@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   getMockAgreement,
   getMockDelegation,
@@ -13,6 +14,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
+import { requesterIsNotConsumerDelegate } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneDelegation,
@@ -28,7 +30,7 @@ describe("getConsumerDelegators", () => {
   const delegator4 = { ...getMockTenant(), name: "DeleganteQuattro" };
   const delegator5 = { ...getMockTenant(), name: "PagoPA" };
   const delegator6 = getMockTenant();
-  const delegateId = generateId<TenantId>();
+  const requesterId = generateId<TenantId>();
   const eservice1 = getMockEService();
   const eservice2 = getMockEService();
   const eservice3 = getMockEService();
@@ -36,7 +38,7 @@ describe("getConsumerDelegators", () => {
   const mockDelegation1 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: requesterId,
     delegatorId: delegator1.id,
     eserviceId: eservice1.id,
   });
@@ -49,7 +51,7 @@ describe("getConsumerDelegators", () => {
   const mockDelegation1Bis = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: requesterId,
     delegatorId: delegator1.id,
     eserviceId: eservice2.id,
   });
@@ -64,7 +66,7 @@ describe("getConsumerDelegators", () => {
   const mockDelegation2 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: requesterId,
     delegatorId: delegator2.id,
     eserviceId: eservice1.id,
   });
@@ -79,7 +81,7 @@ describe("getConsumerDelegators", () => {
   const mockDelegation3 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.rejected,
-    delegateId,
+    delegateId: requesterId,
     delegatorId: delegator3.id,
     eserviceId: eservice1.id,
   });
@@ -89,7 +91,7 @@ describe("getConsumerDelegators", () => {
   const mockDelegation4 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: requesterId,
     delegatorId: delegator4.id,
     eserviceId: eservice1.id,
   });
@@ -104,7 +106,7 @@ describe("getConsumerDelegators", () => {
   const mockDelegation5 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: requesterId,
     delegatorId: delegator5.id,
     eserviceId: eservice3.id,
   });
@@ -156,11 +158,11 @@ describe("getConsumerDelegators", () => {
     await addOneAgreement(mockAgreement6);
   });
 
-  it("should get delegators filtered by delegateId", async () => {
+  it("should get delegators filtered by requesterId", async () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          delegateId,
+          organizationId: requesterId,
           offset: 0,
           limit: 50,
         },
@@ -188,7 +190,7 @@ describe("getConsumerDelegators", () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          delegateId,
+          organizationId: requesterId,
           offset: 1,
           limit: 1,
         },
@@ -208,7 +210,7 @@ describe("getConsumerDelegators", () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          delegateId,
+          organizationId: requesterId,
           offset: 0,
           limit: 50,
           delegatorName: "Comune",
@@ -232,7 +234,7 @@ describe("getConsumerDelegators", () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          delegateId,
+          organizationId: requesterId,
           offset: 0,
           limit: 50,
           delegatorName: "PagoPA",
@@ -249,47 +251,18 @@ describe("getConsumerDelegators", () => {
       totalCount: 1,
     });
   });
-  it("should return no results if no delegations match the criteria", async () => {
-    expect(
-      await delegationService.getConsumerDelegators(
-        {
-          delegateId: generateId<TenantId>(),
-          offset: 0,
-          limit: 50,
-        },
-        genericLogger
-      )
-    ).toEqual({
-      results: [],
-      totalCount: 0,
-    });
+  it.only("should throw requesterIsNotConsumerDelegate if the requester is not a consumer delegate", async () => {
+    const invalidRequesterId = generateId<TenantId>();
 
     expect(
-      await delegationService.getConsumerDelegators(
+      delegationService.getConsumerDelegators(
         {
-          delegateId: delegator3.id, // No active delegation
+          organizationId: invalidRequesterId,
           offset: 0,
           limit: 50,
         },
         genericLogger
       )
-    ).toEqual({
-      results: [],
-      totalCount: 0,
-    });
-
-    expect(
-      await delegationService.getConsumerDelegators(
-        {
-          delegateId: delegator4.id, // No active agreements
-          offset: 0,
-          limit: 50,
-        },
-        genericLogger
-      )
-    ).toEqual({
-      results: [],
-      totalCount: 0,
-    });
+    ).rejects.toThrowError(requesterIsNotConsumerDelegate(invalidRequesterId));
   });
 });

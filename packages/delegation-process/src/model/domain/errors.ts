@@ -177,10 +177,12 @@ export function delegationStampNotFound(
 
 export function requesterIsNotConsumerDelegate(
   requesterId: TenantId,
-  delegatorId: TenantId
+  delegatorId?: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Requester ${requesterId} is not a Consumer delegate for delegator ${delegatorId}`,
+    detail: `Requester ${requesterId} is not a Consumer delegate${
+      delegatorId ? ` for delegator ${delegatorId}` : ""
+    }`,
     code: "requesterIsNotConsumerDelegate",
     title: "Requester is not a delegate",
   });
