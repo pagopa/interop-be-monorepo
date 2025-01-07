@@ -25,6 +25,7 @@ import {
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesAgreementPK,
+  makePlatformStatesClientPK,
   makePlatformStatesEServiceDescriptorPK,
   makePlatformStatesPurposePK,
   PlatformStatesAgreementEntry,
@@ -48,13 +49,10 @@ import { match } from "ts-pattern";
 import { diff } from "json-diff";
 import { config } from "../configs/config.js";
 import {
-  ClientDifferencesResult,
-  ComparisonClient,
   ComparisonPlatformStatesAgreementEntry,
   ComparisonPlatformStatesCatalogEntry,
   ComparisonPlatformStatesClientEntry,
   ComparisonPlatformStatesPurposeEntry,
-  ComparisonTokenGenStatesGenericClient,
 } from "../models/types.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerationReadModelService.js";
@@ -318,7 +316,7 @@ export async function compareTokenGenerationReadModel(
     purposeDifferences +
     agreementDifferences +
     catalogDifferences +
-    clientAndTokenGenStatesDifferences.length
+    clientAndTokenGenStatesDifferences
   );
 }
 
@@ -383,8 +381,10 @@ export async function compareReadModelPurposesWithPlatformStates({
       );
       if (objectsDiff) {
         differencesCount++;
-        // For info: __old = platform-states entry and __new = read model agreement
-        logger.error(`Differences in purpose with id ${purpose.id}`);
+        // For info: __old = platform-states entry and __new = read model purpose
+        logger.error(
+          `Differences in platform-states when checking purpose with id ${purpose.id}`
+        );
         logger.error(JSON.stringify(objectsDiff, null, 2));
       }
     }
@@ -458,7 +458,9 @@ export async function compareReadModelAgreementsWithPlatformStates({
       if (objectsDiff) {
         differencesCount++;
         // For info: __old = platform-states entry and __new = read model agreement
-        logger.error(`Differences in agreement with id ${agreement.id}`);
+        logger.error(
+          `Differences in platform-states when checking agreement with id ${agreement.id}`
+        );
         logger.error(JSON.stringify(objectsDiff, null, 2));
       }
     }
@@ -490,72 +492,76 @@ export async function compareReadModelEServicesWithPlatformStates({
   for (const id of allIds) {
     const eservice = eservicesById.get(id);
 
-    if (
-      !eservice?.descriptors.some(
-        (d) =>
-          d.state === descriptorState.deprecated ||
-          d.state === descriptorState.published ||
-          d.state === descriptorState.suspended
-      )
-    ) {
-      continue;
-    }
-
-    const platformStatesEntries = platformStatesEServiceById.get(id);
-
-    // TODO
     if (!eservice) {
-      throw genericInternalError("");
-    }
-
-    const expectedMap = new Map<
-      DescriptorId,
-      ComparisonPlatformStatesCatalogEntry
-    >();
-
-    eservice.descriptors.forEach((descriptor) => {
-      expectedMap.set(descriptor.id, {
-        PK: makePlatformStatesEServiceDescriptorPK({
-          eserviceId: eservice.id,
-          descriptorId: descriptor.id,
-        }),
-        state: descriptorStateToItemState(descriptor.state),
-        descriptorAudience: descriptor.audience,
-        descriptorVoucherLifespan: descriptor.voucherLifespan,
-      });
-    });
-    const allDescriptorIds = new Set([
-      ...expectedMap.keys(),
-      // TODO
-      ...platformStatesEntries!.keys(),
-    ]);
-
-    for (const descriptorId of allDescriptorIds) {
-      const readModelEntry = expectedMap.get(descriptorId);
-      const platformStatesEntry = platformStatesEntries!.get(descriptorId);
-
-      if (!platformStatesEntry && !readModelEntry) {
-        throw genericInternalError(
-          `E-Service and platform-states entry not found for id: ${id}`
-        );
+      differencesCount++;
+      logger.error(`Read model e-service not found for id: ${id}`);
+    } else {
+      // Descriptors with a state other than deprecated, published or suspended are not considered because they are not expected in the platform-states
+      if (
+        !eservice.descriptors.some(
+          (d) =>
+            d.state === descriptorState.deprecated ||
+            d.state === descriptorState.published ||
+            d.state === descriptorState.suspended
+        )
+      ) {
+        continue;
       }
 
-      if (platformStatesEntry && !readModelEntry) {
-        logger.error(`Read model e-service not found for id: ${id}`);
+      const platformStatesEntries = platformStatesEServiceById.get(id);
+
+      if (!platformStatesEntries) {
+        logger.error(
+          `platform-states entries not found for e-service with id: ${id}`
+        );
         differencesCount++;
+        continue;
       }
 
-      if (platformStatesEntry && readModelEntry) {
-        const objectsDiff = diff(
-          ComparisonPlatformStatesCatalogEntry.parse(platformStatesEntry),
-          readModelEntry,
-          { sort: true }
-        );
-        if (objectsDiff) {
+      const expectedDescriptorsMap = new Map<
+        DescriptorId,
+        ComparisonPlatformStatesCatalogEntry
+      >();
+
+      eservice.descriptors.forEach((descriptor) => {
+        expectedDescriptorsMap.set(descriptor.id, {
+          PK: makePlatformStatesEServiceDescriptorPK({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          }),
+          state: descriptorStateToItemState(descriptor.state),
+          descriptorAudience: descriptor.audience,
+          descriptorVoucherLifespan: descriptor.voucherLifespan,
+        });
+      });
+      const allDescriptorIds = new Set([
+        ...expectedDescriptorsMap.keys(),
+        ...platformStatesEntries.keys(),
+      ]);
+
+      for (const descriptorId of allDescriptorIds) {
+        const readModelEntry = expectedDescriptorsMap.get(descriptorId);
+        const platformStatesEntry = platformStatesEntries.get(descriptorId);
+
+        if (platformStatesEntry && !readModelEntry) {
+          logger.error(`Read model e-service not found for id: ${id}`);
           differencesCount++;
-          // For info: __old = platform-states entry and __new = read model e-service
-          logger.error(`Differences in e-service with id ${eservice.id}`);
-          logger.error(JSON.stringify(objectsDiff, null, 2));
+        }
+
+        if (platformStatesEntry && readModelEntry) {
+          const objectsDiff = diff(
+            ComparisonPlatformStatesCatalogEntry.parse(platformStatesEntry),
+            readModelEntry,
+            { sort: true }
+          );
+          if (objectsDiff) {
+            differencesCount++;
+            // For info: __old = platform-states entry and __new = read model e-service
+            logger.error(
+              `Differences in platform-states when checking e-service with id ${eservice.id}`
+            );
+            logger.error(JSON.stringify(objectsDiff, null, 2));
+          }
         }
       }
     }
@@ -580,14 +586,17 @@ export async function compareReadModelClientsAndTokenGenStates({
   eservicesById: Map<EServiceId, EService>;
   agreementsByConsumerIdEserviceId: Map<GSIPKConsumerIdEServiceId, Agreement[]>;
   logger: Logger;
-}): Promise<ClientDifferencesResult> {
+}): Promise<number> {
   const allIds = new Set([
     ...platformStatesClientById.keys(),
     ...tokenGenStatesByClient.keys(),
     ...clientsById.keys(),
   ]);
 
-  return Array.from(allIds).reduce<ClientDifferencesResult>((acc, id) => {
+  // eslint-disable-next-line functional/no-let
+  let differencesCount = 0;
+
+  for (const id of allIds) {
     const platformStatesEntry = platformStatesClientById.get(id);
     const tokenGenStatesEntries = tokenGenStatesByClient.get(id);
     const client = clientsById.get(id);
@@ -598,117 +607,61 @@ export async function compareReadModelClientsAndTokenGenStates({
       );
     }
 
-    if (!client) {
+    if (platformStatesEntry && !client) {
       logger.error(`Read model client not found for id: ${id}`);
-
-      return [
-        ...acc,
-        [
-          platformStatesEntry
-            ? ComparisonPlatformStatesClientEntry.parse(platformStatesEntry)
-            : undefined,
-          tokenGenStatesEntries && tokenGenStatesEntries.length > 0
-            ? ComparisonTokenGenStatesGenericClient.array().parse(
-                tokenGenStatesEntries
-              )
-            : undefined,
-          client,
-        ],
-      ];
+      differencesCount++;
     }
 
-    const {
-      isPlatformStatesClientCorrect: isPlatformStatesCorrect,
-      data: platformClientEntryDiff,
-    } = validateClientPlatformStates({
-      platformClientEntry: platformStatesEntry,
-      client,
-      logger,
-    });
+    if (client) {
+      if (!platformStatesEntry) {
+        logger.error(
+          `Client platform-states entry is missing for client with id: ${client.id}`
+        );
+        differencesCount++;
+      }
 
-    const {
-      isTokenGenerationStatesClientCorrect: isTokenGenerationStatesCorrect,
-      data: tokenGenStatesDiff,
-    } = validateTokenGenerationStates({
-      tokenGenStatesEntries,
-      client,
-      purposesById,
-      eservicesById,
-      agreementsByConsumerIdEserviceId,
-      logger,
-    });
+      if (platformStatesEntry) {
+        const expectedPlatformStatesClientEntry: ComparisonPlatformStatesClientEntry =
+          {
+            PK: makePlatformStatesClientPK(client.id),
+            clientKind: clientKindToTokenGenerationStatesClientKind(
+              client.kind
+            ),
+            clientConsumerId: client.consumerId,
+            clientPurposesIds: client.purposes,
+          };
 
-    if (!isPlatformStatesCorrect || !isTokenGenerationStatesCorrect) {
-      const clientDifferencesEntry: [
-        ComparisonPlatformStatesClientEntry | undefined,
-        ComparisonTokenGenStatesGenericClient[] | undefined,
-        ComparisonClient | undefined
-      ] = [
-        platformClientEntryDiff,
-        tokenGenStatesDiff,
-        ComparisonClient.parse(client),
-      ];
-      return [...acc, clientDifferencesEntry];
+        const objectsDiff = diff(
+          ComparisonPlatformStatesClientEntry.parse(platformStatesEntry),
+          expectedPlatformStatesClientEntry,
+          {
+            sort: true,
+            // We're not able to check clientPurposesIds because events V1 use it and events V2 don't
+            excludeKeys: ["clientPurposesIds"],
+          }
+        );
+        if (objectsDiff) {
+          differencesCount++;
+          // For info: __old = platform-states entry and __new = read model client
+          logger.error(
+            `Differences in platform-states when checking client with id ${client.id}`
+          );
+          logger.error(JSON.stringify(objectsDiff, null, 2));
+        }
+      }
+
+      differencesCount += validateTokenGenerationStates({
+        tokenGenStatesEntries,
+        client,
+        purposesById,
+        eservicesById,
+        agreementsByConsumerIdEserviceId,
+        logger,
+      });
     }
-
-    return acc;
-  }, []);
-}
-
-function validateClientPlatformStates({
-  platformClientEntry: platformStatesClientEntry,
-  client,
-  logger,
-}: {
-  platformClientEntry: PlatformStatesClientEntry | undefined;
-  client: Client;
-  logger: Logger;
-}): {
-  isPlatformStatesClientCorrect: boolean;
-  data: ComparisonPlatformStatesClientEntry | undefined;
-} {
-  if (!platformStatesClientEntry) {
-    logger.error(
-      `Client platform-states entry is missing for client with id: ${client.id}`
-    );
-    return { isPlatformStatesClientCorrect: false, data: undefined };
   }
 
-  const isPlatformStatesClientCorrect =
-    platformStatesClientEntry.state === itemState.active &&
-    getIdFromPlatformStatesPK<ClientId>(platformStatesClientEntry.PK) ===
-      client.id &&
-    platformStatesClientEntry.clientKind ===
-      clientKindToTokenGenerationStatesClientKind(client.kind) &&
-    platformStatesClientEntry.clientConsumerId === client.consumerId &&
-    platformStatesClientEntry.clientPurposesIds.every((p) =>
-      client.purposes.includes(p)
-    );
-
-  if (!isPlatformStatesClientCorrect) {
-    logger.error(
-      `Client states are not equal:
-  platform-states entry: ${JSON.stringify(
-    ComparisonPlatformStatesClientEntry.parse(platformStatesClientEntry)
-  )}
-  client read-model: ${JSON.stringify(ComparisonClient.parse(client))}`
-    );
-
-    return {
-      isPlatformStatesClientCorrect,
-      data: {
-        PK: platformStatesClientEntry.PK,
-        clientKind: platformStatesClientEntry.clientKind,
-        clientConsumerId: platformStatesClientEntry.clientConsumerId,
-        clientPurposesIds: platformStatesClientEntry.clientPurposesIds,
-      },
-    };
-  }
-
-  return {
-    isPlatformStatesClientCorrect,
-    data: undefined,
-  };
+  return differencesCount;
 }
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -726,16 +679,15 @@ function validateTokenGenerationStates({
   eservicesById: Map<EServiceId, EService>;
   agreementsByConsumerIdEserviceId: Map<GSIPKConsumerIdEServiceId, Agreement[]>;
   logger: Logger;
-}): {
-  isTokenGenerationStatesClientCorrect: boolean;
-  data: ComparisonTokenGenStatesGenericClient[] | undefined;
-} {
+}): number {
+  const expectedTokenGenStatesEntriesCount =
+    client.purposes.length > 0
+      ? client.keys.length * client.purposes.length
+      : client.keys.length;
+
   if (!tokenGenStatesEntries || tokenGenStatesEntries.length === 0) {
     if (client.keys.length === 0) {
-      return {
-        isTokenGenerationStatesClientCorrect: true,
-        data: undefined,
-      };
+      return 0;
     }
 
     logger.error(
@@ -743,346 +695,243 @@ function validateTokenGenerationStates({
         client.keys.length > 1 ? "keys" : "key"
       } but zero token-generation-states entries`
     );
-    return {
-      isTokenGenerationStatesClientCorrect: false,
-      data: undefined,
-    };
+    return expectedTokenGenStatesEntriesCount;
   }
 
-  const tokenGenStatesEntriesCount =
-    client.purposes.length > 0
-      ? client.keys.length * client.purposes.length
-      : client.keys.length;
-  const wrongTokenGenStatesEntries = tokenGenStatesEntries.reduce<
-    ComparisonTokenGenStatesGenericClient[]
-  >(
-    (acc, e) =>
-      match(e)
-        // eslint-disable-next-line complexity
-        .with({ clientKind: clientKindTokenGenStates.consumer }, (e) => {
-          if (client.purposes.length !== 0) {
-            // TokenGenerationStatesConsumerClient with CLIENTKIDPURPOSE PK
-            const purposeId = getPurposeIdFromTokenGenStatesPK(e.PK);
-            const purpose = purposeId ? purposesById.get(purposeId) : undefined;
+  // eslint-disable-next-line functional/no-let
+  let differencesCount = 0;
+  for (const e of tokenGenStatesEntries) {
+    match(e)
+      // eslint-disable-next-line complexity
+      .with({ clientKind: clientKindTokenGenStates.consumer }, (e) => {
+        if (client.purposes.length !== 0) {
+          // TokenGenerationStatesConsumerClient with CLIENTKIDPURPOSE PK
+          const purposeId = getPurposeIdFromTokenGenStatesPK(e.PK);
+          const purpose = purposeId ? purposesById.get(purposeId) : undefined;
 
-            if (!purpose) {
-              if (
-                TokenGenerationStatesClientKidPurposePK.safeParse(e.PK).success
-              ) {
-                logger.error(
-                  `no purpose found in read model for token-generation-states entry with PK ${e.PK}`
-                );
-              }
-
+          if (!purpose) {
+            if (
+              TokenGenerationStatesClientKidPurposePK.safeParse(e.PK).success
+            ) {
               logger.error(
-                `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKIDPURPOSE PK`
+                `no purpose found in read model for token-generation-states entry with PK ${e.PK}`
               );
-              return [
-                ...acc,
-                {
-                  PK: e.PK,
-                  consumerId: e.consumerId,
-                  clientKind: e.clientKind,
-                  publicKey: e.publicKey,
-                  GSIPK_clientId: e.GSIPK_clientId,
-                  GSIPK_kid: e.GSIPK_kid,
-                  GSIPK_clientId_purposeId: e.GSIPK_clientId_purposeId,
-                },
-              ];
             }
 
-            const purposeState = getPurposeStateFromPurposeVersions(
-              purpose.versions
+            logger.error(
+              `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKIDPURPOSE PK`
             );
-            const lastPurposeVersion = getLastPurposeVersion(purpose.versions);
-            const agreements = agreementsByConsumerIdEserviceId.get(
-              makeGSIPKConsumerIdEServiceId({
-                consumerId: client.consumerId,
-                eserviceId: purpose.eserviceId,
-              })
-            );
+            differencesCount++;
+            return;
+          }
 
-            if (!agreements) {
-              logger.error(
-                `no agreements found in read model for token-generation-states entry with PK ${e.PK}`
-              );
+          const purposeState = getPurposeStateFromPurposeVersions(
+            purpose.versions
+          );
+          const lastPurposeVersion = getLastPurposeVersion(purpose.versions);
+          const agreements = agreementsByConsumerIdEserviceId.get(
+            makeGSIPKConsumerIdEServiceId({
+              consumerId: client.consumerId,
+              eserviceId: purpose.eserviceId,
+            })
+          );
 
-              return [
-                ...acc,
-                {
-                  PK: e.PK,
-                  consumerId: e.consumerId,
-                  clientKind: e.clientKind,
-                  publicKey: e.publicKey,
-                  GSIPK_clientId: e.GSIPK_clientId,
-                  GSIPK_kid: e.GSIPK_kid,
-                  GSIPK_clientId_purposeId: e.GSIPK_clientId_purposeId,
-                  GSIPK_purposeId: e.GSIPK_purposeId,
-                  purposeState: e.purposeState,
-                  purposeVersionId: e.purposeVersionId,
-                  GSIPK_eserviceId_descriptorId:
-                    e.GSIPK_eserviceId_descriptorId,
-                },
-              ];
-            }
-
-            const agreement = getLastAgreement(agreements);
-            const agreementItemState = agreementStateToItemState(
-              agreement.state
+          if (!agreements) {
+            logger.error(
+              `no agreements found in read model for token-generation-states entry with PK ${e.PK}`
             );
 
-            const eservice = eservicesById.get(agreement.eserviceId);
+            differencesCount++;
+            return;
+          }
 
-            const descriptor = eservice?.descriptors.find(
-              (d) => d.id === agreement.descriptorId
+          const agreement = getLastAgreement(agreements);
+          const agreementItemState = agreementStateToItemState(agreement.state);
+
+          const eservice = eservicesById.get(agreement.eserviceId);
+
+          const descriptor = eservice?.descriptors.find(
+            (d) => d.id === agreement.descriptorId
+          );
+
+          if (!eservice || !descriptor) {
+            const missingEServiceDescriptor = [
+              !eservice ? "e-service" : null,
+              !descriptor ? "descriptor" : null,
+            ]
+              .filter(Boolean)
+              .join(" and ");
+
+            logger.error(
+              `no ${missingEServiceDescriptor} in read model for token-generation-states entry with PK ${e.PK}`
             );
 
-            if (!eservice || !descriptor) {
-              const missingEServiceDescriptor = [
-                !eservice ? "e-service" : null,
-                !descriptor ? "descriptor" : null,
-              ]
-                .filter(Boolean)
-                .join(" and ");
+            differencesCount++;
+            return;
+          }
 
-              logger.error(
-                `no ${missingEServiceDescriptor} in read model for token-generation-states entry with PK ${e.PK}`
-              );
+          const clientIdCheck =
+            getClientIdFromTokenGenStatesPK(e.PK) === client.id;
+          const consumerIdCheck = e.consumerId === client.consumerId;
+          const gsiPKClientIdCheck = e.GSIPK_clientId === client.id;
+          const keysCheck = client.keys.some(
+            (k) => k.kid === e.GSIPK_kid && k.encodedPem === e.publicKey
+          );
+          const gsiPKKidCheck =
+            e.GSIPK_kid === getKidFromTokenGenStatesPK(e.PK);
+          const gsiPKClientIdPurposeIdCheck =
+            e.GSIPK_clientId_purposeId ===
+            makeGSIPKClientIdPurposeId({
+              clientId: client.id,
+              purposeId: purpose.id,
+            });
+          const gsiPKPurposeIdCheck = e.GSIPK_purposeId === purpose.id;
+          const purposeStateCheck = e.purposeState === purposeState;
+          const purposeVersionIdCheck =
+            e.purposeVersionId === lastPurposeVersion.id;
+          const gsiPKConsumerIdEServiceIdCheck =
+            e.GSIPK_consumerId_eserviceId ===
+            makeGSIPKConsumerIdEServiceId({
+              consumerId: client.consumerId,
+              eserviceId: purpose.eserviceId,
+            });
+          const agreementIdCheck = e.agreementId === agreement.id;
+          const agreementStateCheck = e.agreementState === agreementItemState;
+          const gsiPKEServiceIdDescriptorIdCheck =
+            e.GSIPK_eserviceId_descriptorId ===
+            makeGSIPKEServiceIdDescriptorId({
+              eserviceId: agreement.eserviceId,
+              descriptorId: agreement.descriptorId,
+            });
+          const descriptorStateCheck =
+            e.descriptorState === descriptorStateToItemState(descriptor.state);
+          const descriptorAudienceCheck = !!e.descriptorAudience?.every((aud) =>
+            descriptor.audience.includes(aud)
+          );
+          const descriptorVoucherLifespanCheck =
+            e.descriptorVoucherLifespan === descriptor.voucherLifespan;
 
-              return [
-                ...acc,
-                {
-                  PK: e.PK,
-                  consumerId: e.consumerId,
-                  clientKind: e.clientKind,
-                  publicKey: e.publicKey,
-                  GSIPK_clientId: e.GSIPK_clientId,
-                  GSIPK_kid: e.GSIPK_kid,
-                  GSIPK_clientId_purposeId: e.GSIPK_clientId_purposeId,
-                  GSIPK_purposeId: e.GSIPK_purposeId,
-                  purposeState: e.purposeState,
-                  purposeVersionId: e.purposeVersionId,
-                  GSIPK_eserviceId_descriptorId:
-                    e.GSIPK_eserviceId_descriptorId,
-                  agreementId: e.agreementId,
-                  agreementState: e.agreementState,
-                },
-              ];
-            }
+          if (
+            !clientIdCheck ||
+            !consumerIdCheck ||
+            !gsiPKClientIdCheck ||
+            !keysCheck ||
+            !gsiPKKidCheck ||
+            !gsiPKClientIdPurposeIdCheck ||
+            !gsiPKPurposeIdCheck ||
+            !purposeStateCheck ||
+            !purposeVersionIdCheck ||
+            !gsiPKConsumerIdEServiceIdCheck ||
+            !agreementIdCheck ||
+            !agreementStateCheck ||
+            !gsiPKEServiceIdDescriptorIdCheck ||
+            !descriptorStateCheck ||
+            !descriptorAudienceCheck ||
+            !descriptorVoucherLifespanCheck
+          ) {
+            logger.error(
+              `token-generation-states check failed for entry with PK ${e.PK}`
+            );
+            logger.error(`clientIdCheck: ${clientIdCheck}`);
+            logger.error(`consumerIdCheck: ${consumerIdCheck}`);
+            logger.error(`gsiPKClientIdCheck: ${gsiPKClientIdCheck}`);
+            logger.error(`keysCheck: ${keysCheck}`);
+            logger.error(`kidCheck: ${gsiPKKidCheck}`);
+            logger.error(
+              `gsiPKClientIdPurposeIdCheck: ${gsiPKClientIdPurposeIdCheck}`
+            );
+            logger.error(`gsiPKPurposeIdCheck: ${gsiPKPurposeIdCheck}`);
+            logger.error(`purposeStateCheck: ${purposeStateCheck}`);
+            logger.error(`purposeVersionIdCheck: ${purposeVersionIdCheck}`);
+            logger.error(
+              `gsiPKConsumerIdEServiceIdCheck: ${gsiPKConsumerIdEServiceIdCheck}`
+            );
+            logger.error(`agreementIdCheck: ${agreementIdCheck}`);
+            logger.error(`agreementStateCheck: ${agreementStateCheck}`);
+            logger.error(
+              `gsiPKEServiceIdDescriptorIdCheck: ${gsiPKEServiceIdDescriptorIdCheck}`
+            );
+            logger.error(`descriptorStateCheck: ${descriptorStateCheck}`);
+            logger.error(`descriptorAudienceCheck: ${descriptorAudienceCheck}`);
+            logger.error(
+              `descriptorVoucherLifespanCheck: ${descriptorVoucherLifespanCheck}`
+            );
+
+            differencesCount++;
+          }
+        } else {
+          // TokenGenerationStatesConsumerClient with CLIENTKID PK
+          if (TokenGenerationStatesClientKidPK.safeParse(e.PK).success) {
+            const clientIdCheck =
+              getClientIdFromTokenGenStatesPK(e.PK) === client.id;
+            const consumerIdCheck = e.consumerId === client.consumerId;
+            const gsiPKClientIdCheck = e.GSIPK_clientId === client.id;
+            const keysCheck = client.keys.some(
+              (k) => k.kid === e.GSIPK_kid && k.encodedPem === e.publicKey
+            );
+            const gsiPKKidCheck =
+              e.GSIPK_kid === getKidFromTokenGenStatesPK(e.PK);
 
             if (
-              getClientIdFromTokenGenStatesPK(e.PK) !== client.id ||
-              e.consumerId !== client.consumerId ||
-              e.GSIPK_clientId !== client.id ||
-              client.keys.every(
-                (k) => !(k.kid === e.GSIPK_kid && k.encodedPem === e.publicKey)
-              ) ||
-              e.GSIPK_kid !== getKidFromTokenGenStatesPK(e.PK) ||
-              e.GSIPK_clientId_purposeId !==
-                makeGSIPKClientIdPurposeId({
-                  clientId: client.id,
-                  purposeId: purpose.id,
-                }) ||
-              e.GSIPK_purposeId !== purpose.id ||
-              e.purposeState !== purposeState ||
-              e.purposeVersionId !== lastPurposeVersion.id ||
-              e.GSIPK_consumerId_eserviceId !==
-                makeGSIPKConsumerIdEServiceId({
-                  consumerId: client.consumerId,
-                  eserviceId: purpose.eserviceId,
-                }) ||
-              e.agreementId !== agreement.id ||
-              e.agreementState !== agreementItemState ||
-              e.GSIPK_eserviceId_descriptorId !==
-                makeGSIPKEServiceIdDescriptorId({
-                  eserviceId: agreement.eserviceId,
-                  descriptorId: agreement.descriptorId,
-                }) ||
-              e.descriptorState !==
-                descriptorStateToItemState(descriptor.state) ||
-              !e.descriptorAudience?.every((aud) =>
-                descriptor.audience.includes(aud)
-              ) ||
-              e.descriptorVoucherLifespan !== descriptor.voucherLifespan
+              !clientIdCheck ||
+              !consumerIdCheck ||
+              !gsiPKClientIdCheck ||
+              !keysCheck ||
+              !gsiPKKidCheck
             ) {
-              // TODO: add precise logs
-              console.log(
-                "A",
-                getClientIdFromTokenGenStatesPK(e.PK) !== client.id
+              logger.error(
+                `token-generation-states check failed for entry with PK ${e.PK}`
               );
-              console.log(e.consumerId !== client.consumerId);
-              console.log(e.GSIPK_clientId !== client.id);
-              console.log(
-                client.keys.every(
-                  (k) =>
-                    !(k.kid === e.GSIPK_kid && k.encodedPem === e.publicKey)
-                )
-              );
-              console.log(
-                "B",
-                e.GSIPK_kid !== getKidFromTokenGenStatesPK(e.PK)
-              );
-              console.log(
-                e.GSIPK_clientId_purposeId !==
-                  makeGSIPKClientIdPurposeId({
-                    clientId: client.id,
-                    purposeId: purpose.id,
-                  })
-              );
-              console.log(e.GSIPK_purposeId !== purpose.id);
-              console.log(e.purposeState !== purposeState);
-              console.log(e.purposeVersionId !== lastPurposeVersion.id);
-              console.log(
-                "C",
-                e.GSIPK_consumerId_eserviceId !==
-                  makeGSIPKConsumerIdEServiceId({
-                    consumerId: client.consumerId,
-                    eserviceId: purpose.eserviceId,
-                  })
-              );
-              console.log(e.agreementId !== agreement.id);
-              console.log(e.agreementState !== agreementItemState);
-              console.log(
-                e.GSIPK_eserviceId_descriptorId !==
-                  makeGSIPKEServiceIdDescriptorId({
-                    eserviceId: agreement.eserviceId,
-                    descriptorId: agreement.descriptorId,
-                  })
-              );
-              console.log(
-                e.descriptorState !==
-                  descriptorStateToItemState(descriptor.state)
-              );
-              console.log(
-                !e.descriptorAudience?.every((aud) =>
-                  descriptor.audience.includes(aud)
-                )
-              );
-              console.log(
-                e.descriptorVoucherLifespan !== descriptor.voucherLifespan
-              );
-
-              const wrongTokenGenStatesEntry: ComparisonTokenGenStatesGenericClient =
-                {
-                  PK: e.PK,
-                  consumerId: e.consumerId,
-                  clientKind: e.clientKind,
-                  publicKey: e.publicKey,
-                  GSIPK_clientId: e.GSIPK_clientId,
-                  GSIPK_kid: e.GSIPK_kid,
-                  GSIPK_clientId_purposeId: e.GSIPK_clientId_purposeId,
-                  GSIPK_purposeId: e.GSIPK_purposeId,
-                  purposeState: e.purposeState,
-                  purposeVersionId: e.purposeVersionId,
-                  GSIPK_consumerId_eserviceId: e.GSIPK_consumerId_eserviceId,
-                  agreementId: e.agreementId,
-                  agreementState: e.agreementState,
-                  GSIPK_eserviceId_descriptorId:
-                    e.GSIPK_eserviceId_descriptorId,
-                  descriptorState: e.descriptorState,
-                  descriptorAudience: e.descriptorAudience,
-                  descriptorVoucherLifespan: e.descriptorVoucherLifespan,
-                };
-
-              logger.error(`token-generation-states entry with PK ${
-                e.PK
-              } is incorrect:
-  ${JSON.stringify(wrongTokenGenStatesEntry)}`);
-              return [...acc, wrongTokenGenStatesEntry];
+              logger.error(`clientIdCheck: ${clientIdCheck}`);
+              logger.error(`consumerIdCheck: ${consumerIdCheck}`);
+              logger.error(`gsiPKClientIdCheck: ${gsiPKClientIdCheck}`);
+              logger.error(`keysCheck: ${keysCheck}`);
+              logger.error(`kidCheck: ${gsiPKKidCheck}`);
+              differencesCount++;
             }
           } else {
-            // TokenGenerationStatesConsumerClient with CLIENTKID PK
-            if (TokenGenerationStatesClientKidPK.safeParse(e.PK).success) {
-              if (
-                getClientIdFromTokenGenStatesPK(e.PK) !== client.id ||
-                e.consumerId !== client.consumerId ||
-                e.GSIPK_clientId !== client.id ||
-                client.keys.every(
-                  (k) =>
-                    !(k.kid === e.GSIPK_kid && k.encodedPem === e.publicKey)
-                ) ||
-                e.GSIPK_kid !== getKidFromTokenGenStatesPK(e.PK)
-              ) {
-                return [
-                  ...acc,
-                  {
-                    PK: e.PK,
-                    consumerId: e.consumerId,
-                    clientKind: e.clientKind,
-                    publicKey: e.publicKey,
-                    GSIPK_clientId: e.GSIPK_clientId,
-                    GSIPK_kid: e.GSIPK_kid,
-                  },
-                ];
-              }
-            } else {
-              logger.error(
-                `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKID PK`
-              );
+            logger.error(
+              `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKID PK`
+            );
+            differencesCount++;
+          }
+        }
+      })
+      .with({ clientKind: clientKindTokenGenStates.api }, (e) => {
+        if (TokenGenerationStatesClientKidPK.safeParse(e.PK).success) {
+          const clientIdCheck =
+            getClientIdFromTokenGenStatesPK(e.PK) === client.id;
+          const consumerIdCheck = e.consumerId === client.consumerId;
+          const gsiPKClientIdCheck = e.GSIPK_clientId === client.id;
+          const keysCheck = client.keys.some(
+            (k) => k.kid === e.GSIPK_kid && k.encodedPem === e.publicKey
+          );
+          const gsiPKKidCheck =
+            e.GSIPK_kid === getKidFromTokenGenStatesPK(e.PK);
 
-              return [
-                ...acc,
-                {
-                  PK: e.PK,
-                  consumerId: e.consumerId,
-                  clientKind: e.clientKind,
-                  publicKey: e.publicKey,
-                  GSIPK_clientId: e.GSIPK_clientId,
-                  GSIPK_kid: e.GSIPK_kid,
-                  GSIPK_clientId_purposeId: e.GSIPK_clientId_purposeId,
-                  GSIPK_purposeId: e.GSIPK_purposeId,
-                  purposeState: e.purposeState,
-                  purposeVersionId: e.purposeVersionId,
-                  GSIPK_consumerId_eserviceId: e.GSIPK_consumerId_eserviceId,
-                  agreementId: e.agreementId,
-                  agreementState: e.agreementState,
-                  GSIPK_eserviceId_descriptorId:
-                    e.GSIPK_eserviceId_descriptorId,
-                  descriptorState: e.descriptorState,
-                  descriptorAudience: e.descriptorAudience,
-                  descriptorVoucherLifespan: e.descriptorVoucherLifespan,
-                },
-              ];
-            }
-          }
-          return acc;
-        })
-        .with({ clientKind: clientKindTokenGenStates.api }, (e) => {
           if (
-            getClientIdFromTokenGenStatesPK(e.PK) !== client.id ||
-            e.consumerId !== client.consumerId ||
-            e.GSIPK_clientId !== client.id ||
-            client.keys.every(
-              (k) => !(k.kid === e.GSIPK_kid && k.encodedPem === e.publicKey)
-            ) ||
-            e.GSIPK_kid !== getKidFromTokenGenStatesPK(e.PK)
+            !clientIdCheck ||
+            !consumerIdCheck ||
+            !gsiPKClientIdCheck ||
+            !keysCheck ||
+            !gsiPKKidCheck
           ) {
-            return [
-              ...acc,
-              {
-                PK: e.PK,
-                consumerId: e.consumerId,
-                clientKind: e.clientKind,
-                publicKey: e.publicKey,
-                GSIPK_clientId: e.GSIPK_clientId,
-                GSIPK_kid: e.GSIPK_kid,
-              },
-            ];
+            logger.error(
+              `token-generation-states check failed for entry with PK ${e.PK}`
+            );
+            logger.error(`clientIdCheck: ${clientIdCheck}`);
+            logger.error(`consumerIdCheck: ${consumerIdCheck}`);
+            logger.error(`gsiPKClientIdCheck: ${gsiPKClientIdCheck}`);
+            logger.error(`keysCheck: ${keysCheck}`);
+            logger.error(`kidCheck: ${gsiPKKidCheck}`);
+            differencesCount++;
           }
-          return acc;
-        })
-        .exhaustive(),
-    []
-  );
-  return {
-    isTokenGenerationStatesClientCorrect:
-      wrongTokenGenStatesEntries.length === 0 &&
-      tokenGenStatesEntries.length === tokenGenStatesEntriesCount,
-    data:
-      wrongTokenGenStatesEntries.length > 0
-        ? wrongTokenGenStatesEntries
-        : undefined,
-  };
+        }
+      })
+      .exhaustive();
+  }
+
+  return differencesCount;
 }
 
 export const agreementStateToItemState = (state: AgreementState): ItemState =>
