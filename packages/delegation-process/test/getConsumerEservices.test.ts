@@ -194,24 +194,20 @@ describe("getConsumerEservices", () => {
     ).toEqual({
       results: [
         {
-          id: delegationDelegator1Eservice3.id,
-          eserviceName: eservice3.name,
-          eserviceId: eservice3.id,
+          name: eservice3.name,
+          id: eservice3.id,
         },
         {
-          id: delegationDelegator1Eservice4.id,
-          eserviceName: eservice4.name,
-          eserviceId: eservice4.id,
+          name: eservice4.name,
+          id: eservice4.id,
         },
         {
-          id: delegationDelegator1Eservice1.id,
-          eserviceName: eservice1.name,
-          eserviceId: eservice1.id,
+          name: eservice1.name,
+          id: eservice1.id,
         },
         {
-          id: delegationDelegator1Eservice2.id,
-          eserviceName: eservice2.name,
-          eserviceId: eservice2.id,
+          name: eservice2.name,
+          id: eservice2.id,
         },
       ],
       totalCount: 4,
@@ -231,9 +227,8 @@ describe("getConsumerEservices", () => {
     ).toEqual({
       results: [
         {
-          id: delegationDelegator1Eservice4.id,
-          eserviceName: eservice4.name,
-          eserviceId: eservice4.id,
+          name: eservice4.name,
+          id: eservice4.id,
         },
       ],
       totalCount: 4,
@@ -254,14 +249,12 @@ describe("getConsumerEservices", () => {
     ).toEqual({
       results: [
         {
-          id: delegationDelegator1Eservice1.id,
-          eserviceName: eservice1.name,
-          eserviceId: eservice1.id,
+          name: eservice1.name,
+          id: eservice1.id,
         },
         {
-          id: delegationDelegator1Eservice2.id,
-          eserviceName: eservice2.name,
-          eserviceId: eservice2.id,
+          name: eservice2.name,
+          id: eservice2.id,
         },
       ],
       totalCount: 2,
@@ -281,9 +274,8 @@ describe("getConsumerEservices", () => {
     ).toEqual({
       results: [
         {
-          id: delegationDelegator1Eservice4.id,
-          eserviceName: eservice4.name,
-          eserviceId: eservice4.id,
+          name: eservice4.name,
+          id: eservice4.id,
         },
       ],
       totalCount: 1,

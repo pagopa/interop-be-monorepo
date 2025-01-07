@@ -479,7 +479,7 @@ const delegationRouter = (
 
         return res
           .status(200)
-          .send(delegationApi.CompactEservices.parse(eservices));
+          .send(delegationApi.CompactEservicesLight.parse(eservices));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

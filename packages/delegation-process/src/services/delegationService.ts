@@ -601,7 +601,7 @@ export function delegationServiceBuilder(
         eserviceName?: string;
       },
       logger: Logger
-    ): Promise<delegationApi.CompactEservices> {
+    ): Promise<delegationApi.CompactEservicesLight> {
       logger.info(
         `Retrieving delegated consumer eservices with filters: ${JSON.stringify(
           filters

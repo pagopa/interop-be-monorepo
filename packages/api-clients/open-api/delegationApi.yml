@@ -82,7 +82,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CompactEservices"
+                $ref: "#/components/schemas/CompactEservicesLight"
         "400":
           description: Bad Request
           content:
@@ -735,30 +735,26 @@ components:
       schema:
         type: string
   schemas:
-    CompactEservice:
+    CompactEserviceLight:
       type: object
       additionalProperties: false
       properties:
         id:
           type: string
           format: uuid
-        eserviceId:
-          type: string
-          format: uuid
-        eserviceName:
+        name:
           type: string
       required:
         - id
-        - eserviceId
-        - eserviceName
-    CompactEservices:
+        - name
+    CompactEservicesLight:
       type: object
       additionalProperties: false
       properties:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/CompactEservice"
+            $ref: "#/components/schemas/CompactEserviceLight"
         totalCount:
           type: integer
           format: int32

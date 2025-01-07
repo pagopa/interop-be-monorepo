@@ -13308,7 +13308,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DelegatedEservices"
+                $ref: "#/components/schemas/CompactEServicesLight"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -16649,35 +16649,6 @@ components:
           format: uuid
       required:
         - id
-    DelegatedEservice:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        eserviceId:
-          type: string
-          format: uuid
-        eserviceName:
-          type: string
-      required:
-        - id
-        - eserviceId
-        - eserviceName
-    DelegatedEservices:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegatedEservice"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
     DelegationKind:
       type: string
       description: Delegation State

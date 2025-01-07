@@ -381,7 +381,7 @@ export function readModelServiceBuilder(
       limit: number;
       offset: number;
       eserviceName?: string;
-    }): Promise<delegationApi.CompactEservices> {
+    }): Promise<delegationApi.CompactEservicesLight> {
       const aggregationPipeline = [
         {
           $match: {
@@ -449,20 +449,18 @@ export function readModelServiceBuilder(
         {
           $group: {
             _id: "$eservice.data.id",
-            eserviceName: { $first: "$eservice.data.name" },
-            delegationId: { $first: "$data.id" },
+            name: { $first: "$eservice.data.name" },
           },
         },
         {
           $project: {
             _id: 0,
-            id: "$delegationId",
-            eserviceId: "$_id",
-            eserviceName: 1,
+            id: "$_id",
+            name: 1,
           },
         },
         {
-          $sort: { eserviceName: 1 },
+          $sort: { name: 1 },
         },
       ];
 
@@ -477,7 +475,9 @@ export function readModelServiceBuilder(
         )
         .toArray();
 
-      const result = z.array(delegationApi.CompactEservice).safeParse(data);
+      const result = z
+        .array(delegationApi.CompactEserviceLight)
+        .safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(
