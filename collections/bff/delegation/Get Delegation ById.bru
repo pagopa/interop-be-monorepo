@@ -1,0 +1,20 @@
+meta {
+  name: Retrieves a delegation by ID
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/delegations/:delegationId
+  body: none
+  auth: none
+}
+
+params:path {
+  delegationId: dd10132c-f3c9-45cf-994c-3a312bc4ab4e
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

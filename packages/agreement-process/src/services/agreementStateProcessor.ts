@@ -12,6 +12,7 @@ import {
   agreementState,
   CompactTenant,
   CorrelationId,
+  TenantId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
@@ -182,9 +183,11 @@ export const suspendedByConsumerFlag = (
 export const suspendedByProducerFlag = (
   agreement: Agreement,
   requesterOrgId: Tenant["id"],
-  targetDestinationState: AgreementState
+  targetDestinationState: AgreementState,
+  delegateProducerId: TenantId | undefined
 ): boolean | undefined =>
-  requesterOrgId === agreement.producerId
+  requesterOrgId === agreement.producerId ||
+  requesterOrgId === delegateProducerId
     ? targetDestinationState === agreementState.suspended
     : agreement.suspendedByProducer;
 

@@ -36,14 +36,12 @@ import { clients } from "./utils.js";
 
 describe("Events V1", async () => {
   const mockClient = getMockClient();
-  const mockMessage: AuthorizationEventEnvelopeV1 = {
+  const mockMessage: Omit<AuthorizationEventEnvelopeV1, "type" | "data"> = {
     event_version: 1,
     stream_id: mockClient.id,
     version: 1,
     sequence_num: 1,
     log_date: new Date(),
-    type: "ClientAdded",
-    data: {},
   };
 
   it("ClientAdded", async () => {

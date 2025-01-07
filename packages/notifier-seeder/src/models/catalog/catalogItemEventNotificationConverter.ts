@@ -108,6 +108,9 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorArchived" }, // CatalogItemDescriptorUpdatedV1
       { type: "EServiceDescriptorPublished" }, // CatalogItemDescriptorUpdatedV1
       { type: "EServiceDescriptorSuspended" }, // CatalogItemDescriptorUpdatedV1
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      { type: "EServiceDescriptorApprovedByDelegator" },
+      { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorQuotasUpdated" },
       { type: "EServiceDescriptorAttributesUpdated" },
       (e): CatalogDescriptorNotification => {
