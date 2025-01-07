@@ -1392,8 +1392,7 @@ const getOrganizationRole = async ({
     await readModelService.getActiveProducerDelegationByEserviceId(eserviceId);
 
   if (
-    (activeProducerDelegation &&
-      organizationId === activeProducerDelegation.delegateId) ||
+    activeProducerDelegation?.delegateId === organizationId ||
     (!activeProducerDelegation && organizationId === producerId)
   ) {
     return ownership.PRODUCER;
@@ -1406,8 +1405,7 @@ const getOrganizationRole = async ({
     });
 
   if (
-    (activeConsumerDelegation &&
-      organizationId === activeConsumerDelegation.delegateId) ||
+    activeConsumerDelegation?.delegateId === organizationId ||
     (!activeConsumerDelegation &&
       producerId !== consumerId &&
       organizationId === consumerId)
