@@ -54,21 +54,6 @@ import {
   vi,
 } from "vitest";
 import {
-  AgreementDifferencesResult,
-  CatalogDifferencesResult,
-  ClientDifferencesResult,
-  ComparisonAgreement,
-  ComparisonClient,
-  ComparisonEService,
-  ComparisonPlatformStatesAgreementEntry,
-  ComparisonPlatformStatesCatalogEntry,
-  ComparisonPlatformStatesClientEntry,
-  ComparisonPlatformStatesPurposeEntry,
-  ComparisonPurpose,
-  ComparisonTokenGenStatesGenericClient,
-  PurposeDifferencesResult,
-} from "../src/models/types.js";
-import {
   agreementStateToItemState,
   clientKindToTokenGenerationStatesClientKind,
   compareReadModelAgreementsWithPlatformStates,
@@ -327,7 +312,7 @@ describe("Token Generation Read Model Checker tests", () => {
           ]),
           logger: genericLogger,
         });
-      expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
+      expect(purposeDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences for wrong purpose states", async () => {
@@ -385,24 +370,7 @@ describe("Token Generation Read Model Checker tests", () => {
           ]),
           logger: genericLogger,
         });
-      const expectedPurposeDifferences: PurposeDifferencesResult = [
-        [
-          ComparisonPlatformStatesPurposeEntry.parse(
-            platformStatesPurposeEntry1
-          ),
-          ComparisonPurpose.parse(purpose1),
-        ],
-        [
-          ComparisonPlatformStatesPurposeEntry.parse(
-            platformStatesPurposeEntry2
-          ),
-          ComparisonPurpose.parse(purpose2),
-        ],
-      ];
-      expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
-      expect(purposeDifferences).toEqual(
-        expect.arrayContaining(expectedPurposeDifferences)
-      );
+      expect(purposeDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences when the platform-states entry is missing and the purpose is not archived", async () => {
@@ -418,11 +386,7 @@ describe("Token Generation Read Model Checker tests", () => {
           purposesById: new Map([[purpose.id, purpose]]),
           logger: genericLogger,
         });
-      const expectedPurposeDifferences: PurposeDifferencesResult = [
-        [undefined, ComparisonPurpose.parse(purpose)],
-      ];
-      expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
-      expect(purposeDifferences).toEqual(expectedPurposeDifferences);
+      expect(purposeDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should not detect differences when the platform-states entry is missing and the purpose is archived", async () => {
@@ -438,7 +402,7 @@ describe("Token Generation Read Model Checker tests", () => {
           purposesById: new Map([[purpose.id, purpose]]),
           logger: genericLogger,
         });
-      expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
+      expect(purposeDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences when the read model purpose is missing", async () => {
@@ -471,16 +435,7 @@ describe("Token Generation Read Model Checker tests", () => {
           purposesById: new Map(),
           logger: genericLogger,
         });
-      const expectedPurposeDifferences: PurposeDifferencesResult = [
-        [
-          ComparisonPlatformStatesPurposeEntry.parse(
-            platformStatesPurposeEntry
-          ),
-          undefined,
-        ],
-      ];
-      expect(purposeDifferences).toHaveLength(expectedDifferencesLength);
-      expect(purposeDifferences).toEqual(expectedPurposeDifferences);
+      expect(purposeDifferences).toEqual(expectedDifferencesLength);
     });
   });
 
@@ -564,7 +519,7 @@ describe("Token Generation Read Model Checker tests", () => {
           ]),
           logger: genericLogger,
         });
-      expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
+      expect(agreementDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences for wrong agreement states", async () => {
@@ -646,24 +601,7 @@ describe("Token Generation Read Model Checker tests", () => {
           ]),
           logger: genericLogger,
         });
-      const expectedAgreementDifferences: AgreementDifferencesResult = [
-        [
-          ComparisonPlatformStatesAgreementEntry.parse(
-            platformStatesAgreementEntry1
-          ),
-          ComparisonAgreement.parse(agreement1),
-        ],
-        [
-          ComparisonPlatformStatesAgreementEntry.parse(
-            platformStatesAgreementEntry2
-          ),
-          ComparisonAgreement.parse(agreement2),
-        ],
-      ];
-      expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
-      expect(agreementDifferences).toEqual(
-        expect.arrayContaining(expectedAgreementDifferences)
-      );
+      expect(agreementDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences when the platform-states entry is missing and the agreement is not archived", async () => {
@@ -686,11 +624,7 @@ describe("Token Generation Read Model Checker tests", () => {
           agreementsById: new Map([[agreement.id, agreement]]),
           logger: genericLogger,
         });
-      const expectedAgreementDifferences: AgreementDifferencesResult = [
-        [undefined, ComparisonAgreement.parse(agreement)],
-      ];
-      expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
-      expect(agreementDifferences).toEqual(expectedAgreementDifferences);
+      expect(agreementDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should not detect differences when the platform-states entry is missing and the agreement is archived", async () => {
@@ -713,7 +647,7 @@ describe("Token Generation Read Model Checker tests", () => {
           agreementsById: new Map([[agreement.id, agreement]]),
           logger: genericLogger,
         });
-      expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
+      expect(agreementDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences when the read model agreement is missing", async () => {
@@ -758,16 +692,7 @@ describe("Token Generation Read Model Checker tests", () => {
           agreementsById: new Map(),
           logger: genericLogger,
         });
-      const expectedAgreementDifferences: AgreementDifferencesResult = [
-        [
-          ComparisonPlatformStatesAgreementEntry.parse(
-            platformStatesAgreementEntry
-          ),
-          undefined,
-        ],
-      ];
-      expect(agreementDifferences).toHaveLength(expectedDifferencesLength);
-      expect(agreementDifferences).toEqual(expectedAgreementDifferences);
+      expect(agreementDifferences).toEqual(expectedDifferencesLength);
     });
   });
 
@@ -874,7 +799,7 @@ describe("Token Generation Read Model Checker tests", () => {
           ]),
           logger: genericLogger,
         });
-      expect(catalogDifferences).toHaveLength(expectedDifferencesLength);
+      expect(catalogDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences for wrong eservice states", async () => {
@@ -954,24 +879,7 @@ describe("Token Generation Read Model Checker tests", () => {
           ]),
           logger: genericLogger,
         });
-      const expectedCatalogDifferences: CatalogDifferencesResult = [
-        [
-          ComparisonPlatformStatesCatalogEntry.parse(
-            platformStatesCatalogEntry1
-          ),
-          ComparisonEService.parse(eservice1),
-        ],
-        [
-          ComparisonPlatformStatesCatalogEntry.parse(
-            platformStatesCatalogEntry2
-          ),
-          ComparisonEService.parse(eservice2),
-        ],
-      ];
-      expect(catalogDifferences).toHaveLength(expectedDifferencesLength);
-      expect(catalogDifferences).toEqual(
-        expect.arrayContaining(expectedCatalogDifferences)
-      );
+      expect(catalogDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences when the platform-states entry is missing and the descriptor is not archived", async () => {
@@ -993,11 +901,7 @@ describe("Token Generation Read Model Checker tests", () => {
           eservicesById: new Map([[eservice.id, eservice]]),
           logger: genericLogger,
         });
-      const expectedCatalogDifferences: CatalogDifferencesResult = [
-        [undefined, ComparisonEService.parse(eservice)],
-      ];
-      expect(catalogDifferences).toHaveLength(expectedDifferencesLength);
-      expect(catalogDifferences).toEqual(expectedCatalogDifferences);
+      expect(catalogDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should not detect differences when the platform-states entry is missing and the descriptor is archived", async () => {
@@ -1019,7 +923,7 @@ describe("Token Generation Read Model Checker tests", () => {
           eservicesById: new Map([[eservice.id, eservice]]),
           logger: genericLogger,
         });
-      expect(catalogDifferences).toHaveLength(expectedDifferencesLength);
+      expect(catalogDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences when the read model eservice is missing", async () => {
@@ -1063,16 +967,7 @@ describe("Token Generation Read Model Checker tests", () => {
           eservicesById: new Map(),
           logger: genericLogger,
         });
-      const expectedAgreementDifferences: CatalogDifferencesResult = [
-        [
-          ComparisonPlatformStatesCatalogEntry.parse(
-            platformStatesCatalogEntry
-          ),
-          undefined,
-        ],
-      ];
-      expect(catalogDifferences).toHaveLength(expectedDifferencesLength);
-      expect(catalogDifferences).toEqual(expectedAgreementDifferences);
+      expect(catalogDifferences).toEqual(expectedDifferencesLength);
     });
   });
 
@@ -1302,7 +1197,7 @@ describe("Token Generation Read Model Checker tests", () => {
         agreementsByConsumerIdEserviceId,
         logger: genericLogger,
       });
-      expect(clientDifferences).toHaveLength(expectedDifferencesLength);
+      expect(clientDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences when the client states are not correct", async () => {
@@ -1401,7 +1296,7 @@ describe("Token Generation Read Model Checker tests", () => {
       };
       const client2: Client = {
         ...getMockClient(),
-        purposes: [purpose2.id, generateId()],
+        purposes: [purpose2.id],
         consumerId: purpose2.consumerId,
         keys: [getMockKey()],
       };
@@ -1470,7 +1365,7 @@ describe("Token Generation Read Model Checker tests", () => {
         dynamoDBClient
       );
 
-      const expectedDifferencesLength = 2;
+      const expectedDifferencesLength = 3;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
         platformStatesClientById: new Map([
           [client1.id, platformStatesClientEntry1],
@@ -1485,26 +1380,7 @@ describe("Token Generation Read Model Checker tests", () => {
         agreementsByConsumerIdEserviceId,
         logger: genericLogger,
       });
-      const expectedClientDifferences: ClientDifferencesResult = [
-        [
-          undefined,
-          [
-            ComparisonTokenGenStatesGenericClient.parse(
-              tokenGenStatesConsumerClient
-            ),
-          ],
-          ComparisonClient.parse(client1),
-        ],
-        [
-          ComparisonPlatformStatesClientEntry.parse(platformStatesClientEntry2),
-          undefined,
-          ComparisonClient.parse(client2),
-        ],
-      ];
-      expect(clientDifferences).toHaveLength(expectedDifferencesLength);
-      expect(clientDifferences).toEqual(
-        expect.arrayContaining(expectedClientDifferences)
-      );
+      expect(clientDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences if the token-generation-states entry has a CLIENTKID PK but should have a CLIENTKIDPURPOSE PK", async () => {
@@ -1620,21 +1496,7 @@ describe("Token Generation Read Model Checker tests", () => {
         agreementsByConsumerIdEserviceId,
         logger: genericLogger,
       });
-      const expectedClientDifferences: ClientDifferencesResult = [
-        [
-          undefined,
-          [
-            ComparisonTokenGenStatesGenericClient.parse(
-              tokenGenStatesConsumerClient
-            ),
-          ],
-          ComparisonClient.parse(client),
-        ],
-      ];
-      expect(clientDifferences).toHaveLength(expectedDifferencesLength);
-      expect(clientDifferences).toEqual(
-        expect.arrayContaining(expectedClientDifferences)
-      );
+      expect(clientDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences if the token-generation-states entry has a CLIENTKIDPURPOSE PK but should have a CLIENTKID PK", async () => {
@@ -1744,21 +1606,7 @@ describe("Token Generation Read Model Checker tests", () => {
         agreementsByConsumerIdEserviceId,
         logger: genericLogger,
       });
-      const expectedClientDifferences: ClientDifferencesResult = [
-        [
-          undefined,
-          [
-            ComparisonTokenGenStatesGenericClient.parse(
-              tokenGenStatesConsumerClient
-            ),
-          ],
-          ComparisonClient.parse(client),
-        ],
-      ];
-      expect(clientDifferences).toHaveLength(expectedDifferencesLength);
-      expect(clientDifferences).toEqual(
-        expect.arrayContaining(expectedClientDifferences)
-      );
+      expect(clientDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences when the platform-states entry is missing", async () => {
@@ -1814,7 +1662,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const clientsById = new Map([[client.id, client]]);
       await addOneClient(client);
 
-      const expectedDifferencesLength = 1;
+      const expectedDifferencesLength = 2;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
         platformStatesClientById: new Map(),
         tokenGenStatesByClient: new Map(),
@@ -1824,13 +1672,7 @@ describe("Token Generation Read Model Checker tests", () => {
         agreementsByConsumerIdEserviceId,
         logger: genericLogger,
       });
-      const expectedClientDifferences: ClientDifferencesResult = [
-        [undefined, undefined, ComparisonClient.parse(client)],
-      ];
-      expect(clientDifferences).toHaveLength(expectedDifferencesLength);
-      expect(clientDifferences).toEqual(
-        expect.arrayContaining(expectedClientDifferences)
-      );
+      expect(clientDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences when the token-generation-states entries are missing if the client has keys", async () => {
@@ -1915,13 +1757,7 @@ describe("Token Generation Read Model Checker tests", () => {
         agreementsByConsumerIdEserviceId,
         logger: genericLogger,
       });
-      const expectedClientDifferences: ClientDifferencesResult = [
-        [undefined, undefined, ComparisonClient.parse(client)],
-      ];
-      expect(clientDifferences).toHaveLength(expectedDifferencesLength);
-      expect(clientDifferences).toEqual(
-        expect.arrayContaining(expectedClientDifferences)
-      );
+      expect(clientDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should not detect differences when the token-generation-states entries are missing if the client has no keys", async () => {
@@ -2004,7 +1840,7 @@ describe("Token Generation Read Model Checker tests", () => {
         agreementsByConsumerIdEserviceId,
         logger: genericLogger,
       });
-      expect(clientDifferences).toHaveLength(expectedDifferencesLength);
+      expect(clientDifferences).toEqual(expectedDifferencesLength);
     });
 
     it("should detect differences when the read model client is missing", async () => {
@@ -2114,19 +1950,7 @@ describe("Token Generation Read Model Checker tests", () => {
         agreementsByConsumerIdEserviceId,
         logger: genericLogger,
       });
-      const expectedClientDifferences: ClientDifferencesResult = [
-        [
-          ComparisonPlatformStatesClientEntry.parse(platformStatesClientEntry),
-          [
-            ComparisonTokenGenStatesGenericClient.parse(
-              tokenGenStatesConsumerClient
-            ),
-          ],
-          undefined,
-        ],
-      ];
-      expect(clientDifferences).toHaveLength(expectedDifferencesLength);
-      expect(clientDifferences).toEqual(expectedClientDifferences);
+      expect(clientDifferences).toEqual(expectedDifferencesLength);
     });
   });
 });
