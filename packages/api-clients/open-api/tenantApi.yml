@@ -1251,6 +1251,7 @@ components:
       enum:
         - PERSISTENT_CERTIFIER
         - DELEGATED_PRODUCER
+        - DELEGATED_CONSUMER
     TenantFeature:
       oneOf:
         - type: object

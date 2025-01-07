@@ -4,6 +4,7 @@ import {
   TenantCollection,
   PurposeCollection,
   ReadModelFilter,
+  DelegationCollection,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -25,8 +26,9 @@ import {
   TenantReadModel,
   delegationState,
   Delegation,
-  DelegationKind,
   delegationKind,
+  DelegationReadModel,
+  DelegationId,
 } from "pagopa-interop-models";
 import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
@@ -110,6 +112,27 @@ async function getTenant(
     }
     return result.data;
   }
+}
+
+async function getDelegation(
+  delegations: DelegationCollection,
+  filter: Filter<{ data: DelegationReadModel }>
+): Promise<Delegation | undefined> {
+  const data = await delegations.findOne(filter, {
+    projection: { data: true },
+  });
+  if (data) {
+    const result = Delegation.safeParse(data.data);
+    if (!result.success) {
+      throw genericInternalError(
+        `Unable to parse delegation item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return result.data;
+  }
+  return undefined;
 }
 
 async function buildGetPurposesAggregation(
@@ -375,24 +398,37 @@ export function readModelServiceBuilder(
 
       return result.data;
     },
-    async getActiveDelegation(
-      eserviceId: EServiceId,
-      kind: DelegationKind
+    async getActiveProducerDelegationByEserviceId(
+      eserviceId: EServiceId
     ): Promise<Delegation | undefined> {
-      const data = await delegations.findOne({
+      return getDelegation(delegations, {
         "data.eserviceId": eserviceId,
-        "data.kind": kind,
         "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedProducer,
       });
-      if (!data) {
-        return undefined;
-      } else {
-        const result = Delegation.safeParse(data.data);
-        if (!result.success) {
-          throw genericError("Unable to parse delegation item");
-        }
-        return result.data;
-      }
+    },
+    async getActiveConsumerDelegationByEserviceAndConsumerIds({
+      eserviceId,
+      consumerId,
+    }: {
+      eserviceId: EServiceId;
+      consumerId: TenantId;
+    }): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.eserviceId": eserviceId,
+        "data.delegatorId": consumerId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedConsumer,
+      });
+    },
+    async getActiveConsumerDelegationByDelegationId(
+      delegationId: DelegationId
+    ): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.delegationId": delegationId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedConsumer,
+      });
     },
   };
 }

@@ -29,7 +29,7 @@ import {
 } from "./utils.js";
 
 describe("reject consumer delegation", () => {
-  it("should reject delegation if all validations succed", async () => {
+  it("should reject delegation if all validations succeed", async () => {
     const currentExecutionTime = new Date();
     vi.useFakeTimers();
     vi.setSystemTime(currentExecutionTime);
