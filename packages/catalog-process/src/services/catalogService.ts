@@ -1865,7 +1865,7 @@ export function catalogServiceBuilder(
         isClientAccessDelegable,
       };
 
-      const event = match({
+      const events = match({
         isDelegable,
         oldIsDelegable: eservice.data.isDelegable || false,
         isClientAccessDelegable,
@@ -1876,25 +1876,55 @@ export function catalogServiceBuilder(
           {
             isDelegable: true,
             oldIsDelegable: false,
+            isClientAccessDelegable: false,
+            oldIsClientAccessDelegable: false,
           },
-          () =>
+          {
+            isDelegable: true,
+            oldIsDelegable: false,
+            isClientAccessDelegable: false,
+            oldIsClientAccessDelegable: true, // should never happen
+          },
+          () => [
             toCreateEventEServiceIsDelegableEnabled(
               eservice.metadata.version,
               updatedEservice,
               correlationId
-            )
+            ),
+          ]
+        )
+        .with(
+          {
+            isDelegable: true,
+            oldIsDelegable: false,
+            isClientAccessDelegable: true,
+            oldIsClientAccessDelegable: false,
+          },
+          () => [
+            toCreateEventEServiceIsDelegableEnabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            ),
+            toCreateEventEServiceIsClientAccessDelegableEnabled(
+              eservice.metadata.version + 1,
+              updatedEservice,
+              correlationId
+            ),
+          ]
         )
         .with(
           {
             isDelegable: false,
             oldIsDelegable: true,
           },
-          () =>
+          () => [
             toCreateEventEServiceIsDelegableDisabled(
               eservice.metadata.version,
               updatedEservice,
               correlationId
-            )
+            ),
+          ]
         )
         .with(
           {
@@ -1903,12 +1933,13 @@ export function catalogServiceBuilder(
             isClientAccessDelegable: true,
             oldIsClientAccessDelegable: false,
           },
-          () =>
+          () => [
             toCreateEventEServiceIsClientAccessDelegableEnabled(
               eservice.metadata.version,
               updatedEservice,
               correlationId
-            )
+            ),
+          ]
         )
         .with(
           {
@@ -1917,12 +1948,13 @@ export function catalogServiceBuilder(
             isClientAccessDelegable: false,
             oldIsClientAccessDelegable: true,
           },
-          () =>
+          () => [
             toCreateEventEServiceIsClientAccessDelegableDisabled(
               eservice.metadata.version,
               updatedEservice,
               correlationId
-            )
+            ),
+          ]
         )
         .with(
           {
@@ -1945,8 +1977,8 @@ export function catalogServiceBuilder(
         )
         .exhaustive();
 
-      if (event) {
-        await repository.createEvent(event);
+      if (events) {
+        await repository.createEvents(events);
       }
 
       return updatedEservice;
