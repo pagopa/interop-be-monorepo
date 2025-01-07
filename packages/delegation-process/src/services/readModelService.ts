@@ -10,6 +10,7 @@ import {
   DelegationId,
   delegationKind,
   DelegationKind,
+  DelegationReadModel,
   delegationState,
   DelegationState,
   EService,
@@ -103,28 +104,43 @@ export function readModelServiceBuilder(
       }
     },
     async getDelegation(
+      filter: Filter<{ data: DelegationReadModel }>
+    ): Promise<WithMetadata<Delegation> | undefined> {
+      const data = await delegations.findOne(filter, {
+        projection: { data: true, metadata: true },
+      });
+      if (data) {
+        const result = Delegation.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse delegation item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return data;
+      }
+      return undefined;
+    },
+    async getDelegationById(
       id: DelegationId,
       kind: DelegationKind | undefined = undefined
     ): Promise<WithMetadata<Delegation> | undefined> {
-      const data = await delegations.findOne(
-        { "data.id": id, ...(kind ? { "data.kind": kind } : {}) },
-        {
-          projection: { data: true, metadata: true },
-        }
-      );
-      if (!data) {
-        return undefined;
-      }
-
-      const result = Delegation.safeParse(data.data);
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse delegation item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-      return data;
+      return this.getDelegation({
+        "data.id": id,
+        ...(kind ? { "data.kind": kind } : {}),
+      });
+    },
+    async getActiveConsumerDelegationByDelegatorAndDelegate(
+      delegatorId: TenantId,
+      delegateId: TenantId
+    ): Promise<WithMetadata<Delegation> | undefined> {
+      return this.getDelegation({
+        "data.delegatorId": delegatorId,
+        "data.delegateId": delegateId,
+        "data.kind": delegationKind.delegatedConsumer,
+        "data.state": delegationState.active,
+      });
     },
     async findDelegations(
       filters: GetDelegationsFilters
@@ -376,7 +392,7 @@ export function readModelServiceBuilder(
       };
     },
     async getConsumerEservices(filters: {
-      delegateId: TenantId;
+      organizationId: TenantId;
       delegatorId: TenantId;
       limit: number;
       offset: number;
@@ -387,7 +403,7 @@ export function readModelServiceBuilder(
           $match: {
             "data.kind": delegationKind.delegatedConsumer,
             "data.state": delegationState.active,
-            "data.delegateId": filters.delegateId,
+            "data.delegateId": filters.organizationId,
             "data.delegatorId": filters.delegatorId,
           } satisfies ReadModelFilter<Delegation>,
         },

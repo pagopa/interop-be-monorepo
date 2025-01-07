@@ -45,12 +45,6 @@ paths:
         schema:
           type: string
       - in: query
-        name: delegateId
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - in: query
         name: delegatorId
         required: true
         schema:
@@ -85,6 +79,12 @@ paths:
                 $ref: "#/components/schemas/CompactEservicesLight"
         "400":
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
