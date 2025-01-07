@@ -251,7 +251,7 @@ describe("getConsumerDelegators", () => {
       totalCount: 1,
     });
   });
-  it.only("should throw requesterIsNotConsumerDelegate if the requester is not a consumer delegate", async () => {
+  it("should throw requesterIsNotConsumerDelegate if the requester is not a consumer delegate", async () => {
     const invalidRequesterId = generateId<TenantId>();
 
     expect(
