@@ -42,7 +42,7 @@ export const deletePurposeVersionErrorMapper = (
     )
     .with(
       "organizationIsNotTheConsumer",
-      "operationRestrictedToDelegate",
+      "organizationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeVersionCannotBeDeleted", () => HTTP_STATUS_CONFLICT)
@@ -72,7 +72,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "organizationIsNotTheConsumer",
       "purposeNotInDraftState",
-      "operationRestrictedToDelegate",
+      "organizationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -86,7 +86,7 @@ export const deletePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "organizationIsNotTheConsumer",
-      "operationRestrictedToDelegate",
+      "organizationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeCannotBeDeleted", () => HTTP_STATUS_CONFLICT)
@@ -103,7 +103,7 @@ export const archivePurposeVersionErrorMapper = (
     )
     .with(
       "organizationIsNotTheConsumer",
-      "operationRestrictedToDelegate",
+      "organizationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
@@ -130,7 +130,6 @@ export const createPurposeVersionErrorMapper = (
     .with(
       "organizationIsNotTheConsumer",
       "organizationNotAllowed",
-      "operationRestrictedToDelegate",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeVersionStateConflict", () => HTTP_STATUS_CONFLICT)
@@ -141,7 +140,7 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
       "organizationIsNotTheConsumer",
-      "operationRestrictedToDelegate",
+      "organizationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(
@@ -159,7 +158,7 @@ export const createReversePurposeErrorMapper = (
   match(error.code)
     .with(
       "organizationIsNotTheConsumer",
-      "operationRestrictedToDelegate",
+      "organizationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(

@@ -12,6 +12,7 @@ import {
   EServiceId,
   generateId,
   Tenant,
+  ListResult,
   TenantId,
   unsafeBrandId,
   WithMetadata,
@@ -429,7 +430,7 @@ export function delegationServiceBuilder(
         limit: number;
       },
       logger: Logger
-    ): Promise<Delegation[]> {
+    ): Promise<ListResult<Delegation>> {
       logger.info(
         `Retrieving delegations with filters: delegateIds=${delegateIds}, delegatorIds=${delegatorIds}, delegationStates=${delegationStates}, eserviceIds=${eserviceIds}, kind=${kind}, offset=${offset}, limit=${limit}`
       );

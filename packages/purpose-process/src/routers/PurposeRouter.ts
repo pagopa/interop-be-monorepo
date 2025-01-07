@@ -392,14 +392,14 @@ const purposeRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await purposeService.rejectPurposeVersion({
-            purposeId: unsafeBrandId(req.params.purposeId),
-            versionId: unsafeBrandId(req.params.versionId),
-            organizationId: req.ctx.authData.organizationId,
-            rejectionReason: req.body.rejectionReason,
-            correlationId: req.ctx.correlationId,
-            logger: ctx.logger,
-          });
+          await purposeService.rejectPurposeVersion(
+            {
+              purposeId: unsafeBrandId(req.params.purposeId),
+              versionId: unsafeBrandId(req.params.versionId),
+              rejectionReason: req.body.rejectionReason,
+            },
+            ctx
+          );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(

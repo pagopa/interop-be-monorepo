@@ -108,9 +108,9 @@ import {
   validateRiskAnalysisOrThrow,
   assertPurposeTitleIsNotDuplicated,
   isOverQuota,
-  assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
-  assertRequesterIsProducer,
   assertRequesterCanActAsConsumer,
+  assertRequesterCanActAsProducer,
+  assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -280,13 +280,12 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument({
-        eserviceId: eservice.id,
-        organizationId,
-        producerId: eservice.producerId,
-        consumerId: purpose.data.consumerId,
-        readModelService,
-      });
+      await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument(
+        purpose.data,
+        eservice,
+        { organizationId },
+        readModelService
+      );
 
       const version = retrievePurposeVersion(versionId, purpose);
 
@@ -335,21 +334,18 @@ export function purposeServiceBuilder(
       });
       await repository.createEvent(event);
     },
-    async rejectPurposeVersion({
-      purposeId,
-      versionId,
-      rejectionReason,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      purposeId: PurposeId;
-      versionId: PurposeVersionId;
-      rejectionReason: string;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async rejectPurposeVersion(
+      {
+        purposeId,
+        versionId,
+        rejectionReason,
+      }: {
+        purposeId: PurposeId;
+        versionId: PurposeVersionId;
+        rejectionReason: string;
+      },
+      { correlationId, authData, logger }: WithLogger<AppContext>
+    ): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -358,12 +354,13 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      await assertRequesterIsProducer({
-        eserviceId: eservice.id,
-        organizationId,
-        producerId: eservice.producerId,
-        readModelService,
-      });
+      assertRequesterCanActAsProducer(
+        eservice,
+        authData,
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          purpose.data.eserviceId
+        )
+      );
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
@@ -1085,13 +1082,16 @@ export function purposeServiceBuilder(
       const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
 
-      assertRequesterCanActAsConsumer(
-        { eserviceId, consumerId },
-        authData,
+      const consumerDelegation =
         await readModelService.getActiveConsumerDelegationByPurpose({
           eserviceId,
           consumerId,
-        })
+        });
+
+      assertRequesterCanActAsConsumer(
+        { eserviceId, consumerId },
+        authData,
+        consumerDelegation
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -1139,6 +1139,7 @@ export function purposeServiceBuilder(
         createdAt: new Date(),
         eserviceId,
         consumerId,
+        delegationId: consumerDelegation?.id,
         description: seed.description,
         versions: [newVersion],
         isFreeOfCharge: seed.isFreeOfCharge,
