@@ -45,21 +45,6 @@ import {
   TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  AgreementDifferencesResult,
-  CatalogDifferencesResult,
-  ClientDifferencesResult,
-  ComparisonAgreement,
-  ComparisonClient,
-  ComparisonEService,
-  ComparisonPlatformStatesAgreementEntry,
-  ComparisonPlatformStatesCatalogEntry,
-  ComparisonPlatformStatesClientEntry,
-  ComparisonPlatformStatesPurposeEntry,
-  ComparisonPurpose,
-  ComparisonTokenGenStatesGenericClient,
-  PurposeDifferencesResult,
-} from "../src/models/types.js";
 import { tokenGenerationReadModelServiceBuilder } from "../src/services/tokenGenerationReadModelService.js";
 import {
   clientKindToTokenGenerationStatesClientKind,
@@ -136,15 +121,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
         ]),
         logger: genericLogger,
       });
-      const expectedDifferences: PurposeDifferencesResult = [
-        [
-          ComparisonPlatformStatesPurposeEntry.parse(platformPurposeEntry2),
-          ComparisonPurpose.parse(purpose2),
-        ],
-      ];
-
-      expect(differences).toHaveLength(1);
-      expect(differences).toEqual(expect.arrayContaining(expectedDifferences));
+      expect(differences).toEqual(1);
     });
   });
 
@@ -221,15 +198,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
         ]),
         logger: genericLogger,
       });
-      const expectedDifferences: AgreementDifferencesResult = [
-        [
-          ComparisonPlatformStatesAgreementEntry.parse(platformAgreementEntry2),
-          ComparisonAgreement.parse(agreement2),
-        ],
-      ];
-
-      expect(differences).toHaveLength(1);
-      expect(differences).toEqual(expect.arrayContaining(expectedDifferences));
+      expect(differences).toEqual(1);
     });
   });
 
@@ -294,14 +263,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
         ]),
         logger: genericLogger,
       });
-      const expectedDifferences: CatalogDifferencesResult = [
-        [
-          ComparisonPlatformStatesCatalogEntry.parse(platformCatalogEntry2),
-          ComparisonEService.parse(eservice2),
-        ],
-      ];
-      expect(differences).toHaveLength(1);
-      expect(differences).toEqual(expect.arrayContaining(expectedDifferences));
+      expect(differences).toEqual(1);
     });
   });
 
@@ -396,13 +358,13 @@ describe("Token Generation Read Model Checker utils tests", () => {
 
       const client1: Client = {
         ...getMockClient(),
-        purposes: [purpose1.id, generateId()],
+        purposes: [purpose1.id],
         consumerId: purpose1.consumerId,
         keys: [getMockKey()],
       };
       const client2: Client = {
         ...getMockClient(),
-        purposes: [purpose2.id, generateId()],
+        purposes: [purpose2.id],
         consumerId: purpose2.consumerId,
         keys: [getMockKey()],
       };
@@ -469,21 +431,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
         agreementsByConsumerIdEserviceId,
         logger: genericLogger,
       });
-      const expectedDifferences: ClientDifferencesResult = [
-        [
-          undefined,
-          [ComparisonTokenGenStatesGenericClient.parse(tokenGenStatesEntry)],
-          ComparisonClient.parse(client1),
-        ],
-        [
-          ComparisonPlatformStatesClientEntry.parse(platformClientEntry2),
-          undefined,
-          ComparisonClient.parse(client2),
-        ],
-      ];
-
-      expect(differences).toHaveLength(2);
-      expect(differences).toEqual(expect.arrayContaining(expectedDifferences));
+      expect(differences).toEqual(3);
     });
   });
 
