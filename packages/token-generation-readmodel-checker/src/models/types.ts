@@ -34,13 +34,6 @@ export type ComparisonPlatformStatesPurposeEntry = z.infer<
   typeof ComparisonPlatformStatesPurposeEntry
 >;
 
-export type PurposeDifferencesResult = Array<
-  [
-    ComparisonPlatformStatesPurposeEntry | undefined,
-    ComparisonPurpose | undefined
-  ]
->;
-
 // agreement
 export const ComparisonAgreement = Agreement.pick({
   id: true,
@@ -63,13 +56,6 @@ export type ComparisonPlatformStatesAgreementEntry = z.infer<
   typeof ComparisonPlatformStatesAgreementEntry
 >;
 
-export type AgreementDifferencesResult = Array<
-  [
-    ComparisonPlatformStatesAgreementEntry | undefined,
-    ComparisonAgreement | undefined
-  ]
->;
-
 // catalog
 export const ComparisonEService = EService.pick({
   id: true,
@@ -86,13 +72,6 @@ export const ComparisonPlatformStatesCatalogEntry =
   });
 export type ComparisonPlatformStatesCatalogEntry = z.infer<
   typeof ComparisonPlatformStatesCatalogEntry
->;
-
-export type CatalogDifferencesResult = Array<
-  [
-    ComparisonPlatformStatesCatalogEntry | undefined,
-    ComparisonEService | undefined
-  ]
 >;
 
 // client
@@ -144,12 +123,4 @@ export const ComparisonTokenGenStatesGenericClient =
 
 export type ComparisonTokenGenStatesGenericClient = z.infer<
   typeof ComparisonTokenGenStatesGenericClient
->;
-
-export type ClientDifferencesResult = Array<
-  [
-    ComparisonPlatformStatesClientEntry | undefined,
-    ComparisonTokenGenStatesGenericClient[] | undefined,
-    ComparisonClient | undefined
-  ]
 >;
