@@ -601,12 +601,11 @@ export function delegationServiceBuilder(
         )}`
       );
 
-      const delegation =
-        await readModelService.getActiveConsumerDelegationByDelegatorAndDelegate(
-          filters.delegatorId,
-          filters.organizationId
-        );
-      if (!delegation) {
+      const delegation = await readModelService.findDelegations({
+        delegatorId: filters.delegatorId,
+        delegateId: filters.organizationId,
+      });
+      if (!delegation || delegation.length === 0) {
         throw requesterIsNotConsumerDelegate(
           filters.organizationId,
           filters.delegatorId

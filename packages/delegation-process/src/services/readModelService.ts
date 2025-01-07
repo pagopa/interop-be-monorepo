@@ -131,17 +131,6 @@ export function readModelServiceBuilder(
         ...(kind ? { "data.kind": kind } : {}),
       });
     },
-    async getActiveConsumerDelegationByDelegatorAndDelegate(
-      delegatorId: TenantId,
-      delegateId: TenantId
-    ): Promise<WithMetadata<Delegation> | undefined> {
-      return this.getDelegation({
-        "data.delegatorId": delegatorId,
-        "data.delegateId": delegateId,
-        "data.kind": delegationKind.delegatedConsumer,
-        "data.state": delegationState.active,
-      });
-    },
     async findDelegations(
       filters: GetDelegationsFilters
     ): Promise<Delegation[]> {
