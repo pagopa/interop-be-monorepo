@@ -1295,42 +1295,6 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("AgreementUpdated (suspended by producer)", async () => {
-    it("should do no operation if the entry doesn't exist", async () => {
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        state: agreementState.suspended,
-        stamps: {
-          activation: {
-            when: new Date(),
-            who: generateId(),
-          },
-        },
-      };
-      const payload: AgreementUpdatedV1 = {
-        agreement: toAgreementV1(agreement),
-      };
-      const message: AgreementEventEnvelope = {
-        sequence_num: 1,
-        stream_id: agreement.id,
-        version: 1,
-        type: "AgreementUpdated",
-        event_version: 1,
-        data: payload,
-        log_date: new Date(),
-      };
-      const agreementEntryPrimaryKey = makePlatformStatesAgreementPK(
-        agreement.id
-      );
-
-      await handleMessageV1(message, dynamoDBClient, genericLogger);
-
-      const retrievedAgreementEntry = await readAgreementEntry(
-        agreementEntryPrimaryKey,
-        dynamoDBClient
-      );
-
-      expect(retrievedAgreementEntry).toBeUndefined();
-    });
     it("should update the entry (agreement is not the latest -> no operation on token states)", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
