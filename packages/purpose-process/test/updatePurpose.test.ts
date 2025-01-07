@@ -51,7 +51,7 @@ import {
   tenantKindNotFound,
   riskAnalysisValidationFailed,
   duplicatedPurposeTitle,
-  operationRestrictedToDelegate,
+  organizationNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   getMockEService,
@@ -651,7 +651,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
     );
   });
-  it("should throw operationRestrictedToDelegate when the requester is the Consumer but there is a Consumer Delegation in updatePurpose", async () => {
+  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation in updatePurpose", async () => {
     const authData = getRandomAuthData();
     const purpose = {
       ...purposeForDeliver,
@@ -675,11 +675,9 @@ describe("updatePurpose and updateReversePurpose", () => {
         logger: genericLogger,
         serviceName: "",
       })
-    ).rejects.toThrowError(
-      operationRestrictedToDelegate(authData.organizationId, delegation.id)
-    );
+    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
-  it("should throw operationRestrictedToDelegate when the requester is the Consumer but there is a Consumer Delegation in updateReversePurpose", async () => {
+  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation in updateReversePurpose", async () => {
     const authData = getRandomAuthData();
     const purpose = {
       ...purposeForDeliver,
@@ -708,8 +706,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           serviceName: "",
         }
       )
-    ).rejects.toThrowError(
-      operationRestrictedToDelegate(authData.organizationId, delegation.id)
-    );
+    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
 });
