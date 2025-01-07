@@ -1,12 +1,14 @@
 import {
   FileManagerConfig,
   KafkaBatchConsumerConfig,
+  KafkaConsumerConfig,
   LoggerConfig,
   S3Config,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 export const TokenDetailsPersisterConfig = FileManagerConfig.and(S3Config)
+  .and(KafkaConsumerConfig)
   .and(KafkaBatchConsumerConfig)
   .and(LoggerConfig)
   .and(
@@ -25,3 +27,9 @@ export type TokenDetailsPersisterConfig = z.infer<
 
 export const config: TokenDetailsPersisterConfig =
   TokenDetailsPersisterConfig.parse(process.env);
+
+export const baseConsumerConfig: KafkaConsumerConfig =
+  KafkaConsumerConfig.parse(process.env);
+
+export const batchConsumerConfig: KafkaBatchConsumerConfig =
+  KafkaBatchConsumerConfig.parse(process.env);

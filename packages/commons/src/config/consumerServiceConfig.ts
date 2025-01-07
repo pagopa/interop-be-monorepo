@@ -20,19 +20,22 @@ export const KafkaConsumerConfig = KafkaConfig.and(
 );
 export type KafkaConsumerConfig = z.infer<typeof KafkaConsumerConfig>;
 
-export const KafkaBatchConsumerConfig = KafkaConsumerConfig.and(
-  z
-    .object({
-      AVERAGE_KAFKA_MESSAGE_SIZE_IN_BYTES: z.coerce.number(),
-      MESSAGES_TO_READ_PER_BATCH: z.coerce.number(),
-      MAX_WAIT_KAFKA_BATCH_MILLIS: z.coerce.number(),
-    })
-    .transform((c) => ({
-      averageKafkaMessageSizeInBytes: c.AVERAGE_KAFKA_MESSAGE_SIZE_IN_BYTES,
-      messagesToReadPerBatch: c.MESSAGES_TO_READ_PER_BATCH,
+export const KafkaBatchConsumerConfig = z
+  .object({
+    AVERAGE_KAFKA_MESSAGE_SIZE_IN_BYTES: z.coerce.number(),
+    MESSAGES_TO_READ_PER_BATCH: z.coerce.number(),
+    MAX_WAIT_KAFKA_BATCH_MILLIS: z.coerce.number(),
+  })
+  .transform((c) => {
+    const minBytes =
+      c.AVERAGE_KAFKA_MESSAGE_SIZE_IN_BYTES * c.MESSAGES_TO_READ_PER_BATCH;
+    return {
+      minBytes,
       maxWaitKafkaBatchMillis: c.MAX_WAIT_KAFKA_BATCH_MILLIS,
-    }))
-);
+      sessionTimeoutMillis: Math.round(c.MAX_WAIT_KAFKA_BATCH_MILLIS * 1.5),
+      maxBytes: Math.round(minBytes * 1.25),
+    };
+  });
 export type KafkaBatchConsumerConfig = z.infer<typeof KafkaBatchConsumerConfig>;
 
 export const ReadModelWriterConfig = KafkaConsumerConfig.and(ReadModelDbConfig);

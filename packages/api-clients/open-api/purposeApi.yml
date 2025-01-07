@@ -911,6 +911,9 @@ components:
           type: boolean
         freeOfChargeReason:
           type: string
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
         - eserviceId

@@ -26,7 +26,7 @@ describe("get delegations", () => {
       },
       genericLogger
     );
-    expect(res1).toEqual([delegation1]);
+    expect(res1.results).toEqual([delegation1]);
 
     const res2 = await delegationService.getDelegations(
       {
@@ -40,7 +40,7 @@ describe("get delegations", () => {
       },
       genericLogger
     );
-    expect(res2).toEqual([delegation2]);
+    expect(res2.results).toEqual([delegation2]);
 
     const res3 = await delegationService.getDelegations(
       {
@@ -54,7 +54,7 @@ describe("get delegations", () => {
       },
       genericLogger
     );
-    expect(res3).toEqual([]);
+    expect(res3.results).toEqual([]);
 
     const res4 = await delegationService.getDelegations(
       {
@@ -68,7 +68,7 @@ describe("get delegations", () => {
       },
       genericLogger
     );
-    expect(res4).toEqual([delegation1]);
+    expect(res4.results).toEqual([delegation1]);
 
     const res5 = await delegationService.getDelegations(
       {
@@ -82,7 +82,7 @@ describe("get delegations", () => {
       },
       genericLogger
     );
-    expect(res5).toEqual([delegation1]);
+    expect(res5.results).toEqual([delegation1]);
   });
 
   it("should get consumer's delegations", async () => {
@@ -105,7 +105,7 @@ describe("get delegations", () => {
       },
       genericLogger
     );
-    expect(res1).toEqual([delegation1]);
+    expect(res1.results).toEqual([delegation1]);
 
     const res2 = await delegationService.getDelegations(
       {
@@ -119,7 +119,7 @@ describe("get delegations", () => {
       },
       genericLogger
     );
-    expect(res2).toEqual([delegation2]);
+    expect(res2.results).toEqual([delegation2]);
 
     const res3 = await delegationService.getDelegations(
       {
@@ -133,7 +133,7 @@ describe("get delegations", () => {
       },
       genericLogger
     );
-    expect(res3).toEqual([]);
+    expect(res3.results).toEqual([]);
 
     const res4 = await delegationService.getDelegations(
       {
@@ -147,7 +147,7 @@ describe("get delegations", () => {
       },
       genericLogger
     );
-    expect(res4).toEqual([delegation1]);
+    expect(res4.results).toEqual([delegation1]);
 
     const res5 = await delegationService.getDelegations(
       {
@@ -161,6 +161,6 @@ describe("get delegations", () => {
       },
       genericLogger
     );
-    expect(res5).toEqual([delegation1]);
+    expect(res5.results).toEqual([delegation1]);
   });
 });

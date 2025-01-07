@@ -63,6 +63,7 @@ import {
   eserviceWithoutValidDescriptors,
   inconsistentDailyCalls,
   interfaceAlreadyExists,
+  invalidEServiceFlags,
   notValidDescriptorState,
   originNotCompliant,
   prettyNameDuplicate,
@@ -96,6 +97,10 @@ import {
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
   toCreateEventEServiceInterfaceUpdated,
+  toCreateEventEServiceIsClientAccessDelegableDisabled,
+  toCreateEventEServiceIsClientAccessDelegableEnabled,
+  toCreateEventEServiceIsDelegableDisabled,
+  toCreateEventEServiceIsDelegableEnabled,
   toCreateEventEServiceRiskAnalysisAdded,
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
@@ -1816,6 +1821,162 @@ export function catalogServiceBuilder(
           correlationId
         )
       );
+      return updatedEservice;
+    },
+    async updateEServiceDelegationFlags(
+      eserviceId: EServiceId,
+      {
+        isDelegable,
+        isClientAccessDelegable,
+      }: {
+        isDelegable: boolean;
+        isClientAccessDelegable: boolean;
+      },
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Updating EService ${eserviceId} delegation flags`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      const hasValidDescriptor = eservice.data.descriptors.some(
+        // eslint-disable-next-line sonarjs/no-identical-functions
+        (descriptor) =>
+          descriptor.state !== descriptorState.draft &&
+          descriptor.state !== descriptorState.waitingForApproval &&
+          descriptor.state !== descriptorState.archived
+      );
+      if (!hasValidDescriptor) {
+        throw eserviceWithoutValidDescriptors(eserviceId);
+      }
+
+      if (!isDelegable && isClientAccessDelegable) {
+        throw invalidEServiceFlags(eserviceId);
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        isDelegable,
+        isClientAccessDelegable,
+      };
+
+      const events = match({
+        isDelegable,
+        oldIsDelegable: eservice.data.isDelegable || false,
+        isClientAccessDelegable,
+        oldIsClientAccessDelegable:
+          eservice.data.isClientAccessDelegable || false,
+      })
+        .with(
+          {
+            isDelegable: true,
+            oldIsDelegable: false,
+            isClientAccessDelegable: false,
+            oldIsClientAccessDelegable: false,
+          },
+          {
+            isDelegable: true,
+            oldIsDelegable: false,
+            isClientAccessDelegable: false,
+            oldIsClientAccessDelegable: true, // should never happen
+          },
+          () => [
+            toCreateEventEServiceIsDelegableEnabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            ),
+          ]
+        )
+        .with(
+          {
+            isDelegable: true,
+            oldIsDelegable: false,
+            isClientAccessDelegable: true,
+            oldIsClientAccessDelegable: false,
+          },
+          () => [
+            toCreateEventEServiceIsDelegableEnabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            ),
+            toCreateEventEServiceIsClientAccessDelegableEnabled(
+              eservice.metadata.version + 1,
+              updatedEservice,
+              correlationId
+            ),
+          ]
+        )
+        .with(
+          {
+            isDelegable: false,
+            oldIsDelegable: true,
+          },
+          () => [
+            toCreateEventEServiceIsDelegableDisabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            ),
+          ]
+        )
+        .with(
+          {
+            isDelegable: true,
+            oldIsDelegable: true,
+            isClientAccessDelegable: true,
+            oldIsClientAccessDelegable: false,
+          },
+          () => [
+            toCreateEventEServiceIsClientAccessDelegableEnabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            ),
+          ]
+        )
+        .with(
+          {
+            isDelegable: true,
+            oldIsDelegable: true,
+            isClientAccessDelegable: false,
+            oldIsClientAccessDelegable: true,
+          },
+          () => [
+            toCreateEventEServiceIsClientAccessDelegableDisabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            ),
+          ]
+        )
+        .with(
+          {
+            isDelegable: false,
+            oldIsDelegable: false,
+          },
+          {
+            isClientAccessDelegable: true,
+            oldIsClientAccessDelegable: true,
+          },
+          {
+            isClientAccessDelegable: false,
+            oldIsClientAccessDelegable: false,
+          },
+          () => undefined
+        )
+        .exhaustive();
+
+      if (events) {
+        await repository.createEvents(events);
+      }
+
       return updatedEservice;
     },
     async approveDelegatedEServiceDescriptor(

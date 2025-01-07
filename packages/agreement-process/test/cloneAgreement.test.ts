@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable fp/no-delete */
 import { FileManagerError, genericLogger } from "pagopa-interop-commons";
@@ -5,6 +6,7 @@ import {
   decodeProtobufPayload,
   getMockAgreement,
   getMockCertifiedTenantAttribute,
+  getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
@@ -21,6 +23,8 @@ import {
   EServiceId,
   TenantId,
   agreementState,
+  delegationKind,
+  delegationState,
   generateId,
   toAgreementV2,
   unsafeBrandId,
@@ -43,8 +47,10 @@ import {
 import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
+  addOneDelegation,
   addOneEService,
   addOneTenant,
+  addSomeRandomDelegations,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -207,6 +213,159 @@ describe("clone agreement", () => {
     }
   });
 
+  it("should succeed when requester is Consumer Delegate and the Agreement is in a clonable state", async () => {
+    const authData = getRandomAuthData();
+    const consumerId = generateId<TenantId>();
+
+    const validCertifiedTenantAttribute = {
+      ...getMockCertifiedTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+
+    const validCertifiedEserviceAttribute = getMockEServiceAttribute(
+      validCertifiedTenantAttribute.id
+    );
+
+    const consumer = getMockTenant(consumerId, [validCertifiedTenantAttribute]);
+
+    const descriptor = getMockDescriptorPublished(
+      generateId<DescriptorId>(),
+      [[validCertifiedEserviceAttribute]],
+      // Declared and verified attributes shall not be validated: we add some random ones to test that
+      [[getMockEServiceAttribute()]],
+      [[getMockEServiceAttribute()]]
+    );
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      [descriptor]
+    );
+
+    const agreementId = generateId<AgreementId>();
+
+    const docsNumber = Math.floor(Math.random() * 10) + 1;
+    const agreementConsumerDocuments = Array.from({ length: docsNumber }, () =>
+      getMockConsumerDocument(agreementId)
+    );
+    const agreementToBeCloned = {
+      ...getMockAgreement(
+        eservice.id,
+        consumerId,
+        randomArrayItem(agreementClonableStates)
+      ),
+      id: agreementId,
+      producerId: eservice.producerId,
+      descriptorId: descriptor.id,
+      consumerDocuments: agreementConsumerDocuments,
+    };
+
+    await addOneTenant(consumer);
+    await addOneEService(eservice);
+    await addOneAgreement(agreementToBeCloned);
+
+    for (const doc of agreementConsumerDocuments) {
+      await uploadDocument(agreementId, doc.id, doc.name);
+    }
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: agreementToBeCloned.eserviceId,
+      delegatorId: agreementToBeCloned.consumerId,
+      delegateId: authData.organizationId,
+      state: delegationState.active,
+    });
+    await addOneDelegation(delegation);
+    await addSomeRandomDelegations(agreementToBeCloned);
+
+    const anotherNonConflictingAgreement = {
+      ...getMockAgreement(
+        eservice.id,
+        consumerId,
+        randomArrayItem(
+          Object.values(agreementState).filter(
+            (s) => !agreementCloningConflictingStates.includes(s)
+          )
+        )
+      ),
+      producerId: eservice.producerId,
+    };
+    await addOneAgreement(anotherNonConflictingAgreement);
+
+    const returnedAgreement = await agreementService.cloneAgreement(
+      agreementToBeCloned.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      }
+    );
+
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
+
+    const agreementClonedEvent = await readAgreementEventByVersion(
+      newAgreementId,
+      0
+    );
+
+    expect(agreementClonedEvent).toMatchObject({
+      type: "AgreementAdded",
+      event_version: 2,
+      version: "0",
+      stream_id: newAgreementId,
+    });
+
+    const agreementClonedEventPayload = decodeProtobufPayload({
+      messageType: AgreementAddedV2,
+      payload: agreementClonedEvent.data,
+    });
+
+    const agreementClonedAgreement = agreementClonedEventPayload.agreement;
+
+    const expectedAgreementCloned: AgreementV2 = toAgreementV2({
+      id: newAgreementId,
+      eserviceId: agreementToBeCloned.eserviceId,
+      descriptorId: agreementToBeCloned.descriptorId,
+      producerId: agreementToBeCloned.producerId,
+      consumerId: agreementToBeCloned.consumerId,
+      consumerNotes: agreementToBeCloned.consumerNotes,
+      verifiedAttributes: [],
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      state: agreementState.draft,
+      createdAt: TEST_EXECUTION_DATE,
+      consumerDocuments: agreementConsumerDocuments.map<AgreementDocument>(
+        (doc, i) => ({
+          ...doc,
+          id: unsafeBrandId(
+            agreementClonedAgreement?.consumerDocuments[i].id as string
+          ),
+          path: agreementClonedAgreement?.consumerDocuments[i].path as string,
+        })
+      ),
+      stamps: {},
+    });
+    delete expectedAgreementCloned.suspendedAt;
+    delete expectedAgreementCloned.updatedAt;
+    delete expectedAgreementCloned.contract;
+    expectedAgreementCloned.stamps = {};
+
+    expect(agreementClonedEventPayload).toMatchObject({
+      agreement: expectedAgreementCloned,
+    });
+    expect(agreementClonedEventPayload).toEqual({
+      agreement: toAgreementV2(returnedAgreement),
+    });
+
+    for (const agreementDoc of expectedAgreementCloned.consumerDocuments) {
+      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
+
+      expect(
+        await fileManager.listFiles(config.s3Bucket, genericLogger)
+      ).toContainEqual(expectedUploadedDocumentPath);
+    }
+  });
+
   it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
     await addOneAgreement(getMockAgreement());
     const authData = getRandomAuthData();
@@ -229,6 +388,34 @@ describe("clone agreement", () => {
       randomArrayItem(agreementClonableStates)
     );
     await addOneAgreement(agreement);
+    await expect(
+      agreementService.cloneAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+  });
+
+  it("should throw an operationNotAllowed error when the requester is the Consumer but there is a Consumer Delegation", async () => {
+    const authData = getRandomAuthData();
+    const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
+    const agreement = getMockAgreement(
+      generateId<EServiceId>(),
+      consumerId,
+      randomArrayItem(agreementClonableStates)
+    );
+    await addOneAgreement(agreement);
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: agreement.eserviceId,
+      delegatorId: agreement.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+    await addOneDelegation(delegation);
+    await addSomeRandomDelegations(agreement);
     await expect(
       agreementService.cloneAgreement(agreement.id, {
         authData,

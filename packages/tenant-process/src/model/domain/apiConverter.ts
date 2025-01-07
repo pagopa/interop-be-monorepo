@@ -156,5 +156,9 @@ export function apiTenantFeatureTypeToTenantFeatureType(
       tenantApi.TenantFeatureType.Values.PERSISTENT_CERTIFIER,
       () => tenantFeatureType.persistentCertifier
     )
+    .with(
+      tenantApi.TenantFeatureType.Values.DELEGATED_CONSUMER,
+      () => tenantFeatureType.delegatedConsumer
+    )
     .exhaustive();
 }
