@@ -12,7 +12,9 @@ import {
   CorrelationId,
   ORIGIN_IPA,
   Tenant,
+  attributeKind,
   generateId,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { config } from "./config/config.js";
 import {
@@ -48,14 +50,14 @@ function toTenantKey(key: {
   origin: string | undefined;
   value: string | undefined;
 }): string {
-  return JSON.stringify(key);
+  return JSON.stringify({ origin: key.origin, value: key.value });
 }
 
 function toAttributeKey(key: {
   origin: string | undefined;
   code: string | undefined;
 }): string {
-  return JSON.stringify(key);
+  return JSON.stringify({ origin: key.origin, code: key.code });
 }
 
 async function checkAttributesPresence(
@@ -66,7 +68,7 @@ async function checkAttributesPresence(
 
   const certifiedAttributeIndex = new Map(
     attributes
-      .filter((a) => a.kind === "Certified" && a.origin && a.code)
+      .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
       .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a])
   );
 
@@ -157,6 +159,7 @@ async function createNewAttributes(
 
   // wait until every event reaches the read model store
   do {
+    loggerInstance.info("Waiting for attributes to be created");
     await new Promise((r) => setTimeout(r, config.attributeCreationWaitTime));
   } while (!(await checkAttributesPresence(readModelService, newAttributes)));
 }
@@ -169,7 +172,7 @@ export function getNewAttributes(
   // get a set with all the certified attributes in the platform
   const platformAttributesIndex = new Set(
     attributes
-      .filter((a) => a.kind === "Certified" && a.origin && a.code)
+      .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
       .map((a) => toAttributeKey({ origin: a.origin, code: a.code }))
   );
 
@@ -203,13 +206,13 @@ export async function getAttributesToAssign(
 
   const certifiedsAttribute = new Map(
     platformAttributes
-      .filter((a) => a.kind === "Certified" && a.origin && a.code)
+      .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
       .map((a) => [a.id, a])
   );
 
   return tenantSeeds
-    .map((i) => {
-      const externalId = { origin: i.origin, value: i.originId };
+    .map((seed) => {
+      const externalId = { origin: seed.origin, value: seed.originId };
 
       const tenant = tenantsIndex.get(toTenantKey(externalId));
 
@@ -221,7 +224,7 @@ export async function getAttributesToAssign(
         tenant.attributes
           .map((a) => {
             const withRevocation = match(a)
-              .with({ type: "PersistentCertifiedAttribute" }, (certified) => ({
+              .with({ type: tenantAttributeType.CERTIFIED }, (certified) => ({
                 ...a,
                 revocationTimestamp: certified.revocationTimestamp,
               }))
@@ -244,31 +247,29 @@ export async function getAttributesToAssign(
           .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a])
       );
 
-      return tenant
-        ? {
-            externalId,
-            name: tenant.name,
-            certifiedAttributes: i.attributes
-              .filter((a) => {
-                const attribute = tenantCurrentAttributes.get(
-                  toAttributeKey({
-                    origin: a.origin,
-                    code: a.code,
-                  })
-                );
-
-                if (!attribute) {
-                  return true;
-                }
-
-                return attribute.revocationTimestamp !== undefined;
-              })
-              .map((a) => ({
+      return {
+        externalId,
+        name: tenant.name,
+        certifiedAttributes: seed.attributes
+          .filter((a) => {
+            const attribute = tenantCurrentAttributes.get(
+              toAttributeKey({
                 origin: a.origin,
                 code: a.code,
-              })),
-          }
-        : undefined;
+              })
+            );
+
+            if (!attribute) {
+              return true;
+            }
+
+            return attribute.revocationTimestamp !== undefined;
+          })
+          .map((a) => ({
+            origin: a.origin,
+            code: a.code,
+          })),
+      };
     })
     .filter(
       (t): t is tenantApi.InternalTenantSeed =>
@@ -321,7 +322,7 @@ export async function getAttributesToRevoke(
 
   const certifiedAttributes = new Map(
     platformAttributes
-      .filter((a) => a.kind === "Certified" && a.origin && a.code)
+      .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
       .map((a) => [a.id, a])
   );
 
@@ -357,7 +358,7 @@ export async function getAttributesToRevoke(
       // eslint-disable-next-line sonarjs/no-identical-functions
       .map((a) => {
         const withRevocation = match(a)
-          .with({ type: "PersistentCertifiedAttribute" }, (certified) => ({
+          .with({ type: tenantAttributeType.CERTIFIED }, (certified) => ({
             ...a,
             revocationTimestamp: certified.revocationTimestamp,
           }))
@@ -491,6 +492,8 @@ try {
     attributesToRevoke,
     await getHeader(refreshableToken, correlationId)
   );
+
+  loggerInstance.info("IPA certified attributes imporr completed");
 } catch (error) {
   loggerInstance.error(error);
 }
