@@ -175,6 +175,7 @@ export function purposeServiceBuilder(
       dailyCallsTotal: currentDescriptor.dailyCallsTotal,
       rejectedVersion:
         rejectedVersion && toBffApiPurposeVersion(rejectedVersion),
+      delegationId: purpose.delegationId,
     };
   };
 
