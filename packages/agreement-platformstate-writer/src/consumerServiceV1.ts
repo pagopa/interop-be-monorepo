@@ -78,7 +78,7 @@ export async function handleMessageV1(
 
       await match(agreement.state)
         // eslint-disable-next-line sonarjs/no-identical-functions
-        .with(agreementState.active, async () => {
+        .with(agreementState.active, agreementState.suspended, async () => {
           // this case is for agreement upgraded
           const agreement = parseAgreement(msg.data.agreement);
           await handleUpgrade(agreement, dynamoDBClient, msg.version, logger);
@@ -89,7 +89,6 @@ export async function handleMessageV1(
           agreementState.missingCertifiedAttributes,
           agreementState.pending,
           agreementState.rejected,
-          agreementState.suspended,
           () => Promise.resolve()
         )
         .exhaustive();
