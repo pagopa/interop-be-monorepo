@@ -15361,9 +15361,8 @@ components:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-        delegationId:
-          type: string
-          format: uuid
+        delegation:
+          $ref: "#/components/schemas/PurposeDelegation"
       required:
         - id
         - title
@@ -15616,6 +15615,29 @@ components:
       required:
         - results
         - pagination
+    PurposeDelegation:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - delegateId
+        - delegateName
+        - delegatorId
+        - delegatorName
+      properties:
+        id:
+          type: string
+          format: uuid
+        delegateId:
+          type: string
+          format: uuid
+        delegateName:
+          type: string
+        delegatorId:
+          type: string
+          format: uuid
+        delegatorName:
+          type: string
     PurposeVersion:
       type: object
       additionalProperties: false

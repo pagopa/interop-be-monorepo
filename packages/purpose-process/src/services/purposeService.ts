@@ -235,7 +235,11 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       organizationId: TenantId,
       logger: Logger
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+    ): Promise<{
+      purpose: Purpose;
+      isRiskAnalysisValid: boolean;
+      delegationId: string | undefined;
+    }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -249,13 +253,25 @@ export function purposeServiceBuilder(
           purpose.data.eserviceId
         );
 
-      return authorizeRiskAnalysisForm({
+      const purposeWithRiskAnalysis = authorizeRiskAnalysisForm({
         purpose: purpose.data,
         producerId: eservice.producerId,
         organizationId,
         tenantKind: await retrieveTenantKind(organizationId, readModelService),
         activeProducerDelegation,
       });
+
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByPurpose(
+          purpose.data
+        );
+
+      return {
+        ...purposeWithRiskAnalysis,
+        delegationId: activeConsumerDelegation
+          ? activeConsumerDelegation.id
+          : undefined,
+      };
     },
     async getRiskAnalysisDocument({
       purposeId,

@@ -21,6 +21,7 @@ import {
   AgreementProcessClient,
   AuthorizationProcessClient,
   CatalogProcessClient,
+  DelegationProcessClient,
   PurposeProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -39,6 +40,46 @@ import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { isAgreementUpgradable } from "./validators.js";
+
+const enrichPurposeDelegation = async (
+  delegationId: string,
+  delegationProcessClient: DelegationProcessClient,
+  tenantProcessClient: TenantProcessClient,
+  headers: Headers
+): Promise<bffApi.PurposeDelegation> => {
+  const delegation = await delegationProcessClient.delegation.getDelegation({
+    headers,
+    params: {
+      delegationId,
+    },
+  });
+
+  const [delegate, delegator] = await Promise.all([
+    tenantProcessClient.tenant.getTenant({
+      headers,
+      params: { id: delegation.delegateId },
+    }),
+    tenantProcessClient.tenant.getTenant({
+      headers,
+      params: { id: delegation.delegatorId },
+    }),
+  ]);
+
+  if (!delegate) {
+    throw tenantNotFound(delegation.delegateId);
+  }
+  if (!delegator) {
+    throw tenantNotFound(delegation.delegatorId);
+  }
+
+  return {
+    id: delegationId,
+    delegateId: delegate.id,
+    delegateName: delegate.name,
+    delegatorId: delegator.id,
+    delegatorName: delegator.name,
+  };
+};
 
 export const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
@@ -62,6 +103,7 @@ export function purposeServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
+  delegationProcessClient: DelegationProcessClient,
   authorizationClient: AuthorizationProcessClient,
   fileManager: FileManager
 ) {
@@ -138,6 +180,15 @@ export function purposeServiceBuilder(
         ? latestVersion
         : undefined;
 
+    const delegation = purpose.delegationId
+      ? await enrichPurposeDelegation(
+          purpose.delegationId,
+          delegationProcessClient,
+          tenantProcessClient,
+          headers
+        )
+      : undefined;
+
     return {
       id: purpose.id,
       title: purpose.title,
@@ -175,7 +226,7 @@ export function purposeServiceBuilder(
       dailyCallsTotal: currentDescriptor.dailyCallsTotal,
       rejectedVersion:
         rejectedVersion && toBffApiPurposeVersion(rejectedVersion),
-      delegationId: purpose.delegationId,
+      delegation,
     };
   };
 
