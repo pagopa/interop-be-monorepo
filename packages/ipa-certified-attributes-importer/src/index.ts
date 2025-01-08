@@ -330,7 +330,7 @@ export async function getAttributesToRevoke(
       toTenantKey(tenantExternalId)
     );
     if (!registryAttributes) {
-      return false;
+      return true;
     }
 
     if (registryAttributes.has(toAttributeKey(externalId))) {
