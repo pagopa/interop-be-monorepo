@@ -188,9 +188,9 @@ export async function handleMessageV2(
           );
         }
       } else {
-        if (!agreement.stamps.activation) {
+        if (!agreement.stamps.upgrade) {
           throw genericInternalError(
-            "An activated agreement should have activation stamp"
+            "An upgraded agreement should have an upgrade stamp"
           );
         }
         const newAgreementEntry: PlatformStatesAgreementEntry = {
@@ -199,8 +199,7 @@ export async function handleMessageV2(
           version: msg.version,
           updatedAt: new Date().toISOString(),
           GSIPK_consumerId_eserviceId,
-          GSISK_agreementTimestamp:
-            agreement.stamps.activation.when.toISOString(),
+          GSISK_agreementTimestamp: agreement.stamps.upgrade.when.toISOString(),
           agreementDescriptorId: agreement.descriptorId,
         };
 
