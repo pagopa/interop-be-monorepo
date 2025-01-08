@@ -2493,7 +2493,8 @@ describe("integration tests V2 events", async () => {
         eserviceId,
         state: agreementState.active,
         stamps: {
-          activation: {
+          activation: previousAgreement.stamps.activation,
+          upgrade: {
             when: new Date(),
             who: generateId(),
           },
@@ -2537,7 +2538,7 @@ describe("integration tests V2 events", async () => {
         state: itemState.inactive,
         GSIPK_consumerId_eserviceId,
         GSISK_agreementTimestamp:
-          latestAgreement.stamps.activation!.when.toISOString(),
+          latestAgreement.stamps.upgrade!.when.toISOString(),
       };
       await writeAgreementEntry(previousAgreementStateEntry, dynamoDBClient);
       await writeAgreementEntry(latestAgreementStateEntry, dynamoDBClient);
@@ -2806,6 +2807,10 @@ describe("integration tests V2 events", async () => {
             when: new Date(),
             who: generateId(),
           },
+          upgrade: {
+            when: new Date(),
+            who: generateId(),
+          },
         },
       };
       const payload: AgreementUpgradedV2 = {
@@ -2902,8 +2907,7 @@ describe("integration tests V2 events", async () => {
           consumerId: agreement.consumerId,
           eserviceId: agreement.eserviceId,
         }),
-        GSISK_agreementTimestamp:
-          agreement.stamps.activation!.when.toISOString(),
+        GSISK_agreementTimestamp: agreement.stamps.upgrade!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
       };
       expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);

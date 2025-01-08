@@ -257,12 +257,12 @@ const handleUpgrade = async (
       );
     }
   } else {
-    const agreementTimestamp = agreement.stamps.activation
-      ? agreement.stamps.activation.when.toISOString()
+    const agreementTimestamp = agreement.stamps.upgrade
+      ? agreement.stamps.upgrade.when.toISOString()
       : agreement.createdAt.toISOString();
     if (agreement.stamps.activation === undefined) {
       logger.warn(
-        `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
+        `Missing agreement upgrade stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
       );
     }
 
