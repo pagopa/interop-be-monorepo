@@ -25,7 +25,7 @@ import {
   InternalCertifiedAttribute,
   RegistryData,
   getRegistryData,
-  kindsToBeExcluded,
+  kindsToInclude,
 } from "./services/openDataService.js";
 
 export type TenantSeed = {
@@ -121,17 +121,17 @@ export function getTenantUpsertData(
         },
       ]);
 
-    const shouldKindBeExcluded = kindsToBeExcluded.has(i.kind);
+    const shouldKindBeIncluded = kindsToInclude.has(i.kind);
 
-    const attributes = shouldKindBeExcluded
-      ? attributesWithoutKind
-      : [
+    const attributes = shouldKindBeIncluded
+      ? [
           {
             origin: i.origin,
             code: createHash("sha256").update(i.kind).digest("hex"),
           },
           ...attributesWithoutKind,
-        ];
+        ]
+      : attributesWithoutKind;
 
     return {
       origin: i.origin,

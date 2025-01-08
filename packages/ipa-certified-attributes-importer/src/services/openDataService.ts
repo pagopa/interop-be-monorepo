@@ -6,11 +6,8 @@ import {
   getAllInstitutions,
 } from "./openDataExtractor.js";
 
-export const kindsToBeExcluded: Set<string> = new Set([
-  "Enti Nazionali di Previdenza ed Assistenza Sociale in Conto Economico Consolidato",
-  "Gestori di Pubblici Servizi",
-  "Societa' in Conto Economico Consolidato",
-  "Stazioni Appaltanti",
+export const kindsToInclude: Set<string> = new Set([
+  "Pubbliche Amministrazioni",
 ]);
 
 export type OpenData = {
@@ -72,7 +69,7 @@ async function loadCertifiedAttributes(
   const attributeSeedsCategoriesKinds = [
     ...new Map(data.categories.map((c) => [c.kind, c])),
   ]
-    .filter(([kind, _]) => !kindsToBeExcluded.has(kind))
+    .filter(([kind, _]) => kindsToInclude.has(kind))
     .map(([_, c]) => ({
       code: createHash("sha256").update(c.kind).digest("hex"),
       description: c.kind,
