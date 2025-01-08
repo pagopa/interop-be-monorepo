@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockDelegation,
   getMockDescriptor,
   getMockDocument,
   getMockPurpose,
@@ -32,6 +33,9 @@ import {
   toReadModelPurpose,
   unsafeBrandId,
   toReadModelTenant,
+  delegationKind,
+  delegationState,
+  TenantId,
 } from "pagopa-interop-models";
 import {
   genericLogger,
@@ -45,10 +49,12 @@ import {
   eserviceRiskAnalysisNotFound,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
+  organizationNotAllowed,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
 } from "../src/model/domain/errors.js";
 import {
+  addOneDelegation,
   agreements,
   eservices,
   getMockEService,
@@ -141,6 +147,116 @@ describe("createReversePurpose", () => {
       createdAt: new Date(),
       eserviceId: unsafeBrandId(reversePurposeSeed.eServiceId),
       consumerId: unsafeBrandId(reversePurposeSeed.consumerId),
+      title: reversePurposeSeed.title,
+      description: reversePurposeSeed.description,
+      isFreeOfCharge: reversePurposeSeed.isFreeOfCharge,
+      freeOfChargeReason: reversePurposeSeed.freeOfChargeReason,
+      riskAnalysisForm: {
+        ...mockRiskAnalysis.riskAnalysisForm,
+        riskAnalysisId: mockRiskAnalysis.id,
+      },
+    };
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toEqual(true);
+
+    vi.useRealTimers();
+  });
+  it("should succeed when requester is Consumer Delegate and the creation of the purpose is reversed", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const consumer = getMockTenant();
+    const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
+
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      publishedAt: new Date(),
+      interface: getMockDocument(),
+    };
+
+    const mockRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
+    const mockEService: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+      riskAnalysis: [mockRiskAnalysis],
+      descriptors: [mockDescriptor],
+      mode: eserviceMode.receive,
+    };
+
+    const mockAgreement: Agreement = {
+      ...getMockAgreement(),
+      eserviceId: mockEService.id,
+      consumerId: consumer.id,
+      state: agreementState.active,
+    };
+
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
+      eServiceId: mockEService.id,
+      consumerId: consumer.id,
+      riskAnalysisId: mockRiskAnalysis.id,
+      title: "test purpose title",
+      description: "test purpose description",
+      isFreeOfCharge: true,
+      freeOfChargeReason: "test",
+      dailyCalls: 1,
+    };
+
+    const authData = getRandomAuthData();
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockEService.id,
+      delegatorId: mockAgreement.consumerId,
+      delegateId: authData.organizationId,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation(delegation);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
+    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+
+    const { purpose, isRiskAnalysisValid } =
+      await purposeService.createReversePurpose(reversePurposeSeed, {
+        authData,
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      });
+
+    const writtenEvent = await readLastPurposeEvent(purpose.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "0",
+      type: "PurposeAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedPurpose: Purpose = {
+      versions: [
+        {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
+          createdAt: new Date(),
+          state: purposeVersionState.draft,
+          dailyCalls: reversePurposeSeed.dailyCalls,
+        },
+      ],
+      id: purpose.id,
+      createdAt: new Date(),
+      eserviceId: unsafeBrandId(reversePurposeSeed.eServiceId),
+      consumerId: unsafeBrandId(reversePurposeSeed.consumerId),
+      delegationId: delegation.id,
       title: reversePurposeSeed.title,
       description: reversePurposeSeed.description,
       isFreeOfCharge: reversePurposeSeed.isFreeOfCharge,
@@ -589,5 +705,67 @@ describe("createReversePurpose", () => {
         unexpectedRulesVersionError(mockRiskAnalysis.riskAnalysisForm.version),
       ])
     );
+  });
+  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+    const consumer = getMockTenant();
+    const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
+    const authData = getRandomAuthData(consumer.id);
+
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      publishedAt: new Date(),
+      interface: getMockDocument(),
+    };
+
+    const mockRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
+    const mockEService: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+      riskAnalysis: [mockRiskAnalysis],
+      descriptors: [mockDescriptor],
+      mode: eserviceMode.receive,
+    };
+
+    const mockAgreement: Agreement = {
+      ...getMockAgreement(),
+      eserviceId: mockEService.id,
+      consumerId: consumer.id,
+      state: agreementState.active,
+    };
+
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
+      eServiceId: mockEService.id,
+      consumerId: authData.organizationId,
+      riskAnalysisId: mockRiskAnalysis.id,
+      title: "test purpose title",
+      description: "test purpose description",
+      isFreeOfCharge: true,
+      freeOfChargeReason: "test",
+      dailyCalls: 1,
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockEService.id,
+      delegatorId: mockAgreement.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOneDelegation(delegation);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
+    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+
+    expect(
+      purposeService.createReversePurpose(reversePurposeSeed, {
+        authData,
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
+    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
 });
