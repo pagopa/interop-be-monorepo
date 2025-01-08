@@ -59,7 +59,7 @@ import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerat
 
 export function getLastPurposeVersion(
   purposeVersions: PurposeVersion[]
-): PurposeVersion {
+): PurposeVersion | undefined {
   return purposeVersions
     .filter(
       (pv) =>
@@ -79,7 +79,8 @@ export function getLastAgreement(agreements: Agreement[]): Agreement {
     .filter(
       (a) =>
         a.state === agreementState.active ||
-        a.state === agreementState.suspended
+        a.state === agreementState.suspended ||
+        a.state === agreementState.archived
     )
     .toSorted(
       (agreement1, agreement2) =>
@@ -321,6 +322,7 @@ export async function compareTokenGenerationReadModel(
 }
 
 // purposes
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function compareReadModelPurposesWithPlatformStates({
   platformStatesPurposeById,
   purposesById,
@@ -352,40 +354,44 @@ export async function compareReadModelPurposesWithPlatformStates({
       differencesCount++;
     }
 
-    if (!platformStatesEntry && purpose) {
+    if (purpose) {
       const lastPurposeVersion = getLastPurposeVersion(purpose.versions);
-      const isArchived =
-        lastPurposeVersion.state === purposeVersionState.archived;
-      if (!isArchived) {
-        logger.error(
-          `Purpose platform-states entry is missing for purpose with id: ${purpose.id}`
-        );
-        differencesCount++;
+
+      if (!platformStatesEntry) {
+        const hasValidState =
+          lastPurposeVersion &&
+          lastPurposeVersion.state !== purposeVersionState.archived;
+        if (hasValidState) {
+          logger.error(
+            `Purpose platform-states entry is missing for purpose with id: ${purpose.id}`
+          );
+          differencesCount++;
+        }
       }
-    }
 
-    if (platformStatesEntry && purpose) {
-      const expectedPlatformStatesPurposeEntry: ComparisonPlatformStatesPurposeEntry =
-        {
-          PK: makePlatformStatesPurposePK(purpose.id),
-          state: getPurposeStateFromPurposeVersions(purpose.versions),
-          purposeVersionId: getLastPurposeVersion(purpose.versions).id,
-          purposeEserviceId: purpose.eserviceId,
-          purposeConsumerId: purpose.consumerId,
-        };
+      if (platformStatesEntry && lastPurposeVersion) {
+        const expectedPlatformStatesPurposeEntry: ComparisonPlatformStatesPurposeEntry =
+          {
+            PK: makePlatformStatesPurposePK(purpose.id),
+            state: getPurposeStateFromPurposeVersions(purpose.versions),
+            purposeVersionId: lastPurposeVersion.id,
+            purposeEserviceId: purpose.eserviceId,
+            purposeConsumerId: purpose.consumerId,
+          };
 
-      const objectsDiff = diff(
-        ComparisonPlatformStatesPurposeEntry.parse(platformStatesEntry),
-        expectedPlatformStatesPurposeEntry,
-        { sort: true }
-      );
-      if (objectsDiff) {
-        differencesCount++;
-        // For info: __old = platform-states entry and __new = read model purpose
-        logger.error(
-          `Differences in platform-states when checking purpose with id ${purpose.id}`
+        const objectsDiff = diff(
+          ComparisonPlatformStatesPurposeEntry.parse(platformStatesEntry),
+          expectedPlatformStatesPurposeEntry,
+          { sort: true }
         );
-        logger.error(JSON.stringify(objectsDiff, null, 2));
+        if (objectsDiff) {
+          differencesCount++;
+          // For info: __old = platform-states entry and __new = read model purpose
+          logger.error(
+            `Differences in platform-states when checking purpose with id ${purpose.id}`
+          );
+          logger.error(JSON.stringify(objectsDiff, null, 2));
+        }
       }
     }
   }
@@ -707,6 +713,7 @@ function validateTokenGenerationStates({
         if (client.purposes.length !== 0) {
           // TokenGenerationStatesConsumerClient with CLIENTKIDPURPOSE PK
           const purposeId = getPurposeIdFromTokenGenStatesPK(e.PK);
+
           const purpose = purposeId ? purposesById.get(purposeId) : undefined;
 
           if (!purpose) {
@@ -716,11 +723,12 @@ function validateTokenGenerationStates({
               logger.error(
                 `no purpose found in read model for token-generation-states entry with PK ${e.PK}`
               );
+            } else {
+              logger.error(
+                `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKIDPURPOSE PK`
+              );
             }
 
-            logger.error(
-              `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKIDPURPOSE PK`
-            );
             differencesCount++;
             return;
           }
@@ -788,7 +796,7 @@ function validateTokenGenerationStates({
           const gsiPKPurposeIdCheck = e.GSIPK_purposeId === purpose.id;
           const purposeStateCheck = e.purposeState === purposeState;
           const purposeVersionIdCheck =
-            e.purposeVersionId === lastPurposeVersion.id;
+            e.purposeVersionId === lastPurposeVersion?.id;
           const gsiPKConsumerIdEServiceIdCheck =
             e.GSIPK_consumerId_eserviceId ===
             makeGSIPKConsumerIdEServiceId({
@@ -856,6 +864,7 @@ function validateTokenGenerationStates({
             logger.error(
               `descriptorVoucherLifespanCheck: ${descriptorVoucherLifespanCheck}`
             );
+            logger.error("\n");
 
             differencesCount++;
           }
@@ -887,6 +896,8 @@ function validateTokenGenerationStates({
               logger.error(`gsiPKClientIdCheck: ${gsiPKClientIdCheck}`);
               logger.error(`keysCheck: ${keysCheck}`);
               logger.error(`kidCheck: ${gsiPKKidCheck}`);
+              logger.error("\n");
+
               differencesCount++;
             }
           } else {
@@ -924,6 +935,8 @@ function validateTokenGenerationStates({
             logger.error(`gsiPKClientIdCheck: ${gsiPKClientIdCheck}`);
             logger.error(`keysCheck: ${keysCheck}`);
             logger.error(`kidCheck: ${gsiPKKidCheck}`);
+            logger.error("\n");
+
             differencesCount++;
           }
         }
@@ -939,11 +952,19 @@ export const agreementStateToItemState = (state: AgreementState): ItemState =>
 
 export const getPurposeStateFromPurposeVersions = (
   purposeVersions: PurposeVersion[]
-): ItemState => {
+): ItemState | undefined => {
   if (purposeVersions.find((v) => v.state === purposeVersionState.active)) {
     return itemState.active;
-  } else {
+  } else if (
+    purposeVersions.find(
+      (v) =>
+        v.state === purposeVersionState.suspended ||
+        v.state === purposeVersionState.archived
+    )
+  ) {
     return itemState.inactive;
+  } else {
+    return undefined;
   }
 };
 
