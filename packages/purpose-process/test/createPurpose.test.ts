@@ -48,6 +48,7 @@ import {
   riskAnalysisValidationFailed,
   agreementNotFound,
   duplicatedPurposeTitle,
+  organizationNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -264,18 +265,12 @@ describe("createPurpose", () => {
       riskAnalysisForm: expectedRiskAnalysisForm,
     };
 
-    const x = { ...writtenPayload.purpose, delegationId: delegation.id };
-
-    console.log("writtenPayload.purpose", writtenPayload.purpose);
-    console.log("purpose", toPurposeV2(purpose));
-
-    expect(x).toEqual(toPurposeV2(purpose));
-    // expect(purpose).toEqual(expectedPurpose);
-    // expect(isRiskAnalysisValid).toBe(true);
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(purpose).toEqual(expectedPurpose);
+    expect(isRiskAnalysisValid).toBe(true);
 
     vi.useRealTimers();
   });
-
   it("should throw missingFreeOfChargeReason if the freeOfChargeReason is empty", async () => {
     const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
@@ -467,5 +462,35 @@ describe("createPurpose", () => {
         serviceName: "",
       })
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeSeed.title));
+  });
+  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+    const authData = getRandomAuthData(tenant.id);
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eService1.id,
+      delegatorId: agreementEservice1.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOneTenant(tenant);
+    await addOneAgreement(agreementEservice1);
+    await addOneEService(eService1);
+    await addOneDelegation(delegation);
+
+    const seed: purposeApi.PurposeSeed = {
+      ...purposeSeed,
+      consumerId: authData.organizationId,
+    };
+
+    expect(
+      purposeService.createPurpose(seed, {
+        authData,
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
+    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
 });
