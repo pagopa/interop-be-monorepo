@@ -81,9 +81,10 @@ export async function handleMessageV1(
     .with({ type: "AgreementAdded" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
 
+      // TODO quando facciamo l'upgrade  di un agreement sospeso vogliamo l'entry in platform-states. Questo evento passa da AgreementAdded
       await match(agreement.state)
         // eslint-disable-next-line sonarjs/no-identical-functions
-        .with(agreementState.active, async () => {
+        .with(agreementState.active, agreementState.suspended, async () => {
           // this case is for agreement upgraded
           const agreement = parseAgreement(msg.data.agreement);
           await handleUpgrade(agreement, dynamoDBClient, msg.version, logger);
@@ -94,7 +95,6 @@ export async function handleMessageV1(
           agreementState.missingCertifiedAttributes,
           agreementState.pending,
           agreementState.rejected,
-          agreementState.suspended,
           () => Promise.resolve()
         )
         .exhaustive();
