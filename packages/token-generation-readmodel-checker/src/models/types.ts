@@ -111,15 +111,17 @@ export const ComparisonTokenGenStatesGenericClient =
     descriptorState: true,
     descriptorAudience: true,
     descriptorVoucherLifespan: true,
-  }).extend({
-    PK:
-      TokenGenerationStatesConsumerClient.shape.PK ||
-      TokenGenerationStatesApiClient.shape.PK,
-    clientKind: z.union([
-      z.literal(clientKindTokenGenStates.consumer),
-      z.literal(clientKindTokenGenStates.api),
-    ]),
-  });
+  })
+    .extend({
+      PK:
+        TokenGenerationStatesConsumerClient.shape.PK ||
+        TokenGenerationStatesApiClient.shape.PK,
+      clientKind: z.union([
+        z.literal(clientKindTokenGenStates.consumer),
+        z.literal(clientKindTokenGenStates.api),
+      ]),
+    })
+    .partial();
 
 export type ComparisonTokenGenStatesGenericClient = z.infer<
   typeof ComparisonTokenGenStatesGenericClient
