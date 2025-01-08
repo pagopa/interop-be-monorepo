@@ -266,6 +266,13 @@ async function assignNewAttributes(
   );
 
   for (const attributeToAssign of attributesToAssign) {
+    loggerInstance.info(
+      `Updating tenant ${
+        attributeToAssign.externalId.value
+      }. Adding attributes [${attributeToAssign.certifiedAttributes
+        .map((a) => a.code)
+        .join(", ")}]`
+    );
     await tenantClient.internalUpsertTenant(attributeToAssign, { headers });
   }
 }
@@ -377,6 +384,9 @@ async function revokeAttributes(
   );
 
   for (const a of attributesToRevoke) {
+    loggerInstance.info(
+      `Updating tenant ${a.tExtenalId}. Revoking attribute ${a.aCode}`
+    );
     await tenantClient.internalRevokeCertifiedAttribute(undefined, {
       params: {
         tOrigin: a.tOrigin,
