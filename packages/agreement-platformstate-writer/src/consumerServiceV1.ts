@@ -81,7 +81,6 @@ export async function handleMessageV1(
     .with({ type: "AgreementAdded" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
 
-      // TODO quando facciamo l'upgrade  di un agreement sospeso vogliamo l'entry in platform-states. Questo evento passa da AgreementAdded
       await match(agreement.state)
         // eslint-disable-next-line sonarjs/no-identical-functions
         .with(agreementState.active, agreementState.suspended, async () => {
