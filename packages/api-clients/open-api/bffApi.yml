@@ -15361,6 +15361,9 @@ components:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
         - title
