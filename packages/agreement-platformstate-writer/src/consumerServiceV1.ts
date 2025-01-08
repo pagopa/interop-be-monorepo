@@ -33,24 +33,19 @@ export async function handleMessageV1(
   logger: Logger
 ): Promise<void> {
   await match(message)
-    .with({ type: "AgreementActivated" }, async (msg) => {
-      const agreement = parseAgreement(msg.data.agreement);
-      await handleFirstActivation(
-        agreement,
-        dynamoDBClient,
-        msg.version,
-        logger
-      );
-    })
-    .with({ type: "AgreementSuspended" }, async (msg) => {
-      const agreement = parseAgreement(msg.data.agreement);
-      await handleActivationOrSuspension(
-        agreement,
-        dynamoDBClient,
-        msg.version,
-        logger
-      );
-    })
+    .with(
+      { type: "AgreementActivated" },
+      { type: "AgreementSuspended" },
+      async (msg) => {
+        const agreement = parseAgreement(msg.data.agreement);
+        await handleActivationOrSuspension(
+          agreement,
+          dynamoDBClient,
+          msg.version,
+          logger
+        );
+      }
+    )
     .with({ type: "AgreementUpdated" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
 
@@ -118,83 +113,6 @@ const parseAgreement = (agreementV1: AgreementV1 | undefined): Agreement => {
   return fromAgreementV1(agreementV1);
 };
 
-const handleFirstActivation = async (
-  agreement: Agreement,
-  dynamoDBClient: DynamoDBClient,
-  incomingVersion: number,
-  logger: Logger
-): Promise<void> => {
-  const primaryKey = makePlatformStatesAgreementPK(agreement.id);
-
-  const existingAgreementEntry = await readAgreementEntry(
-    primaryKey,
-    dynamoDBClient
-  );
-  const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-    consumerId: agreement.consumerId,
-    eserviceId: agreement.eserviceId,
-  });
-
-  if (existingAgreementEntry) {
-    if (existingAgreementEntry.version > incomingVersion) {
-      // Stops processing if the message is older than the agreement entry
-      return Promise.resolve();
-    } else {
-      await updateAgreementStateInPlatformStatesEntry(
-        dynamoDBClient,
-        primaryKey,
-        agreementStateToItemState(agreement.state),
-        incomingVersion
-      );
-    }
-  } else {
-    const agreementEntry: PlatformStatesAgreementEntry = {
-      PK: primaryKey,
-      state: agreementStateToItemState(agreement.state),
-      version: incomingVersion,
-      updatedAt: new Date().toISOString(),
-      GSIPK_consumerId_eserviceId,
-      GSISK_agreementTimestamp:
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        agreement.stamps.activation!.when.toISOString(),
-      agreementDescriptorId: agreement.descriptorId,
-    };
-
-    await writeAgreementEntry(agreementEntry, dynamoDBClient);
-  }
-
-  if (
-    await isLatestAgreement(
-      GSIPK_consumerId_eserviceId,
-      agreement.id,
-      dynamoDBClient
-    )
-  ) {
-    const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
-      eserviceId: agreement.eserviceId,
-      descriptorId: agreement.descriptorId,
-    });
-
-    const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
-
-    const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-      eserviceId: agreement.eserviceId,
-      descriptorId: agreement.descriptorId,
-    });
-
-    // token-generation-states
-    await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
-      GSIPK_consumerId_eserviceId,
-      agreementId: agreement.id,
-      agreementState: agreement.state,
-      dynamoDBClient,
-      GSIPK_eserviceId_descriptorId,
-      catalogEntry,
-      logger,
-    });
-  }
-};
-
 const handleActivationOrSuspension = async (
   agreement: Agreement,
   dynamoDBClient: DynamoDBClient,
@@ -224,18 +142,28 @@ const handleActivationOrSuspension = async (
         incomingVersion
       );
     }
+  } else {
+    const agreementTimestamp = agreement.stamps.activation
+      ? agreement.stamps.activation.when.toISOString()
+      : agreement.createdAt.toISOString();
+    if (agreement.stamps.activation === undefined) {
+      logger.warn(
+        `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
+      );
+    }
+
+    const agreementEntry: PlatformStatesAgreementEntry = {
+      PK: primaryKey,
+      state: agreementStateToItemState(agreement.state),
+      version: incomingVersion,
+      updatedAt: new Date().toISOString(),
+      GSIPK_consumerId_eserviceId,
+      GSISK_agreementTimestamp: agreementTimestamp,
+      agreementDescriptorId: agreement.descriptorId,
+    };
+
+    await writeAgreementEntry(agreementEntry, dynamoDBClient);
   }
-
-  const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
-    eserviceId: agreement.eserviceId,
-    descriptorId: agreement.descriptorId,
-  });
-  const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
-
-  const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-    eserviceId: agreement.eserviceId,
-    descriptorId: agreement.descriptorId,
-  });
 
   if (
     await isLatestAgreement(
@@ -244,6 +172,17 @@ const handleActivationOrSuspension = async (
       dynamoDBClient
     )
   ) {
+    const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
+      eserviceId: agreement.eserviceId,
+      descriptorId: agreement.descriptorId,
+    });
+    const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
+
+    const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+      eserviceId: agreement.eserviceId,
+      descriptorId: agreement.descriptorId,
+    });
+
     // token-generation-states
     await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
       GSIPK_consumerId_eserviceId,
@@ -318,15 +257,22 @@ const handleUpgrade = async (
       );
     }
   } else {
+    const agreementTimestamp = agreement.stamps.activation
+      ? agreement.stamps.activation.when.toISOString()
+      : agreement.createdAt.toISOString();
+    if (agreement.stamps.activation === undefined) {
+      logger.warn(
+        `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
+      );
+    }
+
     const newAgreementEntry: PlatformStatesAgreementEntry = {
       PK: primaryKey,
       state: agreementStateToItemState(agreement.state),
       version: msgVersion,
       updatedAt: new Date().toISOString(),
       GSIPK_consumerId_eserviceId,
-      GSISK_agreementTimestamp:
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        agreement.stamps.activation!.when.toISOString(),
+      GSISK_agreementTimestamp: agreementTimestamp,
       agreementDescriptorId: agreement.descriptorId,
     };
 
