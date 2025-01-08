@@ -81,6 +81,9 @@ export const PurposeDocumentEServiceInfo = z.object({
   consumerName: z.string(),
   consumerOrigin: z.string(),
   consumerIPACode: z.string(),
+  producerDelegationId: z.string().optional(),
+  producerDelegatorName: z.string().optional(),
+  producerDelegatorIpaCode: z.string().optional(),
 });
 export type PurposeDocumentEServiceInfo = z.infer<
   typeof PurposeDocumentEServiceInfo
@@ -96,4 +99,7 @@ export type RiskAnalysisDocumentPDFPayload = {
   freeOfChargeReason: string;
   date: string;
   eServiceMode: string;
+  producerDelegationId: string | undefined;
+  producerDelegatorName: string | undefined;
+  producerDelegatorIpaCode: string | undefined;
 };

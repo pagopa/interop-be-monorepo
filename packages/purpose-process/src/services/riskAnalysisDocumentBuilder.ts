@@ -179,6 +179,9 @@ const getPdfPayload = ({
     freeOfChargeReason: freeOfChargeReasonHtml,
     date: dateAtRomeZone(new Date()),
     eServiceMode,
+    producerDelegationId: eserviceInfo.producerDelegationId,
+    producerDelegatorName: eserviceInfo.producerDelegatorName,
+    producerDelegatorIpaCode: eserviceInfo.producerDelegatorIpaCode,
   };
 };
 

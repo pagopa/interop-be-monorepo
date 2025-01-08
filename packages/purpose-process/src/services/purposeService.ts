@@ -1562,10 +1562,18 @@ async function generateRiskAnalysisDocument({
   pdfGenerator: PDFGenerator;
   logger: Logger;
 }): Promise<PurposeVersionDocument> {
-  const [producer, consumer] = await Promise.all([
+  const [producer, consumer, producerDelegation] = await Promise.all([
     retrieveTenant(eservice.producerId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
+    readModelService.getActiveDelegation(
+      eservice.id,
+      delegationKind.delegatedProducer
+    ),
   ]);
+
+  const producerDelegator =
+    producerDelegation &&
+    (await retrieveTenant(producerDelegation.delegatorId, readModelService));
 
   const eserviceInfo: PurposeDocumentEServiceInfo = {
     name: eservice.name,
@@ -1576,6 +1584,9 @@ async function generateRiskAnalysisDocument({
     consumerName: consumer.name,
     consumerOrigin: consumer.externalId.origin,
     consumerIPACode: consumer.externalId.value,
+    producerDelegationId: producerDelegation?.id,
+    producerDelegatorName: producerDelegator?.name,
+    producerDelegatorIpaCode: producerDelegator?.externalId.value,
   };
 
   function getTenantKind(tenant: Tenant): TenantKind {
