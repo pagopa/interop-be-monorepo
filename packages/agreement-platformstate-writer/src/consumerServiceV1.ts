@@ -259,10 +259,12 @@ const handleUpgrade = async (
   } else {
     const agreementTimestamp = agreement.stamps.upgrade
       ? agreement.stamps.upgrade.when.toISOString()
+      : agreement.stamps.activation
+      ? agreement.stamps.activation.when.toISOString()
       : agreement.createdAt.toISOString();
-    if (agreement.stamps.activation === undefined) {
+    if (agreement.stamps.upgrade === undefined) {
       logger.warn(
-        `Missing agreement upgrade stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
+        `Missing agreement upgrade stamp for agreement with id ${agreement.id}. Using activation stamp or createdAt as fallback.`
       );
     }
 
