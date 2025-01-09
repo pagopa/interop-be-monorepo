@@ -437,7 +437,7 @@ const delegationRouter = (
       try {
         const delegators = await delegationService.getConsumerDelegators(
           {
-            organizationId: ctx.authData.organizationId,
+            requesterId: ctx.authData.organizationId,
             delegatorName,
             limit,
             offset,

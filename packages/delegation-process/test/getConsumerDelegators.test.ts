@@ -162,7 +162,7 @@ describe("getConsumerDelegators", () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          organizationId: requesterId,
+          requesterId,
           offset: 0,
           limit: 50,
         },
@@ -190,7 +190,7 @@ describe("getConsumerDelegators", () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          organizationId: requesterId,
+          requesterId,
           offset: 1,
           limit: 1,
         },
@@ -210,7 +210,7 @@ describe("getConsumerDelegators", () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          organizationId: requesterId,
+          requesterId,
           offset: 0,
           limit: 50,
           delegatorName: "Comune",
@@ -234,7 +234,7 @@ describe("getConsumerDelegators", () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          organizationId: requesterId,
+          requesterId,
           offset: 0,
           limit: 50,
           delegatorName: "PagoPA",
@@ -257,7 +257,7 @@ describe("getConsumerDelegators", () => {
     expect(
       delegationService.getConsumerDelegators(
         {
-          organizationId: invalidRequesterId,
+          requesterId: invalidRequesterId,
           offset: 0,
           limit: 50,
         },

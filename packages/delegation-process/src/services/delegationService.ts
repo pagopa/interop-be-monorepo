@@ -582,7 +582,7 @@ export function delegationServiceBuilder(
     },
     async getConsumerDelegators(
       filters: {
-        organizationId: TenantId;
+        requesterId: TenantId;
         limit: number;
         offset: number;
         delegatorName?: string;
@@ -596,12 +596,12 @@ export function delegationServiceBuilder(
       );
 
       const delegation = await readModelService.findDelegations({
-        delegateId: filters.organizationId,
+        delegateId: filters.requesterId,
         delegationKind: delegationKind.delegatedConsumer,
         states: [delegationState.active],
       });
       if (!delegation || delegation.length === 0) {
-        throw requesterIsNotConsumerDelegate(filters.organizationId);
+        throw requesterIsNotConsumerDelegate(filters.requesterId);
       }
 
       return await readModelService.getConsumerDelegators(filters);
