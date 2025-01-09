@@ -28,7 +28,7 @@ import {
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
   deleteEntriesFromTokenGenStatesByClientId,
-  deleteEntriesFromTokenGenStatesByKid,
+  deleteEntriesFromTokenGenStatesByClientIdKid,
   deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId,
   readPlatformClientEntry,
   deleteClientEntryFromTokenGenerationStates,
@@ -259,7 +259,7 @@ export async function handleMessageV2(
         clientId: client.id,
         kid: msg.data.kid,
       });
-      await deleteEntriesFromTokenGenStatesByKid(
+      await deleteEntriesFromTokenGenStatesByClientIdKid(
         GSIPK_clientId_kid,
         dynamoDBClient,
         logger

@@ -78,7 +78,7 @@ import {
   updateTokenGenStatesDataForSecondRetrieval,
   upsertPlatformClientEntry,
   writeTokenGenStatesApiClient,
-  deleteEntriesFromTokenGenStatesByKid,
+  deleteEntriesFromTokenGenStatesByClientIdKid,
   writePlatformClientEntry,
   deleteEntriesFromTokenGenStatesByClientId,
   deleteClientEntryFromTokenGenerationStates,
@@ -105,7 +105,7 @@ describe("utils", () => {
     vi.useRealTimers();
   });
 
-  it("deleteEntriesFromTokenGenStatesByKid", async () => {
+  it("deleteEntriesFromTokenGenStatesByClientIdKid", async () => {
     const clientIdkid = makeGSIPKClientIdKid({
       clientId: generateId<ClientId>(),
       kid: "kid",
@@ -138,7 +138,7 @@ describe("utils", () => {
       dynamoDBClient
     );
 
-    await deleteEntriesFromTokenGenStatesByKid(
+    await deleteEntriesFromTokenGenStatesByClientIdKid(
       clientIdkid,
       dynamoDBClient,
       genericLogger
