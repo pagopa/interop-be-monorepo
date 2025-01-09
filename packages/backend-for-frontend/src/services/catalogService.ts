@@ -61,12 +61,13 @@ import { assertRequesterIsProducer } from "./validators.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
-const enhanceCatalogEService = (
+export const enhanceCatalogEservices = async (
+  eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
   headers: Headers,
   requesterId: TenantId
-): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) => {
+): Promise<bffApi.CatalogEService[]> => {
   const tenantsCachedList: Record<TenantId, tenantApi.Tenant> = {};
 
   const getCachedTenant = async (
@@ -85,34 +86,42 @@ const enhanceCatalogEService = (
     return tenant;
   };
 
-  return async (
-    eservice: catalogApi.EService
-  ): Promise<bffApi.CatalogEService> => {
-    const producerTenant = await getCachedTenant(
-      eservice.producerId as TenantId
-    );
-    const requesterTenant = await getCachedTenant(requesterId);
+  const enhanceEService =
+    (
+      agreementProcessClient: AgreementProcessClient,
+      headers: Headers,
+      requesterId: TenantId
+    ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
+    async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
+      const producerTenant = await getCachedTenant(
+        eservice.producerId as TenantId
+      );
+      const requesterTenant = await getCachedTenant(requesterId);
 
-    const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
+      const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
 
-    const latestAgreement = await getLatestAgreement(
-      agreementProcessClient,
-      requesterId,
-      eservice,
-      headers
-    );
+      const latestAgreement = await getLatestAgreement(
+        agreementProcessClient,
+        requesterId,
+        eservice,
+        headers
+      );
 
-    const isRequesterEqProducer = requesterId === eservice.producerId;
+      const isRequesterEqProducer = requesterId === eservice.producerId;
 
-    return toBffCatalogApiEService(
-      eservice,
-      producerTenant,
-      requesterTenant,
-      isRequesterEqProducer,
-      latestActiveDescriptor,
-      latestAgreement
-    );
-  };
+      return toBffCatalogApiEService(
+        eservice,
+        producerTenant,
+        requesterTenant,
+        isRequesterEqProducer,
+        latestActiveDescriptor,
+        latestAgreement
+      );
+    };
+
+  return await Promise.all(
+    eservices.map(enhanceEService(agreementProcessClient, headers, requesterId))
+  );
 };
 
 const enhanceProducerEService = (
@@ -217,15 +226,12 @@ export function catalogServiceBuilder(
           queries,
         });
 
-      const results = await Promise.all(
-        eservicesResponse.results.map(
-          enhanceCatalogEService(
-            tenantProcessClient,
-            agreementProcessClient,
-            headers,
-            requesterId
-          )
-        )
+      const results = await enhanceCatalogEservices(
+        eservicesResponse.results,
+        tenantProcessClient,
+        agreementProcessClient,
+        headers,
+        requesterId
       );
       const response: bffApi.CatalogEServices = {
         results,
