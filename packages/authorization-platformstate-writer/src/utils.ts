@@ -49,7 +49,7 @@ import {
   TokenGenStatesConsumerClientGSIClient,
   TokenGenStatesConsumerClientGSIClientPurpose,
   TokenGenStatesGenericClientGSIClient,
-  TokenGenStatesGenericClientGSIKid,
+  TokenGenStatesGenericClientGSIClientKid,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
@@ -57,21 +57,21 @@ import { z } from "zod";
 import { config } from "./config/config.js";
 
 export const deleteEntriesFromTokenGenStatesByKid = async (
-  GSIPK_kid: GSIPKClientIdKid,
+  GSIPK_clientId_kid: GSIPKClientIdKid,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
   const runPaginatedQuery = async (
-    GSIPK_kid: GSIPKClientIdKid,
+    GSIPK_clientId_kid: GSIPKClientIdKid,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<void> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Kid",
-      KeyConditionExpression: `GSIPK_kid = :gsiValue`,
+      KeyConditionExpression: `GSIPK_clientId_kid = :gsiValue`,
       ExpressionAttributeValues: {
-        ":gsiValue": { S: GSIPK_kid },
+        ":gsiValue": { S: GSIPK_clientId_kid },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
@@ -87,7 +87,7 @@ export const deleteEntriesFromTokenGenStatesByKid = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenGenStatesEntries = z
-        .array(TokenGenStatesGenericClientGSIKid)
+        .array(TokenGenStatesGenericClientGSIClientKid)
         .safeParse(unmarshalledItems);
 
       if (!tokenGenStatesEntries.success) {
@@ -108,7 +108,7 @@ export const deleteEntriesFromTokenGenStatesByKid = async (
 
       if (data.LastEvaluatedKey) {
         await runPaginatedQuery(
-          GSIPK_kid,
+          GSIPK_clientId_kid,
           dynamoDBClient,
           data.LastEvaluatedKey
         );
@@ -116,7 +116,7 @@ export const deleteEntriesFromTokenGenStatesByKid = async (
     }
   };
 
-  await runPaginatedQuery(GSIPK_kid, dynamoDBClient, undefined);
+  await runPaginatedQuery(GSIPK_clientId_kid, dynamoDBClient, undefined);
 };
 
 export const deleteClientEntryFromPlatformStates = async (
@@ -351,13 +351,13 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
       const newEntry: TokenGenerationStatesConsumerClient = {
         PK: makeTokenGenerationStatesClientKidPK({
           clientId: entry.GSIPK_clientId,
-          kid: entry.GSIPK_kid,
+          kid: entry.GSIPK_clientId_kid,
         }),
         consumerId: entry.consumerId,
         clientKind: entry.clientKind,
         publicKey: entry.publicKey,
         GSIPK_clientId: entry.GSIPK_clientId,
-        GSIPK_kid: entry.GSIPK_kid,
+        GSIPK_clientId_kid: entry.GSIPK_clientId_kid,
         updatedAt: new Date().toISOString(),
       };
 
@@ -414,8 +414,8 @@ export const writeTokenGenStatesApiClient = async (
       GSIPK_clientId: {
         S: tokenGenStatesApiClient.GSIPK_clientId,
       },
-      GSIPK_kid: {
-        S: tokenGenStatesApiClient.GSIPK_kid,
+      GSIPK_clientId_kid: {
+        S: tokenGenStatesApiClient.GSIPK_clientId_kid,
       },
     },
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
@@ -595,8 +595,8 @@ export const upsertTokenGenStatesConsumerClient = async (
       GSIPK_clientId: {
         S: tokenGenStatesConsumerClient.GSIPK_clientId,
       },
-      GSIPK_kid: {
-        S: tokenGenStatesConsumerClient.GSIPK_kid,
+      GSIPK_clientId_kid: {
+        S: tokenGenStatesConsumerClient.GSIPK_clientId_kid,
       },
       ...(tokenGenStatesConsumerClient.GSIPK_clientId_purposeId
         ? {
@@ -716,8 +716,8 @@ export const writeTokenGenStatesConsumerClient = async (
       GSIPK_clientId: {
         S: tokenGenStatesConsumerClient.GSIPK_clientId,
       },
-      GSIPK_kid: {
-        S: tokenGenStatesConsumerClient.GSIPK_kid,
+      GSIPK_clientId_kid: {
+        S: tokenGenStatesConsumerClient.GSIPK_clientId_kid,
       },
       ...(tokenGenStatesConsumerClient.GSIPK_clientId_purposeId
         ? {
@@ -1057,8 +1057,8 @@ export const upsertTokenGenStatesApiClient = async (
       GSIPK_clientId: {
         S: entry.GSIPK_clientId,
       },
-      GSIPK_kid: {
-        S: entry.GSIPK_kid,
+      GSIPK_clientId_kid: {
+        S: entry.GSIPK_clientId_kid,
       },
       updatedAt: {
         S: entry.updatedAt,
@@ -1262,7 +1262,7 @@ export const createTokenGenStatesConsumerClient = ({
     clientKind: clientKindTokenGenStates.consumer,
     publicKey: tokenGenStatesClient.publicKey,
     GSIPK_clientId: tokenGenStatesClient.GSIPK_clientId,
-    GSIPK_kid: tokenGenStatesClient.GSIPK_kid,
+    GSIPK_clientId_kid: tokenGenStatesClient.GSIPK_clientId_kid,
     GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
       clientId,
       purposeId,
