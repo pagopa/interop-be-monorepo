@@ -54,7 +54,10 @@ import {
   tenantKindNotFound,
 } from "../src/model/domain/errors.js";
 import {
+  addOneAgreement,
   addOneDelegation,
+  addOneEService,
+  addOneTenant,
   agreements,
   eservices,
   getMockEService,
@@ -257,6 +260,146 @@ describe("createReversePurpose", () => {
       eserviceId: unsafeBrandId(reversePurposeSeed.eServiceId),
       consumerId: unsafeBrandId(reversePurposeSeed.consumerId),
       delegationId: delegation.id,
+      title: reversePurposeSeed.title,
+      description: reversePurposeSeed.description,
+      isFreeOfCharge: reversePurposeSeed.isFreeOfCharge,
+      freeOfChargeReason: reversePurposeSeed.freeOfChargeReason,
+      riskAnalysisForm: {
+        ...mockRiskAnalysis.riskAnalysisForm,
+        riskAnalysisId: mockRiskAnalysis.id,
+      },
+    };
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toEqual(true);
+
+    vi.useRealTimers();
+  });
+  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the creation of the purpose is reversed", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const producerDelegator = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const producer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      publishedAt: new Date(),
+      interface: getMockDocument(),
+    };
+
+    const mockRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
+    const mockEService: EService = {
+      ...getMockEService(),
+      producerId: producerDelegator.id,
+      riskAnalysis: [mockRiskAnalysis],
+      descriptors: [mockDescriptor],
+      mode: eserviceMode.receive,
+    };
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      delegatorId: producerDelegator.id,
+      delegateId: producer.id,
+      state: delegationState.active,
+    });
+
+    const consumerDelegator = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const consumer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockEService.id,
+      delegatorId: consumerDelegator.id,
+      delegateId: consumer.id,
+      state: delegationState.active,
+    });
+
+    const mockAgreement: Agreement = {
+      ...getMockAgreement(),
+      eserviceId: mockEService.id,
+      consumerId: consumerDelegator.id,
+      state: agreementState.active,
+    };
+
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
+      eServiceId: mockEService.id,
+      consumerId: mockAgreement.consumerId,
+      riskAnalysisId: mockRiskAnalysis.id,
+      title: "test purpose title",
+      description: "test purpose description",
+      isFreeOfCharge: true,
+      freeOfChargeReason: "test",
+      dailyCalls: 1,
+    };
+
+    await addOneEService(mockEService);
+    await addOneDelegation(consumerDelegation);
+    await addOneDelegation(producerDelegation);
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+    await addOneTenant(producerDelegator);
+    await addOneTenant(consumerDelegator);
+    await addOneAgreement(mockAgreement);
+
+    const { purpose, isRiskAnalysisValid } =
+      await purposeService.createReversePurpose(reversePurposeSeed, {
+        authData: getRandomAuthData(consumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      });
+
+    const writtenEvent = await readLastPurposeEvent(purpose.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "0",
+      type: "PurposeAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedPurpose: Purpose = {
+      versions: [
+        {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
+          createdAt: new Date(),
+          state: purposeVersionState.draft,
+          dailyCalls: reversePurposeSeed.dailyCalls,
+        },
+      ],
+      id: purpose.id,
+      createdAt: new Date(),
+      eserviceId: unsafeBrandId(reversePurposeSeed.eServiceId),
+      consumerId: unsafeBrandId(reversePurposeSeed.consumerId),
+      delegationId: consumerDelegation.id,
       title: reversePurposeSeed.title,
       description: reversePurposeSeed.description,
       isFreeOfCharge: reversePurposeSeed.isFreeOfCharge,
