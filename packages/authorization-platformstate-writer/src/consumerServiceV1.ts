@@ -172,7 +172,8 @@ export async function handleMessageV1(
                     };
                   await upsertTokenGenStatesConsumerClient(
                     tokenGenStatesConsumerClient,
-                    dynamoDBClient
+                    dynamoDBClient,
+                    logger
                   );
                   return tokenGenStatesConsumerClient;
                 })
@@ -198,6 +199,7 @@ export async function handleMessageV1(
                     purposeEntry: purposeEntry2,
                     agreementEntry: agreementEntry2,
                     catalogEntry: catalogEntry2,
+                    logger,
                   });
                 })
               );
@@ -217,7 +219,8 @@ export async function handleMessageV1(
                 };
               await upsertTokenGenStatesConsumerClient(
                 tokenGenStatesConsumerClientWithoutPurpose,
-                dynamoDBClient
+                dynamoDBClient,
+                logger
               );
             }
           })
@@ -236,7 +239,8 @@ export async function handleMessageV1(
             };
             await upsertTokenGenStatesApiClient(
               tokenGenStatesApiClient,
-              dynamoDBClient
+              dynamoDBClient,
+              logger
             );
           })
           .exhaustive();
@@ -262,7 +266,11 @@ export async function handleMessageV1(
         await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
 
         const GSIPK_kid = makeGSIPKKid(msg.data.keyId);
-        await deleteEntriesFromTokenGenStatesByKid(GSIPK_kid, dynamoDBClient);
+        await deleteEntriesFromTokenGenStatesByKid(
+          GSIPK_kid,
+          dynamoDBClient,
+          logger
+        );
       }
     })
     .with({ type: "ClientPurposeAdded" }, async (msg) => {
@@ -328,11 +336,13 @@ export async function handleMessageV1(
 
                 await upsertTokenGenStatesConsumerClient(
                   newTokenGenStatesConsumerClient,
-                  dynamoDBClient
+                  dynamoDBClient,
+                  logger
                 );
                 await deleteClientEntryFromTokenGenerationStates(
                   entry.PK,
-                  dynamoDBClient
+                  dynamoDBClient,
+                  logger
                 );
                 return newTokenGenStatesConsumerClient;
               })
@@ -352,7 +362,8 @@ export async function handleMessageV1(
 
                   await upsertTokenGenStatesConsumerClient(
                     newTokenGenStatesConsumerClient,
-                    dynamoDBClient
+                    dynamoDBClient,
+                    logger
                   );
                   seenKids.add(kid);
                   return newTokenGenStatesConsumerClient;
@@ -388,6 +399,7 @@ export async function handleMessageV1(
                 purposeEntry: purposeEntry2,
                 agreementEntry: agreementEntry2,
                 catalogEntry: catalogEntry2,
+                logger,
               });
             })
           );
@@ -427,12 +439,14 @@ export async function handleMessageV1(
           if (updatedPurposeIds.length > 0) {
             await deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId(
               GSIPK_clientId_purposeId,
-              dynamoDBClient
+              dynamoDBClient,
+              logger
             );
           } else {
             await convertEntriesToClientKidInTokenGenerationStates(
               GSIPK_clientId_purposeId,
-              dynamoDBClient
+              dynamoDBClient,
+              logger
             );
           }
         }
@@ -446,7 +460,8 @@ export async function handleMessageV1(
       const GSIPK_clientId = clientId;
       await deleteEntriesFromTokenGenStatesByClientId(
         GSIPK_clientId,
-        dynamoDBClient
+        dynamoDBClient,
+        logger
       );
     })
     .with(
