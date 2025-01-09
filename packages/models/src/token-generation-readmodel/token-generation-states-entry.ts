@@ -145,7 +145,7 @@ export type TokenGenStatesConsumerClientGSIDescriptor = z.infer<
   typeof TokenGenStatesConsumerClientGSIDescriptor
 >;
 
-// Kid
+// ClientKid
 export const TokenGenStatesApiClientGSIClientKid =
   TokenGenerationStatesApiClient.pick({
     PK: true,
