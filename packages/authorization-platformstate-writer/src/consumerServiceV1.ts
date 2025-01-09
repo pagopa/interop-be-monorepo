@@ -13,7 +13,7 @@ import {
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
-  makeGSIPKKid,
+  makeGSIPKClientIdKid,
   makePlatformStatesClientPK,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
@@ -129,7 +129,7 @@ export async function handleMessageV1(
                       publicKey: pem,
                       updatedAt: new Date().toISOString(),
                       GSIPK_clientId: clientId,
-                      GSIPK_kid: makeGSIPKKid(kid),
+                      GSIPK_clientId_kid: makeGSIPKClientIdKid(kid),
                       GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
                         clientId,
                         purposeId,
@@ -214,7 +214,7 @@ export async function handleMessageV1(
                   clientKind: clientKindTokenGenStates.consumer,
                   publicKey: pem,
                   GSIPK_clientId: clientId,
-                  GSIPK_kid: makeGSIPKKid(kid),
+                  GSIPK_clientId_kid: makeGSIPKClientIdKid(kid),
                   updatedAt: new Date().toISOString(),
                 };
               await upsertTokenGenStatesConsumerClient(
@@ -234,7 +234,7 @@ export async function handleMessageV1(
               clientKind: clientKindTokenGenStates.api,
               publicKey: pem,
               GSIPK_clientId: clientId,
-              GSIPK_kid: makeGSIPKKid(kid),
+              GSIPK_clientId_kid: makeGSIPKClientIdKid(kid),
               updatedAt: new Date().toISOString(),
             };
             await upsertTokenGenStatesApiClient(
@@ -265,9 +265,9 @@ export async function handleMessageV1(
         };
         await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
 
-        const GSIPK_kid = makeGSIPKKid(msg.data.keyId);
+        const GSIPK_clientId_kid = makeGSIPKClientIdKid(msg.data.keyId);
         await deleteEntriesFromTokenGenStatesByKid(
-          GSIPK_kid,
+          GSIPK_clientId_kid,
           dynamoDBClient,
           logger
         );

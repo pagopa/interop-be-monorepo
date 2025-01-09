@@ -25,7 +25,7 @@ import {
   genericInternalError,
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
-  GSIPKKid,
+  GSIPKClientIdKid,
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
@@ -57,12 +57,12 @@ import { z } from "zod";
 import { config } from "./config/config.js";
 
 export const deleteEntriesFromTokenGenStatesByKid = async (
-  GSIPK_kid: GSIPKKid,
+  GSIPK_kid: GSIPKClientIdKid,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
   const runPaginatedQuery = async (
-    GSIPK_kid: GSIPKKid,
+    GSIPK_kid: GSIPKClientIdKid,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<void> => {
