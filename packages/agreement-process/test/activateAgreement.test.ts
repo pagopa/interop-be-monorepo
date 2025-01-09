@@ -102,8 +102,8 @@ describe("activate agreement", () => {
     // At least one of the three must be undefined to test the missing info case
     mockSelfcareUserResponseWithMissingInfo = {
       ...mockSelfcareUserResponse,
-      name: randomArrayItem([mockSelfcareUserResponse.name, undefined]),
-      surname: randomArrayItem([mockSelfcareUserResponse.surname, undefined]),
+      name: randomArrayItem([mockSelfcareUserResponse.name]),
+      surname: randomArrayItem([mockSelfcareUserResponse.surname]),
       taxCode: randomArrayItem([mockSelfcareUserResponse.taxCode, undefined]),
     };
   }

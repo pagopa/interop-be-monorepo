@@ -943,7 +943,7 @@ describe("submit agreement", () => {
     await addOneAgreement(agreement);
 
     const authData = getRandomAuthData(consumer.id);
-    mockSelfCareResponse({});
+    mockSelfCareResponse({} as selfcareV2ClientApi.UserResponse);
 
     await expect(
       agreementService.submitAgreement(
