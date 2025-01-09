@@ -64,7 +64,7 @@ import { contractBuilder } from "./delegationContractBuilder.js";
 export const retrieveDelegationById = async (
   readModelService: ReadModelService,
   delegationId: DelegationId,
-  kind?: DelegationKind
+  kind: DelegationKind
 ): Promise<WithMetadata<Delegation>> => {
   const delegation = await readModelService.getDelegationById(
     delegationId,
@@ -587,7 +587,7 @@ export function delegationServiceBuilder(
     },
     async getConsumerEservices(
       filters: {
-        organizationId: TenantId;
+        requesterId: TenantId;
         delegatorId: TenantId;
         limit: number;
         offset: number;
