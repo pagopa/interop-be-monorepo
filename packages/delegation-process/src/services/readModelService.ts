@@ -381,7 +381,7 @@ export function readModelServiceBuilder(
       };
     },
     async getConsumerEservices(filters: {
-      organizationId: TenantId;
+      requesterId: TenantId;
       delegatorId: TenantId;
       limit: number;
       offset: number;
@@ -392,7 +392,7 @@ export function readModelServiceBuilder(
           $match: {
             "data.kind": delegationKind.delegatedConsumer,
             "data.state": delegationState.active,
-            "data.delegateId": filters.organizationId,
+            "data.delegateId": filters.requesterId,
             "data.delegatorId": filters.delegatorId,
           } satisfies ReadModelFilter<Delegation>,
         },
