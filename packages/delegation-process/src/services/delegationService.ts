@@ -615,6 +615,8 @@ export function delegationServiceBuilder(
       const delegation = await readModelService.findDelegations({
         delegatorId: filters.delegatorId,
         delegateId: filters.requesterId,
+        delegationKind: delegationKind.delegatedConsumer,
+        states: [delegationState.active],
       });
       if (!delegation || delegation.length === 0) {
         throw requesterIsNotConsumerDelegate(
