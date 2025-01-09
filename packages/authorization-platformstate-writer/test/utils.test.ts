@@ -31,12 +31,11 @@ import {
   EService,
   EServiceId,
   generateId,
-  GSIPKKid,
   itemState,
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
-  makeGSIPKKid,
+  makeGSIPKClientIdKid,
   makePlatformStatesAgreementPK,
   makePlatformStatesClientPK,
   makePlatformStatesEServiceDescriptorPK,
@@ -55,7 +54,6 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
   TokenGenerationStatesGenericClient,
-  unsafeBrandId,
   TokenGenStatesConsumerClientGSIClient,
 } from "pagopa-interop-models";
 import {
@@ -108,15 +106,18 @@ describe("utils", () => {
   });
 
   it("deleteEntriesFromTokenGenStatesByKid", async () => {
-    const kid = unsafeBrandId<GSIPKKid>("mock kid");
+    const clientIdkid = makeGSIPKClientIdKid({
+      clientId: generateId<ClientId>(),
+      kid: "kid",
+    });
     const clientEntry: TokenGenerationStatesApiClient = {
       ...getMockTokenGenStatesApiClient(),
-      GSIPK_clientId_kid: kid,
+      GSIPK_clientId_kid: clientIdkid,
     };
 
     const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient = {
       ...getMockTokenGenStatesConsumerClient(),
-      GSIPK_clientId_kid: kid,
+      GSIPK_clientId_kid: clientIdkid,
     };
 
     const otherConsumerClient: TokenGenerationStatesConsumerClient = {
@@ -138,7 +139,7 @@ describe("utils", () => {
     );
 
     await deleteEntriesFromTokenGenStatesByKid(
-      kid,
+      clientIdkid,
       dynamoDBClient,
       genericLogger
     );
@@ -342,7 +343,10 @@ describe("utils", () => {
       ...getMockTokenGenStatesConsumerClient(pk1),
       GSIPK_clientId_purposeId,
       GSIPK_clientId: clientId,
-      GSIPK_clientId_kid: unsafeBrandId<GSIPKKid>(kid1),
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({
+        clientId,
+        kid: kid1,
+      }),
     };
 
     const pk2 = makeTokenGenerationStatesClientKidPurposePK({
@@ -354,7 +358,10 @@ describe("utils", () => {
       ...getMockTokenGenStatesConsumerClient(pk2),
       GSIPK_clientId_purposeId,
       GSIPK_clientId: clientId,
-      GSIPK_clientId_kid: unsafeBrandId<GSIPKKid>(kid2),
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({
+        clientId,
+        kid: kid2,
+      }),
     };
 
     const tokenGenStatesConsumerClient3 = getMockTokenGenStatesConsumerClient();
@@ -385,7 +392,10 @@ describe("utils", () => {
       clientKind: clientKindTokenGenStates.consumer,
       publicKey: tokenGenStatesConsumerClient1.publicKey,
       GSIPK_clientId: clientId,
-      GSIPK_clientId_kid: unsafeBrandId<GSIPKKid>(kid1),
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({
+        clientId,
+        kid: kid1,
+      }),
     };
 
     const expectedEntry2: TokenGenerationStatesConsumerClient = {
@@ -395,7 +405,10 @@ describe("utils", () => {
       clientKind: "CONSUMER",
       publicKey: tokenGenStatesConsumerClient1.publicKey,
       GSIPK_clientId: clientId,
-      GSIPK_clientId_kid: unsafeBrandId<GSIPKKid>(kid2),
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({
+        clientId,
+        kid: kid2,
+      }),
     };
 
     const result = await readAllTokenGenStatesItems(dynamoDBClient);
@@ -768,7 +781,10 @@ describe("utils", () => {
         clientKind: clientKindTokenGenStates.consumer,
         publicKey: "publicKey",
         GSIPK_clientId: generateId<ClientId>(),
-        GSIPK_clientId_kid: unsafeBrandId<GSIPKKid>("kid"),
+        GSIPK_clientId_kid: makeGSIPKClientIdKid({
+          clientId: generateId<ClientId>(),
+          kid: "kid",
+        }),
         updatedAt: new Date().toISOString(),
       };
     const entries3 = z
@@ -817,7 +833,10 @@ describe("utils", () => {
       ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
       consumerId,
       GSIPK_clientId: client.id,
-      GSIPK_clientId_kid: makeGSIPKKid(key.kid),
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({
+        clientId: client.id,
+        kid: key.kid,
+      }),
       GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
         clientId: client.id,
         purposeId: purpose.id,
