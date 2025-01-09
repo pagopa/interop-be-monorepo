@@ -161,7 +161,7 @@ const consumerDelegationRouter = (
           emptyErrorMapper,
           ctx.logger,
           ctx.correlationId,
-          `Error getting delegators`
+          `Error getting delegators with active agreements`
         );
 
         return res.status(errorRes.status).send(errorRes);

@@ -411,7 +411,7 @@ export function delegationServiceBuilder(
       { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.DelegationTenants> {
       logger.info(
-        `Retrieving consumer delegators of delegate ${authData.organizationId} with name ${q}, eserviceIds ${eserviceIds}, limit ${limit}, offset ${offset}`
+        `Retrieving consumer delegators of requester ${authData.organizationId} with name ${q}, eserviceIds ${eserviceIds}, limit ${limit}, offset ${offset}`
       );
 
       const delegatorsData =
@@ -447,7 +447,7 @@ export function delegationServiceBuilder(
       { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.DelegationTenants> {
       logger.info(
-        `Retrieving consumer delegators of delegate ${authData.organizationId} with name ${q}, limit ${limit}, offset ${offset}`
+        `Retrieving consumer delegators of requester ${authData.organizationId} with name ${q}, limit ${limit}, offset ${offset}`
       );
 
       const delegatorsData =

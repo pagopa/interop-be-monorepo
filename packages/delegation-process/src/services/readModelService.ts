@@ -100,8 +100,15 @@ export function readModelServiceBuilder(
           [
             {
               $match: {
-                "data.delegatorId": filters.delegatorId,
-                "data.eserviceId": filters.eserviceId,
+                ...(filters.delegatorId
+                  ? { "data.delegatorId": filters.delegatorId }
+                  : {}),
+                ...(filters.eserviceId
+                  ? { "data.eserviceId": filters.eserviceId }
+                  : {}),
+                ...(filters.delegateId
+                  ? { "data.delegateId": filters.delegateId }
+                  : {}),
                 "data.kind": filters.delegationKind,
                 ...ReadModelRepository.arrayToFilter(filters.states, {
                   "data.state": { $in: filters.states },

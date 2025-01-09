@@ -33,6 +33,7 @@ import {
   revokeDelegationErrorMapper,
   getConsumerDelegatorsErrorMapper,
   getConsumerEservicesErrorMapper,
+  getConsumerDelegatorsWithAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
@@ -483,7 +484,7 @@ const delegationRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getConsumerDelegatorsErrorMapper,
+          getConsumerDelegatorsWithAgreementsErrorMapper,
           ctx.logger,
           ctx.correlationId
         );

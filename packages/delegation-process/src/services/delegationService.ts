@@ -591,7 +591,7 @@ export function delegationServiceBuilder(
       logger: Logger
     ): Promise<delegationApi.CompactTenants> {
       logger.info(
-        `Retrieving delegations tenants with filters: ${JSON.stringify(
+        `Retrieving consumer delegators with filters: ${JSON.stringify(
           filters
         )}`
       );
@@ -617,7 +617,7 @@ export function delegationServiceBuilder(
       logger: Logger
     ): Promise<delegationApi.CompactTenants> {
       logger.info(
-        `Retrieving delegations tenants with filters: ${JSON.stringify(
+        `Retrieving consumer delegators with active agreements and filters: ${JSON.stringify(
           filters
         )}`
       );

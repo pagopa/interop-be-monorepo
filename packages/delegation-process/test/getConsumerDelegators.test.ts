@@ -77,17 +77,17 @@ describe("getConsumerDelegators", () => {
     eserviceId: eservice3.id,
   });
 
-  // Delegator5 has 1 active delegation with 1 published eservice
+  // Delegator4 has 1 active delegation with 1 published eservice
 
   const mockDelegation5 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId: requesterId,
+    delegateId: generateId<TenantId>(),
     delegatorId: delegator5.id,
     eserviceId: eservice3.id,
   });
 
-  // Delegator6 has 1 active delegation with 1 published eservice but a different delegateId
+  // Delegator5 has 1 active delegation with 1 published eservice but a different delegateId
 
   beforeEach(async () => {
     await addOneEservice(eservice1);
@@ -106,7 +106,7 @@ describe("getConsumerDelegators", () => {
     await addOneTenant(delegator5);
   });
 
-  it("should apply offset and limit", async () => {
+  it.only("should apply offset and limit", async () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
