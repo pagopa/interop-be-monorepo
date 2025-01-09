@@ -56,7 +56,7 @@ import { Logger } from "pagopa-interop-commons";
 import { z } from "zod";
 import { config } from "./config/config.js";
 
-export const deleteEntriesFromTokenGenStatesByKid = async (
+export const deleteEntriesFromTokenGenStatesByClientIdKid = async (
   GSIPK_clientId_kid: GSIPKClientIdKid,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
