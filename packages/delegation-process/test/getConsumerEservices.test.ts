@@ -182,12 +182,12 @@ describe("getConsumerEservices", () => {
     await addOneAgreement(agreementDelegator1Delegate2Eservice1);
   });
 
-  it("should get delegators filtered by delegateId", async () => {
+  it("should get eservices filtered by delegateId", async () => {
     expect(
       await delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          organizationId: requesterId,
+          requesterId,
           offset: 0,
           limit: 50,
         },
@@ -220,7 +220,7 @@ describe("getConsumerEservices", () => {
       await delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          organizationId: requesterId,
+          requesterId,
           offset: 1,
           limit: 1,
         },
@@ -236,12 +236,12 @@ describe("getConsumerEservices", () => {
       totalCount: 4,
     });
   });
-  it("should filter delegators by the 'delegatorName' parameter", async () => {
+  it("should filter eservices by the 'eserviceName' parameter", async () => {
     expect(
       await delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          organizationId: requesterId,
+          requesterId,
           eserviceName: "servizio",
           offset: 0,
           limit: 50,
@@ -266,7 +266,7 @@ describe("getConsumerEservices", () => {
       await delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          organizationId: requesterId,
+          requesterId,
           eserviceName: "pippo",
           offset: 0,
           limit: 50,
@@ -290,7 +290,7 @@ describe("getConsumerEservices", () => {
       delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          organizationId: invalidRequesterId,
+          requesterId: invalidRequesterId,
           offset: 0,
           limit: 50,
         },

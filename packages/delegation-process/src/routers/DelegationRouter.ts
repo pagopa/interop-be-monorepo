@@ -437,7 +437,7 @@ const delegationRouter = (
       try {
         const delegators = await delegationService.getConsumerDelegators(
           {
-            organizationId: ctx.authData.organizationId,
+            requesterId: ctx.authData.organizationId,
             delegatorName,
             eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
             limit,
@@ -469,7 +469,7 @@ const delegationRouter = (
         const delegators =
           await delegationService.getConsumerDelegatorsWithAgreements(
             {
-              organizationId: ctx.authData.organizationId,
+              requesterId: ctx.authData.organizationId,
               delegatorName,
               limit,
               offset,
@@ -500,7 +500,7 @@ const delegationRouter = (
         const eservices = await delegationService.getConsumerEservices(
           {
             delegatorId: unsafeBrandId(delegatorId),
-            organizationId: ctx.authData.organizationId,
+            requesterId: ctx.authData.organizationId,
             eserviceName,
             limit,
             offset,

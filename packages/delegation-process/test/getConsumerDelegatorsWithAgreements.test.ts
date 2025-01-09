@@ -28,7 +28,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   const delegator4 = { ...getMockTenant(), name: "DeleganteQuattro" };
   const delegator5 = { ...getMockTenant(), name: "PagoPA" };
   const delegator6 = getMockTenant();
-  const delegateId = generateId<TenantId>();
+  const requesterId = generateId<TenantId>();
   const eservice1 = getMockEService();
   const eservice2 = getMockEService();
   const eservice3 = getMockEService();
@@ -36,7 +36,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   const mockDelegation1 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: requesterId,
     delegatorId: delegator1.id,
     eserviceId: eservice1.id,
   });
@@ -49,7 +49,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   const mockDelegation1Bis = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: requesterId,
     delegatorId: delegator1.id,
     eserviceId: eservice2.id,
   });
@@ -64,7 +64,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   const mockDelegation2 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: requesterId,
     delegatorId: delegator2.id,
     eserviceId: eservice1.id,
   });
@@ -79,7 +79,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   const mockDelegation3 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.rejected,
-    delegateId,
+    delegateId: requesterId,
     delegatorId: delegator3.id,
     eserviceId: eservice1.id,
   });
@@ -89,7 +89,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   const mockDelegation4 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: requesterId,
     delegatorId: delegator4.id,
     eserviceId: eservice1.id,
   });
@@ -104,7 +104,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   const mockDelegation5 = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
     state: delegationState.active,
-    delegateId,
+    delegateId: requesterId,
     delegatorId: delegator5.id,
     eserviceId: eservice3.id,
   });
@@ -160,7 +160,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          delegateId,
+          requesterId,
           offset: 0,
           limit: 50,
         },
@@ -188,7 +188,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          delegateId,
+          requesterId,
           offset: 1,
           limit: 1,
         },
@@ -208,7 +208,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          delegateId,
+          requesterId,
           offset: 0,
           limit: 50,
           delegatorName: "Comune",
@@ -232,7 +232,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          delegateId,
+          requesterId,
           offset: 0,
           limit: 50,
           delegatorName: "PagoPA",
@@ -253,7 +253,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          delegateId: generateId<TenantId>(),
+          requesterId: generateId<TenantId>(),
           offset: 0,
           limit: 50,
         },
@@ -267,7 +267,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          delegateId: delegator3.id, // No active delegation
+          requesterId: delegator3.id, // No active delegation
           offset: 0,
           limit: 50,
         },
@@ -281,7 +281,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          delegateId: delegator4.id, // No active agreements
+          requesterId: delegator4.id, // No active agreements
           offset: 0,
           limit: 50,
         },

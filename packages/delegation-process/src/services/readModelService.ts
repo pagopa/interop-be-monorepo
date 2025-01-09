@@ -229,7 +229,7 @@ export function readModelServiceBuilder(
       return result.data;
     },
     async getConsumerDelegators(filters: {
-      delegateId: TenantId;
+      requesterId: TenantId;
       delegatorName?: string;
       eserviceIds: EServiceId[];
       limit: number;
@@ -240,7 +240,7 @@ export function readModelServiceBuilder(
           $match: {
             "data.kind": delegationKind.delegatedConsumer,
             "data.state": delegationState.active,
-            "data.delegateId": filters.delegateId,
+            "data.delegateId": filters.requesterId,
             ...ReadModelRepository.arrayToFilter(filters.eserviceIds, {
               "data.eserviceId": { $in: filters.eserviceIds },
             }),
@@ -319,7 +319,7 @@ export function readModelServiceBuilder(
       };
     },
     async getConsumerDelegatorsWithAgreements(filters: {
-      organizationId: TenantId;
+      requesterId: TenantId;
       delegatorName?: string;
       limit: number;
       offset: number;
@@ -329,7 +329,7 @@ export function readModelServiceBuilder(
           $match: {
             "data.kind": delegationKind.delegatedConsumer,
             "data.state": delegationState.active,
-            "data.delegateId": filters.organizationId,
+            "data.delegateId": filters.requesterId,
           } satisfies ReadModelFilter<Delegation>,
         },
         {
@@ -446,7 +446,7 @@ export function readModelServiceBuilder(
       };
     },
     async getConsumerEservices(filters: {
-      organizationId: TenantId;
+      requesterId: TenantId;
       delegatorId: TenantId;
       limit: number;
       offset: number;
@@ -457,7 +457,7 @@ export function readModelServiceBuilder(
           $match: {
             "data.kind": delegationKind.delegatedConsumer,
             "data.state": delegationState.active,
-            "data.delegateId": filters.organizationId,
+            "data.delegateId": filters.requesterId,
             "data.delegatorId": filters.delegatorId,
           } satisfies ReadModelFilter<Delegation>,
         },
