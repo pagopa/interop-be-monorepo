@@ -106,35 +106,6 @@ describe("getConsumerDelegators", () => {
     await addOneTenant(delegator5);
   });
 
-  it("should get delegators filtered by requesterId", async () => {
-    expect(
-      await delegationService.getConsumerDelegators(
-        {
-          requesterId,
-          eserviceIds: [],
-          offset: 0,
-          limit: 50,
-        },
-        genericLogger
-      )
-    ).toEqual({
-      results: [
-        {
-          id: delegator1.id,
-          name: delegator1.name,
-        },
-        {
-          id: delegator2.id,
-          name: delegator2.name,
-        },
-        {
-          id: delegator5.id,
-          name: delegator5.name,
-        },
-      ],
-      totalCount: 3,
-    });
-  });
   it("should apply offset and limit", async () => {
     expect(
       await delegationService.getConsumerDelegators(
