@@ -14732,7 +14732,7 @@ components:
         eservices:
           type: array
           items:
-            $ref: "#/components/schemas/ProducerKeychainEService"
+            $ref: "#/components/schemas/CompactEServiceLight"
         description:
           type: string
       required:
@@ -14742,17 +14742,6 @@ components:
         - eservices
         - createdAt
         - description
-    ProducerKeychainEService:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-      required:
-        - id
-        - name
     EServiceAdditionDetailsSeed:
       type: object
       properties:
