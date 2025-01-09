@@ -144,6 +144,29 @@ const consumerDelegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/consumer/delegations/delegatorsWithAgreements", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const delegators =
+          await delegationService.getConsumerDelegatorsWithAgreements(
+            req.query,
+            ctx
+          );
+
+        return res.status(200).send(bffApi.DelegationTenants.parse(delegators));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error getting delegators`
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/consumer/delegations/eservices", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 

@@ -572,9 +572,10 @@ export function delegationServiceBuilder(
     async getConsumerDelegators(
       filters: {
         organizationId: TenantId;
+        delegatorName?: string;
+        eserviceIds: EServiceId[];
         limit: number;
         offset: number;
-        delegatorName?: string;
       },
       logger: Logger
     ): Promise<delegationApi.CompactTenants> {
@@ -594,6 +595,24 @@ export function delegationServiceBuilder(
       }
 
       return await readModelService.getConsumerDelegators(filters);
+    },
+    async getConsumerDelegatorsWithAgreements(
+      filters: {
+        organizationId: TenantId;
+        delegatorName?: string;
+        limit: number;
+        offset: number;
+      },
+      logger: Logger
+    ): Promise<delegationApi.CompactTenants> {
+      logger.info(
+        `Retrieving delegations tenants with filters: ${JSON.stringify(
+          filters
+        )}`
+      );
+      return await readModelService.getConsumerDelegatorsWithAgreements(
+        filters
+      );
     },
     async getConsumerEservices(
       filters: {

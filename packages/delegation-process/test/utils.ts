@@ -33,7 +33,7 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
     inject("readModelConfig"),
     inject("eventStoreConfig"),
-    inject("fileManagerConfig")
+    // inject("fileManagerConfig")
   );
 afterEach(cleanup);
 
