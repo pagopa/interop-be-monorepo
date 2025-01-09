@@ -68,7 +68,7 @@ export const deleteEntriesFromTokenGenStatesByKid = async (
   ): Promise<void> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      IndexName: "Kid",
+      IndexName: "ClientKid",
       KeyConditionExpression: `GSIPK_clientId_kid = :gsiValue`,
       ExpressionAttributeValues: {
         ":gsiValue": { S: GSIPK_clientId_kid },
