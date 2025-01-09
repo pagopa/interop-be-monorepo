@@ -351,7 +351,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
       const newEntry: TokenGenerationStatesConsumerClient = {
         PK: makeTokenGenerationStatesClientKidPK({
           clientId: entry.GSIPK_clientId,
-          kid: entry.GSIPK_clientId_kid,
+          kid: extractKidFromGSIClientKid(entry.GSIPK_clientId_kid),
         }),
         consumerId: entry.consumerId,
         clientKind: entry.clientKind,
@@ -932,6 +932,10 @@ export const extractAgreementIdFromAgreementPK = (
   }
   return result.data;
 };
+
+export const extractKidFromGSIClientKid = (
+  GSIPK_clientId_kid: GSIPKClientIdKid
+): string => GSIPK_clientId_kid.split("#")[1];
 
 export const retrievePlatformStatesByPurpose = async (
   purposeId: PurposeId,
