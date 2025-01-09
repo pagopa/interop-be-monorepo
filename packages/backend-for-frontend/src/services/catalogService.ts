@@ -1216,5 +1216,22 @@ export function catalogServiceBuilder(
         descriptorId: eservice.descriptors[0].id,
       };
     },
+    updateDescriptorAttributes: async (
+      eServiceId: EServiceId,
+      descriptorId: EServiceId,
+      body: bffApi.DescriptorAttributesSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Updating attributes of Descriptor ${descriptorId} for EService ${eServiceId}`
+      );
+      await catalogProcessClient.updateDescriptorAttributes(body, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
   };
 }
