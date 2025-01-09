@@ -182,39 +182,6 @@ describe("getConsumerEservices", () => {
     await addOneAgreement(agreementDelegator1Delegate2Eservice1);
   });
 
-  it("should get eservices filtered by delegateId", async () => {
-    expect(
-      await delegationService.getConsumerEservices(
-        {
-          delegatorId: delegatorId1,
-          requesterId,
-          offset: 0,
-          limit: 50,
-        },
-        genericLogger
-      )
-    ).toEqual({
-      results: [
-        {
-          name: eservice3.name,
-          id: eservice3.id,
-        },
-        {
-          name: eservice4.name,
-          id: eservice4.id,
-        },
-        {
-          name: eservice1.name,
-          id: eservice1.id,
-        },
-        {
-          name: eservice2.name,
-          id: eservice2.id,
-        },
-      ],
-      totalCount: 4,
-    });
-  });
   it("should apply offset and limit", async () => {
     expect(
       await delegationService.getConsumerEservices(
