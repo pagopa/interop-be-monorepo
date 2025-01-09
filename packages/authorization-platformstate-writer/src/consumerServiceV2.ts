@@ -111,7 +111,10 @@ export async function handleMessageV2(
                     publicKey: pem,
                     updatedAt: new Date().toISOString(),
                     GSIPK_clientId: client.id,
-                    GSIPK_clientId_kid: makeGSIPKClientIdKid(msg.data.kid),
+                    GSIPK_clientId_kid: makeGSIPKClientIdKid({
+                      clientId: client.id,
+                      kid: msg.data.kid,
+                    }),
                     GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
                       clientId: client.id,
                       purposeId,
@@ -195,7 +198,10 @@ export async function handleMessageV2(
                 clientKind: clientKindTokenGenStates.consumer,
                 publicKey: pem,
                 GSIPK_clientId: client.id,
-                GSIPK_clientId_kid: makeGSIPKClientIdKid(msg.data.kid),
+                GSIPK_clientId_kid: makeGSIPKClientIdKid({
+                  clientId: client.id,
+                  kid: msg.data.kid,
+                }),
                 updatedAt: new Date().toISOString(),
               };
             await upsertTokenGenStatesConsumerClient(
@@ -215,7 +221,10 @@ export async function handleMessageV2(
             clientKind: clientKindTokenGenStates.api,
             publicKey: pem,
             GSIPK_clientId: client.id,
-            GSIPK_clientId_kid: makeGSIPKClientIdKid(msg.data.kid),
+            GSIPK_clientId_kid: makeGSIPKClientIdKid({
+              clientId: client.id,
+              kid: msg.data.kid,
+            }),
             updatedAt: new Date().toISOString(),
           };
           await upsertTokenGenStatesApiClient(
@@ -246,7 +255,10 @@ export async function handleMessageV2(
         await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
       }
 
-      const GSIPK_clientId_kid = makeGSIPKClientIdKid(msg.data.kid);
+      const GSIPK_clientId_kid = makeGSIPKClientIdKid({
+        clientId: client.id,
+        kid: msg.data.kid,
+      });
       await deleteEntriesFromTokenGenStatesByKid(
         GSIPK_clientId_kid,
         dynamoDBClient,
