@@ -13,7 +13,7 @@ import {
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
-  makeGSIPKKid,
+  makeGSIPKClientIdKid,
   makePlatformStatesClientPK,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
@@ -33,7 +33,7 @@ import {
   deleteClientEntryFromPlatformStates,
   deleteClientEntryFromTokenGenerationStates,
   deleteEntriesFromTokenGenStatesByClientId,
-  deleteEntriesFromTokenGenStatesByKid,
+  deleteEntriesFromTokenGenStatesByClientIdKid,
   deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId,
   extractAgreementIdFromAgreementPK,
   extractKidFromTokenGenStatesEntryPK,
@@ -129,7 +129,10 @@ export async function handleMessageV1(
                       publicKey: pem,
                       updatedAt: new Date().toISOString(),
                       GSIPK_clientId: clientId,
-                      GSIPK_kid: makeGSIPKKid(kid),
+                      GSIPK_clientId_kid: makeGSIPKClientIdKid({
+                        clientId,
+                        kid,
+                      }),
                       GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
                         clientId,
                         purposeId,
@@ -214,7 +217,7 @@ export async function handleMessageV1(
                   clientKind: clientKindTokenGenStates.consumer,
                   publicKey: pem,
                   GSIPK_clientId: clientId,
-                  GSIPK_kid: makeGSIPKKid(kid),
+                  GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
                   updatedAt: new Date().toISOString(),
                 };
               await upsertTokenGenStatesConsumerClient(
@@ -234,7 +237,7 @@ export async function handleMessageV1(
               clientKind: clientKindTokenGenStates.api,
               publicKey: pem,
               GSIPK_clientId: clientId,
-              GSIPK_kid: makeGSIPKKid(kid),
+              GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
               updatedAt: new Date().toISOString(),
             };
             await upsertTokenGenStatesApiClient(
@@ -265,9 +268,12 @@ export async function handleMessageV1(
         };
         await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
 
-        const GSIPK_kid = makeGSIPKKid(msg.data.keyId);
-        await deleteEntriesFromTokenGenStatesByKid(
-          GSIPK_kid,
+        const GSIPK_clientId_kid = makeGSIPKClientIdKid({
+          clientId,
+          kid: msg.data.keyId,
+        });
+        await deleteEntriesFromTokenGenStatesByClientIdKid(
+          GSIPK_clientId_kid,
           dynamoDBClient,
           logger
         );
