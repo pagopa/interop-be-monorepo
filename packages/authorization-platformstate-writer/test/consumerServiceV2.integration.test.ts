@@ -140,7 +140,11 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(key.kid),
       };
-      await writeTokenGenStatesApiClient(tokenClientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
@@ -1092,7 +1096,11 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(oldKey.kid),
       };
-      await writeTokenGenStatesApiClient(tokenClientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
@@ -1187,7 +1195,11 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(oldKey.kid),
       };
-      await writeTokenGenStatesApiClient(tokenClientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
@@ -1288,8 +1300,16 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(addedKey.kid),
       };
-      await writeTokenGenStatesApiClient(tokenClientEntry1, dynamoDBClient);
-      await writeTokenGenStatesApiClient(tokenClientEntry2, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry1,
+        dynamoDBClient,
+        genericLogger
+      );
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry2,
+        dynamoDBClient,
+        genericLogger
+      );
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
@@ -1382,7 +1402,11 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_kid: makeGSIPKKid(kidToRemove),
       };
-      await writeTokenGenStatesApiClient(tokenClientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
@@ -1552,7 +1576,8 @@ describe("integration tests V2 events", async () => {
       );
       await writeTokenGenStatesApiClient(
         tokenClientEntryWithOtherKid,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
@@ -1629,7 +1654,11 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenGenStatesApiClient(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
-      await writeTokenGenStatesApiClient(tokenClientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
@@ -1695,7 +1724,11 @@ describe("integration tests V2 events", async () => {
         tokenConsumerClient,
         dynamoDBClient
       );
-      await writeTokenGenStatesApiClient(tokenClientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
@@ -2122,7 +2155,8 @@ describe("integration tests V2 events", async () => {
       );
       await writeTokenGenStatesApiClient(
         tokenClientEntryWithOtherClient,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
@@ -2429,7 +2463,8 @@ describe("integration tests V2 events", async () => {
       );
       await writeTokenGenStatesApiClient(
         tokenClientEntryWithOtherClient,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
@@ -2558,7 +2593,11 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenGenStatesApiClient(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
-      await writeTokenGenStatesApiClient(tokenClientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
@@ -2615,7 +2654,11 @@ describe("integration tests V2 events", async () => {
         ...getMockTokenGenStatesApiClient(tokenClientKidPK),
         GSIPK_clientId: client.id,
       };
-      await writeTokenGenStatesApiClient(tokenClientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
@@ -2716,7 +2759,11 @@ describe("integration tests V2 events", async () => {
         GSIPK_purposeId: purposeId2,
       };
 
-      await writeTokenGenStatesApiClient(tokenClientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
       await writeTokenGenStatesConsumerClient(
         tokenConsumerClient1,
         dynamoDBClient

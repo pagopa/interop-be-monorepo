@@ -58,7 +58,8 @@ import { config } from "./config/config.js";
 
 export const deleteEntriesFromTokenGenStatesByKid = async (
   GSIPK_kid: GSIPKKid,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const runPaginatedQuery = async (
     GSIPK_kid: GSIPKKid,
@@ -100,7 +101,8 @@ export const deleteEntriesFromTokenGenStatesByKid = async (
       for (const entry of tokenGenStatesEntries.data) {
         await deleteClientEntryFromTokenGenerationStates(
           entry.PK,
-          dynamoDBClient
+          dynamoDBClient,
+          logger
         );
       }
 
@@ -133,7 +135,8 @@ export const deleteClientEntryFromPlatformStates = async (
 
 export const deleteEntriesFromTokenGenStatesByClientId = async (
   GSIPK_clientId: ClientId,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const runPaginatedQuery = async (
     GSIPK_clientId: ClientId,
@@ -176,7 +179,8 @@ export const deleteEntriesFromTokenGenStatesByClientId = async (
       for (const entry of tokenGenStatesEntries.data) {
         await deleteClientEntryFromTokenGenerationStates(
           entry.PK,
-          dynamoDBClient
+          dynamoDBClient,
+          logger
         );
       }
 
@@ -197,7 +201,8 @@ export const deleteClientEntryFromTokenGenerationStates = async (
   entryToDeletePK:
     | TokenGenerationStatesClientKidPK
     | TokenGenerationStatesClientKidPurposePK,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: DeleteItemInput = {
     Key: {
@@ -206,7 +211,11 @@ export const deleteClientEntryFromTokenGenerationStates = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new DeleteItemCommand(input);
-  await dynamoDBClient.send(command);
+  logger.warn(
+    `Deleting entry ${entryToDeletePK}. Result ${JSON.stringify(
+      await dynamoDBClient.send(command)
+    )}`
+  );
 };
 
 export const readPlatformClientEntry = async (
@@ -288,7 +297,8 @@ const readTokenGenStatesConsumerClientsByGSIPKClientPurpose = async (
 
 export const deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId = async (
   GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const runPaginatedQuery = async (
     GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
@@ -304,7 +314,8 @@ export const deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId = async (
     for (const entry of res.tokenGenStatesEntries) {
       await deleteClientEntryFromTokenGenerationStates(
         entry.PK,
-        dynamoDBClient
+        dynamoDBClient,
+        logger
       );
     }
 
@@ -321,7 +332,8 @@ export const deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId = async (
 
 export const convertEntriesToClientKidInTokenGenerationStates = async (
   GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const runPaginatedQuery = async (
     GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
@@ -350,12 +362,13 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
       };
 
       // write the new one
-      await writeTokenGenStatesConsumerClient(newEntry, dynamoDBClient);
+      await writeTokenGenStatesConsumerClient(newEntry, dynamoDBClient, logger);
 
       // delete the old one
       await deleteClientEntryFromTokenGenerationStates(
         entry.PK,
-        dynamoDBClient
+        dynamoDBClient,
+        logger
       );
     }
 
@@ -377,7 +390,8 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
 
 export const writeTokenGenStatesApiClient = async (
   tokenGenStatesApiClient: TokenGenerationStatesApiClient,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -407,7 +421,11 @@ export const writeTokenGenStatesApiClient = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  await dynamoDBClient.send(command);
+  logger.warn(
+    `Writing api client ${tokenGenStatesApiClient.PK}. Result ${JSON.stringify(
+      await dynamoDBClient.send(command)
+    )}`
+  );
 };
 
 export const readPlatformCatalogEntry = async (
@@ -508,7 +526,8 @@ export const readPlatformPurposeEntry = async (
 
 export const upsertTokenGenStatesConsumerClient = async (
   tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
     Item: {
@@ -618,12 +637,17 @@ export const upsertTokenGenStatesConsumerClient = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  await dynamoDBClient.send(command);
+  logger.warn(
+    `Upserting consumer client ${
+      tokenGenStatesConsumerClient.PK
+    }. Result ${JSON.stringify(await dynamoDBClient.send(command))}`
+  );
 };
 
 export const writeTokenGenStatesConsumerClient = async (
   tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -734,7 +758,11 @@ export const writeTokenGenStatesConsumerClient = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  await dynamoDBClient.send(command);
+  logger.warn(
+    `Writing consumer client ${
+      tokenGenStatesConsumerClient.PK
+    }. Result ${JSON.stringify(await dynamoDBClient.send(command))}`
+  );
 };
 
 export const clientKindToTokenGenerationStatesClientKind = (
@@ -1009,7 +1037,8 @@ export const upsertPlatformClientEntry = async (
 
 export const upsertTokenGenStatesApiClient = async (
   entry: TokenGenerationStatesApiClient,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
     Item: {
@@ -1038,7 +1067,11 @@ export const upsertTokenGenStatesApiClient = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  await dynamoDBClient.send(command);
+  logger.warn(
+    `Upserting api client ${entry.PK}. Result ${JSON.stringify(
+      await dynamoDBClient.send(command)
+    )}`
+  );
 };
 
 export const updateTokenGenStatesDataForSecondRetrieval = async ({
@@ -1047,9 +1080,11 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
   purposeEntry,
   agreementEntry,
   catalogEntry,
+  logger,
 }: {
   dynamoDBClient: DynamoDBClient;
   entry: TokenGenerationStatesConsumerClient;
+  logger: Logger;
   purposeEntry?: PlatformStatesPurposeEntry;
   agreementEntry?: PlatformStatesAgreementGSIAgreement;
   catalogEntry?: PlatformStatesCatalogEntry;
@@ -1126,7 +1161,11 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
       ReturnValues: "NONE",
     };
     const command = new UpdateItemCommand(input);
-    await dynamoDBClient.send(command);
+    logger.warn(
+      `Updating entry ${entry.PK}. Result ${JSON.stringify(
+        await dynamoDBClient.send(command)
+      )}`
+    );
   }
 };
 

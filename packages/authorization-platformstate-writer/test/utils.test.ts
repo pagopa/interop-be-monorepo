@@ -123,7 +123,11 @@ describe("utils", () => {
       ...getMockTokenGenStatesConsumerClient(),
     };
 
-    await writeTokenGenStatesApiClient(clientEntry, dynamoDBClient);
+    await writeTokenGenStatesApiClient(
+      clientEntry,
+      dynamoDBClient,
+      genericLogger
+    );
     await writeTokenGenStatesConsumerClient(
       tokenGenStatesConsumerClient,
       dynamoDBClient
@@ -133,7 +137,11 @@ describe("utils", () => {
       dynamoDBClient
     );
 
-    await deleteEntriesFromTokenGenStatesByKid(kid, dynamoDBClient);
+    await deleteEntriesFromTokenGenStatesByKid(
+      kid,
+      dynamoDBClient,
+      genericLogger
+    );
 
     const result = await readAllTokenGenStatesItems(dynamoDBClient);
     expect(result).toEqual([otherConsumerClient]);
@@ -176,7 +184,11 @@ describe("utils", () => {
     const otherConsumerClient: TokenGenerationStatesConsumerClient = {
       ...getMockTokenGenStatesConsumerClient(),
     };
-    await writeTokenGenStatesApiClient(clientEntry, dynamoDBClient);
+    await writeTokenGenStatesApiClient(
+      clientEntry,
+      dynamoDBClient,
+      genericLogger
+    );
     await writeTokenGenStatesConsumerClient(
       tokenGenStatesConsumerClient,
       dynamoDBClient
@@ -188,7 +200,8 @@ describe("utils", () => {
 
     await deleteEntriesFromTokenGenStatesByClientId(
       GSIPK_clientId,
-      dynamoDBClient
+      dynamoDBClient,
+      genericLogger
     );
 
     const result = await readAllTokenGenStatesItems(dynamoDBClient);
@@ -206,7 +219,11 @@ describe("utils", () => {
           ...getMockTokenGenStatesConsumerClient(),
         };
 
-      await writeTokenGenStatesApiClient(clientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        clientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
       await writeTokenGenStatesConsumerClient(
         tokenGenStatesConsumerClient,
         dynamoDBClient
@@ -214,7 +231,8 @@ describe("utils", () => {
 
       await deleteClientEntryFromTokenGenerationStates(
         clientEntry.PK,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       const result = await readAllTokenGenStatesItems(dynamoDBClient);
@@ -230,7 +248,11 @@ describe("utils", () => {
           ...getMockTokenGenStatesConsumerClient(),
         };
 
-      await writeTokenGenStatesApiClient(clientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        clientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
       await writeTokenGenStatesConsumerClient(
         tokenGenStatesConsumerClient,
         dynamoDBClient
@@ -238,7 +260,8 @@ describe("utils", () => {
 
       await deleteClientEntryFromTokenGenerationStates(
         tokenGenStatesConsumerClient.PK,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       const result = await readAllTokenGenStatesItems(dynamoDBClient);
@@ -291,7 +314,8 @@ describe("utils", () => {
 
     await deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId(
       GSIPK_clientId_purposeId,
-      dynamoDBClient
+      dynamoDBClient,
+      genericLogger
     );
 
     const result = await readAllTokenGenStatesItems(dynamoDBClient);
@@ -350,7 +374,8 @@ describe("utils", () => {
 
     await convertEntriesToClientKidInTokenGenerationStates(
       GSIPK_clientId_purposeId,
-      dynamoDBClient
+      dynamoDBClient,
+      genericLogger
     );
 
     const expectedEntry1: TokenGenerationStatesConsumerClient = {
@@ -386,7 +411,11 @@ describe("utils", () => {
   describe("writeTokenGenStatesApiClient", () => {
     it("should succeed if the entry doesn't exist", async () => {
       const clientEntry = getMockTokenGenStatesApiClient();
-      await writeTokenGenStatesApiClient(clientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        clientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       const result = await readAllTokenGenStatesItems(dynamoDBClient);
       expect(result).toEqual([clientEntry]);
@@ -394,10 +423,14 @@ describe("utils", () => {
 
     it("should throw error if the entry already exists", async () => {
       const clientEntry = getMockTokenGenStatesApiClient();
-      await writeTokenGenStatesApiClient(clientEntry, dynamoDBClient);
+      await writeTokenGenStatesApiClient(
+        clientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       expect(
-        writeTokenGenStatesApiClient(clientEntry, dynamoDBClient)
+        writeTokenGenStatesApiClient(clientEntry, dynamoDBClient, genericLogger)
       ).rejects.toThrowError();
     });
   });
@@ -451,7 +484,8 @@ describe("utils", () => {
 
       await upsertTokenGenStatesConsumerClient(
         tokenGenStatesConsumerClient,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       const resultAfter = await readAllTokenGenStatesItems(dynamoDBClient);
@@ -472,7 +506,11 @@ describe("utils", () => {
         ...tokenGenStatesConsumerClient,
         descriptorState: itemState.inactive,
       };
-      await upsertTokenGenStatesConsumerClient(updatedEntry, dynamoDBClient);
+      await upsertTokenGenStatesConsumerClient(
+        updatedEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       const resultAfter = await readAllTokenGenStatesItems(dynamoDBClient);
       expect(resultAfter).toEqual([updatedEntry]);
@@ -666,7 +704,8 @@ describe("utils", () => {
 
       await upsertTokenGenStatesApiClient(
         tokenGenStatesApiClient,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       const resultAfter = await readAllTokenGenStatesItems(dynamoDBClient);
@@ -679,14 +718,19 @@ describe("utils", () => {
       };
       await writeTokenGenStatesApiClient(
         tokenGenStatesApiClient,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       const updatedEntry: TokenGenerationStatesApiClient = {
         ...tokenGenStatesApiClient,
         clientKind: clientKindTokenGenStates.api,
       };
-      await upsertTokenGenStatesApiClient(updatedEntry, dynamoDBClient);
+      await upsertTokenGenStatesApiClient(
+        updatedEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       const resultAfter = await readAllTokenGenStatesItems(dynamoDBClient);
       expect(resultAfter).toEqual([updatedEntry]);
@@ -836,6 +880,7 @@ describe("utils", () => {
       purposeEntry: platformPurposeEntry,
       agreementEntry: platformAgreementEntry,
       catalogEntry: platformCatalogEntry,
+      logger: genericLogger,
     });
 
     const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
