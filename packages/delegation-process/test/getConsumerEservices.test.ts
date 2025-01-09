@@ -187,7 +187,7 @@ describe("getConsumerEservices", () => {
       await delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          organizationId: requesterId,
+          requesterId,
           offset: 0,
           limit: 50,
         },
@@ -220,7 +220,7 @@ describe("getConsumerEservices", () => {
       await delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          organizationId: requesterId,
+          requesterId,
           offset: 1,
           limit: 1,
         },
@@ -241,7 +241,7 @@ describe("getConsumerEservices", () => {
       await delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          organizationId: requesterId,
+          requesterId,
           eserviceName: "servizio",
           offset: 0,
           limit: 50,
@@ -266,7 +266,7 @@ describe("getConsumerEservices", () => {
       await delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          organizationId: requesterId,
+          requesterId,
           eserviceName: "pippo",
           offset: 0,
           limit: 50,
@@ -290,7 +290,7 @@ describe("getConsumerEservices", () => {
       delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          organizationId: invalidRequesterId,
+          requesterId: invalidRequesterId,
           offset: 0,
           limit: 50,
         },
