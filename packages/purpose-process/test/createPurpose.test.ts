@@ -271,6 +271,146 @@ describe("createPurpose", () => {
 
     vi.useRealTimers();
   });
+  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose was created successfully", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const producerDelegator = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const producer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producerDelegator.id,
+      descriptors: [descriptor1],
+    };
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegatorId: producerDelegator.id,
+      delegateId: producer.id,
+      state: delegationState.active,
+    });
+
+    const consumerDelegator = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const consumer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      delegatorId: consumerDelegator.id,
+      delegateId: consumer.id,
+      state: delegationState.active,
+    });
+
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      consumerId: consumerDelegator.id,
+      eserviceId: eservice.id,
+      state: agreementState.active,
+    };
+
+    const delegatePurposeSeed: purposeApi.PurposeSeed = {
+      ...purposeSeed,
+      eserviceId: eservice.id,
+      consumerId: agreement.consumerId,
+    };
+
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+    await addOneAgreement(agreement);
+    await addOneEService(eservice);
+    await addOneDelegation(consumerDelegation);
+    await addOneDelegation(producerDelegation);
+
+    const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
+      delegatePurposeSeed,
+      {
+        authData: getRandomAuthData(consumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
+
+    const writtenEvent = await readLastPurposeEvent(purpose.id);
+
+    if (!writtenEvent) {
+      fail("Update failed: purpose not found in event-store");
+    }
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "0",
+      type: "PurposeAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedRiskAnalysisForm: RiskAnalysisForm = {
+      ...mockValidRiskAnalysisForm,
+      id: unsafeBrandId(purpose.riskAnalysisForm!.id),
+      singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
+        (answer, i) => ({
+          ...answer,
+          id: purpose.riskAnalysisForm!.singleAnswers[i].id,
+        })
+      ),
+      multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
+        ...answer,
+        id: purpose.riskAnalysisForm!.multiAnswers[i].id,
+      })),
+    };
+
+    const expectedPurpose: Purpose = {
+      title: delegatePurposeSeed.title,
+      id: unsafeBrandId(purpose.id),
+      createdAt: new Date(),
+      eserviceId: unsafeBrandId(delegatePurposeSeed.eserviceId),
+      consumerId: unsafeBrandId(delegatePurposeSeed.consumerId),
+      delegationId: consumerDelegation.id,
+      description: delegatePurposeSeed.description,
+      versions: [
+        {
+          id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
+          state: purposeVersionState.draft,
+          dailyCalls: delegatePurposeSeed.dailyCalls,
+          createdAt: new Date(),
+        },
+      ],
+      isFreeOfCharge: true,
+      freeOfChargeReason: delegatePurposeSeed.freeOfChargeReason,
+      riskAnalysisForm: expectedRiskAnalysisForm,
+    };
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(purpose).toEqual(expectedPurpose);
+    expect(isRiskAnalysisValid).toBe(true);
+
+    vi.useRealTimers();
+  });
   it("should throw missingFreeOfChargeReason if the freeOfChargeReason is empty", async () => {
     const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
