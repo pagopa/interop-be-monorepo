@@ -4,15 +4,10 @@ import { randomUUID } from "crypto";
 import { Attribute, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import { TenantSeed, getAttributesToRevoke } from "../src/index.js";
-import { agency, aoo, attributes, uo } from "./expectation.js";
+import { attributes } from "./expectation.js";
 
 describe("GetAttributesToRevoke", async () => {
   it("should revoke only assigned attributes that exist and doesn't have a revocation timestamp", async () => {
-    const registryData = {
-      institutions: [...agency, ...aoo, ...uo],
-      attributes,
-    };
-
     const tenantSeed: TenantSeed[] = [
       {
         origin: "IPA",
@@ -57,22 +52,23 @@ describe("GetAttributesToRevoke", async () => {
       },
     ];
 
-    const attributesToAssign = await getAttributesToRevoke(
-      registryData,
+    const attributesToRevoke = await getAttributesToRevoke(
       tenantSeed,
       ipaTenants,
       platformAttributes
     );
 
-    expect(attributesToAssign).toEqual([]);
+    expect(attributesToRevoke).toEqual([
+      {
+        tOrigin: ipaTenants[0].externalId.origin,
+        tExtenalId: ipaTenants[0].externalId.value,
+        aOrigin: attributes[2].origin,
+        aCode: attributes[2].code,
+      },
+    ]);
   });
 
   it("should revoke only assigned attributes with origin IPA", async () => {
-    const registryData = {
-      institutions: [...agency, ...aoo, ...uo],
-      attributes: attributes.slice(2),
-    };
-
     const tenantSeed: TenantSeed[] = [
       {
         origin: "IPA",
@@ -116,7 +112,6 @@ describe("GetAttributesToRevoke", async () => {
     ];
 
     const attributesToRevoke = await getAttributesToRevoke(
-      registryData,
       tenantSeed,
       ipaTenants,
       platformAttributes
@@ -130,63 +125,5 @@ describe("GetAttributesToRevoke", async () => {
         aCode: attributes[1].code,
       },
     ]);
-  });
-
-  it("should not revoke attributes if are present in the registry data", async () => {
-    const registryData = {
-      institutions: [...agency, ...aoo, ...uo],
-      attributes,
-    };
-
-    const tenantSeed: TenantSeed[] = [
-      {
-        origin: "IPA",
-        originId: "1",
-        description: "tenant1",
-        attributes: [],
-      },
-    ];
-
-    const platformAttributes: Attribute[] = attributes.map((a) => ({
-      ...a,
-      creationTime: new Date(),
-      kind: "Certified",
-      id: unsafeBrandId(randomUUID()),
-    }));
-
-    platformAttributes[0].origin = "NON-IPA";
-
-    const ipaTenants: Tenant[] = [
-      {
-        id: unsafeBrandId("1"),
-        selfcareId: "fake-selfcare-id",
-        externalId: { origin: "IPA", value: "1" },
-        features: [],
-        attributes: [
-          {
-            id: platformAttributes[0].id,
-            type: "PersistentCertifiedAttribute",
-            assignmentTimestamp: new Date(),
-          },
-          {
-            id: platformAttributes[1].id,
-            type: "PersistentCertifiedAttribute",
-            assignmentTimestamp: new Date(),
-          },
-        ],
-        createdAt: new Date(),
-        mails: [],
-        name: "tenant 1",
-      },
-    ];
-
-    const attributesToRevoke = await getAttributesToRevoke(
-      registryData,
-      tenantSeed,
-      ipaTenants,
-      platformAttributes
-    );
-
-    expect(attributesToRevoke).toEqual([]);
   });
 });

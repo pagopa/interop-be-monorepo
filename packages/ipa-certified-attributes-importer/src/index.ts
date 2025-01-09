@@ -278,7 +278,6 @@ async function assignNewAttributes(
 }
 
 export async function getAttributesToRevoke(
-  registryData: RegistryData,
   tenantSeeds: TenantSeed[],
   platformTenants: Tenant[],
   platformAttributes: Attribute[]
@@ -290,12 +289,6 @@ export async function getAttributesToRevoke(
     aCode: string;
   }>
 > {
-  const indexFromOpenData = new Set(
-    registryData.attributes.map((a) =>
-      toAttributeKey({ origin: a.origin, code: a.code })
-    )
-  );
-
   const tenantSeedsIndex = new Map(
     tenantSeeds.map((t) => [
       toTenantKey({ origin: t.origin, value: t.originId }),
@@ -333,11 +326,7 @@ export async function getAttributesToRevoke(
       return true;
     }
 
-    if (registryAttributes.has(toAttributeKey(externalId))) {
-      return false;
-    }
-
-    return !indexFromOpenData.has(toAttributeKey(externalId));
+    return !registryAttributes.has(toAttributeKey(externalId));
   };
 
   return platformTenants.flatMap((t) =>
@@ -455,7 +444,6 @@ try {
   );
 
   const attributesToRevoke = await getAttributesToRevoke(
-    registryData,
     tenantUpsertData,
     ipaTenants,
     attributes
