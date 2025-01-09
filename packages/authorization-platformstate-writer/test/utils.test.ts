@@ -111,12 +111,12 @@ describe("utils", () => {
     const kid = unsafeBrandId<GSIPKKid>("mock kid");
     const clientEntry: TokenGenerationStatesApiClient = {
       ...getMockTokenGenStatesApiClient(),
-      GSIPK_kid: kid,
+      GSIPK_clientId_kid: kid,
     };
 
     const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient = {
       ...getMockTokenGenStatesConsumerClient(),
-      GSIPK_kid: kid,
+      GSIPK_clientId_kid: kid,
     };
 
     const otherConsumerClient: TokenGenerationStatesConsumerClient = {
@@ -342,7 +342,7 @@ describe("utils", () => {
       ...getMockTokenGenStatesConsumerClient(pk1),
       GSIPK_clientId_purposeId,
       GSIPK_clientId: clientId,
-      GSIPK_kid: unsafeBrandId<GSIPKKid>(kid1),
+      GSIPK_clientId_kid: unsafeBrandId<GSIPKKid>(kid1),
     };
 
     const pk2 = makeTokenGenerationStatesClientKidPurposePK({
@@ -354,7 +354,7 @@ describe("utils", () => {
       ...getMockTokenGenStatesConsumerClient(pk2),
       GSIPK_clientId_purposeId,
       GSIPK_clientId: clientId,
-      GSIPK_kid: unsafeBrandId<GSIPKKid>(kid2),
+      GSIPK_clientId_kid: unsafeBrandId<GSIPKKid>(kid2),
     };
 
     const tokenGenStatesConsumerClient3 = getMockTokenGenStatesConsumerClient();
@@ -385,7 +385,7 @@ describe("utils", () => {
       clientKind: clientKindTokenGenStates.consumer,
       publicKey: tokenGenStatesConsumerClient1.publicKey,
       GSIPK_clientId: clientId,
-      GSIPK_kid: unsafeBrandId<GSIPKKid>(kid1),
+      GSIPK_clientId_kid: unsafeBrandId<GSIPKKid>(kid1),
     };
 
     const expectedEntry2: TokenGenerationStatesConsumerClient = {
@@ -395,7 +395,7 @@ describe("utils", () => {
       clientKind: "CONSUMER",
       publicKey: tokenGenStatesConsumerClient1.publicKey,
       GSIPK_clientId: clientId,
-      GSIPK_kid: unsafeBrandId<GSIPKKid>(kid2),
+      GSIPK_clientId_kid: unsafeBrandId<GSIPKKid>(kid2),
     };
 
     const result = await readAllTokenGenStatesItems(dynamoDBClient);
@@ -768,7 +768,7 @@ describe("utils", () => {
         clientKind: clientKindTokenGenStates.consumer,
         publicKey: "publicKey",
         GSIPK_clientId: generateId<ClientId>(),
-        GSIPK_kid: unsafeBrandId<GSIPKKid>("kid"),
+        GSIPK_clientId_kid: unsafeBrandId<GSIPKKid>("kid"),
         updatedAt: new Date().toISOString(),
       };
     const entries3 = z
@@ -817,7 +817,7 @@ describe("utils", () => {
       ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
       consumerId,
       GSIPK_clientId: client.id,
-      GSIPK_kid: makeGSIPKKid(key.kid),
+      GSIPK_clientId_kid: makeGSIPKKid(key.kid),
       GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
         clientId: client.id,
         purposeId: purpose.id,

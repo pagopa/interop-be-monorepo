@@ -677,7 +677,7 @@ describe("authorization server tests", () => {
       agreementState: itemState.active,
       descriptorState: itemState.active,
       GSIPK_clientId: clientId,
-      GSIPK_kid: makeGSIPKKid(clientAssertion.header.kid!),
+      GSIPK_clientId_kid: makeGSIPKKid(clientAssertion.header.kid!),
       publicKey: publicKeyEncodedPem,
     };
 
