@@ -468,7 +468,7 @@ const delegationRouter = (
         const eservices = await delegationService.getConsumerEservices(
           {
             delegatorId: unsafeBrandId(delegatorId),
-            organizationId: ctx.authData.organizationId,
+            requesterId: ctx.authData.organizationId,
             eserviceName,
             limit,
             offset,
