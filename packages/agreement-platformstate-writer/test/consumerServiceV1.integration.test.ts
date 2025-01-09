@@ -1157,6 +1157,10 @@ describe("integration tests V1 events", async () => {
             when: new Date(),
             who: generateId(),
           },
+          upgrade: {
+            when: new Date(),
+            who: generateId(),
+          },
         },
       };
       const payload: AgreementAddedV1 = {
@@ -1253,8 +1257,7 @@ describe("integration tests V1 events", async () => {
           consumerId: agreement.consumerId,
           eserviceId: agreement.eserviceId,
         }),
-        GSISK_agreementTimestamp:
-          agreement.stamps.activation!.when.toISOString(),
+        GSISK_agreementTimestamp: agreement.stamps.upgrade!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
       };
       expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);

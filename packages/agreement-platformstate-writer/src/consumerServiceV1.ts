@@ -78,7 +78,7 @@ export async function handleMessageV1(
 
       await match(agreement.state)
         // eslint-disable-next-line sonarjs/no-identical-functions
-        .with(agreementState.active, async () => {
+        .with(agreementState.active, agreementState.suspended, async () => {
           // this case is for agreement upgraded
           const agreement = parseAgreement(msg.data.agreement);
           await handleUpgrade(agreement, dynamoDBClient, msg.version, logger);
@@ -89,7 +89,6 @@ export async function handleMessageV1(
           agreementState.missingCertifiedAttributes,
           agreementState.pending,
           agreementState.rejected,
-          agreementState.suspended,
           () => Promise.resolve()
         )
         .exhaustive();
@@ -258,12 +257,14 @@ const handleUpgrade = async (
       );
     }
   } else {
-    const agreementTimestamp = agreement.stamps.activation
+    const agreementTimestamp = agreement.stamps.upgrade
+      ? agreement.stamps.upgrade.when.toISOString()
+      : agreement.stamps.activation
       ? agreement.stamps.activation.when.toISOString()
       : agreement.createdAt.toISOString();
-    if (agreement.stamps.activation === undefined) {
+    if (agreement.stamps.upgrade === undefined) {
       logger.warn(
-        `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
+        `Missing agreement upgrade stamp for agreement with id ${agreement.id}. Using activation stamp or createdAt as fallback.`
       );
     }
 

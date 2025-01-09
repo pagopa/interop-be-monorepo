@@ -10,7 +10,7 @@ import {
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
-  makeGSIPKKid,
+  makeGSIPKClientIdKid,
   makePlatformStatesClientPK,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
@@ -28,7 +28,7 @@ import {
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
   deleteEntriesFromTokenGenStatesByClientId,
-  deleteEntriesFromTokenGenStatesByKid,
+  deleteEntriesFromTokenGenStatesByClientIdKid,
   deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId,
   readPlatformClientEntry,
   deleteClientEntryFromTokenGenerationStates,
@@ -111,7 +111,10 @@ export async function handleMessageV2(
                     publicKey: pem,
                     updatedAt: new Date().toISOString(),
                     GSIPK_clientId: client.id,
-                    GSIPK_kid: makeGSIPKKid(msg.data.kid),
+                    GSIPK_clientId_kid: makeGSIPKClientIdKid({
+                      clientId: client.id,
+                      kid: msg.data.kid,
+                    }),
                     GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
                       clientId: client.id,
                       purposeId,
@@ -153,7 +156,8 @@ export async function handleMessageV2(
                   };
                 await upsertTokenGenStatesConsumerClient(
                   tokenGenStatesConsumerClient,
-                  dynamoDBClient
+                  dynamoDBClient,
+                  logger
                 );
                 return tokenGenStatesConsumerClient;
               })
@@ -179,6 +183,7 @@ export async function handleMessageV2(
                   purposeEntry: purposeEntry2,
                   agreementEntry: agreementEntry2,
                   catalogEntry: catalogEntry2,
+                  logger,
                 });
               })
             );
@@ -193,12 +198,16 @@ export async function handleMessageV2(
                 clientKind: clientKindTokenGenStates.consumer,
                 publicKey: pem,
                 GSIPK_clientId: client.id,
-                GSIPK_kid: makeGSIPKKid(msg.data.kid),
+                GSIPK_clientId_kid: makeGSIPKClientIdKid({
+                  clientId: client.id,
+                  kid: msg.data.kid,
+                }),
                 updatedAt: new Date().toISOString(),
               };
             await upsertTokenGenStatesConsumerClient(
               tokenGenStatesConsumerClientWithoutPurpose,
-              dynamoDBClient
+              dynamoDBClient,
+              logger
             );
           }
         })
@@ -212,12 +221,16 @@ export async function handleMessageV2(
             clientKind: clientKindTokenGenStates.api,
             publicKey: pem,
             GSIPK_clientId: client.id,
-            GSIPK_kid: makeGSIPKKid(msg.data.kid),
+            GSIPK_clientId_kid: makeGSIPKClientIdKid({
+              clientId: client.id,
+              kid: msg.data.kid,
+            }),
             updatedAt: new Date().toISOString(),
           };
           await upsertTokenGenStatesApiClient(
             tokenGenStatesApiClient,
-            dynamoDBClient
+            dynamoDBClient,
+            logger
           );
         })
         .exhaustive();
@@ -242,8 +255,15 @@ export async function handleMessageV2(
         await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
       }
 
-      const GSIPK_kid = makeGSIPKKid(msg.data.kid);
-      await deleteEntriesFromTokenGenStatesByKid(GSIPK_kid, dynamoDBClient);
+      const GSIPK_clientId_kid = makeGSIPKClientIdKid({
+        clientId: client.id,
+        kid: msg.data.kid,
+      });
+      await deleteEntriesFromTokenGenStatesByClientIdKid(
+        GSIPK_clientId_kid,
+        dynamoDBClient,
+        logger
+      );
     })
     .with({ type: "ClientPurposeAdded" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
@@ -310,11 +330,13 @@ export async function handleMessageV2(
 
               await upsertTokenGenStatesConsumerClient(
                 newTokenGenStatesConsumerClient,
-                dynamoDBClient
+                dynamoDBClient,
+                logger
               );
               await deleteClientEntryFromTokenGenerationStates(
                 entry.PK,
-                dynamoDBClient
+                dynamoDBClient,
+                logger
               );
               return newTokenGenStatesConsumerClient;
             })
@@ -334,7 +356,8 @@ export async function handleMessageV2(
 
                 await upsertTokenGenStatesConsumerClient(
                   newTokenGenStatesConsumerClient,
-                  dynamoDBClient
+                  dynamoDBClient,
+                  logger
                 );
                 seenKids.add(kid);
                 return newTokenGenStatesConsumerClient;
@@ -370,6 +393,7 @@ export async function handleMessageV2(
               purposeEntry: purposeEntry2,
               agreementEntry: agreementEntry2,
               catalogEntry: catalogEntry2,
+              logger,
             });
           })
         );
@@ -399,12 +423,14 @@ export async function handleMessageV2(
           if (client.purposes.length > 0) {
             await deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId(
               GSIPK_clientId_purposeId,
-              dynamoDBClient
+              dynamoDBClient,
+              logger
             );
           } else {
             await convertEntriesToClientKidInTokenGenerationStates(
               GSIPK_clientId_purposeId,
-              dynamoDBClient
+              dynamoDBClient,
+              logger
             );
           }
         }
@@ -418,7 +444,8 @@ export async function handleMessageV2(
       const GSIPK_clientId = client.id;
       await deleteEntriesFromTokenGenStatesByClientId(
         GSIPK_clientId,
-        dynamoDBClient
+        dynamoDBClient,
+        logger
       );
     })
     .with(
