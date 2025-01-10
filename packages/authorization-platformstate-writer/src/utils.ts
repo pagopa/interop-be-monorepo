@@ -211,11 +211,8 @@ export const deleteClientEntryFromTokenGenerationStates = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new DeleteItemCommand(input);
-  logger.warn(
-    `Deleting entry ${entryToDeletePK}. Result ${JSON.stringify(
-      await dynamoDBClient.send(command)
-    )}`
-  );
+  await dynamoDBClient.send(command);
+  logger.info(`Deleting entry ${entryToDeletePK}`);
 };
 
 export const readPlatformClientEntry = async (
@@ -421,11 +418,8 @@ export const writeTokenGenStatesApiClient = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  logger.warn(
-    `Writing api client ${tokenGenStatesApiClient.PK}. Result ${JSON.stringify(
-      await dynamoDBClient.send(command)
-    )}`
-  );
+  await dynamoDBClient.send(command);
+  logger.info(`Writing api client ${tokenGenStatesApiClient.PK}`);
 };
 
 export const readPlatformCatalogEntry = async (
@@ -637,11 +631,8 @@ export const upsertTokenGenStatesConsumerClient = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  logger.warn(
-    `Upserting consumer client ${
-      tokenGenStatesConsumerClient.PK
-    }. Result ${JSON.stringify(await dynamoDBClient.send(command))}`
-  );
+  await dynamoDBClient.send(command);
+  logger.info(`Upserting consumer client ${tokenGenStatesConsumerClient.PK}`);
 };
 
 export const writeTokenGenStatesConsumerClient = async (
@@ -758,11 +749,8 @@ export const writeTokenGenStatesConsumerClient = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  logger.warn(
-    `Writing consumer client ${
-      tokenGenStatesConsumerClient.PK
-    }. Result ${JSON.stringify(await dynamoDBClient.send(command))}`
-  );
+  await dynamoDBClient.send(command);
+  logger.info(`Writing consumer client ${tokenGenStatesConsumerClient.PK}`);
 };
 
 export const clientKindToTokenGenerationStatesClientKind = (
@@ -1071,11 +1059,8 @@ export const upsertTokenGenStatesApiClient = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  logger.warn(
-    `Upserting api client ${entry.PK}. Result ${JSON.stringify(
-      await dynamoDBClient.send(command)
-    )}`
-  );
+  await dynamoDBClient.send(command);
+  logger.info(`Upserting api client ${entry.PK}`);
 };
 
 export const updateTokenGenStatesDataForSecondRetrieval = async ({
@@ -1165,11 +1150,8 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
       ReturnValues: "NONE",
     };
     const command = new UpdateItemCommand(input);
-    logger.warn(
-      `Updating entry ${entry.PK}. Result ${JSON.stringify(
-        await dynamoDBClient.send(command)
-      )}`
-    );
+    await dynamoDBClient.send(command);
+    logger.info(`Updating token-generation-states entry ${entry.PK}`);
   }
 };
 
