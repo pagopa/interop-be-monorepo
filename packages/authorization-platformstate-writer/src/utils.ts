@@ -74,7 +74,6 @@ export const deleteEntriesFromTokenGenStatesByClientIdKid = async (
         ":gsiValue": { S: GSIPK_clientId_kid },
       },
       ExclusiveStartKey: exclusiveStartKey,
-      ConsistentRead: true,
     };
     const command = new QueryCommand(input);
     const data: QueryCommandOutput = await dynamoDBClient.send(command);
@@ -154,7 +153,6 @@ export const deleteEntriesFromTokenGenStatesByClientId = async (
         ":gsiValue": { S: GSIPK_clientId },
       },
       ExclusiveStartKey: exclusiveStartKey,
-      ConsistentRead: true,
     };
     const command = new QueryCommand(input);
     const data: QueryCommandOutput = await dynamoDBClient.send(command);
@@ -266,7 +264,6 @@ const readTokenGenStatesConsumerClientsByGSIPKClientPurpose = async (
       ":gsiValue": { S: GSIPK_clientId_purposeId },
     },
     ExclusiveStartKey: exclusiveStartKey,
-    ConsistentRead: true,
   };
   const command = new QueryCommand(input);
   const data: QueryCommandOutput = await dynamoDBClient.send(command);
@@ -473,7 +470,6 @@ export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
       ":gsiValue": { S: gsiPKConsumerIdEServiceId },
     },
     ScanIndexForward: false,
-    ConsistentRead: true,
   };
   const command = new QueryCommand(input);
   const data: QueryCommandOutput = await dynamoDBClient.send(command);
@@ -833,7 +829,6 @@ export const readConsumerClientEntriesInTokenGenerationStates = async (
       },
       ExclusiveStartKey: exclusiveStartKey,
       ScanIndexForward: false,
-      ConsistentRead: true,
     };
     const command = new QueryCommand(input);
     const data: QueryCommandOutput = await dynamoDBClient.send(command);
