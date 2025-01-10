@@ -60,7 +60,7 @@ export async function handleMessageV2(
             if (existingCatalogEntryCurrent.version > msg.version) {
               // Stops processing if the message is older than the catalog entry
               logger.info(
-                `Skipping processing of entry ${existingCatalogEntryCurrent} (the current descriptor). Reason: it already exists`
+                `Skipping processing of entry ${existingCatalogEntryCurrent.PK} (the current descriptor). Reason: it already exists`
               );
               return Promise.resolve();
             } else {
@@ -109,7 +109,9 @@ export async function handleMessageV2(
           previousDescriptor.state !== descriptorState.archived
         ) {
           logger.info(
-            `Skipping processing of entry ${previousDescriptor} (the previous descriptor). Reason: ${
+            `Skipping processing of descriptor ${
+              previousDescriptor?.id
+            } (the previous descriptor). Reason: ${
               !previousDescriptor
                 ? "entry doesn't exists"
                 : "state is not archived"
@@ -156,7 +158,7 @@ export async function handleMessageV2(
 
         if (!catalogEntry || catalogEntry.version > msg.version) {
           logger.info(
-            `Skipping processing of entry ${catalogEntry}. Reason: ${
+            `Skipping processing of entry ${catalogEntry?.PK}. Reason: ${
               !catalogEntry ? "entry is undefined" : "entry already exists"
             }`
           );
