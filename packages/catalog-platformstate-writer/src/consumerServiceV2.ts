@@ -260,6 +260,10 @@ export async function handleMessageV2(
             dynamoDBClient,
             logger
           );
+        } else {
+          logger.info(
+            `Platform-states and Token-generation-states. Skipping processing of entry ${primaryKey}. Reason: unchanged voucherLifespan`
+          );
         }
       }
     })
