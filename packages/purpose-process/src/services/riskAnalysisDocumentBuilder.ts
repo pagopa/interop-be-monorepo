@@ -180,8 +180,8 @@ const getPdfPayload = ({
     date: dateAtRomeZone(new Date()),
     eServiceMode,
     producerDelegationId: eserviceInfo.producerDelegationId,
-    producerDelegatorName: eserviceInfo.producerDelegatorName,
-    producerDelegatorIpaCode: eserviceInfo.producerDelegatorIpaCode,
+    producerDelegateName: eserviceInfo.producerDelegateName,
+    producerDelegateIpaCode: eserviceInfo.producerDelegateIpaCode,
   };
 };
 

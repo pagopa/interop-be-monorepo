@@ -1571,9 +1571,9 @@ async function generateRiskAnalysisDocument({
     ),
   ]);
 
-  const producerDelegator =
+  const producerDelegate =
     producerDelegation &&
-    (await retrieveTenant(producerDelegation.delegatorId, readModelService));
+    (await retrieveTenant(producerDelegation.delegateId, readModelService));
 
   const eserviceInfo: PurposeDocumentEServiceInfo = {
     name: eservice.name,
@@ -1585,8 +1585,8 @@ async function generateRiskAnalysisDocument({
     consumerOrigin: consumer.externalId.origin,
     consumerIPACode: consumer.externalId.value,
     producerDelegationId: producerDelegation?.id,
-    producerDelegatorName: producerDelegator?.name,
-    producerDelegatorIpaCode: producerDelegator?.externalId.value,
+    producerDelegateName: producerDelegate?.name,
+    producerDelegateIpaCode: producerDelegate?.externalId.value,
   };
 
   function getTenantKind(tenant: Tenant): TenantKind {

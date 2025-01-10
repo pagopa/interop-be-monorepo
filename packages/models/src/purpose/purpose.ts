@@ -82,8 +82,8 @@ export const PurposeDocumentEServiceInfo = z.object({
   consumerOrigin: z.string(),
   consumerIPACode: z.string(),
   producerDelegationId: z.string().optional(),
-  producerDelegatorName: z.string().optional(),
-  producerDelegatorIpaCode: z.string().optional(),
+  producerDelegateName: z.string().optional(),
+  producerDelegateIpaCode: z.string().optional(),
 });
 export type PurposeDocumentEServiceInfo = z.infer<
   typeof PurposeDocumentEServiceInfo
@@ -100,6 +100,6 @@ export type RiskAnalysisDocumentPDFPayload = {
   date: string;
   eServiceMode: string;
   producerDelegationId: string | undefined;
-  producerDelegatorName: string | undefined;
-  producerDelegatorIpaCode: string | undefined;
+  producerDelegateName: string | undefined;
+  producerDelegateIpaCode: string | undefined;
 };
