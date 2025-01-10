@@ -568,6 +568,12 @@ export const readCatalogEntry = async (
   }
 };
 
+/* 
+Because of DynamoDB eventual consistency, it's possible that the result of querying platform-states by 
+GSIPK_consumerId_eserviceId doesn't contain the entry with the latest agreement.
+In this case, we need to check if the input agreement timestamp is more recent or equal than GSISK_agreementTimestamp 
+of the latest agreement in platform-states.
+*/
 export const isLatestAgreement = async (
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
   agreementId: AgreementId,
