@@ -6,6 +6,9 @@ import {
   getRandomAuthData,
   getMockDelegation,
   addSomeRandomDelegations,
+  getMockAgreement,
+  getMockEService,
+  getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -20,6 +23,11 @@ import {
   toPurposeVersionV2,
   delegationKind,
   delegationState,
+  Agreement,
+  EService,
+  eserviceMode,
+  tenantKind,
+  agreementState,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -31,8 +39,11 @@ import {
   organizationNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
+  addOneAgreement,
   addOneDelegation,
+  addOneEService,
   addOnePurpose,
+  addOneTenant,
   purposeService,
   readLastPurposeEvent,
 } from "./utils.js";
@@ -241,6 +252,132 @@ describe("archivePurposeVersion", () => {
 
     vi.useRealTimers();
   });
+  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a archived state", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const producerDelegator = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const producer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumerDelegator = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      mode: eserviceMode.receive,
+      producerId: producer.id,
+    };
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      producerId: producer.id,
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+      state: agreementState.active,
+    };
+
+    const mockPurposeVersion: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.active,
+    };
+
+    const delegatePurpose: Purpose = {
+      ...getMockPurpose(),
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+      versions: [mockPurposeVersion],
+    };
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegatorId: producerDelegator.id,
+      delegateId: producer.id,
+      state: delegationState.active,
+    });
+
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      delegatorId: consumerDelegator.id,
+      delegateId: consumer.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producerDelegator);
+    await addOneTenant(producer);
+    await addOneTenant(consumerDelegator);
+    await addOneTenant(consumer);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOnePurpose(delegatePurpose);
+    await addOneDelegation(producerDelegation);
+    await addOneDelegation(consumerDelegation);
+    await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
+
+    const returnedPurposeVersion = await purposeService.archivePurposeVersion(
+      {
+        purposeId: delegatePurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      {
+        authData: getRandomAuthData(consumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
+
+    const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: delegatePurpose.id,
+      version: "1",
+      type: "PurposeArchived",
+      event_version: 2,
+    });
+
+    const expectedPurpose: Purpose = {
+      ...delegatePurpose,
+      versions: [
+        {
+          ...mockPurposeVersion,
+          state: purposeVersionState.archived,
+          updatedAt: new Date(),
+        },
+      ],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeArchivedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(
+      writtenPayload.purpose?.versions.find(
+        (v) => v.id === returnedPurposeVersion.id
+      )
+    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
+
+    vi.useRealTimers();
+  });
+
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
     const randomPurposeId: PurposeId = generateId();
     const randomVersionId: PurposeVersionId = generateId();
