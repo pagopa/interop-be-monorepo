@@ -2991,7 +2991,7 @@ describe("integration tests V2 events", async () => {
       });
 
       const pkTokenGenStates2 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: otherClientId,
+        clientId: client.id,
         kid: key2.kid,
         purposeId,
       });
@@ -2999,19 +2999,17 @@ describe("integration tests V2 events", async () => {
       const clientPurposeTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
         {
           ...getMockTokenGenStatesConsumerClient(pkTokenGenStates1),
-          PK: pkTokenGenStates1,
           GSIPK_clientId: client.id,
         };
       const clientPurposeTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
         {
-          ...getMockTokenGenStatesConsumerClient(pkTokenGenStates1),
-          PK: pkTokenGenStates2,
+          ...getMockTokenGenStatesConsumerClient(pkTokenGenStates2),
           GSIPK_clientId: client.id,
         };
 
       const otherClientPurposeTokenGenStatesEntry: TokenGenerationStatesConsumerClient =
         {
-          ...getMockTokenGenStatesConsumerClient(pkTokenGenStates2),
+          ...getMockTokenGenStatesConsumerClient(),
           GSIPK_clientId: otherClientId,
         };
 
