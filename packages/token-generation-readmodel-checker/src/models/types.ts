@@ -98,7 +98,7 @@ export const ComparisonTokenGenStatesGenericClient =
   TokenGenerationStatesConsumerClient.pick({
     consumerId: true,
     GSIPK_clientId: true,
-    GSIPK_kid: true,
+    GSIPK_clientId_kid: true,
     publicKey: true,
     GSIPK_clientId_purposeId: true,
     GSIPK_purposeId: true,
