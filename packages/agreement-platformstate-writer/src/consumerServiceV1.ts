@@ -359,7 +359,7 @@ const handleUpgrade = async (
     );
   } else {
     logger.info(
-      `Token-generation-states. Second retrieval didn't bring any updates`
+      `Token-generation-states. Second retrieval of $catalog entry ${pkCatalogEntry} didn't bring any updates to agreement with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}`
     );
   }
 };
