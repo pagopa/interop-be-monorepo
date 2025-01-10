@@ -10,6 +10,9 @@ import {
   ReadEvent,
   readEventByStreamIdAndVersion,
   randomArrayItem,
+  getMockDelegation,
+  getMockTenant,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
@@ -31,9 +34,12 @@ import {
   Delegation,
   AgreementStamp,
   UserId,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
+  AuthData,
   formatDateyyyyMMddHHmmss,
   genericLogger,
   initPDFGenerator,
@@ -41,6 +47,8 @@ import {
 } from "pagopa-interop-commons";
 import puppeteer, { Browser } from "puppeteer";
 import { subDays } from "date-fns";
+import { match } from "ts-pattern";
+import { z } from "zod";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/config/config.js";
@@ -261,7 +269,127 @@ export function getMockApiTenantVerifiedAttribute(): agreementApi.TenantAttribut
   };
 }
 
-export const getRandomPastStamp = (userId: UserId): AgreementStamp => ({
+export const getRandomPastStamp = (
+  userId: UserId = generateId<UserId>()
+): AgreementStamp => ({
   who: userId,
   when: subDays(new Date(), randomInt(10)),
 });
+
+export const addSomeRandomDelegations = async (
+  agreement: Agreement
+): Promise<void> => {
+  const states = [delegationState.rejected, delegationState.revoked];
+  const kinds = [
+    delegationKind.delegatedProducer,
+    delegationKind.delegatedConsumer,
+  ];
+
+  for (const state of states) {
+    for (const kind of kinds) {
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: agreement.eserviceId,
+          kind,
+          state,
+        })
+      );
+    }
+  }
+};
+
+export const requesterIs = {
+  producer: "Producer",
+  consumer: "Consumer",
+  delegateProducer: "DelegateProducer",
+  delegateConsumer: "DelegateConsumer",
+} as const;
+export const RequesterIs = z.enum([
+  Object.values(requesterIs)[0],
+  ...Object.values(requesterIs).slice(1),
+]);
+export type RequesterIs = z.infer<typeof RequesterIs>;
+
+export const authDataAndDelegationsFromRequesterIs = (
+  requesterIs: RequesterIs,
+  agreement: Agreement
+): {
+  authData: AuthData;
+  producerDelegation: Delegation | undefined;
+  delegateProducer: Tenant | undefined;
+  consumerDelegation: Delegation | undefined;
+  delegateConsumer: Tenant | undefined;
+} =>
+  match(requesterIs)
+    .with("Producer", () => ({
+      authData: getRandomAuthData(agreement.producerId),
+      producerDelegation: undefined,
+      delegateProducer: undefined,
+      consumerDelegation: undefined,
+      delegateConsumer: undefined,
+    }))
+    .with("Consumer", () => ({
+      authData: getRandomAuthData(agreement.consumerId),
+      producerDelegation: undefined,
+      delegateProducer: undefined,
+      consumerDelegation: undefined,
+      delegateConsumer: undefined,
+    }))
+    .with("DelegateProducer", () => {
+      const delegateProducer = getMockTenant();
+      const producerDelegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegatorId: agreement.producerId,
+        delegateId: delegateProducer.id,
+        state: delegationState.active,
+        eserviceId: agreement.eserviceId,
+      });
+
+      return {
+        authData: getRandomAuthData(delegateProducer.id),
+        producerDelegation,
+        delegateProducer,
+        consumerDelegation: undefined,
+        delegateConsumer: undefined,
+      };
+    })
+    .with("DelegateConsumer", () => {
+      const delegateConsumer = getMockTenant();
+      const consumerDelegation = getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        delegatorId: agreement.consumerId,
+        delegateId: delegateConsumer.id,
+        state: delegationState.active,
+        eserviceId: agreement.eserviceId,
+      });
+      return {
+        authData: getRandomAuthData(delegateConsumer.id),
+        consumerDelegation,
+        delegateConsumer,
+        producerDelegation: undefined,
+        delegateProducer: undefined,
+      };
+    })
+    .exhaustive();
+
+export async function addDelegationsAndDelegates({
+  producerDelegation,
+  delegateProducer,
+  consumerDelegation,
+  delegateConsumer,
+}: {
+  producerDelegation: Delegation | undefined;
+  delegateProducer: Tenant | undefined;
+  consumerDelegation: Delegation | undefined;
+  delegateConsumer: Tenant | undefined;
+}): Promise<void> {
+  if (producerDelegation && delegateProducer) {
+    await addOneDelegation(producerDelegation);
+    await addOneTenant(delegateProducer);
+  }
+
+  if (consumerDelegation && delegateConsumer) {
+    await addOneDelegation(consumerDelegation);
+    await addOneTenant(delegateConsumer);
+  }
+}
