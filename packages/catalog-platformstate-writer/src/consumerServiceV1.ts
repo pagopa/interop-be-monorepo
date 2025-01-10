@@ -107,7 +107,7 @@ export async function handleMessageV1(
                 existingCatalogEntry?.PK
               }. Reason: ${
                 !existingCatalogEntry
-                  ? "entry doesn't exist"
+                  ? "entry not found in platform-states"
                   : "a more recent entry already exists"
               }`
             );

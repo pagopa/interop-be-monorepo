@@ -63,7 +63,7 @@ export const writeCatalogEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Writing catalog entry ${catalogEntry.PK}`);
+  logger.info(`Platform-states. Written catalog entry ${catalogEntry.PK}`);
 };
 
 export const readCatalogEntry = async (
@@ -109,7 +109,7 @@ export const deleteCatalogEntry = async (
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Deleting entry ${primaryKey}`);
+  logger.info(`Platform-states. Deleted entry ${primaryKey}`);
 };
 
 export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
@@ -153,7 +153,7 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
   logger.info(
-    `Platform-states. Updating descriptor state in entry ${primaryKey}`
+    `Platform-states. Updated descriptor state in entry ${primaryKey}`
   );
 };
 
@@ -190,7 +190,7 @@ export const updateDescriptorVoucherLifespanInPlatformStateEntry = async (
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
   logger.info(
-    `Platform-states. Updating descriptor voucher lifespan state in entry ${primaryKey}`
+    `Platform-states. Updated descriptor voucher lifespan state in entry ${primaryKey}`
   );
 };
 
@@ -440,7 +440,7 @@ const updateDescriptorStateInTokenGenerationStatesEntries = async (
     const command = new UpdateItemCommand(input);
     await dynamoDBClient.send(command);
     logger.info(
-      `Token-generation-states. Updating descriptor state in entry ${entry.PK}`
+      `Token-generation-states. Updated descriptor state in entry ${entry.PK}`
     );
   }
 };
@@ -492,7 +492,7 @@ const updateDescriptorInfoInTokenGenerationStatesEntries = async ({
     const command = new UpdateItemCommand(input);
     await dynamoDBClient.send(command);
     logger.info(
-      `Token-generation-states. Updating descriptor info in entry ${entry.PK}`
+      `Token-generation-states. Updated descriptor info in entry ${entry.PK}`
     );
   }
 };
@@ -527,7 +527,7 @@ const updateDescriptorVoucherLifespanInTokenGenerationStatesEntries = async (
     const command = new UpdateItemCommand(input);
     await dynamoDBClient.send(command);
     logger.info(
-      `Token-generation-states. Updating descriptor info in entry ${entry.PK}`
+      `Token-generation-states. Updated descriptor info in entry ${entry.PK}`
     );
   }
 };

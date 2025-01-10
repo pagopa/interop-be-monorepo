@@ -69,7 +69,7 @@ export const writeAgreementEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Wrinting entry ${agreementEntry.PK}`);
+  logger.info(`Platform-states. Written entry ${agreementEntry.PK}`);
 };
 
 export const readAgreementEntry = async (
@@ -115,7 +115,7 @@ export const deleteAgreementEntry = async (
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Deleting entry ${primaryKey}`);
+  logger.info(`Platform-states. Deleted entry ${primaryKey}`);
 };
 
 export const updateAgreementStateInPlatformStatesEntry = async (
@@ -154,7 +154,7 @@ export const updateAgreementStateInPlatformStatesEntry = async (
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
   logger.info(
-    `Platform-states. Updating agreement state in  entry ${primaryKey}`
+    `Platform-states. Updated agreement state in entry ${primaryKey}`
   );
 };
 
@@ -197,7 +197,7 @@ export const updateAgreementStateOnTokenGenStatesEntries = async ({
     const command = new UpdateItemCommand(input);
     await dynamoDBClient.send(command);
     logger.info(
-      `Token-generation-states. Updating agreement state in entry ${entry.PK}`
+      `Token-generation-states. Updated agreement state in entry ${entry.PK}`
     );
   }
 };
@@ -283,7 +283,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
       const command = new UpdateItemCommand(input);
       await dynamoDBClient.send(command);
       logger.info(
-        `Token-generation-states. Updating agreement state and descriptor info in entry ${entry.PK}`
+        `Token-generation-states. Updated agreement state and descriptor info in entry ${entry.PK}`
       );
     }
   };
