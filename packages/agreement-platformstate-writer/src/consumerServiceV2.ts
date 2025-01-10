@@ -281,7 +281,7 @@ export async function handleMessageV2(
         );
       } else {
         logger.info(
-          `Token-generation-states. Second retrieval of $catalog entry ${pkCatalogEntry} didn't bring any updates to agreement with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}`
+          `Token-generation-states. Second retrieval of catalog entry ${pkCatalogEntry} didn't bring any updates to agreement with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}`
         );
       }
     })
