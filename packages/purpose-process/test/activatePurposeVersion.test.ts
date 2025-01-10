@@ -203,7 +203,7 @@ describe("activatePurposeVersion", () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
   });
 
-  it.only("should write on event-store for the activation of a purpose version in the waiting for approval state (With producer delegation)", async () => {
+  it("should write on event-store for the activation of a purpose version in the waiting for approval state (With producer delegation)", async () => {
     vi.spyOn(pdfGenerator, "generate");
 
     const delegate = getMockTenant();
@@ -576,7 +576,7 @@ describe("activatePurposeVersion", () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
   });
 
-  it.only("should write on event-store for the activation of a purpose version in draft", async () => {
+  it("should write on event-store for the activation of a purpose version in draft", async () => {
     vi.spyOn(pdfGenerator, "generate");
 
     const purposeVersionMock: PurposeVersion = {
