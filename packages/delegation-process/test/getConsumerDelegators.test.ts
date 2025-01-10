@@ -24,8 +24,8 @@ describe("getConsumerDelegators", () => {
   const delegator1 = { ...getMockTenant(), name: "Comune di Burione" };
   const delegator2 = { ...getMockTenant(), name: "Comune di Milano" };
   const delegator3 = { ...getMockTenant(), name: "DeleganteTre" };
-  const delegator4 = { ...getMockTenant(), name: "DeleganteQuattro" };
-  const delegator5 = { ...getMockTenant(), name: "PagoPA" };
+  const delegator4 = { ...getMockTenant(), name: "PagoPA" };
+  const delegator5 = { ...getMockTenant(), name: "DeleganteCinque" };
   const requesterId = generateId<TenantId>();
   const eservice1 = getMockEService();
   const eservice2 = getMockEService();
@@ -167,8 +167,8 @@ describe("getConsumerDelegators", () => {
     ).toEqual({
       results: [
         {
-          id: delegator5.id,
-          name: delegator5.name,
+          id: delegator4.id,
+          name: delegator4.name,
         },
       ],
       totalCount: 1,
