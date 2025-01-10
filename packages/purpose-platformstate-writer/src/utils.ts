@@ -97,6 +97,7 @@ export const readPlatformPurposeEntry = async (
       PK: { S: primaryKey },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
   const data: GetItemCommandOutput = await dynamoDBClient.send(command);
@@ -545,6 +546,7 @@ export const readCatalogEntry = async (
       PK: { S: primaryKey },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
   const data: GetItemCommandOutput = await dynamoDBClient.send(command);
