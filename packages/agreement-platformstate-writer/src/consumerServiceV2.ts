@@ -136,7 +136,9 @@ export async function handleMessageV2(
         if (!agreementEntry || agreementEntry.version > msg.version) {
           logger.info(
             `Skipping processing of entry ${primaryKey}. Reason: ${
-              !agreementEntry ? "entry is undefined" : "entry already exists"
+              !agreementEntry
+                ? "entry is undefined"
+                : "a more recent entry already exists"
             }`
           );
           return Promise.resolve();
