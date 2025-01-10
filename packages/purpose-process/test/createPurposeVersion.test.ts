@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import path from "path";
+import { fileURLToPath } from "url";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   readLastEventByStreamId,
@@ -13,6 +16,7 @@ import {
   getMockPurpose,
   getMockValidRiskAnalysisForm,
   writeInReadmodel,
+  getMockDelegation,
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
@@ -31,6 +35,8 @@ import {
   NewPurposeVersionActivatedV2,
   NewPurposeVersionWaitingForApprovalV2,
   toReadModelTenant,
+  delegationKind,
+  delegationState,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -43,9 +49,14 @@ import {
   tenantNotFound,
   unchangedDailyCalls,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
 import {
+  addOneDelegation,
+  addOneTenant,
   agreements,
   eservices,
+  fileManager,
+  pdfGenerator,
   postgresDB,
   purposeService,
   tenants,
@@ -115,6 +126,8 @@ describe("createPurposeVersion", () => {
   });
 
   it("should write on event-store for the creation of a new purpose version (daily calls increased and <= threshold)", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
@@ -130,6 +143,135 @@ describe("createPurposeVersion", () => {
       correlationId: generateId(),
       logger: genericLogger,
     });
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      {
+        dailyCalls: "24",
+        answers: expect.any(String),
+        eServiceName: mockEService.name,
+        producerText: `${mockProducer.name} (codice IPA: ${mockProducer.externalId.value})`,
+        consumerText: `${mockConsumer.name} (codice IPA: ${mockConsumer.externalId.value})`,
+        freeOfCharge: expect.any(String),
+        freeOfChargeReason: expect.any(String),
+        date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        eServiceMode: "Eroga",
+        producerDelegationId: undefined,
+        producerDelegateName: undefined,
+        producerDelegateIpaCode: undefined,
+      }
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockPurpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockPurpose.id,
+      version: "1",
+      type: "NewPurposeVersionActivated",
+      event_version: 2,
+    });
+
+    const expectedPurposeVersion: PurposeVersion = {
+      id: returnedPurposeVersion.id,
+      createdAt: new Date(),
+      firstActivationAt: new Date(),
+      state: purposeVersionState.active,
+      dailyCalls: 24,
+      riskAnalysis: returnedPurposeVersion.riskAnalysis,
+    };
+
+    const expectedPurpose: Purpose = {
+      ...mockPurpose,
+      versions: [
+        {
+          ...mockPurposeVersion,
+          state: purposeVersionState.archived,
+          updatedAt: new Date(),
+        },
+        expectedPurposeVersion,
+      ],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: NewPurposeVersionActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+  });
+
+  it("should write on event-store for the creation of a new purpose version (daily calls increased and <= threshold) (with producer delegation)", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+
+    const delegate = getMockTenant();
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      delegatorId: mockProducer.id,
+      delegateId: delegate.id,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(mockPurpose);
+    await addOneDelegation(producerDelegation);
+    await addOneTenant(delegate);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+
+    const returnedPurposeVersion = await purposeService.createPurposeVersion({
+      purposeId: mockPurpose.id,
+      seed: {
+        dailyCalls: 24,
+      },
+      organizationId: mockPurpose.consumerId,
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      {
+        dailyCalls: "24",
+        answers: expect.any(String),
+        eServiceName: mockEService.name,
+        producerText: `${mockProducer.name} (codice IPA: ${mockProducer.externalId.value})`,
+        consumerText: `${mockConsumer.name} (codice IPA: ${mockConsumer.externalId.value})`,
+        freeOfCharge: expect.any(String),
+        freeOfChargeReason: expect.any(String),
+        date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        eServiceMode: "Eroga",
+        producerDelegationId: producerDelegation.id,
+        producerDelegateName: delegate.name,
+        producerDelegateIpaCode: delegate.externalId.value,
+      }
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -176,6 +318,8 @@ describe("createPurposeVersion", () => {
   });
 
   it("should write on event-store for the creation of a new purpose version (daily calls decreased and <= threshold)", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
@@ -191,6 +335,33 @@ describe("createPurposeVersion", () => {
       correlationId: generateId(),
       logger: genericLogger,
     });
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      {
+        dailyCalls: "4",
+        answers: expect.any(String),
+        eServiceName: mockEService.name,
+        producerText: `${mockProducer.name} (codice IPA: ${mockProducer.externalId.value})`,
+        consumerText: `${mockConsumer.name} (codice IPA: ${mockConsumer.externalId.value})`,
+        freeOfCharge: expect.any(String),
+        freeOfChargeReason: expect.any(String),
+        date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        eServiceMode: "Eroga",
+        producerDelegationId: undefined,
+        producerDelegateName: undefined,
+        producerDelegateIpaCode: undefined,
+      }
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -342,7 +513,6 @@ describe("createPurposeVersion", () => {
 
   it("should throw eserviceNotFound if the e-service does not exists in the readmodel", async () => {
     await addOnePurpose(mockPurpose);
-    // await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
@@ -386,7 +556,6 @@ describe("createPurposeVersion", () => {
   it("should throw agreementNotFound if the caller has no agreement associated with the purpose in the read model", async () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    // await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
@@ -443,7 +612,6 @@ describe("createPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    // await writeInReadmodel(mockConsumer, tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
@@ -464,7 +632,6 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    // await writeInReadmodel(mockProducer, tenants);
 
     expect(async () => {
       await purposeService.createPurposeVersion({

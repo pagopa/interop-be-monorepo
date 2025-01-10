@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
+import path from "path";
+import { fileURLToPath } from "url";
 import {
   getMockPurposeVersion,
   getMockPurpose,
@@ -54,11 +57,14 @@ import {
   tenantNotFound,
   agreementNotFound,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneDelegation,
   addOneEService,
   addOneTenant,
+  fileManager,
+  pdfGenerator,
   postgresDB,
   purposeService,
 } from "./utils.js";
@@ -125,6 +131,8 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
@@ -164,6 +172,118 @@ describe("activatePurposeVersion", () => {
       messageType: PurposeVersionActivatedV2,
       payload: writtenEvent.data,
     });
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      {
+        dailyCalls: mockPurposeVersion.dailyCalls.toString(),
+        answers: expect.any(String),
+        eServiceName: mockEService.name,
+        producerText: `${mockProducer.name} (codice IPA: ${mockProducer.externalId.value})`,
+        consumerText: `${mockConsumer.name} (codice IPA: ${mockConsumer.externalId.value})`,
+        freeOfCharge: expect.any(String),
+        freeOfChargeReason: expect.any(String),
+        date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        eServiceMode: "Eroga",
+        producerDelegationId: undefined,
+        producerDelegateName: undefined,
+        producerDelegateIpaCode: undefined,
+      }
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(purposeVersion.riskAnalysis!.path);
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+  });
+
+  it.only("should write on event-store for the activation of a purpose version in the waiting for approval state (With producer delegation)", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+
+    const delegate = getMockTenant();
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      delegatorId: mockProducer.id,
+      delegateId: delegate.id,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation(producerDelegation);
+    await addOneTenant(delegate);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    const purposeVersion = await purposeService.activatePurposeVersion({
+      purposeId: mockPurpose.id,
+      versionId: mockPurposeVersion.id,
+      organizationId: delegate.id,
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockPurpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockPurpose.id,
+      version: "1",
+      type: "PurposeVersionActivated",
+      event_version: 2,
+    });
+
+    const expectedPurpose: Purpose = {
+      ...mockPurpose,
+      suspendedByConsumer: false,
+      suspendedByProducer: false,
+      versions: [purposeVersion],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeVersionActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      {
+        dailyCalls: mockPurposeVersion.dailyCalls.toString(),
+        answers: expect.any(String),
+        eServiceName: mockEService.name,
+        producerText: `${mockProducer.name} (codice IPA: ${mockProducer.externalId.value})`,
+        consumerText: `${mockConsumer.name} (codice IPA: ${mockConsumer.externalId.value})`,
+        freeOfCharge: expect.any(String),
+        freeOfChargeReason: expect.any(String),
+        date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        eServiceMode: "Eroga",
+        producerDelegationId: producerDelegation.id,
+        producerDelegateName: delegate.name,
+        producerDelegateIpaCode: delegate.externalId.value,
+      }
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(purposeVersion.riskAnalysis!.path);
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
   });
@@ -456,7 +576,9 @@ describe("activatePurposeVersion", () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
   });
 
-  it("should write on event-store for the activation of a purpose version in draft", async () => {
+  it.only("should write on event-store for the activation of a purpose version in draft", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+
     const purposeVersionMock: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -479,6 +601,33 @@ describe("activatePurposeVersion", () => {
       correlationId: generateId(),
       logger: genericLogger,
     });
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      {
+        dailyCalls: purposeVersionMock.dailyCalls.toString(),
+        answers: expect.any(String),
+        eServiceName: mockEService.name,
+        producerText: `${mockProducer.name} (codice IPA: ${mockProducer.externalId.value})`,
+        consumerText: `${mockConsumer.name} (codice IPA: ${mockConsumer.externalId.value})`,
+        freeOfCharge: expect.any(String),
+        freeOfChargeReason: expect.any(String),
+        date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        eServiceMode: "Eroga",
+        producerDelegationId: undefined,
+        producerDelegateName: undefined,
+        producerDelegateIpaCode: undefined,
+      }
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(purposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
