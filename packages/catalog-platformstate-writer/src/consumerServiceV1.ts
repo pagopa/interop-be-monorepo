@@ -49,7 +49,7 @@ export async function handleMessageV1(
             if (existingCatalogEntry.version > msg.version) {
               // Stops processing if the message is older than the catalog entry
               logger.info(
-                `Skipping processing of entry ${existingCatalogEntry.PK}. Reason: entry already exists`
+                `Skipping processing of entry ${existingCatalogEntry.PK}. Reason: a more recent entry already exists`
               );
               return Promise.resolve();
             } else {
@@ -108,7 +108,7 @@ export async function handleMessageV1(
               }. Reason: ${
                 !existingCatalogEntry
                   ? "entry doesn't exist"
-                  : "entry already exists"
+                  : "a more recent entry already exists"
               }`
             );
             return Promise.resolve();
