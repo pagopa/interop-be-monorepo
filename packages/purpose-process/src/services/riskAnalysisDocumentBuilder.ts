@@ -167,16 +167,10 @@ const getPdfPayload = ({
     dailyCalls: dailyCalls.toString(),
     answers,
     eServiceName: eserviceInfo.name,
-    producerText: formatTenantDescription(
-      eserviceInfo.producerName,
-      eserviceInfo.producerOrigin,
-      eserviceInfo.producerIPACode
-    ),
-    consumerText: formatTenantDescription(
-      eserviceInfo.consumerName,
-      eserviceInfo.consumerOrigin,
-      eserviceInfo.consumerIPACode
-    ),
+    producerName: eserviceInfo.producerName,
+    producerCode: eserviceInfo.producerIPACode,
+    consumerName: eserviceInfo.consumerName,
+    consumerCode: eserviceInfo.consumerIPACode,
     freeOfCharge: freeOfChargeHtml,
     freeOfChargeReason: freeOfChargeReasonHtml,
     date: dateAtRomeZone(new Date()),
@@ -343,15 +337,4 @@ function formatFreeOfCharge(
     freeOfChargeHtml,
     freeOfChargeReasonHtml,
   };
-}
-
-function formatTenantDescription(
-  tenantName: string,
-  tenantOrigin: string,
-  tenantIPACode: string
-): string {
-  if (tenantOrigin === "IPA") {
-    return `${tenantName} (codice IPA: ${tenantIPACode})`;
-  }
-  return tenantName;
 }

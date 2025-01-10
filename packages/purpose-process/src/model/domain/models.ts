@@ -1,4 +1,4 @@
-import { EServiceMode } from "pagopa-interop-models";
+import { DelegationId, EServiceMode } from "pagopa-interop-models";
 import { z } from "zod";
 
 export const ownership = {
@@ -16,12 +16,10 @@ export const PurposeDocumentEServiceInfo = z.object({
   name: z.string(),
   mode: EServiceMode,
   producerName: z.string(),
-  producerOrigin: z.string(),
-  producerIPACode: z.string(),
+  producerIPACode: z.string().optional(),
   consumerName: z.string(),
-  consumerOrigin: z.string(),
-  consumerIPACode: z.string(),
-  producerDelegationId: z.string().optional(),
+  consumerIPACode: z.string().optional(),
+  producerDelegationId: DelegationId.optional(),
   producerDelegateName: z.string().optional(),
   producerDelegateIpaCode: z.string().optional(),
 });
@@ -33,13 +31,15 @@ export type RiskAnalysisDocumentPDFPayload = {
   dailyCalls: string;
   answers: string;
   eServiceName: string;
-  producerText: string;
-  consumerText: string;
+  producerName: string;
+  producerCode: string | undefined;
+  consumerName: string;
+  consumerCode: string | undefined;
   freeOfCharge: string;
   freeOfChargeReason: string;
   date: string;
   eServiceMode: string;
-  producerDelegationId: string | undefined;
+  producerDelegationId: DelegationId | undefined;
   producerDelegateName: string | undefined;
   producerDelegateIpaCode: string | undefined;
 };
