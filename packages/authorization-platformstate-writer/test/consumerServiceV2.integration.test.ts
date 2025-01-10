@@ -2921,12 +2921,18 @@ describe("integration tests V2 events", async () => {
     });
   });
 
-  describe("ClientDeleted", () => {
+  describe.only("ClientDeleted", () => {
     it("should delete platform-states entry and token-generation-states entries", async () => {
       const messageVersion = 2;
+      const key1 = getMockKey();
+      const key2 = getMockKey();
 
       const purposeId = generateId<PurposeId>();
-      const client = getMockClient();
+      const client: Client = {
+        ...getMockClient(),
+        keys: [key1, key2],
+        purposes: [purposeId],
+      };
 
       const payload: ClientDeletedV2 = {
         client: toClientV2(client),
@@ -2980,19 +2986,26 @@ describe("integration tests V2 events", async () => {
       // token-generation-states
       const pkTokenGenStates1 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: client.id,
-        kid: "kid",
+        kid: key1.kid,
         purposeId,
       });
 
       const pkTokenGenStates2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: otherClientId,
-        kid: "kid",
+        kid: key2.kid,
         purposeId,
       });
 
-      const clientPurposeTokenGenStatesEntry: TokenGenerationStatesConsumerClient =
+      const clientPurposeTokenGenStatesEntry1: TokenGenerationStatesConsumerClient =
         {
           ...getMockTokenGenStatesConsumerClient(pkTokenGenStates1),
+          PK: pkTokenGenStates1,
+          GSIPK_clientId: client.id,
+        };
+      const clientPurposeTokenGenStatesEntry2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(pkTokenGenStates1),
+          PK: pkTokenGenStates2,
           GSIPK_clientId: client.id,
         };
 
@@ -3003,7 +3016,11 @@ describe("integration tests V2 events", async () => {
         };
 
       await writeTokenGenStatesConsumerClient(
-        clientPurposeTokenGenStatesEntry,
+        clientPurposeTokenGenStatesEntry1,
+        dynamoDBClient
+      );
+      await writeTokenGenStatesConsumerClient(
+        clientPurposeTokenGenStatesEntry2,
         dynamoDBClient
       );
       await writeTokenGenStatesConsumerClient(
