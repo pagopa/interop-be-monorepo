@@ -296,8 +296,8 @@ describe("createPurpose", () => {
     const producerDelegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
-      delegatorId: producerDelegate.id,
-      delegateId: producer.id,
+      delegatorId: producer.id,
+      delegateId: producerDelegate.id,
       state: delegationState.active,
     });
 
@@ -316,14 +316,14 @@ describe("createPurpose", () => {
     const consumerDelegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: eservice.id,
-      delegatorId: consumerDelegate.id,
-      delegateId: consumer.id,
+      delegatorId: consumer.id,
+      delegateId: consumerDelegate.id,
       state: delegationState.active,
     });
 
     const agreement: Agreement = {
       ...getMockAgreement(),
-      consumerId: consumerDelegate.id,
+      consumerId: consumer.id,
       eserviceId: eservice.id,
       state: agreementState.active,
     };
@@ -334,8 +334,8 @@ describe("createPurpose", () => {
       consumerId: agreement.consumerId,
     };
 
-    await addOneTenant(consumer);
-    await addOneTenant(producer);
+    await addOneTenant(consumerDelegate);
+    await addOneTenant(producerDelegate);
     await addOneAgreement(agreement);
     await addOneEService(eservice);
     await addOneDelegation(consumerDelegation);
@@ -344,7 +344,7 @@ describe("createPurpose", () => {
     const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
       delegatePurposeSeed,
       {
-        authData: getRandomAuthData(consumer.id),
+        authData: getRandomAuthData(consumerDelegate.id),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
