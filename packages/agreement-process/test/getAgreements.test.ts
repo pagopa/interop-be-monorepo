@@ -256,7 +256,6 @@ describe("get agreements", () => {
   it("should get all agreements if no filters are provided", async () => {
     const allAgreements = await agreementService.getAgreements(
       {},
-      agreement1.producerId,
       20,
       0,
       genericLogger
@@ -284,7 +283,6 @@ describe("get agreements", () => {
       {
         producerId: eservice1.producerId,
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -298,7 +296,6 @@ describe("get agreements", () => {
       {
         producerId: [eservice1.producerId, eservice2.producerId],
       },
-      eservice1.producerId,
       10,
       0,
       genericLogger
@@ -320,7 +317,6 @@ describe("get agreements", () => {
       {
         consumerId: tenant1.id,
       },
-      agreement1.consumerId,
       10,
       0,
       genericLogger
@@ -340,7 +336,6 @@ describe("get agreements", () => {
       {
         consumerId: [tenant1.id, tenant2.id],
       },
-      agreement2.consumerId,
       10,
       0,
       genericLogger
@@ -364,7 +359,6 @@ describe("get agreements", () => {
       {
         eserviceId: eservice1.id,
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -378,7 +372,6 @@ describe("get agreements", () => {
       {
         eserviceId: [eservice1.id, eservice2.id],
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -399,7 +392,6 @@ describe("get agreements", () => {
       {
         descriptorId: descriptor1.id,
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -413,7 +405,6 @@ describe("get agreements", () => {
       {
         descriptorId: [descriptor1.id, descriptor3.id, descriptor5.id],
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -439,7 +430,6 @@ describe("get agreements", () => {
       {
         attributeId: attribute2.id,
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -453,7 +443,6 @@ describe("get agreements", () => {
       {
         attributeId: attribute3.id,
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -467,7 +456,6 @@ describe("get agreements", () => {
       {
         attributeId: [attribute1.id, attribute3.id, attribute4.id],
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -482,7 +470,6 @@ describe("get agreements", () => {
       {
         agreementStates: [agreementState.active, agreementState.pending],
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -497,7 +484,6 @@ describe("get agreements", () => {
       {
         showOnlyUpgradeable: true,
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -519,7 +505,6 @@ describe("get agreements", () => {
         consumerId: tenant1.id,
         eserviceId: [eservice1.id, eservice2.id],
       },
-      agreement1.consumerId,
       10,
       0,
       genericLogger
@@ -538,7 +523,6 @@ describe("get agreements", () => {
         eserviceId: [eservice1.id, eservice2.id],
         descriptorId: [descriptor1.id],
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -555,7 +539,6 @@ describe("get agreements", () => {
         attributeId: attribute3.id,
         agreementStates: [agreementState.active],
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -573,7 +556,6 @@ describe("get agreements", () => {
         agreementStates: [agreementState.draft],
         descriptorId: descriptor1.id,
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -589,7 +571,6 @@ describe("get agreements", () => {
         agreementStates: [agreementState.suspended],
         descriptorId: descriptor1.id,
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -605,7 +586,7 @@ describe("get agreements", () => {
       {
         eserviceId: eservice1.id,
       },
-      agreement1.producerId,
+
       1,
       0,
       genericLogger
@@ -621,7 +602,7 @@ describe("get agreements", () => {
       {
         eserviceId: [eservice1.id, eservice2.id],
       },
-      agreement1.producerId,
+
       2,
       1,
       genericLogger
@@ -637,7 +618,6 @@ describe("get agreements", () => {
       {
         producerId: generateId<TenantId>(),
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -654,7 +634,6 @@ describe("get agreements", () => {
       {
         producerId: eservice4.producerId,
       },
-      agreement1.producerId,
       10,
       0,
       genericLogger
@@ -670,7 +649,6 @@ describe("get agreements", () => {
       {
         consumerId: tenant4.id,
       },
-      tenant4.id,
       10,
       0,
       genericLogger
