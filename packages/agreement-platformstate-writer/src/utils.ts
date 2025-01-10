@@ -37,7 +37,8 @@ import { config } from "./config/config.js";
 
 export const writeAgreementEntry = async (
   agreementEntry: PlatformStatesAgreementEntry,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -68,6 +69,7 @@ export const writeAgreementEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Written agreement entry ${agreementEntry.PK}`);
 };
 
 export const readAgreementEntry = async (
@@ -102,7 +104,8 @@ export const readAgreementEntry = async (
 
 export const deleteAgreementEntry = async (
   primaryKey: PlatformStatesAgreementPK,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: DeleteItemInput = {
     Key: {
@@ -112,13 +115,15 @@ export const deleteAgreementEntry = async (
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
 };
 
 export const updateAgreementStateInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesAgreementPK,
   state: ItemState,
-  version: number
+  version: number,
+  logger: Logger
 ): Promise<void> => {
   const input: UpdateItemInput = {
     ConditionExpression: "attribute_exists(PK)",
@@ -148,6 +153,9 @@ export const updateAgreementStateInPlatformStatesEntry = async (
   };
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(
+    `Platform-states. Updated agreement state in entry ${primaryKey}`
+  );
 };
 
 export const agreementStateToItemState = (state: AgreementState): ItemState =>
@@ -157,10 +165,12 @@ export const updateAgreementStateOnTokenGenStatesEntries = async ({
   entriesToUpdate,
   agreementState,
   dynamoDBClient,
+  logger,
 }: {
   entriesToUpdate: TokenGenStatesConsumerClientGSIAgreement[];
   agreementState: AgreementState;
   dynamoDBClient: DynamoDBClient;
+  logger: Logger;
 }): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
@@ -186,6 +196,9 @@ export const updateAgreementStateOnTokenGenStatesEntries = async ({
     };
     const command = new UpdateItemCommand(input);
     await dynamoDBClient.send(command);
+    logger.info(
+      `Token-generation-states. Updated agreement state in entry ${entry.PK}`
+    );
   }
 };
 
@@ -269,6 +282,9 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
       };
       const command = new UpdateItemCommand(input);
       await dynamoDBClient.send(command);
+      logger.info(
+        `Token-generation-states. Updated agreement state and descriptor info in entry ${entry.PK}`
+      );
     }
   };
 
@@ -445,10 +461,12 @@ export const updateAgreementStateOnTokenGenStates = async ({
   GSIPK_consumerId_eserviceId,
   agreementState,
   dynamoDBClient,
+  logger,
 }: {
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId;
   agreementState: AgreementState;
   dynamoDBClient: DynamoDBClient;
+  logger: Logger;
 }): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
   const runPaginatedQuery = async (
     consumerId_eserviceId: GSIPKConsumerIdEServiceId,
@@ -492,6 +510,7 @@ export const updateAgreementStateOnTokenGenStates = async ({
         entriesToUpdate: tokenGenStatesEntries.data,
         agreementState,
         dynamoDBClient,
+        logger,
       });
 
       if (!data.LastEvaluatedKey) {

@@ -53,7 +53,8 @@ export const getPurposeStateFromPurposeVersions = (
 
 export const writePlatformPurposeEntry = async (
   dynamoDBClient: DynamoDBClient,
-  purposeEntry: PlatformStatesPurposeEntry
+  purposeEntry: PlatformStatesPurposeEntry,
+  logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -84,6 +85,7 @@ export const writePlatformPurposeEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Written purpose entry ${purposeEntry.PK}`);
 };
 
 export const readPlatformPurposeEntry = async (
@@ -118,7 +120,8 @@ export const readPlatformPurposeEntry = async (
 
 export const deletePlatformPurposeEntry = async (
   dynamoDBClient: DynamoDBClient,
-  primaryKey: PlatformStatesPurposePK
+  primaryKey: PlatformStatesPurposePK,
+  logger: Logger
 ): Promise<void> => {
   const input: DeleteItemInput = {
     Key: {
@@ -128,6 +131,7 @@ export const deletePlatformPurposeEntry = async (
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Deleted purpose entry ${primaryKey}`);
 };
 
 export const readTokenGenStatesEntriesByGSIPKPurposeId = async (
@@ -184,12 +188,14 @@ export const updatePurposeDataInPlatformStatesEntry = async ({
   purposeState,
   purposeVersionId,
   version,
+  logger,
 }: {
   dynamoDBClient: DynamoDBClient;
   primaryKey: PlatformStatesPurposePK;
   purposeState: ItemState;
   purposeVersionId: PurposeVersionId;
   version: number;
+  logger: Logger;
 }): Promise<void> => {
   const input: UpdateItemInput = {
     ConditionExpression: "attribute_exists(PK)",
@@ -222,6 +228,7 @@ export const updatePurposeDataInPlatformStatesEntry = async ({
   };
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Updated purpose entry ${primaryKey}`);
 };
 
 export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
@@ -393,6 +400,9 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
         };
         const command = new UpdateItemCommand(input);
         await dynamoDBClient.send(command);
+        logger.info(
+          `Token-generation-states. Updated entry ${tokenEntryPK} with purpose and platform-states data`
+        );
       }
 
       if (result.lastEvaluatedKey) {
@@ -419,11 +429,13 @@ export const updatePurposeDataInTokenGenStatesEntries = async ({
   purposeId,
   purposeState,
   purposeVersionId,
+  logger,
 }: {
   dynamoDBClient: DynamoDBClient;
   purposeId: PurposeId;
   purposeState: ItemState;
   purposeVersionId: PurposeVersionId;
+  logger: Logger;
 }): Promise<void> => {
   const runPaginatedUpdateQuery = async (
     dynamoDBClient: DynamoDBClient,
@@ -464,6 +476,7 @@ export const updatePurposeDataInTokenGenStatesEntries = async ({
       };
       const command = new UpdateItemCommand(input);
       await dynamoDBClient.send(command);
+      logger.info(`Token-generation-states. Updated entry ${entry.PK}`);
     }
 
     if (result.lastEvaluatedKey) {

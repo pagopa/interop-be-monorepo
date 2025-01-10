@@ -127,7 +127,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -597,7 +598,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -894,7 +896,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -1232,7 +1235,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -1334,7 +1338,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -1455,7 +1460,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -1615,7 +1621,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -1721,7 +1728,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
       // token-generation-states
       const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
@@ -1792,7 +1800,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -1924,7 +1933,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -2188,7 +2198,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -2466,7 +2477,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -2683,7 +2695,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -2816,7 +2829,8 @@ describe("integration tests V2 events", async () => {
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
 
       // token-generation-states
@@ -2952,8 +2966,16 @@ describe("integration tests V2 events", async () => {
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
-      await writePlatformClientEntry(clientPlatformStateEntry1, dynamoDBClient);
-      await writePlatformClientEntry(clientPlatformStateEntry2, dynamoDBClient);
+      await writePlatformClientEntry(
+        clientPlatformStateEntry1,
+        dynamoDBClient,
+        genericLogger
+      );
+      await writePlatformClientEntry(
+        clientPlatformStateEntry2,
+        dynamoDBClient,
+        genericLogger
+      );
 
       // token-generation-states
       const pkTokenGenStates1 = makeTokenGenerationStatesClientKidPurposePK({
