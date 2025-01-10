@@ -159,10 +159,14 @@ describe("utils", () => {
       ...getMockPlatformStatesClientEntry(pk2),
     };
 
-    await writePlatformClientEntry(clientEntry1, dynamoDBClient);
-    await writePlatformClientEntry(clientEntry2, dynamoDBClient);
+    await writePlatformClientEntry(clientEntry1, dynamoDBClient, genericLogger);
+    await writePlatformClientEntry(clientEntry2, dynamoDBClient, genericLogger);
 
-    await deleteClientEntryFromPlatformStates(pk1, dynamoDBClient);
+    await deleteClientEntryFromPlatformStates(
+      pk1,
+      dynamoDBClient,
+      genericLogger
+    );
 
     const res = await readAllPlatformStatesItems(dynamoDBClient);
 
@@ -275,8 +279,8 @@ describe("utils", () => {
 
     const clientEntry2 = getMockPlatformStatesClientEntry();
 
-    await writePlatformClientEntry(clientEntry1, dynamoDBClient);
-    await writePlatformClientEntry(clientEntry2, dynamoDBClient);
+    await writePlatformClientEntry(clientEntry1, dynamoDBClient, genericLogger);
+    await writePlatformClientEntry(clientEntry2, dynamoDBClient, genericLogger);
 
     const res = await readPlatformClientEntry(clientEntry1.PK, dynamoDBClient);
 
@@ -589,8 +593,8 @@ describe("utils", () => {
       clientPurposesIds: [generateId(), generateId()],
     };
 
-    await writePlatformClientEntry(clientEntry1, dynamoDBClient);
-    await writePlatformClientEntry(clientEntry2, dynamoDBClient);
+    await writePlatformClientEntry(clientEntry1, dynamoDBClient, genericLogger);
+    await writePlatformClientEntry(clientEntry2, dynamoDBClient, genericLogger);
 
     await setClientPurposeIdsInPlatformStatesEntry(
       {
@@ -598,7 +602,8 @@ describe("utils", () => {
         version: clientEntry1.version + 1,
         clientPurposeIds: [],
       },
-      dynamoDBClient
+      dynamoDBClient,
+      genericLogger
     );
 
     const res = await readAllPlatformStatesItems(dynamoDBClient);
@@ -684,7 +689,11 @@ describe("utils", () => {
       const resultBefore = await readAllPlatformStatesItems(dynamoDBClient);
       expect(resultBefore).toEqual([]);
 
-      await upsertPlatformClientEntry(clientEntry, dynamoDBClient);
+      await upsertPlatformClientEntry(
+        clientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       const resultAfter = await readAllPlatformStatesItems(dynamoDBClient);
       expect(resultAfter).toEqual([clientEntry]);
@@ -695,13 +704,21 @@ describe("utils", () => {
         clientKind: clientKindTokenGenStates.consumer,
       };
 
-      await writePlatformClientEntry(clientEntry, dynamoDBClient);
+      await writePlatformClientEntry(
+        clientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       const updatedEntry: PlatformStatesClientEntry = {
         ...clientEntry,
         clientKind: clientKindTokenGenStates.api,
       };
-      await upsertPlatformClientEntry(updatedEntry, dynamoDBClient);
+      await upsertPlatformClientEntry(
+        updatedEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       const resultAfter = await readAllPlatformStatesItems(dynamoDBClient);
       expect(resultAfter).toEqual([updatedEntry]);
