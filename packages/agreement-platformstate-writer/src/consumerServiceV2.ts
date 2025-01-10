@@ -24,6 +24,7 @@ import {
   updateAgreementStateAndDescriptorInfoOnTokenGenStates,
   writeAgreementEntry,
   isLatestAgreement,
+  extractAgreementTimestamp,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -44,6 +45,8 @@ export async function handleMessageV2(
         consumerId: agreement.consumerId,
         eserviceId: agreement.eserviceId,
       });
+
+      const agreementTimestamp = extractAgreementTimestamp(agreement);
 
       if (existingAgreementEntry) {
         if (existingAgreementEntry.version > msg.version) {
@@ -85,6 +88,7 @@ export async function handleMessageV2(
         await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreement.id,
+          agreementTimestamp,
           dynamoDBClient
         )
       ) {
@@ -133,6 +137,8 @@ export async function handleMessageV2(
           dynamoDBClient
         );
 
+        const agreementTimestamp = extractAgreementTimestamp(agreement);
+
         if (!agreementEntry || agreementEntry.version > msg.version) {
           logger.info(
             `Skipping processing of entry ${primaryKey}. Reason: ${
@@ -160,6 +166,7 @@ export async function handleMessageV2(
             await isLatestAgreement(
               GSIPK_consumerId_eserviceId,
               agreement.id,
+              agreementTimestamp,
               dynamoDBClient
             )
           ) {
@@ -233,12 +240,14 @@ export async function handleMessageV2(
 
       const updateLatestAgreementOnTokenGenStates = async (
         catalogEntry: PlatformStatesCatalogEntry | undefined,
+        agreementTimestamp: string,
         logger: Logger
       ): Promise<void> => {
         if (
           await isLatestAgreement(
             GSIPK_consumerId_eserviceId,
             agreement.id,
+            agreementTimestamp,
             dynamoDBClient
           )
         ) {
@@ -271,7 +280,12 @@ export async function handleMessageV2(
         dynamoDBClient
       );
 
-      await updateLatestAgreementOnTokenGenStates(catalogEntry, logger);
+      const agreementTimestamp = extractAgreementTimestamp(agreement);
+      await updateLatestAgreementOnTokenGenStates(
+        catalogEntry,
+        agreementTimestamp,
+        logger
+      );
 
       const updatedCatalogEntry = await readCatalogEntry(
         pkCatalogEntry,
@@ -284,6 +298,7 @@ export async function handleMessageV2(
       ) {
         await updateLatestAgreementOnTokenGenStates(
           updatedCatalogEntry,
+          agreementTimestamp,
           logger
         );
       } else {
@@ -306,10 +321,13 @@ export async function handleMessageV2(
         eserviceId: agreement.eserviceId,
       });
 
+      const agreementTimestamp = extractAgreementTimestamp(agreement);
+
       if (
         await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreement.id,
+          agreementTimestamp,
           dynamoDBClient
         )
       ) {

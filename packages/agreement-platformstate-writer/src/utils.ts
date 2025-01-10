@@ -13,6 +13,7 @@ import {
   PlatformStatesEServiceDescriptorPK,
   PlatformStatesAgreementGSIAgreement,
   TokenGenStatesConsumerClientGSIAgreement,
+  Agreement,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
@@ -570,6 +571,7 @@ export const readCatalogEntry = async (
 export const isLatestAgreement = async (
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
   agreementId: AgreementId,
+  currentAgreementTimestamp: string,
   dynamoDBClient: DynamoDBClient
 ): Promise<boolean> => {
   const agreementEntries =
@@ -584,5 +586,15 @@ export const isLatestAgreement = async (
   const agreementIdFromEntry = extractAgreementIdFromAgreementPK(
     agreementEntries[0].PK
   );
-  return agreementIdFromEntry === agreementId;
+
+  return (
+    agreementIdFromEntry === agreementId ||
+    new Date(currentAgreementTimestamp) >=
+      new Date(agreementEntries[0].GSISK_agreementTimestamp)
+  );
 };
+
+export const extractAgreementTimestamp = (agreement: Agreement): string =>
+  agreement.stamps.upgrade?.when.toISOString() ||
+  agreement.stamps.activation?.when.toISOString() ||
+  agreement.createdAt.toISOString();
