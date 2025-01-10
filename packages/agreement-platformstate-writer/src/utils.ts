@@ -69,7 +69,7 @@ export const writeAgreementEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Written entry ${agreementEntry.PK}`);
+  logger.info(`Platform-states. Written agreement entry ${agreementEntry.PK}`);
 };
 
 export const readAgreementEntry = async (
@@ -115,7 +115,7 @@ export const deleteAgreementEntry = async (
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Deleted entry ${primaryKey}`);
+  logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
 };
 
 export const updateAgreementStateInPlatformStatesEntry = async (

@@ -109,7 +109,7 @@ export const deleteCatalogEntry = async (
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Deleted entry ${primaryKey}`);
+  logger.info(`Platform-states. Deleted catalog entry ${primaryKey}`);
 };
 
 export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
