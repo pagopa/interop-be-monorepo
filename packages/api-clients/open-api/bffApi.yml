@@ -14730,15 +14730,11 @@ components:
             id:
               type: string
               format: uuid
-            delegateId:
-              type: string
-              format: uuid
-            delegateName:
-              type: string
+            delegate:
+              $ref: "#/components/schemas/CompactOrganization"
           required:
             - id
-            - delegateId
-            - delegateName
+            - delegate
         producer:
           $ref: "#/components/schemas/CompactOrganization"
         consumer:
