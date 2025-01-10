@@ -502,7 +502,7 @@ export async function handleMessageV1(
         }
       } else {
         logger.info(
-          `Skipping processing of entry ${pk}. Reason: entry is undefined`
+          `Platform-states and token-generation-states. Skipping processing of entry ${pk}. Reason: entry is undefined`
         );
       }
     })
