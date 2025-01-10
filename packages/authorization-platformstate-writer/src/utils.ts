@@ -121,7 +121,8 @@ export const deleteEntriesFromTokenGenStatesByClientIdKid = async (
 
 export const deleteClientEntryFromPlatformStates = async (
   pk: PlatformStatesClientPK,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: DeleteItemInput = {
     Key: {
@@ -131,6 +132,7 @@ export const deleteClientEntryFromPlatformStates = async (
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Deleted client entry ${pk}`);
 };
 
 export const deleteEntriesFromTokenGenStatesByClientId = async (
@@ -211,11 +213,8 @@ export const deleteClientEntryFromTokenGenerationStates = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new DeleteItemCommand(input);
-  logger.warn(
-    `Deleting entry ${entryToDeletePK}. Result ${JSON.stringify(
-      await dynamoDBClient.send(command)
-    )}`
-  );
+  await dynamoDBClient.send(command);
+  logger.info(`Token-generation-states. Deleted entry ${entryToDeletePK}`);
 };
 
 export const readPlatformClientEntry = async (
@@ -421,10 +420,9 @@ export const writeTokenGenStatesApiClient = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  logger.warn(
-    `Writing api client ${tokenGenStatesApiClient.PK}. Result ${JSON.stringify(
-      await dynamoDBClient.send(command)
-    )}`
+  await dynamoDBClient.send(command);
+  logger.info(
+    `Token-generation-states. Written api client ${tokenGenStatesApiClient.PK}`
   );
 };
 
@@ -637,10 +635,9 @@ export const upsertTokenGenStatesConsumerClient = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  logger.warn(
-    `Upserting consumer client ${
-      tokenGenStatesConsumerClient.PK
-    }. Result ${JSON.stringify(await dynamoDBClient.send(command))}`
+  await dynamoDBClient.send(command);
+  logger.info(
+    `Token-generation-states. Upserted consumer client ${tokenGenStatesConsumerClient.PK}`
   );
 };
 
@@ -758,10 +755,9 @@ export const writeTokenGenStatesConsumerClient = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  logger.warn(
-    `Writing consumer client ${
-      tokenGenStatesConsumerClient.PK
-    }. Result ${JSON.stringify(await dynamoDBClient.send(command))}`
+  await dynamoDBClient.send(command);
+  logger.info(
+    `Token-generation-states. Written consumer client ${tokenGenStatesConsumerClient.PK}`
   );
 };
 
@@ -775,7 +771,8 @@ export const clientKindToTokenGenerationStatesClientKind = (
 
 export const writePlatformClientEntry = async (
   clientEntry: PlatformStatesClientEntry,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -808,6 +805,7 @@ export const writePlatformClientEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Written client entry ${clientEntry.PK}`);
 };
 
 export const readConsumerClientEntriesInTokenGenerationStates = async (
@@ -881,7 +879,8 @@ export const setClientPurposeIdsInPlatformStatesEntry = async (
     version: number;
     clientPurposeIds: PurposeId[];
   },
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: UpdateItemInput = {
     ConditionExpression: "attribute_exists(PK)",
@@ -910,6 +909,9 @@ export const setClientPurposeIdsInPlatformStatesEntry = async (
   };
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(
+    `Platform-states. Updated purpose ids in client entry ${primaryKey}`
+  );
 };
 
 export const extractKidFromTokenGenStatesEntryPK = (
@@ -1005,7 +1007,8 @@ export const retrievePlatformStatesByPurpose = async (
 
 export const upsertPlatformClientEntry = async (
   entry: PlatformStatesClientEntry,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
     Item: {
@@ -1037,6 +1040,7 @@ export const upsertPlatformClientEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Upserted client entry ${entry.PK}`);
 };
 
 export const upsertTokenGenStatesApiClient = async (
@@ -1071,11 +1075,8 @@ export const upsertTokenGenStatesApiClient = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  logger.warn(
-    `Upserting api client ${entry.PK}. Result ${JSON.stringify(
-      await dynamoDBClient.send(command)
-    )}`
-  );
+  await dynamoDBClient.send(command);
+  logger.info(`Token-generation-states. Upserted api client ${entry.PK}`);
 };
 
 export const updateTokenGenStatesDataForSecondRetrieval = async ({
@@ -1165,11 +1166,8 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
       ReturnValues: "NONE",
     };
     const command = new UpdateItemCommand(input);
-    logger.warn(
-      `Updating entry ${entry.PK}. Result ${JSON.stringify(
-        await dynamoDBClient.send(command)
-      )}`
-    );
+    await dynamoDBClient.send(command);
+    logger.info(`Token-generation-states. Updated entry ${entry.PK}`);
   }
 };
 

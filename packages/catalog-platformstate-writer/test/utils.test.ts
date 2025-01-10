@@ -31,6 +31,7 @@ import {
   writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import { z } from "zod";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
@@ -68,7 +69,8 @@ describe("utils tests", async () => {
           dynamoDBClient,
           primaryKey,
           itemState.active,
-          1
+          1,
+          genericLogger
         )
       ).rejects.toThrowError(ConditionalCheckFailedException);
       const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
@@ -91,12 +93,17 @@ describe("utils tests", async () => {
       expect(
         await readCatalogEntry(primaryKey, dynamoDBClient)
       ).toBeUndefined();
-      await writeCatalogEntry(previousCatalogStateEntry, dynamoDBClient);
+      await writeCatalogEntry(
+        previousCatalogStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
       await updateDescriptorStateInPlatformStatesEntry(
         dynamoDBClient,
         primaryKey,
         itemState.active,
-        2
+        2,
+        genericLogger
       );
 
       const result = await readCatalogEntry(primaryKey, dynamoDBClient);
@@ -125,9 +132,9 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(catalogEntry, dynamoDBClient);
+      await writeCatalogEntry(catalogEntry, dynamoDBClient, genericLogger);
       expect(
-        writeCatalogEntry(catalogEntry, dynamoDBClient)
+        writeCatalogEntry(catalogEntry, dynamoDBClient, genericLogger)
       ).rejects.toThrowError(ConditionalCheckFailedException);
     });
 
@@ -147,7 +154,7 @@ describe("utils tests", async () => {
       expect(
         await readCatalogEntry(primaryKey, dynamoDBClient)
       ).toBeUndefined();
-      await writeCatalogEntry(catalogStateEntry, dynamoDBClient);
+      await writeCatalogEntry(catalogStateEntry, dynamoDBClient, genericLogger);
       const retrievedCatalogEntry = await readCatalogEntry(
         primaryKey,
         dynamoDBClient
@@ -180,7 +187,11 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(previousCatalogStateEntry, dynamoDBClient);
+      await writeCatalogEntry(
+        previousCatalogStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
       const retrievedCatalogEntry = await readCatalogEntry(
         primaryKey,
         dynamoDBClient
@@ -197,7 +208,7 @@ describe("utils tests", async () => {
         descriptorId: generateId(),
       });
       expect(
-        deleteCatalogEntry(primaryKey, dynamoDBClient)
+        deleteCatalogEntry(primaryKey, dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
 
@@ -214,8 +225,12 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(previousCatalogStateEntry, dynamoDBClient);
-      await deleteCatalogEntry(primaryKey, dynamoDBClient);
+      await writeCatalogEntry(
+        previousCatalogStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+      await deleteCatalogEntry(primaryKey, dynamoDBClient, genericLogger);
       const retrievedCatalogEntry = await readCatalogEntry(
         primaryKey,
         dynamoDBClient
@@ -450,7 +465,8 @@ describe("utils tests", async () => {
         updateDescriptorStateInTokenGenerationStatesTable(
           eserviceId_descriptorId,
           itemState.inactive,
-          dynamoDBClient
+          dynamoDBClient,
+          genericLogger
         )
       ).resolves.not.toThrowError();
       const tokenGenStatesEntriesAfterUpdate = await readAllTokenGenStatesItems(
@@ -502,7 +518,8 @@ describe("utils tests", async () => {
       await updateDescriptorStateInTokenGenerationStatesTable(
         eserviceId_descriptorId,
         itemState.active,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
         dynamoDBClient
