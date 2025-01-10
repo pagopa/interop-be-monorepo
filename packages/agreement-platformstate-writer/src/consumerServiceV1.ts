@@ -145,7 +145,7 @@ const handleActivationOrSuspension = async (
     if (existingAgreementEntry.version > incomingVersion) {
       // Stops processing if the message is older than the agreement entry
       logger.info(
-        `Skipping processsing of entry ${existingAgreementEntry}. Reason: entry already exists`
+        `Skipping processsing of entry ${existingAgreementEntry}. Reason: a more recent entry already exists`
       );
       return Promise.resolve();
     } else {
@@ -273,7 +273,7 @@ const handleUpgrade = async (
   if (agreementEntry) {
     if (agreementEntry.version > msgVersion) {
       logger.info(
-        `Skipping processing of entry ${agreementEntry}. Reason: entry already exists`
+        `Skipping processing of entry ${agreementEntry}. Reason: a more recent entry already exists`
       );
       return Promise.resolve();
     } else {

@@ -159,7 +159,9 @@ export async function handleMessageV2(
         if (!catalogEntry || catalogEntry.version > msg.version) {
           logger.info(
             `Skipping processing of entry ${catalogEntry?.PK}. Reason: ${
-              !catalogEntry ? "entry is undefined" : "entry already exists"
+              !catalogEntry
+                ? "entry is undefined"
+                : "a more recent entry already exists"
             }`
           );
 
@@ -228,7 +230,9 @@ export async function handleMessageV2(
       if (!catalogEntry || catalogEntry.version > msg.version) {
         logger.info(
           `Skipping processing of entry ${catalogEntry?.PK}. Reason: ${
-            !catalogEntry ? "entry is undefined" : "entry already exists"
+            !catalogEntry
+              ? "entry is undefined"
+              : "a more recent entry already exists"
           }`
         );
 
