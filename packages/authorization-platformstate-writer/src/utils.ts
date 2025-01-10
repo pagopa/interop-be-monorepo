@@ -422,7 +422,7 @@ export const writeTokenGenStatesApiClient = async (
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
   logger.info(
-    `Token-generation-states. Wrote api client ${tokenGenStatesApiClient.PK}`
+    `Token-generation-states. Written api client ${tokenGenStatesApiClient.PK}`
   );
 };
 
@@ -757,7 +757,7 @@ export const writeTokenGenStatesConsumerClient = async (
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
   logger.info(
-    `Token-generation-states. Wrote consumer client ${tokenGenStatesConsumerClient.PK}`
+    `Token-generation-states. Written consumer client ${tokenGenStatesConsumerClient.PK}`
   );
 };
 
@@ -805,7 +805,7 @@ export const writePlatformClientEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Wrote client entry ${clientEntry.PK}`);
+  logger.info(`Platform-states. Written client entry ${clientEntry.PK}`);
 };
 
 export const readConsumerClientEntriesInTokenGenerationStates = async (
