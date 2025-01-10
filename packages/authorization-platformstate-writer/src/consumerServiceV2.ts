@@ -462,6 +462,10 @@ export async function handleMessageV2(
             );
           }
         }
+      } else {
+        logger.info(
+          `Skipping processing of entry ${pk}. Reason: entry is undefined`
+        );
       }
     })
     .with({ type: "ClientDeleted" }, async (msg) => {

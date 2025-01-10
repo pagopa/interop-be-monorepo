@@ -500,6 +500,10 @@ export async function handleMessageV1(
             );
           }
         }
+      } else {
+        logger.info(
+          `Skipping processing of entry ${pk}. Reason: entry is undefined`
+        );
       }
     })
     .with({ type: "ClientDeleted" }, async (msg) => {
