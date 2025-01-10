@@ -97,12 +97,6 @@ paths:
         schema:
           type: string
       - in: query
-        name: delegateId
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - in: query
         name: offset
         required: true
         schema:

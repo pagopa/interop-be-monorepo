@@ -415,7 +415,6 @@ export function delegationServiceBuilder(
       const delegatorsData =
         await delegationClients.consumer.getConsumerDelegators({
           queries: {
-            delegateId: authData.organizationId,
             delegatorName: q,
             offset,
             limit,
