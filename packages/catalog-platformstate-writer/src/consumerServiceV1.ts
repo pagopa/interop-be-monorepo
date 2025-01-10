@@ -13,6 +13,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
@@ -25,7 +26,8 @@ import {
 
 export async function handleMessageV1(
   message: EServiceEventEnvelopeV1,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with({ type: "EServiceDescriptorUpdated" }, async (msg) => {
@@ -46,6 +48,9 @@ export async function handleMessageV1(
           if (existingCatalogEntry) {
             if (existingCatalogEntry.version > msg.version) {
               // Stops processing if the message is older than the catalog entry
+              logger.info(
+                `Skipping processing of entry ${existingCatalogEntry.PK}. Reason: entry already exists`
+              );
               return Promise.resolve();
             } else {
               // suspended->published
@@ -54,7 +59,8 @@ export async function handleMessageV1(
                 dynamoDBClient,
                 eserviceDescriptorPK,
                 descriptorStateToItemState(descriptor.state),
-                msg.version
+                msg.version,
+                logger
               );
             }
           } else {
@@ -69,7 +75,7 @@ export async function handleMessageV1(
               updatedAt: new Date().toISOString(),
             };
 
-            await writeCatalogEntry(catalogEntry, dynamoDBClient);
+            await writeCatalogEntry(catalogEntry, dynamoDBClient, logger);
           }
 
           // token-generation-states
@@ -82,7 +88,8 @@ export async function handleMessageV1(
             descriptorStateToItemState(descriptor.state),
             descriptor.voucherLifespan,
             descriptor.audience,
-            dynamoDBClient
+            dynamoDBClient,
+            logger
           );
         })
         .with(descriptorState.suspended, async () => {
@@ -95,6 +102,15 @@ export async function handleMessageV1(
             !existingCatalogEntry ||
             existingCatalogEntry.version > msg.version
           ) {
+            logger.info(
+              `Skipping processing of entry ${
+                existingCatalogEntry?.PK
+              }. Reason: ${
+                !existingCatalogEntry
+                  ? "entry doesn't exist"
+                  : "entry already exists"
+              }`
+            );
             return Promise.resolve();
           } else {
             // platform-states
@@ -102,7 +118,8 @@ export async function handleMessageV1(
               dynamoDBClient,
               eserviceDescriptorPK,
               descriptorStateToItemState(descriptor.state),
-              msg.version
+              msg.version,
+              logger
             );
 
             // token-generation-states
@@ -113,7 +130,8 @@ export async function handleMessageV1(
             await updateDescriptorStateInTokenGenerationStatesTable(
               eserviceId_descriptorId,
               descriptorStateToItemState(descriptor.state),
-              dynamoDBClient
+              dynamoDBClient,
+              logger
             );
           }
         })
@@ -129,7 +147,7 @@ export async function handleMessageV1(
             eserviceId,
             descriptorId: descriptor.id,
           });
-          await deleteCatalogEntry(primaryKey, dynamoDBClient);
+          await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
 
           // token-generation-states
           const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
@@ -139,14 +157,21 @@ export async function handleMessageV1(
           await updateDescriptorStateInTokenGenerationStatesTable(
             eserviceId_descriptorId,
             descriptorStateToItemState(descriptor.state),
-            dynamoDBClient
+            dynamoDBClient,
+            logger
           );
         })
         .with(
           descriptorState.draft,
           descriptorState.deprecated,
           descriptorState.waitingForApproval,
-          () => Promise.resolve()
+          () => {
+            logger.info(
+              `Skipping processing of entry ${eserviceDescriptorPK}. Reason: state ${descriptor.state}`
+            );
+
+            return Promise.resolve();
+          }
         )
         .exhaustive();
     })

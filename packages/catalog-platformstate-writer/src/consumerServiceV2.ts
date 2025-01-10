@@ -14,6 +14,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { Logger } from "pagopa-interop-commons";
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
@@ -28,7 +29,8 @@ import {
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with(
@@ -57,13 +59,17 @@ export async function handleMessageV2(
           if (existingCatalogEntryCurrent) {
             if (existingCatalogEntryCurrent.version > msg.version) {
               // Stops processing if the message is older than the catalog entry
+              logger.info(
+                `Skipping processing of entry ${existingCatalogEntryCurrent} (the current descriptor). Reason: it already exists`
+              );
               return Promise.resolve();
             } else {
               await updateDescriptorStateInPlatformStatesEntry(
                 dynamoDBClient,
                 primaryKeyCurrent,
                 descriptorStateToItemState(descriptor.state),
-                msg.version
+                msg.version,
+                logger
               );
             }
           } else {
@@ -76,7 +82,7 @@ export async function handleMessageV2(
               updatedAt: new Date().toISOString(),
             };
 
-            await writeCatalogEntry(catalogEntry, dynamoDBClient);
+            await writeCatalogEntry(catalogEntry, dynamoDBClient, logger);
           }
 
           // token-generation-states
@@ -89,7 +95,8 @@ export async function handleMessageV2(
             descriptorStateToItemState(descriptor.state),
             descriptor.voucherLifespan,
             descriptor.audience,
-            dynamoDBClient
+            dynamoDBClient,
+            logger
           );
         };
 
@@ -101,6 +108,13 @@ export async function handleMessageV2(
           !previousDescriptor ||
           previousDescriptor.state !== descriptorState.archived
         ) {
+          logger.info(
+            `Skipping processing of entry ${previousDescriptor} (the previous descriptor). Reason: ${
+              !previousDescriptor
+                ? "entry doesn't exists"
+                : "state is not archived"
+            }`
+          );
           return Promise.resolve();
         } else {
           const primaryKeyPrevious = makePlatformStatesEServiceDescriptorPK({
@@ -108,7 +122,7 @@ export async function handleMessageV2(
             descriptorId: previousDescriptor.id,
           });
 
-          await deleteCatalogEntry(primaryKeyPrevious, dynamoDBClient);
+          await deleteCatalogEntry(primaryKeyPrevious, dynamoDBClient, logger);
 
           // token-generation-states
           const eserviceId_descriptorId_previous =
@@ -119,7 +133,8 @@ export async function handleMessageV2(
           await updateDescriptorStateInTokenGenerationStatesTable(
             eserviceId_descriptorId_previous,
             descriptorStateToItemState(previousDescriptor.state),
-            dynamoDBClient
+            dynamoDBClient,
+            logger
           );
         }
       }
@@ -140,13 +155,20 @@ export async function handleMessageV2(
         const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
 
         if (!catalogEntry || catalogEntry.version > msg.version) {
+          logger.info(
+            `Skipping processing of entry ${catalogEntry}. Reason: ${
+              !catalogEntry ? "entry is undefined" : "entry already exists"
+            }`
+          );
+
           return Promise.resolve();
         } else {
           await updateDescriptorStateInPlatformStatesEntry(
             dynamoDBClient,
             primaryKey,
             descriptorStateToItemState(descriptor.state),
-            msg.version
+            msg.version,
+            logger
           );
 
           // token-generation-states
@@ -157,7 +179,8 @@ export async function handleMessageV2(
           await updateDescriptorStateInTokenGenerationStatesTable(
             eserviceId_descriptorId,
             descriptorStateToItemState(descriptor.state),
-            dynamoDBClient
+            dynamoDBClient,
+            logger
           );
         }
       }
@@ -173,7 +196,7 @@ export async function handleMessageV2(
         eserviceId: eservice.id,
         descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
       });
-      await deleteCatalogEntry(primaryKey, dynamoDBClient);
+      await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
 
       // token-generation-states
       const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
@@ -184,7 +207,8 @@ export async function handleMessageV2(
       await updateDescriptorStateInTokenGenerationStatesTable(
         eserviceId_descriptorId,
         descriptorStateToItemState(descriptor.state),
-        dynamoDBClient
+        dynamoDBClient,
+        logger
       );
     })
     .with({ type: "EServiceDescriptorQuotasUpdated" }, async (msg) => {
@@ -200,6 +224,12 @@ export async function handleMessageV2(
       const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
 
       if (!catalogEntry || catalogEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${catalogEntry?.PK}. Reason: ${
+            !catalogEntry ? "entry is undefined" : "entry already exists"
+          }`
+        );
+
         return Promise.resolve();
       } else {
         if (
@@ -209,7 +239,8 @@ export async function handleMessageV2(
             dynamoDBClient,
             primaryKey,
             descriptor.voucherLifespan,
-            msg.version
+            msg.version,
+            logger
           );
 
           // token-generation-states
@@ -220,7 +251,8 @@ export async function handleMessageV2(
           await updateDescriptorVoucherLifespanInTokenGenerationStatesTable(
             eserviceId_descriptorId,
             descriptor.voucherLifespan,
-            dynamoDBClient
+            dynamoDBClient,
+            logger
           );
         }
       }
