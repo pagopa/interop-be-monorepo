@@ -26,6 +26,7 @@ import {
   invalidZipStructure,
   missingDescriptorInClonedEservice,
   noDescriptorInEservice,
+  tenantNotFound,
 } from "../model/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import {
@@ -68,24 +69,32 @@ export const enhanceCatalogEservices = async (
   headers: Headers,
   requesterId: TenantId
 ): Promise<bffApi.CatalogEService[]> => {
-  const tenantsCachedList: Record<TenantId, tenantApi.Tenant> = {};
+  const tenantsIds = new Set([
+    ...eservices.map((e) => e.producerId),
+    requesterId,
+  ] as TenantId[]);
 
-  const getCachedTenant = async (
-    tenantId: TenantId
-  ): Promise<tenantApi.Tenant> => {
-    if (tenantsCachedList[tenantId]) {
-      return tenantsCachedList[tenantId];
+  const cachedTenants = new Map(
+    await Promise.all(
+      Array.from(tenantsIds).map(
+        async (tenantId): Promise<[TenantId, tenantApi.Tenant]> => [
+          tenantId,
+          await tenantProcessClient.tenant.getTenant({
+            headers,
+            params: { id: tenantId },
+          }),
+        ]
+      )
+    )
+  );
+
+  const getCachedTenant = (tenantId: TenantId): tenantApi.Tenant => {
+    const tenant = cachedTenants.get(tenantId);
+    if (!tenant) {
+      throw tenantNotFound(tenantId);
     }
-
-    const tenant = await tenantProcessClient.tenant.getTenant({
-      headers,
-      params: { id: tenantId },
-    });
-
-    tenantsCachedList[tenantId] = tenant;
     return tenant;
   };
-
   const enhanceEService =
     (
       agreementProcessClient: AgreementProcessClient,
@@ -93,10 +102,8 @@ export const enhanceCatalogEservices = async (
       requesterId: TenantId
     ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
     async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
-      const producerTenant = await getCachedTenant(
-        eservice.producerId as TenantId
-      );
-      const requesterTenant = await getCachedTenant(requesterId);
+      const producerTenant = getCachedTenant(eservice.producerId as TenantId);
+      const requesterTenant = getCachedTenant(requesterId);
 
       const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
 
