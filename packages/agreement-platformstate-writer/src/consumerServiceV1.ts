@@ -210,7 +210,7 @@ const handleActivationOrSuspension = async (
     });
   } else {
     logger.info(
-      `Token-generation-states. Skipping processing entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
+      `Token-generation-states. Skipping processing of entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
     );
   }
 };
@@ -243,7 +243,7 @@ const handleArchiving = async (
     });
   } else {
     logger.info(
-      `Token-generation-states. Skipping processing entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
+      `Token-generation-states. Skipping processing of entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
     );
   }
 
@@ -338,7 +338,7 @@ const handleUpgrade = async (
       });
     } else {
       logger.info(
-        `Token-generation-states. Skipping processing entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
+        `Token-generation-states. Skipping processing of entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
       );
     }
   };
