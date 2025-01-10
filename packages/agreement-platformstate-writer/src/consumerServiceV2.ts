@@ -137,7 +137,7 @@ export async function handleMessageV2(
           logger.info(
             `Skipping processing of entry ${primaryKey}. Reason: ${
               !agreementEntry
-                ? "entry is undefined"
+                ? "entry not found in platform-states"
                 : "a more recent entry already exists"
             }`
           );
