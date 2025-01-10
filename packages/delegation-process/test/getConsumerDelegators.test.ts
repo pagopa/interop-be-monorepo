@@ -106,7 +106,7 @@ describe("getConsumerDelegators", () => {
     await addOneTenant(delegator5);
   });
 
-  it.only("should apply offset and limit", async () => {
+  it("should apply offset and limit", async () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
