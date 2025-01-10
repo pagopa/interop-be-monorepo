@@ -10,6 +10,7 @@ import {
   DelegationId,
   delegationKind,
   DelegationKind,
+  DelegationReadModel,
   delegationState,
   DelegationState,
   EService,
@@ -104,28 +105,32 @@ export function readModelServiceBuilder(
       }
     },
     async getDelegation(
+      filter: Filter<{ data: DelegationReadModel }>
+    ): Promise<WithMetadata<Delegation> | undefined> {
+      const data = await delegations.findOne(filter, {
+        projection: { data: true, metadata: true },
+      });
+      if (data) {
+        const result = Delegation.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse delegation item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return data;
+      }
+      return undefined;
+    },
+    async getDelegationById(
       id: DelegationId,
       kind: DelegationKind | undefined = undefined
     ): Promise<WithMetadata<Delegation> | undefined> {
-      const data = await delegations.findOne(
-        { "data.id": id, ...(kind ? { "data.kind": kind } : {}) },
-        {
-          projection: { data: true, metadata: true },
-        }
-      );
-      if (!data) {
-        return undefined;
-      }
-
-      const result = Delegation.safeParse(data.data);
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse delegation item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-      return data;
+      return this.getDelegation({
+        "data.id": id,
+        ...(kind ? { "data.kind": kind } : {}),
+      });
     },
     async findDelegations(
       filters: GetDelegationsFilters
@@ -369,6 +374,126 @@ export function readModelServiceBuilder(
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse compact delegation tenants: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)}`
+        );
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          delegations,
+          aggregationPipeline
+        ),
+      };
+    },
+    async getConsumerEservices(filters: {
+      requesterId: TenantId;
+      delegatorId: TenantId;
+      limit: number;
+      offset: number;
+      eserviceName?: string;
+    }): Promise<delegationApi.CompactEservicesLight> {
+      const aggregationPipeline = [
+        {
+          $match: {
+            "data.kind": delegationKind.delegatedConsumer,
+            "data.state": delegationState.active,
+            "data.delegateId": filters.requesterId,
+            "data.delegatorId": filters.delegatorId,
+          } satisfies ReadModelFilter<Delegation>,
+        },
+        {
+          $lookup: {
+            from: "eservices",
+            localField: "data.eserviceId",
+            foreignField: "data.id",
+            as: "eservice",
+          },
+        },
+        {
+          $unwind: "$eservice",
+        },
+        ...(filters.eserviceName
+          ? [
+              {
+                $match: {
+                  "eservice.data.name": {
+                    $regex: ReadModelRepository.escapeRegExp(
+                      filters.eserviceName
+                    ),
+                    $options: "i",
+                  },
+                },
+              },
+            ]
+          : []),
+        {
+          $lookup: {
+            from: "agreements",
+            let: {
+              producerId: "$eservice.data.producerId",
+              consumerId: "$data.delegatorId",
+              eserviceId: "$eservice.data.id",
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$data.producerId", "$$producerId"] },
+                      { $eq: ["$data.consumerId", "$$consumerId"] },
+                      { $eq: ["$data.eserviceId", "$$eserviceId"] },
+                      { $eq: ["$data.state", agreementState.active] },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: "activeAgreements",
+          },
+        },
+        {
+          $match: {
+            activeAgreements: { $ne: [] }, // Keep only delegations with active agreements
+          },
+        },
+        {
+          $group: {
+            _id: "$eservice.data.id",
+            name: { $first: "$eservice.data.name" },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            id: "$_id",
+            name: 1,
+          },
+        },
+        {
+          $sort: { name: 1 },
+        },
+      ];
+
+      const data = await delegations
+        .aggregate(
+          [
+            ...aggregationPipeline,
+            { $skip: filters.offset },
+            { $limit: filters.limit },
+          ],
+          { allowDiskUse: true }
+        )
+        .toArray();
+
+      const result = z
+        .array(delegationApi.CompactEserviceLight)
+        .safeParse(data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse compact delegation eservices: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)}`
         );
