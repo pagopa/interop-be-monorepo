@@ -343,6 +343,9 @@ export async function handleMessageV1(
           dynamoDBClient
         );
       if (tokenGenStatesConsumerClients.length === 0) {
+        logger.info(
+          `Skipping token-generation-states update. Reason: no entries found for GSIPK_clientId ${GSIPK_clientId}`
+        );
         return Promise.resolve();
       } else {
         const { purposeEntry, agreementEntry, catalogEntry } =
