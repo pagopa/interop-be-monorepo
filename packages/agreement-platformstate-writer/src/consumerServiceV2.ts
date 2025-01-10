@@ -134,6 +134,11 @@ export async function handleMessageV2(
         );
 
         if (!agreementEntry || agreementEntry.version > msg.version) {
+          logger.info(
+            `Skipping processing of entry ${primaryKey}. Reason: ${
+              !agreementEntry ? "entry is undefined" : "entry already exists"
+            }`
+          );
           return Promise.resolve();
         } else {
           await updateAgreementStateInPlatformStatesEntry(

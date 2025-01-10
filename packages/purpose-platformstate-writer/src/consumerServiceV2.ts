@@ -112,9 +112,7 @@ export async function handleMessageV2(
         ) {
           // Stops processing if the message is older than the purpose entry or if it doesn't exist
           logger.info(
-            `Skipping processing of entry ${makePlatformStatesPurposePK(
-              purpose.id
-            )}. Reason: ${
+            `Skipping processing of entry ${primaryKey}. Reason: ${
               !existingPurposeEntry
                 ? "entry is undefined"
                 : "a more recent entry already exists"
