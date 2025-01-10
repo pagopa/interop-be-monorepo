@@ -80,12 +80,12 @@ import {
   writeTokenGenStatesApiClient,
   deleteEntriesFromTokenGenStatesByClientIdKid,
   writePlatformClientEntry,
-  deleteEntriesFromTokenGenStatesByClientId,
   deleteClientEntryFromTokenGenerationStates,
   readPlatformClientEntry,
   deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId,
   upsertTokenGenStatesConsumerClient,
   upsertTokenGenStatesApiClient,
+  deleteEntriesFromTokenGenStatesByClientIdV2,
 } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
@@ -173,17 +173,41 @@ describe("utils", () => {
     expect(res).toEqual([clientEntry2]);
   });
 
-  it("deleteEntriesFromTokenGenStatesByClientId", async () => {
-    const GSIPK_clientId = generateId<ClientId>();
+  it("deleteEntriesFromTokenGenStatesByClientIdV2", async () => {
+    const mockKey = getMockKey();
+    const mockKey2 = getMockKey();
+    const purposeId = generateId<PurposeId>();
+
+    const client: Client = {
+      ...getMockClient(),
+      keys: [mockKey, mockKey2],
+      purposes: [purposeId],
+    };
 
     const clientEntry: TokenGenerationStatesApiClient = {
-      ...getMockTokenGenStatesApiClient(),
-      GSIPK_clientId,
+      GSIPK_clientId: client.id,
+      consumerId: client.consumerId,
+      updatedAt: new Date().toISOString(),
+      PK: makeTokenGenerationStatesClientKidPK({
+        clientId: client.id,
+        kid: mockKey.kid,
+      }),
+      clientKind: clientKindTokenGenStates.api,
+      publicKey: "public key",
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({
+        clientId: client.id,
+        kid: mockKey.kid,
+      }),
     };
 
     const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient = {
       ...getMockTokenGenStatesConsumerClient(),
-      GSIPK_clientId,
+      PK: makeTokenGenerationStatesClientKidPurposePK({
+        clientId: client.id,
+        kid: mockKey.kid,
+        purposeId,
+      }),
+      consumerId: client.consumerId,
     };
 
     const otherConsumerClient: TokenGenerationStatesConsumerClient = {
@@ -203,8 +227,8 @@ describe("utils", () => {
       dynamoDBClient
     );
 
-    await deleteEntriesFromTokenGenStatesByClientId(
-      GSIPK_clientId,
+    await deleteEntriesFromTokenGenStatesByClientIdV2(
+      client,
       dynamoDBClient,
       genericLogger
     );

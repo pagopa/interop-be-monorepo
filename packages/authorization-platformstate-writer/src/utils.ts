@@ -11,6 +11,9 @@ import {
   QueryCommand,
   QueryCommandOutput,
   QueryInput,
+  ScanCommand,
+  ScanCommandOutput,
+  ScanInput,
   UpdateItemCommand,
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
@@ -48,8 +51,11 @@ import {
   TokenGenerationStatesConsumerClient,
   TokenGenStatesConsumerClientGSIClient,
   TokenGenStatesConsumerClientGSIClientPurpose,
-  TokenGenStatesGenericClientGSIClient,
   TokenGenStatesGenericClientGSIClientKid,
+  Client,
+  clientKidPrefix,
+  clientKidPurposePrefix,
+  TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
@@ -135,27 +141,30 @@ export const deleteClientEntryFromPlatformStates = async (
   logger.info(`Platform-states. Deleted client entry ${pk}`);
 };
 
-export const deleteEntriesFromTokenGenStatesByClientId = async (
+export const deleteEntriesFromTokenGenStatesByClientIdV1 = async (
   GSIPK_clientId: ClientId,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
+  // We need to find all the entries to delete though a Scan, because the query on the GSI doesn't allow ConsistentRead
   const runPaginatedQuery = async (
-    GSIPK_clientId: ClientId,
+    prefix: string,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<void> => {
-    const input: QueryInput = {
+    const readInput: ScanInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      IndexName: "Client",
-      KeyConditionExpression: `GSIPK_clientId = :gsiValue`,
+      FilterExpression: "begins_with(#pk, :prefix)",
+      ExpressionAttributeNames: {
+        "#pk": "PK",
+      },
       ExpressionAttributeValues: {
-        ":gsiValue": { S: GSIPK_clientId },
+        ":prefix": { S: prefix },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
-    const command = new QueryCommand(input);
-    const data: QueryCommandOutput = await dynamoDBClient.send(command);
+    const commandQuery = new ScanCommand(readInput);
+    const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
 
     if (!data.Items) {
       throw genericInternalError(
@@ -167,7 +176,7 @@ export const deleteEntriesFromTokenGenStatesByClientId = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenGenStatesEntries = z
-        .array(TokenGenStatesGenericClientGSIClient)
+        .array(TokenGenerationStatesGenericClient)
         .safeParse(unmarshalledItems);
 
       if (!tokenGenStatesEntries.success) {
@@ -196,7 +205,51 @@ export const deleteEntriesFromTokenGenStatesByClientId = async (
     }
   };
 
-  await runPaginatedQuery(GSIPK_clientId, dynamoDBClient, undefined);
+  const prefix1 = `${clientKidPrefix}${GSIPK_clientId}`;
+  const prefix2 = `${clientKidPurposePrefix}${GSIPK_clientId}`;
+
+  await runPaginatedQuery(prefix1, dynamoDBClient, undefined);
+  await runPaginatedQuery(prefix2, dynamoDBClient, undefined);
+};
+
+export const deleteEntriesFromTokenGenStatesByClientIdV2 = async (
+  // For v2 events we have the entire client, so we can build all the PKs we need
+  client: Client,
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+): Promise<void> => {
+  if (client.purposes.length > 0) {
+    await Promise.all(
+      client.keys.map((key) =>
+        client.purposes.map(async (purpose) => {
+          const pk = makeTokenGenerationStatesClientKidPurposePK({
+            clientId: client.id,
+            kid: key.kid,
+            purposeId: purpose,
+          });
+          await deleteClientEntryFromTokenGenerationStates(
+            pk,
+            dynamoDBClient,
+            logger
+          );
+        })
+      )
+    );
+  } else {
+    await Promise.all(
+      client.keys.map(async (key) => {
+        const pk = makeTokenGenerationStatesClientKidPK({
+          clientId: client.id,
+          kid: key.kid,
+        });
+        await deleteClientEntryFromTokenGenerationStates(
+          pk,
+          dynamoDBClient,
+          logger
+        );
+      })
+    );
+  }
 };
 
 export const deleteClientEntryFromTokenGenerationStates = async (
