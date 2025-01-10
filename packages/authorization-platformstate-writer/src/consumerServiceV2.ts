@@ -68,6 +68,9 @@ export async function handleMessageV2(
       );
 
       if (clientEntry && clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${clientEntry.PK}. Reason: entry already exists`
+        );
         return Promise.resolve();
       } else {
         // platform-states
@@ -245,6 +248,9 @@ export async function handleMessageV2(
       const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
 
       if (clientEntry && clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${clientEntry.PK}. Reason: entry already exists`
+        );
         return Promise.resolve();
       } else {
         const platformClientEntry: PlatformStatesClientEntry = {
@@ -283,6 +289,9 @@ export async function handleMessageV2(
         dynamoDBClient
       );
       if (clientEntry && clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${clientEntry.PK}. Reason: entry already exists`
+        );
         return Promise.resolve();
       } else {
         // platform-states
@@ -418,6 +427,9 @@ export async function handleMessageV2(
 
       if (clientEntry) {
         if (clientEntry.version > msg.version) {
+          logger.info(
+            `Skipping processing of entry ${clientEntry.PK}. Reason: entry already exists`
+          );
           return Promise.resolve();
         } else {
           const GSIPK_clientId_purposeId = makeGSIPKClientIdPurposeId({
