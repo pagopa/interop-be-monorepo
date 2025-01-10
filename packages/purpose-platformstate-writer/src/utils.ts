@@ -97,6 +97,7 @@ export const readPlatformPurposeEntry = async (
       PK: { S: primaryKey },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
   const data: GetItemCommandOutput = await dynamoDBClient.send(command);
@@ -150,7 +151,6 @@ export const readTokenGenStatesEntriesByGSIPKPurposeId = async (
       ":gsiValue": { S: purposeId },
     },
     ExclusiveStartKey: exclusiveStartKey,
-    ConsistentRead: true,
   };
   const command = new QueryCommand(input);
   const data: QueryCommandOutput = await dynamoDBClient.send(command);
@@ -511,7 +511,6 @@ export const readPlatformAgreementEntry = async (
       ":gsiValue": { S: gsiPKConsumerIdEServiceId },
     },
     ScanIndexForward: false,
-    ConsistentRead: true,
   };
   const command = new QueryCommand(input);
   const data: QueryCommandOutput = await dynamoDBClient.send(command);
@@ -545,6 +544,7 @@ export const readCatalogEntry = async (
       PK: { S: primaryKey },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
   const data: GetItemCommandOutput = await dynamoDBClient.send(command);

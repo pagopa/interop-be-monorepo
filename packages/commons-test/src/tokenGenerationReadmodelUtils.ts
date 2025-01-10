@@ -318,7 +318,6 @@ export const readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId = async (
         ":gsiValue": { S: gsiPKConsumerIdEServiceId },
       },
       ExclusiveStartKey: exclusiveStartKey,
-      ConsistentRead: true,
     };
     const command = new QueryCommand(input);
     const data: QueryCommandOutput = await dynamoDBClient.send(command);
