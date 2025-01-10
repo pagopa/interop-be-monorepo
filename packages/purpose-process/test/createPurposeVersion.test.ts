@@ -394,22 +394,22 @@ describe("createPurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the creation of a new purpose version is successful", async () => {
-    const producerDelegator = {
-      ...getMockTenant(),
-      id: generateId<TenantId>(),
-      kind: tenantKind.PA,
-    };
     const producer = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumerDelegator = {
+    const producerDelegate = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
     const consumer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumerDelegate = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -437,22 +437,22 @@ describe("createPurposeVersion", () => {
     const producerDelegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
-      delegatorId: producerDelegator.id,
-      delegateId: producer.id,
+      delegatorId: producer.id,
+      delegateId: producerDelegate.id,
       state: delegationState.active,
     });
 
     const consumerDelegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: eservice.id,
-      delegatorId: consumerDelegator.id,
-      delegateId: consumer.id,
+      delegatorId: consumer.id,
+      delegateId: consumerDelegate.id,
       state: delegationState.active,
     });
 
-    await addOneTenant(producerDelegator);
+    await addOneTenant(producerDelegate);
     await addOneTenant(producer);
-    await addOneTenant(consumerDelegator);
+    await addOneTenant(consumerDelegate);
     await addOneTenant(consumer);
     await addOneEService(eservice);
     await addOneAgreement(agreement);
@@ -467,7 +467,7 @@ describe("createPurposeVersion", () => {
         dailyCalls: 24,
       },
       {
-        authData: getRandomAuthData(consumer.id),
+        authData: getRandomAuthData(consumerDelegate.id),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
