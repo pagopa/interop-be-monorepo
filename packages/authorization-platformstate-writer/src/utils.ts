@@ -132,7 +132,7 @@ export const deleteClientEntryFromPlatformStates = async (
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Deleting entry ${pk}`);
+  logger.info(`Platform-states. Deleting client entry ${pk}`);
 };
 
 export const deleteEntriesFromTokenGenStatesByClientId = async (
@@ -805,7 +805,7 @@ export const writePlatformClientEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Writing entry ${clientEntry.PK}`);
+  logger.info(`Platform-states. Writing client entry ${clientEntry.PK}`);
 };
 
 export const readConsumerClientEntriesInTokenGenerationStates = async (
@@ -909,7 +909,9 @@ export const setClientPurposeIdsInPlatformStatesEntry = async (
   };
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Updating purpose ids in entry ${primaryKey}`);
+  logger.info(
+    `Platform-states. Updating purpose ids in client entry ${primaryKey}`
+  );
 };
 
 export const extractKidFromTokenGenStatesEntryPK = (
@@ -1038,7 +1040,7 @@ export const upsertPlatformClientEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Upserting entry ${entry.PK}`);
+  logger.info(`Platform-states. Upserting client entry ${entry.PK}`);
 };
 
 export const upsertTokenGenStatesApiClient = async (
