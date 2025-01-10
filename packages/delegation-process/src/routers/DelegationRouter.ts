@@ -98,10 +98,8 @@ const delegationRouter = (
 
           return res.status(200).send(
             delegationApi.Delegations.parse({
-              results: delegations.map((delegation) =>
-                delegationToApiDelegation(delegation)
-              ),
-              totalCount: delegations.length,
+              results: delegations.results.map(delegationToApiDelegation),
+              totalCount: delegations.totalCount,
             })
           );
         } catch (error) {

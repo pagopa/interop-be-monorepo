@@ -14865,6 +14865,21 @@ components:
         descriptorId:
           type: string
           format: uuid
+        delegation:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            delegateId:
+              type: string
+              format: uuid
+            delegateName:
+              type: string
+          required:
+            - id
+            - delegateId
+            - delegateName
         producer:
           $ref: "#/components/schemas/CompactOrganization"
         consumer:
@@ -16302,6 +16317,7 @@ components:
       enum:
         - PERSISTENT_CERTIFIER
         - DELEGATED_PRODUCER
+        - DELEGATED_CONSUMER
     TenantFeature:
       oneOf:
         - type: object

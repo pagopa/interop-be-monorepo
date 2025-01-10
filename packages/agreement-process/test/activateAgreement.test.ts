@@ -5,7 +5,6 @@
 import { fileURLToPath } from "url";
 import path from "path";
 import {
-  AuthData,
   dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
   genericLogger,
@@ -40,8 +39,6 @@ import {
   Attribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
-  Delegation,
-  DelegationState,
   Descriptor,
   EService,
   EServiceId,
@@ -59,7 +56,6 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import { addDays } from "date-fns";
 import { match } from "ts-pattern";
-import { z } from "zod";
 import {
   agreementActivableStates,
   agreementActivationAllowedDescriptorStates,
@@ -80,29 +76,22 @@ import {
 import { config } from "../src/config/config.js";
 import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
 import {
+  RequesterIs,
+  addDelegationsAndDelegates,
   addOneAgreement,
   addOneAttribute,
   addOneDelegation,
   addOneEService,
   addOneTenant,
+  addSomeRandomDelegations,
   agreementService,
+  authDataAndDelegationsFromRequesterIs,
   fileManager,
   pdfGenerator,
   readAgreementEventByVersion,
   readLastAgreementEvent,
+  requesterIs,
 } from "./utils.js";
-
-export const requesterIs = {
-  producer: "Producer",
-  consumer: "Consumer",
-  delegateProducer: "DelegateProducer",
-  delegateConsumer: "DelegateConsumer",
-} as const;
-export const RequesterIs = z.enum([
-  Object.values(requesterIs)[0],
-  ...Object.values(requesterIs).slice(1),
-]);
-export type RequesterIs = z.infer<typeof RequesterIs>;
 
 const unsuspensionEventInfoFromRequesterIs = (requesterIs: RequesterIs) =>
   match(requesterIs)
@@ -115,112 +104,6 @@ const unsuspensionEventInfoFromRequesterIs = (requesterIs: RequesterIs) =>
       messageType: AgreementUnsuspendedByConsumerV2,
     }))
     .exhaustive();
-
-const authDataAndDelegationsFromRequesterIs = (
-  requesterIs: RequesterIs,
-  agreement: Agreement
-): {
-  authData: AuthData;
-  producerDelegation: Delegation | undefined;
-  delegateProducer: Tenant | undefined;
-  consumerDelegation: Delegation | undefined;
-  delegateConsumer: Tenant | undefined;
-} =>
-  match(requesterIs)
-    .with("Producer", () => ({
-      authData: getRandomAuthData(agreement.producerId),
-      producerDelegation: undefined,
-      delegateProducer: undefined,
-      consumerDelegation: undefined,
-      delegateConsumer: undefined,
-    }))
-    .with("Consumer", () => ({
-      authData: getRandomAuthData(agreement.consumerId),
-      producerDelegation: undefined,
-      delegateProducer: undefined,
-      consumerDelegation: undefined,
-      delegateConsumer: undefined,
-    }))
-    .with("DelegateProducer", () => {
-      const delegateProducer = getMockTenant();
-      const producerDelegation = getMockDelegation({
-        kind: delegationKind.delegatedProducer,
-        delegatorId: agreement.producerId,
-        delegateId: delegateProducer.id,
-        state: delegationState.active,
-        eserviceId: agreement.eserviceId,
-      });
-
-      return {
-        authData: getRandomAuthData(delegateProducer.id),
-        producerDelegation,
-        delegateProducer,
-        consumerDelegation: undefined,
-        delegateConsumer: undefined,
-      };
-    })
-    .with("DelegateConsumer", () => {
-      const delegateConsumer = getMockTenant();
-      const consumerDelegation = getMockDelegation({
-        kind: delegationKind.delegatedConsumer,
-        delegatorId: agreement.consumerId,
-        delegateId: delegateConsumer.id,
-        state: delegationState.active,
-        eserviceId: agreement.eserviceId,
-      });
-      return {
-        authData: getRandomAuthData(delegateConsumer.id),
-        consumerDelegation,
-        delegateConsumer,
-        producerDelegation: undefined,
-        delegateProducer: undefined,
-      };
-    })
-    .exhaustive();
-
-async function addDelegationsAndDelegates({
-  producerDelegation,
-  delegateProducer,
-  consumerDelegation,
-  delegateConsumer,
-}: {
-  producerDelegation: Delegation | undefined;
-  delegateProducer: Tenant | undefined;
-  consumerDelegation: Delegation | undefined;
-  delegateConsumer: Tenant | undefined;
-}): Promise<void> {
-  if (producerDelegation && delegateProducer) {
-    await addOneDelegation(producerDelegation);
-    await addOneTenant(delegateProducer);
-  }
-
-  if (consumerDelegation && delegateConsumer) {
-    await addOneDelegation(consumerDelegation);
-    await addOneTenant(delegateConsumer);
-  }
-}
-
-async function addSomeRandomDelegations(agreement: Agreement): Promise<void> {
-  // Adding some more delegations
-  [delegationState.rejected, delegationState.revoked].forEach(
-    async (state: DelegationState) => {
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedProducer,
-          state,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedConsumer,
-          state,
-        })
-      );
-    }
-  );
-}
 
 describe("activate agreement", () => {
   async function addRelatedAgreements(agreement: Agreement): Promise<{
@@ -312,6 +195,7 @@ describe("activate agreement", () => {
       async ({ requesterIs, withConsumerDelegation }) => {
         vi.spyOn(pdfGenerator, "generate");
         const producer: Tenant = getMockTenant();
+        const consumerId: TenantId = generateId();
 
         const certifiedAttribute: Attribute = {
           ...getMockAttribute(),
@@ -328,50 +212,13 @@ describe("activate agreement", () => {
           kind: "Verified",
         };
 
-        const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
-          ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
-          revocationTimestamp: undefined,
-        };
-
-        const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
-          ...getMockDeclaredTenantAttribute(declaredAttribute.id),
-          revocationTimestamp: undefined,
-        };
-
-        const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-          ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
-          verifiedBy: [
-            {
-              id: producer.id,
-              verificationDate: new Date(),
-              extensionDate: addDays(new Date(), 30),
-            },
-          ],
-        };
-
-        const consumer: Tenant = {
-          ...getMockTenant(),
-          selfcareId: generateId(),
-          attributes: [
-            validTenantCertifiedAttribute,
-            validTenantDeclaredAttribute,
-            validTenantVerifiedAttribute,
-          ],
-        };
-
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
           state: randomArrayItem(agreementActivationAllowedDescriptorStates),
           attributes: {
-            certified: [
-              [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
-            ],
-            declared: [
-              [getMockEServiceAttribute(validTenantDeclaredAttribute.id)],
-            ],
-            verified: [
-              [getMockEServiceAttribute(validTenantVerifiedAttribute.id)],
-            ],
+            certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
+            declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
+            verified: [[getMockEServiceAttribute(verifiedAttribute.id)]],
           },
         };
 
@@ -387,7 +234,7 @@ describe("activate agreement", () => {
           eserviceId: eservice.id,
           descriptorId: descriptor.id,
           producerId: producer.id,
-          consumerId: consumer.id,
+          consumerId,
           suspendedByConsumer: false, // Must be false, otherwise the agreement would be suspended
           suspendedByProducer: randomBoolean(), // will be set to false by the activation
           stamps: {
@@ -404,21 +251,54 @@ describe("activate agreement", () => {
           verifiedAttributes: [getMockAgreementAttribute()],
         };
 
-        const {
-          authData,
-          producerDelegation,
-          consumerDelegation: _consumerDelegation,
-          delegateProducer,
-          delegateConsumer: _delegateConsumer,
-        } = authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
-
-        const consumerDelegation = withConsumerDelegation
-          ? _consumerDelegation
-          : undefined;
+        const { authData, producerDelegation, delegateProducer } =
+          authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
 
         const delegateConsumer = withConsumerDelegation
-          ? _delegateConsumer
+          ? getMockTenant()
           : undefined;
+        const consumerDelegation = delegateConsumer
+          ? getMockDelegation({
+              kind: delegationKind.delegatedConsumer,
+              delegatorId: agreement.consumerId,
+              delegateId: delegateConsumer.id,
+              state: delegationState.active,
+              eserviceId: agreement.eserviceId,
+            })
+          : undefined;
+
+        const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
+          ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+          revocationTimestamp: undefined,
+        };
+
+        const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
+          ...getMockDeclaredTenantAttribute(declaredAttribute.id),
+          revocationTimestamp: undefined,
+          delegationId: consumerDelegation?.id,
+        };
+
+        const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
+          ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
+          verifiedBy: [
+            {
+              id: producer.id,
+              verificationDate: new Date(),
+              extensionDate: addDays(new Date(), 30),
+              delegationId: producerDelegation?.id,
+            },
+          ],
+        };
+
+        const consumer: Tenant = {
+          ...getMockTenant(consumerId),
+          selfcareId: generateId(),
+          attributes: [
+            validTenantCertifiedAttribute,
+            validTenantDeclaredAttribute,
+            validTenantVerifiedAttribute,
+          ],
+        };
 
         await addOneAgreement(agreement);
         await addOneTenant(consumer);
@@ -551,6 +431,7 @@ describe("activate agreement", () => {
               ),
               attributeName: declaredAttribute.name,
               attributeId: validTenantDeclaredAttribute.id,
+              delegationId: consumerDelegation?.id,
             },
           ],
           verifiedAttributes: [
@@ -566,6 +447,7 @@ describe("activate agreement", () => {
               expirationDate: dateAtRomeZone(
                 validTenantVerifiedAttribute.verifiedBy[0].extensionDate!
               ),
+              delegationId: producerDelegation?.id,
             },
           ],
           producerDelegationId: producerDelegation?.id,
