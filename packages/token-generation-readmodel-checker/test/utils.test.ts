@@ -28,15 +28,13 @@ import {
   itemState,
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
-  makeGSIPKKid,
+  makeGSIPKClientIdKid,
   makePlatformStatesAgreementPK,
-  makePlatformStatesClientPK,
   makePlatformStatesEServiceDescriptorPK,
   makePlatformStatesPurposePK,
   makeTokenGenerationStatesClientKidPurposePK,
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
-  PlatformStatesClientEntry,
   PlatformStatesPurposeEntry,
   Purpose,
   PurposeVersion,
@@ -47,7 +45,6 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { tokenGenerationReadModelServiceBuilder } from "../src/services/tokenGenerationReadModelService.js";
 import {
-  clientKindToTokenGenerationStatesClientKind,
   compareReadModelAgreementsWithPlatformStates,
   compareReadModelClientsAndTokenGenStates,
   compareReadModelEServicesWithPlatformStates,
@@ -375,29 +372,6 @@ describe("Token Generation Read Model Checker utils tests", () => {
       await addOneClient(client1);
       await addOneClient(client2);
 
-      // platform-states
-      const catalogEntryPrimaryKey1 = makePlatformStatesClientPK(client1.id);
-      const platformClientEntry1: PlatformStatesClientEntry = {
-        PK: catalogEntryPrimaryKey1,
-        state: itemState.active,
-        clientKind: clientKindToTokenGenerationStatesClientKind(client1.kind),
-        clientConsumerId: client1.consumerId,
-        clientPurposesIds: [],
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      };
-
-      const catalogEntryPrimaryKey2 = makePlatformStatesClientPK(client2.id);
-      const platformClientEntry2: PlatformStatesClientEntry = {
-        PK: catalogEntryPrimaryKey2,
-        state: itemState.active,
-        clientKind: clientKindToTokenGenerationStatesClientKind(client2.kind),
-        clientConsumerId: generateId(),
-        clientPurposesIds: [],
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      };
-
       // token-generation-states
       const tokenGenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK(
         {
@@ -410,7 +384,10 @@ describe("Token Generation Read Model Checker utils tests", () => {
         ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
         consumerId: purpose1.consumerId,
         GSIPK_clientId: generateId(),
-        GSIPK_kid: makeGSIPKKid(client1.keys[0].kid),
+        GSIPK_clientId_kid: makeGSIPKClientIdKid({
+          clientId: client1.id,
+          kid: client1.keys[0].kid,
+        }),
         clientKind: clientKindTokenGenStates.consumer,
         publicKey: client1.keys[0].encodedPem,
         GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
@@ -420,10 +397,6 @@ describe("Token Generation Read Model Checker utils tests", () => {
       };
 
       const differences = await compareReadModelClientsAndTokenGenStates({
-        platformStatesClientById: new Map([
-          [client1.id, platformClientEntry1],
-          [client2.id, platformClientEntry2],
-        ]),
         tokenGenStatesByClient: new Map([[client1.id, [tokenGenStatesEntry]]]),
         clientsById,
         purposesById,
@@ -431,7 +404,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
         agreementsByConsumerIdEserviceId,
         logger: genericLogger,
       });
-      expect(differences).toEqual(3);
+      expect(differences).toEqual(2);
     });
   });
 
