@@ -306,6 +306,7 @@ export const readPlatformStateAgreementEntriesByConsumerIdEserviceId = async (
       },
       ExclusiveStartKey: exclusiveStartKey,
       ScanIndexForward: false,
+      ConsistentRead: true,
     };
     const command = new QueryCommand(input);
     const data: QueryCommandOutput = await dynamoDBClient.send(command);
@@ -383,6 +384,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
         ":gsiValue": { S: consumerId_eserviceId },
       },
       ExclusiveStartKey: exclusiveStartKey,
+      ConsistentRead: true,
     };
     const command = new QueryCommand(input);
     const data: QueryCommandOutput = await dynamoDBClient.send(command);
@@ -481,6 +483,7 @@ export const updateAgreementStateOnTokenGenStates = async ({
         ":gsiValue": { S: consumerId_eserviceId },
       },
       ExclusiveStartKey: exclusiveStartKey,
+      ConsistentRead: true,
     };
     const command = new QueryCommand(input);
     const data: QueryCommandOutput = await dynamoDBClient.send(command);

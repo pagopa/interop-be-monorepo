@@ -150,6 +150,7 @@ export const readTokenGenStatesEntriesByGSIPKPurposeId = async (
       ":gsiValue": { S: purposeId },
     },
     ExclusiveStartKey: exclusiveStartKey,
+    ConsistentRead: true,
   };
   const command = new QueryCommand(input);
   const data: QueryCommandOutput = await dynamoDBClient.send(command);
@@ -510,6 +511,7 @@ export const readPlatformAgreementEntry = async (
       ":gsiValue": { S: gsiPKConsumerIdEServiceId },
     },
     ScanIndexForward: false,
+    ConsistentRead: true,
   };
   const command = new QueryCommand(input);
   const data: QueryCommandOutput = await dynamoDBClient.send(command);

@@ -213,6 +213,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
         ":gsiValue": { S: eserviceId_descriptorId },
       },
       ExclusiveStartKey: exclusiveStartKey,
+      ConsistentRead: true,
     };
     const command = new QueryCommand(input);
     const data: QueryCommandOutput = await dynamoDBClient.send(command);
@@ -289,6 +290,7 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
         ":gsiValue": { S: eserviceId_descriptorId },
       },
       ExclusiveStartKey: exclusiveStartKey,
+      ConsistentRead: true,
     };
     const command = new QueryCommand(input);
     const data: QueryCommandOutput = await dynamoDBClient.send(command);
@@ -365,6 +367,7 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
           ":gsiValue": { S: eserviceId_descriptorId },
         },
         ExclusiveStartKey: exclusiveStartKey,
+        ConsistentRead: true,
       };
       const command = new QueryCommand(input);
       const data: QueryCommandOutput = await dynamoDBClient.send(command);
