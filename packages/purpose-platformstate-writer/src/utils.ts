@@ -85,7 +85,7 @@ export const writePlatformPurposeEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Wrote purpose entry ${purposeEntry.PK}`);
+  logger.info(`Platform-states. Written purpose entry ${purposeEntry.PK}`);
 };
 
 export const readPlatformPurposeEntry = async (
