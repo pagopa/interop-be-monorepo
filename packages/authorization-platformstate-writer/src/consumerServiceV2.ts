@@ -80,7 +80,11 @@ export async function handleMessageV2(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
+        await upsertPlatformClientEntry(
+          platformClientEntry,
+          dynamoDBClient,
+          logger
+        );
       }
 
       // token-generation-states
@@ -252,7 +256,11 @@ export async function handleMessageV2(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
+        await upsertPlatformClientEntry(
+          platformClientEntry,
+          dynamoDBClient,
+          logger
+        );
       }
 
       const GSIPK_clientId_kid = makeGSIPKClientIdKid({
@@ -287,7 +295,11 @@ export async function handleMessageV2(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
+        await upsertPlatformClientEntry(
+          platformClientEntry,
+          dynamoDBClient,
+          logger
+        );
       }
 
       // token-generation-states
@@ -416,7 +428,8 @@ export async function handleMessageV2(
           // platform-states
           await setClientPurposeIdsInPlatformStatesEntry(
             { primaryKey: pk, version: msg.version, clientPurposeIds: [] },
-            dynamoDBClient
+            dynamoDBClient,
+            logger
           );
 
           // token-generation-states
@@ -439,7 +452,7 @@ export async function handleMessageV2(
     .with({ type: "ClientDeleted" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
       const pk = makePlatformStatesClientPK(client.id);
-      await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
+      await deleteClientEntryFromPlatformStates(pk, dynamoDBClient, logger);
 
       const GSIPK_clientId = client.id;
       await deleteEntriesFromTokenGenStatesByClientId(

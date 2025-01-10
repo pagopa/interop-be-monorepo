@@ -71,7 +71,11 @@ export async function handleMessageV1(
           updatedAt: new Date().toISOString(),
           clientPurposesIds: client.purposes,
         };
-        await upsertPlatformClientEntry(updatedClientEntry, dynamoDBClient);
+        await upsertPlatformClientEntry(
+          updatedClientEntry,
+          dynamoDBClient,
+          logger
+        );
       }
     })
     // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -100,7 +104,11 @@ export async function handleMessageV1(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
+        await upsertPlatformClientEntry(
+          platformClientEntry,
+          dynamoDBClient,
+          logger
+        );
 
         await match(clientEntry.clientKind)
           .with(clientKindTokenGenStates.consumer, async () => {
@@ -255,6 +263,7 @@ export async function handleMessageV1(
       const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
 
       if (!clientEntry || clientEntry.version > msg.version) {
+        logger.info(`Skipping event for client ${clientId}`);
         return Promise.resolve();
       } else {
         const platformClientEntry: PlatformStatesClientEntry = {
@@ -266,7 +275,11 @@ export async function handleMessageV1(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
+        await upsertPlatformClientEntry(
+          platformClientEntry,
+          dynamoDBClient,
+          logger
+        );
 
         const GSIPK_clientId_kid = makeGSIPKClientIdKid({
           clientId,
@@ -301,7 +314,8 @@ export async function handleMessageV1(
             version: msg.version,
             clientPurposeIds: purposeIds,
           },
-          dynamoDBClient
+          dynamoDBClient,
+          logger
         );
 
         const GSIPK_clientId = clientId;
@@ -438,7 +452,8 @@ export async function handleMessageV1(
               version: msg.version,
               clientPurposeIds: updatedPurposeIds,
             },
-            dynamoDBClient
+            dynamoDBClient,
+            logger
           );
 
           // token-generation-states
@@ -461,7 +476,7 @@ export async function handleMessageV1(
     .with({ type: "ClientDeleted" }, async (msg) => {
       const clientId = unsafeBrandId<ClientId>(msg.data.clientId);
       const pk = makePlatformStatesClientPK(clientId);
-      await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
+      await deleteClientEntryFromPlatformStates(pk, dynamoDBClient, logger);
 
       const GSIPK_clientId = clientId;
       await deleteEntriesFromTokenGenStatesByClientId(
