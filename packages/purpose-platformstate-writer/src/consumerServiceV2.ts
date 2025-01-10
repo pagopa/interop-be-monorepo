@@ -50,7 +50,7 @@ export async function handleMessageV2(
           if (existingPurposeEntry.version > msg.version) {
             // Stops processing if the message is older than the purpose entry
             logger.info(
-              `Skipping processing of entry ${existingPurposeEntry.PK}. Reason: entry already exists`
+              `Skipping processing of entry ${existingPurposeEntry.PK}. Reason: a more recent entry already exists`
             );
             return Promise.resolve();
           } else {
@@ -117,7 +117,7 @@ export async function handleMessageV2(
             )}. Reason: ${
               !existingPurposeEntry
                 ? "entry is undefined"
-                : "entry already exists"
+                : "a more recent entry already exists"
             }`
           );
           return Promise.resolve();
