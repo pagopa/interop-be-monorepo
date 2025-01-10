@@ -154,7 +154,7 @@ export const updateAgreementStateInPlatformStatesEntry = async (
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
   logger.info(
-    `Platform-states. Updated agreement state in  entry ${primaryKey}`
+    `Platform-states. Updated agreement state in entry ${primaryKey}`
   );
 };
 
