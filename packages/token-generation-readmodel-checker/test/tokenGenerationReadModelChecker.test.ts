@@ -1399,8 +1399,6 @@ describe("Token Generation Read Model Checker tests", () => {
       expect(clientDifferences).toEqual(expectedDifferencesLength);
     });
 
-    // TODO: add tests for missing purpose in read model but purposeState is inactive (no differences) and purposeState is active (differences)
-
     it("should detect differences if the token-generation-states entry has a CLIENTKID PK but should have a CLIENTKIDPURPOSE PK", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
