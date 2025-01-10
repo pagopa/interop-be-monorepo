@@ -86,6 +86,7 @@ import {
   upsertTokenGenStatesConsumerClient,
   upsertTokenGenStatesApiClient,
   deleteEntriesFromTokenGenStatesByClientIdV2,
+  deleteEntriesFromTokenGenStatesByClientIdV1,
 } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
@@ -171,6 +172,46 @@ describe("utils", () => {
     const res = await readAllPlatformStatesItems(dynamoDBClient);
 
     expect(res).toEqual([clientEntry2]);
+  });
+
+  it("deleteEntriesFromTokenGenStatesByClientIdV1", async () => {
+    const GSIPK_clientId = generateId<ClientId>();
+
+    const clientEntry: TokenGenerationStatesApiClient = {
+      ...getMockTokenGenStatesApiClient(),
+      GSIPK_clientId,
+    };
+
+    const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient = {
+      ...getMockTokenGenStatesConsumerClient(),
+      GSIPK_clientId,
+    };
+
+    const otherConsumerClient: TokenGenerationStatesConsumerClient = {
+      ...getMockTokenGenStatesConsumerClient(),
+    };
+    await writeTokenGenStatesApiClient(
+      clientEntry,
+      dynamoDBClient,
+      genericLogger
+    );
+    await writeTokenGenStatesConsumerClient(
+      tokenGenStatesConsumerClient,
+      dynamoDBClient
+    );
+    await writeTokenGenStatesConsumerClient(
+      otherConsumerClient,
+      dynamoDBClient
+    );
+
+    await deleteEntriesFromTokenGenStatesByClientIdV1(
+      GSIPK_clientId,
+      dynamoDBClient,
+      genericLogger
+    );
+
+    const result = await readAllTokenGenStatesItems(dynamoDBClient);
+    expect(result).toEqual([otherConsumerClient]);
   });
 
   it("deleteEntriesFromTokenGenStatesByClientIdV2", async () => {
