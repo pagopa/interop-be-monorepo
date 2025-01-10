@@ -27,7 +27,6 @@ import {
   clientKindToTokenGenerationStatesClientKind,
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
-  deleteEntriesFromTokenGenStatesByClientId,
   deleteEntriesFromTokenGenStatesByClientIdKid,
   deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId,
   readPlatformClientEntry,
@@ -42,6 +41,7 @@ import {
   updateTokenGenStatesDataForSecondRetrieval,
   createTokenGenStatesConsumerClient,
   readConsumerClientEntriesInTokenGenerationStates,
+  deleteEntriesFromTokenGenStatesByClientIdV2,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -473,9 +473,8 @@ export async function handleMessageV2(
       const pk = makePlatformStatesClientPK(client.id);
       await deleteClientEntryFromPlatformStates(pk, dynamoDBClient, logger);
 
-      const GSIPK_clientId = client.id;
-      await deleteEntriesFromTokenGenStatesByClientId(
-        GSIPK_clientId,
+      await deleteEntriesFromTokenGenStatesByClientIdV2(
+        client,
         dynamoDBClient,
         logger
       );

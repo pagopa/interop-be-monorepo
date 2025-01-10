@@ -696,6 +696,7 @@ describe("utils", async () => {
         await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreementId1,
+          agreementEntry1.GSISK_agreementTimestamp,
           dynamoDBClient
         )
       ).toEqual(true);
@@ -704,6 +705,7 @@ describe("utils", async () => {
         await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreementId2,
+          agreementEntry2.GSISK_agreementTimestamp,
           dynamoDBClient
         )
       ).toEqual(false);
@@ -713,6 +715,7 @@ describe("utils", async () => {
       const eserviceId = generateId<EServiceId>();
       const consumerId = generateId<TenantId>();
       const agreementId1 = generateId<AgreementId>();
+      const agreementTimestamp = new Date().toISOString();
 
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId,
@@ -723,6 +726,7 @@ describe("utils", async () => {
         await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreementId1,
+          agreementTimestamp,
           dynamoDBClient
         )
       ).toEqual(true);

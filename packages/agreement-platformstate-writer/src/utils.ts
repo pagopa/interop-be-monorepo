@@ -13,6 +13,7 @@ import {
   PlatformStatesEServiceDescriptorPK,
   PlatformStatesAgreementGSIAgreement,
   TokenGenStatesConsumerClientGSIAgreement,
+  Agreement,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
@@ -81,6 +82,7 @@ export const readAgreementEntry = async (
       PK: { S: primaryKey },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
   const data: GetItemCommandOutput = await dynamoDBClient.send(command);
@@ -544,6 +546,7 @@ export const readCatalogEntry = async (
       PK: { S: primaryKey },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
   const data: GetItemCommandOutput = await dynamoDBClient.send(command);
@@ -565,9 +568,16 @@ export const readCatalogEntry = async (
   }
 };
 
+/* 
+Because of DynamoDB eventual consistency, it's possible that the result of querying platform-states by 
+GSIPK_consumerId_eserviceId doesn't contain the entry with the latest agreement.
+In this case, we need to check if the input agreement timestamp is more recent or equal than GSISK_agreementTimestamp 
+of the latest agreement in platform-states.
+*/
 export const isLatestAgreement = async (
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
   agreementId: AgreementId,
+  currentAgreementTimestamp: string,
   dynamoDBClient: DynamoDBClient
 ): Promise<boolean> => {
   const agreementEntries =
@@ -582,5 +592,15 @@ export const isLatestAgreement = async (
   const agreementIdFromEntry = extractAgreementIdFromAgreementPK(
     agreementEntries[0].PK
   );
-  return agreementIdFromEntry === agreementId;
+
+  return (
+    agreementIdFromEntry === agreementId ||
+    new Date(currentAgreementTimestamp) >=
+      new Date(agreementEntries[0].GSISK_agreementTimestamp)
+  );
 };
+
+export const extractAgreementTimestamp = (agreement: Agreement): string =>
+  agreement.stamps.upgrade?.when.toISOString() ||
+  agreement.stamps.activation?.when.toISOString() ||
+  agreement.createdAt.toISOString();

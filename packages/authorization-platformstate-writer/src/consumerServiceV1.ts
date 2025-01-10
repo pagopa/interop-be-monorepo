@@ -32,8 +32,8 @@ import {
   createTokenGenStatesConsumerClient,
   deleteClientEntryFromPlatformStates,
   deleteClientEntryFromTokenGenerationStates,
-  deleteEntriesFromTokenGenStatesByClientId,
   deleteEntriesFromTokenGenStatesByClientIdKid,
+  deleteEntriesFromTokenGenStatesByClientIdV1,
   deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId,
   extractAgreementIdFromAgreementPK,
   extractKidFromTokenGenStatesEntryPK,
@@ -512,7 +512,7 @@ export async function handleMessageV1(
       await deleteClientEntryFromPlatformStates(pk, dynamoDBClient, logger);
 
       const GSIPK_clientId = clientId;
-      await deleteEntriesFromTokenGenStatesByClientId(
+      await deleteEntriesFromTokenGenStatesByClientIdV1(
         GSIPK_clientId,
         dynamoDBClient,
         logger
