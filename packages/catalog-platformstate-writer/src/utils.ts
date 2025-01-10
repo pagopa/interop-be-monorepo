@@ -27,11 +27,13 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
+import { Logger } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 
 export const writeCatalogEntry = async (
   catalogEntry: PlatformStatesCatalogEntry,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -61,6 +63,7 @@ export const writeCatalogEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Writing catalog entry ${catalogEntry.PK}`);
 };
 
 export const readCatalogEntry = async (
@@ -95,7 +98,8 @@ export const readCatalogEntry = async (
 
 export const deleteCatalogEntry = async (
   primaryKey: PlatformStatesEServiceDescriptorPK,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: DeleteItemInput = {
     Key: {
@@ -105,6 +109,7 @@ export const deleteCatalogEntry = async (
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Deleting entry ${primaryKey}`);
 };
 
 export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
@@ -116,7 +121,8 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesEServiceDescriptorPK,
   state: ItemState,
-  version: number
+  version: number,
+  logger: Logger
 ): Promise<void> => {
   const input: UpdateItemInput = {
     ConditionExpression: "attribute_exists(PK)",
@@ -146,13 +152,17 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
   };
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(
+    `Platform-states. Updating descriptor state in entry ${primaryKey}`
+  );
 };
 
 export const updateDescriptorVoucherLifespanInPlatformStateEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesEServiceDescriptorPK,
   voucherLifespan: number,
-  version: number
+  version: number,
+  logger: Logger
 ): Promise<void> => {
   const input: UpdateItemInput = {
     ConditionExpression: "attribute_exists(PK)",
@@ -179,12 +189,16 @@ export const updateDescriptorVoucherLifespanInPlatformStateEntry = async (
   };
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(
+    `Platform-states. Updating descriptor voucher lifespan state in entry ${primaryKey}`
+  );
 };
 
 export const updateDescriptorStateInTokenGenerationStatesTable = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   descriptorState: ItemState,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
   const runPaginatedQuery = async (
     eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
@@ -227,7 +241,8 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
       await updateDescriptorStateInTokenGenerationStatesEntries(
         descriptorState,
         dynamoDBClient,
-        tokenGenStatesEntries.data
+        tokenGenStatesEntries.data,
+        logger
       );
 
       if (!data.LastEvaluatedKey) {
@@ -257,7 +272,9 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
   descriptorState: ItemState,
   descriptorVoucherLifespan: number,
   descriptorAudience: string[],
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+  // eslint-disable-next-line max-params
 ): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
   const runPaginatedQuery = async (
     eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
@@ -303,6 +320,7 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
         descriptorAudience,
         dynamoDBClient,
         entriesToUpdate: tokenGenStatesEntries.data,
+        logger,
       });
 
       if (!data.LastEvaluatedKey) {
@@ -331,7 +349,8 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
   async (
     eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
     voucherLifespan: number,
-    dynamoDBClient: DynamoDBClient
+    dynamoDBClient: DynamoDBClient,
+    logger: Logger
   ): Promise<void> => {
     const runPaginatedQuery = async (
       eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
@@ -374,7 +393,8 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
         await updateDescriptorVoucherLifespanInTokenGenerationStatesEntries(
           voucherLifespan,
           dynamoDBClient,
-          tokenGenStatesEntries.data
+          tokenGenStatesEntries.data,
+          logger
         );
 
         if (data.LastEvaluatedKey) {
@@ -393,7 +413,8 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
 const updateDescriptorStateInTokenGenerationStatesEntries = async (
   descriptorState: ItemState,
   dynamoDBClient: DynamoDBClient,
-  entriesToUpdate: TokenGenStatesConsumerClientGSIDescriptor[]
+  entriesToUpdate: TokenGenStatesConsumerClientGSIDescriptor[],
+  logger: Logger
 ): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
@@ -418,6 +439,9 @@ const updateDescriptorStateInTokenGenerationStatesEntries = async (
     };
     const command = new UpdateItemCommand(input);
     await dynamoDBClient.send(command);
+    logger.info(
+      `Token-generation-states. Updating descriptor state in entry ${entry.PK}`
+    );
   }
 };
 
@@ -427,12 +451,14 @@ const updateDescriptorInfoInTokenGenerationStatesEntries = async ({
   descriptorAudience,
   dynamoDBClient,
   entriesToUpdate,
+  logger,
 }: {
   descriptorState: ItemState;
   descriptorVoucherLifespan: number;
   descriptorAudience: string[];
   dynamoDBClient: DynamoDBClient;
   entriesToUpdate: TokenGenStatesConsumerClientGSIDescriptor[];
+  logger: Logger;
 }): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
@@ -465,13 +491,17 @@ const updateDescriptorInfoInTokenGenerationStatesEntries = async ({
     };
     const command = new UpdateItemCommand(input);
     await dynamoDBClient.send(command);
+    logger.info(
+      `Token-generation-states. Updating descriptor info in entry ${entry.PK}`
+    );
   }
 };
 
 const updateDescriptorVoucherLifespanInTokenGenerationStatesEntries = async (
   voucherLifespan: number,
   dynamoDBClient: DynamoDBClient,
-  entriesToUpdate: TokenGenStatesConsumerClientGSIDescriptor[]
+  entriesToUpdate: TokenGenStatesConsumerClientGSIDescriptor[],
+  logger: Logger
 ): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
@@ -496,5 +526,8 @@ const updateDescriptorVoucherLifespanInTokenGenerationStatesEntries = async (
     };
     const command = new UpdateItemCommand(input);
     await dynamoDBClient.send(command);
+    logger.info(
+      `Token-generation-states. Updating descriptor info in entry ${entry.PK}`
+    );
   }
 };
