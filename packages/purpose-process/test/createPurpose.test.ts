@@ -275,13 +275,13 @@ describe("createPurpose", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
-    const producerDelegator = {
+    const producer = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
 
-    const producer = {
+    const producerDelegate = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -289,25 +289,25 @@ describe("createPurpose", () => {
 
     const eservice: EService = {
       ...getMockEService(),
-      producerId: producerDelegator.id,
+      producerId: producerDelegate.id,
       descriptors: [descriptor1],
     };
 
     const producerDelegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
-      delegatorId: producerDelegator.id,
+      delegatorId: producerDelegate.id,
       delegateId: producer.id,
       state: delegationState.active,
     });
 
-    const consumerDelegator = {
+    const consumer = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
 
-    const consumer = {
+    const consumerDelegate = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -316,14 +316,14 @@ describe("createPurpose", () => {
     const consumerDelegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: eservice.id,
-      delegatorId: consumerDelegator.id,
+      delegatorId: consumerDelegate.id,
       delegateId: consumer.id,
       state: delegationState.active,
     });
 
     const agreement: Agreement = {
       ...getMockAgreement(),
-      consumerId: consumerDelegator.id,
+      consumerId: consumerDelegate.id,
       eserviceId: eservice.id,
       state: agreementState.active,
     };
