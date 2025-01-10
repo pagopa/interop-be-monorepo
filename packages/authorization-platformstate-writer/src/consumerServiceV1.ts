@@ -97,7 +97,7 @@ export async function handleMessageV1(
         logger.info(
           `Skipping processing of entry ${pk}. Reason: ${
             !clientEntry
-              ? "entry is undefined"
+              ? "entry not found in platform-states"
               : "a more recent entry already exists"
           }`
         );
@@ -276,7 +276,7 @@ export async function handleMessageV1(
         logger.info(
           `Skipping processing of entry ${pk}. Reason: ${
             !clientEntry
-              ? "entry is undefined"
+              ? "entry not found in platform-states"
               : "a more recent entry already exists"
           }`
         );
@@ -324,7 +324,7 @@ export async function handleMessageV1(
         logger.info(
           `Skipping processing of entry ${pk}. Reason: ${
             !clientEntry
-              ? "entry is undefined"
+              ? "entry not found in platform-states"
               : "a more recent entry already exists"
           }`
         );
@@ -502,7 +502,7 @@ export async function handleMessageV1(
         }
       } else {
         logger.info(
-          `Platform-states and token-generation-states. Skipping processing of entry ${pk}. Reason: entry is undefined`
+          `Platform-states and token-generation-states. Skipping processing of entry ${pk}. Reason: not found in platform-states`
         );
       }
     })

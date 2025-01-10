@@ -104,7 +104,7 @@ export async function handleMessageV1(
         logger.info(
           `Skipping processing of entry ${primaryKey}. Reason: ${
             !existingPurposeEntry
-              ? "entry is undefined"
+              ? "entry not found in platform-states"
               : "a more recent entry already exists"
           }`
         );
