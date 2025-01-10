@@ -61,7 +61,7 @@ export async function handleMessageV1(
 
       if (clientEntry && clientEntry.version > msg.version) {
         logger.info(
-          `Skipping processing of entry ${clientEntry.PK}. Reason: entry already exists`
+          `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
         );
         return Promise.resolve();
       } else {
@@ -96,7 +96,9 @@ export async function handleMessageV1(
       if (!clientEntry || clientEntry.version > msg.version) {
         logger.info(
           `Skipping processing of entry ${pk}. Reason: ${
-            !clientEntry ? "entry is undefined" : "entry already exists"
+            !clientEntry
+              ? "entry is undefined"
+              : "a more recent entry already exists"
           }`
         );
         return Promise.resolve();
@@ -273,7 +275,9 @@ export async function handleMessageV1(
       if (!clientEntry || clientEntry.version > msg.version) {
         logger.info(
           `Skipping processing of entry ${pk}. Reason: ${
-            !clientEntry ? "entry is undefined" : "entry already exists"
+            !clientEntry
+              ? "entry is undefined"
+              : "a more recent entry already exists"
           }`
         );
         return Promise.resolve();
@@ -319,7 +323,9 @@ export async function handleMessageV1(
       if (!clientEntry || clientEntry.version > msg.version) {
         logger.info(
           `Skipping processing of entry ${pk}. Reason: ${
-            !clientEntry ? "entry is undefined" : "entry already exists"
+            !clientEntry
+              ? "entry is undefined"
+              : "a more recent entry already exists"
           }`
         );
         return Promise.resolve();
@@ -343,6 +349,9 @@ export async function handleMessageV1(
           dynamoDBClient
         );
       if (tokenGenStatesConsumerClients.length === 0) {
+        logger.info(
+          `Skipping token-generation-states update. Reason: no entries found for GSIPK_clientId ${GSIPK_clientId}`
+        );
         return Promise.resolve();
       } else {
         const { purposeEntry, agreementEntry, catalogEntry } =
@@ -453,7 +462,7 @@ export async function handleMessageV1(
       if (clientEntry) {
         if (clientEntry.version > msg.version) {
           logger.info(
-            `Skipping processing of entry ${pk}. Reason: entry already exists`
+            `Skipping processing of entry ${pk}. Reason: a more recent entry already exists`
           );
           return Promise.resolve();
         } else {
