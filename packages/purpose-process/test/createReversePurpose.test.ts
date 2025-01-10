@@ -280,13 +280,13 @@ describe("createReversePurpose", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
-    const producerDelegator = {
+    const producer = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
 
-    const producer = {
+    const producerDelegate = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -302,7 +302,7 @@ describe("createReversePurpose", () => {
     const mockRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
     const mockEService: EService = {
       ...getMockEService(),
-      producerId: producerDelegator.id,
+      producerId: producer.id,
       riskAnalysis: [mockRiskAnalysis],
       descriptors: [mockDescriptor],
       mode: eserviceMode.receive,
@@ -311,18 +311,18 @@ describe("createReversePurpose", () => {
     const producerDelegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
-      delegatorId: producerDelegator.id,
-      delegateId: producer.id,
+      delegatorId: producer.id,
+      delegateId: producerDelegate.id,
       state: delegationState.active,
     });
 
-    const consumerDelegator = {
+    const consumer = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
 
-    const consumer = {
+    const consumerDelegate = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -331,15 +331,15 @@ describe("createReversePurpose", () => {
     const consumerDelegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockEService.id,
-      delegatorId: consumerDelegator.id,
-      delegateId: consumer.id,
+      delegatorId: consumer.id,
+      delegateId: consumerDelegate.id,
       state: delegationState.active,
     });
 
     const mockAgreement: Agreement = {
       ...getMockAgreement(),
       eserviceId: mockEService.id,
-      consumerId: consumerDelegator.id,
+      consumerId: consumer.id,
       state: agreementState.active,
     };
 
@@ -359,13 +359,13 @@ describe("createReversePurpose", () => {
     await addOneDelegation(producerDelegation);
     await addOneTenant(consumer);
     await addOneTenant(producer);
-    await addOneTenant(producerDelegator);
-    await addOneTenant(consumerDelegator);
+    await addOneTenant(consumerDelegate);
+    await addOneTenant(producerDelegate);
     await addOneAgreement(mockAgreement);
 
     const { purpose, isRiskAnalysisValid } =
       await purposeService.createReversePurpose(reversePurposeSeed, {
-        authData: getRandomAuthData(consumer.id),
+        authData: getRandomAuthData(consumerDelegate.id),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
