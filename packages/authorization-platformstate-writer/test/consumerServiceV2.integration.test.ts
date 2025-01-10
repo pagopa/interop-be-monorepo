@@ -2921,7 +2921,7 @@ describe("integration tests V2 events", async () => {
     });
   });
 
-  describe.only("ClientDeleted", () => {
+  describe("ClientDeleted", () => {
     it("should delete platform-states entry and token-generation-states entries", async () => {
       const messageVersion = 2;
       const key1 = getMockKey();
