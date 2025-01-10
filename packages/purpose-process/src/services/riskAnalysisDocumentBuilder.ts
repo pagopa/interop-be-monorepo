@@ -17,14 +17,12 @@ import {
   unexpectedEmptyAnswerError,
 } from "pagopa-interop-commons";
 import {
-  PurposeDocumentEServiceInfo,
   Purpose,
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   TenantKind,
   generateId,
   PurposeRiskAnalysisForm,
-  RiskAnalysisDocumentPDFPayload,
   eserviceMode,
   RiskAnalysisSingleAnswer,
   RiskAnalysisMultiAnswer,
@@ -35,6 +33,10 @@ import {
   riskAnalysisConfigVersionNotFound,
 } from "../model/domain/errors.js";
 import { PurposeProcessConfig } from "../config/config.js";
+import {
+  PurposeDocumentEServiceInfo,
+  RiskAnalysisDocumentPDFPayload,
+} from "../model/domain/models.js";
 
 const YES = "Sì";
 const NO = "No";

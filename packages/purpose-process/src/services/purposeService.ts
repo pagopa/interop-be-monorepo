@@ -22,12 +22,10 @@ import {
   Purpose,
   PurposeId,
   TenantKind,
-  Ownership,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   PurposeVersionId,
-  ownership,
   purposeEventToBinaryData,
   purposeVersionState,
   PurposeRiskAnalysisForm,
@@ -37,7 +35,6 @@ import {
   unsafeBrandId,
   generateId,
   Agreement,
-  PurposeDocumentEServiceInfo,
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
@@ -90,6 +87,11 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
+import {
+  ownership,
+  Ownership,
+  PurposeDocumentEServiceInfo,
+} from "../model/domain/models.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
