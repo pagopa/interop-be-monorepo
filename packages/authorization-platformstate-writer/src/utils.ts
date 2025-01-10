@@ -196,11 +196,7 @@ export const deleteEntriesFromTokenGenStatesByClientIdV1 = async (
       }
 
       if (data.LastEvaluatedKey) {
-        await runPaginatedQuery(
-          GSIPK_clientId,
-          dynamoDBClient,
-          data.LastEvaluatedKey
-        );
+        await runPaginatedQuery(prefix, dynamoDBClient, data.LastEvaluatedKey);
       }
     }
   };
