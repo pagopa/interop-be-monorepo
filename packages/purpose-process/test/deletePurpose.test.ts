@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe, expect, it } from "vitest";
 import {
+  Agreement,
   DraftPurposeDeletedV2,
+  EService,
   Purpose,
   PurposeId,
   PurposeVersion,
@@ -11,6 +13,7 @@ import {
   delegationState,
   generateId,
   purposeVersionState,
+  tenantKind,
   toPurposeV2,
   toReadModelEService,
 } from "pagopa-interop-models";
@@ -22,6 +25,8 @@ import {
   getRandomAuthData,
   getMockDelegation,
   addSomeRandomDelegations,
+  getMockTenant,
+  getMockAgreement,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -31,8 +36,11 @@ import {
   organizationNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
+  addOneAgreement,
   addOneDelegation,
+  addOneEService,
   addOnePurpose,
+  addOneTenant,
   eservices,
   getMockEService,
   purposeService,
@@ -191,6 +199,98 @@ describe("deletePurpose", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose));
+  });
+  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a deletable state", async () => {
+    const producerDelegator = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const producer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumerDelegator = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+    };
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      producerId: producer.id,
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+    };
+
+    const mockPurposeVersion = getMockPurposeVersion(purposeVersionState.draft);
+
+    const delegatePurpose: Purpose = {
+      ...getMockPurpose(),
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+      versions: [mockPurposeVersion],
+    };
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegatorId: producerDelegator.id,
+      delegateId: producer.id,
+      state: delegationState.active,
+    });
+
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      delegatorId: consumerDelegator.id,
+      delegateId: consumer.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producerDelegator);
+    await addOneTenant(producer);
+    await addOneTenant(consumerDelegator);
+    await addOneTenant(consumer);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOnePurpose(delegatePurpose);
+    await addOneDelegation(producerDelegation);
+    await addOneDelegation(consumerDelegation);
+    await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
+
+    await purposeService.deletePurpose(delegatePurpose.id, {
+      authData: getRandomAuthData(consumer.id),
+      correlationId: generateId(),
+      logger: genericLogger,
+      serviceName: "",
+    });
+
+    const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: delegatePurpose.id,
+      version: "1",
+      type: "DraftPurposeDeleted",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftPurposeDeletedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(delegatePurpose));
   });
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
     const randomId: PurposeId = generateId();
