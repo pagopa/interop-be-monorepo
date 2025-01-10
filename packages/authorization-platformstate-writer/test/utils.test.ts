@@ -174,44 +174,47 @@ describe("utils", () => {
     expect(res).toEqual([clientEntry2]);
   });
 
-  it("deleteEntriesFromTokenGenStatesByClientIdV1", async () => {
-    const GSIPK_clientId = generateId<ClientId>();
+  it("deleteEntriesFromTokenGenStatesByClientIdV1 - ApiClient", async () => {
+    const mockKey1 = getMockKey();
+    const mockKey2 = getMockKey();
 
-    const clientEntry: TokenGenerationStatesApiClient = {
+    const client: Client = {
+      ...getMockClient(),
+      keys: [mockKey1, mockKey2],
+      purposes: [],
+    };
+
+    const apiClient: TokenGenerationStatesApiClient = {
       ...getMockTokenGenStatesApiClient(),
-      GSIPK_clientId,
+      PK: makeTokenGenerationStatesClientKidPK({
+        clientId: client.id,
+        kid: mockKey1.kid,
+      }),
+      GSIPK_clientId: client.id,
     };
 
-    const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenGenStatesConsumerClient(),
-      GSIPK_clientId,
-    };
-
-    const otherConsumerClient: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenGenStatesConsumerClient(),
+    const otherApiClient: TokenGenerationStatesApiClient = {
+      ...getMockTokenGenStatesApiClient(),
     };
     await writeTokenGenStatesApiClient(
-      clientEntry,
+      apiClient,
       dynamoDBClient,
       genericLogger
     );
-    await writeTokenGenStatesConsumerClient(
-      tokenGenStatesConsumerClient,
-      dynamoDBClient
-    );
-    await writeTokenGenStatesConsumerClient(
-      otherConsumerClient,
-      dynamoDBClient
+    await writeTokenGenStatesApiClient(
+      otherApiClient,
+      dynamoDBClient,
+      genericLogger
     );
 
     await deleteEntriesFromTokenGenStatesByClientIdV1(
-      GSIPK_clientId,
+      client.id,
       dynamoDBClient,
       genericLogger
     );
 
     const result = await readAllTokenGenStatesItems(dynamoDBClient);
-    expect(result).toEqual([otherConsumerClient]);
+    expect(result).toEqual([otherApiClient]);
   });
 
   describe("deleteEntriesFromTokenGenStatesByClientIdV2", () => {
