@@ -26,7 +26,6 @@ import { Logger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
   deleteClientEntryFromPlatformStates,
-  deleteEntriesFromTokenGenStatesByClientIdKid,
   readPlatformClientEntry,
   deleteClientEntryFromTokenGenerationStates,
   extractKidFromTokenGenStatesEntryPK,
@@ -41,6 +40,7 @@ import {
   readConsumerClientEntriesInTokenGenerationStates,
   deleteEntriesFromTokenGenStatesByClientIdV2,
   deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2,
+  deleteEntriesFromTokenGenStatesByClientIdKidV2,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -268,12 +268,9 @@ export async function handleMessageV2(
         );
       }
 
-      const GSIPK_clientId_kid = makeGSIPKClientIdKid({
-        clientId: client.id,
-        kid: msg.data.kid,
-      });
-      await deleteEntriesFromTokenGenStatesByClientIdKid(
-        GSIPK_clientId_kid,
+      await deleteEntriesFromTokenGenStatesByClientIdKidV2(
+        client,
+        msg.data.kid,
         dynamoDBClient,
         logger
       );

@@ -125,6 +125,28 @@ export const deleteEntriesFromTokenGenStatesByClientIdKid = async (
   await runPaginatedQuery(GSIPK_clientId_kid, dynamoDBClient, undefined);
 };
 
+export const deleteEntriesFromTokenGenStatesByClientIdKidV2 = async (
+  client: Client,
+  kid: string,
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+): Promise<void> => {
+  await Promise.all(
+    client.purposes.map(async (purposeId) => {
+      const pk = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: client.id,
+        kid,
+        purposeId,
+      });
+      await deleteClientEntryFromTokenGenerationStates(
+        pk,
+        dynamoDBClient,
+        logger
+      );
+    })
+  );
+};
+
 export const deleteClientEntryFromPlatformStates = async (
   pk: PlatformStatesClientPK,
   dynamoDBClient: DynamoDBClient,
