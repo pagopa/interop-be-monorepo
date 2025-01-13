@@ -2597,7 +2597,11 @@ describe("integration tests V2 events", async () => {
         ...getMockPlatformStatesAgreementEntry(platformStatesAgreementEntryPK),
         version: 1,
       };
-      await writeAgreementEntry(platformStatesAgreementEntry, dynamoDBClient);
+      await writeAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       const platformStatesCatalogEntryPK =
         makePlatformStatesEServiceDescriptorPK({

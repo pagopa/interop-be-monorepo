@@ -869,7 +869,11 @@ describe("integration tests V1 events", async () => {
         ...getMockPlatformStatesAgreementEntry(platformStatesAgreementEntryPK),
         version: 1,
       };
-      await writeAgreementEntry(platformStatesAgreementEntry, dynamoDBClient);
+      await writeAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       const platformStatesCatalogEntryPK =
         makePlatformStatesEServiceDescriptorPK({
@@ -2433,7 +2437,7 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("AgreementDeactivated (archived by consumer or by upgrade)", () => {
-    it("agreement is the latest (includes operation on token states)", async () => {
+    it("agreement is the latest (includes operation on token-generation-states)", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
 
@@ -2506,8 +2510,16 @@ describe("integration tests V1 events", async () => {
         GSISK_agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
-      await writeAgreementEntry(previousAgreementStateEntry, dynamoDBClient);
-      await writeAgreementEntry(latestAgreementStateEntry, dynamoDBClient);
+      await writeAgreementEntry(
+        previousAgreementStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+      await writeAgreementEntry(
+        latestAgreementStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =
@@ -2579,7 +2591,7 @@ describe("integration tests V1 events", async () => {
         ])
       );
     });
-    it("agreement is not the latest (no operation on token states)", async () => {
+    it("agreement is not the latest (no operation on token-generation-states)", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
 
@@ -2648,8 +2660,16 @@ describe("integration tests V1 events", async () => {
         GSISK_agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
-      await writeAgreementEntry(previousAgreementStateEntry, dynamoDBClient);
-      await writeAgreementEntry(latestAgreementStateEntry, dynamoDBClient);
+      await writeAgreementEntry(
+        previousAgreementStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+      await writeAgreementEntry(
+        latestAgreementStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =
