@@ -12,6 +12,7 @@ import {
   QueryCommandOutput,
   QueryInput,
   ScanCommand,
+  ScanCommandOutput,
   ScanInput,
   UpdateItemCommand,
   UpdateItemInput,
@@ -53,6 +54,9 @@ import {
   TokenGenerationStatesGenericClient,
   TenantId,
   makeGSIPKClientIdKid,
+  clientKidPrefix,
+  clientKidPurposePrefix,
+  TokenGenStatesConsumerClientGSIClient,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
@@ -200,8 +204,8 @@ export const deleteEntriesFromTokenGenStatesByClientIdV1 = async (
 ): Promise<void> => {
   // We need to find all the entries to delete though a Scan, because the query on the GSI doesn't allow ConsistentRead
 
-  const prefix1 = `${clientKidPrefix}${GSIPK_clientId}`;
-  const prefix2 = `${clientKidPurposePrefix}${GSIPK_clientId}`;
+  const prefix1 = `${clientKidPrefix}${clientId}`;
+  const prefix2 = `${clientKidPurposePrefix}${clientId}`;
 
   await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefix(
     prefix1,
