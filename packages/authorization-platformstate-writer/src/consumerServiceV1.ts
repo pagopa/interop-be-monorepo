@@ -35,7 +35,7 @@ import {
   deleteClientEntryFromTokenGenerationStates,
   deleteEntriesFromTokenGenStatesByClientIdKidV1,
   deleteEntriesFromTokenGenStatesByClientIdV1,
-  deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV1,
+  deleteEntriesFromTokenGenStatesByClientIdPurposeIdV1,
   extractAgreementIdFromAgreementPK,
   extractKidFromTokenGenStatesEntryPK,
   readConsumerClientsInTokenGenStatesV1,
@@ -96,10 +96,9 @@ export async function handleMessageV1(
 
       if (!clientEntry || clientEntry.version > msg.version) {
         logger.info(
-          `Skipping processing of entry ${pk}. Reason: ${
-            !clientEntry
-              ? "entry not found in platform-states"
-              : "a more recent entry already exists"
+          `Skipping processing of entry ${pk}. Reason: ${!clientEntry
+            ? "entry not found in platform-states"
+            : "a more recent entry already exists"
           }`
         );
         return Promise.resolve();
@@ -141,57 +140,57 @@ export async function handleMessageV1(
                     });
 
                   const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
-                    {
-                      PK: tokenClientKidPurposePK,
-                      consumerId: platformClientEntry.clientConsumerId,
-                      clientKind: clientKindTokenGenStates.consumer,
-                      publicKey: pem,
-                      updatedAt: new Date().toISOString(),
-                      GSIPK_clientId: clientId,
-                      GSIPK_clientId_kid: makeGSIPKClientIdKid({
-                        clientId,
-                        kid,
-                      }),
-                      GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-                        clientId,
-                        purposeId,
-                      }),
-                      GSIPK_purposeId: purposeId,
-                      ...(purposeEntry
-                        ? {
-                            GSIPK_consumerId_eserviceId:
-                              makeGSIPKConsumerIdEServiceId({
-                                consumerId:
-                                  platformClientEntry.clientConsumerId,
-                                eserviceId: purposeEntry.purposeEserviceId,
-                              }),
-                            purposeState: purposeEntry.state,
-                            purposeVersionId: purposeEntry.purposeVersionId,
-                          }
-                        : {}),
-                      ...(purposeEntry && agreementEntry
-                        ? {
-                            agreementId: extractAgreementIdFromAgreementPK(
-                              agreementEntry.PK
-                            ),
-                            agreementState: agreementEntry.state,
-                            GSIPK_eserviceId_descriptorId:
-                              makeGSIPKEServiceIdDescriptorId({
-                                eserviceId: purposeEntry.purposeEserviceId,
-                                descriptorId:
-                                  agreementEntry.agreementDescriptorId,
-                              }),
-                          }
-                        : {}),
-                      ...(catalogEntry
-                        ? {
-                            descriptorState: catalogEntry.state,
-                            descriptorAudience: catalogEntry.descriptorAudience,
-                            descriptorVoucherLifespan:
-                              catalogEntry.descriptorVoucherLifespan,
-                          }
-                        : {}),
-                    };
+                  {
+                    PK: tokenClientKidPurposePK,
+                    consumerId: platformClientEntry.clientConsumerId,
+                    clientKind: clientKindTokenGenStates.consumer,
+                    publicKey: pem,
+                    updatedAt: new Date().toISOString(),
+                    GSIPK_clientId: clientId,
+                    GSIPK_clientId_kid: makeGSIPKClientIdKid({
+                      clientId,
+                      kid,
+                    }),
+                    GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+                      clientId,
+                      purposeId,
+                    }),
+                    GSIPK_purposeId: purposeId,
+                    ...(purposeEntry
+                      ? {
+                        GSIPK_consumerId_eserviceId:
+                          makeGSIPKConsumerIdEServiceId({
+                            consumerId:
+                              platformClientEntry.clientConsumerId,
+                            eserviceId: purposeEntry.purposeEserviceId,
+                          }),
+                        purposeState: purposeEntry.state,
+                        purposeVersionId: purposeEntry.purposeVersionId,
+                      }
+                      : {}),
+                    ...(purposeEntry && agreementEntry
+                      ? {
+                        agreementId: extractAgreementIdFromAgreementPK(
+                          agreementEntry.PK
+                        ),
+                        agreementState: agreementEntry.state,
+                        GSIPK_eserviceId_descriptorId:
+                          makeGSIPKEServiceIdDescriptorId({
+                            eserviceId: purposeEntry.purposeEserviceId,
+                            descriptorId:
+                              agreementEntry.agreementDescriptorId,
+                          }),
+                      }
+                      : {}),
+                    ...(catalogEntry
+                      ? {
+                        descriptorState: catalogEntry.state,
+                        descriptorAudience: catalogEntry.descriptorAudience,
+                        descriptorVoucherLifespan:
+                          catalogEntry.descriptorVoucherLifespan,
+                      }
+                      : {}),
+                  };
                   await upsertTokenGenStatesConsumerClient(
                     tokenGenStatesConsumerClient,
                     dynamoDBClient,
@@ -227,18 +226,18 @@ export async function handleMessageV1(
               );
             } else {
               const tokenGenStatesConsumerClientWithoutPurpose: TokenGenerationStatesConsumerClient =
-                {
-                  PK: makeTokenGenerationStatesClientKidPK({
-                    clientId,
-                    kid,
-                  }),
-                  consumerId: platformClientEntry.clientConsumerId,
-                  clientKind: clientKindTokenGenStates.consumer,
-                  publicKey: pem,
-                  GSIPK_clientId: clientId,
-                  GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
-                  updatedAt: new Date().toISOString(),
-                };
+              {
+                PK: makeTokenGenerationStatesClientKidPK({
+                  clientId,
+                  kid,
+                }),
+                consumerId: platformClientEntry.clientConsumerId,
+                clientKind: clientKindTokenGenStates.consumer,
+                publicKey: pem,
+                GSIPK_clientId: clientId,
+                GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
+                updatedAt: new Date().toISOString(),
+              };
               await upsertTokenGenStatesConsumerClient(
                 tokenGenStatesConsumerClientWithoutPurpose,
                 dynamoDBClient,
@@ -275,10 +274,9 @@ export async function handleMessageV1(
 
       if (!clientEntry || clientEntry.version > msg.version) {
         logger.info(
-          `Skipping processing of entry ${pk}. Reason: ${
-            !clientEntry
-              ? "entry not found in platform-states"
-              : "a more recent entry already exists"
+          `Skipping processing of entry ${pk}. Reason: ${!clientEntry
+            ? "entry not found in platform-states"
+            : "a more recent entry already exists"
           }`
         );
         return Promise.resolve();
@@ -320,10 +318,9 @@ export async function handleMessageV1(
       const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
       if (!clientEntry || clientEntry.version > msg.version) {
         logger.info(
-          `Skipping processing of entry ${pk}. Reason: ${
-            !clientEntry
-              ? "entry not found in platform-states"
-              : "a more recent entry already exists"
+          `Skipping processing of entry ${pk}. Reason: ${!clientEntry
+            ? "entry not found in platform-states"
+            : "a more recent entry already exists"
           }`
         );
         return Promise.resolve();
@@ -363,7 +360,7 @@ export async function handleMessageV1(
         for (const entry of tokenGenStatesConsumerClients) {
           const addedTokenGenStatesConsumerClient = await match(
             // Exclude current purpose in case of retry and reprocess
-            clientEntry.clientPurposesIds.filter(p => p!= purposeId).length
+            clientEntry.clientPurposesIds.filter(p => p != purposeId).length
           )
             .with(0, async () => {
               const newTokenGenStatesConsumerClient =
@@ -383,7 +380,7 @@ export async function handleMessageV1(
                 dynamoDBClient,
                 logger
               );
-              if(TokenGenerationStatesClientKidPK.safeParse(entry.PK).success){
+              if (TokenGenerationStatesClientKidPK.safeParse(entry.PK).success) {
                 // Remove only partial entries (to avoid deleting complete entries after retry)
                 await deleteClientEntryFromTokenGenerationStates(
                   entry.PK,
@@ -488,7 +485,7 @@ export async function handleMessageV1(
 
           // token-generation-states
           if (updatedPurposeIds.length > 0) {
-            await deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV1(
+            await deleteEntriesFromTokenGenStatesByClientIdPurposeIdV1(
               GSIPK_clientId_purposeId,
               dynamoDBClient,
               logger
