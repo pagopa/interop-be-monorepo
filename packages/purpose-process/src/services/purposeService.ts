@@ -239,20 +239,10 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      const [eservice, activeConsumerDelegation, tenantKind] =
-        await Promise.all([
-          retrieveEService(purpose.data.eserviceId, readModelService),
-          readModelService.getActiveConsumerDelegationByPurpose({
-            eserviceId: purpose.data.eserviceId,
-            consumerId: purpose.data.consumerId,
-          }),
-          retrieveTenantKind(organizationId, readModelService),
-        ]);
-
-      const delegationId = activeConsumerDelegation
-        ? activeConsumerDelegation.id
-        : undefined;
-      const basePurpose = { ...purpose.data, delegationId };
+      const [eservice, tenantKind] = await Promise.all([
+        retrieveEService(purpose.data.eserviceId, readModelService),
+        retrieveTenantKind(organizationId, readModelService),
+      ]);
 
       const isAllowedToRetrieveRiskAnalysis =
         await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument(
@@ -266,10 +256,7 @@ export function purposeServiceBuilder(
 
       if (!isAllowedToRetrieveRiskAnalysis) {
         return {
-          purpose: {
-            ...basePurpose,
-            riskAnalysisForm: undefined,
-          },
+          purpose: { ...purpose.data, riskAnalysisForm: undefined },
           isRiskAnalysisValid: false,
         };
       }
@@ -282,10 +269,7 @@ export function purposeServiceBuilder(
           )
         : true;
 
-      return {
-        isRiskAnalysisValid,
-        purpose: basePurpose,
-      };
+      return { purpose: purpose.data, isRiskAnalysisValid };
     },
     async getRiskAnalysisDocument({
       purposeId,
