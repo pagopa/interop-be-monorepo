@@ -25,6 +25,7 @@ import {
   updateAgreementStateAndDescriptorInfoOnTokenGenStates,
   deleteAgreementEntry,
   isLatestAgreement,
+  extractAgreementTimestamp,
 } from "./utils.js";
 
 export async function handleMessageV1(
@@ -141,6 +142,8 @@ const handleActivationOrSuspension = async (
     eserviceId: agreement.eserviceId,
   });
 
+  const agreementTimestamp = extractAgreementTimestamp(agreement);
+
   if (existingAgreementEntry) {
     if (existingAgreementEntry.version > incomingVersion) {
       // Stops processing if the message is older than the agreement entry
@@ -158,9 +161,6 @@ const handleActivationOrSuspension = async (
       );
     }
   } else {
-    const agreementTimestamp = agreement.stamps.activation
-      ? agreement.stamps.activation.when.toISOString()
-      : agreement.createdAt.toISOString();
     if (agreement.stamps.activation === undefined) {
       logger.warn(
         `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
@@ -184,6 +184,7 @@ const handleActivationOrSuspension = async (
     await isLatestAgreement(
       GSIPK_consumerId_eserviceId,
       agreement.id,
+      agreementTimestamp,
       dynamoDBClient
     )
   ) {
@@ -226,10 +227,13 @@ const handleArchiving = async (
     eserviceId: agreement.eserviceId,
   });
 
+  const agreementTimestamp = extractAgreementTimestamp(agreement);
+
   if (
     await isLatestAgreement(
       GSIPK_consumerId_eserviceId,
       agreement.id,
+      agreementTimestamp,
       dynamoDBClient
     )
   ) {
@@ -270,6 +274,8 @@ const handleUpgrade = async (
     eserviceId: agreement.eserviceId,
   });
 
+  const agreementTimestamp = extractAgreementTimestamp(agreement);
+
   if (agreementEntry) {
     if (agreementEntry.version > msgVersion) {
       logger.info(
@@ -286,11 +292,6 @@ const handleUpgrade = async (
       );
     }
   } else {
-    const agreementTimestamp = agreement.stamps.upgrade
-      ? agreement.stamps.upgrade.when.toISOString()
-      : agreement.stamps.activation
-      ? agreement.stamps.activation.when.toISOString()
-      : agreement.createdAt.toISOString();
     if (agreement.stamps.upgrade === undefined) {
       logger.warn(
         `Missing agreement upgrade stamp for agreement with id ${agreement.id}. Using activation stamp or createdAt as fallback.`
@@ -312,12 +313,14 @@ const handleUpgrade = async (
 
   const updateLatestAgreementOnTokenGenStates = async (
     catalogEntry: PlatformStatesCatalogEntry | undefined,
+    agreementTimestamp: string,
     logger: Logger
   ): Promise<void> => {
     if (
       await isLatestAgreement(
         GSIPK_consumerId_eserviceId,
         agreement.id,
+        agreementTimestamp,
         dynamoDBClient
       )
     ) {
@@ -343,7 +346,11 @@ const handleUpgrade = async (
     }
   };
 
-  await updateLatestAgreementOnTokenGenStates(catalogEntry, logger);
+  await updateLatestAgreementOnTokenGenStates(
+    catalogEntry,
+    agreementTimestamp,
+    logger
+  );
 
   const secondRetrievalCatalogEntry = await readCatalogEntry(
     pkCatalogEntry,
@@ -355,6 +362,7 @@ const handleUpgrade = async (
   ) {
     await updateLatestAgreementOnTokenGenStates(
       secondRetrievalCatalogEntry,
+      agreementTimestamp,
       logger
     );
   } else {
