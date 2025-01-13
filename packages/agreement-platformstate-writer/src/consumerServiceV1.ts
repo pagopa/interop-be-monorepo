@@ -6,9 +6,7 @@ import {
   genericInternalError,
   fromAgreementV1,
   makeGSIPKConsumerIdEServiceId,
-  makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesAgreementPK,
-  makePlatformStatesEServiceDescriptorPK,
   PlatformStatesAgreementEntry,
   agreementState,
 } from "pagopa-interop-models";
@@ -20,8 +18,6 @@ import {
   agreementStateToItemState,
   updateAgreementStateOnTokenGenStates,
   writeAgreementEntry,
-  readCatalogEntry,
-  updateAgreementStateAndDescriptorInfoOnTokenGenStates,
   deleteAgreementEntry,
   isLatestAgreement,
   updateLatestAgreementOnTokenGenStates,
@@ -183,46 +179,17 @@ const handleActivationOrSuspension = async (
     await writeAgreementEntry(agreementEntry, dynamoDBClient, logger);
   }
 
-  if (
-    await isLatestAgreement(
-      GSIPK_consumerId_eserviceId,
-      agreement.id,
-      agreementTimestamp,
-      dynamoDBClient
-    )
-  ) {
-    // token-generation-states
-    /* 
-    In consumerServiceV2, the handler for activation and suspension doesn't have to update 
-    the descriptor info in the token-generation-states. Here it's needed because this handler also 
-    includes the agreement upgrade (which requires updating descriptor info).
-    */
-
-    const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
-      eserviceId: agreement.eserviceId,
-      descriptorId: agreement.descriptorId,
-    });
-    const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
-
-    const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-      eserviceId: agreement.eserviceId,
-      descriptorId: agreement.descriptorId,
-    });
-
-    await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
-      GSIPK_consumerId_eserviceId,
-      agreementId: agreement.id,
-      agreementState: agreement.state,
-      dynamoDBClient,
-      GSIPK_eserviceId_descriptorId,
-      catalogEntry,
-      logger,
-    });
-  } else {
-    logger.info(
-      `Token-generation-states. Skipping processing of entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
-    );
-  }
+  // token-generation-states
+  /* 
+  In consumerServiceV2, the handler for activation and suspension doesn't have to update 
+  the descriptor info in the token-generation-states. Here it's needed because this handler also 
+  includes the agreement upgrade (which requires updating descriptor info).
+  */
+  await updateLatestAgreementOnTokenGenStates(
+    dynamoDBClient,
+    agreement,
+    logger
+  );
 };
 
 const handleArchiving = async (
