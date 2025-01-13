@@ -12,7 +12,6 @@ import {
   QueryCommandOutput,
   QueryInput,
   ScanCommand,
-  ScanCommandOutput,
   ScanInput,
   UpdateItemCommand,
   UpdateItemInput,
