@@ -61,6 +61,7 @@ import {
   toClientV2,
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
+  clientKind,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
@@ -166,7 +167,7 @@ describe("integration tests V2 events", async () => {
       expect(retrievedTokenGenStatesEntries).toEqual([tokenClientEntry]);
     });
 
-    it("should insert platform-states entry and insert token-generation-states client-kid-purpose entries if the client contains at least one purpose", async () => {
+    it("ConsumerClient - should insert platform-states entry and insert token-generation-states client-kid-purpose entries if the client contains at least one purpose", async () => {
       const messageVersion = 2;
 
       const consumerId = generateId<TenantId>();
@@ -455,7 +456,7 @@ describe("integration tests V2 events", async () => {
       );
     });
 
-    it("should update platform-states entry and insert token-generation-states client-kid-purpose entries", async () => {
+    it("ConsumerClient - should update platform-states entry and insert token-generation-states client-kid-purpose entries", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
@@ -753,7 +754,7 @@ describe("integration tests V2 events", async () => {
       );
     });
 
-    it("should update platform-states entry and update token-generation-states client-kid-purpose entries", async () => {
+    it("ConsumerClient - should update platform-states entry and update token-generation-states client-kid-purpose entries", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
@@ -1103,7 +1104,7 @@ describe("integration tests V2 events", async () => {
       );
     });
 
-    it("should insert platform-states entry and insert token-generation-states client-kid entry if the client does not contain purposes", async () => {
+    it("ConsumerClient - should insert platform-states entry and add no entries in token-generation-states if the client does not contain purposes", async () => {
       const messageVersion = 1;
 
       const oldKey = getMockKey();
@@ -1133,26 +1134,6 @@ describe("integration tests V2 events", async () => {
         await readPlatformClientEntry(platformClientPK, dynamoDBClient)
       ).toBeUndefined();
 
-      // token-generation-states
-      const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
-        clientId: client.id,
-        kid: oldKey.kid,
-      });
-      const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenGenStatesApiClient(tokenClientKidPK),
-        consumerId: client.consumerId,
-        GSIPK_clientId: client.id,
-        GSIPK_clientId_kid: makeGSIPKClientIdKid({
-          clientId: client.id,
-          kid: oldKey.kid,
-        }),
-      };
-      await writeTokenGenStatesApiClient(
-        tokenClientEntry,
-        dynamoDBClient,
-        genericLogger
-      );
-
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
       // platform-states
@@ -1175,29 +1156,14 @@ describe("integration tests V2 events", async () => {
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
         dynamoDBClient
       );
-      const expectedTokenClientEntry: TokenGenerationStatesConsumerClient = {
-        PK: makeTokenGenerationStatesClientKidPK({
-          clientId: client.id,
-          kid: addedKey.kid,
-        }),
-        consumerId: client.consumerId,
-        clientKind: clientKindTokenGenStates.consumer,
-        publicKey: addedKey.encodedPem,
-        GSIPK_clientId: client.id,
-        GSIPK_clientId_kid: makeGSIPKClientIdKid({
-          clientId: client.id,
-          kid: addedKey.kid,
-        }),
-        updatedAt: new Date().toISOString(),
-      };
 
-      expect(retrievedTokenGenStatesEntries).toHaveLength(2);
+      expect(retrievedTokenGenStatesEntries).toHaveLength(0);
       expect(retrievedTokenGenStatesEntries).toEqual(
-        expect.arrayContaining([tokenClientEntry, expectedTokenClientEntry])
+        expect.arrayContaining([])
       );
     });
 
-    it("should update platform-states entry and insert token-generation-states client-kid entry", async () => {
+    it("ApiClient - should update platform-states entry and insert token-generation-states client-kid entry", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
@@ -1205,6 +1171,7 @@ describe("integration tests V2 events", async () => {
       const addedKey = getMockKey();
       const client: Client = {
         ...getMockClient(),
+        kind: clientKind.api,
         keys: [oldKey, addedKey],
       };
 
@@ -1278,13 +1245,13 @@ describe("integration tests V2 events", async () => {
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
         dynamoDBClient
       );
-      const expectedTokenClientEntry: TokenGenerationStatesConsumerClient = {
+      const expectedTokenClientEntry: TokenGenerationStatesApiClient = {
         PK: makeTokenGenerationStatesClientKidPK({
           clientId: client.id,
           kid: addedKey.kid,
         }),
         consumerId: client.consumerId,
-        clientKind: clientKindTokenGenStates.consumer,
+        clientKind: clientKindTokenGenStates.api,
         publicKey: addedKey.encodedPem,
         GSIPK_clientId: client.id,
         GSIPK_clientId_kid: makeGSIPKClientIdKid({
@@ -1300,7 +1267,7 @@ describe("integration tests V2 events", async () => {
       );
     });
 
-    it("should update platform-states entry and update token-generation-states client-kid entry", async () => {
+    it("ApiClient - should update platform-states entry and update token-generation-states client-kid entry", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
@@ -1308,6 +1275,7 @@ describe("integration tests V2 events", async () => {
       const addedKey = getMockKey();
       const client: Client = {
         ...getMockClient(),
+        kind: clientKind.api,
         keys: [oldKey, addedKey],
       };
 
@@ -1398,13 +1366,13 @@ describe("integration tests V2 events", async () => {
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
         dynamoDBClient
       );
-      const expectedTokenClientEntry: TokenGenerationStatesConsumerClient = {
+      const expectedTokenClientEntry: TokenGenerationStatesApiClient = {
         PK: makeTokenGenerationStatesClientKidPK({
           clientId: client.id,
           kid: addedKey.kid,
         }),
         consumerId: client.consumerId,
-        clientKind: clientKindTokenGenStates.consumer,
+        clientKind: clientKindTokenGenStates.api,
         publicKey: addedKey.encodedPem,
         GSIPK_clientId: client.id,
         GSIPK_clientId_kid: makeGSIPKClientIdKid({
