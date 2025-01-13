@@ -1958,10 +1958,6 @@ export function catalogServiceBuilder(
         )
         .with(
           {
-            isDelegable: true,
-            oldIsDelegable: true,
-          },
-          {
             isDelegable: false,
             oldIsDelegable: false,
           },
