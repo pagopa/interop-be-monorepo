@@ -56,7 +56,6 @@ import {
   makeGSIPKClientIdKid,
   clientKidPrefix,
   clientKidPurposePrefix,
-  TokenGenStatesConsumerClientGSIClient,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
@@ -315,7 +314,7 @@ const readTokenGenStatesConsumerClientsByGSIPKClientPurposeV1 = async (
   dynamoDBClient: DynamoDBClient,
   exclusiveStartKey?: Record<string, AttributeValue>
 ): Promise<{
-  tokenGenStatesEntries: TokenGenStatesConsumerClientGSIClient[];
+  tokenGenStatesEntries: TokenGenerationStatesConsumerClient[];
   lastEvaluatedKey: Record<string, AttributeValue> | undefined;
 }> => {
   // This function performs a Scan because ConsistentRead can't be used on GSIPKs
