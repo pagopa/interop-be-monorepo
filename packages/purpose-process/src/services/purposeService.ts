@@ -44,7 +44,6 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
-  Delegation,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -240,39 +239,50 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      const [
-        eservice,
-        tenantKind,
-        activeProducerDelegation,
-        activeConsumerDelegation,
-      ] = await Promise.all([
+      const [eservice, activeConsumerDelegation] = await Promise.all([
         retrieveEService(purpose.data.eserviceId, readModelService),
-        retrieveTenantKind(organizationId, readModelService),
-        readModelService.getActiveProducerDelegationByEserviceId(
-          purpose.data.eserviceId
-        ),
         readModelService.getActiveConsumerDelegationByPurpose({
           eserviceId: purpose.data.eserviceId,
           consumerId: purpose.data.consumerId,
         }),
       ]);
 
-      const purposeWithRiskAnalysis = authorizeRiskAnalysisForm({
-        purpose: purpose.data,
-        producerId: eservice.producerId,
-        organizationId,
-        tenantKind,
-        activeProducerDelegation,
-      });
+      const delegationId = activeConsumerDelegation
+        ? activeConsumerDelegation.id
+        : undefined;
+      const basePurpose = { ...purpose.data, delegationId };
+
+      const isAllowedToRetrieveRiskAnalysis =
+        await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument(
+          purpose.data,
+          eservice,
+          { organizationId },
+          readModelService
+        )
+          .then(() => true)
+          .catch(() => false);
+
+      if (!isAllowedToRetrieveRiskAnalysis) {
+        return {
+          purpose: {
+            ...basePurpose,
+            riskAnalysisForm: undefined,
+          },
+          isRiskAnalysisValid: false,
+        };
+      }
+
+      const isRiskAnalysisValid = purposeIsDraft(purpose.data)
+        ? isRiskAnalysisFormValid(
+            purpose.data.riskAnalysisForm,
+            false,
+            await retrieveTenantKind(organizationId, readModelService)
+          )
+        : true;
 
       return {
-        isRiskAnalysisValid: purposeWithRiskAnalysis.isRiskAnalysisValid,
-        purpose: {
-          ...purposeWithRiskAnalysis.purpose,
-          delegationId: activeConsumerDelegation
-            ? activeConsumerDelegation.id
-            : undefined,
-        },
+        isRiskAnalysisValid,
+        purpose: basePurpose,
       };
     },
     async getRiskAnalysisDocument({
@@ -309,26 +319,27 @@ export function purposeServiceBuilder(
 
       return retrievePurposeVersionDocument(purposeId, version, documentId);
     },
-    async deletePurposeVersion({
-      purposeId,
-      versionId,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      purposeId: PurposeId;
-      versionId: PurposeVersionId;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async deletePurposeVersion(
+      {
+        purposeId,
+        versionId,
+      }: {
+        purposeId: PurposeId;
+        versionId: PurposeVersionId;
+      },
+      { correlationId, authData, logger }: WithLogger<AppContext>
+    ): Promise<void> {
       logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      if (organizationId !== purpose.data.consumerId) {
-        throw organizationIsNotTheConsumer(organizationId);
-      }
+      assertRequesterCanActAsConsumer(
+        purpose.data,
+        authData,
+        await readModelService.getActiveConsumerDelegationByPurpose(
+          purpose.data
+        )
+      );
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
@@ -530,19 +541,16 @@ export function purposeServiceBuilder(
       await repository.createEvent(event);
       return archivedVersion;
     },
-    async suspendPurposeVersion({
-      purposeId,
-      versionId,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      purposeId: PurposeId;
-      versionId: PurposeVersionId;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<PurposeVersion> {
+    async suspendPurposeVersion(
+      {
+        purposeId,
+        versionId,
+      }: {
+        purposeId: PurposeId;
+        versionId: PurposeVersionId;
+      },
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<PurposeVersion> {
       logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -558,10 +566,10 @@ export function purposeServiceBuilder(
       );
 
       const suspender = await getOrganizationRole({
-        eserviceId: eservice.id,
-        organizationId,
+        eservice,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
+        authData,
         readModelService,
       });
 
@@ -623,37 +631,29 @@ export function purposeServiceBuilder(
             purpose.eserviceId,
             readModelService
           );
-          if (eservice === undefined) {
-            throw eserviceNotFound(purpose.eserviceId);
-          }
 
-          const activeProducerDelegation =
-            await readModelService.getActiveProducerDelegationByEserviceId(
-              eservice.id
+          const isAllowedToRetrieveRiskAnalysis =
+            await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument(
+              purpose,
+              eservice,
+              { organizationId },
+              readModelService
+            ).then(
+              () => true,
+              () => false
             );
 
-          return {
-            purpose,
-            eservice,
-            activeProducerDelegation,
-          };
+          return { purpose, isAllowedToRetrieveRiskAnalysis };
         })
       );
 
       const purposesToReturn = mappingPurposeEservice.map(
-        ({ purpose, eservice, activeProducerDelegation }) => {
-          const isProducerOrConsumer =
-            organizationId === purpose.consumerId ||
-            organizationId === eservice.producerId ||
-            organizationId === activeProducerDelegation?.delegateId;
-
-          return {
-            ...purpose,
-            riskAnalysisForm: isProducerOrConsumer
-              ? purpose.riskAnalysisForm
-              : undefined,
-          };
-        }
+        ({ purpose, isAllowedToRetrieveRiskAnalysis }) => ({
+          ...purpose,
+          riskAnalysisForm: isAllowedToRetrieveRiskAnalysis
+            ? purpose.riskAnalysisForm
+            : undefined,
+        })
       );
 
       return {
@@ -797,19 +797,16 @@ export function purposeServiceBuilder(
 
       return newPurposeVersion;
     },
-    async activatePurposeVersion({
-      purposeId,
-      versionId,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      purposeId: PurposeId;
-      versionId: PurposeVersionId;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<PurposeVersion> {
+    async activatePurposeVersion(
+      {
+        purposeId,
+        versionId,
+      }: {
+        purposeId: PurposeId;
+        versionId: PurposeVersionId;
+      },
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<PurposeVersion> {
       logger.info(`Activating Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -842,10 +839,10 @@ export function purposeServiceBuilder(
       }
 
       const purposeOwnership = await getOrganizationRole({
-        eserviceId: eservice.id,
-        organizationId,
+        eservice,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
+        authData,
         readModelService,
       });
 
@@ -895,7 +892,7 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.PRODUCER,
           },
           () => {
-            throw organizationIsNotTheConsumer(organizationId);
+            throw organizationIsNotTheConsumer(authData.organizationId);
           }
         )
         .with(
@@ -904,7 +901,7 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.CONSUMER,
           },
           () => {
-            throw organizationIsNotTheProducer(organizationId);
+            throw organizationIsNotTheProducer(authData.organizationId);
           }
         )
         .with(
@@ -1015,7 +1012,7 @@ export function purposeServiceBuilder(
             )
         )
         .otherwise(() => {
-          throw organizationNotAllowed(organizationId);
+          throw organizationNotAllowed(authData.organizationId);
         });
 
       await repository.createEvent(event);
@@ -1351,87 +1348,51 @@ export function purposeServiceBuilder(
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
-const authorizeRiskAnalysisForm = ({
-  purpose,
-  producerId,
-  organizationId,
-  tenantKind,
-  activeProducerDelegation,
-}: {
-  purpose: Purpose;
-  producerId: TenantId;
-  organizationId: TenantId;
-  tenantKind: TenantKind;
-  activeProducerDelegation: Delegation | undefined;
-}): { purpose: Purpose; isRiskAnalysisValid: boolean } => {
-  if (
-    organizationId === purpose.consumerId ||
-    organizationId === producerId ||
-    organizationId === activeProducerDelegation?.delegateId
-  ) {
-    if (purposeIsDraft(purpose)) {
-      const isRiskAnalysisValid = isRiskAnalysisFormValid(
-        purpose.riskAnalysisForm,
-        false,
-        tenantKind
-      );
-      return { purpose, isRiskAnalysisValid };
-    } else {
-      return { purpose, isRiskAnalysisValid: true };
-    }
-  } else {
-    return {
-      purpose: { ...purpose, riskAnalysisForm: undefined },
-      isRiskAnalysisValid: false,
-    };
-  }
-};
-
 const getOrganizationRole = async ({
-  eserviceId,
-  organizationId,
+  eservice,
   producerId,
   consumerId,
+  authData,
   readModelService,
 }: {
-  eserviceId: EServiceId;
-  organizationId: TenantId;
+  eservice: EService;
   producerId: TenantId;
   consumerId: TenantId;
+  authData: AuthData;
   readModelService: ReadModelService;
 }): Promise<Ownership> => {
-  if (producerId === consumerId && organizationId === producerId) {
+  if (producerId === consumerId && authData.organizationId === producerId) {
     return ownership.SELF_CONSUMER;
-  } else if (producerId !== consumerId && organizationId === consumerId) {
-    return ownership.CONSUMER;
   }
 
-  const activeProducerDelegation =
-    await readModelService.getActiveProducerDelegationByEserviceId(eserviceId);
-
-  if (
-    activeProducerDelegation?.delegateId === organizationId ||
-    (!activeProducerDelegation && organizationId === producerId)
-  ) {
+  try {
+    assertRequesterCanActAsProducer(
+      eservice,
+      authData,
+      await readModelService.getActiveProducerDelegationByEserviceId(
+        eservice.id
+      )
+    );
     return ownership.PRODUCER;
+  } catch {
+    /* empty */
   }
 
-  const activeConsumerDelegation =
-    await readModelService.getActiveConsumerDelegationByPurpose({
-      eserviceId,
-      consumerId,
-    });
-
-  if (
-    activeConsumerDelegation?.delegateId === organizationId ||
-    (!activeConsumerDelegation &&
-      producerId !== consumerId &&
-      organizationId === consumerId)
-  ) {
+  try {
+    assertRequesterCanActAsConsumer(
+      { eserviceId: eservice.id, consumerId },
+      authData,
+      await readModelService.getActiveConsumerDelegationByPurpose({
+        eserviceId: eservice.id,
+        consumerId,
+      })
+    );
     return ownership.CONSUMER;
+  } catch {
+    /* empty */
   }
 
-  throw organizationNotAllowed(organizationId);
+  throw organizationNotAllowed(authData.organizationId);
 };
 
 const replacePurposeVersion = (
