@@ -145,7 +145,6 @@ const handleActivationOrSuspension = async (
 
   if (existingAgreementEntry) {
     if (existingAgreementEntry.version > incomingVersion) {
-      // Stops processing if the message is older than the agreement entry
       logger.info(
         `Skipping processing of entry ${existingAgreementEntry}. Reason: a more recent entry already exists`
       );
@@ -214,7 +213,6 @@ const handleArchiving = async (
     )
   ) {
     // token-generation-states only if agreement is the latest
-
     await updateAgreementStateOnTokenGenStates({
       GSIPK_consumerId_eserviceId,
       agreementState: agreement.state,

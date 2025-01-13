@@ -45,7 +45,6 @@ export async function handleMessageV2(
 
       if (existingAgreementEntry) {
         if (existingAgreementEntry.version > msg.version) {
-          // Stops processing if the message is older than the agreement entry
           logger.info(
             `Skipping processing of entry ${existingAgreementEntry}. Reason: a more recent entry already exists`
           );
@@ -134,7 +133,6 @@ export async function handleMessageV2(
             )
           ) {
             // token-generation-states only if agreement is the latest
-
             await updateAgreementStateOnTokenGenStates({
               GSIPK_consumerId_eserviceId,
               agreementState: agreement.state,
@@ -163,13 +161,17 @@ export async function handleMessageV2(
       });
 
       if (agreementEntry) {
-        if (
-          agreementEntry.version > msg.version ||
-          (agreement.state !== agreementState.active &&
-            agreement.state !== agreementState.suspended)
-        ) {
+        if (agreementEntry.version > msg.version) {
           logger.info(
             `Skipping processing of entry ${agreementEntry}. Reason: a more recent entry already exists`
+          );
+          return Promise.resolve();
+        } else if (
+          agreement.state !== agreementState.active &&
+          agreement.state !== agreementState.suspended
+        ) {
+          logger.info(
+            `Skipping processing of entry ${agreementEntry}. Reason: the agreement state is not active or suspended`
           );
           return Promise.resolve();
         } else {
@@ -231,7 +233,6 @@ export async function handleMessageV2(
         )
       ) {
         // token-generation-states only if agreement is the latest
-
         await updateAgreementStateOnTokenGenStates({
           GSIPK_consumerId_eserviceId,
           agreementState: agreement.state,

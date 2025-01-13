@@ -608,11 +608,6 @@ export const updateLatestAgreementOnTokenGenStates = async (
   agreement: Agreement,
   logger: Logger
 ): Promise<void> => {
-  const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-    consumerId: agreement.consumerId,
-    eserviceId: agreement.eserviceId,
-  });
-
   const processAgreementUpdateOnTokenGenStates = async (
     platformStatesCatalogEntry: PlatformStatesCatalogEntry | undefined,
     GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId
@@ -656,6 +651,10 @@ export const updateLatestAgreementOnTokenGenStates = async (
     platformsStatesCatalogEntryPK,
     dynamoDBClient
   );
+  const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+    consumerId: agreement.consumerId,
+    eserviceId: agreement.eserviceId,
+  });
 
   await processAgreementUpdateOnTokenGenStates(
     platformStatesCatalogEntry,
