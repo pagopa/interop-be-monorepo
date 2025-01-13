@@ -447,7 +447,7 @@ export function delegationServiceBuilder(
       { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.DelegationTenants> {
       logger.info(
-        `Retrieving consumer delegators of requester ${authData.organizationId} with name ${q}, limit ${limit}, offset ${offset}`
+        `Retrieving consumer delegators with at least one active agreement of requester ${authData.organizationId} with name ${q}, limit ${limit}, offset ${offset}`
       );
 
       const delegatorsData =
