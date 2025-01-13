@@ -312,6 +312,7 @@ const readTokenGenStatesConsumerClientsByGSIPKClientPurposeV1 = async (
       ":gsiValue": { S: GSIPK_clientId_purposeId },
     },
     ExclusiveStartKey: exclusiveStartKey,
+    ConsistentRead: true,
   };
   const commandQuery = new ScanCommand(readInput);
   const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
