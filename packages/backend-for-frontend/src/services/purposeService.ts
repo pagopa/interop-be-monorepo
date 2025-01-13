@@ -55,16 +55,14 @@ const enrichPurposeDelegation = async (
     },
   });
 
-  const [delegate, delegator] = await Promise.all([
-    tenantProcessClient.tenant.getTenant({
-      headers,
-      params: { id: delegation.delegateId },
-    }),
-    tenantProcessClient.tenant.getTenant({
-      headers,
-      params: { id: delegation.delegatorId },
-    }),
-  ]);
+  const [delegate, delegator] = await Promise.all(
+    [delegation.delegateId, delegation.delegatorId].map((id) =>
+      tenantProcessClient.tenant.getTenant({
+        headers,
+        params: { id },
+      })
+    )
+  );
 
   if (!delegate) {
     throw tenantNotFound(delegation.delegateId);
