@@ -41,7 +41,8 @@ import { config } from "./config/config.js";
 
 export const writeAgreementEntry = async (
   agreementEntry: PlatformStatesAgreementEntry,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -72,6 +73,7 @@ export const writeAgreementEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Written agreement entry ${agreementEntry.PK}`);
 };
 
 export const readAgreementEntry = async (
@@ -83,6 +85,7 @@ export const readAgreementEntry = async (
       PK: { S: primaryKey },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
   const data: GetItemCommandOutput = await dynamoDBClient.send(command);
@@ -106,7 +109,8 @@ export const readAgreementEntry = async (
 
 export const deleteAgreementEntry = async (
   primaryKey: PlatformStatesAgreementPK,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: DeleteItemInput = {
     Key: {
@@ -116,13 +120,15 @@ export const deleteAgreementEntry = async (
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
 };
 
 export const updateAgreementStateInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesAgreementPK,
   state: ItemState,
-  version: number
+  version: number,
+  logger: Logger
 ): Promise<void> => {
   const input: UpdateItemInput = {
     ConditionExpression: "attribute_exists(PK)",
@@ -152,6 +158,9 @@ export const updateAgreementStateInPlatformStatesEntry = async (
   };
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(
+    `Platform-states. Updated agreement state in entry ${primaryKey}`
+  );
 };
 
 export const agreementStateToItemState = (state: AgreementState): ItemState =>
@@ -161,10 +170,12 @@ export const updateAgreementStateOnTokenGenStatesEntries = async ({
   entriesToUpdate,
   agreementState,
   dynamoDBClient,
+  logger,
 }: {
   entriesToUpdate: TokenGenStatesConsumerClientGSIAgreement[];
   agreementState: AgreementState;
   dynamoDBClient: DynamoDBClient;
+  logger: Logger;
 }): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
@@ -190,6 +201,9 @@ export const updateAgreementStateOnTokenGenStatesEntries = async ({
     };
     const command = new UpdateItemCommand(input);
     await dynamoDBClient.send(command);
+    logger.info(
+      `Token-generation-states. Updated agreement state in entry ${entry.PK}`
+    );
   }
 };
 
@@ -273,6 +287,9 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
       };
       const command = new UpdateItemCommand(input);
       await dynamoDBClient.send(command);
+      logger.info(
+        `Token-generation-states. Updated agreement state and descriptor info in entry ${entry.PK}`
+      );
     }
   };
 
@@ -449,10 +466,12 @@ export const updateAgreementStateOnTokenGenStates = async ({
   GSIPK_consumerId_eserviceId,
   agreementState,
   dynamoDBClient,
+  logger,
 }: {
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId;
   agreementState: AgreementState;
   dynamoDBClient: DynamoDBClient;
+  logger: Logger;
 }): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
   const runPaginatedQuery = async (
     consumerId_eserviceId: GSIPKConsumerIdEServiceId,
@@ -496,6 +515,7 @@ export const updateAgreementStateOnTokenGenStates = async ({
         entriesToUpdate: tokenGenStatesEntries.data,
         agreementState,
         dynamoDBClient,
+        logger,
       });
 
       if (!data.LastEvaluatedKey) {
@@ -529,6 +549,7 @@ export const readCatalogEntry = async (
       PK: { S: primaryKey },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
   const data: GetItemCommandOutput = await dynamoDBClient.send(command);
@@ -550,9 +571,16 @@ export const readCatalogEntry = async (
   }
 };
 
+/* 
+Because of DynamoDB eventual consistency, it's possible that the result of querying platform-states by 
+GSIPK_consumerId_eserviceId doesn't contain the entry with the latest agreement.
+In this case, we need to check if the input agreement timestamp is more recent or equal than GSISK_agreementTimestamp 
+of the latest agreement in platform-states.
+*/
 export const isLatestAgreement = async (
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
   agreementId: AgreementId,
+  currentAgreementTimestamp: string,
   dynamoDBClient: DynamoDBClient
 ): Promise<boolean> => {
   const agreementEntries =
@@ -567,7 +595,12 @@ export const isLatestAgreement = async (
   const agreementIdFromEntry = extractAgreementIdFromAgreementPK(
     agreementEntries[0].PK
   );
-  return agreementIdFromEntry === agreementId;
+
+  return (
+    agreementIdFromEntry === agreementId ||
+    new Date(currentAgreementTimestamp) >=
+      new Date(agreementEntries[0].GSISK_agreementTimestamp)
+  );
 };
 
 export const updateLatestAgreementOnTokenGenStates = async (
@@ -575,18 +608,21 @@ export const updateLatestAgreementOnTokenGenStates = async (
   agreement: Agreement,
   logger: Logger
 ): Promise<void> => {
-  const processAgreementUpdateOnTokenGenStates = async (
-    platformStatesCatalogEntry: PlatformStatesCatalogEntry | undefined
-  ): Promise<void> => {
-    const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-      consumerId: agreement.consumerId,
-      eserviceId: agreement.eserviceId,
-    });
+  const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+    consumerId: agreement.consumerId,
+    eserviceId: agreement.eserviceId,
+  });
 
+  const processAgreementUpdateOnTokenGenStates = async (
+    platformStatesCatalogEntry: PlatformStatesCatalogEntry | undefined,
+    GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId
+  ): Promise<void> => {
+    const currentAgreementTimestamp = extractAgreementTimestamp(agreement);
     if (
       await isLatestAgreement(
         GSIPK_consumerId_eserviceId,
         agreement.id,
+        currentAgreementTimestamp,
         dynamoDBClient
       )
     ) {
@@ -605,6 +641,10 @@ export const updateLatestAgreementOnTokenGenStates = async (
         catalogEntry: platformStatesCatalogEntry,
         logger,
       });
+    } else {
+      logger.info(
+        `Token-generation-states. Skipping processing of entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
+      );
     }
   };
 
@@ -617,8 +657,12 @@ export const updateLatestAgreementOnTokenGenStates = async (
     dynamoDBClient
   );
 
-  await processAgreementUpdateOnTokenGenStates(platformStatesCatalogEntry);
+  await processAgreementUpdateOnTokenGenStates(
+    platformStatesCatalogEntry,
+    GSIPK_consumerId_eserviceId
+  );
 
+  // Second check
   const updatedPlatformStatesCatalogEntry = await readCatalogEntry(
     platformsStatesCatalogEntryPK,
     dynamoDBClient
@@ -631,7 +675,17 @@ export const updateLatestAgreementOnTokenGenStates = async (
         platformStatesCatalogEntry.state)
   ) {
     await processAgreementUpdateOnTokenGenStates(
-      updatedPlatformStatesCatalogEntry
+      updatedPlatformStatesCatalogEntry,
+      GSIPK_consumerId_eserviceId
+    );
+  } else {
+    logger.info(
+      `Token-generation-states. Second retrieval of catalog entry ${platformsStatesCatalogEntryPK} didn't bring any updates to agreement with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}`
     );
   }
 };
+
+export const extractAgreementTimestamp = (agreement: Agreement): string =>
+  agreement.stamps.upgrade?.when.toISOString() ||
+  agreement.stamps.activation?.when.toISOString() ||
+  agreement.createdAt.toISOString();

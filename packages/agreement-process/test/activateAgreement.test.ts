@@ -898,6 +898,7 @@ describe("activate agreement", () => {
         consumerId: consumer.id,
         descriptors: [getMockDescriptorPublished()],
       };
+      const mockAgreement = getMockAgreement(eservice.id);
       const agreement: Agreement = {
         ...getMockAgreement(eservice.id),
         state: agreementState.suspended,
@@ -906,8 +907,15 @@ describe("activate agreement", () => {
         consumerId: consumer.id,
         suspendedAt: new Date(),
         suspendedByConsumer: false,
-        suspendedByProducer: false,
+        suspendedByProducer: true,
         suspendedByPlatform: false,
+        stamps: {
+          ...mockAgreement.stamps,
+          suspensionByProducer: {
+            who: authData.userId,
+            when: new Date(),
+          },
+        },
       };
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedProducer,
@@ -941,6 +949,11 @@ describe("activate agreement", () => {
         declaredAttributes: actualAgreement.declaredAttributes,
         verifiedAttributes: actualAgreement.verifiedAttributes,
         suspendedAt: undefined,
+        suspendedByProducer: false,
+        stamps: {
+          ...agreement.stamps,
+          suspensionByProducer: undefined,
+        },
       };
 
       expect(actualAgreement).toEqual(expectedAgreement);
