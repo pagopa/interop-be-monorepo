@@ -336,13 +336,13 @@ const purposeRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await purposeService.deletePurposeVersion({
-            purposeId: unsafeBrandId(req.params.purposeId),
-            versionId: unsafeBrandId(req.params.versionId),
-            organizationId: req.ctx.authData.organizationId,
-            correlationId: req.ctx.correlationId,
-            logger: ctx.logger,
-          });
+          await purposeService.deletePurposeVersion(
+            {
+              purposeId: unsafeBrandId(req.params.purposeId),
+              versionId: unsafeBrandId(req.params.versionId),
+            },
+            ctx
+          );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -419,13 +419,13 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           const { purposeId, versionId } = req.params;
-          const purposeVersion = await purposeService.activatePurposeVersion({
-            purposeId: unsafeBrandId(purposeId),
-            versionId: unsafeBrandId(versionId),
-            organizationId: req.ctx.authData.organizationId,
-            correlationId: req.ctx.correlationId,
-            logger: ctx.logger,
-          });
+          const purposeVersion = await purposeService.activatePurposeVersion(
+            {
+              purposeId: unsafeBrandId(purposeId),
+              versionId: unsafeBrandId(versionId),
+            },
+            ctx
+          );
           return res
             .status(200)
             .send(
@@ -482,13 +482,13 @@ const purposeRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const suspendedVersion = await purposeService.suspendPurposeVersion({
-            purposeId: unsafeBrandId(req.params.purposeId),
-            versionId: unsafeBrandId(req.params.versionId),
-            organizationId: req.ctx.authData.organizationId,
-            correlationId: req.ctx.correlationId,
-            logger: ctx.logger,
-          });
+          const suspendedVersion = await purposeService.suspendPurposeVersion(
+            {
+              purposeId: unsafeBrandId(req.params.purposeId),
+              versionId: unsafeBrandId(req.params.versionId),
+            },
+            ctx
+          );
           return res
             .status(200)
             .send(
