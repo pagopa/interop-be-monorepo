@@ -77,7 +77,7 @@ import {
   updateTokenGenStatesDataForSecondRetrieval,
   upsertPlatformClientEntry,
   writeTokenGenStatesApiClient,
-  deleteEntriesFromTokenGenStatesByClientIdKid,
+  deleteEntriesFromTokenGenStatesByClientIdKidV1,
   writePlatformClientEntry,
   deleteClientEntryFromTokenGenerationStates,
   readPlatformClientEntry,
@@ -87,6 +87,7 @@ import {
   deleteEntriesFromTokenGenStatesByClientIdV2,
   deleteEntriesFromTokenGenStatesByClientIdV1,
   deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2,
+  deleteEntriesFromTokenGenStatesByClientIdKidV2,
 } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
@@ -106,47 +107,177 @@ describe("utils", () => {
     vi.useRealTimers();
   });
 
-  it("deleteEntriesFromTokenGenStatesByClientIdKid", async () => {
-    const clientIdkid = makeGSIPKClientIdKid({
-      clientId: generateId<ClientId>(),
-      kid: "kid",
+  describe("deleteEntriesFromTokenGenStatesByClientIdKidV1", () => {
+    it("ApiClient", async () => {
+      const clientId = generateId<ClientId>();
+      const kid = "kid";
+      const clientIdkid = makeGSIPKClientIdKid({
+        clientId,
+        kid,
+      });
+
+      const apiClientPK = makeTokenGenerationStatesClientKidPK({
+        clientId,
+        kid,
+      });
+      const clientEntry: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(apiClientPK),
+        GSIPK_clientId_kid: clientIdkid,
+      };
+
+      const otherApiClient = getMockTokenGenStatesApiClient();
+
+      await writeTokenGenStatesApiClient(
+        clientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      await writeTokenGenStatesApiClient(
+        otherApiClient,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      await deleteEntriesFromTokenGenStatesByClientIdKidV1(
+        clientId,
+        kid,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const result = await readAllTokenGenStatesItems(dynamoDBClient);
+      expect(result).toEqual([otherApiClient]);
     });
-    const clientEntry: TokenGenerationStatesApiClient = {
-      ...getMockTokenGenStatesApiClient(),
-      GSIPK_clientId_kid: clientIdkid,
-    };
 
-    const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenGenStatesConsumerClient(),
-      GSIPK_clientId_kid: clientIdkid,
-    };
+    it("ConsumerClient", async () => {
+      const clientId = generateId<ClientId>();
+      const kid = "kid";
+      const purposeId = generateId<PurposeId>();
 
-    const otherConsumerClient: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenGenStatesConsumerClient(),
-    };
+      const consumerClientPK = makeTokenGenerationStatesClientKidPurposePK({
+        clientId,
+        kid,
+        purposeId,
+      });
+      const consumerClient: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenGenStatesConsumerClient(consumerClientPK),
+        GSIPK_clientId_kid: makeGSIPKClientIdKid({
+          clientId,
+          kid,
+        }),
+      };
 
-    await writeTokenGenStatesApiClient(
-      clientEntry,
-      dynamoDBClient,
-      genericLogger
-    );
-    await writeTokenGenStatesConsumerClient(
-      tokenGenStatesConsumerClient,
-      dynamoDBClient
-    );
-    await writeTokenGenStatesConsumerClient(
-      otherConsumerClient,
-      dynamoDBClient
-    );
+      const otherConsumerClient = getMockTokenGenStatesConsumerClient();
 
-    await deleteEntriesFromTokenGenStatesByClientIdKid(
-      clientIdkid,
-      dynamoDBClient,
-      genericLogger
-    );
+      await writeTokenGenStatesConsumerClient(consumerClient, dynamoDBClient);
 
-    const result = await readAllTokenGenStatesItems(dynamoDBClient);
-    expect(result).toEqual([otherConsumerClient]);
+      await writeTokenGenStatesConsumerClient(
+        otherConsumerClient,
+        dynamoDBClient
+      );
+
+      await deleteEntriesFromTokenGenStatesByClientIdKidV1(
+        clientId,
+        kid,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const result = await readAllTokenGenStatesItems(dynamoDBClient);
+      expect(result).toEqual([otherConsumerClient]);
+    });
+  });
+
+  describe("deleteEntriesFromTokenGenStatesByClientIdKidV2", () => {
+    it("ApiClient", async () => {
+      const key = getMockKey();
+
+      const client: Client = {
+        ...getMockClient(),
+        keys: [key],
+      };
+      const clientIdkid = makeGSIPKClientIdKid({
+        clientId: client.id,
+        kid: key.kid,
+      });
+
+      const apiClientPK = makeTokenGenerationStatesClientKidPK({
+        clientId: client.id,
+        kid: key.kid,
+      });
+      const clientEntry: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(apiClientPK),
+        GSIPK_clientId_kid: clientIdkid,
+      };
+
+      const otherApiClient = getMockTokenGenStatesApiClient();
+
+      await writeTokenGenStatesApiClient(
+        clientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      await writeTokenGenStatesApiClient(
+        otherApiClient,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      await deleteEntriesFromTokenGenStatesByClientIdKidV2(
+        client,
+        key.kid,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const result = await readAllTokenGenStatesItems(dynamoDBClient);
+      expect(result).toEqual([otherApiClient]);
+    });
+
+    it("ConsumerClient", async () => {
+      const key = getMockKey();
+      const purposeId = generateId<PurposeId>();
+
+      const client: Client = {
+        ...getMockClient(),
+        keys: [key],
+        purposes: [purposeId],
+      };
+
+      const consumerClientPK = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: client.id,
+        kid: key.kid,
+        purposeId,
+      });
+      const consumerClient: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenGenStatesConsumerClient(consumerClientPK),
+        GSIPK_clientId_kid: makeGSIPKClientIdKid({
+          clientId: client.id,
+          kid: key.kid,
+        }),
+      };
+
+      const otherConsumerClient = getMockTokenGenStatesConsumerClient();
+
+      await writeTokenGenStatesConsumerClient(consumerClient, dynamoDBClient);
+
+      await writeTokenGenStatesConsumerClient(
+        otherConsumerClient,
+        dynamoDBClient
+      );
+
+      await deleteEntriesFromTokenGenStatesByClientIdKidV2(
+        client,
+        key.kid,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const result = await readAllTokenGenStatesItems(dynamoDBClient);
+      expect(result).toEqual([otherConsumerClient]);
+    });
   });
 
   it("deleteClientEntryFromPlatformStates", async () => {
@@ -174,47 +305,114 @@ describe("utils", () => {
     expect(res).toEqual([clientEntry2]);
   });
 
-  it("deleteEntriesFromTokenGenStatesByClientIdV1 - ApiClient", async () => {
-    const mockKey1 = getMockKey();
-    const mockKey2 = getMockKey();
+  describe("deleteEntriesFromTokenGenStatesByClientIdV1", () => {
+    it("ApiClient", async () => {
+      const mockKey1 = getMockKey();
+      const mockKey2 = getMockKey();
 
-    const client: Client = {
-      ...getMockClient(),
-      keys: [mockKey1, mockKey2],
-      purposes: [],
-    };
+      const client: Client = {
+        ...getMockClient(),
+        keys: [mockKey1, mockKey2],
+        purposes: [],
+      };
 
-    const apiClient: TokenGenerationStatesApiClient = {
-      ...getMockTokenGenStatesApiClient(),
-      PK: makeTokenGenerationStatesClientKidPK({
-        clientId: client.id,
-        kid: mockKey1.kid,
-      }),
-      GSIPK_clientId: client.id,
-    };
+      const apiClient1: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(),
+        PK: makeTokenGenerationStatesClientKidPK({
+          clientId: client.id,
+          kid: mockKey1.kid,
+        }),
+        GSIPK_clientId: client.id,
+      };
 
-    const otherApiClient: TokenGenerationStatesApiClient = {
-      ...getMockTokenGenStatesApiClient(),
-    };
-    await writeTokenGenStatesApiClient(
-      apiClient,
-      dynamoDBClient,
-      genericLogger
-    );
-    await writeTokenGenStatesApiClient(
-      otherApiClient,
-      dynamoDBClient,
-      genericLogger
-    );
+      const apiClient2: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(),
+        PK: makeTokenGenerationStatesClientKidPK({
+          clientId: client.id,
+          kid: mockKey2.kid,
+        }),
+        GSIPK_clientId: client.id,
+      };
 
-    await deleteEntriesFromTokenGenStatesByClientIdV1(
-      client.id,
-      dynamoDBClient,
-      genericLogger
-    );
+      const otherApiClient: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(),
+      };
+      await writeTokenGenStatesApiClient(
+        apiClient1,
+        dynamoDBClient,
+        genericLogger
+      );
+      await writeTokenGenStatesApiClient(
+        apiClient2,
+        dynamoDBClient,
+        genericLogger
+      );
+      await writeTokenGenStatesApiClient(
+        otherApiClient,
+        dynamoDBClient,
+        genericLogger
+      );
 
-    const result = await readAllTokenGenStatesItems(dynamoDBClient);
-    expect(result).toEqual([otherApiClient]);
+      await deleteEntriesFromTokenGenStatesByClientIdV1(
+        client.id,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const result = await readAllTokenGenStatesItems(dynamoDBClient);
+      expect(result).toEqual([otherApiClient]);
+    });
+
+    it("ConsumerClient", async () => {
+      const mockKey1 = getMockKey();
+      const mockKey2 = getMockKey();
+      const purposeId = generateId<PurposeId>();
+
+      const client: Client = {
+        ...getMockClient(),
+        keys: [mockKey1, mockKey2],
+        purposes: [purposeId],
+      };
+
+      const consumerClient1: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenGenStatesConsumerClient(),
+        PK: makeTokenGenerationStatesClientKidPurposePK({
+          clientId: client.id,
+          kid: mockKey1.kid,
+          purposeId,
+        }),
+        GSIPK_clientId: client.id,
+      };
+
+      const consumerClient2: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenGenStatesConsumerClient(),
+        PK: makeTokenGenerationStatesClientKidPurposePK({
+          clientId: client.id,
+          kid: mockKey2.kid,
+          purposeId,
+        }),
+        GSIPK_clientId: client.id,
+      };
+
+      const otherConsumerClient = getMockTokenGenStatesConsumerClient();
+
+      await writeTokenGenStatesConsumerClient(consumerClient1, dynamoDBClient);
+      await writeTokenGenStatesConsumerClient(consumerClient2, dynamoDBClient);
+
+      await writeTokenGenStatesConsumerClient(
+        otherConsumerClient,
+        dynamoDBClient
+      );
+
+      await deleteEntriesFromTokenGenStatesByClientIdV1(
+        client.id,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const result = await readAllTokenGenStatesItems(dynamoDBClient);
+      expect(result).toEqual([otherConsumerClient]);
+    });
   });
 
   describe("deleteEntriesFromTokenGenStatesByClientIdV2", () => {

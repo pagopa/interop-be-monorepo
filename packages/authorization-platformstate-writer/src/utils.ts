@@ -50,78 +50,134 @@ import {
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesConsumerClient,
   TokenGenStatesConsumerClientGSIClientPurpose,
-  TokenGenStatesGenericClientGSIClientKid,
   Client,
   TokenGenerationStatesGenericClient,
   TenantId,
   makeGSIPKClientIdKid,
+  clientKidPrefix,
+  clientKidPurposePrefix,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import { z } from "zod";
 import { config } from "./config/config.js";
 
-export const deleteEntriesFromTokenGenStatesByClientIdKid = async (
-  GSIPK_clientId_kid: GSIPKClientIdKid,
+const runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1 = async (
+  prefix: string,
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger,
+  exclusiveStartKey?: Record<string, AttributeValue>
+): Promise<void> => {
+  const readInput: ScanInput = {
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+    FilterExpression: "begins_with(#pk, :prefix)",
+    ExpressionAttributeNames: {
+      "#pk": "PK",
+    },
+    ExpressionAttributeValues: {
+      ":prefix": { S: prefix },
+    },
+    ExclusiveStartKey: exclusiveStartKey,
+    ConsistentRead: true,
+  };
+  const commandQuery = new ScanCommand(readInput);
+  const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+
+  if (!data.Items) {
+    throw genericInternalError(
+      `Unable to read token-generation-states entries: result ${JSON.stringify(
+        data
+      )} `
+    );
+  } else {
+    const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+    const tokenGenStatesEntries = z
+      .array(TokenGenerationStatesGenericClient)
+      .safeParse(unmarshalledItems);
+
+    if (!tokenGenStatesEntries.success) {
+      throw genericInternalError(
+        `Unable to parse token-generation-states entries: result ${JSON.stringify(
+          tokenGenStatesEntries
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+
+    for (const entry of tokenGenStatesEntries.data) {
+      await deleteClientEntryFromTokenGenerationStates(
+        entry.PK,
+        dynamoDBClient,
+        logger
+      );
+    }
+
+    if (data.LastEvaluatedKey) {
+      await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1(
+        prefix,
+        dynamoDBClient,
+        logger,
+        data.LastEvaluatedKey
+      );
+    }
+  }
+};
+
+export const deleteEntriesFromTokenGenStatesByClientIdKidV1 = async (
+  clientId: ClientId,
+  kid: string,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
-  const runPaginatedQuery = async (
-    GSIPK_clientId_kid: GSIPKClientIdKid,
-    dynamoDBClient: DynamoDBClient,
-    exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<void> => {
-    const input: QueryInput = {
-      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      IndexName: "ClientKid",
-      KeyConditionExpression: `GSIPK_clientId_kid = :gsiValue`,
-      ExpressionAttributeValues: {
-        ":gsiValue": { S: GSIPK_clientId_kid },
-      },
-      ExclusiveStartKey: exclusiveStartKey,
-    };
-    const command = new QueryCommand(input);
-    const data: QueryCommandOutput = await dynamoDBClient.send(command);
-    if (!data.Items) {
-      throw genericInternalError(
-        `Unable to read token-generation-states entries: result ${JSON.stringify(
-          data
-        )} `
-      );
-    } else {
-      const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+  const prefix1 = `${clientKidPrefix}${clientId}#${kid}`;
+  const prefix2 = `${clientKidPurposePrefix}${clientId}#${kid}`;
 
-      const tokenGenStatesEntries = z
-        .array(TokenGenStatesGenericClientGSIClientKid)
-        .safeParse(unmarshalledItems);
+  await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1(
+    prefix1,
+    dynamoDBClient,
+    logger,
+    undefined
+  );
+  await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1(
+    prefix2,
+    dynamoDBClient,
+    logger,
+    undefined
+  );
+};
 
-      if (!tokenGenStatesEntries.success) {
-        throw genericInternalError(
-          `Unable to parse token-generation-states entries: result ${JSON.stringify(
-            tokenGenStatesEntries
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-
-      for (const entry of tokenGenStatesEntries.data) {
+export const deleteEntriesFromTokenGenStatesByClientIdKidV2 = async (
+  client: Client,
+  kid: string,
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+): Promise<void> => {
+  if (client.purposes.length > 0) {
+    await Promise.all(
+      client.purposes.map(async (purposeId) => {
+        const pk = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: client.id,
+          kid,
+          purposeId,
+        });
         await deleteClientEntryFromTokenGenerationStates(
-          entry.PK,
+          pk,
           dynamoDBClient,
           logger
         );
-      }
-
-      if (data.LastEvaluatedKey) {
-        await runPaginatedQuery(
-          GSIPK_clientId_kid,
-          dynamoDBClient,
-          data.LastEvaluatedKey
-        );
-      }
-    }
-  };
-
-  await runPaginatedQuery(GSIPK_clientId_kid, dynamoDBClient, undefined);
+      })
+    );
+  } else {
+    const pk = makeTokenGenerationStatesClientKidPK({
+      clientId: client.id,
+      kid,
+    });
+    await deleteClientEntryFromTokenGenerationStates(
+      pk,
+      dynamoDBClient,
+      logger
+    );
+  }
 };
 
 export const deleteClientEntryFromPlatformStates = async (
@@ -145,67 +201,23 @@ export const deleteEntriesFromTokenGenStatesByClientIdV1 = async (
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
-  // We need to find all the entries to delete through a Scan, because the query on the GSI doesn't allow ConsistentRead
-  const runPaginatedQuery = async (
-    clientId: ClientId,
-    dynamoDBClient: DynamoDBClient,
-    exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<void> => {
-    const readInput: ScanInput = {
-      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      FilterExpression: "contains(#pk, :clientId)",
-      ExpressionAttributeNames: {
-        "#pk": "PK",
-      },
-      ExpressionAttributeValues: {
-        ":clientId": { S: clientId },
-      },
-      ConsistentRead: true,
-      ExclusiveStartKey: exclusiveStartKey,
-    };
-    const commandQuery = new ScanCommand(readInput);
-    const data = await dynamoDBClient.send(commandQuery);
+  // We need to find all the entries to delete though a Scan, because the query on the GSI doesn't allow ConsistentRead
 
-    if (!data.Items) {
-      throw genericInternalError(
-        `Unable to read token-generation-states entries: result ${JSON.stringify(
-          data
-        )} `
-      );
-    } else {
-      const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+  const prefix1 = `${clientKidPrefix}${clientId}`;
+  const prefix2 = `${clientKidPurposePrefix}${clientId}`;
 
-      const tokenGenStatesEntries = z
-        .array(TokenGenerationStatesGenericClient)
-        .safeParse(unmarshalledItems);
-
-      if (!tokenGenStatesEntries.success) {
-        throw genericInternalError(
-          `Unable to parse token-generation-states entries: result ${JSON.stringify(
-            tokenGenStatesEntries
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-
-      for (const entry of tokenGenStatesEntries.data) {
-        await deleteClientEntryFromTokenGenerationStates(
-          entry.PK,
-          dynamoDBClient,
-          logger
-        );
-      }
-
-      if (data.LastEvaluatedKey) {
-        await runPaginatedQuery(
-          clientId,
-          dynamoDBClient,
-          data.LastEvaluatedKey
-        );
-      }
-    }
-  };
-
-  await runPaginatedQuery(clientId, dynamoDBClient, undefined);
+  await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1(
+    prefix1,
+    dynamoDBClient,
+    logger,
+    undefined
+  );
+  await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1(
+    prefix2,
+    dynamoDBClient,
+    logger,
+    undefined
+  );
 };
 
 export const deleteEntriesFromTokenGenStatesByClientIdV2 = async (
