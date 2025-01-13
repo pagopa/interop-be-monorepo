@@ -54,7 +54,6 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
   TokenGenerationStatesGenericClient,
-  TokenGenStatesConsumerClientGSIClient,
 } from "pagopa-interop-models";
 import {
   afterAll,
@@ -72,7 +71,7 @@ import {
   setClientPurposeIdsInPlatformStatesEntry,
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
-  readConsumerClientEntriesInTokenGenerationStates,
+  readConsumerClientsInTokenGenStatesV1,
   readPlatformAgreementEntryByGSIPKConsumerIdEServiceId,
   retrievePlatformStatesByPurpose,
   updateTokenGenStatesDataForSecondRetrieval,
@@ -650,7 +649,7 @@ describe("utils", () => {
     });
   });
 
-  it("readConsumerClientEntriesInTokenGenerationStates", async () => {
+  it("readConsumerClientsInTokenGenStatesV1", async () => {
     const clientId = generateId<ClientId>();
     const pk1 = makeTokenGenerationStatesClientKidPK({ clientId, kid: "" });
     const pk2 = makeTokenGenerationStatesClientKidPurposePK({
@@ -682,19 +681,15 @@ describe("utils", () => {
       dynamoDBClient
     );
 
-    const res = await readConsumerClientEntriesInTokenGenerationStates(
+    const res = await readConsumerClientsInTokenGenStatesV1(
       GSIPK_clientId,
       dynamoDBClient
     );
 
     expect(res).toEqual(
       expect.arrayContaining([
-        TokenGenStatesConsumerClientGSIClient.parse(
-          tokenGenStatesConsumerClientWithoutPurpose
-        ),
-        TokenGenStatesConsumerClientGSIClient.parse(
-          tokenGenStatesConsumerClientWithPurpose
-        ),
+        tokenGenStatesConsumerClientWithoutPurpose,
+        tokenGenStatesConsumerClientWithPurpose,
       ])
     );
   });
