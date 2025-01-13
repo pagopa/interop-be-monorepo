@@ -209,7 +209,7 @@ export const deleteEntriesFromTokenGenStatesByClientIdV1 = async (
 };
 
 export const deleteEntriesFromTokenGenStatesByClientIdV2 = async (
-  // For v2 events we have the entire client, so we can build all the PKs we need
+  // For v2 events we have the entire client, so we can build all the PKs of the entries we need to delete
   client: Client,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
