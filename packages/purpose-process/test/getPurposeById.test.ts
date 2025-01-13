@@ -5,6 +5,9 @@ import {
   writeInReadmodel,
   getMockValidRiskAnalysisForm,
   getMockDelegation,
+  addSomeRandomDelegations,
+  getMockAgreement,
+  getMockPurposeVersion,
 } from "pagopa-interop-commons-test";
 import {
   tenantKind,
@@ -19,6 +22,11 @@ import {
   Delegation,
   delegationKind,
   delegationState,
+  Agreement,
+  PurposeVersion,
+  agreementState,
+  eserviceMode,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -35,6 +43,10 @@ import {
   purposeService,
   tenants,
   delegations,
+  addOneDelegation,
+  addOneAgreement,
+  addOneEService,
+  addOneTenant,
 } from "./utils.js";
 
 describe("getPurposeById", () => {
@@ -239,6 +251,138 @@ describe("getPurposeById", () => {
       });
     }
   );
+
+  it("should get the purpose with the risk analysis form if the requester is an e-service delegated consumer", async () => {
+    const consumer = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
+
+    const consumerDelegate = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
+
+    const mockEService: EService = {
+      ...getMockEService(),
+    };
+    const mockPurpose1: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose1.eserviceId,
+      delegatorId: mockPurpose1.consumerId,
+      delegateId: consumerDelegate.id,
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(mockPurpose1);
+    await addOneDelegation(delegation);
+    await addSomeRandomDelegations(mockPurpose1, addOneDelegation);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumerDelegate), tenants);
+
+    const result = await purposeService.getPurposeById(
+      mockPurpose1.id,
+      consumerDelegate.id,
+      genericLogger
+    );
+    expect(result).toMatchObject({
+      purpose: mockPurpose1,
+      isRiskAnalysisValid: true,
+    });
+  });
+
+  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and you should get the purpose with the risk analysis form", async () => {
+    const producer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const producerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      mode: eserviceMode.receive,
+      producerId: producer.id,
+    };
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      producerId: producer.id,
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+      state: agreementState.active,
+    };
+
+    const mockPurposeVersion: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.active,
+    };
+
+    const delegatePurpose: Purpose = {
+      ...getMockPurpose(),
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+      versions: [mockPurposeVersion],
+    };
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegatorId: producer.id,
+      delegateId: producerDelegate.id,
+      state: delegationState.active,
+    });
+
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      delegatorId: consumer.id,
+      delegateId: consumerDelegate.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producerDelegate);
+    await addOneTenant(producer);
+    await addOneTenant(consumerDelegate);
+    await addOneTenant(consumer);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOnePurpose(delegatePurpose);
+    await addOneDelegation(producerDelegation);
+    await addOneDelegation(consumerDelegation);
+    await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
+
+    const result = await purposeService.getPurposeById(
+      delegatePurpose.id,
+      consumerDelegate.id,
+      genericLogger
+    );
+    expect(result).toMatchObject({
+      purpose: delegatePurpose,
+      isRiskAnalysisValid: true,
+    });
+  });
+
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
     const notExistingId: PurposeId = generateId();
     const mockTenant = getMockTenant();
@@ -311,4 +455,36 @@ describe("getPurposeById", () => {
       )
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
+  // it.only("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  //   const tenant = { ...getMockTenant(), kind: tenantKind.PA };
+
+  //   console.log(tenant.id);
+  //   const mockEService: EService = {
+  //     ...getMockEService(),
+  //   };
+  //   const mockPurpose: Purpose = {
+  //     ...getMockPurpose(),
+  //     consumerId: tenant.id,
+  //     eserviceId: mockEService.id,
+  //     riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+  //   };
+
+  //   const delegation = getMockDelegation({
+  //     kind: delegationKind.delegatedConsumer,
+  //     eserviceId: mockPurpose.eserviceId,
+  //     delegatorId: mockPurpose.consumerId,
+  //     delegateId: generateId<TenantId>(),
+  //     state: delegationState.active,
+  //   });
+
+  //   await addOneTenant(tenant);
+  //   await addOnePurpose(mockPurpose);
+  //   await addOneDelegation(delegation);
+  //   await addSomeRandomDelegations(mockPurpose, addOneDelegation);
+  //   await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+  //   expect(
+  //     purposeService.getPurposeById(mockPurpose.id, tenant.id, genericLogger)
+  //   ).rejects.toThrowError(organizationNotAllowed(tenant.id));
+  // });
 });
