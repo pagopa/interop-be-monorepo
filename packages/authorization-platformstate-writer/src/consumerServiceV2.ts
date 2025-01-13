@@ -25,10 +25,8 @@ import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
-  convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
   deleteEntriesFromTokenGenStatesByClientIdKid,
-  deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId,
   readPlatformClientEntry,
   deleteClientEntryFromTokenGenerationStates,
   extractAgreementIdFromAgreementPK,
@@ -40,6 +38,7 @@ import {
   updateTokenGenStatesDataForSecondRetrieval,
   createTokenGenStatesConsumerClient,
   deleteEntriesFromTokenGenStatesByClientIdV2,
+  deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -400,10 +399,7 @@ export async function handleMessageV2(
           );
           return Promise.resolve();
         } else {
-          const GSIPK_clientId_purposeId = makeGSIPKClientIdPurposeId({
-            clientId: client.id,
-            purposeId: unsafeBrandId(msg.data.purposeId),
-          });
+          const purposeId = unsafeBrandId<PurposeId>(msg.data.purposeId);
 
           // platform-states
           await setClientPurposeIdsInPlatformStatesEntry(
@@ -413,19 +409,12 @@ export async function handleMessageV2(
           );
 
           // token-generation-states
-          if (client.purposes.length > 0) {
-            await deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId(
-              GSIPK_clientId_purposeId,
-              dynamoDBClient,
-              logger
-            );
-          } else {
-            await convertEntriesToClientKidInTokenGenerationStates(
-              GSIPK_clientId_purposeId,
-              dynamoDBClient,
-              logger
-            );
-          }
+          await deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2(
+            client,
+            purposeId,
+            dynamoDBClient,
+            logger
+          );
         }
       } else {
         logger.info(

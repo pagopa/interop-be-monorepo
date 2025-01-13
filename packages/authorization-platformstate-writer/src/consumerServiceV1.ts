@@ -34,7 +34,7 @@ import {
   deleteClientEntryFromTokenGenerationStates,
   deleteEntriesFromTokenGenStatesByClientIdKid,
   deleteEntriesFromTokenGenStatesByClientIdV1,
-  deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId,
+  deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV1,
   extractAgreementIdFromAgreementPK,
   extractKidFromTokenGenStatesEntryPK,
   readConsumerClientsInTokenGenStatesV1,
@@ -485,7 +485,7 @@ export async function handleMessageV1(
 
           // token-generation-states
           if (updatedPurposeIds.length > 0) {
-            await deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId(
+            await deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV1(
               GSIPK_clientId_purposeId,
               dynamoDBClient,
               logger
