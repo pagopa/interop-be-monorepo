@@ -305,7 +305,7 @@ const readTokenGenStatesConsumerClientsByGSIPKClientPurposeV1 = async (
   tokenGenStatesEntries: TokenGenStatesConsumerClientGSIClient[];
   lastEvaluatedKey: Record<string, AttributeValue> | undefined;
 }> => {
-  // This function uses a Scan because ConsistentRead can't be used on GSIPKs
+  // This function performs a Scan because ConsistentRead can't be used on GSIPKs
   const readInput: ScanInput = {
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
     FilterExpression: `GSIPK_clientId_purposeId = :gsiValue`,
