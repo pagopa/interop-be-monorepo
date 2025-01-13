@@ -501,6 +501,29 @@ const agreementRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+
+    .post("/agreements/verify", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await agreementService.verifyTenantCertifiedAttributes(
+          req.body,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(bffApi.HasCertifiedAttributes.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error verifying certified attributes`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return agreementRouter;

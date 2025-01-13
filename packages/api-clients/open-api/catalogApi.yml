@@ -1286,6 +1286,10 @@ components:
           $ref: "#/components/schemas/DescriptorSeedForEServiceCreation"
         isSignalHubEnabled:
           type: boolean
+        isDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -1308,6 +1312,10 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
+          type: boolean
+        isDelegable:
+          type: boolean
+        isClientAccessDelegable:
           type: boolean
     DescriptorSeedForEServiceCreation:
       required:
@@ -1604,6 +1612,10 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
+          type: boolean
+        isDelegable:
+          type: boolean
+        isClientAccessDelegable:
           type: boolean
     EServiceMode:
       type: string
