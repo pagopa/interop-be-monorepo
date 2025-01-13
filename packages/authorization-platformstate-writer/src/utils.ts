@@ -151,20 +151,32 @@ export const deleteEntriesFromTokenGenStatesByClientIdKidV2 = async (
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
-  await Promise.all(
-    client.purposes.map(async (purposeId) => {
-      const pk = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: client.id,
-        kid,
-        purposeId,
-      });
-      await deleteClientEntryFromTokenGenerationStates(
-        pk,
-        dynamoDBClient,
-        logger
-      );
-    })
-  );
+  if (client.purposes.length > 0) {
+    await Promise.all(
+      client.purposes.map(async (purposeId) => {
+        const pk = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: client.id,
+          kid,
+          purposeId,
+        });
+        await deleteClientEntryFromTokenGenerationStates(
+          pk,
+          dynamoDBClient,
+          logger
+        );
+      })
+    );
+  } else {
+    const pk = makeTokenGenerationStatesClientKidPK({
+      clientId: client.id,
+      kid,
+    });
+    await deleteClientEntryFromTokenGenerationStates(
+      pk,
+      dynamoDBClient,
+      logger
+    );
+  }
 };
 
 export const deleteClientEntryFromPlatformStates = async (
