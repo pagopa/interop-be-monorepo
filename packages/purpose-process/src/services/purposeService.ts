@@ -238,7 +238,6 @@ export function purposeServiceBuilder(
     ): Promise<{
       purpose: Purpose;
       isRiskAnalysisValid: boolean;
-      delegationId: string | undefined;
     }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
@@ -255,7 +254,10 @@ export function purposeServiceBuilder(
         readModelService.getActiveProducerDelegationByEserviceId(
           purpose.data.eserviceId
         ),
-        readModelService.getActiveConsumerDelegationByPurpose(purpose.data),
+        readModelService.getActiveConsumerDelegationByPurpose({
+          eserviceId: purpose.data.eserviceId,
+          consumerId: purpose.data.consumerId,
+        }),
       ]);
 
       const purposeWithRiskAnalysis = authorizeRiskAnalysisForm({
@@ -267,8 +269,13 @@ export function purposeServiceBuilder(
       });
 
       return {
-        ...purposeWithRiskAnalysis,
-        delegationId: activeConsumerDelegation?.id,
+        isRiskAnalysisValid: purposeWithRiskAnalysis.isRiskAnalysisValid,
+        purpose: {
+          ...purposeWithRiskAnalysis.purpose,
+          delegationId: activeConsumerDelegation
+            ? activeConsumerDelegation.id
+            : undefined,
+        },
       };
     },
     async getRiskAnalysisDocument({
