@@ -15362,7 +15362,7 @@ components:
           type: integer
           format: int32
         delegation:
-          $ref: "#/components/schemas/PurposeDelegation"
+          $ref: "#/components/schemas/DelegationWithCompactTenants"
       required:
         - id
         - title
@@ -15615,29 +15615,21 @@ components:
       required:
         - results
         - pagination
-    PurposeDelegation:
+    DelegationWithCompactTenants:
       type: object
       additionalProperties: false
       required:
         - id
-        - delegateId
-        - delegateName
-        - delegatorId
-        - delegatorName
+        - delegate
+        - delegator
       properties:
         id:
           type: string
           format: uuid
-        delegateId:
-          type: string
-          format: uuid
-        delegateName:
-          type: string
-        delegatorId:
-          type: string
-          format: uuid
-        delegatorName:
-          type: string
+        delegate:
+          $ref: "#/components/schemas/CompactOrganization"
+        delegator:
+          $ref: "#/components/schemas/CompactOrganization"
     PurposeVersion:
       type: object
       additionalProperties: false

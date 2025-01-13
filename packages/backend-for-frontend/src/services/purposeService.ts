@@ -37,6 +37,7 @@ import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
+import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { isAgreementUpgradable } from "./validators.js";
@@ -46,7 +47,7 @@ const enrichPurposeDelegation = async (
   delegationProcessClient: DelegationProcessClient,
   tenantProcessClient: TenantProcessClient,
   headers: Headers
-): Promise<bffApi.PurposeDelegation> => {
+): Promise<bffApi.DelegationWithCompactTenants> => {
   const delegation = await delegationProcessClient.delegation.getDelegation({
     headers,
     params: {
@@ -74,10 +75,18 @@ const enrichPurposeDelegation = async (
 
   return {
     id: delegationId,
-    delegateId: delegate.id,
-    delegateName: delegate.name,
-    delegatorId: delegator.id,
-    delegatorName: delegator.name,
+    delegate: {
+      id: delegate.id,
+      name: delegate.name,
+      contactMail: getLatestTenantContactEmail(delegate),
+      kind: delegate.kind,
+    },
+    delegator: {
+      id: delegator.id,
+      name: delegator.name,
+      contactMail: getLatestTenantContactEmail(delegator),
+      kind: delegator.kind,
+    },
   };
 };
 
