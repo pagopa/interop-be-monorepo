@@ -103,9 +103,7 @@ export async function handleMessageV1(
             existingCatalogEntry.version > msg.version
           ) {
             logger.info(
-              `Skipping processing of entry ${
-                existingCatalogEntry?.PK
-              }. Reason: ${
+              `Skipping processing of entry ${eserviceDescriptorPK}. Reason: ${
                 !existingCatalogEntry
                   ? "entry not found in platform-states"
                   : "a more recent entry already exists"
