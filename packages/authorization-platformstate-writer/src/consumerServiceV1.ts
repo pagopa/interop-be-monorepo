@@ -23,6 +23,7 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
+  TokenGenerationStatesClientKidPK,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Logger } from "pagopa-interop-commons";
@@ -328,7 +329,8 @@ export async function handleMessageV1(
         return Promise.resolve();
       }
 
-      const purposeIds = [...clientEntry.clientPurposesIds, purposeId];
+      // Deduplicate in case of retry and reprocess
+      const purposeIds = Array.from(new Set([...clientEntry.clientPurposesIds, purposeId]));
       await setClientPurposeIdsInPlatformStatesEntry(
         {
           primaryKey: pk,
@@ -360,7 +362,8 @@ export async function handleMessageV1(
 
         for (const entry of tokenGenStatesConsumerClients) {
           const addedTokenGenStatesConsumerClient = await match(
-            clientEntry.clientPurposesIds.length
+            // Exclude current purpose in case of retry and reprocess
+            clientEntry.clientPurposesIds.filter(p => p!= purposeId).length
           )
             .with(0, async () => {
               const newTokenGenStatesConsumerClient =
@@ -380,11 +383,14 @@ export async function handleMessageV1(
                 dynamoDBClient,
                 logger
               );
-              await deleteClientEntryFromTokenGenerationStates(
-                entry.PK,
-                dynamoDBClient,
-                logger
-              );
+              if(TokenGenerationStatesClientKidPK.safeParse(entry.PK).success){
+                // Remove only partial entries (to avoid deleting complete entries after retry)
+                await deleteClientEntryFromTokenGenerationStates(
+                  entry.PK,
+                  dynamoDBClient,
+                  logger
+                );
+              }
               return newTokenGenStatesConsumerClient;
             })
             .with(P.number.gt(0), async () => {
