@@ -235,10 +235,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       organizationId: TenantId,
       logger: Logger
-    ): Promise<{
-      purpose: Purpose;
-      isRiskAnalysisValid: boolean;
-    }> {
+    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
