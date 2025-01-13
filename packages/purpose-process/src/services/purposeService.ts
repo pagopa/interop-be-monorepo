@@ -252,6 +252,11 @@ export function purposeServiceBuilder(
         : undefined;
       const basePurpose = { ...purpose.data, delegationId };
 
+      const tenantKind = await retrieveTenantKind(
+        organizationId,
+        readModelService
+      );
+
       const isAllowedToRetrieveRiskAnalysis =
         await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument(
           purpose.data,
@@ -276,7 +281,7 @@ export function purposeServiceBuilder(
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
-            await retrieveTenantKind(organizationId, readModelService)
+            tenantKind
           )
         : true;
 
