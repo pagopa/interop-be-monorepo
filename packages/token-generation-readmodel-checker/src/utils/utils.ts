@@ -638,13 +638,19 @@ function validateTokenGenerationStates({
   agreementsByConsumerIdEserviceId: Map<GSIPKConsumerIdEServiceId, Agreement[]>;
   logger: Logger;
 }): number {
-  const expectedTokenGenStatesEntriesCount =
+  // eslint-disable-next-line functional/no-let
+  let expectedTokenGenStatesEntriesCount =
     client.purposes.length > 0
       ? client.keys.length * client.purposes.length
       : client.keys.length;
 
   if (!tokenGenStatesEntries || tokenGenStatesEntries.length === 0) {
-    if (client.keys.length === 0) {
+    if (client.keys.length === 0 || client.purposes.length === 0) {
+      /*
+      In the token-generation-states table it's possible for the consumer clients to have CLIENTKID PKs if the associated client has keys but not purposes.
+      This only happens for the events V1, but the script is not able to differentiate the entries based on the data provided, so all the entries of that type
+      are ignored in the token-generation-states check.
+      */
       return 0;
     }
 
@@ -658,57 +664,18 @@ function validateTokenGenerationStates({
 
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
+  // eslint-disable-next-line functional/no-let
+  let correctCount = 0;
   for (const e of tokenGenStatesEntries) {
     const extractedKid = getKidFromTokenGenStatesPK(e.PK);
     const key = client.keys.find(
       (k) => k.encodedPem === e.publicKey && k.kid === extractedKid
     );
 
-    function compareClientKidEntry(): void {
-      if (
-        !TokenGenerationStatesClientKidPK.safeParse(e.PK).success &&
-        e.clientKind === clientKindTokenGenStates.consumer
-      ) {
-        logger.error(
-          `token-generation-states entry has PK ${e.PK}, but should have a CLIENTKID PK`
-        );
-      }
-
-      const comparisonTokenGenStatesEntry: ComparisonTokenGenStatesGenericClient =
-        {
-          PK: key
-            ? makeTokenGenerationStatesClientKidPK({
-                clientId: client.id,
-                kid: key.kid,
-              })
-            : undefined,
-          consumerId: client.consumerId,
-          clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
-          publicKey: key?.encodedPem,
-          GSIPK_clientId: client.id,
-          GSIPK_clientId_kid: key
-            ? makeGSIPKClientIdKid({ clientId: client.id, kid: key.kid })
-            : undefined,
-        };
-
-      const objectsDiff = diff(
-        ComparisonTokenGenStatesGenericClient.parse(e),
-        comparisonTokenGenStatesEntry,
-        { sort: true }
-      );
-      if (objectsDiff) {
-        differencesCount++;
-        logger.error(
-          `Differences in token-generation-states when checking entry with PK ${e.PK}`
-        );
-        logger.error(JSON.stringify(objectsDiff, null, 2));
-      }
-    }
-
     match(e)
       .with({ clientKind: clientKindTokenGenStates.consumer }, (e) => {
-        if (client.purposes.length !== 0) {
-          // TokenGenerationStatesConsumerClient with CLIENTKIDPURPOSE PK
+        if (client.purposes.length > 0) {
+          // TokenGenerationStatesConsumerClient should have a CLIENTKIDPURPOSE PK
           const purposeId = getPurposeIdFromTokenGenStatesPK(e.PK);
           const purpose = purposeId ? purposesById.get(purposeId) : undefined;
           if (!purpose) {
@@ -716,6 +683,8 @@ function validateTokenGenerationStates({
               TokenGenerationStatesClientKidPurposePK.safeParse(e.PK).success
             ) {
               if (!e.purposeState || e.purposeState === itemState.inactive) {
+                // Ignore consumer clients with purpose state inactive if the purpose is not found in the read model
+                expectedTokenGenStatesEntriesCount--;
                 return;
               }
 
@@ -834,19 +803,74 @@ function validateTokenGenerationStates({
               `Differences in token-generation-states when checking entry with PK ${e.PK}`
             );
             logger.error(JSON.stringify(objectsDiff, null, 2));
+          } else {
+            correctCount++;
           }
         } else {
-          // TokenGenerationStatesConsumerClient with CLIENTKID PK
-          compareClientKidEntry();
+          // TokenGenerationStatesConsumerClient should have a CLIENTKID PK
+          if (TokenGenerationStatesClientKidPurposePK.safeParse(e.PK).success) {
+            logger.error(
+              `token-generation-states should have ${expectedTokenGenStatesEntriesCount} entries, but has a consumer client with PK ${e.PK}`
+            );
+            differencesCount++;
+          } else {
+            // Ignore consumer clients with CLIENTKID PK
+            expectedTokenGenStatesEntriesCount--;
+          }
         }
       })
       .with({ clientKind: clientKindTokenGenStates.api }, () => {
-        compareClientKidEntry();
+        const comparisonTokenGenStatesEntry: ComparisonTokenGenStatesGenericClient =
+          {
+            PK: key
+              ? makeTokenGenerationStatesClientKidPK({
+                  clientId: client.id,
+                  kid: key.kid,
+                })
+              : undefined,
+            consumerId: client.consumerId,
+            clientKind: clientKindToTokenGenerationStatesClientKind(
+              client.kind
+            ),
+            publicKey: key?.encodedPem,
+            GSIPK_clientId: client.id,
+            GSIPK_clientId_kid: key
+              ? makeGSIPKClientIdKid({ clientId: client.id, kid: key.kid })
+              : undefined,
+          };
+
+        const objectsDiff = diff(
+          ComparisonTokenGenStatesGenericClient.parse(e),
+          comparisonTokenGenStatesEntry,
+          { sort: true }
+        );
+        if (objectsDiff) {
+          differencesCount++;
+          logger.error(
+            `Differences in token-generation-states when checking entry with PK ${e.PK}`
+          );
+          logger.error(JSON.stringify(objectsDiff, null, 2));
+        } else {
+          correctCount++;
+        }
       })
       .exhaustive();
   }
 
-  return differencesCount;
+  const missingEntriesCount = expectedTokenGenStatesEntriesCount - correctCount;
+  return (
+    missingEntriesCount +
+    differencesCount -
+    /*
+    This calculates the overlap between the expected count and the differences count.
+    Examples:
+    1) 1 missing entry but 3 wrong entries, only 1 wrong entry can "replace" the missing entry. The other 2 wrong entries remain wrong.
+      -> Overlap = min(1, 3) = 1.
+    2) 2 missing entries and 1 wrong entry, only 1 missing entry can be "replaced" by the wrong entry. The other missing entry remains missing.
+      -> Overlap = min(2, 1) = 1.
+    */
+    Math.min(missingEntriesCount, differencesCount)
+  );
 }
 
 export const agreementStateToItemState = (state: AgreementState): ItemState =>
