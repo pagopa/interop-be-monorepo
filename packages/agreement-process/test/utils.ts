@@ -34,8 +34,8 @@ import {
   Delegation,
   AgreementStamp,
   UserId,
-  delegationState,
   delegationKind,
+  delegationState,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -275,28 +275,6 @@ export const getRandomPastStamp = (
   who: userId,
   when: subDays(new Date(), randomInt(10)),
 });
-
-export const addSomeRandomDelegations = async (
-  agreement: Agreement
-): Promise<void> => {
-  const states = [delegationState.rejected, delegationState.revoked];
-  const kinds = [
-    delegationKind.delegatedProducer,
-    delegationKind.delegatedConsumer,
-  ];
-
-  for (const state of states) {
-    for (const kind of kinds) {
-      await addOneDelegation(
-        getMockDelegation({
-          eserviceId: agreement.eserviceId,
-          kind,
-          state,
-        })
-      );
-    }
-  }
-};
 
 export const requesterIs = {
   producer: "Producer",

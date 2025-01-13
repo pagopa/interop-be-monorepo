@@ -15,6 +15,9 @@ import {
   writeInReadmodel,
   decodeProtobufPayload,
   getRandomAuthData,
+  getMockDelegation,
+  addSomeRandomDelegations,
+  getMockAgreement,
 } from "pagopa-interop-commons-test/index.js";
 import {
   tenantKind,
@@ -33,6 +36,9 @@ import {
   RiskAnalysis,
   eserviceMode,
   toReadModelTenant,
+  delegationKind,
+  delegationState,
+  Agreement,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
@@ -47,6 +53,7 @@ import {
   tenantKindNotFound,
   riskAnalysisValidationFailed,
   duplicatedPurposeTitle,
+  organizationNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   getMockEService,
@@ -57,6 +64,10 @@ import {
   eservices,
   purposeService,
   tenants,
+  addOneDelegation,
+  addOneTenant,
+  addOneEService,
+  addOneAgreement,
 } from "./utils.js";
 
 describe("updatePurpose and updateReversePurpose", () => {
@@ -172,7 +183,6 @@ describe("updatePurpose and updateReversePurpose", () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
     expect(isRiskAnalysisValid).toBe(true);
   });
-
   it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (no title change)", async () => {
     await addOnePurpose(purposeForDeliver);
     await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
@@ -251,6 +261,325 @@ describe("updatePurpose and updateReversePurpose", () => {
 
     const expectedPurpose: Purpose = createUpdatedPurpose(
       purposeForReceive,
+      reversePurposeUpdateContent,
+      validRiskAnalysis,
+      writtenPayload.purpose!.riskAnalysisForm!
+    );
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toBe(true);
+  });
+  it("should succeed when requester is Consumer Delegate and the Purpose is in a updatable state and the e-service is in mode DELIVER", async () => {
+    const authData = getRandomAuthData();
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purposeForDeliver.eserviceId,
+      delegatorId: purposeForDeliver.consumerId,
+      delegateId: authData.organizationId,
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(purposeForDeliver);
+    await addOneDelegation(delegation);
+    await addSomeRandomDelegations(purposeForDeliver, addOneDelegation);
+    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+
+    const updateContentWithoutTitle = {
+      ...purposeUpdateContent,
+      title: purposeForDeliver.title,
+    };
+
+    const { purpose, isRiskAnalysisValid } = await purposeService.updatePurpose(
+      purposeForDeliver.id,
+      updateContentWithoutTitle,
+      {
+        authData,
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
+
+    const writtenEvent = await readLastPurposeEvent(purposeForDeliver.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purposeForDeliver.id,
+      version: "1",
+      type: "DraftPurposeUpdated",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftPurposeUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedPurpose: Purpose = createUpdatedPurpose(
+      purposeForDeliver,
+      updateContentWithoutTitle,
+      validRiskAnalysis,
+      writtenPayload.purpose!.riskAnalysisForm!
+    );
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toBe(true);
+  });
+  it("should succeed when requester is Consumer Delegate and the Purpose is in a updatable state and the e-service is in mode RECEIVE", async () => {
+    const authData = getRandomAuthData();
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purposeForReceive.eserviceId,
+      delegatorId: purposeForReceive.consumerId,
+      delegateId: authData.organizationId,
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(purposeForReceive);
+    await addOneDelegation(delegation);
+    await addSomeRandomDelegations(purposeForDeliver, addOneDelegation);
+    await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
+    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+
+    const { purpose, isRiskAnalysisValid } =
+      await purposeService.updateReversePurpose(
+        purposeForReceive.id,
+        reversePurposeUpdateContent,
+        {
+          authData,
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+
+    const writtenEvent = await readLastPurposeEvent(purposeForReceive.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: purposeForReceive.id,
+      version: "1",
+      type: "DraftPurposeUpdated",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftPurposeUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedPurpose: Purpose = createUpdatedPurpose(
+      purposeForReceive,
+      reversePurposeUpdateContent,
+      validRiskAnalysis,
+      writtenPayload.purpose!.riskAnalysisForm!
+    );
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toBe(true);
+  });
+  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a updatable state and the e-service is in mode DELIVER", async () => {
+    const producer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantType,
+    };
+    const producerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantType,
+    };
+    const consumer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantType,
+    };
+    const consumerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantType,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      mode: eserviceMode.deliver,
+      producerId: producer.id,
+    };
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      producerId: producer.id,
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+    };
+    const delegatePurpose: Purpose = {
+      ...purposeForDeliver,
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+    };
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegatorId: producer.id,
+      delegateId: producerDelegate.id,
+      state: delegationState.active,
+    });
+
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      delegatorId: consumer.id,
+      delegateId: consumerDelegate.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producerDelegate);
+    await addOneTenant(producer);
+    await addOneTenant(consumerDelegate);
+    await addOneTenant(consumer);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOnePurpose(delegatePurpose);
+    await addOneDelegation(producerDelegation);
+    await addOneDelegation(consumerDelegation);
+    await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
+
+    const updateContentWithoutTitle = {
+      ...purposeUpdateContent,
+      title: delegatePurpose.title,
+    };
+
+    const { purpose, isRiskAnalysisValid } = await purposeService.updatePurpose(
+      delegatePurpose.id,
+      updateContentWithoutTitle,
+      {
+        authData: getRandomAuthData(consumerDelegate.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
+
+    const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: delegatePurpose.id,
+      version: "1",
+      type: "DraftPurposeUpdated",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftPurposeUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedPurpose: Purpose = createUpdatedPurpose(
+      delegatePurpose,
+      updateContentWithoutTitle,
+      validRiskAnalysis,
+      writtenPayload.purpose!.riskAnalysisForm!
+    );
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toBe(true);
+  });
+  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a updatable state and the e-service is in mode RECEIVE", async () => {
+    const producerDelegator = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantType,
+    };
+    const producer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantType,
+    };
+    const consumerDelegator = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantType,
+    };
+    const consumer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantType,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      mode: eserviceMode.receive,
+      producerId: producer.id,
+    };
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      producerId: producer.id,
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+    };
+    const delegatePurpose: Purpose = {
+      ...purposeForReceive,
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+    };
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegatorId: producerDelegator.id,
+      delegateId: producer.id,
+      state: delegationState.active,
+    });
+
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      delegatorId: consumerDelegator.id,
+      delegateId: consumer.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producerDelegator);
+    await addOneTenant(producer);
+    await addOneTenant(consumerDelegator);
+    await addOneTenant(consumer);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOnePurpose(delegatePurpose);
+    await addOneDelegation(producerDelegation);
+    await addOneDelegation(consumerDelegation);
+    await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
+
+    const { purpose, isRiskAnalysisValid } =
+      await purposeService.updateReversePurpose(
+        delegatePurpose.id,
+        reversePurposeUpdateContent,
+        {
+          authData: getRandomAuthData(consumer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+
+    const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: delegatePurpose.id,
+      version: "1",
+      type: "DraftPurposeUpdated",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftPurposeUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedPurpose: Purpose = createUpdatedPurpose(
+      delegatePurpose,
       reversePurposeUpdateContent,
       validRiskAnalysis,
       writtenPayload.purpose!.riskAnalysisForm!
@@ -534,5 +863,62 @@ describe("updatePurpose and updateReversePurpose", () => {
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
     );
+  });
+  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation in updatePurpose", async () => {
+    const authData = getRandomAuthData();
+    const purpose = {
+      ...purposeForDeliver,
+      consumerId: authData.organizationId,
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+    await addOnePurpose(purpose);
+    await addOneDelegation(delegation);
+    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    expect(
+      purposeService.updatePurpose(purposeForDeliver.id, purposeUpdateContent, {
+        authData,
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
+    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+  });
+  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation in updateReversePurpose", async () => {
+    const authData = getRandomAuthData();
+    const purpose = {
+      ...purposeForDeliver,
+      consumerId: authData.organizationId,
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+    await addOnePurpose(purpose);
+    await addOneDelegation(delegation);
+    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+
+    expect(
+      purposeService.updateReversePurpose(
+        purposeForDeliver.id,
+        reversePurposeUpdateContent,
+        {
+          authData,
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
+    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
 });

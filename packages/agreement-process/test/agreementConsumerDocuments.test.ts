@@ -2,6 +2,7 @@
 import { generateMock } from "@anatine/zod-mock";
 import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
+  addSomeRandomDelegations,
   decodeProtobufPayload,
   getMockAgreement,
   getMockDelegation,
@@ -42,7 +43,6 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
-  addSomeRandomDelegations,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -126,7 +126,7 @@ describe("agreement consumer document", () => {
       await addOneEService(eservice);
       await addOneAgreement(agreement);
       await addOneDelegation(delegation);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
 
       const result = await agreementService.getAgreementConsumerDocument(
         agreement.id,
@@ -167,7 +167,7 @@ describe("agreement consumer document", () => {
 
       await addOneAgreement(agreement);
       await addOneDelegation(delegation);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
 
       for (const document of consumerDocuments) {
         const result = await agreementService.getAgreementConsumerDocument(
@@ -429,7 +429,7 @@ describe("agreement consumer document", () => {
         state: delegationState.active,
       });
       await addOneDelegation(delegation);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
 
       const returnedConsumerDocument =
         await agreementService.addConsumerDocument(
@@ -543,7 +543,7 @@ describe("agreement consumer document", () => {
         state: delegationState.active,
       });
       await addOneDelegation(delegation);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
 
       const actualConsumerDocument = agreementService.addConsumerDocument(
         agreement.id,
@@ -699,7 +699,7 @@ describe("agreement consumer document", () => {
       });
 
       await addOneDelegation(delegation);
-      await addSomeRandomDelegations(agreement1);
+      await addSomeRandomDelegations(agreement1, addOneDelegation);
 
       await uploadDocument(
         agreement1.id,

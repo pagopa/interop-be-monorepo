@@ -5,6 +5,7 @@ import {
   decodeProtobufPayload,
   randomArrayItem,
   getMockDelegation,
+  addSomeRandomDelegations,
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
@@ -27,7 +28,6 @@ import { agreementUpdatableStates } from "../src/model/domain/agreement-validato
 import {
   addOneAgreement,
   addOneDelegation,
-  addSomeRandomDelegations,
   agreementService,
   readLastAgreementEvent,
 } from "./utils.js";
@@ -153,7 +153,7 @@ describe("update agreement", () => {
     });
     await addOneAgreement(agreement);
     await addOneDelegation(delegation);
-    await addSomeRandomDelegations(agreement);
+    await addSomeRandomDelegations(agreement, addOneDelegation);
 
     const returnedAgreement = await agreementService.updateAgreement(
       agreement.id,
