@@ -192,26 +192,8 @@ export async function handleMessageV2(
               })
             );
           } else {
-            const tokenGenStatesConsumerClientWithoutPurpose: TokenGenerationStatesConsumerClient =
-              {
-                PK: makeTokenGenerationStatesClientKidPK({
-                  clientId: client.id,
-                  kid: msg.data.kid,
-                }),
-                consumerId: client.consumerId,
-                clientKind: clientKindTokenGenStates.consumer,
-                publicKey: pem,
-                GSIPK_clientId: client.id,
-                GSIPK_clientId_kid: makeGSIPKClientIdKid({
-                  clientId: client.id,
-                  kid: msg.data.kid,
-                }),
-                updatedAt: new Date().toISOString(),
-              };
-            await upsertTokenGenStatesConsumerClient(
-              tokenGenStatesConsumerClientWithoutPurpose,
-              dynamoDBClient,
-              logger
+            logger.info(
+              "Token-generation-states. No entry to add because the client doesn't have any purposes yet"
             );
           }
         })
