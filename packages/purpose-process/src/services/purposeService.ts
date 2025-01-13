@@ -239,23 +239,20 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      const [eservice, activeConsumerDelegation] = await Promise.all([
-        retrieveEService(purpose.data.eserviceId, readModelService),
-        readModelService.getActiveConsumerDelegationByPurpose({
-          eserviceId: purpose.data.eserviceId,
-          consumerId: purpose.data.consumerId,
-        }),
-      ]);
+      const [eservice, activeConsumerDelegation, tenantKind] =
+        await Promise.all([
+          retrieveEService(purpose.data.eserviceId, readModelService),
+          readModelService.getActiveConsumerDelegationByPurpose({
+            eserviceId: purpose.data.eserviceId,
+            consumerId: purpose.data.consumerId,
+          }),
+          retrieveTenantKind(organizationId, readModelService),
+        ]);
 
       const delegationId = activeConsumerDelegation
         ? activeConsumerDelegation.id
         : undefined;
       const basePurpose = { ...purpose.data, delegationId };
-
-      const tenantKind = await retrieveTenantKind(
-        organizationId,
-        readModelService
-      );
 
       const isAllowedToRetrieveRiskAnalysis =
         await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument(
