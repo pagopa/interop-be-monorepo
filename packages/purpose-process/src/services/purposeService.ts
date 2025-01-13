@@ -55,7 +55,6 @@ import {
   notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
-  organizationNotAllowed,
   purposeCannotBeDeleted,
   purposeCannotBeCloned,
   purposeNotFound,
@@ -68,6 +67,7 @@ import {
   riskAnalysisConfigLatestVersionNotFound,
   tenantKindNotFound,
   unchangedDailyCalls,
+  organizationNotAllowed,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -1366,24 +1366,20 @@ const getOrganizationRole = async ({
     );
     return ownership.PRODUCER;
   } catch {
-    /* empty */
+    try {
+      assertRequesterCanActAsConsumer(
+        { eserviceId: eservice.id, consumerId },
+        authData,
+        await readModelService.getActiveConsumerDelegationByPurpose({
+          eserviceId: eservice.id,
+          consumerId,
+        })
+      );
+      return ownership.CONSUMER;
+    } catch {
+      throw organizationNotAllowed(authData.organizationId);
+    }
   }
-
-  try {
-    assertRequesterCanActAsConsumer(
-      { eserviceId: eservice.id, consumerId },
-      authData,
-      await readModelService.getActiveConsumerDelegationByPurpose({
-        eserviceId: eservice.id,
-        consumerId,
-      })
-    );
-    return ownership.CONSUMER;
-  } catch {
-    /* empty */
-  }
-
-  throw organizationNotAllowed(authData.organizationId);
 };
 
 const replacePurposeVersion = (

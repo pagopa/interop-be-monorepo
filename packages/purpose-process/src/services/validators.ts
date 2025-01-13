@@ -27,6 +27,8 @@ import {
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
+  organizationIsNotTheDelegatedConsumer,
+  organizationIsNotTheDelegatedProducer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
   purposeNotInDraftState,
@@ -280,14 +282,20 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
           activeProducerDelegation
         );
       } catch (error) {
-        const activeConsumerDelegation =
-          await readModelService.getActiveConsumerDelegationByPurpose(purpose);
+        try {
+          const activeConsumerDelegation =
+            await readModelService.getActiveConsumerDelegationByPurpose(
+              purpose
+            );
 
-        assertRequesterIsDelegateConsumer(
-          purpose,
-          authData,
-          activeConsumerDelegation
-        );
+          assertRequesterIsDelegateConsumer(
+            purpose,
+            authData,
+            activeConsumerDelegation
+          );
+        } catch {
+          throw organizationNotAllowed(authData.organizationId);
+        }
       }
     }
   }
@@ -314,7 +322,10 @@ const assertRequesterIsDelegateProducer = (
     activeProducerDelegation?.state !== delegationState.active ||
     activeProducerDelegation?.eserviceId !== eservice.id
   ) {
-    throw organizationNotAllowed(authData.organizationId);
+    throw organizationIsNotTheDelegatedProducer(
+      authData.organizationId,
+      activeProducerDelegation?.id
+    );
   }
 };
 
@@ -366,6 +377,9 @@ const assertRequesterIsDelegateConsumer = (
     activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
     activeConsumerDelegation?.state !== delegationState.active
   ) {
-    throw organizationNotAllowed(authData.organizationId);
+    throw organizationIsNotTheDelegatedConsumer(
+      authData.organizationId,
+      activeConsumerDelegation?.id
+    );
   }
 };
