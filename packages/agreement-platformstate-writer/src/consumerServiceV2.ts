@@ -171,7 +171,7 @@ export async function handleMessageV2(
           agreement.state !== agreementState.suspended
         ) {
           logger.info(
-            `Skipping processing of entry ${agreementEntry}. Reason: the agreement state is not active or suspended`
+            `Skipping processing of entry ${agreementEntry}. Reason: the agreement state ${agreement.state} is not active or suspended`
           );
           return Promise.resolve();
         } else {
