@@ -444,14 +444,12 @@ export async function handleMessageV2(
           );
 
           // token-generation-states
-          if (client.purposes.length > 0) {
-            await deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2(
-              client,
-              purposeId,
-              dynamoDBClient,
-              logger
-            );
-          }
+          await deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2(
+            client,
+            purposeId,
+            dynamoDBClient,
+            logger
+          );
         }
       } else {
         logger.info(
