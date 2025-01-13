@@ -163,7 +163,7 @@ export async function handleMessageV2(
       if (agreementEntry) {
         if (agreementEntry.version > msg.version) {
           logger.info(
-            `Skipping processing of entry ${agreementEntry}. Reason: a more recent entry already exists`
+            `Skipping processing of entry ${agreementEntry.PK}. Reason: a more recent entry already exists`
           );
           return Promise.resolve();
         } else if (
@@ -171,7 +171,7 @@ export async function handleMessageV2(
           agreement.state !== agreementState.suspended
         ) {
           logger.info(
-            `Skipping processing of entry ${agreementEntry}. Reason: the agreement state ${agreement.state} is not active or suspended`
+            `Skipping processing of entry ${agreementEntry.PK}. Reason: the agreement state ${agreement.state} is not active or suspended`
           );
           return Promise.resolve();
         } else {
