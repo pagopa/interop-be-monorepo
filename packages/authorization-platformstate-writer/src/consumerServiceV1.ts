@@ -32,8 +32,8 @@ import {
   createTokenGenStatesConsumerClient,
   deleteClientEntryFromPlatformStates,
   deleteClientEntryFromTokenGenerationStates,
-  deleteEntriesFromTokenGenStatesByClientId,
   deleteEntriesFromTokenGenStatesByClientIdKid,
+  deleteEntriesFromTokenGenStatesByClientIdV1,
   deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId,
   extractAgreementIdFromAgreementPK,
   extractKidFromTokenGenStatesEntryPK,
@@ -60,6 +60,9 @@ export async function handleMessageV1(
       const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
 
       if (clientEntry && clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
+        );
         return Promise.resolve();
       } else {
         const updatedClientEntry: PlatformStatesClientEntry = {
@@ -71,7 +74,11 @@ export async function handleMessageV1(
           updatedAt: new Date().toISOString(),
           clientPurposesIds: client.purposes,
         };
-        await upsertPlatformClientEntry(updatedClientEntry, dynamoDBClient);
+        await upsertPlatformClientEntry(
+          updatedClientEntry,
+          dynamoDBClient,
+          logger
+        );
       }
     })
     // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -87,6 +94,13 @@ export async function handleMessageV1(
       const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
 
       if (!clientEntry || clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${pk}. Reason: ${
+            !clientEntry
+              ? "entry not found in platform-states"
+              : "a more recent entry already exists"
+          }`
+        );
         return Promise.resolve();
       } else {
         const clientPurposesIds = clientEntry?.clientPurposesIds || [];
@@ -100,7 +114,11 @@ export async function handleMessageV1(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
+        await upsertPlatformClientEntry(
+          platformClientEntry,
+          dynamoDBClient,
+          logger
+        );
 
         await match(clientEntry.clientKind)
           .with(clientKindTokenGenStates.consumer, async () => {
@@ -255,6 +273,13 @@ export async function handleMessageV1(
       const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
 
       if (!clientEntry || clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${pk}. Reason: ${
+            !clientEntry
+              ? "entry not found in platform-states"
+              : "a more recent entry already exists"
+          }`
+        );
         return Promise.resolve();
       } else {
         const platformClientEntry: PlatformStatesClientEntry = {
@@ -266,7 +291,11 @@ export async function handleMessageV1(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
+        await upsertPlatformClientEntry(
+          platformClientEntry,
+          dynamoDBClient,
+          logger
+        );
 
         const GSIPK_clientId_kid = makeGSIPKClientIdKid({
           clientId,
@@ -292,47 +321,85 @@ export async function handleMessageV1(
       const pk = makePlatformStatesClientPK(clientId);
       const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
       if (!clientEntry || clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${pk}. Reason: ${
+            !clientEntry
+              ? "entry not found in platform-states"
+              : "a more recent entry already exists"
+          }`
+        );
         return Promise.resolve();
-      } else {
-        const purposeIds = [...clientEntry.clientPurposesIds, purposeId];
-        await setClientPurposeIdsInPlatformStatesEntry(
-          {
-            primaryKey: pk,
-            version: msg.version,
-            clientPurposeIds: purposeIds,
-          },
+      }
+
+      const purposeIds = [...clientEntry.clientPurposesIds, purposeId];
+      await setClientPurposeIdsInPlatformStatesEntry(
+        {
+          primaryKey: pk,
+          version: msg.version,
+          clientPurposeIds: purposeIds,
+        },
+        dynamoDBClient,
+        logger
+      );
+
+      const GSIPK_clientId = clientId;
+      const tokenGenStatesConsumerClients =
+        await readConsumerClientEntriesInTokenGenerationStates(
+          GSIPK_clientId,
           dynamoDBClient
         );
-
-        const GSIPK_clientId = clientId;
-        const tokenGenStatesConsumerClients =
-          await readConsumerClientEntriesInTokenGenerationStates(
-            GSIPK_clientId,
-            dynamoDBClient
+      if (tokenGenStatesConsumerClients.length === 0) {
+        logger.info(
+          `Skipping token-generation-states update. Reason: no entries found for GSIPK_clientId ${GSIPK_clientId}`
+        );
+        return Promise.resolve();
+      } else {
+        const { purposeEntry, agreementEntry, catalogEntry } =
+          await retrievePlatformStatesByPurpose(
+            purposeId,
+            dynamoDBClient,
+            logger
           );
-        if (tokenGenStatesConsumerClients.length === 0) {
-          return Promise.resolve();
-        } else {
-          const { purposeEntry, agreementEntry, catalogEntry } =
-            await retrievePlatformStatesByPurpose(
-              purposeId,
-              dynamoDBClient,
-              logger
-            );
 
-          const seenKids = new Set<string>();
-          const addedTokenGenStatesConsumerClients: TokenGenerationStatesConsumerClient[] =
-            [];
+        const seenKids = new Set<string>();
+        const addedTokenGenStatesConsumerClients: TokenGenerationStatesConsumerClient[] =
+          [];
 
-          for (const entry of tokenGenStatesConsumerClients) {
-            const addedTokenGenStatesConsumerClient = await match(
-              clientEntry.clientPurposesIds.length
-            )
-              .with(0, async () => {
+        for (const entry of tokenGenStatesConsumerClients) {
+          const addedTokenGenStatesConsumerClient = await match(
+            clientEntry.clientPurposesIds.length
+          )
+            .with(0, async () => {
+              const newTokenGenStatesConsumerClient =
+                createTokenGenStatesConsumerClient({
+                  tokenGenStatesClient: entry,
+                  kid: extractKidFromTokenGenStatesEntryPK(entry.PK),
+                  clientId,
+                  purposeId,
+                  purposeEntry,
+                  agreementEntry,
+                  catalogEntry,
+                });
+
+              await upsertTokenGenStatesConsumerClient(
+                newTokenGenStatesConsumerClient,
+                dynamoDBClient,
+                logger
+              );
+              await deleteClientEntryFromTokenGenerationStates(
+                entry.PK,
+                dynamoDBClient,
+                logger
+              );
+              return newTokenGenStatesConsumerClient;
+            })
+            .with(P.number.gt(0), async () => {
+              const kid = extractKidFromTokenGenStatesEntryPK(entry.PK);
+              if (!seenKids.has(kid)) {
                 const newTokenGenStatesConsumerClient =
                   createTokenGenStatesConsumerClient({
                     tokenGenStatesClient: entry,
-                    kid: extractKidFromTokenGenStatesEntryPK(entry.PK),
+                    kid,
                     clientId,
                     purposeId,
                     purposeEntry,
@@ -345,71 +412,44 @@ export async function handleMessageV1(
                   dynamoDBClient,
                   logger
                 );
-                await deleteClientEntryFromTokenGenerationStates(
-                  entry.PK,
-                  dynamoDBClient,
-                  logger
-                );
+                seenKids.add(kid);
                 return newTokenGenStatesConsumerClient;
-              })
-              .with(P.number.gt(0), async () => {
-                const kid = extractKidFromTokenGenStatesEntryPK(entry.PK);
-                if (!seenKids.has(kid)) {
-                  const newTokenGenStatesConsumerClient =
-                    createTokenGenStatesConsumerClient({
-                      tokenGenStatesClient: entry,
-                      kid,
-                      clientId,
-                      purposeId,
-                      purposeEntry,
-                      agreementEntry,
-                      catalogEntry,
-                    });
-
-                  await upsertTokenGenStatesConsumerClient(
-                    newTokenGenStatesConsumerClient,
-                    dynamoDBClient,
-                    logger
-                  );
-                  seenKids.add(kid);
-                  return newTokenGenStatesConsumerClient;
-                }
-                return null;
-              })
-              .run();
-
-            if (addedTokenGenStatesConsumerClient) {
-              // eslint-disable-next-line functional/immutable-data
-              addedTokenGenStatesConsumerClients.push(
-                addedTokenGenStatesConsumerClient
-              );
-            }
-          }
-
-          // Second check for updated fields
-          await Promise.all(
-            addedTokenGenStatesConsumerClients.map(async (entry) => {
-              const {
-                purposeEntry: purposeEntry2,
-                agreementEntry: agreementEntry2,
-                catalogEntry: catalogEntry2,
-              } = await retrievePlatformStatesByPurpose(
-                purposeId,
-                dynamoDBClient,
-                logger
-              );
-
-              await updateTokenGenStatesDataForSecondRetrieval({
-                dynamoDBClient,
-                entry,
-                purposeEntry: purposeEntry2,
-                agreementEntry: agreementEntry2,
-                catalogEntry: catalogEntry2,
-                logger,
-              });
+              }
+              return null;
             })
-          );
+            .run();
+
+          if (addedTokenGenStatesConsumerClient) {
+            // eslint-disable-next-line functional/immutable-data
+            addedTokenGenStatesConsumerClients.push(
+              addedTokenGenStatesConsumerClient
+            );
+          }
         }
+
+        // Second check for updated fields
+        await Promise.all(
+          addedTokenGenStatesConsumerClients.map(async (entry) => {
+            const {
+              purposeEntry: purposeEntry2,
+              agreementEntry: agreementEntry2,
+              catalogEntry: catalogEntry2,
+            } = await retrievePlatformStatesByPurpose(
+              purposeId,
+              dynamoDBClient,
+              logger
+            );
+
+            await updateTokenGenStatesDataForSecondRetrieval({
+              dynamoDBClient,
+              entry,
+              purposeEntry: purposeEntry2,
+              agreementEntry: agreementEntry2,
+              catalogEntry: catalogEntry2,
+              logger,
+            });
+          })
+        );
       }
     })
     .with({ type: "ClientPurposeRemoved" }, async (msg) => {
@@ -421,6 +461,9 @@ export async function handleMessageV1(
 
       if (clientEntry) {
         if (clientEntry.version > msg.version) {
+          logger.info(
+            `Skipping processing of entry ${pk}. Reason: a more recent entry already exists`
+          );
           return Promise.resolve();
         } else {
           const updatedPurposeIds = clientEntry.clientPurposesIds.filter(
@@ -438,7 +481,8 @@ export async function handleMessageV1(
               version: msg.version,
               clientPurposeIds: updatedPurposeIds,
             },
-            dynamoDBClient
+            dynamoDBClient,
+            logger
           );
 
           // token-generation-states
@@ -456,15 +500,19 @@ export async function handleMessageV1(
             );
           }
         }
+      } else {
+        logger.info(
+          `Platform-states and token-generation-states. Skipping processing of entry ${pk}. Reason: not found in platform-states`
+        );
       }
     })
     .with({ type: "ClientDeleted" }, async (msg) => {
       const clientId = unsafeBrandId<ClientId>(msg.data.clientId);
       const pk = makePlatformStatesClientPK(clientId);
-      await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
+      await deleteClientEntryFromPlatformStates(pk, dynamoDBClient, logger);
 
       const GSIPK_clientId = clientId;
-      await deleteEntriesFromTokenGenStatesByClientId(
+      await deleteEntriesFromTokenGenStatesByClientIdV1(
         GSIPK_clientId,
         dynamoDBClient,
         logger

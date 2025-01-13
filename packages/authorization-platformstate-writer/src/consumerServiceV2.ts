@@ -27,7 +27,6 @@ import {
   clientKindToTokenGenerationStatesClientKind,
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
-  deleteEntriesFromTokenGenStatesByClientId,
   deleteEntriesFromTokenGenStatesByClientIdKid,
   deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeId,
   readPlatformClientEntry,
@@ -42,6 +41,7 @@ import {
   updateTokenGenStatesDataForSecondRetrieval,
   createTokenGenStatesConsumerClient,
   readConsumerClientEntriesInTokenGenerationStates,
+  deleteEntriesFromTokenGenStatesByClientIdV2,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -68,6 +68,9 @@ export async function handleMessageV2(
       );
 
       if (clientEntry && clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
+        );
         return Promise.resolve();
       } else {
         // platform-states
@@ -80,7 +83,11 @@ export async function handleMessageV2(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
+        await upsertPlatformClientEntry(
+          platformClientEntry,
+          dynamoDBClient,
+          logger
+        );
       }
 
       // token-generation-states
@@ -241,6 +248,9 @@ export async function handleMessageV2(
       const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
 
       if (clientEntry && clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
+        );
         return Promise.resolve();
       } else {
         const platformClientEntry: PlatformStatesClientEntry = {
@@ -252,7 +262,11 @@ export async function handleMessageV2(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
+        await upsertPlatformClientEntry(
+          platformClientEntry,
+          dynamoDBClient,
+          logger
+        );
       }
 
       const GSIPK_clientId_kid = makeGSIPKClientIdKid({
@@ -275,6 +289,9 @@ export async function handleMessageV2(
         dynamoDBClient
       );
       if (clientEntry && clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
+        );
         return Promise.resolve();
       } else {
         // platform-states
@@ -287,7 +304,11 @@ export async function handleMessageV2(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await upsertPlatformClientEntry(platformClientEntry, dynamoDBClient);
+        await upsertPlatformClientEntry(
+          platformClientEntry,
+          dynamoDBClient,
+          logger
+        );
       }
 
       // token-generation-states
@@ -298,6 +319,9 @@ export async function handleMessageV2(
           dynamoDBClient
         );
       if (tokenGenStatesConsumerClients.length === 0) {
+        logger.info(
+          `Skipping token-generation-states update. Reason: no entries found for GSIPK_clientId ${GSIPK_clientId}`
+        );
         return Promise.resolve();
       } else {
         const purposeId = unsafeBrandId<PurposeId>(msg.data.purposeId);
@@ -406,6 +430,9 @@ export async function handleMessageV2(
 
       if (clientEntry) {
         if (clientEntry.version > msg.version) {
+          logger.info(
+            `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
+          );
           return Promise.resolve();
         } else {
           const GSIPK_clientId_purposeId = makeGSIPKClientIdPurposeId({
@@ -416,7 +443,8 @@ export async function handleMessageV2(
           // platform-states
           await setClientPurposeIdsInPlatformStatesEntry(
             { primaryKey: pk, version: msg.version, clientPurposeIds: [] },
-            dynamoDBClient
+            dynamoDBClient,
+            logger
           );
 
           // token-generation-states
@@ -434,16 +462,19 @@ export async function handleMessageV2(
             );
           }
         }
+      } else {
+        logger.info(
+          `Platform-states and token-generation-states. Skipping processing of entry ${pk}. Reason: entry not found in platform-states`
+        );
       }
     })
     .with({ type: "ClientDeleted" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
       const pk = makePlatformStatesClientPK(client.id);
-      await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
+      await deleteClientEntryFromPlatformStates(pk, dynamoDBClient, logger);
 
-      const GSIPK_clientId = client.id;
-      await deleteEntriesFromTokenGenStatesByClientId(
-        GSIPK_clientId,
+      await deleteEntriesFromTokenGenStatesByClientIdV2(
+        client,
         dynamoDBClient,
         logger
       );
