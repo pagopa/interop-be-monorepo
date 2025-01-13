@@ -81,7 +81,7 @@ import {
   writePlatformClientEntry,
   deleteClientEntryFromTokenGenerationStates,
   readPlatformClientEntry,
-  deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV1,
+  deleteEntriesFromTokenGenStatesByClientIdPurposeIdV1,
   upsertTokenGenStatesConsumerClient,
   upsertTokenGenStatesApiClient,
   deleteEntriesFromTokenGenStatesByClientIdV2,
@@ -601,7 +601,7 @@ describe("utils", () => {
     expect(res).toEqual(clientEntry1);
   });
 
-  it("deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV1", async () => {
+  it("deleteEntriesFromTokenGenStatesByClientIdPurposeIdV1", async () => {
     const GSIPK_clientId_purposeId = makeGSIPKClientIdPurposeId({
       clientId: generateId(),
       purposeId: generateId(),
@@ -631,7 +631,7 @@ describe("utils", () => {
       dynamoDBClient
     );
 
-    await deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV1(
+    await deleteEntriesFromTokenGenStatesByClientIdPurposeIdV1(
       GSIPK_clientId_purposeId,
       dynamoDBClient,
       genericLogger
