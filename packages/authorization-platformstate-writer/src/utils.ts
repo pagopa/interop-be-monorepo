@@ -344,7 +344,7 @@ const readTokenGenStatesConsumerClientsByGSIPKClientPurposeV1 = async (
   }
 };
 
-export const deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV2 = async (
+export const deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2 = async (
   client: Client,
   purposeId: PurposeId,
   dynamoDBClient: DynamoDBClient,

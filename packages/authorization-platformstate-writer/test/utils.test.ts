@@ -87,7 +87,7 @@ import {
   upsertTokenGenStatesApiClient,
   deleteEntriesFromTokenGenStatesByClientIdV2,
   deleteEntriesFromTokenGenStatesByClientIdV1,
-  deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV2,
+  deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2,
 } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
@@ -444,7 +444,7 @@ describe("utils", () => {
     expect(result).toEqual([tokenGenStatesConsumerClient3]);
   });
 
-  it("deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV2", async () => {
+  it("deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2", async () => {
     const purposeId = generateId<PurposeId>();
 
     const key1 = getMockKey();
@@ -493,7 +493,7 @@ describe("utils", () => {
       dynamoDBClient
     );
 
-    await deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV2(
+    await deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2(
       client,
       purposeId,
       dynamoDBClient,

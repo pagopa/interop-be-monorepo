@@ -40,7 +40,7 @@ import {
   createTokenGenStatesConsumerClient,
   readConsumerClientEntriesInTokenGenerationStates,
   deleteEntriesFromTokenGenStatesByClientIdV2,
-  deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV2,
+  deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -445,7 +445,7 @@ export async function handleMessageV2(
 
           // token-generation-states
           if (client.purposes.length > 0) {
-            await deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV2(
+            await deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2(
               client,
               purposeId,
               dynamoDBClient,
