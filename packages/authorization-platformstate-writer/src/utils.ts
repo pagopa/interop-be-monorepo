@@ -62,7 +62,7 @@ import { Logger } from "pagopa-interop-commons";
 import { z } from "zod";
 import { config } from "./config/config.js";
 
-const runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefix = async (
+const runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1 = async (
   prefix: string,
   dynamoDBClient: DynamoDBClient,
   logger: Logger,
@@ -113,7 +113,7 @@ const runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefix = async (
     }
 
     if (data.LastEvaluatedKey) {
-      await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefix(
+      await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1(
         prefix,
         dynamoDBClient,
         logger,
@@ -132,13 +132,13 @@ export const deleteEntriesFromTokenGenStatesByClientIdKidV1 = async (
   const prefix1 = `${clientKidPrefix}${clientId}#${kid}`;
   const prefix2 = `${clientKidPurposePrefix}${clientId}#${kid}`;
 
-  await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefix(
+  await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1(
     prefix1,
     dynamoDBClient,
     logger,
     undefined
   );
-  await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefix(
+  await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1(
     prefix2,
     dynamoDBClient,
     logger,
@@ -206,13 +206,13 @@ export const deleteEntriesFromTokenGenStatesByClientIdV1 = async (
   const prefix1 = `${clientKidPrefix}${clientId}`;
   const prefix2 = `${clientKidPurposePrefix}${clientId}`;
 
-  await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefix(
+  await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1(
     prefix1,
     dynamoDBClient,
     logger,
     undefined
   );
-  await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefix(
+  await runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1(
     prefix2,
     dynamoDBClient,
     logger,
