@@ -44,6 +44,8 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
+  Delegation,
+  DelegationId,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -68,6 +70,7 @@ import {
   tenantKindNotFound,
   unchangedDailyCalls,
   organizationNotAllowed,
+  delegationNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -218,6 +221,17 @@ async function retrieveTenantKind(
     throw tenantKindNotFound(tenant.id);
   }
   return tenant.kind;
+}
+
+async function retrieveDelegation(
+  delegationId: DelegationId,
+  readModelService: ReadModelService
+): Promise<Delegation> {
+  const delegation = await readModelService.getDelegationById(delegationId);
+  if (delegation === undefined) {
+    throw delegationNotFound(delegationId);
+  }
+  return delegation;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -1185,6 +1199,21 @@ export function purposeServiceBuilder(
       );
 
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
+
+      const activeConsumerDelegation = purposeToClone.data.delegationId
+        ? await retrieveDelegation(
+            purposeToClone.data.delegationId,
+            readModelService
+          )
+        : undefined;
+
+      if (
+        activeConsumerDelegation &&
+        activeConsumerDelegation.delegateId === organizationId &&
+        purposeToClone.data.consumerId !== organizationId
+      ) {
+        throw purposeCannotBeCloned(purposeId);
+      }
 
       if (purposeIsDraft(purposeToClone.data)) {
         throw purposeCannotBeCloned(purposeId);
