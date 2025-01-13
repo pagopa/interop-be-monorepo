@@ -12,6 +12,7 @@ import {
   QueryCommandOutput,
   QueryInput,
   ScanCommand,
+  ScanCommandOutput,
   ScanInput,
   UpdateItemCommand,
   UpdateItemInput,
@@ -301,7 +302,7 @@ const readTokenGenStatesConsumerClientsByGSIPKClientPurposeV1 = async (
   dynamoDBClient: DynamoDBClient,
   exclusiveStartKey?: Record<string, AttributeValue>
 ): Promise<{
-  tokenGenStatesEntries: TokenGenStatesConsumerClientGSIClient[];
+  tokenGenStatesEntries: TokenGenerationStatesConsumerClient[];
   lastEvaluatedKey: Record<string, AttributeValue> | undefined;
 }> => {
   // This function performs a Scan because ConsistentRead can't be used on GSIPKs
