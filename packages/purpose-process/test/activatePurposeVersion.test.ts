@@ -174,6 +174,23 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
+    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
+      dailyCalls: mockPurposeVersion.dailyCalls.toString(),
+      answers: expect.any(String),
+      eServiceName: mockEService.name,
+      producerName: mockProducer.name,
+      producerCode: getIpaCode(mockProducer),
+      consumerName: mockConsumer.name,
+      consumerCode: getIpaCode(mockConsumer),
+      freeOfCharge: expect.any(String),
+      freeOfChargeReason: expect.any(String),
+      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      eServiceMode: "Eroga",
+      producerDelegationId: undefined,
+      producerDelegateName: undefined,
+      producerDelegateIpaCode: undefined,
+    };
+
     expect(pdfGenerator.generate).toBeCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
@@ -181,22 +198,7 @@ describe("activatePurposeVersion", () => {
         "resources/templates/documents",
         "riskAnalysisTemplate.html"
       ),
-      {
-        dailyCalls: mockPurposeVersion.dailyCalls.toString(),
-        answers: expect.any(String),
-        eServiceName: mockEService.name,
-        producerName: mockProducer.name,
-        producerCode: getIpaCode(mockProducer),
-        consumerName: mockConsumer.name,
-        consumerCode: getIpaCode(mockConsumer),
-        freeOfCharge: expect.any(String),
-        freeOfChargeReason: expect.any(String),
-        date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-        eServiceMode: "Eroga",
-        producerDelegationId: undefined,
-        producerDelegateName: undefined,
-        producerDelegateIpaCode: undefined,
-      }
+      expectedPdfPayload
     );
 
     expect(
@@ -261,6 +263,23 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
+    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
+      dailyCalls: mockPurposeVersion.dailyCalls.toString(),
+      answers: expect.any(String),
+      eServiceName: mockEService.name,
+      producerName: mockProducer.name,
+      producerCode: getIpaCode(mockProducer),
+      consumerName: mockConsumer.name,
+      consumerCode: getIpaCode(mockConsumer),
+      freeOfCharge: expect.any(String),
+      freeOfChargeReason: expect.any(String),
+      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      eServiceMode: "Eroga",
+      producerDelegationId: producerDelegation.id,
+      producerDelegateName: delegate.name,
+      producerDelegateIpaCode: delegate.externalId.value,
+    };
+
     expect(pdfGenerator.generate).toBeCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
@@ -268,22 +287,7 @@ describe("activatePurposeVersion", () => {
         "resources/templates/documents",
         "riskAnalysisTemplate.html"
       ),
-      {
-        dailyCalls: mockPurposeVersion.dailyCalls.toString(),
-        answers: expect.any(String),
-        eServiceName: mockEService.name,
-        producerName: mockProducer.name,
-        producerCode: getIpaCode(mockProducer),
-        consumerName: mockConsumer.name,
-        consumerCode: getIpaCode(mockConsumer),
-        freeOfCharge: expect.any(String),
-        freeOfChargeReason: expect.any(String),
-        date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-        eServiceMode: "Eroga",
-        producerDelegationId: producerDelegation.id,
-        producerDelegateName: delegate.name,
-        producerDelegateIpaCode: delegate.externalId.value,
-      }
+      expectedPdfPayload
     );
 
     expect(
@@ -607,6 +611,23 @@ describe("activatePurposeVersion", () => {
       logger: genericLogger,
     });
 
+    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
+      dailyCalls: purposeVersionMock.dailyCalls.toString(),
+      answers: expect.any(String),
+      eServiceName: mockEService.name,
+      producerName: mockProducer.name,
+      producerCode: getIpaCode(mockProducer),
+      consumerName: mockConsumer.name,
+      consumerCode: getIpaCode(mockConsumer),
+      freeOfCharge: expect.any(String),
+      freeOfChargeReason: expect.any(String),
+      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      eServiceMode: "Eroga",
+      producerDelegationId: undefined,
+      producerDelegateName: undefined,
+      producerDelegateIpaCode: undefined,
+    };
+
     expect(pdfGenerator.generate).toBeCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
@@ -614,22 +635,7 @@ describe("activatePurposeVersion", () => {
         "resources/templates/documents",
         "riskAnalysisTemplate.html"
       ),
-      {
-        dailyCalls: purposeVersionMock.dailyCalls.toString(),
-        answers: expect.any(String),
-        eServiceName: mockEService.name,
-        producerName: mockProducer.name,
-        producerCode: getIpaCode(mockProducer),
-        consumerName: mockConsumer.name,
-        consumerCode: getIpaCode(mockConsumer),
-        freeOfCharge: expect.any(String),
-        freeOfChargeReason: expect.any(String),
-        date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-        eServiceMode: "Eroga",
-        producerDelegationId: undefined,
-        producerDelegateName: undefined,
-        producerDelegateIpaCode: undefined,
-      }
+      expectedPdfPayload
     );
 
     expect(
