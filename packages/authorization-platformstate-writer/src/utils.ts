@@ -215,7 +215,7 @@ export const deleteEntriesFromTokenGenStatesByClientIdV2 = async (
 ): Promise<void> => {
   if (client.purposes.length > 0) {
     await Promise.all(
-      client.keys.map((key) =>
+      client.keys.flatMap((key) =>
         client.purposes.map(async (purpose) => {
           const pk = makeTokenGenerationStatesClientKidPurposePK({
             clientId: client.id,
