@@ -6,6 +6,10 @@ import {
   writeInReadmodel,
   decodeProtobufPayload,
   getRandomAuthData,
+  getMockDelegation,
+  addSomeRandomDelegations,
+  getMockTenant,
+  getMockAgreement,
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
@@ -16,6 +20,14 @@ import {
   toPurposeV2,
   PurposeId,
   PurposeVersionId,
+  delegationKind,
+  delegationState,
+  TenantId,
+  tenantKind,
+  Agreement,
+  agreementState,
+  EService,
+  PurposeVersion,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -23,9 +35,14 @@ import {
   purposeVersionNotFound,
   organizationIsNotTheConsumer,
   purposeVersionCannotBeDeleted,
+  organizationNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
+  addOneAgreement,
+  addOneDelegation,
+  addOneEService,
   addOnePurpose,
+  addOneTenant,
   eservices,
   getMockEService,
   purposeService,
@@ -82,6 +99,191 @@ describe("deletePurposeVersion", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
+      versions: [mockPurposeVersion2],
+      updatedAt: new Date(),
+    };
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+
+    vi.useRealTimers();
+  });
+  it("should succeed when requester is Consumer Delegate and the Purpose is in a deletable state", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const mockEService = getMockEService();
+    const mockPurposeVersion1 = getMockPurposeVersion(
+      purposeVersionState.waitingForApproval
+    );
+    const mockPurposeVersion2 = getMockPurposeVersion(
+      purposeVersionState.draft
+    );
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion1, mockPurposeVersion2],
+    };
+
+    const authData = getRandomAuthData();
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: authData.organizationId,
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(mockPurpose);
+    await addOneDelegation(delegation);
+    await addSomeRandomDelegations(mockPurpose, addOneDelegation);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+    await purposeService.deletePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion1.id,
+      },
+      {
+        authData,
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
+
+    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockPurpose.id,
+      version: "1",
+      type: "WaitingForApprovalPurposeVersionDeleted",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: WaitingForApprovalPurposeVersionDeletedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedPurpose: Purpose = {
+      ...mockPurpose,
+      versions: [mockPurposeVersion2],
+      updatedAt: new Date(),
+    };
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+
+    vi.useRealTimers();
+  });
+  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a deletable state", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const producer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const producerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+    };
+
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      producerId: producer.id,
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+      state: agreementState.active,
+    };
+
+    const mockPurposeVersion1 = getMockPurposeVersion(
+      purposeVersionState.waitingForApproval
+    );
+    const mockPurposeVersion2 = getMockPurposeVersion(
+      purposeVersionState.draft
+    );
+
+    const delegatePurpose: Purpose = {
+      ...getMockPurpose(),
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+      versions: [mockPurposeVersion1, mockPurposeVersion2],
+    };
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegatorId: producer.id,
+      delegateId: producerDelegate.id,
+      state: delegationState.active,
+    });
+
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      delegatorId: consumer.id,
+      delegateId: consumerDelegate.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producerDelegate);
+    await addOneTenant(producer);
+    await addOneTenant(consumerDelegate);
+    await addOneTenant(consumer);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOnePurpose(delegatePurpose);
+    await addOneDelegation(producerDelegation);
+    await addOneDelegation(consumerDelegation);
+    await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
+
+    await purposeService.deletePurposeVersion(
+      {
+        purposeId: delegatePurpose.id,
+        versionId: mockPurposeVersion1.id,
+      },
+      {
+        authData: getRandomAuthData(consumerDelegate.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
+
+    const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: delegatePurpose.id,
+      version: "1",
+      type: "WaitingForApprovalPurposeVersionDeleted",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: WaitingForApprovalPurposeVersionDeletedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedPurpose: Purpose = {
+      ...delegatePurpose,
       versions: [mockPurposeVersion2],
       updatedAt: new Date(),
     };
@@ -248,5 +450,42 @@ describe("deletePurposeVersion", () => {
     ).rejects.toThrowError(
       purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
     );
+  });
+  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+    const authData = getRandomAuthData();
+    const mockPurposeVersion: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.active,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      versions: [mockPurposeVersion],
+      consumerId: authData.organizationId,
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+    await addOnePurpose(mockPurpose);
+    await addOneDelegation(delegation);
+
+    expect(
+      purposeService.deletePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
+    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
 });
