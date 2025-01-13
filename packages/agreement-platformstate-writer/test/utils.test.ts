@@ -77,7 +77,8 @@ describe("utils", async () => {
           dynamoDBClient,
           primaryKey,
           itemState.active,
-          1
+          1,
+          genericLogger
         )
       ).rejects.toThrowError(ConditionalCheckFailedException);
       const agreementEntry = await readAgreementEntry(
@@ -96,12 +97,17 @@ describe("utils", async () => {
       expect(
         await readAgreementEntry(primaryKey, dynamoDBClient)
       ).toBeUndefined();
-      await writeAgreementEntry(previousAgreementStateEntry, dynamoDBClient);
+      await writeAgreementEntry(
+        previousAgreementStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
       await updateAgreementStateInPlatformStatesEntry(
         dynamoDBClient,
         primaryKey,
         itemState.active,
-        2
+        2,
+        genericLogger
       );
 
       const result = await readAgreementEntry(primaryKey, dynamoDBClient);
@@ -123,9 +129,13 @@ describe("utils", async () => {
       );
       const agreementStateEntry =
         getMockPlatformStatesAgreementEntry(primaryKey);
-      await writeAgreementEntry(agreementStateEntry, dynamoDBClient);
+      await writeAgreementEntry(
+        agreementStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
       expect(
-        writeAgreementEntry(agreementStateEntry, dynamoDBClient)
+        writeAgreementEntry(agreementStateEntry, dynamoDBClient, genericLogger)
       ).rejects.toThrowError(ConditionalCheckFailedException);
     });
 
@@ -147,7 +157,11 @@ describe("utils", async () => {
         agreementDescriptorId: generateId<DescriptorId>(),
       };
 
-      await writeAgreementEntry(agreementStateEntry, dynamoDBClient);
+      await writeAgreementEntry(
+        agreementStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       const retrievedAgreementEntry = await readAgreementEntry(
         primaryKey,
@@ -187,7 +201,11 @@ describe("utils", async () => {
         GSISK_agreementTimestamp: new Date().toISOString(),
         agreementDescriptorId: generateId<DescriptorId>(),
       };
-      await writeAgreementEntry(agreementStateEntry, dynamoDBClient);
+      await writeAgreementEntry(
+        agreementStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
       const retrievedEntry = await readAgreementEntry(
         primaryKey,
         dynamoDBClient
@@ -203,7 +221,7 @@ describe("utils", async () => {
         generateId<AgreementId>()
       );
       expect(
-        deleteAgreementEntry(primaryKey, dynamoDBClient)
+        deleteAgreementEntry(primaryKey, dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
 
@@ -224,8 +242,12 @@ describe("utils", async () => {
         GSISK_agreementTimestamp: new Date().toISOString(),
         agreementDescriptorId: generateId<DescriptorId>(),
       };
-      await writeAgreementEntry(agreementStateEntry, dynamoDBClient);
-      await deleteAgreementEntry(primaryKey, dynamoDBClient);
+      await writeAgreementEntry(
+        agreementStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+      await deleteAgreementEntry(primaryKey, dynamoDBClient, genericLogger);
       const retrievedAgreementEntry = await readAgreementEntry(
         primaryKey,
         dynamoDBClient
@@ -389,6 +411,7 @@ describe("utils", async () => {
           GSIPK_consumerId_eserviceId,
           agreementState: agreementState.archived,
           dynamoDBClient,
+          logger: genericLogger,
         })
       ).resolves.not.toThrowError();
       const tokenGenStatesEntriesAfterUpdate = await readAllTokenGenStatesItems(
@@ -441,6 +464,7 @@ describe("utils", async () => {
         GSIPK_consumerId_eserviceId,
         agreementState: agreementState.active,
         dynamoDBClient,
+        logger: genericLogger,
       });
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
         dynamoDBClient
@@ -665,13 +689,14 @@ describe("utils", async () => {
         state: itemState.inactive,
       };
 
-      await writeAgreementEntry(agreementEntry1, dynamoDBClient);
-      await writeAgreementEntry(agreementEntry2, dynamoDBClient);
+      await writeAgreementEntry(agreementEntry1, dynamoDBClient, genericLogger);
+      await writeAgreementEntry(agreementEntry2, dynamoDBClient, genericLogger);
 
       expect(
         await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreementId1,
+          agreementEntry1.GSISK_agreementTimestamp,
           dynamoDBClient
         )
       ).toEqual(true);
@@ -680,6 +705,7 @@ describe("utils", async () => {
         await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreementId2,
+          agreementEntry2.GSISK_agreementTimestamp,
           dynamoDBClient
         )
       ).toEqual(false);
@@ -689,6 +715,7 @@ describe("utils", async () => {
       const eserviceId = generateId<EServiceId>();
       const consumerId = generateId<TenantId>();
       const agreementId1 = generateId<AgreementId>();
+      const agreementTimestamp = new Date().toISOString();
 
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId,
@@ -699,6 +726,7 @@ describe("utils", async () => {
         await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreementId1,
+          agreementTimestamp,
           dynamoDBClient
         )
       ).toEqual(true);
