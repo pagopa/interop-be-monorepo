@@ -243,34 +243,32 @@ export function purposeServiceBuilder(
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      const eservice = await retrieveEService(
-        purpose.data.eserviceId,
-        readModelService
-      );
 
-      const activeProducerDelegation =
-        await readModelService.getActiveProducerDelegationByEserviceId(
+      const [
+        eservice,
+        tenantKind,
+        activeProducerDelegation,
+        activeConsumerDelegation,
+      ] = await Promise.all([
+        retrieveEService(purpose.data.eserviceId, readModelService),
+        retrieveTenantKind(organizationId, readModelService),
+        readModelService.getActiveProducerDelegationByEserviceId(
           purpose.data.eserviceId
-        );
+        ),
+        readModelService.getActiveConsumerDelegationByPurpose(purpose.data),
+      ]);
 
       const purposeWithRiskAnalysis = authorizeRiskAnalysisForm({
         purpose: purpose.data,
         producerId: eservice.producerId,
         organizationId,
-        tenantKind: await retrieveTenantKind(organizationId, readModelService),
+        tenantKind,
         activeProducerDelegation,
       });
 
-      const activeConsumerDelegation =
-        await readModelService.getActiveConsumerDelegationByPurpose(
-          purpose.data
-        );
-
       return {
         ...purposeWithRiskAnalysis,
-        delegationId: activeConsumerDelegation
-          ? activeConsumerDelegation.id
-          : undefined,
+        delegationId: activeConsumerDelegation?.id,
       };
     },
     async getRiskAnalysisDocument({
