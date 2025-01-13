@@ -47,9 +47,7 @@ export async function handleMessageV1(
       const agreement = parseAgreement(msg.data.agreement);
 
       await match(agreement.state)
-        // eslint-disable-next-line sonarjs/no-identical-functions
         .with(agreementState.active, agreementState.suspended, async () => {
-          const agreement = parseAgreement(msg.data.agreement);
           await handleActivationOrSuspension(
             agreement,
             dynamoDBClient,
@@ -58,7 +56,6 @@ export async function handleMessageV1(
           );
         })
         .with(agreementState.archived, async () => {
-          const agreement = parseAgreement(msg.data.agreement);
           await handleArchiving(agreement, dynamoDBClient, logger);
         })
         .with(
@@ -79,10 +76,8 @@ export async function handleMessageV1(
       const agreement = parseAgreement(msg.data.agreement);
 
       await match(agreement.state)
-        // eslint-disable-next-line sonarjs/no-identical-functions
         .with(agreementState.active, agreementState.suspended, async () => {
           // this case is for agreement upgraded
-          const agreement = parseAgreement(msg.data.agreement);
           await handleUpgrade(agreement, dynamoDBClient, msg.version, logger);
         })
         .with(
@@ -91,10 +86,9 @@ export async function handleMessageV1(
           agreementState.missingCertifiedAttributes,
           agreementState.pending,
           agreementState.rejected,
-          // eslint-disable-next-line sonarjs/no-identical-functions
           () => {
             logger.info(
-              `Skipping processing of entry ${agreement.id}. Reason: state ${agreement.state}`
+              `Skipping processing of agreement ${agreement.id}. Reason: state ${agreement.state}`
             );
             return Promise.resolve();
           }
