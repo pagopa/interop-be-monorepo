@@ -305,6 +305,7 @@ const readTokenGenStatesConsumerClientsByGSIPKClientPurposeV1 = async (
   tokenGenStatesEntries: TokenGenStatesConsumerClientGSIClient[];
   lastEvaluatedKey: Record<string, AttributeValue> | undefined;
 }> => {
+  // This function uses a Scan because ConsistentRead can't be used on GSIPKs
   const readInput: ScanInput = {
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
     FilterExpression: `GSIPK_clientId_purposeId = :gsiValue`,
@@ -351,6 +352,7 @@ export const deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2 = async (
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
+  // For v2 events we have the entire client, so we can build all the PKs of the entries we need to delete
   await Promise.all(
     client.keys.map(async (key) => {
       const pk = makeTokenGenerationStatesClientKidPurposePK({
