@@ -97,6 +97,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: eserviceIds
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+        explode: false
+      - in: query
         name: offset
         required: true
         schema:
@@ -115,7 +124,47 @@ paths:
       tags:
         - consumer
       operationId: getConsumerDelegators
-      description: Retrieve delegators of a delegate with active delegation and agreement
+      description: Retrieve requester's delegators
+      responses:
+        "200":
+          description: Tenants retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactTenants"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /consumer/delegatorsWithAgreements:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - in: query
+        name: delegatorName
+        schema:
+          type: string
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - consumer
+      operationId: getConsumerDelegatorsWithAgreements
+      description: Retrieve requester's delegators with active agreements
       responses:
         "200":
           description: Tenants retrieved

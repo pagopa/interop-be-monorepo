@@ -399,6 +399,44 @@ export function delegationServiceBuilder(
     async getConsumerDelegators(
       {
         q,
+        eserviceIds,
+        offset,
+        limit,
+      }: {
+        q?: string;
+        eserviceIds: string[];
+        offset: number;
+        limit: number;
+      },
+      { headers, authData, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.DelegationTenants> {
+      logger.info(
+        `Retrieving consumer delegators of requester ${authData.organizationId} with name ${q}, eserviceIds ${eserviceIds}, limit ${limit}, offset ${offset}`
+      );
+
+      const delegatorsData =
+        await delegationClients.consumer.getConsumerDelegators({
+          queries: {
+            delegatorName: q,
+            eserviceIds,
+            offset,
+            limit,
+          },
+          headers,
+        });
+
+      return {
+        results: delegatorsData.results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: delegatorsData.totalCount,
+        },
+      };
+    },
+    async getConsumerDelegatorsWithAgreements(
+      {
+        q,
         offset,
         limit,
       }: {
@@ -409,11 +447,11 @@ export function delegationServiceBuilder(
       { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.DelegationTenants> {
       logger.info(
-        `Retrieving consumer delegators of delegate ${authData.organizationId} with name ${q}, limit ${limit}, offset ${offset}`
+        `Retrieving consumer delegators with active agreements of requester ${authData.organizationId} with name ${q}, limit ${limit}, offset ${offset}`
       );
 
       const delegatorsData =
-        await delegationClients.consumer.getConsumerDelegators({
+        await delegationClients.consumer.getConsumerDelegatorsWithAgreements({
           queries: {
             delegatorName: q,
             offset,
