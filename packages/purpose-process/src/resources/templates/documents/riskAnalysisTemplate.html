@@ -57,7 +57,10 @@
 
       <div class="item">
         <div class="label">Ente erogatore</div>
-        <div class="value">{{producerText}}</div>
+        <div class="value">
+          {{producerName}}{{#if producerIPACode}} (codice IPA:
+          {{producerIPACode}}){{/if}}
+        </div>
       </div>
 
       {{#if producerDelegationId}}
@@ -74,7 +77,10 @@
 
       <div class="item">
         <div class="label">Ente fruitore</div>
-        <div class="value">{{consumerText}}</div>
+        <div class="value">
+          {{consumerName}}{{#if consumerIpaCode}} (codice IPA:
+          {{consumerIpaCode}}){{/if}}
+        </div>
       </div>
 
       <div class="item">

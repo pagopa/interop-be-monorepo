@@ -37,7 +37,6 @@ import {
   toReadModelTenant,
   delegationKind,
   delegationState,
-  RiskAnalysisDocumentPDFPayload,
 } from "pagopa-interop-models";
 import { genericLogger, getIpaCode } from "pagopa-interop-commons";
 import {
@@ -51,6 +50,7 @@ import {
   unchangedDailyCalls,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
+import { RiskAnalysisDocumentPDFPayload } from "../src/model/domain/models.js";
 import {
   addOneDelegation,
   addOneTenant,
@@ -150,9 +150,9 @@ describe("createPurposeVersion", () => {
       answers: expect.any(String),
       eServiceName: mockEService.name,
       producerName: mockProducer.name,
-      producerCode: getIpaCode(mockProducer),
+      producerIpaCode: getIpaCode(mockProducer),
       consumerName: mockConsumer.name,
-      consumerCode: getIpaCode(mockConsumer),
+      consumerIpaCode: getIpaCode(mockConsumer),
       freeOfCharge: expect.any(String),
       freeOfChargeReason: expect.any(String),
       date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
@@ -256,9 +256,9 @@ describe("createPurposeVersion", () => {
       answers: expect.any(String),
       eServiceName: mockEService.name,
       producerName: mockProducer.name,
-      producerCode: getIpaCode(mockProducer),
+      producerIpaCode: getIpaCode(mockProducer),
       consumerName: mockConsumer.name,
-      consumerCode: getIpaCode(mockConsumer),
+      consumerIpaCode: getIpaCode(mockConsumer),
       freeOfCharge: expect.any(String),
       freeOfChargeReason: expect.any(String),
       date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
@@ -350,9 +350,9 @@ describe("createPurposeVersion", () => {
       answers: expect.any(String),
       eServiceName: mockEService.name,
       producerName: mockProducer.name,
-      producerCode: getIpaCode(mockProducer),
+      producerIpaCode: getIpaCode(mockProducer),
       consumerName: mockConsumer.name,
-      consumerCode: getIpaCode(mockConsumer),
+      consumerIpaCode: getIpaCode(mockConsumer),
       freeOfCharge: expect.any(String),
       freeOfChargeReason: expect.any(String),
       date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
