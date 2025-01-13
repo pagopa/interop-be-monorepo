@@ -21,14 +21,13 @@ import {
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
+import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
   deleteClientEntryFromPlatformStates,
   readPlatformClientEntry,
   deleteClientEntryFromTokenGenerationStates,
-  extractKidFromTokenGenStatesEntryPK,
   extractAgreementIdFromAgreementPK,
   retrievePlatformStatesByPurpose,
   upsertPlatformClientEntry,
@@ -37,7 +36,6 @@ import {
   setClientPurposeIdsInPlatformStatesEntry,
   updateTokenGenStatesDataForSecondRetrieval,
   createTokenGenStatesConsumerClient,
-  readConsumerClientEntriesInTokenGenerationStates,
   deleteEntriesFromTokenGenStatesByClientIdV2,
   deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2,
   deleteEntriesFromTokenGenStatesByClientIdKidV2,
@@ -308,15 +306,9 @@ export async function handleMessageV2(
       }
 
       // token-generation-states
-      const GSIPK_clientId = client.id;
-      const tokenGenStatesConsumerClients =
-        await readConsumerClientEntriesInTokenGenerationStates(
-          GSIPK_clientId,
-          dynamoDBClient
-        );
-      if (tokenGenStatesConsumerClients.length === 0) {
+      if (client.keys.length === 0) {
         logger.info(
-          `Skipping token-generation-states update. Reason: no entries found for GSIPK_clientId ${GSIPK_clientId}`
+          `Skipping token-generation-states update. Reason: client ${client.id} has zero keys`
         );
         return Promise.resolve();
       } else {
@@ -328,71 +320,44 @@ export async function handleMessageV2(
             logger
           );
 
-        const seenKids = new Set<string>();
         const addedTokenGenStatesConsumerClients: TokenGenerationStatesConsumerClient[] =
           [];
 
-        for (const entry of tokenGenStatesConsumerClients) {
-          const addedTokenGenStatesConsumerClient = await match(
-            client.purposes.length
-          )
-            .with(1, async () => {
-              const newTokenGenStatesConsumerClient =
-                createTokenGenStatesConsumerClient({
-                  tokenGenStatesClient: entry,
-                  kid: extractKidFromTokenGenStatesEntryPK(entry.PK),
-                  clientId: client.id,
-                  purposeId,
-                  purposeEntry,
-                  agreementEntry,
-                  catalogEntry,
-                });
+        await Promise.all(
+          client.keys.map(async (key) => {
+            const newTokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+              createTokenGenStatesConsumerClient({
+                consumerId: client.consumerId,
+                kid: key.kid,
+                publicKey: key.encodedPem,
+                clientId: client.id,
+                purposeId,
+                purposeEntry,
+                agreementEntry,
+                catalogEntry,
+              });
 
-              await upsertTokenGenStatesConsumerClient(
-                newTokenGenStatesConsumerClient,
-                dynamoDBClient,
-                logger
-              );
-              await deleteClientEntryFromTokenGenerationStates(
-                entry.PK,
-                dynamoDBClient,
-                logger
-              );
-              return newTokenGenStatesConsumerClient;
-            })
-            .with(P.number.gt(1), async () => {
-              const kid = extractKidFromTokenGenStatesEntryPK(entry.PK);
-              if (!seenKids.has(kid)) {
-                const newTokenGenStatesConsumerClient =
-                  createTokenGenStatesConsumerClient({
-                    tokenGenStatesClient: entry,
-                    kid,
-                    clientId: client.id,
-                    purposeId,
-                    purposeEntry,
-                    agreementEntry,
-                    catalogEntry,
-                  });
+            await upsertTokenGenStatesConsumerClient(
+              newTokenGenStatesConsumerClient,
+              dynamoDBClient,
+              logger
+            );
 
-                await upsertTokenGenStatesConsumerClient(
-                  newTokenGenStatesConsumerClient,
-                  dynamoDBClient,
-                  logger
-                );
-                seenKids.add(kid);
-                return newTokenGenStatesConsumerClient;
-              }
-              return null;
-            })
-            .run();
-
-          if (addedTokenGenStatesConsumerClient) {
             // eslint-disable-next-line functional/immutable-data
             addedTokenGenStatesConsumerClients.push(
-              addedTokenGenStatesConsumerClient
+              newTokenGenStatesConsumerClient
             );
-          }
-        }
+
+            await deleteClientEntryFromTokenGenerationStates(
+              makeTokenGenerationStatesClientKidPK({
+                clientId: client.id,
+                kid: key.kid,
+              }),
+              dynamoDBClient,
+              logger
+            );
+          })
+        );
 
         // Second check for updated fields
         await Promise.all(
