@@ -37,7 +37,7 @@ import {
   deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV1,
   extractAgreementIdFromAgreementPK,
   extractKidFromTokenGenStatesEntryPK,
-  readConsumerClientEntriesInTokenGenerationStates,
+  readConsumerClientsInTokenGenStatesV1,
   readPlatformClientEntry,
   retrievePlatformStatesByPurpose,
   setClientPurposeIdsInPlatformStatesEntry,
@@ -342,15 +342,11 @@ export async function handleMessageV1(
         logger
       );
 
-      const GSIPK_clientId = clientId;
       const tokenGenStatesConsumerClients =
-        await readConsumerClientEntriesInTokenGenerationStates(
-          GSIPK_clientId,
-          dynamoDBClient
-        );
+        await readConsumerClientsInTokenGenStatesV1(clientId, dynamoDBClient);
       if (tokenGenStatesConsumerClients.length === 0) {
         logger.info(
-          `Skipping token-generation-states update. Reason: no entries found for GSIPK_clientId ${GSIPK_clientId}`
+          `Skipping token-generation-states update. Reason: no entries found for client ${clientId}`
         );
         return Promise.resolve();
       } else {
@@ -372,8 +368,9 @@ export async function handleMessageV1(
             .with(0, async () => {
               const newTokenGenStatesConsumerClient =
                 createTokenGenStatesConsumerClient({
-                  tokenGenStatesClient: entry,
+                  consumerId: entry.consumerId,
                   kid: extractKidFromTokenGenStatesEntryPK(entry.PK),
+                  publicKey: entry.publicKey,
                   clientId,
                   purposeId,
                   purposeEntry,
@@ -398,8 +395,9 @@ export async function handleMessageV1(
               if (!seenKids.has(kid)) {
                 const newTokenGenStatesConsumerClient =
                   createTokenGenStatesConsumerClient({
-                    tokenGenStatesClient: entry,
+                    consumerId: entry.consumerId,
                     kid,
+                    publicKey: entry.publicKey,
                     clientId,
                     purposeId,
                     purposeEntry,
@@ -511,9 +509,8 @@ export async function handleMessageV1(
       const pk = makePlatformStatesClientPK(clientId);
       await deleteClientEntryFromPlatformStates(pk, dynamoDBClient, logger);
 
-      const GSIPK_clientId = clientId;
       await deleteEntriesFromTokenGenStatesByClientIdV1(
-        GSIPK_clientId,
+        clientId,
         dynamoDBClient,
         logger
       );
