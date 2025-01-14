@@ -65,7 +65,7 @@ export async function handleMessageV1(
           agreementState.rejected,
           () => {
             logger.info(
-              `Skipping processing of entry ${agreement.id}. Reason: state ${agreement.state}`
+              `Skipping processing of agreement ${agreement.id}. Reason: state ${agreement.state}`
             );
             return Promise.resolve();
           }
@@ -86,6 +86,7 @@ export async function handleMessageV1(
           agreementState.missingCertifiedAttributes,
           agreementState.pending,
           agreementState.rejected,
+          // eslint-disable-next-line sonarjs/no-identical-functions
           () => {
             logger.info(
               `Skipping processing of agreement ${agreement.id}. Reason: state ${agreement.state}`
