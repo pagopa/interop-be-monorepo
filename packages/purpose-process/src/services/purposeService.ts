@@ -223,11 +223,13 @@ async function retrieveTenantKind(
   return tenant.kind;
 }
 
-async function retrieveDelegation(
+async function retrieveActiveDelegation(
   delegationId: DelegationId,
   readModelService: ReadModelService
 ): Promise<Delegation> {
-  const delegation = await readModelService.getDelegationById(delegationId);
+  const delegation = await readModelService.getActiveDelegationById(
+    delegationId
+  );
   if (delegation === undefined) {
     throw delegationNotFound(delegationId);
   }
@@ -1180,18 +1182,20 @@ export function purposeServiceBuilder(
     },
     async clonePurpose({
       purposeId,
-      organizationId,
+      authData,
       seed,
       correlationId,
       logger,
     }: {
       purposeId: PurposeId;
-      organizationId: TenantId;
+      authData: AuthData;
       seed: purposeApi.PurposeCloneSeed;
       correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Cloning Purpose ${purposeId}`);
+
+      const organizationId = authData.organizationId;
 
       const tenantKind = await retrieveTenantKind(
         organizationId,
@@ -1201,19 +1205,17 @@ export function purposeServiceBuilder(
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
       const activeConsumerDelegation = purposeToClone.data.delegationId
-        ? await retrieveDelegation(
+        ? await retrieveActiveDelegation(
             purposeToClone.data.delegationId,
             readModelService
           )
         : undefined;
 
-      if (
-        activeConsumerDelegation &&
-        activeConsumerDelegation.delegateId === organizationId &&
-        purposeToClone.data.consumerId !== organizationId
-      ) {
-        throw purposeCannotBeCloned(purposeId);
-      }
+      assertRequesterCanActAsConsumer(
+        purposeToClone.data,
+        authData,
+        activeConsumerDelegation
+      );
 
       if (purposeIsDraft(purposeToClone.data)) {
         throw purposeCannotBeCloned(purposeId);

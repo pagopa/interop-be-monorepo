@@ -454,7 +454,7 @@ const purposeRouter = (
           const { purpose, isRiskAnalysisValid } =
             await purposeService.clonePurpose({
               purposeId: unsafeBrandId(req.params.purposeId),
-              organizationId: req.ctx.authData.organizationId,
+              authData: req.ctx.authData,
               seed: req.body,
               correlationId: req.ctx.correlationId,
               logger: ctx.logger,
