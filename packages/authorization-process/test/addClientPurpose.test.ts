@@ -3,11 +3,13 @@ import {
   decodeProtobufPayload,
   getMockAgreement,
   getMockClient,
+  getMockDelegation,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
   getMockPurpose,
   getMockPurposeVersion,
+  getRandomAuthData,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
@@ -19,6 +21,8 @@ import {
   Purpose,
   TenantId,
   agreementState,
+  delegationKind,
+  delegationState,
   descriptorState,
   generateId,
   purposeVersionState,
@@ -40,6 +44,7 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneClient,
+  addOneDelegation,
   agreements,
   authorizationService,
   eservices,
@@ -117,6 +122,181 @@ describe("addClientPurpose", async () => {
       }),
     });
   });
+
+  it("should succeed when a delegating user can associate his own purposes linked to an eservice for which he has given a delegation for use to his clients", async () => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      interface: getMockDocument(),
+      publishedAt: new Date(),
+    };
+
+    const mockEservice = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
+    const mockConsumerId: TenantId = generateId();
+
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEservice.id,
+      consumerId: mockConsumerId,
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+    };
+
+    const mockClient: Client = {
+      ...getMockClient(),
+      consumerId: mockConsumerId,
+    };
+
+    const mockAgreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      eserviceId: mockEservice.id,
+      descriptorId: mockDescriptor.id,
+      consumerId: mockConsumerId,
+    };
+
+    const authData = getRandomAuthData(mockClient.consumerId);
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: authData.organizationId,
+      state: delegationState.active,
+    });
+
+    await addOneClient(mockClient);
+    await addOneDelegation(delegation);
+    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
+    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+
+    await authorizationService.addClientPurpose({
+      clientId: mockClient.id,
+      seed: { purposeId: mockPurpose.id },
+      organizationId: authData.organizationId,
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
+
+    const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockClient.id,
+      version: "1",
+      type: "ClientPurposeAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: ClientPurposeAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload).toEqual({
+      purposeId: mockPurpose.id,
+      client: toClientV2({
+        ...mockClient,
+        purposes: [...mockClient.purposes, mockPurpose.id],
+      }),
+    });
+  });
+
+  it("should succeed when a delegating user can associate the purposes created by a delegate for an eservice for which he has given a delegation for use by his clients", async () => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      interface: getMockDocument(),
+      publishedAt: new Date(),
+    };
+
+    const mockEservice = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
+    const mockConsumerId: TenantId = generateId();
+
+    const mockDelegateConsumerId: TenantId = generateId();
+
+    const purposeDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockEservice.id,
+      delegatorId: mockConsumerId,
+      delegateId: mockDelegateConsumerId,
+      state: delegationState.active,
+    });
+
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEservice.id,
+      consumerId: mockConsumerId,
+      delegationId: purposeDelegation.id,
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+    };
+
+    const mockClient: Client = {
+      ...getMockClient(),
+      consumerId: mockConsumerId,
+    };
+
+    const mockAgreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      eserviceId: mockEservice.id,
+      descriptorId: mockDescriptor.id,
+      consumerId: mockConsumerId,
+    };
+
+    const authData = getRandomAuthData(mockClient.consumerId);
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: authData.organizationId,
+      state: delegationState.active,
+    });
+
+    await addOneClient(mockClient);
+    await addOneDelegation(purposeDelegation);
+    await addOneDelegation(delegation);
+    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
+    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+
+    await authorizationService.addClientPurpose({
+      clientId: mockClient.id,
+      seed: { purposeId: mockPurpose.id },
+      organizationId: authData.organizationId,
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
+
+    const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockClient.id,
+      version: "1",
+      type: "ClientPurposeAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: ClientPurposeAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload).toEqual({
+      purposeId: mockPurpose.id,
+      client: toClientV2({
+        ...mockClient,
+        purposes: [...mockClient.purposes, mockPurpose.id],
+      }),
+    });
+  });
+
   it("should throw clientNotFound if the client doesn't exist", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
