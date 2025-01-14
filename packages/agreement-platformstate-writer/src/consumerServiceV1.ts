@@ -140,7 +140,7 @@ const handleActivationOrSuspension = async (
   if (existingAgreementEntry) {
     if (existingAgreementEntry.version > incomingVersion) {
       logger.info(
-        `Skipping processing of entry ${existingAgreementEntry}. Reason: a more recent entry already exists`
+        `Skipping processing of entry ${primaryKey}. Reason: a more recent entry already exists`
       );
       return Promise.resolve();
     } else {
