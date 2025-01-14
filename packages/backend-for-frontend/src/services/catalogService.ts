@@ -343,6 +343,19 @@ export function catalogServiceBuilder(
         id: updatedEservice.id,
       };
     },
+    updateEServiceName: async (
+      { headers, logger }: WithLogger<BffAppContext>,
+      eServiceId: EServiceId,
+      nameUpdateSeed: bffApi.EServiceNameUpdateSeed
+    ): Promise<void> => {
+      logger.info(`Updating EService name of eservice with id = ${eServiceId}`);
+      await catalogProcessClient.updateEServiceName(nameUpdateSeed, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
       { headers, logger }: WithLogger<BffAppContext>
