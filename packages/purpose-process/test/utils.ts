@@ -67,7 +67,7 @@ afterAll(closeTestBrowserInstance);
 vi.spyOn(puppeteer, "launch").mockImplementation(
   async () => testBrowserInstance
 );
-const pdfGenerator = await initPDFGenerator();
+export const pdfGenerator = await initPDFGenerator();
 
 export const purposeService = purposeServiceBuilder(
   postgresDB,
