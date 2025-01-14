@@ -42,6 +42,7 @@ import {
   EServiceRiskAnalysisDeletedV2,
   EServiceDescriptionUpdatedV2,
   EServiceDescriptorAttributesUpdatedV2,
+  EServiceNameUpdatedV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -170,7 +171,7 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
       EServiceDescriptorAttributesUpdatedV2.toBinary(data)
     )
     .with({ type: "EServiceNameUpdated" }, ({ data }) =>
-      EServiceDescriptionUpdatedV2.toBinary(data)
+      EServiceNameUpdatedV2.toBinary(data)
     )
     .exhaustive();
 }

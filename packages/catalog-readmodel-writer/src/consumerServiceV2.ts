@@ -42,7 +42,7 @@ export async function handleMessageV2(
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceDescriptionUpdated" },
       { type: "EServiceDescriptorAttributesUpdated" },
-      { type: "EServiceNameUpdate" },
+      { type: "EServiceNameUpdated" },
       async (message) =>
         await eservices.updateOne(
           {
