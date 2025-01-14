@@ -14,6 +14,7 @@ import { expect, describe, it } from "vitest";
 import {
   eserviceWithoutValidDescriptors,
   eServiceNotFound,
+  eServiceDuplicate,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -188,4 +189,34 @@ describe("update eService name on published eservice", () => {
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
   );
+  it("should throw eserviceDuplicate is there is another eservice with the same name by the same producer", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+
+    const duplicateName = "eservice duplciate name";
+
+    const eserviceWithSameName: EService = {
+      ...getMockEService(),
+      name: duplicateName,
+    };
+    await addOneEService(eservice);
+
+    await addOneEService(eserviceWithSameName);
+
+    const updatedName = duplicateName;
+    expect(
+      catalogService.updateEServiceName(eservice.id, updatedName, {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(eServiceDuplicate(duplicateName));
+  });
 });
