@@ -207,14 +207,6 @@ export async function handleMessageV2(
         logger
       );
     })
-    .with({ type: "AgreementArchivedByUpgrade" }, async (msg) => {
-      const agreement = parseAgreement(msg.data.agreement);
-      const pk = makePlatformStatesAgreementPK({
-        consumerId: agreement.consumerId,
-        eserviceId: agreement.eserviceId,
-      });
-      await deleteAgreementEntry(pk, dynamoDBClient, logger);
-    })
     .with({ type: "AgreementArchivedByConsumer" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
 
@@ -244,13 +236,12 @@ export async function handleMessageV2(
           dynamoDBClient,
           logger,
         });
+        await deleteAgreementEntry(primaryKey, dynamoDBClient, logger);
       } else {
         logger.info(
-          `Token-generation-states. Skipping processing of entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
+          `Platform-states and Token-generation-states. Skipping processing of entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
         );
       }
-
-      await deleteAgreementEntry(primaryKey, dynamoDBClient, logger);
     })
     .with(
       { type: "AgreementAdded" },
@@ -262,6 +253,7 @@ export async function handleMessageV2(
       { type: "AgreementConsumerDocumentRemoved" },
       { type: "AgreementSetDraftByPlatform" },
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
+      { type: "AgreementArchivedByUpgrade" },
       () => Promise.resolve()
     )
     .exhaustive();
