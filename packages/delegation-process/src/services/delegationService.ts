@@ -35,6 +35,7 @@ import {
   eserviceNotFound,
   tenantNotFound,
   delegationContractNotFound,
+  requesterIsNotConsumerDelegate,
 } from "../model/domain/errors.js";
 import {
   toCreateEventConsumerDelegationApproved,
@@ -61,23 +62,20 @@ import {
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
 
-const retrieveDelegationById = async (
-  readModelService: ReadModelService,
-  delegationId: DelegationId
+export const retrieveDelegationById = async (
+  {
+    delegationId,
+    kind,
+  }: {
+    delegationId: DelegationId;
+    kind: DelegationKind | undefined;
+  },
+  readModelService: ReadModelService
 ): Promise<WithMetadata<Delegation>> => {
-  const delegation = await readModelService.getDelegation(delegationId);
-  if (!delegation?.data) {
-    throw delegationNotFound(delegationId);
-  }
-  return delegation;
-};
-
-export const retrieveDelegation = async (
-  readModelService: ReadModelService,
-  delegationId: DelegationId,
-  kind: DelegationKind
-): Promise<WithMetadata<Delegation>> => {
-  const delegation = await readModelService.getDelegation(delegationId, kind);
+  const delegation = await readModelService.getDelegationById(
+    delegationId,
+    kind
+  );
   if (!delegation?.data) {
     throw delegationNotFound(delegationId, kind);
   }
@@ -200,10 +198,12 @@ export function delegationServiceBuilder(
       `Approving delegation ${delegationId} by delegate ${delegateId}`
     );
 
-    const { data: delegation, metadata } = await retrieveDelegation(
-      readModelService,
-      delegationId,
-      kind
+    const { data: delegation, metadata } = await retrieveDelegationById(
+      {
+        delegationId,
+        kind,
+      },
+      readModelService
     );
 
     assertIsDelegate(delegation, delegateId);
@@ -275,10 +275,12 @@ export function delegationServiceBuilder(
       `Rejecting delegation ${delegationId} by delegate ${delegateId}`
     );
 
-    const { data: delegation, metadata } = await retrieveDelegation(
-      readModelService,
-      delegationId,
-      kind
+    const { data: delegation, metadata } = await retrieveDelegationById(
+      {
+        delegationId,
+        kind,
+      },
+      readModelService
     );
 
     assertIsDelegate(delegation, delegateId);
@@ -330,10 +332,12 @@ export function delegationServiceBuilder(
       } ${delegatorId}`
     );
 
-    const { data: delegation, metadata } = await retrieveDelegation(
-      readModelService,
-      delegationId,
-      kind
+    const { data: delegation, metadata } = await retrieveDelegationById(
+      {
+        delegationId,
+        kind,
+      },
+      readModelService
     );
 
     assertIsDelegator(delegation, delegatorId);
@@ -406,8 +410,8 @@ export function delegationServiceBuilder(
       logger.info(`Retrieving delegation by id ${delegationId}`);
 
       const delegation = await retrieveDelegationById(
-        readModelService,
-        delegationId
+        { delegationId, kind: undefined },
+        readModelService
       );
       return delegation.data;
     },
@@ -454,8 +458,8 @@ export function delegationServiceBuilder(
         `Retrieving delegation ${delegationId} contract ${contractId}`
       );
       const delegation = await retrieveDelegationById(
-        readModelService,
-        delegationId
+        { delegationId, kind: undefined },
+        readModelService
       );
 
       assertRequesterIsDelegateOrDelegator(
@@ -579,19 +583,79 @@ export function delegationServiceBuilder(
     },
     async getConsumerDelegators(
       filters: {
-        delegateId: TenantId;
+        requesterId: TenantId;
+        delegatorName?: string;
+        eserviceIds: EServiceId[];
         limit: number;
         offset: number;
-        delegatorName?: string;
       },
       logger: Logger
     ): Promise<delegationApi.CompactTenants> {
       logger.info(
-        `Retrieving delegations tenants with filters: ${JSON.stringify(
+        `Retrieving consumer delegators with filters: ${JSON.stringify(
           filters
         )}`
       );
+
+      const delegation = await readModelService.findDelegations({
+        delegateId: filters.requesterId,
+        delegationKind: delegationKind.delegatedConsumer,
+        states: [delegationState.active],
+      });
+      if (!delegation || delegation.length === 0) {
+        throw requesterIsNotConsumerDelegate(filters.requesterId);
+      }
+
       return await readModelService.getConsumerDelegators(filters);
+    },
+    async getConsumerDelegatorsWithAgreements(
+      filters: {
+        requesterId: TenantId;
+        delegatorName?: string;
+        limit: number;
+        offset: number;
+      },
+      logger: Logger
+    ): Promise<delegationApi.CompactTenants> {
+      logger.info(
+        `Retrieving consumer delegators with active agreements and filters: ${JSON.stringify(
+          filters
+        )}`
+      );
+      return await readModelService.getConsumerDelegatorsWithAgreements(
+        filters
+      );
+    },
+    async getConsumerEservices(
+      filters: {
+        requesterId: TenantId;
+        delegatorId: TenantId;
+        limit: number;
+        offset: number;
+        eserviceName?: string;
+      },
+      logger: Logger
+    ): Promise<delegationApi.CompactEservicesLight> {
+      logger.info(
+        `Retrieving delegated consumer eservices with filters: ${JSON.stringify(
+          filters
+        )}`
+      );
+
+      const delegation = await readModelService.findDelegations({
+        delegatorId: filters.delegatorId,
+        delegateId: filters.requesterId,
+        delegationKind: delegationKind.delegatedConsumer,
+        states: [delegationState.active],
+      });
+      if (!delegation || delegation.length === 0) {
+        throw requesterIsNotConsumerDelegate(
+          filters.requesterId,
+          filters.delegatorId
+        );
+      }
+
+      return await readModelService.getConsumerEservices(filters);
     },
   };
 }
