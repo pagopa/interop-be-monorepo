@@ -3,6 +3,7 @@
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockAuthData,
   getMockEService,
   getMockPurpose,
   getMockPurposeVersion,
@@ -74,7 +75,7 @@ describe("clonePurpose", async () => {
 
     const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
       purposeId: mockPurpose.id,
-      organizationId: mockTenant.id,
+      authData: getMockAuthData(mockTenant.id),
       seed: {
         eserviceId: mockEService.id,
       },
@@ -144,7 +145,7 @@ describe("clonePurpose", async () => {
 
     const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
       purposeId: mockPurpose.id,
-      organizationId: mockTenant.id,
+      authData: getMockAuthData(mockTenant.id),
       seed: {
         eserviceId: mockEService.id,
       },
@@ -214,7 +215,7 @@ describe("clonePurpose", async () => {
     expect(
       purposeService.clonePurpose({
         purposeId: mockPurpose.id,
-        organizationId: mockTenant.id,
+        authData: getMockAuthData(mockTenant.id),
         seed: {
           eserviceId: mockEService.id,
         },
@@ -250,7 +251,7 @@ describe("clonePurpose", async () => {
     expect(
       purposeService.clonePurpose({
         purposeId: mockPurpose.id,
-        organizationId: mockTenant.id,
+        authData: getMockAuthData(mockTenant.id),
         seed: {
           eserviceId: mockEService.id,
         },
@@ -286,7 +287,7 @@ describe("clonePurpose", async () => {
     expect(
       purposeService.clonePurpose({
         purposeId: mockPurpose.id,
-        organizationId: mockTenant.id,
+        authData: getMockAuthData(mockTenant.id),
         seed: {
           eserviceId: mockEService.id,
         },
@@ -332,7 +333,7 @@ describe("clonePurpose", async () => {
     expect(
       purposeService.clonePurpose({
         purposeId: mockPurposeToClone.id,
-        organizationId: mockTenant.id,
+        authData: getMockAuthData(mockTenant.id),
         seed: {
           eserviceId: mockEService.id,
         },
@@ -370,7 +371,7 @@ describe("clonePurpose", async () => {
     expect(
       purposeService.clonePurpose({
         purposeId: mockPurpose.id,
-        organizationId: mockTenant.id,
+        authData: getMockAuthData(mockTenant.id),
         seed: {
           eserviceId: mockEService.id,
         },
