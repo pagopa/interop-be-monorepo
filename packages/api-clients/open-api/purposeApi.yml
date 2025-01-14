@@ -491,14 +491,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PurposeVersionDocument"
-        "404":
-          description: Resource not found
+        "400":
+          description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "400":
-          description: Bad request
+        "403":
+          description: Organization not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Document Not Found
           content:
             application/json:
               schema:

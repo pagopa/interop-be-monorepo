@@ -35,7 +35,10 @@ import {
   riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
-import { retrieveActiveAgreement } from "./purposeService.js";
+import {
+  retrieveActiveAgreement,
+  retrieveActiveDelegation,
+} from "./purposeService.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -284,10 +287,10 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
       } catch (error) {
         try {
           if (purpose.delegationId) {
-            const activeConsumerDelegation =
-              await readModelService.getActiveConsumerDelegationByDelegationId(
-                purpose.delegationId
-              );
+            const activeConsumerDelegation = await retrieveActiveDelegation(
+              purpose.delegationId,
+              readModelService
+            );
 
             assertRequesterIsDelegateConsumer(
               purpose,

@@ -182,7 +182,7 @@ const retrieveTenant = async (
   return tenant;
 };
 
-const retrieveActiveDelegation = async (
+export const retrieveActiveDelegation = async (
   delegationId: DelegationId,
   readModelService: ReadModelService
 ): Promise<Delegation> => {
@@ -269,7 +269,12 @@ export function purposeServiceBuilder(
           readModelService
         )
           .then(() => true)
-          .catch(() => false);
+          .catch((error) => {
+            if (error === delegationNotFound) {
+              throw error;
+            }
+            return false;
+          });
 
       if (!isAllowedToRetrieveRiskAnalysis) {
         return {
@@ -646,10 +651,14 @@ export function purposeServiceBuilder(
               eservice,
               { organizationId },
               readModelService
-            ).then(
-              () => true,
-              () => false
-            );
+            )
+              .then(() => true)
+              .catch((error) => {
+                if (error === delegationNotFound) {
+                  throw error;
+                }
+                return false;
+              });
 
           return { purpose, isAllowedToRetrieveRiskAnalysis };
         })

@@ -16,6 +16,16 @@ const {
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("delegationNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getPurposesErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with(
+      "eserviceNotFound",
+      "delegationNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getRiskAnalysisDocumentErrorMapper = (
@@ -36,6 +46,7 @@ export const getRiskAnalysisDocumentErrorMapper = (
       "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
+    .with("delegationNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deletePurposeVersionErrorMapper = (
