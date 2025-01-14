@@ -14,6 +14,7 @@ import {
   DelegationContractId,
   EService,
   generateId,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
 } from "pagopa-interop-models";
 import { DelegationProcessConfig } from "../config/config.js";
@@ -34,6 +35,11 @@ const createDelegationContractPrettyName = (
   }_${eServiceName}`;
   return prettyName.length > 45 ? prettyName.slice(0, 45) : prettyName;
 };
+
+const getIpaCode = (tenant: Tenant): string | undefined =>
+  tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
+    ? tenant.externalId.value
+    : undefined;
 
 const createDelegationDocumentName = (
   documentCreatedAt: Date,
@@ -94,9 +100,9 @@ export const contractBuilder = {
       todayTime,
       delegationId: delegation.id,
       delegatorName: delegator.name,
-      delegatorCode: delegator.externalId.value,
+      delegatorIpaCode: getIpaCode(delegator),
       delegateName: delegate.name,
-      delegateCode: delegate.externalId.value,
+      delegateIpaCode: getIpaCode(delegate),
       eserviceId: eservice.id,
       eserviceName: eservice.name,
       submitterId: delegation.stamps.submission.who,
@@ -178,9 +184,9 @@ export const contractBuilder = {
       todayTime,
       delegationId: delegation.id,
       delegatorName: delegator.name,
-      delegatorCode: delegator.externalId.value,
+      delegatorIpaCode: getIpaCode(delegator),
       delegateName: delegate.name,
-      delegateCode: delegate.externalId.value,
+      delegateIpaCode: getIpaCode(delegate),
       eserviceId: eservice.id,
       eserviceName: eservice.name,
       submitterId: delegation.stamps.submission.who,
