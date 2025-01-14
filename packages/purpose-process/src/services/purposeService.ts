@@ -44,6 +44,8 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
+  Delegation,
+  DelegationId,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -68,6 +70,7 @@ import {
   tenantKindNotFound,
   unchangedDailyCalls,
   organizationNotAllowed,
+  delegationNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -177,6 +180,20 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
+};
+
+const retrieveActiveDelegation = async (
+  delegationId: DelegationId,
+  readModelService: ReadModelService
+): Promise<Delegation> => {
+  const delegation =
+    await readModelService.getActiveConsumerDelegationByDelegationId(
+      delegationId
+    );
+  if (!delegation) {
+    throw delegationNotFound(delegationId);
+  }
+  return delegation;
 };
 
 export const retrieveActiveAgreement = async (
@@ -323,8 +340,9 @@ export function purposeServiceBuilder(
         purpose.data,
         authData,
         purpose.data.delegationId &&
-          (await readModelService.getActiveConsumerDelegationByDelegationId(
-            purpose.data.delegationId
+          (await retrieveActiveDelegation(
+            purpose.data.delegationId,
+            readModelService
           ))
       );
 
@@ -456,8 +474,9 @@ export function purposeServiceBuilder(
         purpose.data,
         authData,
         purpose.data.delegationId &&
-          (await readModelService.getActiveConsumerDelegationByDelegationId(
-            purpose.data.delegationId
+          (await retrieveActiveDelegation(
+            purpose.data.delegationId,
+            readModelService
           ))
       );
 
@@ -493,8 +512,9 @@ export function purposeServiceBuilder(
         purpose.data,
         authData,
         purpose.data.delegationId &&
-          (await readModelService.getActiveConsumerDelegationByDelegationId(
-            purpose.data.delegationId
+          (await retrieveActiveDelegation(
+            purpose.data.delegationId,
+            readModelService
           ))
       );
 
@@ -662,8 +682,9 @@ export function purposeServiceBuilder(
         purpose.data,
         authData,
         purpose.data.delegationId &&
-          (await readModelService.getActiveConsumerDelegationByDelegationId(
-            purpose.data.delegationId
+          (await retrieveActiveDelegation(
+            purpose.data.delegationId,
+            readModelService
           ))
       );
 
@@ -1373,8 +1394,9 @@ const getOrganizationRole = async ({
         purpose,
         authData,
         purpose.delegationId &&
-          (await readModelService.getActiveConsumerDelegationByDelegationId(
-            purpose.delegationId
+          (await retrieveActiveDelegation(
+            purpose.delegationId,
+            readModelService
           ))
       );
       return ownership.CONSUMER;
@@ -1459,8 +1481,9 @@ const performUpdatePurpose = async (
     purpose.data,
     authData,
     purpose.data.delegationId &&
-      (await readModelService.getActiveConsumerDelegationByDelegationId(
-        purpose.data.delegationId
+      (await retrieveActiveDelegation(
+        purpose.data.delegationId,
+        readModelService
       ))
   );
 
