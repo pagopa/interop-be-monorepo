@@ -23,6 +23,7 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
+  TokenGenerationStatesClientKidPK,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Logger } from "pagopa-interop-commons";
@@ -34,7 +35,7 @@ import {
   deleteClientEntryFromTokenGenerationStates,
   deleteEntriesFromTokenGenStatesByClientIdKidV1,
   deleteEntriesFromTokenGenStatesByClientIdV1,
-  deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV1,
+  deleteEntriesFromTokenGenStatesByClientIdPurposeIdV1,
   extractAgreementIdFromAgreementPK,
   extractKidFromTokenGenStatesEntryPK,
   readConsumerClientsInTokenGenStatesV1,
@@ -305,6 +306,7 @@ export async function handleMessageV1(
         );
       }
     })
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     .with({ type: "ClientPurposeAdded" }, async (msg) => {
       const clientId = unsafeBrandId<ClientId>(msg.data.clientId);
 
@@ -328,7 +330,10 @@ export async function handleMessageV1(
         return Promise.resolve();
       }
 
-      const purposeIds = [...clientEntry.clientPurposesIds, purposeId];
+      // Deduplicate in case of retry and reprocess
+      const purposeIds = Array.from(
+        new Set([...clientEntry.clientPurposesIds, purposeId])
+      );
       await setClientPurposeIdsInPlatformStatesEntry(
         {
           primaryKey: pk,
@@ -360,7 +365,8 @@ export async function handleMessageV1(
 
         for (const entry of tokenGenStatesConsumerClients) {
           const addedTokenGenStatesConsumerClient = await match(
-            clientEntry.clientPurposesIds.length
+            // Count without the current purpose
+            purposeIds.length - 1
           )
             .with(0, async () => {
               const newTokenGenStatesConsumerClient =
@@ -380,11 +386,16 @@ export async function handleMessageV1(
                 dynamoDBClient,
                 logger
               );
-              await deleteClientEntryFromTokenGenerationStates(
-                entry.PK,
-                dynamoDBClient,
-                logger
-              );
+              if (
+                TokenGenerationStatesClientKidPK.safeParse(entry.PK).success
+              ) {
+                // Remove only partial entries (to avoid deleting complete entries after retry)
+                await deleteClientEntryFromTokenGenerationStates(
+                  entry.PK,
+                  dynamoDBClient,
+                  logger
+                );
+              }
               return newTokenGenStatesConsumerClient;
             })
             .with(P.number.gt(0), async () => {
@@ -482,7 +493,7 @@ export async function handleMessageV1(
 
           // token-generation-states
           if (updatedPurposeIds.length > 0) {
-            await deleteEntriesFromTokenGenStatesByGSIPKClientIdPurposeIdV1(
+            await deleteEntriesFromTokenGenStatesByClientIdPurposeIdV1(
               GSIPK_clientId_purposeId,
               dynamoDBClient,
               logger
