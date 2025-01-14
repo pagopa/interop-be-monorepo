@@ -65,7 +65,7 @@ export async function handleMessageV1(
           agreementState.rejected,
           () => {
             logger.info(
-              `Skipping processing of entry ${agreement.id}. Reason: state ${agreement.state}`
+              `Skipping processing of agreement ${agreement.id}. Reason: state ${agreement.state}`
             );
             return Promise.resolve();
           }
@@ -86,6 +86,7 @@ export async function handleMessageV1(
           agreementState.missingCertifiedAttributes,
           agreementState.pending,
           agreementState.rejected,
+          // eslint-disable-next-line sonarjs/no-identical-functions
           () => {
             logger.info(
               `Skipping processing of agreement ${agreement.id}. Reason: state ${agreement.state}`
@@ -140,7 +141,7 @@ const handleActivationOrSuspension = async (
   if (existingAgreementEntry) {
     if (existingAgreementEntry.version > incomingVersion) {
       logger.info(
-        `Skipping processing of entry ${existingAgreementEntry}. Reason: a more recent entry already exists`
+        `Skipping processing of entry ${primaryKey}. Reason: a more recent entry already exists`
       );
       return Promise.resolve();
     } else {

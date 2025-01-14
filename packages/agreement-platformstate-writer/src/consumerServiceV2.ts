@@ -46,7 +46,7 @@ export async function handleMessageV2(
       if (existingAgreementEntry) {
         if (existingAgreementEntry.version > msg.version) {
           logger.info(
-            `Skipping processing of entry ${existingAgreementEntry}. Reason: a more recent entry already exists`
+            `Skipping processing of entry ${primaryKey}. Reason: a more recent entry already exists`
           );
           return Promise.resolve();
         } else {
