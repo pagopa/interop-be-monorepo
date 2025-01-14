@@ -100,6 +100,7 @@ import {
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
+  toCreateEventEServiceNameUpdated,
 } from "../model/domain/toEvent.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import { ReadModelService } from "./readModelService.js";
@@ -1799,6 +1800,56 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(
         toCreateEventEServiceDescriptionUpdated(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+      return updatedEservice;
+    },
+    async updateEServiceName(
+      eserviceId: EServiceId,
+      name: string,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Updating name of EService ${eserviceId}`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      const hasValidDescriptor = eservice.data.descriptors.some(
+        (descriptor) =>
+          descriptor.state === descriptorState.published ||
+          descriptor.state === descriptorState.suspended ||
+          descriptor.state === descriptorState.archived
+      );
+      if (!hasValidDescriptor) {
+        throw eserviceWithoutValidDescriptors(eserviceId);
+      }
+
+      if (name !== eservice.data.name) {
+        const eserviceWithSameName =
+          await readModelService.getEServiceByNameAndProducerId({
+            name,
+            producerId: eservice.data.producerId,
+          });
+        if (eserviceWithSameName !== undefined) {
+          throw eServiceDuplicate(name);
+        }
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        name,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceNameUpdated(
           eservice.metadata.version,
           updatedEservice,
           correlationId

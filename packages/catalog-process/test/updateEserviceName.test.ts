@@ -10,10 +10,10 @@ import {
   EService,
   toEServiceV2,
   operationForbidden,
-  EServiceDescriptionUpdatedV2,
   delegationState,
   generateId,
   delegationKind,
+  EServiceNameUpdatedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -31,8 +31,8 @@ import {
   addOneDelegation,
 } from "./utils.js";
 
-describe("update eService description", () => {
-  it("should write on event-store for the update of the eService description", async () => {
+describe("update eService name on published eservice", () => {
+  it("should write on event-store for the update of the eService name", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       interface: getMockDocument(),
@@ -43,10 +43,10 @@ describe("update eService description", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescription = "eservice new description";
-    const returnedEService = await catalogService.updateEServiceDescription(
+    const updatedName = "eservice new name";
+    const returnedEService = await catalogService.updateEServiceName(
       eservice.id,
-      updatedDescription,
+      updatedName,
       {
         authData: getMockAuthData(eservice.producerId),
         correlationId: generateId(),
@@ -57,25 +57,25 @@ describe("update eService description", () => {
 
     const updatedEService: EService = {
       ...eservice,
-      description: updatedDescription,
+      name: updatedName,
     };
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptionUpdated",
+      type: "EServiceNameUpdated",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptionUpdatedV2,
+      messageType: EServiceNameUpdatedV2,
       payload: writtenEvent.data,
     });
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
-  it("should write on event-store for the update of the eService description (delegate)", async () => {
+  it("should write on event-store for the update of the eService name (delegate)", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       interface: getMockDocument(),
@@ -93,10 +93,10 @@ describe("update eService description", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    const updatedDescription = "eservice new description";
-    const returnedEService = await catalogService.updateEServiceDescription(
+    const updatedName = "eservice new name";
+    const returnedEService = await catalogService.updateEServiceName(
       eservice.id,
-      updatedDescription,
+      updatedName,
       {
         authData: getMockAuthData(delegation.delegateId),
         correlationId: generateId(),
@@ -107,18 +107,18 @@ describe("update eService description", () => {
 
     const updatedEService: EService = {
       ...eservice,
-      description: updatedDescription,
+      name: updatedName,
     };
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptionUpdated",
+      type: "EServiceNameUpdated",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptionUpdatedV2,
+      messageType: EServiceNameUpdatedV2,
       payload: writtenEvent.data,
     });
 
@@ -129,16 +129,12 @@ describe("update eService description", () => {
     const eservice = getMockEService();
 
     expect(
-      catalogService.updateEServiceDescription(
-        eservice.id,
-        "eservice new description",
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
+      catalogService.updateEServiceName(eservice.id, "eservice new name", {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
 
@@ -147,19 +143,15 @@ describe("update eService description", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.updateEServiceDescription(
-        eservice.id,
-        "eservice new description",
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
+      catalogService.updateEServiceName(eservice.id, "eservice new name", {
+        authData: getMockAuthData(),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(operationForbidden);
   });
-  it("should throw operationForbidden if the given e-service has been delegated and caller is not the delegate", async () => {
+  it("should throw operationForbidden if the given e-service has been delegated and the requester is not the delegate", async () => {
     const eservice = getMockEService();
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
@@ -171,16 +163,12 @@ describe("update eService description", () => {
     await addOneDelegation(delegation);
 
     expect(
-      catalogService.updateEServiceDescription(
-        eservice.id,
-        "eservice new description",
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
+      catalogService.updateEServiceName(eservice.id, "eservice new name", {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(operationForbidden);
   });
   it("should throw eserviceWithoutValidDescriptors if the eservice doesn't have any descriptors", async () => {
@@ -188,20 +176,16 @@ describe("update eService description", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.updateEServiceDescription(
-        eservice.id,
-        "eservice new description",
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
+      catalogService.updateEServiceName(eservice.id, "eservice new name", {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
   });
-  it.each([descriptorState.draft, descriptorState.archived])(
-    "should throw eserviceWithoutValidDescriptors if the eservice doesn't have valid descriptors (Descriptor with state %s)",
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should throw eserviceWithoutValidDescriptors if the eservice doesn't have any published/suspended/archived/deprecated descriptors",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
@@ -214,16 +198,12 @@ describe("update eService description", () => {
       await addOneEService(eservice);
 
       expect(
-        catalogService.updateEServiceDescription(
-          eservice.id,
-          "eservice new description",
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
-        )
+        catalogService.updateEServiceName(eservice.id, "eservice new name", {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
   );
