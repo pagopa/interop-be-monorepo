@@ -330,7 +330,7 @@ function checkSignalhubFeatureFlag(
   isSignalHubEnabled: boolean | undefined
 ): boolean | undefined {
   return config.featureFlagSignalhub &&
-    config.signalhubWhitelist.includes(organizationId)
+    config.signalhubWhitelist?.includes(organizationId)
     ? isSignalHubEnabled
     : false;
 }
