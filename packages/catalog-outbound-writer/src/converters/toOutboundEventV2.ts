@@ -46,16 +46,30 @@ function toOutboundEServiceV2(
 export function toOutboundEventV2(
   message: EServiceEventEnvelopeV2
 ): OutboundEServiceEvent | undefined {
-  return match(message)
-    .returnType<OutboundEServiceEvent | undefined>()
-    .with(
-      { type: "EServiceAdded" },
-      { type: "DraftEServiceUpdated" },
-      { type: "EServiceDescriptionUpdated" },
-      { type: "EServiceNameUpdated" },
-      (msg) => ({
+  return (
+    match(message)
+      .returnType<OutboundEServiceEvent | undefined>()
+      .with(
+        { type: "EServiceAdded" },
+        { type: "DraftEServiceUpdated" },
+        { type: "EServiceDescriptionUpdated" },
+        (msg) => ({
+          event_version: msg.event_version,
+          type: msg.type,
+          version: msg.version,
+          data: {
+            eservice:
+              msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
+          },
+          stream_id: msg.stream_id,
+          timestamp: new Date(),
+        })
+      )
+      // TODO temporary fix waiting for the outbound library to be updated.
+      // After that, EServiceDescriptionUpdated will be added to the handler above
+      .with({ type: "EServiceNameUpdated" }, (msg) => ({
         event_version: msg.event_version,
-        type: msg.type,
+        type: "EServiceDescriptionUpdated",
         version: msg.version,
         data: {
           eservice:
@@ -63,93 +77,97 @@ export function toOutboundEventV2(
         },
         stream_id: msg.stream_id,
         timestamp: new Date(),
-      })
-    )
-    .with({ type: "EServiceDeleted" }, (msg) => ({
-      event_version: msg.event_version,
-      type: msg.type,
-      version: msg.version,
-      data: {
-        eserviceId: msg.data.eserviceId,
-        eservice: msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
-      },
-      stream_id: msg.stream_id,
-      timestamp: new Date(),
-    }))
-    .with({ type: "EServiceCloned" }, (msg) => ({
-      event_version: msg.event_version,
-      type: msg.type,
-      version: msg.version,
-      data: {
-        sourceEservice:
-          msg.data.sourceEservice &&
-          toOutboundEServiceV2(msg.data.sourceEservice),
-        sourceDescriptorId: msg.data.sourceDescriptorId,
-        eservice: msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
-      },
-      stream_id: msg.stream_id,
-      timestamp: new Date(),
-    }))
-    .with(
-      { type: "EServiceDescriptorAdded" },
-      { type: "EServiceDraftDescriptorUpdated" },
-      { type: "EServiceDescriptorQuotasUpdated" },
-      { type: "EServiceDescriptorActivated" },
-      { type: "EServiceDescriptorArchived" },
-      { type: "EServiceDescriptorPublished" },
-      { type: "EServiceDescriptorSuspended" },
-      { type: "EServiceDraftDescriptorDeleted" },
-      (msg) => ({
+      }))
+      // end of temporary fix
+      .with({ type: "EServiceDeleted" }, (msg) => ({
+        event_version: msg.event_version,
+        type: msg.type,
+        version: msg.version,
+        data: {
+          eserviceId: msg.data.eserviceId,
+          eservice:
+            msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
+        },
+        stream_id: msg.stream_id,
+        timestamp: new Date(),
+      }))
+      .with({ type: "EServiceCloned" }, (msg) => ({
+        event_version: msg.event_version,
+        type: msg.type,
+        version: msg.version,
+        data: {
+          sourceEservice:
+            msg.data.sourceEservice &&
+            toOutboundEServiceV2(msg.data.sourceEservice),
+          sourceDescriptorId: msg.data.sourceDescriptorId,
+          eservice:
+            msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
+        },
+        stream_id: msg.stream_id,
+        timestamp: new Date(),
+      }))
+      .with(
+        { type: "EServiceDescriptorAdded" },
+        { type: "EServiceDraftDescriptorUpdated" },
+        { type: "EServiceDescriptorQuotasUpdated" },
+        { type: "EServiceDescriptorActivated" },
+        { type: "EServiceDescriptorArchived" },
+        { type: "EServiceDescriptorPublished" },
+        { type: "EServiceDescriptorSuspended" },
+        { type: "EServiceDraftDescriptorDeleted" },
+        (msg) => ({
+          event_version: msg.event_version,
+          type: msg.type,
+          version: msg.version,
+          data: {
+            descriptorId: msg.data.descriptorId,
+            eservice:
+              msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
+          },
+          stream_id: msg.stream_id,
+          timestamp: new Date(),
+        })
+      )
+      .with(
+        { type: "EServiceDescriptorInterfaceAdded" },
+        { type: "EServiceDescriptorDocumentAdded" },
+        { type: "EServiceDescriptorInterfaceUpdated" },
+        { type: "EServiceDescriptorDocumentUpdated" },
+        { type: "EServiceDescriptorInterfaceDeleted" },
+        { type: "EServiceDescriptorDocumentDeleted" },
+        (msg) => ({
+          event_version: msg.event_version,
+          type: msg.type,
+          version: msg.version,
+          data: {
+            descriptorId: msg.data.descriptorId,
+            documentId: msg.data.documentId,
+            eservice:
+              msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
+          },
+          stream_id: msg.stream_id,
+          timestamp: new Date(),
+        })
+      )
+      .with({ type: "EServiceDescriptorAttributesUpdated" }, (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
         version: msg.version,
         data: {
           descriptorId: msg.data.descriptorId,
+          attributeIds: msg.data.attributeIds,
           eservice:
             msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
         },
         stream_id: msg.stream_id,
         timestamp: new Date(),
-      })
-    )
-    .with(
-      { type: "EServiceDescriptorInterfaceAdded" },
-      { type: "EServiceDescriptorDocumentAdded" },
-      { type: "EServiceDescriptorInterfaceUpdated" },
-      { type: "EServiceDescriptorDocumentUpdated" },
-      { type: "EServiceDescriptorInterfaceDeleted" },
-      { type: "EServiceDescriptorDocumentDeleted" },
-      (msg) => ({
-        event_version: msg.event_version,
-        type: msg.type,
-        version: msg.version,
-        data: {
-          descriptorId: msg.data.descriptorId,
-          documentId: msg.data.documentId,
-          eservice:
-            msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
-        },
-        stream_id: msg.stream_id,
-        timestamp: new Date(),
-      })
-    )
-    .with({ type: "EServiceDescriptorAttributesUpdated" }, (msg) => ({
-      event_version: msg.event_version,
-      type: msg.type,
-      version: msg.version,
-      data: {
-        descriptorId: msg.data.descriptorId,
-        attributeIds: msg.data.attributeIds,
-        eservice: msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
-      },
-      stream_id: msg.stream_id,
-      timestamp: new Date(),
-    }))
-    .with(
-      { type: "EServiceRiskAnalysisAdded" },
-      { type: "EServiceRiskAnalysisDeleted" },
-      { type: "EServiceRiskAnalysisUpdated" },
-      () => undefined
-    )
-    .exhaustive();
+      }))
+      .with(
+        { type: "EServiceRiskAnalysisAdded" },
+        { type: "EServiceRiskAnalysisDeleted" },
+        { type: "EServiceRiskAnalysisUpdated" },
+        () => undefined
+      )
+      .exhaustive()
+  );
 }
