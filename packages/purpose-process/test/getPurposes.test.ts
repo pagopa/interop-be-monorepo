@@ -1,8 +1,10 @@
 import {
+  Agreement,
   EService,
   EServiceId,
   Purpose,
   TenantId,
+  agreementState,
   delegationKind,
   delegationState,
   generateId,
@@ -19,9 +21,12 @@ import {
   getMockValidRiskAnalysisForm,
   getMockDelegation,
   getMockTenant,
+  addSomeRandomDelegations,
+  getMockAgreement,
 } from "pagopa-interop-commons-test/index.js";
 import { genericLogger } from "pagopa-interop-commons";
 import {
+  addOneAgreement,
   addOneDelegation,
   addOneEService,
   addOnePurpose,
@@ -525,6 +530,133 @@ describe("getPurposes", async () => {
     );
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
+  });
+  it("should get the purposes if the requester is an e-service delegated consumer", async () => {
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose1.eserviceId,
+      delegatorId: mockPurpose1.consumerId,
+      delegateId: consumerId1,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation(delegation);
+
+    const result = await purposeService.getPurposes(
+      delegation.delegateId,
+      {
+        eservicesIds: [],
+        consumersIds: [],
+        producersIds: [],
+        states: [],
+        excludeDraft: undefined,
+      },
+      { offset: 0, limit: 50 },
+      genericLogger
+    );
+    expect(result.totalCount).toBe(7);
+    expect(result.results).toEqual([
+      mockPurpose1,
+      mockPurpose2,
+      mockPurpose3,
+      mockPurpose4,
+      mockPurpose5,
+      mockPurpose6,
+      mockPurpose7,
+    ]);
+  });
+  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and you should get the purposes", async () => {
+    const producer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const producerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+    };
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      producerId: producer.id,
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+      state: agreementState.active,
+    };
+
+    const delegatePurpose: Purpose = {
+      ...getMockPurpose(),
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+    };
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegatorId: producer.id,
+      delegateId: producerDelegate.id,
+      state: delegationState.active,
+    });
+
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      delegatorId: consumer.id,
+      delegateId: consumerDelegate.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producerDelegate);
+    await addOneTenant(producer);
+    await addOneTenant(consumerDelegate);
+    await addOneTenant(consumer);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOnePurpose(delegatePurpose);
+    await addOneDelegation(producerDelegation);
+    await addOneDelegation(consumerDelegation);
+    await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
+
+    const result = await purposeService.getPurposes(
+      consumerDelegation.delegateId,
+      {
+        eservicesIds: [],
+        consumersIds: [],
+        producersIds: [],
+        states: [],
+        excludeDraft: undefined,
+      },
+      { offset: 0, limit: 50 },
+      genericLogger
+    );
+
+    expect(result.totalCount).toBe(8);
+    expect(result.results).toEqual([
+      mockPurpose1,
+      delegatePurpose,
+      mockPurpose2,
+      mockPurpose3,
+      mockPurpose4,
+      mockPurpose5,
+      mockPurpose6,
+      mockPurpose7,
+    ]);
   });
 
   describe("Producer Delegation active for provided producerIds filter", async () => {
