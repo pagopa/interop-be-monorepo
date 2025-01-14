@@ -1113,8 +1113,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "400":
-          description: Bad request
+        "409":
+          description: Conflict
           content:
             application/json:
               schema:
