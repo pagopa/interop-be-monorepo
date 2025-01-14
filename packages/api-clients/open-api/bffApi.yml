@@ -4366,6 +4366,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
+          description: EService or Descriptor not found
           headers:
             "X-Rate-Limit-Limit":
               schema:
