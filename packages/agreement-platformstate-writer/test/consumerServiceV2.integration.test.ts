@@ -2564,6 +2564,126 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
+    it("should do no operation if the agreement state is not active nor suspended", async () => {
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.pending,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+      const payload: AgreementUpgradedV2 = {
+        agreement: toAgreementV2(agreement),
+      };
+      const message: AgreementEventEnvelope = {
+        sequence_num: 1,
+        stream_id: agreement.id,
+        version: 2,
+        type: "AgreementUpgraded",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      // platform-states
+      const platformStatesAgreementEntryPK = makePlatformStatesAgreementPK(
+        agreement.id
+      );
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
+        ...getMockPlatformStatesAgreementEntry(platformStatesAgreementEntryPK),
+        version: 1,
+      };
+      await writeAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const platformStatesCatalogEntryPK =
+        makePlatformStatesEServiceDescriptorPK({
+          eserviceId: agreement.eserviceId,
+          descriptorId: agreement.descriptorId,
+        });
+      const platformStatesCatalogEntry: PlatformStatesCatalogEntry = {
+        PK: platformStatesCatalogEntryPK,
+        state: itemState.active,
+        descriptorAudience: ["pagopa.it"],
+        descriptorVoucherLifespan: 60,
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await writePlatformCatalogEntry(
+        platformStatesCatalogEntry,
+        dynamoDBClient
+      );
+
+      // token-generation-states
+      const tokenGenStatesEntryPK1 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
+      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient1,
+        dynamoDBClient
+      );
+
+      const tokenGenStatesEntryPK2 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient2,
+        dynamoDBClient
+      );
+
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
+
+      // platform-states
+      const retrievedAgreementEntry = await readAgreementEntry(
+        platformStatesAgreementEntryPK,
+        dynamoDBClient
+      );
+      expect(retrievedAgreementEntry).toEqual(platformStatesAgreementEntry);
+
+      // token-generation-states
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
+
+      expect(retrievedTokenGenStatesEntries).toHaveLength(2);
+      expect(retrievedTokenGenStatesEntries).toEqual(
+        expect.arrayContaining([
+          tokenGenStatesConsumerClient1,
+          tokenGenStatesConsumerClient2,
+        ])
+      );
+    });
+
     it("should update the entry if the incoming version is more recent than the table entry (agreement is the latest -> update in token states)", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);

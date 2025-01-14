@@ -158,7 +158,7 @@ export async function handleMessageV2(
 
         if (!catalogEntry || catalogEntry.version > msg.version) {
           logger.info(
-            `Skipping processing of entry ${catalogEntry?.PK}. Reason: ${
+            `Skipping processing of entry ${primaryKey}. Reason: ${
               !catalogEntry
                 ? "entry not found in platform-states"
                 : "a more recent entry already exists"
@@ -229,7 +229,7 @@ export async function handleMessageV2(
 
       if (!catalogEntry || catalogEntry.version > msg.version) {
         logger.info(
-          `Skipping processing of entry ${catalogEntry?.PK}. Reason: ${
+          `Skipping processing of entry ${primaryKey}. Reason: ${
             !catalogEntry
               ? "entry not found in platform-states"
               : "a more recent entry already exists"
