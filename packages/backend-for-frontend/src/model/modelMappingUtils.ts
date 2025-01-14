@@ -17,6 +17,11 @@ const activeDescriptorStatesFilter: catalogApi.EServiceDescriptorState[] = [
   catalogApiDescriptorState.DEPRECATED,
 ];
 
+const invalidDescriptorState: catalogApi.EServiceDescriptorState[] = [
+  catalogApiDescriptorState.DRAFT,
+  catalogApiDescriptorState.WAITING_FOR_APPROVAL,
+];
+
 export function getLatestActiveDescriptor(
   eservice: catalogApi.EService
 ): catalogApi.EServiceDescriptor | undefined {
@@ -26,11 +31,11 @@ export function getLatestActiveDescriptor(
     .at(-1);
 }
 
-export function getNotDraftDescriptor(
+export function getValidDescriptor(
   eservice: catalogApi.EService
 ): catalogApi.EServiceDescriptor[] {
   return eservice.descriptors.filter(
-    (d) => d.state !== catalogApiDescriptorState.DRAFT
+    (d) => !invalidDescriptorState.includes(d.state)
   );
 }
 
