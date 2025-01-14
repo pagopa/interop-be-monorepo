@@ -6,6 +6,7 @@ import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockDelegation,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
@@ -28,6 +29,7 @@ import {
   organizationIsNotTheProducer,
   purposeVersionNotFound,
   notValidVersionState,
+  organizationIsNotTheDelegatedProducer,
 } from "../src/model/domain/errors.js";
 import {
   getMockEService,
@@ -57,14 +59,19 @@ describe("rejectPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-    await purposeService.rejectPurposeVersion({
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion.id,
-      rejectionReason: "test",
-      organizationId: mockEService.producerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await purposeService.rejectPurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+        rejectionReason: "test",
+      },
+      {
+        authData: getRandomAuthData(mockEService.producerId),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      }
+    );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -120,18 +127,24 @@ describe("rejectPurposeVersion", () => {
       eserviceId: mockEService.id,
       delegateId: delegate.organizationId,
       state: delegationState.active,
+      delegatorId: mockEService.producerId,
     });
 
     await writeInReadmodel(delegation, delegations);
 
-    await purposeService.rejectPurposeVersion({
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion.id,
-      rejectionReason: "test",
-      organizationId: delegate.organizationId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await purposeService.rejectPurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+        rejectionReason: "test",
+      },
+      {
+        authData: getRandomAuthData(delegate.organizationId),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      }
+    );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -177,14 +190,19 @@ describe("rejectPurposeVersion", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     expect(
-      purposeService.rejectPurposeVersion({
-        purposeId: randomId,
-        versionId: mockPurposeVersion.id,
-        rejectionReason: "test",
-        organizationId: mockEService.producerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      purposeService.rejectPurposeVersion(
+        {
+          purposeId: randomId,
+          versionId: mockPurposeVersion.id,
+          rejectionReason: "test",
+        },
+        {
+          authData: getRandomAuthData(mockEService.producerId),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(purposeNotFound(randomId));
   });
   it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
@@ -199,14 +217,19 @@ describe("rejectPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
 
     expect(
-      purposeService.rejectPurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        rejectionReason: "test",
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      purposeService.rejectPurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+          rejectionReason: "test",
+        },
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
   it("should throw organizationIsNotTheProducer if the requester is not the producer nor delegate", async () => {
@@ -222,19 +245,24 @@ describe("rejectPurposeVersion", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     expect(
-      purposeService.rejectPurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        rejectionReason: "test",
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      purposeService.rejectPurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+          rejectionReason: "test",
+        },
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(
       organizationIsNotTheProducer(mockPurpose.consumerId)
     );
   });
-  it("should throw organizationIsNotTheProducer if the purpose e-service has an active delegation and the requester is the producer", async () => {
+  it("should throw organizationIsNotTheDelegatedProducer if the purpose e-service has an active delegation and the requester is the producer", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion = getMockPurposeVersion();
     const mockPurpose: Purpose = {
@@ -257,19 +285,27 @@ describe("rejectPurposeVersion", () => {
     await writeInReadmodel(delegation, delegations);
 
     expect(
-      purposeService.rejectPurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        rejectionReason: "test",
-        organizationId: mockEService.producerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      purposeService.rejectPurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+          rejectionReason: "test",
+        },
+        {
+          authData: getRandomAuthData(mockEService.producerId),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(
-      organizationIsNotTheProducer(mockEService.producerId)
+      organizationIsNotTheDelegatedProducer(
+        mockEService.producerId,
+        delegation.id
+      )
     );
   });
-  it("should throw organizationIsNotTheProducer if the purpose e-service has an active delegation and the requester is not the producer nor the delegate", async () => {
+  it("should throw organizationIsNotTheDelegatedProducer if the purpose e-service has an active delegation and the requester is not the producer nor the delegate", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion = getMockPurposeVersion();
     const mockPurpose: Purpose = {
@@ -294,16 +330,24 @@ describe("rejectPurposeVersion", () => {
     const randomCaller = getMockAuthData();
 
     expect(
-      purposeService.rejectPurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        rejectionReason: "test",
-        organizationId: randomCaller.organizationId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      purposeService.rejectPurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+          rejectionReason: "test",
+        },
+        {
+          authData: getRandomAuthData(randomCaller.organizationId),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(
-      organizationIsNotTheProducer(randomCaller.organizationId)
+      organizationIsNotTheDelegatedProducer(
+        randomCaller.organizationId,
+        delegation.id
+      )
     );
   });
   it.each(
@@ -333,14 +377,19 @@ describe("rejectPurposeVersion", () => {
       await writeInReadmodel(delegation, delegations);
 
       expect(
-        purposeService.rejectPurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          rejectionReason: "test",
-          organizationId: delegate.organizationId,
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        purposeService.rejectPurposeVersion(
+          {
+            purposeId: mockPurpose.id,
+            versionId: mockPurposeVersion.id,
+            rejectionReason: "test",
+          },
+          {
+            authData: getRandomAuthData(delegate.organizationId),
+            serviceName: "",
+            correlationId: generateId(),
+            logger: genericLogger,
+          }
+        )
       ).rejects.toThrowError(
         organizationIsNotTheProducer(delegate.organizationId)
       );
@@ -360,14 +409,19 @@ describe("rejectPurposeVersion", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     expect(
-      purposeService.rejectPurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: randomVersionId,
-        rejectionReason: "test",
-        organizationId: mockEService.producerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      purposeService.rejectPurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: randomVersionId,
+          rejectionReason: "test",
+        },
+        {
+          authData: getRandomAuthData(mockEService.producerId),
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
     );
@@ -392,14 +446,19 @@ describe("rejectPurposeVersion", () => {
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
       expect(
-        purposeService.rejectPurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          rejectionReason: "test",
-          organizationId: mockEService.producerId,
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        purposeService.rejectPurposeVersion(
+          {
+            purposeId: mockPurpose.id,
+            versionId: mockPurposeVersion.id,
+            rejectionReason: "test",
+          },
+          {
+            authData: getRandomAuthData(mockEService.producerId),
+            serviceName: "",
+            correlationId: generateId(),
+            logger: genericLogger,
+          }
+        )
       ).rejects.toThrowError(
         notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
       );

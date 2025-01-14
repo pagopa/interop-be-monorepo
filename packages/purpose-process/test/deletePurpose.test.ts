@@ -16,6 +16,7 @@ import {
   writeInReadmodel,
   decodeProtobufPayload,
   getMockPurposeVersion,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -43,11 +44,11 @@ describe("deletePurpose", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-    await purposeService.deletePurpose({
-      purposeId: mockPurpose.id,
-      organizationId: mockPurpose.consumerId,
+    await purposeService.deletePurpose(mockPurpose.id, {
+      authData: getRandomAuthData(mockPurpose.consumerId),
       correlationId: generateId(),
       logger: genericLogger,
+      serviceName: "",
     });
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -78,11 +79,11 @@ describe("deletePurpose", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-    await purposeService.deletePurpose({
-      purposeId: mockPurpose.id,
-      organizationId: mockPurpose.consumerId,
+    await purposeService.deletePurpose(mockPurpose.id, {
+      authData: getRandomAuthData(mockPurpose.consumerId),
       correlationId: generateId(),
       logger: genericLogger,
+      serviceName: "",
     });
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -115,11 +116,11 @@ describe("deletePurpose", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-    await purposeService.deletePurpose({
-      purposeId: mockPurpose.id,
-      organizationId: mockPurpose.consumerId,
+    await purposeService.deletePurpose(mockPurpose.id, {
+      authData: getRandomAuthData(mockPurpose.consumerId),
       correlationId: generateId(),
       logger: genericLogger,
+      serviceName: "",
     });
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -144,11 +145,11 @@ describe("deletePurpose", () => {
 
     await addOnePurpose(mockPurpose);
     expect(
-      purposeService.deletePurpose({
-        purposeId: randomId,
-        organizationId: mockPurpose.consumerId,
+      purposeService.deletePurpose(randomId, {
+        authData: getRandomAuthData(mockPurpose.consumerId),
         correlationId: generateId(),
         logger: genericLogger,
+        serviceName: "",
       })
     ).rejects.toThrowError(purposeNotFound(randomId));
   });
@@ -167,11 +168,11 @@ describe("deletePurpose", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     expect(
-      purposeService.deletePurpose({
-        purposeId: mockPurpose.id,
-        organizationId: mockEService.producerId,
+      purposeService.deletePurpose(mockPurpose.id, {
+        authData: getRandomAuthData(mockEService.producerId),
         correlationId: generateId(),
         logger: genericLogger,
+        serviceName: "",
       })
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(mockEService.producerId)
@@ -199,11 +200,11 @@ describe("deletePurpose", () => {
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
       expect(
-        purposeService.deletePurpose({
-          purposeId: mockPurpose.id,
-          organizationId: mockPurpose.consumerId,
+        purposeService.deletePurpose(mockPurpose.id, {
+          authData: getRandomAuthData(mockPurpose.consumerId),
           correlationId: generateId(),
           logger: genericLogger,
+          serviceName: "",
         })
       ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
     }

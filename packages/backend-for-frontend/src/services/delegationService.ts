@@ -396,5 +396,116 @@ export function delegationServiceBuilder(
         headers,
       });
     },
+    async getConsumerDelegators(
+      {
+        q,
+        eserviceIds,
+        offset,
+        limit,
+      }: {
+        q?: string;
+        eserviceIds: string[];
+        offset: number;
+        limit: number;
+      },
+      { headers, authData, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.DelegationTenants> {
+      logger.info(
+        `Retrieving consumer delegators of requester ${authData.organizationId} with name ${q}, eserviceIds ${eserviceIds}, limit ${limit}, offset ${offset}`
+      );
+
+      const delegatorsData =
+        await delegationClients.consumer.getConsumerDelegators({
+          queries: {
+            delegatorName: q,
+            eserviceIds,
+            offset,
+            limit,
+          },
+          headers,
+        });
+
+      return {
+        results: delegatorsData.results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: delegatorsData.totalCount,
+        },
+      };
+    },
+    async getConsumerDelegatorsWithAgreements(
+      {
+        q,
+        offset,
+        limit,
+      }: {
+        q?: string;
+        offset: number;
+        limit: number;
+      },
+      { headers, authData, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.DelegationTenants> {
+      logger.info(
+        `Retrieving consumer delegators with active agreements of requester ${authData.organizationId} with name ${q}, limit ${limit}, offset ${offset}`
+      );
+
+      const delegatorsData =
+        await delegationClients.consumer.getConsumerDelegatorsWithAgreements({
+          queries: {
+            delegatorName: q,
+            offset,
+            limit,
+          },
+          headers,
+        });
+
+      return {
+        results: delegatorsData.results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: delegatorsData.totalCount,
+        },
+      };
+    },
+    async getConsumerDelegatedEservices(
+      {
+        delegatorId,
+        q,
+        offset,
+        limit,
+      }: {
+        delegatorId: string;
+        q?: string;
+        offset: number;
+        limit: number;
+      },
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactEServicesLight> {
+      logger.info(
+        `Retrieving consumer delegated eservices of delegator ${delegatorId} with name ${q}, limit ${limit}, offset ${offset}`
+      );
+
+      const eservicesData =
+        await delegationClients.consumer.getConsumerEservices({
+          queries: {
+            delegatorId,
+            eserviceName: q,
+            offset,
+            limit,
+          },
+          headers,
+        });
+
+      return {
+        results: eservicesData.results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: eservicesData.totalCount,
+        },
+      };
+    },
   };
 }

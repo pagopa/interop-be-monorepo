@@ -37,6 +37,147 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
+  /consumer/eservices:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - in: query
+        name: eserviceName
+        schema:
+          type: string
+      - in: query
+        name: delegatorId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - consumer
+      operationId: getConsumerEservices
+      description: Retrieve eservices of a consumer delegate with active delegation and agreement
+      responses:
+        "200":
+          description: Eservices retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactEservicesLight"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /consumer/delegators:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - in: query
+        name: delegatorName
+        schema:
+          type: string
+      - in: query
+        name: eserviceIds
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+        explode: false
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - consumer
+      operationId: getConsumerDelegators
+      description: Retrieve requester's delegators
+      responses:
+        "200":
+          description: Tenants retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactTenants"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /consumer/delegatorsWithAgreements:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - in: query
+        name: delegatorName
+        schema:
+          type: string
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - consumer
+      operationId: getConsumerDelegatorsWithAgreements
+      description: Retrieve requester's delegators with active agreements
+      responses:
+        "200":
+          description: Tenants retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactTenants"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /delegations:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -637,6 +778,58 @@ components:
       schema:
         type: string
   schemas:
+    CompactEserviceLight:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+        - id
+        - name
+    CompactEservicesLight:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactEserviceLight"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    CompactTenant:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+        - id
+        - name
+    CompactTenants:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactTenant"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     Delegations:
       type: object
       additionalProperties: false

@@ -31,6 +31,9 @@ import {
   approveDelegationErrorMapper,
   rejectDelegationErrorMapper,
   revokeDelegationErrorMapper,
+  getConsumerDelegatorsErrorMapper,
+  getConsumerEservicesErrorMapper,
+  getConsumerDelegatorsWithAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
@@ -95,10 +98,8 @@ const delegationRouter = (
 
           return res.status(200).send(
             delegationApi.Delegations.parse({
-              results: delegations.map((delegation) =>
-                delegationToApiDelegation(delegation)
-              ),
-              totalCount: delegations.length,
+              results: delegations.results.map(delegationToApiDelegation),
+              totalCount: delegations.totalCount,
             })
           );
         } catch (error) {
@@ -426,7 +427,100 @@ const delegationRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .get("/consumer/delegators", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      const { delegatorName, eserviceIds, limit, offset } = req.query;
+
+      try {
+        const delegators = await delegationService.getConsumerDelegators(
+          {
+            requesterId: ctx.authData.organizationId,
+            delegatorName,
+            eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
+            limit,
+            offset,
+          },
+          ctx.logger
+        );
+
+        return res
+          .status(200)
+          .send(delegationApi.CompactTenants.parse(delegators));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getConsumerDelegatorsErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/consumer/delegatorsWithAgreements", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      const { delegatorName, limit, offset } = req.query;
+
+      try {
+        const delegators =
+          await delegationService.getConsumerDelegatorsWithAgreements(
+            {
+              requesterId: ctx.authData.organizationId,
+              delegatorName,
+              limit,
+              offset,
+            },
+            ctx.logger
+          );
+
+        return res
+          .status(200)
+          .send(delegationApi.CompactTenants.parse(delegators));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getConsumerDelegatorsWithAgreementsErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/consumer/eservices", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      const { delegatorId, eserviceName, limit, offset } = req.query;
+
+      try {
+        const eservices = await delegationService.getConsumerEservices(
+          {
+            delegatorId: unsafeBrandId(delegatorId),
+            requesterId: ctx.authData.organizationId,
+            eserviceName,
+            limit,
+            offset,
+          },
+          ctx.logger
+        );
+
+        return res
+          .status(200)
+          .send(delegationApi.CompactEservicesLight.parse(eservices));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getConsumerEservicesErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return [delegationRouter, delegationProducerRouter, delegationConsumerRouter];
 };

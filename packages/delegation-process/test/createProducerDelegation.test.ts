@@ -379,14 +379,16 @@ describe("create producer delegation", () => {
     const delegator = getMockTenant(delegatorId);
 
     const delegateId = generateId<TenantId>();
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegator);
+    await addOneEservice(eservice);
 
     await expect(
       delegationService.createProducerDelegation(
         {
           delegateId,
-          eserviceId: generateId<EServiceId>(),
+          eserviceId: eservice.id,
         },
         {
           authData,

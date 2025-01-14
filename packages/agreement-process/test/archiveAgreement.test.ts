@@ -3,6 +3,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockDelegation,
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
@@ -14,6 +15,8 @@ import {
   EServiceId,
   TenantId,
   agreementState,
+  delegationKind,
+  delegationState,
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
@@ -26,6 +29,8 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
+  addOneDelegation,
+  addSomeRandomDelegations,
   agreementService,
   readLastAgreementEvent,
 } from "./utils.js";
@@ -58,15 +63,7 @@ describe("archive agreement", () => {
     const agreementId = returnedAgreement.id;
 
     expect(agreementId).toBeDefined();
-    if (!agreementId) {
-      fail("Unhandled error: returned agreementId is undefined");
-    }
-
     const actualAgreementData = await readLastAgreementEvent(agreementId);
-
-    if (!actualAgreementData) {
-      fail("Creation fails: agreement not found in event-store");
-    }
 
     expect(actualAgreementData).toMatchObject({
       type: "AgreementArchivedByConsumer",
@@ -95,6 +92,7 @@ describe("archive agreement", () => {
         },
       },
     };
+
     expect(actualAgreement).toMatchObject(
       toAgreementV2(expectedAgreemenentArchived)
     );
@@ -102,6 +100,113 @@ describe("archive agreement", () => {
     expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement));
 
     vi.useRealTimers();
+  });
+
+  it("should succeed when the requester is the consumer delegate and the agreement is in an archivable state", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const delegateId = generateId<TenantId>();
+    const authData = getRandomAuthData(delegateId);
+
+    const agreement = {
+      ...getMockAgreement(),
+      state: randomArrayItem(agreementArchivableStates),
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: agreement.eserviceId,
+      delegatorId: agreement.consumerId,
+      delegateId,
+      state: delegationState.active,
+    });
+
+    await addOneAgreement(agreement);
+    await addOneDelegation(delegation);
+    await addSomeRandomDelegations(agreement);
+
+    const returnedAgreement = await agreementService.archiveAgreement(
+      agreement.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      }
+    );
+
+    const agreementId = returnedAgreement.id;
+
+    expect(agreementId).toBeDefined();
+
+    const actualAgreementData = await readLastAgreementEvent(agreementId);
+
+    expect(actualAgreementData).toMatchObject({
+      type: "AgreementArchivedByConsumer",
+      event_version: 2,
+      version: "1",
+      stream_id: agreementId,
+    });
+
+    const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
+      messageType: AgreementArchivedByConsumerV2,
+      payload: actualAgreementData.data,
+    }).agreement;
+
+    if (!actualAgreement) {
+      fail("impossible to decode AgreementArchivedV2 data");
+    }
+
+    const expectedAgreemenentArchived: Agreement = {
+      ...agreement,
+      state: agreementState.archived,
+      stamps: {
+        ...agreement.stamps,
+        archiving: {
+          who: authData.userId,
+          when: new Date(),
+        },
+      },
+    };
+
+    expect(actualAgreement).toMatchObject(
+      toAgreementV2(expectedAgreemenentArchived)
+    );
+
+    expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement));
+
+    vi.useRealTimers();
+  });
+
+  it("should throw operationNotAllowed when the requester is the consumer but there is a consumer delegation", async () => {
+    const authData = getRandomAuthData();
+
+    const agreement = {
+      ...getMockAgreement(),
+      consumerId: authData.organizationId,
+      state: randomArrayItem(agreementArchivableStates),
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: agreement.eserviceId,
+      delegatorId: agreement.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOneAgreement(agreement);
+    await addOneDelegation(delegation);
+
+    await expect(
+      agreementService.archiveAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
   });
 
   it("should throw a agreementNotFound error when the Agreement doesn't exist", async () => {
