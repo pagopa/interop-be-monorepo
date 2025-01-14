@@ -9,7 +9,6 @@ import {
   getMockEService,
   getMockPurpose,
   getMockPurposeVersion,
-  getRandomAuthData,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
