@@ -19,6 +19,7 @@ import {
   inconsistentDailyCalls,
   originNotCompliant,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
 import {
   addOneEService,
   buildDescriptorSeedForEserviceCreation,
@@ -40,6 +41,9 @@ describe("create eservice", () => {
     vi.useRealTimers();
   });
   it("should write on event-store for the creation of an eservice", async () => {
+    config.featureFlagSignalhub = true;
+    config.signalhubWhitelist = [mockEService.producerId];
+
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
     const eservice = await catalogService.createEService(
       {
@@ -118,6 +122,55 @@ describe("create eservice", () => {
     expect(descriptorCreationPayload.eservice).toEqual(
       toEServiceV2(expectedEserviceWithDescriptor)
     );
+  });
+  it("should assign false to isSignalhubEnabled field if signalhub feature flag is not enabled", async () => {
+    config.featureFlagSignalhub = false;
+    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const eservice = await catalogService.createEService(
+      {
+        name: mockEService.name,
+        description: mockEService.description,
+        technology: "REST",
+        mode: "DELIVER",
+        descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+        isSignalHubEnabled,
+      },
+      {
+        authData: getMockAuthData(mockEService.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    expect(eservice).toBeDefined();
+    expect(eservice.isSignalHubEnabled).toBe(false);
+  });
+
+  it("should assign false to isSignalhubEnabled field if signalhub feature flag is enabled but the organization is not on whitelist", async () => {
+    config.featureFlagSignalhub = true;
+    config.signalhubWhitelist = [generateId()];
+    const isSignalHubEnabled = true;
+
+    const eservice = await catalogService.createEService(
+      {
+        name: mockEService.name,
+        description: mockEService.description,
+        technology: "REST",
+        mode: "DELIVER",
+        descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+        isSignalHubEnabled,
+      },
+      {
+        authData: getMockAuthData(mockEService.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    expect(eservice).toBeDefined();
+    expect(eservice.isSignalHubEnabled).toBe(false);
   });
 
   it("should throw eServiceDuplicate if an eservice with the same name already exists", async () => {
