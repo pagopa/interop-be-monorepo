@@ -1691,13 +1691,13 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
-      const hasValidDescriptor = eservice.data.descriptors.some(
-        (descriptor) =>
-          descriptor.state === descriptorState.published ||
-          descriptor.state === descriptorState.suspended ||
-          descriptor.state === descriptorState.archived
-      );
-      if (!hasValidDescriptor) {
+      if (
+        eservice.data.descriptors.every(
+          (descriptor) =>
+            descriptor.state === descriptorState.draft ||
+            descriptor.state === descriptorState.archived
+        )
+      ) {
         throw eserviceWithoutValidDescriptors(eserviceId);
       }
       if (name !== eservice.data.name) {
