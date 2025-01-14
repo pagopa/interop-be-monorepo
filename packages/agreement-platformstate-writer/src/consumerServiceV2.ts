@@ -32,16 +32,15 @@ export async function handleMessageV2(
   await match(message)
     .with({ type: "AgreementActivated" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
-      const primaryKey = makePlatformStatesAgreementPK(agreement.id);
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
 
       const existingAgreementEntry = await readAgreementEntry(
         primaryKey,
         dynamoDBClient
       );
-      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-        consumerId: agreement.consumerId,
-        eserviceId: agreement.eserviceId,
-      });
 
       if (existingAgreementEntry) {
         if (existingAgreementEntry.version > msg.version) {
@@ -69,9 +68,8 @@ export async function handleMessageV2(
           state: agreementStateToItemState(agreement.state),
           version: msg.version,
           updatedAt: new Date().toISOString(),
-          GSIPK_consumerId_eserviceId,
-          GSISK_agreementTimestamp:
-            agreement.stamps.activation.when.toISOString(),
+          agreementId: agreement.id,
+          agreementTimestamp: agreement.stamps.activation.when.toISOString(),
           agreementDescriptorId: agreement.descriptorId,
         };
 
@@ -93,7 +91,10 @@ export async function handleMessageV2(
       { type: "AgreementSuspendedByPlatform" },
       async (msg) => {
         const agreement = parseAgreement(msg.data.agreement);
-        const primaryKey = makePlatformStatesAgreementPK(agreement.id);
+        const primaryKey = makePlatformStatesAgreementPK({
+          consumerId: agreement.consumerId,
+          eserviceId: agreement.eserviceId,
+        });
         const agreementEntry = await readAgreementEntry(
           primaryKey,
           dynamoDBClient
@@ -126,7 +127,7 @@ export async function handleMessageV2(
 
           if (
             await isLatestAgreement(
-              GSIPK_consumerId_eserviceId,
+              primaryKey,
               agreement.id,
               agreementTimestamp,
               dynamoDBClient
@@ -149,16 +150,14 @@ export async function handleMessageV2(
     )
     .with({ type: "AgreementUpgraded" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
-      const primaryKey = makePlatformStatesAgreementPK(agreement.id);
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
       const agreementEntry = await readAgreementEntry(
         primaryKey,
         dynamoDBClient
       );
-
-      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-        consumerId: agreement.consumerId,
-        eserviceId: agreement.eserviceId,
-      });
 
       if (agreementEntry) {
         if (agreementEntry.version > msg.version) {
@@ -194,8 +193,8 @@ export async function handleMessageV2(
           state: agreementStateToItemState(agreement.state),
           version: msg.version,
           updatedAt: new Date().toISOString(),
-          GSIPK_consumerId_eserviceId,
-          GSISK_agreementTimestamp: agreement.stamps.upgrade.when.toISOString(),
+          agreementId: agreement.id,
+          agreementTimestamp: agreement.stamps.upgrade.when.toISOString(),
           agreementDescriptorId: agreement.descriptorId,
         };
 
@@ -210,13 +209,19 @@ export async function handleMessageV2(
     })
     .with({ type: "AgreementArchivedByUpgrade" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
-      const pk = makePlatformStatesAgreementPK(agreement.id);
+      const pk = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
       await deleteAgreementEntry(pk, dynamoDBClient, logger);
     })
     .with({ type: "AgreementArchivedByConsumer" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
 
-      const primaryKey = makePlatformStatesAgreementPK(agreement.id);
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: agreement.consumerId,
         eserviceId: agreement.eserviceId,
@@ -226,7 +231,7 @@ export async function handleMessageV2(
 
       if (
         await isLatestAgreement(
-          GSIPK_consumerId_eserviceId,
+          primaryKey,
           agreement.id,
           agreementTimestamp,
           dynamoDBClient

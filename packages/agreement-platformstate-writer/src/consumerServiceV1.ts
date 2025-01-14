@@ -5,10 +5,10 @@ import {
   AgreementV1,
   genericInternalError,
   fromAgreementV1,
-  makeGSIPKConsumerIdEServiceId,
   makePlatformStatesAgreementPK,
   PlatformStatesAgreementEntry,
   agreementState,
+  makeGSIPKConsumerIdEServiceId,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Logger } from "pagopa-interop-commons";
@@ -124,16 +124,15 @@ const handleActivationOrSuspension = async (
   incomingVersion: number,
   logger: Logger
 ): Promise<void> => {
-  const primaryKey = makePlatformStatesAgreementPK(agreement.id);
+  const primaryKey = makePlatformStatesAgreementPK({
+    consumerId: agreement.consumerId,
+    eserviceId: agreement.eserviceId,
+  });
 
   const existingAgreementEntry = await readAgreementEntry(
     primaryKey,
     dynamoDBClient
   );
-  const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-    consumerId: agreement.consumerId,
-    eserviceId: agreement.eserviceId,
-  });
 
   const agreementTimestamp = extractAgreementTimestamp(agreement);
 
@@ -164,8 +163,8 @@ const handleActivationOrSuspension = async (
       state: agreementStateToItemState(agreement.state),
       version: incomingVersion,
       updatedAt: new Date().toISOString(),
-      GSIPK_consumerId_eserviceId,
-      GSISK_agreementTimestamp: agreementTimestamp,
+      agreementId: agreement.id,
+      agreementTimestamp,
       agreementDescriptorId: agreement.descriptorId,
     };
 
@@ -190,7 +189,11 @@ const handleArchiving = async (
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
-  const primaryKey = makePlatformStatesAgreementPK(agreement.id);
+  const primaryKey = makePlatformStatesAgreementPK({
+    consumerId: agreement.consumerId,
+    eserviceId: agreement.eserviceId,
+  });
+
   const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
     consumerId: agreement.consumerId,
     eserviceId: agreement.eserviceId,
@@ -200,7 +203,7 @@ const handleArchiving = async (
 
   if (
     await isLatestAgreement(
-      GSIPK_consumerId_eserviceId,
+      primaryKey,
       agreement.id,
       agreementTimestamp,
       dynamoDBClient
@@ -228,13 +231,11 @@ const handleUpgrade = async (
   msgVersion: number,
   logger: Logger
 ): Promise<void> => {
-  const primaryKey = makePlatformStatesAgreementPK(agreement.id);
-  const agreementEntry = await readAgreementEntry(primaryKey, dynamoDBClient);
-
-  const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+  const primaryKey = makePlatformStatesAgreementPK({
     consumerId: agreement.consumerId,
     eserviceId: agreement.eserviceId,
   });
+  const agreementEntry = await readAgreementEntry(primaryKey, dynamoDBClient);
 
   const agreementTimestamp = extractAgreementTimestamp(agreement);
 
@@ -265,8 +266,8 @@ const handleUpgrade = async (
       state: agreementStateToItemState(agreement.state),
       version: msgVersion,
       updatedAt: new Date().toISOString(),
-      GSIPK_consumerId_eserviceId,
-      GSISK_agreementTimestamp: agreementTimestamp,
+      agreementId: agreement.id,
+      agreementTimestamp,
       agreementDescriptorId: agreement.descriptorId,
     };
 

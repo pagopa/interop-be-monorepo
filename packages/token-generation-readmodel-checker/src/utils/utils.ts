@@ -445,13 +445,13 @@ export async function compareReadModelAgreementsWithPlatformStates({
     if (platformStatesEntry && agreement) {
       const expectedPlatformStatesAgreementEntry: ComparisonPlatformStatesAgreementEntry =
         {
-          PK: makePlatformStatesAgreementPK(agreement.id),
-          state: agreementStateToItemState(agreement.state),
-          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+          PK: makePlatformStatesAgreementPK({
             consumerId: agreement.consumerId,
             eserviceId: agreement.eserviceId,
           }),
-          GSISK_agreementTimestamp:
+          state: agreementStateToItemState(agreement.state),
+          agreementId: agreement.id,
+          agreementTimestamp:
             agreement.stamps.activation?.when.toISOString() ||
             agreement.createdAt.toISOString(),
           agreementDescriptorId: agreement.descriptorId,

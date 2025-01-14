@@ -18,13 +18,13 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import {
   AgreementId,
   genericInternalError,
-  GSIPKConsumerIdEServiceId,
   itemState,
   ItemState,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
+  makePlatformStatesAgreementPK,
   makePlatformStatesEServiceDescriptorPK,
-  PlatformStatesAgreementGSIAgreement,
+  PlatformStatesAgreementEntry,
   PlatformStatesAgreementPK,
   PlatformStatesCatalogEntry,
   PlatformStatesEServiceDescriptorPK,
@@ -253,14 +253,19 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
         purpose.id,
         exclusiveStartKey
       );
-      const gsiPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId({
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: purpose.consumerId,
         eserviceId: purpose.eserviceId,
       });
 
-      const platformAgreementEntry = await readPlatformAgreementEntry(
-        dynamoDBClient,
-        gsiPKConsumerIdEServiceId
+      const agreementPlatformStatesPK = makePlatformStatesAgreementPK({
+        consumerId: purpose.consumerId,
+        eserviceId: purpose.eserviceId,
+      });
+
+      const platformAgreementEntry = await readAgreementEntry(
+        agreementPlatformStatesPK,
+        dynamoDBClient
       );
 
       const { catalogEntryPK, gsiPKEServiceIdDescriptorId } =
@@ -301,7 +306,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
 
         if (isAgreementMissingInTokenGenStates) {
           logger.info(
-            `Adding agreement info to token-generation-states entry with PK ${tokenEntryPK} and GSIPK_consumerId_eserviceId ${gsiPKConsumerIdEServiceId}`
+            `Adding agreement info to token-generation-states entry with PK ${tokenEntryPK} and GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}`
           );
         }
         // Agreement data from platform-states
@@ -499,39 +504,34 @@ export const updatePurposeDataInTokenGenStatesEntries = async ({
   );
 };
 
-export const readPlatformAgreementEntry = async (
-  dynamoDBClient: DynamoDBClient,
-  gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId
-): Promise<PlatformStatesAgreementGSIAgreement | undefined> => {
-  const input: QueryInput = {
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
-    IndexName: "Agreement",
-    KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
-    ExpressionAttributeValues: {
-      ":gsiValue": { S: gsiPKConsumerIdEServiceId },
+export const readAgreementEntry = async (
+  primaryKey: PlatformStatesAgreementPK,
+  dynamoDBClient: DynamoDBClient
+): Promise<PlatformStatesAgreementEntry | undefined> => {
+  const input: GetItemInput = {
+    Key: {
+      PK: { S: primaryKey },
     },
-    ScanIndexForward: false,
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ConsistentRead: true,
   };
-  const command = new QueryCommand(input);
-  const data: QueryCommandOutput = await dynamoDBClient.send(command);
+  const command = new GetItemCommand(input);
+  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
 
-  if (!data.Items) {
+  if (!data.Item) {
     return undefined;
   } else {
-    const unmarshalledItems = data.Items.map((item) => unmarshall(item));
-    const platformAgreementEntries = z
-      .array(PlatformStatesAgreementGSIAgreement)
-      .safeParse(unmarshalledItems);
+    const unmarshalled = unmarshall(data.Item);
+    const agreementEntry = PlatformStatesAgreementEntry.safeParse(unmarshalled);
 
-    if (platformAgreementEntries.success) {
-      return platformAgreementEntries.data[0];
-    } else {
+    if (!agreementEntry.success) {
       throw genericInternalError(
-        `Unable to parse platform-states agreement entries: result ${JSON.stringify(
-          platformAgreementEntries
-        )} `
+        `Unable to parse platform-states agreement entry: result ${JSON.stringify(
+          agreementEntry
+        )} - data ${JSON.stringify(data)} `
       );
     }
+    return agreementEntry.data;
   }
 };
 

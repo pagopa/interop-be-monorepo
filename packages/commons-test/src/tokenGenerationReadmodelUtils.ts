@@ -450,11 +450,11 @@ export const writePlatformAgreementEntry = async (
       updatedAt: {
         S: agreementEntry.updatedAt,
       },
-      GSIPK_consumerId_eserviceId: {
-        S: agreementEntry.GSIPK_consumerId_eserviceId,
+      agreementId: {
+        S: agreementEntry.agreementId,
       },
-      GSISK_agreementTimestamp: {
-        S: agreementEntry.GSISK_agreementTimestamp,
+      agreementTimestamp: {
+        S: agreementEntry.agreementTimestamp,
       },
       agreementDescriptorId: {
         S: agreementEntry.agreementDescriptorId,
