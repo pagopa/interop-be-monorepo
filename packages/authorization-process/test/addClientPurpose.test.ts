@@ -123,7 +123,7 @@ describe("addClientPurpose", async () => {
     });
   });
 
-  it("should succeed when a delegating user can associate his own purposes linked to an eservice for which he has given a delegation for use to his clients", async () => {
+  it("should write on event-store for the addition of a purpose into a client when the tenant has an active Consumer delegation", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -157,13 +157,11 @@ describe("addClientPurpose", async () => {
       consumerId: mockConsumerId,
     };
 
-    const authData = getRandomAuthData(mockClient.consumerId);
-
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockPurpose.eserviceId,
       delegatorId: mockPurpose.consumerId,
-      delegateId: authData.organizationId,
+      delegateId: generateId<TenantId>(),
       state: delegationState.active,
     });
 
@@ -176,7 +174,7 @@ describe("addClientPurpose", async () => {
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
       seed: { purposeId: mockPurpose.id },
-      organizationId: authData.organizationId,
+      organizationId: mockClient.consumerId,
       correlationId: generateId(),
       logger: genericLogger,
     });
@@ -204,7 +202,7 @@ describe("addClientPurpose", async () => {
     });
   });
 
-  it("should succeed when a delegating user can associate the purposes created by a delegate for an eservice for which he has given a delegation for use by his clients", async () => {
+  it("should write on event-store for the addition of a purpose created by the delegate into a client when the tenant has an active Consumer delegation", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -218,21 +216,10 @@ describe("addClientPurpose", async () => {
     };
     const mockConsumerId: TenantId = generateId();
 
-    const mockDelegateConsumerId: TenantId = generateId();
-
-    const purposeDelegation = getMockDelegation({
-      kind: delegationKind.delegatedConsumer,
-      eserviceId: mockEservice.id,
-      delegatorId: mockConsumerId,
-      delegateId: mockDelegateConsumerId,
-      state: delegationState.active,
-    });
-
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
-      delegationId: purposeDelegation.id,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
@@ -249,18 +236,15 @@ describe("addClientPurpose", async () => {
       consumerId: mockConsumerId,
     };
 
-    const authData = getRandomAuthData(mockClient.consumerId);
-
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockPurpose.eserviceId,
       delegatorId: mockPurpose.consumerId,
-      delegateId: authData.organizationId,
+      delegateId: generateId<TenantId>(),
       state: delegationState.active,
     });
 
     await addOneClient(mockClient);
-    await addOneDelegation(purposeDelegation);
     await addOneDelegation(delegation);
     await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
@@ -269,7 +253,7 @@ describe("addClientPurpose", async () => {
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
       seed: { purposeId: mockPurpose.id },
-      organizationId: authData.organizationId,
+      organizationId: mockClient.consumerId,
       correlationId: generateId(),
       logger: genericLogger,
     });
