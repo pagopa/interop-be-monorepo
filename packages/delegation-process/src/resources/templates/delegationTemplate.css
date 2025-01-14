@@ -128,3 +128,22 @@ h2 {
 .content > div {
   margin-bottom: 8px;
 }
+
+.release-date {
+  margin: 32px 0;
+}
+
+.release-date::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.release-date .date {
+  float: left;
+}
+
+.release-date .date {
+  display: inline-block;
+  width: 50%;
+}
