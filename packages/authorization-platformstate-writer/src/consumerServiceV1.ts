@@ -365,8 +365,8 @@ export async function handleMessageV1(
 
         for (const entry of tokenGenStatesConsumerClients) {
           const addedTokenGenStatesConsumerClient = await match(
-            // Exclude current purpose in case of retry and reprocess
-            clientEntry.clientPurposesIds.filter((p) => p !== purposeId).length
+            // Count without the current purpose
+            purposeIds.length - 1
           )
             .with(0, async () => {
               const newTokenGenStatesConsumerClient =
