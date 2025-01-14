@@ -138,7 +138,8 @@ export async function sendCatalogAuthUpdate(
           "EServiceDescriptorAttributesUpdated",
           "EServiceDescriptionUpdated",
           "EServiceDescriptorSubmittedByDelegate",
-          "EServiceDescriptorRejectedByDelegator"
+          "EServiceDescriptorRejectedByDelegator",
+          "EServiceNameUpdated"
         ),
       },
       () => {
