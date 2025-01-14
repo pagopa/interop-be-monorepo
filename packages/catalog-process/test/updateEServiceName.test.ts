@@ -9,6 +9,7 @@ import {
   operationForbidden,
   generateId,
   EServiceNameUpdatedV2,
+  TenantId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -190,12 +191,14 @@ describe("update eService name on published eservice", () => {
     }
   );
   it("should throw eserviceDuplicate is there is another eservice with the same name by the same producer", async () => {
+    const producerId = generateId<TenantId>();
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       interface: getMockDocument(),
     };
     const eservice: EService = {
       ...getMockEService(),
+      producerId,
       descriptors: [descriptor],
     };
 
@@ -203,6 +206,7 @@ describe("update eService name on published eservice", () => {
 
     const eserviceWithSameName: EService = {
       ...getMockEService(),
+      producerId,
       name: duplicateName,
     };
     await addOneEService(eservice);
