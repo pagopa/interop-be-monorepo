@@ -451,9 +451,7 @@ export async function compareReadModelAgreementsWithPlatformStates({
             consumerId: agreement.consumerId,
             eserviceId: agreement.eserviceId,
           }),
-          GSISK_agreementTimestamp:
-            agreement.stamps.activation?.when.toISOString() ||
-            agreement.createdAt.toISOString(),
+          GSISK_agreementTimestamp: extractAgreementTimestamp(agreement),
           agreementDescriptorId: agreement.descriptorId,
         };
 
@@ -888,3 +886,8 @@ export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
   state === descriptorState.published || state === descriptorState.deprecated
     ? itemState.active
     : itemState.inactive;
+
+export const extractAgreementTimestamp = (agreement: Agreement): string =>
+  agreement.stamps.upgrade?.when.toISOString() ||
+  agreement.stamps.activation?.when.toISOString() ||
+  agreement.createdAt.toISOString();
