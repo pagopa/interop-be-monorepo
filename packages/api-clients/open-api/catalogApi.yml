@@ -1739,8 +1739,8 @@ components:
       properties:
         name:
           type: string
-          minLength: 10
-          maxLength: 250
+          minLength: 5
+          maxLength: 60
       required:
         - name
     EServiceDescriptor:
