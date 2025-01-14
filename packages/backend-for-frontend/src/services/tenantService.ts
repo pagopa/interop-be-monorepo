@@ -12,7 +12,7 @@ import {
 } from "pagopa-interop-models";
 import {
   AttributeProcessClient,
-  SelfcareV2Client,
+  SelfcareV2InstitutionClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -45,7 +45,7 @@ async function getRegistryAttributesMap(
 export function tenantServiceBuilder(
   tenantProcessClient: TenantProcessClient,
   attributeRegistryProcessClient: AttributeProcessClient,
-  selfcareV2Client: SelfcareV2Client
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   async function getLogoUrl(
     selfcareId: tenantApi.Tenant["selfcareId"],
@@ -55,14 +55,17 @@ export function tenantServiceBuilder(
       return undefined;
     }
 
-    const institution = await selfcareV2Client.institution.getInstitution({
-      params: {
-        id: selfcareId,
-      },
-      headers: {
-        "X-Correlation-Id": correlationId,
-      },
-    });
+    const institution =
+      await selfcareV2InstitutionClient.institution.retrieveInstitutionByIdUsingGET(
+        {
+          params: {
+            id: selfcareId,
+          },
+          headers: {
+            "X-Correlation-Id": correlationId,
+          },
+        }
+      );
 
     return institution.logo;
   }
