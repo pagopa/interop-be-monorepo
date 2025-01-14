@@ -166,8 +166,8 @@ describe("update eService name on published eservice", () => {
       })
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
   });
-  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
-    "should throw eserviceWithoutValidDescriptors if the eservice doesn't have any published/suspended/archived/deprecated descriptors",
+  it.each([descriptorState.draft, descriptorState.archived])(
+    "should throw eserviceWithoutValidDescriptors if the eservice has only draft or archived descriptors",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
