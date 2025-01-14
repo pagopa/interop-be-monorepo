@@ -44,6 +44,8 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
+  Delegation,
+  DelegationId,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -68,6 +70,7 @@ import {
   tenantKindNotFound,
   unchangedDailyCalls,
   organizationNotAllowed,
+  delegationNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -218,6 +221,19 @@ async function retrieveTenantKind(
     throw tenantKindNotFound(tenant.id);
   }
   return tenant.kind;
+}
+
+async function retrieveActiveDelegation(
+  delegationId: DelegationId,
+  readModelService: ReadModelService
+): Promise<Delegation> {
+  const delegation = await readModelService.getActiveDelegationById(
+    delegationId
+  );
+  if (delegation === undefined) {
+    throw delegationNotFound(delegationId);
+  }
+  return delegation;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -1161,18 +1177,20 @@ export function purposeServiceBuilder(
     },
     async clonePurpose({
       purposeId,
-      organizationId,
+      authData,
       seed,
       correlationId,
       logger,
     }: {
       purposeId: PurposeId;
-      organizationId: TenantId;
+      authData: AuthData;
       seed: purposeApi.PurposeCloneSeed;
       correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Cloning Purpose ${purposeId}`);
+
+      const organizationId = authData.organizationId;
 
       const tenantKind = await retrieveTenantKind(
         organizationId,
@@ -1180,6 +1198,19 @@ export function purposeServiceBuilder(
       );
 
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
+
+      const activeConsumerDelegation = purposeToClone.data.delegationId
+        ? await retrieveActiveDelegation(
+            purposeToClone.data.delegationId,
+            readModelService
+          )
+        : undefined;
+
+      assertRequesterCanActAsConsumer(
+        purposeToClone.data,
+        authData,
+        activeConsumerDelegation
+      );
 
       if (purposeIsDraft(purposeToClone.data)) {
         throw purposeCannotBeCloned(purposeId);
