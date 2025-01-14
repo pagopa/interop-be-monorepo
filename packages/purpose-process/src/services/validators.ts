@@ -283,16 +283,18 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
         );
       } catch (error) {
         try {
-          const activeConsumerDelegation =
-            await readModelService.getActiveConsumerDelegationByPurpose(
-              purpose
-            );
+          if (purpose.delegationId) {
+            const activeConsumerDelegation =
+              await readModelService.getActiveConsumerDelegationByDelegationId(
+                purpose.delegationId
+              );
 
-          assertRequesterIsDelegateConsumer(
-            purpose,
-            authData,
-            activeConsumerDelegation
-          );
+            assertRequesterIsDelegateConsumer(
+              purpose,
+              authData,
+              activeConsumerDelegation
+            );
+          }
         } catch {
           throw organizationNotAllowed(authData.organizationId);
         }
@@ -311,7 +313,7 @@ const assertRequesterIsProducer = (
 };
 
 const assertRequesterIsDelegateProducer = (
-  eservice: EService,
+  eservice: Pick<EService, "producerId" | "id">,
   authData: Pick<AuthData, "organizationId">,
   activeProducerDelegation: Delegation | undefined
 ): void => {
@@ -330,7 +332,7 @@ const assertRequesterIsDelegateProducer = (
 };
 
 export const assertRequesterCanActAsProducer = (
-  eservice: EService,
+  eservice: Pick<EService, "producerId" | "id">,
   authData: AuthData,
   activeProducerDelegation: Delegation | undefined
 ): void => {
