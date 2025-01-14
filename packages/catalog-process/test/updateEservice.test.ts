@@ -256,6 +256,7 @@ describe("update eService", () => {
   });
 
   it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
+    config.featureFlagSignalhub = true;
     const riskAnalysis = getMockValidRiskAnalysis("PA");
     const eservice: EService = {
       ...mockEService,
@@ -264,6 +265,8 @@ describe("update eService", () => {
       mode: "Receive",
     };
     await addOneEService(eservice);
+
+    config.signalhubWhitelist = [eservice.producerId];
 
     const returnedEService = await catalogService.updateEService(
       eservice.id,
