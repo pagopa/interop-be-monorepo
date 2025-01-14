@@ -225,6 +225,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Organization not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Duplicated purpose title
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposes/{id}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -285,6 +303,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Organization not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Duplicated purpose title
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     delete:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -313,6 +349,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposes/{purposeId}/versions:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -337,6 +379,24 @@ paths:
                 $ref: "#/components/schemas/PurposeVersion"
         "400":
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Organization not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/json:
               schema:
@@ -374,8 +434,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Organization not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Version cannot be deleted
           content:
             application/json:
               schema:
@@ -525,6 +597,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Organization not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
@@ -611,6 +689,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Organization not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
@@ -647,6 +731,12 @@ paths:
                 $ref: "#/components/schemas/PurposeVersion"
         "400":
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Organization not allowed
           content:
             application/json:
               schema:

@@ -53,6 +53,7 @@ export const deletePurposeVersionErrorMapper = (
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeVersionCannotBeDeleted", () => HTTP_STATUS_CONFLICT)
+    .with("delegationNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const rejectPurposeVersionErrorMapper = (
@@ -78,6 +79,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "eServiceModeNotAllowed",
       "missingFreeOfChargeReason",
       "riskAnalysisValidationFailed",
+      "delegationNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -101,6 +103,7 @@ export const deletePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeCannotBeDeleted", () => HTTP_STATUS_CONFLICT)
+    .with("delegationNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const archivePurposeVersionErrorMapper = (
@@ -117,7 +120,11 @@ export const archivePurposeVersionErrorMapper = (
       "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "notValidVersionState",
+      "delegationNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const suspendPurposeVersionErrorMapper = (
@@ -130,14 +137,22 @@ export const suspendPurposeVersionErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
-    .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "notValidVersionState",
+      "delegationNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createPurposeVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("unchangedDailyCalls", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "unchangedDailyCalls",
+      "delegationNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with(
       "organizationIsNotTheConsumer",
       "organizationIsNotTheDelegatedConsumer",
@@ -225,6 +240,7 @@ export const activatePurposeVersionErrorMapper = (
       "missingRiskAnalysis",
       "agreementNotFound",
       "riskAnalysisValidationFailed",
+      "delegationNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
