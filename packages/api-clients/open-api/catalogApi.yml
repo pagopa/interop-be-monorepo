@@ -1113,7 +1113,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "400":
+        "409":
           description: Bad request
           content:
             application/json:
