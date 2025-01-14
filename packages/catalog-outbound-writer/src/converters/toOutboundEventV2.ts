@@ -65,7 +65,8 @@ export function toOutboundEventV2(
           timestamp: new Date(),
         })
       )
-      // TODO temporary fix waiting for the outbound library to be updated
+      // TODO temporary fix waiting for the outbound library to be updated.
+      // After that, EServiceDescriptionUpdated will be added to the handler above
       .with({ type: "EServiceNameUpdated" }, (msg) => ({
         event_version: msg.event_version,
         type: "EServiceDescriptionUpdated",
@@ -77,6 +78,7 @@ export function toOutboundEventV2(
         stream_id: msg.stream_id,
         timestamp: new Date(),
       }))
+      // end of temporary fix
       .with({ type: "EServiceDeleted" }, (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
