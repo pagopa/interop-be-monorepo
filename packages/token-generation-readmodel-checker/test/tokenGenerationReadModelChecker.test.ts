@@ -1760,12 +1760,11 @@ describe("Token Generation Read Model Checker tests", () => {
       await addOneClient(client);
 
       // token-generation-states
-      const kid = "mockKid";
-      const publicKey = "mockPem";
+      const mockKey = getMockKey();
       const tokenGenStatesClientKidPurposePK =
         makeTokenGenerationStatesClientKidPurposePK({
           clientId: client.id,
-          kid,
+          kid: mockKey.kid,
           purposeId: purpose.id,
         });
       const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
@@ -1777,10 +1776,10 @@ describe("Token Generation Read Model Checker tests", () => {
           GSIPK_clientId: client.id,
           GSIPK_clientId_kid: makeGSIPKClientIdKid({
             clientId: client.id,
-            kid,
+            kid: mockKey.kid,
           }),
           clientKind: clientKindTokenGenStates.consumer,
-          publicKey,
+          publicKey: mockKey.encodedPem,
         };
       await writeTokenGenStatesConsumerClient(
         tokenGenStatesConsumerClient,
