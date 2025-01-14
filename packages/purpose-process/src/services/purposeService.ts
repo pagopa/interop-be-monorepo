@@ -238,15 +238,11 @@ export function purposeServiceBuilder(
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      const eservice = await retrieveEService(
-        purpose.data.eserviceId,
-        readModelService
-      );
 
-      const tenantKind = await retrieveTenantKind(
-        organizationId,
-        readModelService
-      );
+      const [eservice, tenantKind] = await Promise.all([
+        retrieveEService(purpose.data.eserviceId, readModelService),
+        retrieveTenantKind(organizationId, readModelService),
+      ]);
 
       const isAllowedToRetrieveRiskAnalysis =
         await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument(
@@ -254,10 +250,9 @@ export function purposeServiceBuilder(
           eservice,
           { organizationId },
           readModelService
-        ).then(
-          () => true,
-          () => false
-        );
+        )
+          .then(() => true)
+          .catch(() => false);
 
       if (!isAllowedToRetrieveRiskAnalysis) {
         return {

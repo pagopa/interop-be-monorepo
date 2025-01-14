@@ -15498,9 +15498,8 @@ components:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-        delegationId:
-          type: string
-          format: uuid
+        delegation:
+          $ref: "#/components/schemas/DelegationWithCompactTenants"
       required:
         - id
         - title
@@ -15753,6 +15752,21 @@ components:
       required:
         - results
         - pagination
+    DelegationWithCompactTenants:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - delegate
+        - delegator
+      properties:
+        id:
+          type: string
+          format: uuid
+        delegate:
+          $ref: "#/components/schemas/CompactOrganization"
+        delegator:
+          $ref: "#/components/schemas/CompactOrganization"
     PurposeVersion:
       type: object
       additionalProperties: false
