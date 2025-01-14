@@ -1096,7 +1096,7 @@ paths:
               $ref: "#/components/schemas/EServiceNameUpdateSeed"
       responses:
         "200":
-          description: EService description updated
+          description: EService name updated
           content:
             application/json:
               schema:
