@@ -642,6 +642,7 @@ describe("getPurposes", async () => {
       await addOneTenant(delegate);
 
       const delegation = getMockDelegation({
+        delegatorId: producerId,
         delegateId,
         state: delegationState.active,
         eserviceId: eservice.id,

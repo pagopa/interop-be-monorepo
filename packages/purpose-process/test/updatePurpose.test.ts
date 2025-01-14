@@ -14,6 +14,7 @@ import {
   getMockValidRiskAnalysis,
   writeInReadmodel,
   decodeProtobufPayload,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   tenantKind,
@@ -136,12 +137,13 @@ describe("updatePurpose and updateReversePurpose", () => {
     await writeInReadmodel(toReadModelTenant(tenant), tenants);
 
     const { purpose, isRiskAnalysisValid } = await purposeService.updatePurpose(
+      purposeForDeliver.id,
+      purposeUpdateContent,
       {
-        purposeId: purposeForDeliver.id,
-        purposeUpdateContent,
-        organizationId: tenant.id,
+        authData: getRandomAuthData(tenant.id),
         correlationId: generateId(),
         logger: genericLogger,
+        serviceName: "",
       }
     );
 
@@ -182,12 +184,13 @@ describe("updatePurpose and updateReversePurpose", () => {
     };
 
     const { purpose, isRiskAnalysisValid } = await purposeService.updatePurpose(
+      purposeForDeliver.id,
+      updateContentWithoutTitle,
       {
-        purposeId: purposeForDeliver.id,
-        purposeUpdateContent: updateContentWithoutTitle,
-        organizationId: tenant.id,
+        authData: getRandomAuthData(tenant.id),
         correlationId: generateId(),
         logger: genericLogger,
+        serviceName: "",
       }
     );
 
@@ -222,13 +225,16 @@ describe("updatePurpose and updateReversePurpose", () => {
     await writeInReadmodel(toReadModelTenant(tenant), tenants);
 
     const { purpose, isRiskAnalysisValid } =
-      await purposeService.updateReversePurpose({
-        purposeId: purposeForReceive.id,
+      await purposeService.updateReversePurpose(
+        purposeForReceive.id,
         reversePurposeUpdateContent,
-        organizationId: tenant.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(tenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
 
     const writtenEvent = await readLastPurposeEvent(purposeForReceive.id);
     expect(writtenEvent).toMatchObject({
@@ -261,12 +267,11 @@ describe("updatePurpose and updateReversePurpose", () => {
     const purposeId: PurposeId = unsafeBrandId(generateId());
 
     expect(
-      purposeService.updatePurpose({
-        purposeId,
-        purposeUpdateContent,
-        organizationId: tenant.id,
+      purposeService.updatePurpose(purposeId, purposeUpdateContent, {
+        authData: getRandomAuthData(tenant.id),
         correlationId: generateId(),
         logger: genericLogger,
+        serviceName: "",
       })
     ).rejects.toThrowError(purposeNotFound(purposeId));
   });
@@ -283,12 +288,11 @@ describe("updatePurpose and updateReversePurpose", () => {
     const organizationId: TenantId = unsafeBrandId(generateId());
 
     expect(
-      purposeService.updatePurpose({
-        purposeId: mockPurpose.id,
-        purposeUpdateContent,
-        organizationId,
+      purposeService.updatePurpose(mockPurpose.id, purposeUpdateContent, {
+        authData: getRandomAuthData(organizationId),
         correlationId: generateId(),
         logger: genericLogger,
+        serviceName: "",
       })
     ).rejects.toThrowError(organizationIsNotTheConsumer(organizationId));
   });
@@ -309,12 +313,11 @@ describe("updatePurpose and updateReversePurpose", () => {
       await writeInReadmodel(toReadModelTenant(tenant), tenants);
 
       expect(
-        purposeService.updatePurpose({
-          purposeId: mockPurpose.id,
-          purposeUpdateContent,
-          organizationId: tenant.id,
+        purposeService.updatePurpose(mockPurpose.id, purposeUpdateContent, {
+          authData: getRandomAuthData(tenant.id),
           correlationId: generateId(),
           logger: genericLogger,
+          serviceName: "",
         })
       ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
     }
@@ -329,16 +332,19 @@ describe("updatePurpose and updateReversePurpose", () => {
     await addOnePurpose(purposeWithDuplicatedTitle);
 
     expect(
-      purposeService.updatePurpose({
-        purposeId: purposeForDeliver.id,
-        purposeUpdateContent: {
+      purposeService.updatePurpose(
+        purposeForDeliver.id,
+        {
           ...purposeUpdateContent,
           title: purposeWithDuplicatedTitle.title,
         },
-        organizationId: tenant.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+        {
+          authData: getRandomAuthData(tenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
     ).rejects.toThrowError(
       duplicatedPurposeTitle(purposeWithDuplicatedTitle.title)
     );
@@ -354,12 +360,11 @@ describe("updatePurpose and updateReversePurpose", () => {
     await writeInReadmodel(toReadModelTenant(tenant), tenants);
 
     expect(
-      purposeService.updatePurpose({
-        purposeId: mockPurpose.id,
-        purposeUpdateContent,
-        organizationId: tenant.id,
+      purposeService.updatePurpose(mockPurpose.id, purposeUpdateContent, {
+        authData: getRandomAuthData(tenant.id),
         correlationId: generateId(),
         logger: genericLogger,
+        serviceName: "",
       })
     ).rejects.toThrowError(eserviceNotFound(eserviceId));
   });
@@ -369,12 +374,11 @@ describe("updatePurpose and updateReversePurpose", () => {
     await writeInReadmodel(toReadModelTenant(tenant), tenants);
 
     expect(
-      purposeService.updatePurpose({
-        purposeId: purposeForReceive.id,
-        purposeUpdateContent,
-        organizationId: tenant.id,
+      purposeService.updatePurpose(purposeForReceive.id, purposeUpdateContent, {
+        authData: getRandomAuthData(tenant.id),
         correlationId: generateId(),
         logger: genericLogger,
+        serviceName: "",
       })
     ).rejects.toThrowError(
       eServiceModeNotAllowed(eServiceReceive.id, "Deliver")
@@ -386,13 +390,16 @@ describe("updatePurpose and updateReversePurpose", () => {
     await writeInReadmodel(toReadModelTenant(tenant), tenants);
 
     expect(
-      purposeService.updateReversePurpose({
-        purposeId: purposeForDeliver.id,
+      purposeService.updateReversePurpose(
+        purposeForDeliver.id,
         reversePurposeUpdateContent,
-        organizationId: tenant.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+        {
+          authData: getRandomAuthData(tenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
     ).rejects.toThrowError(
       eServiceModeNotAllowed(eServiceDeliver.id, "Receive")
     );
@@ -403,16 +410,19 @@ describe("updatePurpose and updateReversePurpose", () => {
     await writeInReadmodel(toReadModelTenant(tenant), tenants);
 
     expect(
-      purposeService.updatePurpose({
-        purposeId: purposeForDeliver.id,
-        purposeUpdateContent: {
+      purposeService.updatePurpose(
+        purposeForDeliver.id,
+        {
           ...purposeUpdateContent,
           isFreeOfCharge: true,
         },
-        organizationId: tenant.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+        {
+          authData: getRandomAuthData(tenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
   it("Should throw tenantNotFound if the tenant does not exist", async () => {
@@ -420,12 +430,11 @@ describe("updatePurpose and updateReversePurpose", () => {
     await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
 
     expect(
-      purposeService.updatePurpose({
-        purposeId: purposeForDeliver.id,
-        purposeUpdateContent,
-        organizationId: tenant.id,
+      purposeService.updatePurpose(purposeForDeliver.id, purposeUpdateContent, {
+        authData: getRandomAuthData(tenant.id),
         correlationId: generateId(),
         logger: genericLogger,
+        serviceName: "",
       })
     ).rejects.toThrowError(tenantNotFound(tenant.id));
 
@@ -433,13 +442,16 @@ describe("updatePurpose and updateReversePurpose", () => {
     await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
 
     expect(
-      purposeService.updateReversePurpose({
-        purposeId: purposeForReceive.id,
+      purposeService.updateReversePurpose(
+        purposeForReceive.id,
         reversePurposeUpdateContent,
-        organizationId: tenant.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+        {
+          authData: getRandomAuthData(tenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
   it("Should throw tenantKindNotFound if the tenant kind does not exist", async () => {
@@ -453,12 +465,11 @@ describe("updatePurpose and updateReversePurpose", () => {
     await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
     expect(
-      purposeService.updatePurpose({
-        purposeId: purposeForDeliver.id,
-        purposeUpdateContent,
-        organizationId: mockTenant.id,
+      purposeService.updatePurpose(purposeForDeliver.id, purposeUpdateContent, {
+        authData: getRandomAuthData(mockTenant.id),
         correlationId: generateId(),
         logger: genericLogger,
+        serviceName: "",
       })
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
@@ -481,13 +492,16 @@ describe("updatePurpose and updateReversePurpose", () => {
     };
 
     expect(
-      purposeService.updatePurpose({
-        purposeId: purposeForDeliver.id,
-        purposeUpdateContent: mockPurposeUpdateContent,
-        organizationId: tenant.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      purposeService.updatePurpose(
+        purposeForDeliver.id,
+        mockPurposeUpdateContent,
+        {
+          authData: getRandomAuthData(tenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
     );
@@ -507,13 +521,16 @@ describe("updatePurpose and updateReversePurpose", () => {
     await writeInReadmodel(toReadModelTenant(tenant), tenants);
 
     expect(
-      purposeService.updateReversePurpose({
-        purposeId: purposeWithInvalidRiskAnalysis.id,
+      purposeService.updateReversePurpose(
+        purposeWithInvalidRiskAnalysis.id,
         reversePurposeUpdateContent,
-        organizationId: tenant.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+        {
+          authData: getRandomAuthData(tenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
     );
