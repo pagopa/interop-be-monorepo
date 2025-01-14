@@ -46,6 +46,7 @@ import {
   CorrelationId,
   Delegation,
   DelegationId,
+  ApiError,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -270,7 +271,10 @@ export function purposeServiceBuilder(
         )
           .then(() => true)
           .catch((error) => {
-            if (error === delegationNotFound) {
+            if (
+              error instanceof ApiError &&
+              error.code === "delegationNotFound"
+            ) {
               throw error;
             }
             return false;
@@ -654,7 +658,10 @@ export function purposeServiceBuilder(
             )
               .then(() => true)
               .catch((error) => {
-                if (error === delegationNotFound) {
+                if (
+                  error instanceof ApiError &&
+                  error.code === "delegationNotFound"
+                ) {
                   throw error;
                 }
                 return false;

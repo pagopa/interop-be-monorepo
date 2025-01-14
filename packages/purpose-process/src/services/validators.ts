@@ -12,6 +12,7 @@ import {
   delegationKind,
   Delegation,
   delegationState,
+  ApiError,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -286,19 +287,22 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
         );
       } catch (error) {
         try {
-          if (purpose.delegationId) {
-            const activeConsumerDelegation = await retrieveActiveDelegation(
-              purpose.delegationId,
-              readModelService
-            );
-
-            assertRequesterIsDelegateConsumer(
-              purpose,
-              authData,
-              activeConsumerDelegation
-            );
+          assertRequesterIsDelegateConsumer(
+            purpose,
+            authData,
+            purpose.delegationId &&
+              (await retrieveActiveDelegation(
+                purpose.delegationId,
+                readModelService
+              ))
+          );
+        } catch (error) {
+          if (
+            error instanceof ApiError &&
+            error.code === "delegationNotFound"
+          ) {
+            throw error;
           }
-        } catch {
           throw organizationNotAllowed(authData.organizationId);
         }
       }
