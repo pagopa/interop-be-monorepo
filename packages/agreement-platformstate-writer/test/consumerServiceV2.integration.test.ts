@@ -170,6 +170,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
     it("should update the entry if the incoming version is more recent than existing table entry", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -300,6 +301,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
     it("should update the entry if the agreement is the latest", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
@@ -455,6 +457,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
     it("should add the entry if it doesn't exist", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -576,6 +579,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
     it("should add the entry if it doesn't exist - and add descriptor info to token-generation-states entry if missing", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -723,6 +727,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
     it("should do no operation if the agreement is not the latest", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
@@ -804,7 +809,7 @@ describe("integration tests V2 events", async () => {
       const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
         {
           ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
-          agreementState: itemState.inactive,
+          agreementState: itemState.active,
           GSIPK_consumerId_eserviceId,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorAudience: undefined,
@@ -824,7 +829,7 @@ describe("integration tests V2 events", async () => {
       const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
         {
           ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
-          agreementState: itemState.inactive,
+          agreementState: itemState.active,
           GSIPK_consumerId_eserviceId,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorAudience: undefined,
@@ -857,6 +862,7 @@ describe("integration tests V2 events", async () => {
       );
     });
   });
+
   describe("AgreementSuspendedByProducer", async () => {
     it("should do no operation if the entry doesn't exist", async () => {
       const agreement: Agreement = {
@@ -895,6 +901,7 @@ describe("integration tests V2 events", async () => {
 
       expect(retrievedAgreementEntry).toBeUndefined();
     });
+
     it("should do no operation if the message agreement is not the latest", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
@@ -915,8 +922,10 @@ describe("integration tests V2 events", async () => {
         },
       };
       const latestAgreement: Agreement = {
-        ...previousAgreement,
-        state: agreementState.suspended,
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId,
+        state: agreementState.active,
         stamps: {
           activation: {
             when: new Date(),
@@ -1019,6 +1028,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
     it("should update token generation read model if the agreement is the latest", async () => {
       const consumerId = generateId<TenantId>();
       const eserviceId = generateId<EServiceId>();
@@ -1151,6 +1161,7 @@ describe("integration tests V2 events", async () => {
       );
     });
   });
+
   describe("AgreementSuspendedByConsumer", async () => {
     it("should do no operation if the entry doesn't exist", async () => {
       const agreement: Agreement = {
@@ -1189,6 +1200,7 @@ describe("integration tests V2 events", async () => {
 
       expect(retrievedAgreementEntry).toBeUndefined();
     });
+
     it("should do no operation if the message agreement is not the latest", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
@@ -1212,7 +1224,7 @@ describe("integration tests V2 events", async () => {
         ...getMockAgreement(),
         consumerId,
         eserviceId,
-        state: agreementState.suspended,
+        state: agreementState.active,
         stamps: {
           activation: {
             when: new Date(),
@@ -1315,6 +1327,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
     it("should update token generation read model if the agreement is the latest", async () => {
       const consumerId = generateId<TenantId>();
       const eserviceId = generateId<EServiceId>();
@@ -1446,6 +1459,7 @@ describe("integration tests V2 events", async () => {
       );
     });
   });
+
   describe("AgreementSuspendedByPlatform", async () => {
     it("should do no operation if the entry doesn't exist", async () => {
       const agreement: Agreement = {
@@ -1484,6 +1498,7 @@ describe("integration tests V2 events", async () => {
 
       expect(retrievedAgreementEntry).toBeUndefined();
     });
+
     it("should do no operation if the message agreement is not the latest", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
@@ -1610,6 +1625,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
     it("should update token generation read model if the agreement is the latest", async () => {
       const consumerId = generateId<TenantId>();
       const eserviceId = generateId<EServiceId>();
@@ -1741,6 +1757,7 @@ describe("integration tests V2 events", async () => {
       );
     });
   });
+
   describe("AgreementUnsuspendedByProducer", async () => {
     it("should do no operation if the entry doesn't exist", async () => {
       const agreement: Agreement = {
@@ -1779,6 +1796,7 @@ describe("integration tests V2 events", async () => {
 
       expect(retrievedAgreementEntry).toBeUndefined();
     });
+
     it("should do no operation if the message agreement is not the latest", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
@@ -1905,6 +1923,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
     it("should update token generation read model if the agreement is the latest", async () => {
       const consumerId = generateId<TenantId>();
       const eserviceId = generateId<EServiceId>();
@@ -2075,6 +2094,7 @@ describe("integration tests V2 events", async () => {
 
       expect(retrievedAgreementEntry).toBeUndefined();
     });
+
     it("should do no operation if the message agreement is not the latest", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
@@ -2201,6 +2221,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
     it("should update token generation read model if the agreement is the latest", async () => {
       const consumerId = generateId<TenantId>();
       const eserviceId = generateId<EServiceId>();
@@ -2554,7 +2575,7 @@ describe("integration tests V2 events", async () => {
       );
     });
 
-    it("should update platform-states and token-generation-states if the incoming version is more recent than the platform-states entry and the agreement is the latest", async () => {
+    it("should update the token generation read model if the incoming version is more recent than the platform-states entry and the agreement is the latest", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
 
@@ -2713,6 +2734,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
     it("should do no operation if the incoming agreement is not the latest", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
@@ -2843,7 +2865,8 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
-    it("add the entry if it doesn't exist", async () => {
+
+    it("should add the platform-states entry and update token-generation-states if the platform-states entry doesn't exist", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -2874,20 +2897,6 @@ describe("integration tests V2 events", async () => {
         consumerId: agreement.consumerId,
         eserviceId: agreement.eserviceId,
       });
-      const primaryKeyCatalogEntry = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: agreement.eserviceId,
-        descriptorId: agreement.descriptorId,
-      });
-      const catalogEntry: PlatformStatesCatalogEntry = {
-        PK: primaryKeyCatalogEntry,
-        state: itemState.active,
-        descriptorAudience: ["pagopa.it"],
-        descriptorVoucherLifespan: 60,
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      };
-
-      await writePlatformCatalogEntry(catalogEntry, dynamoDBClient);
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =
@@ -3114,6 +3123,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
+
     it("should do no operation if the agreement is not the latest", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
@@ -3151,7 +3161,7 @@ describe("integration tests V2 events", async () => {
       const message: AgreementEventEnvelope = {
         sequence_num: 1,
         stream_id: previousAgreement.id,
-        version: 1,
+        version: 2,
         type: "AgreementArchivedByConsumer",
         event_version: 2,
         data: payload,
