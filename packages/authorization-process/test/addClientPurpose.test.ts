@@ -122,7 +122,7 @@ describe("addClientPurpose", async () => {
     });
   });
 
-  it("should write on event-store for the addition of a purpose into a client when the tenant has an active Consumer delegation", async () => {
+  it("should write on event-store for the addition of a purpose into a client when the eservice has an active Consumer delegation and the requester is the delegator", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -141,6 +141,7 @@ describe("addClientPurpose", async () => {
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
+      delegationId: undefined,
     };
 
     const mockClient: Client = {
@@ -201,7 +202,7 @@ describe("addClientPurpose", async () => {
     });
   });
 
-  it("should write on event-store for the addition of a purpose created by the delegate into a client when the tenant has an active Consumer delegation", async () => {
+  it("should write on event-store for the addition of a purpose created by the delegate into a client when the eservice has an active Consumer delegation and the requester is the delegator", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -215,10 +216,18 @@ describe("addClientPurpose", async () => {
     };
     const mockConsumerId: TenantId = generateId();
 
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockEservice.id,
+      delegatorId: mockConsumerId,
+      state: delegationState.active,
+    });
+
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
+      delegationId: delegation.id,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
@@ -234,14 +243,6 @@ describe("addClientPurpose", async () => {
       descriptorId: mockDescriptor.id,
       consumerId: mockConsumerId,
     };
-
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedConsumer,
-      eserviceId: mockPurpose.eserviceId,
-      delegatorId: mockPurpose.consumerId,
-      delegateId: generateId<TenantId>(),
-      state: delegationState.active,
-    });
 
     await addOneClient(mockClient);
     await addOneDelegation(delegation);
