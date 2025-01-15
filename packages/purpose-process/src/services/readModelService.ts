@@ -28,6 +28,7 @@ import {
   Delegation,
   delegationKind,
   DelegationReadModel,
+  DelegationId,
 } from "pagopa-interop-models";
 import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
