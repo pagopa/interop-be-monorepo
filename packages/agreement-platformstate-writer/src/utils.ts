@@ -17,7 +17,6 @@ import {
   makeGSIPKEServiceIdDescriptorId,
   makeGSIPKConsumerIdEServiceId,
   EServiceId,
-  makePlatformStatesAgreementPK,
   TenantId,
 } from "pagopa-interop-models";
 import {
@@ -41,6 +40,7 @@ import { z } from "zod";
 import { Logger } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 
+// TODO remove if not used
 export const writeAgreementEntry = async (
   agreementEntry: PlatformStatesAgreementEntry,
   dynamoDBClient: DynamoDBClient,
@@ -76,6 +76,42 @@ export const writeAgreementEntry = async (
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
   logger.info(`Platform-states. Written agreement entry ${agreementEntry.PK}`);
+};
+
+export const upsertPlatformStatesAgreementEntry = async (
+  agreementEntry: PlatformStatesAgreementEntry,
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+): Promise<void> => {
+  const input: PutItemInput = {
+    Item: {
+      PK: {
+        S: agreementEntry.PK,
+      },
+      state: {
+        S: agreementEntry.state,
+      },
+      version: {
+        N: agreementEntry.version.toString(),
+      },
+      updatedAt: {
+        S: agreementEntry.updatedAt,
+      },
+      agreementId: {
+        S: agreementEntry.agreementId,
+      },
+      agreementTimestamp: {
+        S: agreementEntry.agreementTimestamp,
+      },
+      agreementDescriptorId: {
+        S: agreementEntry.agreementDescriptorId,
+      },
+    },
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Upserted agreement entry ${agreementEntry.PK}`);
 };
 
 export const readAgreementEntry = async (
@@ -625,34 +661,21 @@ export const readCatalogEntry = async (
   }
 };
 
-/* 
-Because of DynamoDB eventual consistency, it's possible that the result of querying platform-states by 
-GSIPK_consumerId_eserviceId doesn't contain the entry with the latest agreement.
-In this case, we need to check if the input agreement timestamp is more recent or equal than GSISK_agreementTimestamp 
-of the latest agreement in platform-states.
-*/
-export const isLatestAgreement = async (
-  agreementPlatformStatesPK: PlatformStatesAgreementPK,
-  agreementId: AgreementId,
-  currentAgreementTimestamp: string,
-  dynamoDBClient: DynamoDBClient
-): Promise<boolean> => {
-  const agreementEntry = await readAgreementEntry(
-    agreementPlatformStatesPK,
-    dynamoDBClient
-  );
-
-  if (!agreementEntry) {
+export const isLatestAgreement = (
+  platformStatesAgreement: PlatformStatesAgreementEntry | undefined,
+  currentAgreementTimestamp: string
+): boolean => {
+  if (!platformStatesAgreement) {
     return true;
   }
 
   return (
-    agreementEntry.agreementId === agreementId ||
     new Date(currentAgreementTimestamp) >=
-      new Date(agreementEntry.agreementTimestamp)
+    new Date(platformStatesAgreement.agreementTimestamp)
   );
 };
 
+// TODO: removed isLatestAgreement check inside function
 export const updateLatestAgreementOnTokenGenStates = async (
   dynamoDBClient: DynamoDBClient,
   agreement: Agreement,
@@ -663,38 +686,23 @@ export const updateLatestAgreementOnTokenGenStates = async (
     consumerId: TenantId,
     eserviceId: EServiceId
   ): Promise<void> => {
-    const currentAgreementTimestamp = extractAgreementTimestamp(agreement);
-    if (
-      await isLatestAgreement(
-        makePlatformStatesAgreementPK({ consumerId, eserviceId }),
-        agreement.id,
-        currentAgreementTimestamp,
-        dynamoDBClient
-      )
-    ) {
-      // token-generation-states only if agreement is the latest
-      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-        eserviceId: agreement.eserviceId,
-        descriptorId: agreement.descriptorId,
-      });
+    const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+      eserviceId: agreement.eserviceId,
+      descriptorId: agreement.descriptorId,
+    });
 
-      await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId,
-          eserviceId,
-        }),
-        agreementId: agreement.id,
-        agreementState: agreement.state,
-        dynamoDBClient,
-        GSIPK_eserviceId_descriptorId,
-        catalogEntry: platformStatesCatalogEntry,
-        logger,
-      });
-    } else {
-      logger.info(
-        `Token-generation-states. Skipping processing of entry of agreementId ${agreement.id}. Reason: agreement is not the latest`
-      );
-    }
+    await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
+      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      }),
+      agreementId: agreement.id,
+      agreementState: agreement.state,
+      dynamoDBClient,
+      GSIPK_eserviceId_descriptorId,
+      catalogEntry: platformStatesCatalogEntry,
+      logger,
+    });
   };
 
   const platformsStatesCatalogEntryPK = makePlatformStatesEServiceDescriptorPK({
