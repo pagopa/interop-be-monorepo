@@ -85,7 +85,7 @@ export async function handleMessageV2(
         }
       } else {
         logger.info(
-          `Platform-states and token-generation-states. Skipping processing of entry of agreementId ${agreement.id}. Reason: agreement is not the latest`
+          `Platform-states and token-generation-states. Skipping processing of entry with agreementId ${agreement.id}. Reason: agreement is not the latest`
         );
         return Promise.resolve();
       }
@@ -148,7 +148,7 @@ export async function handleMessageV2(
           }
         } else {
           logger.info(
-            `Platform-states and token-generation-states. Skipping processing of entry of agreementId ${
+            `Platform-states and token-generation-states. Skipping processing of entry with agreementId ${
               agreement.id
             }. Reason: ${
               agreementEntry
@@ -221,7 +221,7 @@ export async function handleMessageV2(
         );
       } else {
         logger.info(
-          `Platform-states and token-generation-states. Skipping processing of entry of agreementId ${agreement.id}. Reason: agreement is not the latest`
+          `Platform-states and token-generation-states. Skipping processing of entry with agreementId ${agreement.id}. Reason: agreement is not the latest`
         );
         return Promise.resolve();
       }
@@ -259,7 +259,7 @@ export async function handleMessageV2(
         await deleteAgreementEntry(primaryKey, dynamoDBClient, logger);
       } else {
         logger.info(
-          `Platform-states and Token-generation-states. Skipping processing of entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
+          `Platform-states and Token-generation-states. Skipping processing of entry with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
         );
       }
     })
