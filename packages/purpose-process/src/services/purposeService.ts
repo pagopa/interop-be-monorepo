@@ -44,8 +44,6 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
-  Delegation,
-  DelegationId,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -70,7 +68,6 @@ import {
   tenantKindNotFound,
   unchangedDailyCalls,
   organizationNotAllowed,
-  delegationNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -221,19 +218,6 @@ async function retrieveTenantKind(
     throw tenantKindNotFound(tenant.id);
   }
   return tenant.kind;
-}
-
-async function retrieveActiveDelegation(
-  delegationId: DelegationId,
-  readModelService: ReadModelService
-): Promise<Delegation> {
-  const delegation = await readModelService.getActiveDelegationById(
-    delegationId
-  );
-  if (delegation === undefined) {
-    throw delegationNotFound(delegationId);
-  }
-  return delegation;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -773,8 +757,8 @@ export function purposeServiceBuilder(
 
       const newPurposeVersion: PurposeVersion = {
         id: generateId(),
-        state: purposeVersionState.active,
         riskAnalysis: riskAnalysisDocument,
+        state: purposeVersionState.active,
         dailyCalls: seed.dailyCalls,
         firstActivationAt: new Date(),
         createdAt: new Date(),
@@ -1182,20 +1166,17 @@ export function purposeServiceBuilder(
     },
     async clonePurpose({
       purposeId,
-      authData,
       seed,
-      correlationId,
-      logger,
+      ctx,
     }: {
       purposeId: PurposeId;
-      authData: AuthData;
       seed: purposeApi.PurposeCloneSeed;
-      correlationId: CorrelationId;
-      logger: Logger;
+      ctx: WithLogger<AppContext>;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
-      logger.info(`Cloning Purpose ${purposeId}`);
-
+      const { correlationId, authData, logger } = ctx;
       const organizationId = authData.organizationId;
+
+      logger.info(`Cloning Purpose ${purposeId}`);
 
       const tenantKind = await retrieveTenantKind(
         organizationId,
@@ -1204,18 +1185,7 @@ export function purposeServiceBuilder(
 
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
-      const activeConsumerDelegation = purposeToClone.data.delegationId
-        ? await retrieveActiveDelegation(
-            purposeToClone.data.delegationId,
-            readModelService
-          )
-        : undefined;
-
-      assertRequesterCanActAsConsumer(
-        purposeToClone.data,
-        authData,
-        activeConsumerDelegation
-      );
+      assertRequesterCanActAsConsumer(purposeToClone.data, authData, undefined);
 
       if (purposeIsDraft(purposeToClone.data)) {
         throw purposeCannotBeCloned(purposeId);

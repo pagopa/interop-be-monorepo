@@ -75,12 +75,15 @@ describe("clonePurpose", async () => {
 
     const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
       purposeId: mockPurpose.id,
-      authData: getMockAuthData(mockTenant.id),
       seed: {
         eserviceId: mockEService.id,
       },
-      correlationId: generateId(),
-      logger: genericLogger,
+      ctx: {
+        authData: getMockAuthData(mockTenant.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "test",
+      },
     });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -145,12 +148,15 @@ describe("clonePurpose", async () => {
 
     const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
       purposeId: mockPurpose.id,
-      authData: getMockAuthData(mockTenant.id),
       seed: {
         eserviceId: mockEService.id,
       },
-      correlationId: generateId(),
-      logger: genericLogger,
+      ctx: {
+        authData: getMockAuthData(mockTenant.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "test",
+      },
     });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -215,12 +221,15 @@ describe("clonePurpose", async () => {
     expect(
       purposeService.clonePurpose({
         purposeId: mockPurpose.id,
-        authData: getMockAuthData(mockTenant.id),
         seed: {
           eserviceId: mockEService.id,
         },
-        correlationId: generateId(),
-        logger: genericLogger,
+        ctx: {
+          authData: getMockAuthData(mockTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "test",
+        },
       })
     ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
   });
@@ -251,12 +260,15 @@ describe("clonePurpose", async () => {
     expect(
       purposeService.clonePurpose({
         purposeId: mockPurpose.id,
-        authData: getMockAuthData(mockTenant.id),
         seed: {
           eserviceId: mockEService.id,
         },
-        correlationId: generateId(),
-        logger: genericLogger,
+        ctx: {
+          authData: getMockAuthData(mockTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "test",
+        },
       })
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
   });
@@ -287,12 +299,15 @@ describe("clonePurpose", async () => {
     expect(
       purposeService.clonePurpose({
         purposeId: mockPurpose.id,
-        authData: getMockAuthData(mockTenant.id),
         seed: {
           eserviceId: mockEService.id,
         },
-        correlationId: generateId(),
-        logger: genericLogger,
+        ctx: {
+          authData: getMockAuthData(mockTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "test",
+        },
       })
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
   });
@@ -333,12 +348,15 @@ describe("clonePurpose", async () => {
     expect(
       purposeService.clonePurpose({
         purposeId: mockPurposeToClone.id,
-        authData: getMockAuthData(mockTenant.id),
         seed: {
           eserviceId: mockEService.id,
         },
-        correlationId: generateId(),
-        logger: genericLogger,
+        ctx: {
+          authData: getMockAuthData(mockTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "test",
+        },
       })
     ).rejects.toThrowError(
       duplicatedPurposeTitle(mockPurposeWithSameName.title)
@@ -371,12 +389,15 @@ describe("clonePurpose", async () => {
     expect(
       purposeService.clonePurpose({
         purposeId: mockPurpose.id,
-        authData: getMockAuthData(mockTenant.id),
         seed: {
           eserviceId: mockEService.id,
         },
-        correlationId: generateId(),
-        logger: genericLogger,
+        ctx: {
+          authData: getMockAuthData(mockTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "test",
+        },
       })
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
