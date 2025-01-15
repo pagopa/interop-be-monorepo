@@ -14,7 +14,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Logger } from "pagopa-interop-commons";
 import {
   readAgreementEntry,
-  updateAgreementStateInPlatformStatesEntry,
+  updateAgreementStateInPlatformStatesEntryV1,
   agreementStateToItemState,
   updateAgreementStateOnTokenGenStates,
   writeAgreementEntry,
@@ -145,13 +145,14 @@ const handleActivationOrSuspension = async (
       );
       return Promise.resolve();
     } else {
-      await updateAgreementStateInPlatformStatesEntry(
+      await updateAgreementStateInPlatformStatesEntryV1({
         dynamoDBClient,
         primaryKey,
-        agreementStateToItemState(agreement.state),
-        incomingVersion,
-        logger
-      );
+        state: agreementStateToItemState(agreement.state),
+        timestamp: agreementTimestamp,
+        version: incomingVersion,
+        logger,
+      });
     }
   } else {
     if (agreement.stamps.activation === undefined) {
@@ -246,13 +247,14 @@ const handleUpgrade = async (
       );
       return Promise.resolve();
     } else {
-      await updateAgreementStateInPlatformStatesEntry(
+      await updateAgreementStateInPlatformStatesEntryV1({
         dynamoDBClient,
         primaryKey,
-        agreementStateToItemState(agreement.state),
-        msgVersion,
-        logger
-      );
+        state: agreementStateToItemState(agreement.state),
+        timestamp: agreementTimestamp,
+        version: msgVersion,
+        logger,
+      });
     }
   } else {
     if (agreement.stamps.upgrade === undefined) {

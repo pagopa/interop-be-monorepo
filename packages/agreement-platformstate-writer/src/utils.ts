@@ -123,7 +123,59 @@ export const deleteAgreementEntry = async (
   logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
 };
 
-export const updateAgreementStateInPlatformStatesEntry = async (
+// This function differs from its V2 implementation, because there could be some timestamps missing for V1 agreements
+export const updateAgreementStateInPlatformStatesEntryV1 = async ({
+  dynamoDBClient,
+  primaryKey,
+  state,
+  timestamp,
+  version,
+  logger,
+}: {
+  dynamoDBClient: DynamoDBClient;
+  primaryKey: PlatformStatesAgreementPK;
+  state: ItemState;
+  timestamp: string;
+  version: number;
+  logger: Logger;
+}): Promise<void> => {
+  const input: UpdateItemInput = {
+    ConditionExpression: "attribute_exists(PK)",
+    Key: {
+      PK: {
+        S: primaryKey,
+      },
+    },
+    ExpressionAttributeValues: {
+      ":newState": {
+        S: state,
+      },
+      ":newTimestamp": {
+        S: timestamp,
+      },
+      ":newVersion": {
+        N: version.toString(),
+      },
+      ":newUpdatedAt": {
+        S: new Date().toISOString(),
+      },
+    },
+    ExpressionAttributeNames: {
+      "#state": "state",
+    },
+    UpdateExpression:
+      "SET #state = :newState, GSISK_agreementTimestamp = :newTimestamp, version = :newVersion, updatedAt = :newUpdatedAt",
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ReturnValues: "NONE",
+  };
+  const command = new UpdateItemCommand(input);
+  await dynamoDBClient.send(command);
+  logger.info(
+    `Platform-states. Updated agreement state in entry ${primaryKey}`
+  );
+};
+
+export const updateAgreementStateInPlatformStatesEntryV2 = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesAgreementPK,
   state: ItemState,

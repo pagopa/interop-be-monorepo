@@ -16,7 +16,7 @@ import {
   agreementStateToItemState,
   deleteAgreementEntry,
   readAgreementEntry,
-  updateAgreementStateInPlatformStatesEntry,
+  updateAgreementStateInPlatformStatesEntryV2,
   updateAgreementStateOnTokenGenStates,
   writeAgreementEntry,
   isLatestAgreement,
@@ -50,7 +50,7 @@ export async function handleMessageV2(
           );
           return Promise.resolve();
         } else {
-          await updateAgreementStateInPlatformStatesEntry(
+          await updateAgreementStateInPlatformStatesEntryV2(
             dynamoDBClient,
             primaryKey,
             agreementStateToItemState(agreement.state),
@@ -111,7 +111,7 @@ export async function handleMessageV2(
           );
           return Promise.resolve();
         } else {
-          await updateAgreementStateInPlatformStatesEntry(
+          await updateAgreementStateInPlatformStatesEntryV2(
             dynamoDBClient,
             primaryKey,
             agreementStateToItemState(agreement.state),
@@ -175,7 +175,7 @@ export async function handleMessageV2(
           );
           return Promise.resolve();
         } else {
-          await updateAgreementStateInPlatformStatesEntry(
+          await updateAgreementStateInPlatformStatesEntryV2(
             dynamoDBClient,
             primaryKey,
             agreementStateToItemState(agreement.state),
