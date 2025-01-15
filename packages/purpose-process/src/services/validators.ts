@@ -38,7 +38,7 @@ import {
 import { ReadModelService } from "./readModelService.js";
 import {
   retrieveActiveAgreement,
-  retrieveActiveDelegation,
+  retrieveActiveConsumerDelegation,
 } from "./purposeService.js";
 
 export const isRiskAnalysisFormValid = (
@@ -291,7 +291,7 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
             purpose,
             authData,
             purpose.delegationId &&
-              (await retrieveActiveDelegation(
+              (await retrieveActiveConsumerDelegation(
                 purpose.delegationId,
                 readModelService
               ))

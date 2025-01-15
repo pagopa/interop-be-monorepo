@@ -183,7 +183,7 @@ const retrieveTenant = async (
   return tenant;
 };
 
-export const retrieveActiveDelegation = async (
+export const retrieveActiveConsumerDelegation = async (
   delegationId: DelegationId,
   readModelService: ReadModelService
 ): Promise<Delegation> => {
@@ -349,7 +349,7 @@ export function purposeServiceBuilder(
         purpose.data,
         authData,
         purpose.data.delegationId &&
-          (await retrieveActiveDelegation(
+          (await retrieveActiveConsumerDelegation(
             purpose.data.delegationId,
             readModelService
           ))
@@ -483,7 +483,7 @@ export function purposeServiceBuilder(
         purpose.data,
         authData,
         purpose.data.delegationId &&
-          (await retrieveActiveDelegation(
+          (await retrieveActiveConsumerDelegation(
             purpose.data.delegationId,
             readModelService
           ))
@@ -521,7 +521,7 @@ export function purposeServiceBuilder(
         purpose.data,
         authData,
         purpose.data.delegationId &&
-          (await retrieveActiveDelegation(
+          (await retrieveActiveConsumerDelegation(
             purpose.data.delegationId,
             readModelService
           ))
@@ -698,7 +698,7 @@ export function purposeServiceBuilder(
         purpose.data,
         authData,
         purpose.data.delegationId &&
-          (await retrieveActiveDelegation(
+          (await retrieveActiveConsumerDelegation(
             purpose.data.delegationId,
             readModelService
           ))
@@ -1410,7 +1410,7 @@ const getOrganizationRole = async ({
         purpose,
         authData,
         purpose.delegationId &&
-          (await retrieveActiveDelegation(
+          (await retrieveActiveConsumerDelegation(
             purpose.delegationId,
             readModelService
           ))
@@ -1497,7 +1497,7 @@ const performUpdatePurpose = async (
     purpose.data,
     authData,
     purpose.data.delegationId &&
-      (await retrieveActiveDelegation(
+      (await retrieveActiveConsumerDelegation(
         purpose.data.delegationId,
         readModelService
       ))
