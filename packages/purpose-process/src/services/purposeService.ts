@@ -44,6 +44,7 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
+  DelegationId,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -1454,13 +1455,28 @@ const performUpdatePurpose = async (
     });
   }
 
+  console.log("purpose.data", purpose.data);
+
+  console.log("authData", authData);
+
+  console.log("purpose.data.delegationId", purpose.data.delegationId);
+
+  const degId = purpose.data.delegationId
+    ? purpose.data.delegationId
+    : ("123456" as DelegationId);
+
+  const x = await readModelService.getActiveConsumerDelegationByDelegationId(
+    degId
+  );
+
+  console.log("x", x);
+
+  console.log();
+
   assertRequesterCanActAsConsumer(
     purpose.data,
     authData,
-    purpose.data.delegationId &&
-      (await readModelService.getActiveConsumerDelegationByDelegationId(
-        purpose.data.delegationId
-      ))
+    purpose.data.delegationId && x
   );
 
   const eservice = await retrieveEService(

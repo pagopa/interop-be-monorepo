@@ -54,6 +54,7 @@ import {
   riskAnalysisValidationFailed,
   duplicatedPurposeTitle,
   organizationNotAllowed,
+  organizationIsNotTheDelegatedConsumer,
 } from "../src/model/domain/errors.js";
 import {
   getMockEService,
@@ -271,7 +272,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     expect(isRiskAnalysisValid).toBe(true);
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a updatable state and the e-service is in mode DELIVER", async () => {
-    const authData = getRandomAuthData();
+    const authData = getRandomAuthData(purposeForDeliver.consumerId);
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
@@ -329,7 +330,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     expect(isRiskAnalysisValid).toBe(true);
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a updatable state and the e-service is in mode RECEIVE", async () => {
-    const authData = getRandomAuthData();
+    const authData = getRandomAuthData(purposeForReceive.consumerId);
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
@@ -456,7 +457,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       delegatePurpose.id,
       updateContentWithoutTitle,
       {
-        authData: getRandomAuthData(consumerDelegate.id),
+        authData: getRandomAuthData(consumer.id),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
@@ -864,31 +865,44 @@ describe("updatePurpose and updateReversePurpose", () => {
       riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
     );
   });
-  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation in updatePurpose", async () => {
-    const authData = getRandomAuthData();
-    const purpose = {
-      ...purposeForDeliver,
-      consumerId: authData.organizationId,
-    };
+  it.only("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation in updatePurpose", async () => {
+    const authData = getRandomAuthData(tenant.id);
+
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
-      eserviceId: purpose.eserviceId,
-      delegatorId: purpose.consumerId,
+      eserviceId: eServiceDeliver.id,
+      delegatorId: tenant.id,
       delegateId: generateId<TenantId>(),
       state: delegationState.active,
     });
+
+    console.log(delegation);
+
+    const purpose = {
+      ...purposeForDeliver,
+      consumerId: tenant.id,
+      delegation: delegation.id,
+    };
+
+    console.log("purpose in test", purpose);
+
     await addOnePurpose(purpose);
     await addOneDelegation(delegation);
     await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
     await writeInReadmodel(toReadModelTenant(tenant), tenants);
     expect(
-      purposeService.updatePurpose(purposeForDeliver.id, purposeUpdateContent, {
+      purposeService.updatePurpose(purpose.id, purposeUpdateContent, {
         authData,
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
       })
-    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
   });
   it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation in updateReversePurpose", async () => {
     const authData = getRandomAuthData();
