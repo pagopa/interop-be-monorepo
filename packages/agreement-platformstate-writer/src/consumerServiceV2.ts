@@ -42,19 +42,15 @@ export async function handleMessageV2(
         dynamoDBClient
       );
 
-      const agreementTimestamp = agreement.stamps.activation;
+      const agreementTimestamp =
+        agreement.stamps.activation?.when.toISOString();
       if (!agreementTimestamp) {
         throw genericInternalError(
           "An activated agreement should have activation stamp"
         );
       }
 
-      if (
-        isLatestAgreement(
-          existingAgreementEntry,
-          agreementTimestamp.when.toISOString()
-        )
-      ) {
+      if (isLatestAgreement(existingAgreementEntry, agreementTimestamp)) {
         if (
           existingAgreementEntry &&
           existingAgreementEntry.version > msg.version &&
@@ -71,7 +67,7 @@ export async function handleMessageV2(
             version: msg.version,
             updatedAt: new Date().toISOString(),
             agreementId: agreement.id,
-            agreementTimestamp: agreementTimestamp.when.toISOString(),
+            agreementTimestamp,
             agreementDescriptorId: agreement.descriptorId,
           };
 
@@ -175,16 +171,14 @@ export async function handleMessageV2(
         dynamoDBClient
       );
 
-      const agreementTimestamp = agreement.stamps.upgrade;
+      const agreementTimestamp = agreement.stamps.upgrade?.when.toISOString();
       if (!agreementTimestamp) {
         throw genericInternalError(
           "An upgraded agreement should have an upgrade stamp"
         );
       }
 
-      if (
-        isLatestAgreement(agreementEntry, agreementTimestamp.when.toISOString())
-      ) {
+      if (isLatestAgreement(agreementEntry, agreementTimestamp)) {
         if (
           agreementEntry &&
           agreementEntry.version > msg.version &&
@@ -209,7 +203,7 @@ export async function handleMessageV2(
             version: msg.version,
             updatedAt: new Date().toISOString(),
             agreementId: agreement.id,
-            agreementTimestamp: agreementTimestamp.when.toISOString(),
+            agreementTimestamp,
             agreementDescriptorId: agreement.descriptorId,
           };
 
