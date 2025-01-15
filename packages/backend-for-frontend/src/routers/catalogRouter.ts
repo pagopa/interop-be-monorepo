@@ -584,7 +584,7 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/eservices/:eServiceId/update", async (req, res) => {
+    .post("/eservices/:eServiceId/description/update", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const id = await catalogService.updateEServiceDescription(
