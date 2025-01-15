@@ -124,7 +124,8 @@ export async function sendCatalogAuthUpdate(
           "EServiceRiskAnalysisDeleted",
           "EServiceDescriptorQuotasUpdated",
           "EServiceDescriptionUpdated",
-          "EServiceDescriptorAttributesUpdated"
+          "EServiceDescriptorAttributesUpdated",
+          "EServiceNameUpdated"
         ),
       },
       () => {

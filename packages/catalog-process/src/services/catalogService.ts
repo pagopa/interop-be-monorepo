@@ -65,6 +65,7 @@ import {
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
   toCreateEventEServiceInterfaceUpdated,
+  toCreateEventEServiceNameUpdated,
   toCreateEventEServiceRiskAnalysisAdded,
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
@@ -1674,6 +1675,47 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(
         toCreateEventEServiceDescriptionUpdated(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+      return updatedEservice;
+    },
+    async updateEServiceName(
+      eserviceId: EServiceId,
+      name: string,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Updating name of EService ${eserviceId}`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData);
+
+      if (
+        eservice.data.descriptors.every(
+          (descriptor) =>
+            descriptor.state === descriptorState.draft ||
+            descriptor.state === descriptorState.archived
+        )
+      ) {
+        throw eserviceWithoutValidDescriptors(eserviceId);
+      }
+      if (name !== eservice.data.name) {
+        const eserviceWithSameName =
+          await readModelService.getEServiceByNameAndProducerId({
+            name,
+            producerId: eservice.data.producerId,
+          });
+        if (eserviceWithSameName !== undefined) {
+          throw eServiceDuplicate(name);
+        }
+      }
+      const updatedEservice: EService = {
+        ...eservice.data,
+        name,
+      };
+      await repository.createEvent(
+        toCreateEventEServiceNameUpdated(
           eservice.metadata.version,
           updatedEservice,
           correlationId

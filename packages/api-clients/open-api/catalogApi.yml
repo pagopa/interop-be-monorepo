@@ -1069,6 +1069,56 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/name/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update an e-service name
+      operationId: updateEServiceName
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the new name
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceNameUpdateSeed"
+      responses:
+        "200":
+          description: EService name updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1683,6 +1733,16 @@ components:
           maxLength: 250
       required:
         - description
+    EServiceNameUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 60
+      required:
+        - name
     EServiceDescriptor:
       type: object
       additionalProperties: false
