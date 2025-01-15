@@ -44,9 +44,6 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
-  Delegation,
-  DelegationId,
-  ApiError,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -71,7 +68,6 @@ import {
   tenantKindNotFound,
   unchangedDailyCalls,
   organizationNotAllowed,
-  delegationNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -183,20 +179,6 @@ const retrieveTenant = async (
   return tenant;
 };
 
-export const retrieveActiveConsumerDelegation = async (
-  delegationId: DelegationId,
-  readModelService: ReadModelService
-): Promise<Delegation> => {
-  const delegation =
-    await readModelService.getActiveConsumerDelegationByDelegationId(
-      delegationId
-    );
-  if (!delegation) {
-    throw delegationNotFound(delegationId);
-  }
-  return delegation;
-};
-
 export const retrieveActiveAgreement = async (
   eserviceId: EServiceId,
   consumerId: TenantId,
@@ -270,15 +252,7 @@ export function purposeServiceBuilder(
           readModelService
         )
           .then(() => true)
-          .catch((error) => {
-            if (
-              error instanceof ApiError &&
-              error.code === "delegationNotFound"
-            ) {
-              throw error;
-            }
-            return false;
-          });
+          .catch(() => false);
 
       if (!isAllowedToRetrieveRiskAnalysis) {
         return {
@@ -349,9 +323,8 @@ export function purposeServiceBuilder(
         purpose.data,
         authData,
         purpose.data.delegationId &&
-          (await retrieveActiveConsumerDelegation(
-            purpose.data.delegationId,
-            readModelService
+          (await readModelService.getActiveConsumerDelegationByDelegationId(
+            purpose.data.delegationId
           ))
       );
 
@@ -483,9 +456,8 @@ export function purposeServiceBuilder(
         purpose.data,
         authData,
         purpose.data.delegationId &&
-          (await retrieveActiveConsumerDelegation(
-            purpose.data.delegationId,
-            readModelService
+          (await readModelService.getActiveConsumerDelegationByDelegationId(
+            purpose.data.delegationId
           ))
       );
 
@@ -521,9 +493,8 @@ export function purposeServiceBuilder(
         purpose.data,
         authData,
         purpose.data.delegationId &&
-          (await retrieveActiveConsumerDelegation(
-            purpose.data.delegationId,
-            readModelService
+          (await readModelService.getActiveConsumerDelegationByDelegationId(
+            purpose.data.delegationId
           ))
       );
 
@@ -657,15 +628,7 @@ export function purposeServiceBuilder(
               readModelService
             )
               .then(() => true)
-              .catch((error) => {
-                if (
-                  error instanceof ApiError &&
-                  error.code === "delegationNotFound"
-                ) {
-                  throw error;
-                }
-                return false;
-              });
+              .catch(() => false);
 
           return { purpose, isAllowedToRetrieveRiskAnalysis };
         })
@@ -698,9 +661,8 @@ export function purposeServiceBuilder(
         purpose.data,
         authData,
         purpose.data.delegationId &&
-          (await retrieveActiveConsumerDelegation(
-            purpose.data.delegationId,
-            readModelService
+          (await readModelService.getActiveConsumerDelegationByDelegationId(
+            purpose.data.delegationId
           ))
       );
 
@@ -1410,9 +1372,8 @@ const getOrganizationRole = async ({
         purpose,
         authData,
         purpose.delegationId &&
-          (await retrieveActiveConsumerDelegation(
-            purpose.delegationId,
-            readModelService
+          (await readModelService.getActiveConsumerDelegationByDelegationId(
+            purpose.delegationId
           ))
       );
       return ownership.CONSUMER;
@@ -1497,9 +1458,8 @@ const performUpdatePurpose = async (
     purpose.data,
     authData,
     purpose.data.delegationId &&
-      (await retrieveActiveConsumerDelegation(
-        purpose.data.delegationId,
-        readModelService
+      (await readModelService.getActiveConsumerDelegationByDelegationId(
+        purpose.data.delegationId
       ))
   );
 

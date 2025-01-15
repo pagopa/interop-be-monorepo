@@ -265,12 +265,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Purpose"
-        "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
@@ -331,12 +325,6 @@ paths:
       responses:
         "204":
           description: Purpose deleted
-        "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
         "403":
           description: Purpose has at least one version that is not in draft state or more than one version
           content:
@@ -428,12 +416,6 @@ paths:
       responses:
         "204":
           description: Purpose Version Deleted
-        "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
@@ -491,12 +473,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PurposeVersionDocument"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:

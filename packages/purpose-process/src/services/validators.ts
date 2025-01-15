@@ -12,7 +12,6 @@ import {
   delegationKind,
   Delegation,
   delegationState,
-  ApiError,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -36,10 +35,7 @@ import {
   riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
-import {
-  retrieveActiveAgreement,
-  retrieveActiveConsumerDelegation,
-} from "./purposeService.js";
+import { retrieveActiveAgreement } from "./purposeService.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -291,18 +287,11 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
             purpose,
             authData,
             purpose.delegationId &&
-              (await retrieveActiveConsumerDelegation(
-                purpose.delegationId,
-                readModelService
+              (await readModelService.getActiveConsumerDelegationByDelegationId(
+                purpose.delegationId
               ))
           );
         } catch (error) {
-          if (
-            error instanceof ApiError &&
-            error.code === "delegationNotFound"
-          ) {
-            throw error;
-          }
           throw organizationNotAllowed(authData.organizationId);
         }
       }
