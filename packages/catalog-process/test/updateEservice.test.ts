@@ -38,7 +38,7 @@ describe("update eService", () => {
   const mockDocument = getMockDocument();
   it("should write on event-store for the update of an eService (no technology change)", async () => {
     vi.spyOn(fileManager, "delete");
-    config.featureFlagSignalhub = true;
+    config.featureFlagSignalhubWhitelist = true;
     config.signalhubWhitelist = [mockEService.producerId];
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
     const descriptor: Descriptor = {
@@ -93,7 +93,7 @@ describe("update eService", () => {
   it("should write on event-store for the update of an eService (technology change: interface has to be deleted)", async () => {
     vi.spyOn(fileManager, "delete");
 
-    config.featureFlagSignalhub = true;
+    config.featureFlagSignalhubWhitelist = true;
     config.signalhubWhitelist = [mockEService.producerId];
 
     const interfaceDocument = {
@@ -222,7 +222,7 @@ describe("update eService", () => {
   it("should write on event-store for the update of an eService (update description only)", async () => {
     const updatedDescription = "eservice new description";
 
-    config.featureFlagSignalhub = true;
+    config.featureFlagSignalhubWhitelist = true;
     config.signalhubWhitelist = [mockEService.producerId];
 
     await addOneEService(mockEService);
@@ -264,7 +264,7 @@ describe("update eService", () => {
   });
 
   it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
-    config.featureFlagSignalhub = true;
+    config.featureFlagSignalhubWhitelist = true;
     const riskAnalysis = getMockValidRiskAnalysis("PA");
     const eservice: EService = {
       ...mockEService,

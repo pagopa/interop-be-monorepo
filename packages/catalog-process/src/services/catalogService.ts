@@ -325,13 +325,12 @@ async function parseAndCheckAttributes(
   };
 }
 
-function checkSignalhubFeatureFlag(
+function isOrganizationIdIncludesOnWhitelist(
   organizationId: TenantId,
-  isSignalHubEnabled: boolean | undefined
+  isSignalubEnabled: boolean | undefined
 ): boolean | undefined {
-  return config.featureFlagSignalhub &&
-    config.signalhubWhitelist?.includes(organizationId)
-    ? isSignalHubEnabled
+  return config.signalhubWhitelist?.includes(organizationId)
+    ? isSignalubEnabled
     : false;
 }
 
@@ -453,10 +452,12 @@ export function catalogServiceBuilder(
         descriptors: [],
         createdAt: creationDate,
         riskAnalysis: [],
-        isSignalHubEnabled: checkSignalhubFeatureFlag(
-          authData.organizationId,
-          seed.isSignalHubEnabled
-        ),
+        isSignalHubEnabled: config.featureFlagSignalhubWhitelist
+          ? isOrganizationIdIncludesOnWhitelist(
+              authData.organizationId,
+              seed.isSignalHubEnabled
+            )
+          : seed.isSignalHubEnabled,
       };
 
       const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -577,10 +578,12 @@ export function catalogServiceBuilder(
               serverUrls: [],
             }))
           : eservice.data.descriptors,
-        isSignalHubEnabled: checkSignalhubFeatureFlag(
-          authData.organizationId,
-          eserviceSeed.isSignalHubEnabled
-        ),
+        isSignalHubEnabled: config.featureFlagSignalhubWhitelist
+          ? isOrganizationIdIncludesOnWhitelist(
+              authData.organizationId,
+              eservice.data.isSignalHubEnabled
+            )
+          : eservice.data.isSignalHubEnabled,
       };
 
       const event = toCreateEventEServiceUpdated(
