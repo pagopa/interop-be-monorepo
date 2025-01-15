@@ -458,7 +458,7 @@ export async function compareReadModelAgreementsWithPlatformStates({
       const objectsDiff = diff(
         ComparisonPlatformStatesAgreementEntry.parse(platformStatesEntry),
         expectedPlatformStatesAgreementEntry,
-        { sort: true, excludeKeys: ["GSISK_agreementTimestamp"] }
+        { sort: true }
       );
       if (objectsDiff) {
         differencesCount++;
