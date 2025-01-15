@@ -12,6 +12,7 @@ import {
   delegationKind,
   Delegation,
   delegationState,
+  ApiError,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -35,7 +36,10 @@ import {
   riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
-import { retrieveActiveAgreement } from "./purposeService.js";
+import {
+  retrieveActiveAgreement,
+  retrieveActiveConsumerDelegation,
+} from "./purposeService.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -283,17 +287,22 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
         );
       } catch (error) {
         try {
-          const activeConsumerDelegation =
-            await readModelService.getActiveConsumerDelegationByPurpose(
-              purpose
-            );
-
           assertRequesterIsDelegateConsumer(
             purpose,
             authData,
-            activeConsumerDelegation
+            purpose.delegationId &&
+              (await retrieveActiveConsumerDelegation(
+                purpose.delegationId,
+                readModelService
+              ))
           );
-        } catch {
+        } catch (error) {
+          if (
+            error instanceof ApiError &&
+            error.code === "delegationNotFound"
+          ) {
+            throw error;
+          }
           throw organizationNotAllowed(authData.organizationId);
         }
       }
@@ -311,7 +320,7 @@ const assertRequesterIsProducer = (
 };
 
 const assertRequesterIsDelegateProducer = (
-  eservice: EService,
+  eservice: Pick<EService, "producerId" | "id">,
   authData: Pick<AuthData, "organizationId">,
   activeProducerDelegation: Delegation | undefined
 ): void => {
@@ -330,7 +339,7 @@ const assertRequesterIsDelegateProducer = (
 };
 
 export const assertRequesterCanActAsProducer = (
-  eservice: EService,
+  eservice: Pick<EService, "producerId" | "id">,
   authData: AuthData,
   activeProducerDelegation: Delegation | undefined
 ): void => {

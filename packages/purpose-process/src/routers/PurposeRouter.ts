@@ -40,6 +40,7 @@ import {
   suspendPurposeVersionErrorMapper,
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
+  getPurposesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 
@@ -126,7 +127,7 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            () => 500,
+            getPurposesErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
