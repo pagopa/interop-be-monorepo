@@ -109,12 +109,10 @@ export async function handleMessageV2(
           previousDescriptor.state !== descriptorState.archived
         ) {
           logger.info(
-            `Skipping processing of descriptor ${
-              previousDescriptor?.id
-            } (the previous descriptor). Reason: ${
-              !previousDescriptor
-                ? "entry doesn't exists"
-                : "state is not archived"
+            `Skipping processing of previous descriptor${
+              previousDescriptor
+                ? ` ${previousDescriptor.id}. Reason: state ${previousDescriptor.state} is not archived`
+                : ". Reason: there is only one"
             }`
           );
           return Promise.resolve();
