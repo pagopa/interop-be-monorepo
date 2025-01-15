@@ -14,7 +14,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Logger } from "pagopa-interop-commons";
 import {
   readAgreementEntry,
-  updateAgreementStateInPlatformStatesEntry,
+  updateAgreementStateInPlatformStatesEntryV1,
   agreementStateToItemState,
   updateAgreementStateOnTokenGenStates,
   writeAgreementEntry,
@@ -65,7 +65,7 @@ export async function handleMessageV1(
           agreementState.rejected,
           () => {
             logger.info(
-              `Skipping processing of entry ${agreement.id}. Reason: state ${agreement.state}`
+              `Skipping processing of agreement ${agreement.id}. Reason: state ${agreement.state}`
             );
             return Promise.resolve();
           }
@@ -86,6 +86,7 @@ export async function handleMessageV1(
           agreementState.missingCertifiedAttributes,
           agreementState.pending,
           agreementState.rejected,
+          // eslint-disable-next-line sonarjs/no-identical-functions
           () => {
             logger.info(
               `Skipping processing of agreement ${agreement.id}. Reason: state ${agreement.state}`
@@ -140,17 +141,18 @@ const handleActivationOrSuspension = async (
   if (existingAgreementEntry) {
     if (existingAgreementEntry.version > incomingVersion) {
       logger.info(
-        `Skipping processing of entry ${existingAgreementEntry}. Reason: a more recent entry already exists`
+        `Skipping processing of entry ${primaryKey}. Reason: a more recent entry already exists`
       );
       return Promise.resolve();
     } else {
-      await updateAgreementStateInPlatformStatesEntry(
+      await updateAgreementStateInPlatformStatesEntryV1({
         dynamoDBClient,
         primaryKey,
-        agreementStateToItemState(agreement.state),
-        incomingVersion,
-        logger
-      );
+        state: agreementStateToItemState(agreement.state),
+        timestamp: agreementTimestamp,
+        version: incomingVersion,
+        logger,
+      });
     }
   } else {
     if (agreement.stamps.activation === undefined) {
@@ -245,13 +247,14 @@ const handleUpgrade = async (
       );
       return Promise.resolve();
     } else {
-      await updateAgreementStateInPlatformStatesEntry(
+      await updateAgreementStateInPlatformStatesEntryV1({
         dynamoDBClient,
         primaryKey,
-        agreementStateToItemState(agreement.state),
-        msgVersion,
-        logger
-      );
+        state: agreementStateToItemState(agreement.state),
+        timestamp: agreementTimestamp,
+        version: msgVersion,
+        logger,
+      });
     }
   } else {
     if (agreement.stamps.upgrade === undefined) {

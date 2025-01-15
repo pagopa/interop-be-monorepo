@@ -451,16 +451,14 @@ export async function compareReadModelAgreementsWithPlatformStates({
             consumerId: agreement.consumerId,
             eserviceId: agreement.eserviceId,
           }),
-          GSISK_agreementTimestamp:
-            agreement.stamps.activation?.when.toISOString() ||
-            agreement.createdAt.toISOString(),
+          GSISK_agreementTimestamp: extractAgreementTimestamp(agreement),
           agreementDescriptorId: agreement.descriptorId,
         };
 
       const objectsDiff = diff(
         ComparisonPlatformStatesAgreementEntry.parse(platformStatesEntry),
         expectedPlatformStatesAgreementEntry,
-        { sort: true, excludeKeys: ["GSISK_agreementTimestamp"] }
+        { sort: true }
       );
       if (objectsDiff) {
         differencesCount++;
@@ -888,3 +886,8 @@ export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
   state === descriptorState.published || state === descriptorState.deprecated
     ? itemState.active
     : itemState.inactive;
+
+export const extractAgreementTimestamp = (agreement: Agreement): string =>
+  agreement.stamps.upgrade?.when.toISOString() ||
+  agreement.stamps.activation?.when.toISOString() ||
+  agreement.createdAt.toISOString();

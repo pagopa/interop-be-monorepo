@@ -16,7 +16,7 @@ import {
   agreementStateToItemState,
   deleteAgreementEntry,
   readAgreementEntry,
-  updateAgreementStateInPlatformStatesEntry,
+  updateAgreementStateInPlatformStatesEntryV2,
   updateAgreementStateOnTokenGenStates,
   writeAgreementEntry,
   isLatestAgreement,
@@ -46,11 +46,11 @@ export async function handleMessageV2(
       if (existingAgreementEntry) {
         if (existingAgreementEntry.version > msg.version) {
           logger.info(
-            `Skipping processing of entry ${existingAgreementEntry}. Reason: a more recent entry already exists`
+            `Skipping processing of entry ${primaryKey}. Reason: a more recent entry already exists`
           );
           return Promise.resolve();
         } else {
-          await updateAgreementStateInPlatformStatesEntry(
+          await updateAgreementStateInPlatformStatesEntryV2(
             dynamoDBClient,
             primaryKey,
             agreementStateToItemState(agreement.state),
@@ -111,7 +111,7 @@ export async function handleMessageV2(
           );
           return Promise.resolve();
         } else {
-          await updateAgreementStateInPlatformStatesEntry(
+          await updateAgreementStateInPlatformStatesEntryV2(
             dynamoDBClient,
             primaryKey,
             agreementStateToItemState(agreement.state),
@@ -175,7 +175,7 @@ export async function handleMessageV2(
           );
           return Promise.resolve();
         } else {
-          await updateAgreementStateInPlatformStatesEntry(
+          await updateAgreementStateInPlatformStatesEntryV2(
             dynamoDBClient,
             primaryKey,
             agreementStateToItemState(agreement.state),
