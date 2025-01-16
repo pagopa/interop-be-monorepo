@@ -2167,6 +2167,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: eserviceIds
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+        explode: false
+      - in: query
         name: offset
         required: true
         schema:
@@ -2183,6 +2192,69 @@ paths:
         - consumerDelegations
       operationId: getConsumerDelegators
       description: Retrieve requester's delegators
+      responses:
+        "200":
+          description: Delegators retrieved
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DelegationTenants"
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/consumer/delegations/delegatorsWithAgreements":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - in: query
+        name: q
+        schema:
+          type: string
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+    get:
+      tags:
+        - consumerDelegations
+      operationId: getConsumerDelegatorsWithAgreements
+      description: Retrieve requester's delegators with active agreements
       responses:
         "200":
           description: Delegators retrieved
@@ -3999,7 +4071,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/update:
+  /eservices/{eServiceId}/description:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -4101,6 +4173,127 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/delegationFlags:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Update an e-service delegation flags
+      operationId: updateEServiceDelegationFlags
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the new flags
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceFlagsSeed"
+      responses:
+        "200":
+          description: EService flags updated
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -4173,7 +4366,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: EService or Descriptor not found
+          description: Not found
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -5380,6 +5573,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/catalog/eservices/{eserviceId}/descriptor/{descriptorId}":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -6562,8 +6812,8 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "400":
-          description: Bad request
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -6914,6 +7164,25 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Purpose Not Found
           content:
@@ -6974,6 +7243,25 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -7203,25 +7491,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Purpose"
-        "400":
-          description: Bad Request
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           headers:
@@ -7251,25 +7520,6 @@ paths:
       responses:
         "204":
           description: Purpose deleted
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -7392,6 +7642,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposes/{purposeId}/versions/{versionId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -7416,25 +7723,6 @@ paths:
       responses:
         "204":
           description: Purpose Version Deleted
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -13272,6 +13560,75 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /consumer/delegations/eservices:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - in: query
+        name: delegatorId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: q
+        schema:
+          type: string
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+    get:
+      tags:
+        - consumerDelegations
+      description: Retrieve requester's delegated eservices
+      operationId: getConsumerDelegatedEservices
+      responses:
+        "200":
+          description: Delegated eservices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactEServicesLight"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /consumer/delegations:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -14295,6 +14652,17 @@ components:
           type: string
       required:
         - description
+    EServiceFlagsSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+      required:
+        - isDelegable
+        - isClientAccessDelegable
     RejectDelegatedEServiceDescriptorSeed:
       type: object
       additionalProperties: false
@@ -14730,15 +15098,11 @@ components:
             id:
               type: string
               format: uuid
-            delegateId:
-              type: string
-              format: uuid
-            delegateName:
-              type: string
+            delegate:
+              $ref: "#/components/schemas/CompactOrganization"
           required:
             - id
-            - delegateId
-            - delegateName
+            - delegate
         producer:
           $ref: "#/components/schemas/CompactOrganization"
         consumer:
@@ -15361,9 +15725,8 @@ components:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-        delegationId:
-          type: string
-          format: uuid
+        delegation:
+          $ref: "#/components/schemas/DelegationWithCompactTenants"
       required:
         - id
         - title
@@ -15616,6 +15979,21 @@ components:
       required:
         - results
         - pagination
+    DelegationWithCompactTenants:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - delegate
+        - delegator
+      properties:
+        id:
+          type: string
+          format: uuid
+        delegate:
+          $ref: "#/components/schemas/CompactOrganization"
+        delegator:
+          $ref: "#/components/schemas/CompactOrganization"
     PurposeVersion:
       type: object
       additionalProperties: false

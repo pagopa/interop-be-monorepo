@@ -34,6 +34,7 @@ const purposeRouter = (
     clients.catalogProcessClient,
     clients.tenantProcessClient,
     clients.agreementProcessClient,
+    clients.delegationProcessClient,
     clients.authorizationClient,
     initFileManager(config)
   );
