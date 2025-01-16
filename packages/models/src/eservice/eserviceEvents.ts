@@ -396,7 +396,7 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   z.object({
     event_version: z.literal(2),
     type: z.literal("EServiceNameUpdated"),
-    data: protobufDecoder(EServiceDescriptionUpdatedV2),
+    data: protobufDecoder(EServiceNameUpdatedV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;
