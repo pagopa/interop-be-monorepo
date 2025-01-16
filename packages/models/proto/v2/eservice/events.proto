@@ -123,3 +123,7 @@ message EServiceDescriptorAttributesUpdatedV2 {
   repeated string attributeIds = 2;
   EServiceV2 eservice = 3;
 }
+
+message EServiceNameUpdatedV2 {
+    EServiceV2 eservice = 1;
+}
