@@ -16,7 +16,6 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import {
-  AgreementId,
   genericInternalError,
   itemState,
   ItemState,
@@ -316,7 +315,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
         > = isAgreementMissingInTokenGenStates
           ? {
               ":agreementId": {
-                S: extractAgreementIdFromAgreementPK(platformAgreementEntry.PK),
+                S: platformAgreementEntry.agreementId,
               },
               ":agreementState": {
                 S: platformAgreementEntry.state,
@@ -590,20 +589,3 @@ export const getLastArchivedPurposeVersion = (
   purposeVersions
     .filter((v) => v.state === purposeVersionState.archived)
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
-
-const extractAgreementIdFromAgreementPK = (
-  pk: PlatformStatesAgreementPK
-): AgreementId => {
-  const substrings = pk.split("#");
-  const agreementId = substrings[1];
-  const result = AgreementId.safeParse(agreementId);
-
-  if (!result.success) {
-    throw genericInternalError(
-      `Unable to parse agreement PK: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(agreementId)} `
-    );
-  }
-  return result.data;
-};
