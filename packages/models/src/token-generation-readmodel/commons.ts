@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   EServiceId,
   DescriptorId,
@@ -15,6 +16,7 @@ import {
   GSIPKEServiceIdDescriptorId,
   GSIPKClientIdPurposeId,
   unsafeBrandId,
+  GSIPKClientIdKid,
 } from "../brandedIds.js";
 
 export const makePlatformStatesEServiceDescriptorPK = ({
@@ -93,3 +95,21 @@ export const makeGSIPKClientIdPurposeId = ({
   purposeId: PurposeId;
 }): GSIPKClientIdPurposeId =>
   unsafeBrandId<GSIPKClientIdPurposeId>(`${clientId}#${purposeId}`);
+
+export const makeGSIPKClientIdKid = ({
+  clientId,
+  kid,
+}: {
+  clientId: ClientId;
+  kid: string;
+}): GSIPKClientIdKid => unsafeBrandId<GSIPKClientIdKid>(`${clientId}#${kid}`);
+
+export const clientKindTokenGenStates = {
+  consumer: "CONSUMER",
+  api: "API",
+} as const;
+export const ClientKindTokenGenStates = z.enum([
+  Object.values(clientKindTokenGenStates)[0],
+  ...Object.values(clientKindTokenGenStates).slice(1),
+]);
+export type ClientKindTokenGenStates = z.infer<typeof ClientKindTokenGenStates>;
