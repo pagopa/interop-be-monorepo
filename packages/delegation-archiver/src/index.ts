@@ -33,7 +33,7 @@ async function processMessage({
     : generateId<CorrelationId>();
 
   const loggerInstance = logger({
-    serviceName: "delegation-revoke-archiver",
+    serviceName: "delegation-archiver",
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
