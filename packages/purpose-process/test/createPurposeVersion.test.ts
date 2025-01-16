@@ -163,6 +163,9 @@ describe("createPurposeVersion", () => {
       producerDelegationId: undefined,
       producerDelegateName: undefined,
       producerDelegateIpaCode: undefined,
+      consumerDelegationId: undefined,
+      consumerDelegateName: undefined,
+      consumerDelegateIpaCode: undefined,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -272,6 +275,9 @@ describe("createPurposeVersion", () => {
       producerDelegationId: producerDelegation.id,
       producerDelegateName: delegate.name,
       producerDelegateIpaCode: delegate.externalId.value,
+      consumerDelegationId: undefined,
+      consumerDelegateName: undefined,
+      consumerDelegateIpaCode: undefined,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -369,6 +375,9 @@ describe("createPurposeVersion", () => {
       producerDelegationId: undefined,
       producerDelegateName: undefined,
       producerDelegateIpaCode: undefined,
+      consumerDelegationId: undefined,
+      consumerDelegateName: undefined,
+      consumerDelegateIpaCode: undefined,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
