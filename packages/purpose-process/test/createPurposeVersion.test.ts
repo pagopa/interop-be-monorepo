@@ -38,6 +38,7 @@ import {
   delegationState,
   TenantId,
   tenantKind,
+  DelegationId,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -45,6 +46,7 @@ import {
   eserviceNotFound,
   missingRiskAnalysis,
   organizationIsNotTheConsumer,
+  organizationIsNotTheDelegatedConsumer,
   tenantKindNotFound,
   tenantNotFound,
   unchangedDailyCalls,
@@ -319,24 +321,30 @@ describe("createPurposeVersion", () => {
   it("should succeed when requester is Consumer Delegate and the creation of a new purpose version is successful", async () => {
     const authData = getRandomAuthData();
 
+    const delegatePurpose: Purpose = {
+      ...mockPurpose,
+      delegationId: generateId<DelegationId>(),
+    };
+
     const delegation = getMockDelegation({
+      id: delegatePurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
-      eserviceId: mockPurpose.eserviceId,
-      delegatorId: mockPurpose.consumerId,
+      eserviceId: delegatePurpose.eserviceId,
+      delegatorId: delegatePurpose.consumerId,
       delegateId: authData.organizationId,
       state: delegationState.active,
     });
 
-    await addOnePurpose(mockPurpose);
+    await addOnePurpose(delegatePurpose);
     await addOneDelegation(delegation);
-    await addSomeRandomDelegations(mockPurpose, addOneDelegation);
+    await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     const returnedPurposeVersion = await purposeService.createPurposeVersion(
-      mockPurpose.id,
+      delegatePurpose.id,
       {
         dailyCalls: 24,
       },
@@ -349,13 +357,13 @@ describe("createPurposeVersion", () => {
     );
 
     const writtenEvent = await readLastEventByStreamId(
-      mockPurpose.id,
+      delegatePurpose.id,
       "purpose",
       postgresDB
     );
 
     expect(writtenEvent).toMatchObject({
-      stream_id: mockPurpose.id,
+      stream_id: delegatePurpose.id,
       version: "1",
       type: "NewPurposeVersionActivated",
       event_version: 2,
@@ -371,7 +379,7 @@ describe("createPurposeVersion", () => {
     };
 
     const expectedPurpose: Purpose = {
-      ...mockPurpose,
+      ...delegatePurpose,
       versions: [
         {
           ...mockPurposeVersion,
@@ -431,6 +439,7 @@ describe("createPurposeVersion", () => {
       ...mockPurpose,
       consumerId: consumer.id,
       eserviceId: eservice.id,
+      delegationId: generateId<DelegationId>(),
     };
 
     const producerDelegation = getMockDelegation({
@@ -442,6 +451,7 @@ describe("createPurposeVersion", () => {
     });
 
     const consumerDelegation = getMockDelegation({
+      id: delegatePurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: eservice.id,
       delegatorId: consumer.id,
@@ -804,14 +814,16 @@ describe("createPurposeVersion", () => {
       );
     }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
   });
-  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getRandomAuthData();
     const purpose = {
       ...mockPurpose,
       consumerId: authData.organizationId,
+      delegationId: generateId<DelegationId>(),
     };
 
     const delegation = getMockDelegation({
+      id: purpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: purpose.eserviceId,
       delegatorId: purpose.consumerId,
@@ -839,6 +851,41 @@ describe("createPurposeVersion", () => {
           serviceName: "",
         }
       );
-    }).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    }).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
+  });
+  it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation", async () => {
+    const authData = getRandomAuthData();
+    const purpose = {
+      ...mockPurpose,
+      delegationId: generateId<DelegationId>(),
+    };
+
+    await addOnePurpose(purpose);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+
+    expect(async () => {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
+          dailyCalls: 20,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+    }).rejects.toThrowError(
+      organizationIsNotTheConsumer(authData.organizationId)
+    );
   });
 });
