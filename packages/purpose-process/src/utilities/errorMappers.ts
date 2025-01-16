@@ -18,6 +18,11 @@ export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getPurposesErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("eserviceNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getRiskAnalysisDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -28,7 +33,14 @@ export const getRiskAnalysisDocumentErrorMapper = (
       "purposeVersionDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "organizationNotAllowed",
+      "organizationIsNotTheConsumer",
+      "organizationIsNotTheProducer",
+      "organizationIsNotTheDelegatedProducer",
+      "organizationIsNotTheDelegatedConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deletePurposeVersionErrorMapper = (
@@ -42,7 +54,7 @@ export const deletePurposeVersionErrorMapper = (
     )
     .with(
       "organizationIsNotTheConsumer",
-      "organizationNotAllowed",
+      "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeVersionCannotBeDeleted", () => HTTP_STATUS_CONFLICT)
@@ -57,7 +69,11 @@ export const rejectPurposeVersionErrorMapper = (
       "purposeVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("organizationIsNotTheProducer", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "organizationIsNotTheProducer",
+      "organizationIsNotTheDelegatedProducer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -72,7 +88,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "organizationIsNotTheConsumer",
       "purposeNotInDraftState",
-      "organizationNotAllowed",
+      "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -86,7 +102,7 @@ export const deletePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "organizationIsNotTheConsumer",
-      "organizationNotAllowed",
+      "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeCannotBeDeleted", () => HTTP_STATUS_CONFLICT)
@@ -103,7 +119,7 @@ export const archivePurposeVersionErrorMapper = (
     )
     .with(
       "organizationIsNotTheConsumer",
-      "organizationNotAllowed",
+      "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
@@ -129,7 +145,7 @@ export const createPurposeVersionErrorMapper = (
     .with("unchangedDailyCalls", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "organizationIsNotTheConsumer",
-      "organizationNotAllowed",
+      "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeVersionStateConflict", () => HTTP_STATUS_CONFLICT)
@@ -140,7 +156,7 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
       "organizationIsNotTheConsumer",
-      "organizationNotAllowed",
+      "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(
@@ -158,7 +174,7 @@ export const createReversePurposeErrorMapper = (
   match(error.code)
     .with(
       "organizationIsNotTheConsumer",
-      "organizationNotAllowed",
+      "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(

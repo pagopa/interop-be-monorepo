@@ -40,6 +40,7 @@ import {
   delegationKind,
   tenantKind,
   TenantId,
+  DelegationId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -135,13 +136,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion({
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion.id,
-      organizationId: mockProducer.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const purposeVersion = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      {
+        authData: getRandomAuthData(mockProducer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -191,13 +197,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion({
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion.id,
-      organizationId: mockConsumer.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const purposeVersion = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      {
+        authData: getRandomAuthData(mockConsumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -247,13 +258,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion({
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion.id,
-      organizationId: mockProducer.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const purposeVersion = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      {
+        authData: getRandomAuthData(mockProducer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -304,13 +320,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion({
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion.id,
-      organizationId: mockConsumer.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const purposeVersion = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      {
+        authData: getRandomAuthData(mockConsumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -370,13 +391,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion({
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion.id,
-      organizationId: mockConsumer.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const purposeVersion = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      {
+        authData: getRandomAuthData(mockConsumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -425,13 +451,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion({
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion.id,
-      organizationId: mockConsumer.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const purposeVersion = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      {
+        authData: getRandomAuthData(mockConsumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -476,13 +507,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion({
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion.id,
-      organizationId: mockConsumer.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const purposeVersion = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      {
+        authData: getRandomAuthData(mockConsumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -512,8 +548,6 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the purpose version in draft state is activated correctly", async () => {
-    const authData = getRandomAuthData();
-
     const purposeVersionMock: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -521,13 +555,15 @@ describe("activatePurposeVersion", () => {
     const purpose: Purpose = {
       ...mockPurpose,
       versions: [purposeVersionMock],
+      delegationId: generateId<DelegationId>(),
     };
 
     const delegation = getMockDelegation({
+      id: purpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: purpose.eserviceId,
       delegatorId: purpose.consumerId,
-      delegateId: authData.organizationId,
+      delegateId: generateId<TenantId>(),
       state: delegationState.active,
     });
 
@@ -539,29 +575,34 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion({
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion.id,
-      organizationId: authData.organizationId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const purposeVersion = await purposeService.activatePurposeVersion(
+      {
+        purposeId: purpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      {
+        authData: getRandomAuthData(delegation.delegateId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastEventByStreamId(
-      mockPurpose.id,
+      purpose.id,
       "purpose",
       postgresDB
     );
 
     expect(writtenEvent).toMatchObject({
-      stream_id: mockPurpose.id,
+      stream_id: purpose.id,
       version: "1",
       type: "PurposeActivated",
       event_version: 2,
     });
 
     const expectedPurpose: Purpose = {
-      ...mockPurpose,
+      ...purpose,
       versions: [purposeVersion],
       updatedAt: new Date(),
     };
@@ -621,6 +662,7 @@ describe("activatePurposeVersion", () => {
       consumerId: consumer.id,
       eserviceId: eservice.id,
       versions: [purposeVersionMock],
+      delegationId: generateId<DelegationId>(),
     };
 
     const producerDelegation = getMockDelegation({
@@ -632,6 +674,7 @@ describe("activatePurposeVersion", () => {
     });
 
     const consumerDelegation = getMockDelegation({
+      id: delegatePurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: eservice.id,
       delegatorId: consumer.id,
@@ -650,13 +693,18 @@ describe("activatePurposeVersion", () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    const purposeVersion = await purposeService.activatePurposeVersion({
-      purposeId: delegatePurpose.id,
-      versionId: mockPurposeVersion.id,
-      organizationId: consumerDelegate.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const purposeVersion = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      {
+        authData: getRandomAuthData(consumerDelegate.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastEventByStreamId(
       delegatePurpose.id,
@@ -699,13 +747,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: purpose.id,
-        versionId: purposeVersion.id,
-        organizationId: mockConsumer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: purposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockConsumer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(organizationIsNotTheProducer(mockConsumer.id));
   });
 
@@ -723,13 +776,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: purpose.id,
-        versionId: purposeVersion.id,
-        organizationId: mockProducer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: purposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockProducer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(organizationIsNotTheConsumer(mockProducer.id));
   });
 
@@ -757,13 +815,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: consumer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(consumer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
   });
 
@@ -785,13 +848,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: mockConsumer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockConsumer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(missingRiskAnalysis(mockPurpose.id));
   });
 
@@ -802,13 +870,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: mockConsumer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockConsumer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
 
@@ -825,13 +898,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: mockConsumer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockConsumer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(
       agreementNotFound(mockEService.id, mockConsumer.id)
     );
@@ -859,13 +937,18 @@ describe("activatePurposeVersion", () => {
       await addOneTenant(mockProducer);
 
       expect(async () => {
-        await purposeService.activatePurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          organizationId: mockConsumer.id,
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await purposeService.activatePurposeVersion(
+          {
+            purposeId: mockPurpose.id,
+            versionId: mockPurposeVersion.id,
+          },
+          {
+            authData: getRandomAuthData(mockConsumer.id),
+            correlationId: generateId(),
+            logger: genericLogger,
+            serviceName: "",
+          }
+        );
       }).rejects.toThrowError(
         agreementNotFound(mockEService.id, mockConsumer.id)
       );
@@ -883,13 +966,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(anotherTenant);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: anotherTenant.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(anotherTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
   });
 
@@ -900,24 +988,28 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const delegate = getMockAuthData();
     const delegation = getMockDelegation({
+      delegatorId: mockProducer.id,
       kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
-      delegateId: delegate.organizationId,
       state: delegationState.active,
     });
 
     await addOneDelegation(delegation);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: mockProducer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockProducer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(organizationNotAllowed(mockProducer.id));
   });
 
@@ -932,25 +1024,29 @@ describe("activatePurposeVersion", () => {
       await addOneTenant(mockConsumer);
       await addOneTenant(mockProducer);
 
-      const delegate = getMockAuthData();
       const delegation = getMockDelegation({
+        delegatorId: mockEService.producerId,
         kind: delegationKind.delegatedProducer,
         eserviceId: mockEService.id,
-        delegateId: delegate.organizationId,
         state: delegationState,
       });
 
       await addOneDelegation(delegation);
 
       expect(async () => {
-        await purposeService.activatePurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          organizationId: delegate.organizationId,
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
-      }).rejects.toThrowError(organizationNotAllowed(delegate.organizationId));
+        await purposeService.activatePurposeVersion(
+          {
+            purposeId: mockPurpose.id,
+            versionId: mockPurposeVersion.id,
+          },
+          {
+            authData: getRandomAuthData(delegation.delegateId),
+            correlationId: generateId(),
+            logger: genericLogger,
+            serviceName: "",
+          }
+        );
+      }).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
     }
   );
 
@@ -972,13 +1068,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: purpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: mockConsumer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockConsumer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
   });
 
@@ -1008,13 +1109,18 @@ describe("activatePurposeVersion", () => {
     );
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: purpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: mockConsumer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockConsumer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(
       riskAnalysisValidationFailed(
         result.type === "invalid" ? result.issues : []
@@ -1038,13 +1144,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: mockConsumer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockConsumer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
   });
 
@@ -1055,13 +1166,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: mockProducer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockProducer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantNotFound(mockProducer.id));
   });
 
@@ -1079,13 +1195,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: mockProducer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockProducer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
   });
 
@@ -1103,13 +1224,18 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(producer);
 
     expect(async () => {
-      await purposeService.activatePurposeVersion({
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
-        organizationId: mockProducer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockProducer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
 
@@ -1133,13 +1259,18 @@ describe("activatePurposeVersion", () => {
       await addOneTenant(mockProducer);
 
       expect(async () => {
-        await purposeService.activatePurposeVersion({
-          purposeId: purpose.id,
-          versionId: purposeVersion.id,
-          organizationId: mockProducer.id,
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await purposeService.activatePurposeVersion(
+          {
+            purposeId: purpose.id,
+            versionId: purposeVersion.id,
+          },
+          {
+            authData: getRandomAuthData(mockProducer.id),
+            correlationId: generateId(),
+            logger: genericLogger,
+            serviceName: "",
+          }
+        );
       }).rejects.toThrowError(organizationNotAllowed(mockProducer.id));
     }
   );
@@ -1164,13 +1295,18 @@ describe("activatePurposeVersion", () => {
       await addOneTenant(mockProducer);
 
       expect(async () => {
-        await purposeService.activatePurposeVersion({
-          purposeId: purpose.id,
-          versionId: purposeVersion.id,
-          organizationId: mockConsumer.id,
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await purposeService.activatePurposeVersion(
+          {
+            purposeId: purpose.id,
+            versionId: purposeVersion.id,
+          },
+          {
+            authData: getRandomAuthData(mockConsumer.id),
+            correlationId: generateId(),
+            logger: genericLogger,
+            serviceName: "",
+          }
+        );
       }).rejects.toThrowError(organizationNotAllowed(mockConsumer.id));
     }
   );
@@ -1186,9 +1322,14 @@ describe("activatePurposeVersion", () => {
         ...mockPurposeVersion,
         state,
       };
-      const purpose: Purpose = { ...mockPurpose, versions: [purposeVersion] };
+      const purpose: Purpose = {
+        ...mockPurpose,
+        versions: [purposeVersion],
+        delegationId: generateId<DelegationId>(),
+      };
 
       const delegation = getMockDelegation({
+        id: purpose.delegationId,
         kind: delegationKind.delegatedConsumer,
         eserviceId: purpose.eserviceId,
         delegatorId: purpose.consumerId,
@@ -1204,13 +1345,18 @@ describe("activatePurposeVersion", () => {
       await addOneDelegation(delegation);
 
       expect(async () => {
-        await purposeService.activatePurposeVersion({
-          purposeId: purpose.id,
-          versionId: purposeVersion.id,
-          organizationId: mockConsumer.id,
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await purposeService.activatePurposeVersion(
+          {
+            purposeId: mockPurpose.id,
+            versionId: mockPurposeVersion.id,
+          },
+          {
+            authData: getRandomAuthData(mockConsumer.id),
+            correlationId: generateId(),
+            logger: genericLogger,
+            serviceName: "",
+          }
+        );
       }).rejects.toThrowError(organizationNotAllowed(mockConsumer.id));
     }
   );
