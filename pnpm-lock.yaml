@@ -98,8 +98,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.1.0
-        version: 1.1.0
+        specifier: 1.0.11g
+        version: 1.0.11-g
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -4081,9 +4081,6 @@ packages:
 
   '@pagopa/interop-outbound-models@1.0.11-g':
     resolution: {integrity: sha512-hKdSmbkALTw6lDo0tKtji1EcarRyII5AiD4ma8I6vhhx+iTnmlPKXgNTc4FOUFsr8boFwK100GFeL7hLpBp7ZQ==}
-
-  '@pagopa/interop-outbound-models@1.1.0':
-    resolution: {integrity: sha512-F4MKL5eLOAlpsisVFRxVTe2CpmMHiVN94DOms6f6H63YFc8x4gNUHCFElJUgSQDYJkDAz+oTwZHr0LGUqIL0MA==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -9377,12 +9374,6 @@ snapshots:
       zod: 3.23.8
 
   '@pagopa/interop-outbound-models@1.0.11-g':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.1.0':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
