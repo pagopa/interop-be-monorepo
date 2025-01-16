@@ -28,6 +28,7 @@ import {
   agreementState,
   EService,
   PurposeVersion,
+  DelegationId,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -35,7 +36,7 @@ import {
   purposeVersionNotFound,
   organizationIsNotTheConsumer,
   purposeVersionCannotBeDeleted,
-  organizationNotAllowed,
+  organizationIsNotTheDelegatedConsumer,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -122,11 +123,13 @@ describe("deletePurposeVersion", () => {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       versions: [mockPurposeVersion1, mockPurposeVersion2],
+      delegationId: generateId<DelegationId>(),
     };
 
     const authData = getRandomAuthData();
 
     const delegation = getMockDelegation({
+      id: mockPurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockPurpose.eserviceId,
       delegatorId: mockPurpose.consumerId,
@@ -226,6 +229,7 @@ describe("deletePurposeVersion", () => {
       consumerId: consumer.id,
       eserviceId: eservice.id,
       versions: [mockPurposeVersion1, mockPurposeVersion2],
+      delegationId: generateId<DelegationId>(),
     };
 
     const producerDelegation = getMockDelegation({
@@ -237,6 +241,7 @@ describe("deletePurposeVersion", () => {
     });
 
     const consumerDelegation = getMockDelegation({
+      id: delegatePurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: eservice.id,
       delegatorId: consumer.id,
@@ -451,7 +456,7 @@ describe("deletePurposeVersion", () => {
       purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
     );
   });
-  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer", async () => {
     const authData = getRandomAuthData();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -461,9 +466,11 @@ describe("deletePurposeVersion", () => {
       ...getMockPurpose(),
       versions: [mockPurposeVersion],
       consumerId: authData.organizationId,
+      delegationId: generateId<DelegationId>(),
     };
 
     const delegation = getMockDelegation({
+      id: mockPurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockPurpose.eserviceId,
       delegatorId: mockPurpose.consumerId,
@@ -486,6 +493,11 @@ describe("deletePurposeVersion", () => {
           serviceName: "",
         }
       )
-    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
   });
 });
