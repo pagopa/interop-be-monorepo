@@ -52,6 +52,7 @@ export function toOutboundEventV2(
       { type: "EServiceAdded" },
       { type: "DraftEServiceUpdated" },
       { type: "EServiceDescriptionUpdated" },
+      { type: "EServiceNameUpdated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

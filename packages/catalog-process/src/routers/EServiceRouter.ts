@@ -55,6 +55,7 @@ import {
   updateEServiceErrorMapper,
   updateRiskAnalysisErrorMapper,
   updateDescriptorAttributesErrorMapper,
+  updateEServiceNameErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -711,7 +712,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/update",
+      "/eservices/:eServiceId/description/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -732,6 +733,33 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateEServiceDescriptionErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/name/update",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const updatedEService = await catalogService.updateEServiceName(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.name,
+            ctx
+          );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceNameErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
