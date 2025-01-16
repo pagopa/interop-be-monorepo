@@ -1,5 +1,6 @@
 import {
   Agreement,
+  DelegationId,
   EService,
   EServiceId,
   Purpose,
@@ -604,6 +605,7 @@ describe("getPurposes", async () => {
       consumerId: consumer.id,
       eserviceId: eservice.id,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
+      delegationId: generateId<DelegationId>(),
     };
 
     const producerDelegation = getMockDelegation({
@@ -615,6 +617,7 @@ describe("getPurposes", async () => {
     });
 
     const consumerDelegation = getMockDelegation({
+      id: delegatePurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: eservice.id,
       delegatorId: consumer.id,
