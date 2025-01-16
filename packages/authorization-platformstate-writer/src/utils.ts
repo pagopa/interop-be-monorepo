@@ -16,7 +16,6 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import {
-  AgreementId,
   ClientId,
   clientKind,
   ClientKind,
@@ -888,23 +887,6 @@ export const extractKidFromTokenGenStatesEntryPK = (
   pk: TokenGenerationStatesClientKidPK | TokenGenerationStatesClientKidPurposePK
 ): string => pk.split("#")[2];
 
-export const extractAgreementIdFromAgreementPK = (
-  pk: PlatformStatesAgreementPK
-): AgreementId => {
-  const substrings = pk.split("#");
-  const agreementId = substrings[1];
-  const result = AgreementId.safeParse(agreementId);
-
-  if (!result.success) {
-    throw genericInternalError(
-      `Unable to parse agreement PK: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(agreementId)} `
-    );
-  }
-  return result.data;
-};
-
 export const extractKidFromGSIClientKid = (
   GSIPK_clientId_kid: GSIPKClientIdKid
 ): string => GSIPK_clientId_kid.split("#")[1];
@@ -1248,7 +1230,7 @@ export const createTokenGenStatesConsumerClient = ({
     }),
     ...(purposeEntry &&
       agreementEntry && {
-        agreementId: extractAgreementIdFromAgreementPK(agreementEntry.PK),
+        agreementId: agreementEntry.agreementId,
         agreementState: agreementEntry.state,
         GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
           eserviceId: purposeEntry.purposeEserviceId,
