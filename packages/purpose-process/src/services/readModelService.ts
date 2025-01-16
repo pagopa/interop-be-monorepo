@@ -405,7 +405,7 @@ export function readModelServiceBuilder(
         "data.eserviceId": eserviceId,
         "data.state": delegationState.active,
         "data.kind": delegationKind.delegatedProducer,
-      });
+      } satisfies ReadModelFilter<Delegation>);
     },
     async getActiveConsumerDelegationByEserviceAndConsumerIds({
       eserviceId,
@@ -419,7 +419,7 @@ export function readModelServiceBuilder(
         "data.delegatorId": consumerId,
         "data.state": delegationState.active,
         "data.kind": delegationKind.delegatedConsumer,
-      });
+      } satisfies ReadModelFilter<Delegation>);
     },
     async getActiveConsumerDelegationByDelegationId(
       delegationId: DelegationId
@@ -428,7 +428,7 @@ export function readModelServiceBuilder(
         "data.id": delegationId,
         "data.state": delegationState.active,
         "data.kind": delegationKind.delegatedConsumer,
-      });
+      } satisfies ReadModelFilter<Delegation>);
     },
   };
 }

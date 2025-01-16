@@ -10,6 +10,7 @@ import {
   timeAtRomeZone,
 } from "pagopa-interop-commons";
 import {
+  addSomeRandomDelegations,
   decodeProtobufPayload,
   getMockAgreement,
   getMockAttribute,
@@ -72,7 +73,6 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
-  addSomeRandomDelegations,
   agreementService,
   authDataAndDelegationsFromRequesterIs,
   fileManager,
@@ -181,7 +181,7 @@ describe("upgrade Agreement", () => {
 
       const { authData, consumerDelegation, delegateConsumer } =
         authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
       await addDelegationsAndDelegates({
         producerDelegation: undefined,
         delegateProducer: undefined,
@@ -436,7 +436,7 @@ describe("upgrade Agreement", () => {
               })
             : undefined;
 
-          await addSomeRandomDelegations(agreement);
+          await addSomeRandomDelegations(agreement, addOneDelegation);
           await addDelegationsAndDelegates({
             producerDelegation,
             delegateProducer,
@@ -801,7 +801,7 @@ describe("upgrade Agreement", () => {
       const { authData, consumerDelegation, delegateConsumer } =
         authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
 
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
       await addDelegationsAndDelegates({
         producerDelegation: undefined,
         delegateProducer: undefined,
