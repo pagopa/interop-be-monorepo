@@ -2947,6 +2947,7 @@ describe("integration tests V2 events", async () => {
           ...tokenGenStatesConsumerClient1,
           GSIPK_eserviceId_descriptorId,
           agreementId: agreement.id,
+          agreementState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
@@ -2954,6 +2955,7 @@ describe("integration tests V2 events", async () => {
           ...tokenGenStatesConsumerClient2,
           GSIPK_eserviceId_descriptorId,
           agreementId: agreement.id,
+          agreementState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
 
