@@ -778,7 +778,6 @@ describe("integration tests V1 events", async () => {
           latestAgreement.id
         ),
         state: itemState.active,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
@@ -1120,7 +1119,6 @@ describe("integration tests V1 events", async () => {
         ),
         version: 1,
         state: itemState.inactive,
-        agreementId: previousAgreement.id,
         agreementTimestamp:
           previousAgreement.stamps.activation!.when.toISOString(),
       };
@@ -1278,7 +1276,6 @@ describe("integration tests V1 events", async () => {
         ),
         version: 1,
         state: itemState.active,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
@@ -1535,7 +1532,6 @@ describe("integration tests V1 events", async () => {
           latestAgreement.id
         ),
         state: itemState.active,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
@@ -1646,7 +1642,6 @@ describe("integration tests V1 events", async () => {
           agreement.id
         ),
         state: itemState.active,
-        agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
         version: 1,
@@ -1851,7 +1846,6 @@ describe("integration tests V1 events", async () => {
           latestAgreement.id
         ),
         state: itemState.inactive,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
@@ -1962,7 +1956,6 @@ describe("integration tests V1 events", async () => {
           agreement.id
         ),
         state: itemState.inactive,
-        agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
         version: 2,
@@ -2059,8 +2052,7 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("Agreement Updated (archived by consumer or by upgrade)", () => {
-    // TODO doesn't delete the archived entry from platform-states
-    it.skip("should update the agreement state in token-generation-states if the platform-states entry exists and the agreement is the latest", async () => {
+    it("should delete the platform-states entry and update token-generation-states if the agreement is the latest", async () => {
       const consumerId = generateId<TenantId>();
       const eserviceId = generateId<EServiceId>();
 
@@ -2092,6 +2084,8 @@ describe("integration tests V1 events", async () => {
         data: payload,
         log_date: new Date(),
       };
+
+      // platform-states
       const platformStatesAgreementPK = makePlatformStatesAgreementPK({
         consumerId,
         eserviceId,
@@ -2106,7 +2100,6 @@ describe("integration tests V1 events", async () => {
           agreement.id
         ),
         state: itemState.active,
-        agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
       };
       await writePlatformAgreementEntry(
@@ -2153,6 +2146,7 @@ describe("integration tests V1 events", async () => {
 
       await handleMessageV1(message, dynamoDBClient, genericLogger);
 
+      // platform-states
       const retrievedEntry = await readAgreementEntry(
         platformStatesAgreementPK,
         dynamoDBClient
@@ -2228,6 +2222,8 @@ describe("integration tests V1 events", async () => {
         data: payload,
         log_date: new Date(),
       };
+
+      // platform-states
       const platformStatesAgreementPK = makePlatformStatesAgreementPK({
         consumerId,
         eserviceId,
@@ -2242,7 +2238,6 @@ describe("integration tests V1 events", async () => {
           latestAgreement.id
         ),
         state: itemState.active,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
@@ -2290,6 +2285,7 @@ describe("integration tests V1 events", async () => {
 
       await handleMessageV1(message, dynamoDBClient, genericLogger);
 
+      // platform-states
       const retrievedEntry = await readAgreementEntry(
         platformStatesAgreementPK,
         dynamoDBClient
@@ -2312,7 +2308,7 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("AgreementDeactivated (archived by consumer or by upgrade)", () => {
-    it.skip("should update the agreement state in token-generation-states if the platform-states entry exists and the agreement is the latest", async () => {
+    it("should delete the platform-states entry and update token-generation-states if the agreement is the latest", async () => {
       const consumerId = generateId<TenantId>();
       const eserviceId = generateId<EServiceId>();
 
@@ -2344,6 +2340,8 @@ describe("integration tests V1 events", async () => {
         data: payload,
         log_date: new Date(),
       };
+
+      // platform-states
       const platformStatesAgreementPK = makePlatformStatesAgreementPK({
         consumerId,
         eserviceId,
@@ -2358,7 +2356,6 @@ describe("integration tests V1 events", async () => {
           agreement.id
         ),
         state: itemState.active,
-        agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
       };
       await writePlatformAgreementEntry(
@@ -2405,6 +2402,7 @@ describe("integration tests V1 events", async () => {
 
       await handleMessageV1(message, dynamoDBClient, genericLogger);
 
+      // platform-states
       const retrievedEntry = await readAgreementEntry(
         platformStatesAgreementPK,
         dynamoDBClient
@@ -2494,7 +2492,6 @@ describe("integration tests V1 events", async () => {
           latestAgreement.id
         ),
         state: itemState.active,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };

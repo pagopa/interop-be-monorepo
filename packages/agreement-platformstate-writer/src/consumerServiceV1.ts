@@ -16,6 +16,7 @@ import {
   readAgreementEntry,
   agreementStateToItemState,
   updateAgreementStateOnTokenGenStates,
+  deleteAgreementEntry,
   isLatestAgreement,
   updateLatestAgreementOnTokenGenStates,
   extractAgreementTimestamp,
@@ -210,7 +211,10 @@ const handleArchiving = async (
 
   const agreementTimestamp = extractAgreementTimestamp(agreement);
 
-  if (isLatestAgreement(agreementEntry, agreementTimestamp)) {
+  if (
+    isLatestAgreement(agreementEntry, agreementTimestamp) &&
+    agreementEntry?.agreementId === agreement.id
+  ) {
     // token-generation-states only if agreement is the latest
     await updateAgreementStateOnTokenGenStates({
       GSIPK_consumerId_eserviceId,
@@ -218,14 +222,13 @@ const handleArchiving = async (
       dynamoDBClient,
       logger,
     });
+
+    await deleteAgreementEntry(primaryKey, dynamoDBClient, logger);
   } else {
     logger.info(
-      `Token-generation-states. Skipping processing of entry with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
+      `Token-generation-states. Skipping processing of entry with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId} and agreement ${agreement.id}. Reason: agreement is not the latest`
     );
   }
-
-  // TODO remove? If the agreement is archived by consumer, this is not enough because the agreement state should be updated in the platform-states
-  // await deleteAgreementEntry(primaryKey, dynamoDBClient, logger);
 };
 
 const handleUpgrade = async (

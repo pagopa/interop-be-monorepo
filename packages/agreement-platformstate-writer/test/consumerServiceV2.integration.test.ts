@@ -786,7 +786,6 @@ describe("integration tests V2 events", async () => {
           latestAgreement.id
         ),
         state: itemState.active,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
@@ -951,7 +950,6 @@ describe("integration tests V2 events", async () => {
           latestAgreement.id
         ),
         state: itemState.active,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
@@ -1062,7 +1060,6 @@ describe("integration tests V2 events", async () => {
           agreement.id
         ),
         state: itemState.active,
-        agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
         version: 1,
@@ -1249,7 +1246,6 @@ describe("integration tests V2 events", async () => {
           latestAgreement.id
         ),
         state: itemState.active,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
@@ -1360,7 +1356,6 @@ describe("integration tests V2 events", async () => {
           agreement.id
         ),
         state: itemState.active,
-        agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
         version: 1,
       };
@@ -1545,7 +1540,6 @@ describe("integration tests V2 events", async () => {
           latestAgreement.id
         ),
         state: itemState.active,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
@@ -1656,7 +1650,6 @@ describe("integration tests V2 events", async () => {
           agreement.id
         ),
         state: itemState.active,
-        agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
         version: 1,
       };
@@ -1841,7 +1834,6 @@ describe("integration tests V2 events", async () => {
           latestAgreement.id
         ),
         state: itemState.inactive,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: latestAgreement.descriptorId,
@@ -1953,7 +1945,6 @@ describe("integration tests V2 events", async () => {
           agreement.id
         ),
         state: itemState.inactive,
-        agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
         version: 2,
@@ -2139,7 +2130,6 @@ describe("integration tests V2 events", async () => {
           latestAgreement.id
         ),
         state: itemState.inactive,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
@@ -2250,7 +2240,6 @@ describe("integration tests V2 events", async () => {
           agreement.id
         ),
         state: itemState.inactive,
-        agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
         version: 2,
       };
@@ -2613,7 +2602,6 @@ describe("integration tests V2 events", async () => {
         ),
         version: 8,
         state: itemState.inactive,
-        agreementId: previousAgreement.id,
         agreementTimestamp:
           previousAgreement.stamps.activation!.when.toISOString(),
       };
@@ -2771,7 +2759,6 @@ describe("integration tests V2 events", async () => {
         ),
         version: 1,
         state: itemState.active,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
@@ -3016,7 +3003,6 @@ describe("integration tests V2 events", async () => {
           agreement.id
         ),
         state: itemState.active,
-        agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
       };
       await writePlatformAgreementEntry(
@@ -3152,7 +3138,6 @@ describe("integration tests V2 events", async () => {
           latestAgreement.id
         ),
         state: itemState.active,
-        agreementId: latestAgreement.id,
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
       };
