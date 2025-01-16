@@ -28,6 +28,7 @@ import {
   eserviceMode,
   tenantKind,
   agreementState,
+  DelegationId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -36,7 +37,7 @@ import {
   organizationIsNotTheConsumer,
   purposeVersionNotFound,
   notValidVersionState,
-  organizationNotAllowed,
+  organizationIsNotTheDelegatedConsumer,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -177,7 +178,7 @@ describe("archivePurposeVersion", () => {
 
     vi.useRealTimers();
   });
-  it("should succeed when requester is Consumer Delegate and the Purpose is in a archived state", async () => {
+  it("should write on event-store for the archiving of a purpose version when requester is Consumer Delegate", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -188,11 +189,13 @@ describe("archivePurposeVersion", () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
     };
 
     const authData = getRandomAuthData();
 
     const delegation = getMockDelegation({
+      id: mockPurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockPurpose.eserviceId,
       delegatorId: mockPurpose.consumerId,
@@ -252,7 +255,7 @@ describe("archivePurposeVersion", () => {
 
     vi.useRealTimers();
   });
-  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a archived state", async () => {
+  it("should write on event-store for the archiving of a purpose version when requester is Consumer Delegate and the eservice was created by a delegated tenant", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -300,6 +303,7 @@ describe("archivePurposeVersion", () => {
       consumerId: consumer.id,
       eserviceId: eservice.id,
       versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
     };
 
     const producerDelegation = getMockDelegation({
@@ -311,6 +315,7 @@ describe("archivePurposeVersion", () => {
     });
 
     const consumerDelegation = getMockDelegation({
+      id: delegatePurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: eservice.id,
       delegatorId: consumer.id,
@@ -490,7 +495,7 @@ describe("archivePurposeVersion", () => {
       );
     }
   );
-  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is archiving a purpose version created by the delegate in archivePurposeVersion", async () => {
     const authData = getRandomAuthData();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -499,10 +504,12 @@ describe("archivePurposeVersion", () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       versions: [mockPurposeVersion],
-      consumerId: authData.organizationId,
+      consumerId: generateId<TenantId>(),
+      delegationId: generateId<DelegationId>(),
     };
 
     const delegation = getMockDelegation({
+      id: mockPurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockPurpose.eserviceId,
       delegatorId: mockPurpose.consumerId,
@@ -525,6 +532,43 @@ describe("archivePurposeVersion", () => {
           serviceName: "",
         }
       )
-    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        mockPurpose.delegationId
+      )
+    );
+  });
+  it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation and is archiving a purpose version created by a delegate in archivePurposeVersion", async () => {
+    const authData = getRandomAuthData();
+    const mockPurposeVersion: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.active,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      versions: [mockPurposeVersion],
+      consumerId: generateId<TenantId>(),
+      delegationId: generateId<DelegationId>(),
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    expect(
+      purposeService.archivePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
+    ).rejects.toThrowError(
+      organizationIsNotTheConsumer(authData.organizationId)
+    );
   });
 });
