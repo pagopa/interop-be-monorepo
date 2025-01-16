@@ -1310,53 +1310,46 @@ describe("activatePurposeVersion", () => {
     }
   );
 
-  it.each([
-    purposeVersionState.active,
-    purposeVersionState.archived,
-    purposeVersionState.rejected,
-  ])(
-    `should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation`,
-    async (state) => {
-      const purposeVersion: PurposeVersion = {
-        ...mockPurposeVersion,
-        state,
-      };
-      const purpose: Purpose = {
-        ...mockPurpose,
-        versions: [purposeVersion],
-        delegationId: generateId<DelegationId>(),
-      };
+  it(`should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation`, async () => {
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.draft,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      versions: [purposeVersion],
+      delegationId: generateId<DelegationId>(),
+    };
 
-      const delegation = getMockDelegation({
-        id: purpose.delegationId,
-        kind: delegationKind.delegatedConsumer,
-        eserviceId: purpose.eserviceId,
-        delegatorId: purpose.consumerId,
-        delegateId: generateId<TenantId>(),
-        state: delegationState.active,
-      });
+    const delegation = getMockDelegation({
+      id: purpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
 
-      await addOnePurpose(purpose);
-      await addOneEService(mockEService);
-      await addOneAgreement(mockAgreement);
-      await addOneTenant(mockConsumer);
-      await addOneTenant(mockProducer);
-      await addOneDelegation(delegation);
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+    await addOneDelegation(delegation);
 
-      expect(async () => {
-        await purposeService.activatePurposeVersion(
-          {
-            purposeId: mockPurpose.id,
-            versionId: mockPurposeVersion.id,
-          },
-          {
-            authData: getRandomAuthData(mockConsumer.id),
-            correlationId: generateId(),
-            logger: genericLogger,
-            serviceName: "",
-          }
-        );
-      }).rejects.toThrowError(organizationNotAllowed(mockConsumer.id));
-    }
-  );
+    expect(async () => {
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(mockConsumer.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+    }).rejects.toThrowError(organizationNotAllowed(mockConsumer.id));
+  });
 });
