@@ -1185,7 +1185,14 @@ export function purposeServiceBuilder(
 
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
-      assertRequesterCanActAsConsumer(purposeToClone.data, authData, undefined);
+      assertRequesterCanActAsConsumer(
+        purposeToClone.data,
+        authData,
+        purposeToClone.data.delegationId &&
+          (await readModelService.getActiveConsumerDelegationByDelegationId(
+            purposeToClone.data.delegationId
+          ))
+      );
 
       if (purposeIsDraft(purposeToClone.data)) {
         throw purposeCannotBeCloned(purposeId);
