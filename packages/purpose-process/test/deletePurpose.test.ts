@@ -367,7 +367,7 @@ describe("deletePurpose", () => {
       ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
     }
   );
-  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is deleting a purpose created by the delegate in deletePurpose", async () => {
     const authData = getRandomAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
@@ -408,7 +408,7 @@ describe("deletePurpose", () => {
     );
   });
 
-  it("should throw organizationIsNotTheConsumer when the requester is the Consumer but there isn't a Consumer Delegation", async () => {
+  it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation and is deleting a purpose created by a delegate in deletePurpose", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.draft
