@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import {
   Agreement,
+  DelegationId,
   DraftPurposeDeletedV2,
   EService,
   Purpose,
@@ -33,7 +34,7 @@ import {
   purposeNotFound,
   organizationIsNotTheConsumer,
   purposeCannotBeDeleted,
-  organizationNotAllowed,
+  organizationIsNotTheDelegatedConsumer,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -162,9 +163,11 @@ describe("deletePurpose", () => {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
     };
 
     const delegation = getMockDelegation({
+      id: mockPurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockPurpose.eserviceId,
       delegatorId: mockPurpose.consumerId,
@@ -240,6 +243,7 @@ describe("deletePurpose", () => {
       consumerId: consumer.id,
       eserviceId: eservice.id,
       versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
     };
 
     const producerDelegation = getMockDelegation({
@@ -251,6 +255,7 @@ describe("deletePurpose", () => {
     });
 
     const consumerDelegation = getMockDelegation({
+      id: delegatePurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: eservice.id,
       delegatorId: consumer.id,
@@ -373,9 +378,11 @@ describe("deletePurpose", () => {
       eserviceId: mockEService.id,
       versions: [mockPurposeVersion],
       consumerId: authData.organizationId,
+      delegationId: generateId<DelegationId>(),
     };
 
     const delegation = getMockDelegation({
+      id: mockPurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockPurpose.eserviceId,
       delegatorId: mockPurpose.consumerId,
@@ -393,6 +400,38 @@ describe("deletePurpose", () => {
         logger: genericLogger,
         serviceName: "",
       })
-    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
+  });
+
+  it("should throw organizationIsNotTheConsumer when the requester is the Consumer but there isn't a Consumer Delegation", async () => {
+    const mockEService = getMockEService();
+    const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
+      purposeVersionState.draft
+    );
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
+    };
+
+    await addOnePurpose(mockPurpose);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+    expect(
+      purposeService.deletePurpose(mockPurpose.id, {
+        authData: getRandomAuthData(mockEService.producerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
+    ).rejects.toThrowError(
+      organizationIsNotTheConsumer(mockEService.producerId)
+    );
   });
 });
