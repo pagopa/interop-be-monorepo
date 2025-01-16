@@ -346,8 +346,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     const delegation = getMockDelegation({
       id: delegatePurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
-      eserviceId: purposeForReceive.eserviceId,
-      delegatorId: purposeForReceive.consumerId,
+      eserviceId: delegatePurpose.eserviceId,
+      delegatorId: delegatePurpose.consumerId,
       delegateId: authData.organizationId,
       state: delegationState.active,
     });
@@ -431,6 +431,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       ...purposeForDeliver,
       consumerId: consumer.id,
       eserviceId: eservice.id,
+      delegationId: generateId<DelegationId>(),
     };
 
     const producerDelegation = getMockDelegation({
@@ -442,6 +443,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     });
 
     const consumerDelegation = getMockDelegation({
+      id: delegatePurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: eservice.id,
       delegatorId: consumer.id,
@@ -469,7 +471,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       delegatePurpose.id,
       updateContentWithoutTitle,
       {
-        authData: getRandomAuthData(consumer.id),
+        authData: getRandomAuthData(consumerDelegate.id),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
@@ -877,7 +879,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
     );
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation in updatePurpose", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is updating a purpose created by the delegate in updatePurpose", async () => {
     const authData = getRandomAuthData();
 
     const delegatePurpose: Purpose = {
@@ -913,7 +915,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation in updateReversePurpose", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester and is updating a purpose created by the delegate in updateReversePurpose", async () => {
     const authData = getRandomAuthData();
 
     const delegatePurpose: Purpose = {
@@ -954,7 +956,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation in updatePurpose", async () => {
+  it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation and is updating a purpose created by a delegate in updatePurpose", async () => {
     const authData = getRandomAuthData();
 
     const delegatePurpose: Purpose = {
@@ -982,7 +984,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       organizationIsNotTheConsumer(authData.organizationId)
     );
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation in updateReversePurpose", async () => {
+  it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation and is updating a purpose created by a delegate in updateReversePurpose", async () => {
     const authData = getRandomAuthData();
 
     const delegatePurpose: Purpose = {
