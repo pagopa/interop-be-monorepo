@@ -40,44 +40,6 @@ import { z } from "zod";
 import { Logger } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 
-// TODO remove if not used
-export const writeAgreementEntry = async (
-  agreementEntry: PlatformStatesAgreementEntry,
-  dynamoDBClient: DynamoDBClient,
-  logger: Logger
-): Promise<void> => {
-  const input: PutItemInput = {
-    ConditionExpression: "attribute_not_exists(PK)",
-    Item: {
-      PK: {
-        S: agreementEntry.PK,
-      },
-      state: {
-        S: agreementEntry.state,
-      },
-      version: {
-        N: agreementEntry.version.toString(),
-      },
-      updatedAt: {
-        S: agreementEntry.updatedAt,
-      },
-      agreementId: {
-        S: agreementEntry.agreementId,
-      },
-      agreementTimestamp: {
-        S: agreementEntry.agreementTimestamp,
-      },
-      agreementDescriptorId: {
-        S: agreementEntry.agreementDescriptorId,
-      },
-    },
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
-  };
-  const command = new PutItemCommand(input);
-  await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Written agreement entry ${agreementEntry.PK}`);
-};
-
 export const upsertPlatformStatesAgreementEntry = async (
   agreementEntry: PlatformStatesAgreementEntry,
   dynamoDBClient: DynamoDBClient,
@@ -159,58 +121,6 @@ export const deleteAgreementEntry = async (
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
   logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
-};
-
-// This function differs from its V2 implementation, because there could be some timestamps missing for V1 agreements
-export const updateAgreementStateInPlatformStatesEntryV1 = async ({
-  dynamoDBClient,
-  primaryKey,
-  state,
-  timestamp,
-  version,
-  logger,
-}: {
-  dynamoDBClient: DynamoDBClient;
-  primaryKey: PlatformStatesAgreementPK;
-  state: ItemState;
-  timestamp: string;
-  version: number;
-  logger: Logger;
-}): Promise<void> => {
-  const input: UpdateItemInput = {
-    ConditionExpression: "attribute_exists(PK)",
-    Key: {
-      PK: {
-        S: primaryKey,
-      },
-    },
-    ExpressionAttributeValues: {
-      ":newState": {
-        S: state,
-      },
-      ":newTimestamp": {
-        S: timestamp,
-      },
-      ":newVersion": {
-        N: version.toString(),
-      },
-      ":newUpdatedAt": {
-        S: new Date().toISOString(),
-      },
-    },
-    ExpressionAttributeNames: {
-      "#state": "state",
-    },
-    UpdateExpression:
-      "SET #state = :newState, GSISK_agreementTimestamp = :newTimestamp, version = :newVersion, updatedAt = :newUpdatedAt",
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
-    ReturnValues: "NONE",
-  };
-  const command = new UpdateItemCommand(input);
-  await dynamoDBClient.send(command);
-  logger.info(
-    `Platform-states. Updated agreement state in entry ${primaryKey}`
-  );
 };
 
 export const updateAgreementStateInPlatformStatesEntryV2 = async (
@@ -675,7 +585,6 @@ export const isLatestAgreement = (
   );
 };
 
-// TODO: removed isLatestAgreement check inside function
 export const updateLatestAgreementOnTokenGenStates = async (
   dynamoDBClient: DynamoDBClient,
   agreement: Agreement,
