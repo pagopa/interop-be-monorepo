@@ -2,13 +2,20 @@ import { EachMessagePayload } from "kafkajs";
 import {
   decodeKafkaMessage,
   InteropTokenGenerator,
+  logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
-import { DelegationEvent } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  DelegationEvent,
+  generateId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { handleMessageV2 } from "./delegationRevokeArchiverConsumerServiceV2.js";
+import { handleMessageV2 } from "./delegationArchiverConsumerServiceV2.js";
 import { config } from "./config/config.js";
+import { getInteropBeClients } from "./clients/clientsProvider.js";
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)
@@ -19,16 +26,34 @@ async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  const decodedKafkaMessage = decodeKafkaMessage(message, DelegationEvent);
+  const decodedMessage = decodeKafkaMessage(message, DelegationEvent);
 
-  await match(decodedKafkaMessage)
+  const correlationId = decodedMessage.correlation_id
+    ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+    : generateId<CorrelationId>();
+
+  const loggerInstance = logger({
+    serviceName: "delegation-revoke-archiver",
+    eventType: decodedMessage.type,
+    eventVersion: decodedMessage.event_version,
+    streamId: decodedMessage.stream_id,
+    correlationId,
+  });
+  loggerInstance.debug(decodedMessage);
+
+  await match(decodedMessage)
     .with({ event_version: 2 }, (msg) =>
-      handleMessageV2({
-        decodedKafkaMessage: msg,
-        refreshableToken,
-        partition,
-        offset: message.offset,
-      })
+      handleMessageV2(
+        {
+          decodedMessage: msg,
+          refreshableToken,
+          partition,
+          offset: message.offset,
+          logger: loggerInstance,
+          correlationId,
+        },
+        getInteropBeClients()
+      )
     )
     .exhaustive();
 }

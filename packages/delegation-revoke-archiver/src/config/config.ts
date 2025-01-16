@@ -16,14 +16,13 @@ export const APIProcessServerConfig = z
     purposeProcessUrl: c.PURPOSE_PROCESS_URL,
   }));
 
-const DelegationRevokeArchiverConfig = APIProcessServerConfig.and(
+const DelegationArchiverConfig = APIProcessServerConfig.and(
   DelegationTopicConfig
 )
   .and(TokenGenerationConfig)
   .and(KafkaConsumerConfig);
 
-export type DelegationRevokeArchiverConfig = z.infer<
-  typeof DelegationRevokeArchiverConfig
->;
-export const config: DelegationRevokeArchiverConfig =
-  DelegationRevokeArchiverConfig.parse(process.env);
+export type DelegationArchiverConfig = z.infer<typeof DelegationArchiverConfig>;
+export const config: DelegationArchiverConfig = DelegationArchiverConfig.parse(
+  process.env
+);

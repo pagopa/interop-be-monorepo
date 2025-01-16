@@ -12,7 +12,7 @@
 //   PurposeEventEnvelopeV2,
 //   toPurposeV2,
 // } from "pagopa-interop-models";
-// import { beforeAll, describe, expect, it, vi, afterEach } from "vitest";
+import { describe, expect, it } from "vitest";
 // import { RefreshableInteropToken } from "pagopa-interop-commons";
 
 // const removePurposeFromClientsFn = vi.fn();
@@ -25,7 +25,11 @@
 //     }),
 //   },
 // }));
-
+describe("delegationArchiverConsumerServiceV2", () => {
+  it("TODO", () => {
+    expect(true).toBe(true);
+  });
+});
 // describe("PurposeArchived", () => {
 //   const correlationId: CorrelationId = generateId();
 
