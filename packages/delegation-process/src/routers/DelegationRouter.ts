@@ -32,6 +32,8 @@ import {
   rejectDelegationErrorMapper,
   revokeDelegationErrorMapper,
   getConsumerDelegatorsErrorMapper,
+  getConsumerEservicesErrorMapper,
+  getConsumerDelegatorsWithAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
@@ -429,13 +431,14 @@ const delegationRouter = (
     .get("/consumer/delegators", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
-      const { delegateId, delegatorName, limit, offset } = req.query;
+      const { delegatorName, eserviceIds, limit, offset } = req.query;
 
       try {
         const delegators = await delegationService.getConsumerDelegators(
           {
-            delegateId: unsafeBrandId(delegateId),
+            requesterId: ctx.authData.organizationId,
             delegatorName,
+            eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
             limit,
             offset,
           },
@@ -449,6 +452,68 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getConsumerDelegatorsErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/consumer/delegatorsWithAgreements", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      const { delegatorName, limit, offset } = req.query;
+
+      try {
+        const delegators =
+          await delegationService.getConsumerDelegatorsWithAgreements(
+            {
+              requesterId: ctx.authData.organizationId,
+              delegatorName,
+              limit,
+              offset,
+            },
+            ctx.logger
+          );
+
+        return res
+          .status(200)
+          .send(delegationApi.CompactTenants.parse(delegators));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getConsumerDelegatorsWithAgreementsErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/consumer/eservices", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      const { delegatorId, eserviceName, limit, offset } = req.query;
+
+      try {
+        const eservices = await delegationService.getConsumerEservices(
+          {
+            delegatorId: unsafeBrandId(delegatorId),
+            requesterId: ctx.authData.organizationId,
+            eserviceName,
+            limit,
+            offset,
+          },
+          ctx.logger
+        );
+
+        return res
+          .status(200)
+          .send(delegationApi.CompactEservicesLight.parse(eservices));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getConsumerEservicesErrorMapper,
           ctx.logger,
           ctx.correlationId
         );

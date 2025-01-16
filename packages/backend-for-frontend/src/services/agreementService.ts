@@ -693,8 +693,12 @@ export async function enrichAgreement(
 
       return {
         id: delegation.id,
-        delegateId: delegation.delegateId,
-        delegateName: tenant.name,
+        delegate: {
+          id: tenant.id,
+          name: tenant.name,
+          kind: tenant.kind,
+          contactMail: getLatestTenantContactEmail(tenant),
+        },
       };
     });
 
