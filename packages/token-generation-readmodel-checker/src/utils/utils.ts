@@ -206,9 +206,7 @@ export async function compareTokenGenerationReadModel(
       const parsedAgreement = PlatformStatesAgreementEntry.safeParse(e);
       if (parsedAgreement.success) {
         acc.agreements.set(
-          unsafeBrandId<AgreementId>(
-            getIdFromPlatformStatesPK(parsedAgreement.data.PK)
-          ),
+          parsedAgreement.data.agreementId,
           parsedAgreement.data
         );
         return acc;
