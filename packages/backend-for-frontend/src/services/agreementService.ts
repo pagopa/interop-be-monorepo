@@ -15,7 +15,9 @@ import {
   agreementApi,
   tenantApi,
   attributeRegistryApi,
+  delegationApi,
 } from "pagopa-interop-api-clients";
+import { match, P } from "ts-pattern";
 import {
   AgreementProcessClient,
   PagoPAInteropBeClients,
@@ -526,6 +528,20 @@ export function agreementServiceBuilder(
         results: consumers.results.map((c) => toBffCompactOrganization(c)),
       };
     },
+    async verifyTenantCertifiedAttributes(
+      body: bffApi.verifyTenantCertifiedAttributes_Body,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.HasCertifiedAttributes> {
+      logger.info(
+        `Veryfing tenant ${body.tenantId} has required certified attributes for descriptor ${body.descriptorId} of eservice ${body.eserviceId}`
+      );
+      return await agreementProcessClient.verifyTenantCertifiedAttributes(
+        body,
+        {
+          headers,
+        }
+      );
+    },
   };
 }
 
@@ -588,11 +604,8 @@ async function enrichAgreementListEntry(
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.AgreementListEntry> {
-  const { consumer, producer, eservice } = await getConsumerProducerEservice(
-    agreement,
-    clients,
-    ctx
-  );
+  const { consumer, producer, eservice, delegation } =
+    await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
 
   const currentDescriptor = getCurrentDescriptor(eservice, agreement);
 
@@ -610,6 +623,7 @@ async function enrichAgreementListEntry(
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
     suspendedByPlatform: agreement.suspendedByPlatform,
+    isDelegated: !!delegation,
   };
 }
 
@@ -618,11 +632,8 @@ export async function enrichAgreement(
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Agreement> {
-  const { consumer, producer, eservice } = await getConsumerProducerEservice(
-    agreement,
-    clients,
-    ctx
-  );
+  const { consumer, producer, eservice } =
+    await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
 
   const currentDescriptior = getCurrentDescriptor(eservice, agreement);
 
@@ -659,9 +670,42 @@ export async function enrichAgreement(
     consumer.attributes,
     attributes
   );
+
+  const delegation = (
+    await clients.delegationProcessClient.delegation.getDelegations({
+      queries: {
+        delegatorIds: [agreement.consumerId],
+        eserviceIds: [agreement.eserviceId],
+        offset: 0,
+        limit: 1,
+      },
+      headers: ctx.headers,
+    })
+  ).results.at(0);
+
+  const delegationInfo = await match(delegation)
+    .with(P.nullish, () => undefined)
+    .otherwise(async (delegation) => {
+      const tenant = await clients.tenantProcessClient.tenant.getTenant({
+        params: { id: delegation.delegateId },
+        headers: ctx.headers,
+      });
+
+      return {
+        id: delegation.id,
+        delegate: {
+          id: tenant.id,
+          name: tenant.name,
+          kind: tenant.kind,
+          contactMail: getLatestTenantContactEmail(tenant),
+        },
+      };
+    });
+
   return {
     id: agreement.id,
     descriptorId: agreement.descriptorId,
+    delegation: delegationInfo,
     producer: {
       id: agreement.producerId,
       name: producer.name,
@@ -728,14 +772,19 @@ function tenantAttributesIds(tenant: tenantApi.Tenant): string[] {
   );
 }
 
-async function getConsumerProducerEservice(
+async function getConsumerProducerEserviceDelegation(
   agreement: agreementApi.Agreement,
-  { tenantProcessClient, catalogProcessClient }: PagoPAInteropBeClients,
+  {
+    tenantProcessClient,
+    catalogProcessClient,
+    delegationProcessClient,
+  }: PagoPAInteropBeClients,
   { headers }: WithLogger<BffAppContext>
 ): Promise<{
   consumer: tenantApi.Tenant;
   producer: tenantApi.Tenant;
   eservice: catalogApi.EService;
+  delegation: delegationApi.Delegation | undefined;
 }> {
   const consumerTask = tenantProcessClient.tenant.getTenant({
     params: { id: agreement.consumerId },
@@ -746,20 +795,35 @@ async function getConsumerProducerEservice(
     params: { id: agreement.producerId },
     headers,
   });
+
   const eserviceTask = catalogProcessClient.getEServiceById({
     params: { eServiceId: agreement.eserviceId },
     headers,
   });
-  const [consumer, producer, eservice] = await Promise.all([
+
+  const delegationTask = delegationProcessClient.delegation.getDelegations({
+    queries: {
+      delegatorIds: [agreement.consumerId],
+      eserviceIds: [agreement.eserviceId],
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+      offset: 0,
+      limit: 1,
+    },
+    headers,
+  });
+
+  const [consumer, producer, eservice, delegation] = await Promise.all([
     consumerTask,
     producerTask,
     eserviceTask,
+    delegationTask,
   ]);
 
   return {
     consumer,
     producer,
     eservice,
+    delegation: delegation.results.at(0) ?? undefined,
   };
 }
 

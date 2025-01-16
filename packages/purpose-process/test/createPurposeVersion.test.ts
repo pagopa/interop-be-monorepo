@@ -17,6 +17,7 @@ import {
   getMockValidRiskAnalysisForm,
   writeInReadmodel,
   getMockDelegation,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
@@ -44,7 +45,6 @@ import {
   eserviceNotFound,
   missingRiskAnalysis,
   organizationIsNotTheConsumer,
-  organizationNotAllowed,
   tenantKindNotFound,
   tenantNotFound,
   unchangedDailyCalls,
@@ -135,15 +135,18 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion({
-      purposeId: mockPurpose.id,
-      seed: {
+    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+      mockPurpose.id,
+      {
         dailyCalls: 24,
       },
-      organizationId: mockPurpose.consumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+      {
+        authData: getRandomAuthData(mockPurpose.consumerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: "24",
@@ -241,15 +244,18 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion({
-      purposeId: mockPurpose.id,
-      seed: {
+    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+      mockPurpose.id,
+      {
         dailyCalls: 24,
       },
-      organizationId: mockPurpose.consumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+      {
+        authData: getRandomAuthData(mockPurpose.consumerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: "24",
@@ -335,15 +341,18 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion({
-      purposeId: mockPurpose.id,
-      seed: {
+    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+      mockPurpose.id,
+      {
         dailyCalls: 4,
       },
-      organizationId: mockPurpose.consumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+      {
+        authData: getRandomAuthData(mockPurpose.consumerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: "4",
@@ -433,15 +442,18 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion({
-      purposeId: mockPurpose.id,
-      seed: {
+    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+      mockPurpose.id,
+      {
         dailyCalls: 30,
       },
-      organizationId: mockPurpose.consumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+      {
+        authData: getRandomAuthData(mockPurpose.consumerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -490,19 +502,22 @@ describe("createPurposeVersion", () => {
 
     expect(
       async () =>
-        await purposeService.createPurposeVersion({
-          purposeId: mockPurpose.id,
-          seed: {
+        await purposeService.createPurposeVersion(
+          mockPurpose.id,
+          {
             dailyCalls: mockPurposeVersion.dailyCalls,
           },
-          organizationId: mockPurpose.consumerId,
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+          {
+            authData: getRandomAuthData(mockPurpose.consumerId),
+            correlationId: generateId(),
+            logger: genericLogger,
+            serviceName: "",
+          }
+        )
     ).rejects.toThrowError(unchangedDailyCalls(mockPurpose.id));
   });
 
-  it("should throw organizationIsNotTheConsumer if the caller is not the consumer", async () => {
+  it("should throw organizationIsNotTheConsumer if the caller is the producer", async () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
@@ -510,15 +525,18 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 1000,
         },
-        organizationId: mockEService.producerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(
       organizationIsNotTheConsumer(mockEService.producerId)
     );
@@ -531,19 +549,22 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
 
-  it("should throw organizationNotAllowed if the caller is neither the producer or the consumer of the purpose", async () => {
+  it("should throw organizationIsNotTheConsumer if the caller is not the consumer", async () => {
     const anotherTenant: Tenant = { ...getMockTenant(), kind: "PA" };
 
     await addOnePurpose(mockPurpose);
@@ -554,16 +575,19 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(anotherTenant), tenants);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: anotherTenant.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
-    }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
+        {
+          authData: getRandomAuthData(anotherTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+    }).rejects.toThrowError(organizationIsNotTheConsumer(anotherTenant.id));
   });
 
   it("should throw agreementNotFound if the caller has no agreement associated with the purpose in the read model", async () => {
@@ -573,15 +597,18 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(
       agreementNotFound(mockEService.id, mockConsumer.id)
     );
@@ -606,15 +633,18 @@ describe("createPurposeVersion", () => {
       await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
       expect(async () => {
-        await purposeService.createPurposeVersion({
-          purposeId: mockPurpose.id,
-          seed: {
+        await purposeService.createPurposeVersion(
+          mockPurpose.id,
+          {
             dailyCalls: 20,
           },
-          organizationId: mockPurpose.consumerId,
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+          {
+            authData: getRandomAuthData(mockPurpose.consumerId),
+            correlationId: generateId(),
+            logger: genericLogger,
+            serviceName: "",
+          }
+        );
       }).rejects.toThrowError(
         agreementNotFound(mockEService.id, mockConsumer.id)
       );
@@ -628,15 +658,18 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
   });
 
@@ -647,15 +680,18 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantNotFound(mockProducer.id));
   });
 
@@ -673,15 +709,18 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
   });
 
@@ -699,15 +738,18 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(producer), tenants);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
 
@@ -724,15 +766,18 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
   });
 });
