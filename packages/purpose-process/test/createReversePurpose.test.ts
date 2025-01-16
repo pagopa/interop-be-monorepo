@@ -49,7 +49,7 @@ import {
   eserviceRiskAnalysisNotFound,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
-  organizationNotAllowed,
+  organizationIsNotTheDelegatedConsumer,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
 } from "../src/model/domain/errors.js";
@@ -849,7 +849,7 @@ describe("createReversePurpose", () => {
       ])
     );
   });
-  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const consumer = getMockTenant();
     const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
     const authData = getRandomAuthData(consumer.id);
@@ -909,6 +909,11 @@ describe("createReversePurpose", () => {
         logger: genericLogger,
         serviceName: "",
       })
-    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
   });
 });
