@@ -1822,16 +1822,16 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const hasValidDescriptor = eservice.data.descriptors.some(
-        (descriptor) =>
-          descriptor.state !== descriptorState.draft &&
-          descriptor.state !== descriptorState.waitingForApproval &&
-          descriptor.state !== descriptorState.archived
-      );
-      if (!hasValidDescriptor) {
+      if (
+        eservice.data.descriptors.every(
+          (descriptor) =>
+            descriptor.state === descriptorState.draft ||
+            descriptor.state === descriptorState.archived
+        )
+      ) {
         throw eserviceWithoutValidDescriptors(eserviceId);
       }
-      
+
       if (name !== eservice.data.name) {
         const eserviceWithSameName =
           await readModelService.getEServiceByNameAndProducerId({
