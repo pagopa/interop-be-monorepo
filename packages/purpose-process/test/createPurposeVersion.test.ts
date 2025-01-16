@@ -510,29 +510,32 @@ describe("createPurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the creation of a new purpose version is successful", async () => {
-    const authData = getRandomAuthData();
+    vi.spyOn(pdfGenerator, "generate");
 
     const delegatePurpose: Purpose = {
       ...mockPurpose,
       delegationId: generateId<DelegationId>(),
     };
 
+    const consumerDelegate = getMockTenant();
+
     const delegation = getMockDelegation({
       id: delegatePurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: delegatePurpose.eserviceId,
       delegatorId: delegatePurpose.consumerId,
-      delegateId: authData.organizationId,
+      delegateId: consumerDelegate.id,
       state: delegationState.active,
     });
 
     await addOnePurpose(delegatePurpose);
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneAgreement(mockAgreement);
+    await addOneEService(mockEService);
+    await addOneTenant(consumerDelegate);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     const returnedPurposeVersion = await purposeService.createPurposeVersion(
       delegatePurpose.id,
@@ -540,12 +543,46 @@ describe("createPurposeVersion", () => {
         dailyCalls: 24,
       },
       {
-        authData,
+        authData: getRandomAuthData(consumerDelegate.id),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
       }
     );
+
+    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
+      dailyCalls: "24",
+      answers: expect.any(String),
+      eServiceName: mockEService.name,
+      producerName: mockProducer.name,
+      producerIpaCode: getIpaCode(mockProducer),
+      consumerName: mockConsumer.name,
+      consumerIpaCode: getIpaCode(mockConsumer),
+      freeOfCharge: expect.any(String),
+      freeOfChargeReason: expect.any(String),
+      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      eServiceMode: "Eroga",
+      producerDelegationId: undefined,
+      producerDelegateName: undefined,
+      producerDelegateIpaCode: undefined,
+      consumerDelegationId: delegation.id,
+      consumerDelegateName: consumerDelegate.name,
+      consumerDelegateIpaCode: consumerDelegate.externalId.value,
+    };
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      expectedPdfPayload
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       delegatePurpose.id,
@@ -592,6 +629,8 @@ describe("createPurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the creation of a new purpose version is successful", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+
     const producer = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
@@ -673,6 +712,40 @@ describe("createPurposeVersion", () => {
         serviceName: "",
       }
     );
+
+    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
+      dailyCalls: "24",
+      answers: expect.any(String),
+      eServiceName: mockEService.name,
+      producerName: mockProducer.name,
+      producerIpaCode: getIpaCode(mockProducer),
+      consumerName: mockConsumer.name,
+      consumerIpaCode: getIpaCode(mockConsumer),
+      freeOfCharge: expect.any(String),
+      freeOfChargeReason: expect.any(String),
+      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      eServiceMode: "Eroga",
+      producerDelegationId: producerDelegation.id,
+      producerDelegateName: producerDelegate.name,
+      producerDelegateIpaCode: producerDelegate.externalId.value,
+      consumerDelegationId: consumerDelegation.id,
+      consumerDelegateName: consumerDelegate.name,
+      consumerDelegateIpaCode: consumerDelegate.externalId.value,
+    };
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      expectedPdfPayload
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       delegatePurpose.id,

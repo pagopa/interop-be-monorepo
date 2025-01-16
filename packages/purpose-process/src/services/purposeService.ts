@@ -1574,10 +1574,10 @@ async function generateRiskAnalysisDocument({
     consumerIpaCode: getIpaCode(consumer),
     producerDelegationId: producerDelegation?.id,
     producerDelegateName: producerDelegate?.name,
-    producerDelegateIpaCode: producerDelegate?.externalId.value,
+    producerDelegateIpaCode: producerDelegate && getIpaCode(producerDelegate),
     consumerDelegationId: consumerDelegation?.id,
     consumerDelegateName: consumerDelegate?.name,
-    consumerDelegateIpaCode: consumerDelegate?.externalId.value,
+    consumerDelegateIpaCode: consumerDelegate && getIpaCode(consumerDelegate),
   };
 
   function getTenantKind(tenant: Tenant): TenantKind {
