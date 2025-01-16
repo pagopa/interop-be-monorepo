@@ -123,7 +123,7 @@ export const deleteAgreementEntry = async (
   logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
 };
 
-export const updateAgreementStateInPlatformStatesEntryV2 = async (
+export const updateAgreementStateInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesAgreementPK,
   state: ItemState,

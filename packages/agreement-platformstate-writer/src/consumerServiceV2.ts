@@ -16,7 +16,7 @@ import {
   agreementStateToItemState,
   deleteAgreementEntry,
   readAgreementEntry,
-  updateAgreementStateInPlatformStatesEntryV2,
+  updateAgreementStateInPlatformStatesEntry,
   updateAgreementStateOnTokenGenStates,
   isLatestAgreement,
   updateLatestAgreementOnTokenGenStates,
@@ -125,7 +125,7 @@ export async function handleMessageV2(
             );
             return Promise.resolve();
           } else {
-            await updateAgreementStateInPlatformStatesEntryV2(
+            await updateAgreementStateInPlatformStatesEntry(
               dynamoDBClient,
               primaryKey,
               agreementStateToItemState(agreement.state),
