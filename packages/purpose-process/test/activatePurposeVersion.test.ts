@@ -13,7 +13,6 @@ import {
   readLastEventByStreamId,
   decodeProtobufPayload,
   getMockDelegation,
-  getMockAuthData,
   getRandomAuthData,
   addSomeRandomDelegations,
 } from "pagopa-interop-commons-test";
