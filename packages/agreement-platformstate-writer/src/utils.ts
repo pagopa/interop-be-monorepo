@@ -109,12 +109,22 @@ export const readAgreementEntry = async (
 
 export const deleteAgreementEntry = async (
   primaryKey: PlatformStatesAgreementPK,
+  agreementId: AgreementId,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
   const input: DeleteItemInput = {
+    ConditionExpression: "#agreementId = :agreementId",
     Key: {
       PK: { S: primaryKey },
+    },
+    ExpressionAttributeNames: {
+      "#agreementId": "agreementId",
+    },
+    ExpressionAttributeValues: {
+      ":agreementId": {
+        S: agreementId,
+      },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
