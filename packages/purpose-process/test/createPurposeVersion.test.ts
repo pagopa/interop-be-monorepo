@@ -244,15 +244,18 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
     await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion({
-      purposeId: mockPurpose.id,
-      seed: {
+    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+      mockPurpose.id,
+      {
         dailyCalls: 24,
       },
-      organizationId: mockPurpose.consumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+      {
+        authData: getRandomAuthData(mockPurpose.consumerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: "24",
