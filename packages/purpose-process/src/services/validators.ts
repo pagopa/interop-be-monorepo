@@ -267,10 +267,10 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
   // can be performed also by the producer/consumer even when active producer/consumer delegations exist
   try {
     assertRequesterIsConsumer(purpose, authData);
-  } catch (error) {
+  } catch {
     try {
       assertRequesterIsProducer(eservice, authData);
-    } catch (error) {
+    } catch {
       try {
         const activeProducerDelegation =
           await readModelService.getActiveProducerDelegationByEserviceId(
@@ -281,17 +281,15 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
           authData,
           activeProducerDelegation
         );
-      } catch (error) {
+      } catch {
         try {
-          const activeConsumerDelegation =
-            await readModelService.getActiveConsumerDelegationByPurpose(
-              purpose
-            );
-
           assertRequesterIsDelegateConsumer(
             purpose,
             authData,
-            activeConsumerDelegation
+            purpose.delegationId &&
+              (await readModelService.getActiveConsumerDelegationByDelegationId(
+                purpose.delegationId
+              ))
           );
         } catch {
           throw organizationNotAllowed(authData.organizationId);
@@ -311,7 +309,7 @@ const assertRequesterIsProducer = (
 };
 
 const assertRequesterIsDelegateProducer = (
-  eservice: EService,
+  eservice: Pick<EService, "producerId" | "id">,
   authData: Pick<AuthData, "organizationId">,
   activeProducerDelegation: Delegation | undefined
 ): void => {
@@ -330,7 +328,7 @@ const assertRequesterIsDelegateProducer = (
 };
 
 export const assertRequesterCanActAsProducer = (
-  eservice: EService,
+  eservice: Pick<EService, "producerId" | "id">,
   authData: AuthData,
   activeProducerDelegation: Delegation | undefined
 ): void => {
