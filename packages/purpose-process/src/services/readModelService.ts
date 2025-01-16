@@ -425,10 +425,10 @@ export function readModelServiceBuilder(
       delegationId: DelegationId
     ): Promise<Delegation | undefined> {
       return getDelegation(delegations, {
-        "data.delegationId": delegationId,
+        "data.id": delegationId,
         "data.state": delegationState.active,
         "data.kind": delegationKind.delegatedConsumer,
-      });
+      } satisfies ReadModelFilter<Delegation>);
     },
   };
 }

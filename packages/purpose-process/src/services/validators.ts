@@ -350,8 +350,6 @@ export const assertRequesterCanActAsConsumer = (
   authData: AuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
-  console.log("activeConsumerDelegation", activeConsumerDelegation);
-
   if (!activeConsumerDelegation) {
     // No active consumer delegation, the requester is authorized only if they are the consumer
     assertRequesterIsConsumer(purpose, authData);
@@ -370,16 +368,6 @@ const assertRequesterIsDelegateConsumer = (
   authData: Pick<AuthData, "organizationId">,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
-  console.log(
-    "AuthData in assertRequesterIsDelegateConsumer",
-    authData.organizationId
-  );
-
-  console.log(
-    "activeConsumerDelegation in assertRequesterIsDelegateConsumer",
-    activeConsumerDelegation?.delegateId
-  );
-
   if (
     activeConsumerDelegation?.delegateId !== authData.organizationId ||
     activeConsumerDelegation?.delegatorId !== purpose.consumerId ||
