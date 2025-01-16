@@ -277,7 +277,7 @@ describe("utils", async () => {
       expect(retrievedAgreementEntry).toBeUndefined();
     });
 
-    it("should not delete the entry if it refers to a different agreementId", async () => {
+    it("should not delete the entry if the entry refers to a different agreementId", async () => {
       const agreementId1 = generateId<AgreementId>();
       const agreementId2 = generateId<AgreementId>();
 
