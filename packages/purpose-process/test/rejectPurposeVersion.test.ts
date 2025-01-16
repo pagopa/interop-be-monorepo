@@ -29,6 +29,7 @@ import {
   organizationIsNotTheProducer,
   purposeVersionNotFound,
   notValidVersionState,
+  organizationIsNotTheDelegatedProducer,
 } from "../src/model/domain/errors.js";
 import {
   getMockEService,
@@ -261,7 +262,7 @@ describe("rejectPurposeVersion", () => {
       organizationIsNotTheProducer(mockPurpose.consumerId)
     );
   });
-  it("should throw organizationIsNotTheProducer if the purpose e-service has an active delegation and the requester is the producer", async () => {
+  it("should throw organizationIsNotTheDelegatedProducer if the purpose e-service has an active delegation and the requester is the producer", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion = getMockPurposeVersion();
     const mockPurpose: Purpose = {
@@ -298,10 +299,13 @@ describe("rejectPurposeVersion", () => {
         }
       )
     ).rejects.toThrowError(
-      organizationIsNotTheProducer(mockEService.producerId)
+      organizationIsNotTheDelegatedProducer(
+        mockEService.producerId,
+        delegation.id
+      )
     );
   });
-  it("should throw organizationIsNotTheProducer if the purpose e-service has an active delegation and the requester is not the producer nor the delegate", async () => {
+  it("should throw organizationIsNotTheDelegatedProducer if the purpose e-service has an active delegation and the requester is not the producer nor the delegate", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion = getMockPurposeVersion();
     const mockPurpose: Purpose = {
@@ -340,7 +344,10 @@ describe("rejectPurposeVersion", () => {
         }
       )
     ).rejects.toThrowError(
-      organizationIsNotTheProducer(randomCaller.organizationId)
+      organizationIsNotTheDelegatedProducer(
+        randomCaller.organizationId,
+        delegation.id
+      )
     );
   });
   it.each(

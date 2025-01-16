@@ -1,11 +1,11 @@
 meta {
-  name: getConsumerDelegators
+  name: getConsumerEservices
   type: http
-  seq: 5
+  seq: 6
 }
 
 get {
-  url: {{host-bff}}/consumer/delegations/delegators
+  url: {{host-delegation}}/consumer/eservices
   body: none
   auth: none
 }
@@ -13,7 +13,8 @@ get {
 params:query {
   offset: 0
   limit: 10
-  ~q: 
+  delegatorId: {{tenantId2}}
+  ~eserviceName: 
 }
 
 headers {
