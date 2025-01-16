@@ -27,6 +27,7 @@ import {
   agreementState,
   eserviceMode,
   purposeVersionState,
+  DelegationId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -270,9 +271,11 @@ describe("getPurposeById", () => {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+      delegationId: generateId<DelegationId>(),
     };
 
     const delegation = getMockDelegation({
+      id: mockPurpose1.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockPurpose1.eserviceId,
       delegatorId: mockPurpose1.consumerId,
@@ -343,6 +346,7 @@ describe("getPurposeById", () => {
       consumerId: consumer.id,
       eserviceId: eservice.id,
       versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
     };
 
     const producerDelegation = getMockDelegation({
@@ -354,6 +358,7 @@ describe("getPurposeById", () => {
     });
 
     const consumerDelegation = getMockDelegation({
+      id: delegatePurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: eservice.id,
       delegatorId: consumer.id,
