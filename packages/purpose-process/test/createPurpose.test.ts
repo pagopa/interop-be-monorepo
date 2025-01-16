@@ -48,7 +48,7 @@ import {
   riskAnalysisValidationFailed,
   agreementNotFound,
   duplicatedPurposeTitle,
-  organizationNotAllowed,
+  organizationIsNotTheDelegatedConsumer,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -603,7 +603,7 @@ describe("createPurpose", () => {
       })
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeSeed.title));
   });
-  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getRandomAuthData(tenant.id);
 
     const delegation = getMockDelegation({
@@ -631,6 +631,11 @@ describe("createPurpose", () => {
         logger: genericLogger,
         serviceName: "",
       })
-    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
   });
 });
