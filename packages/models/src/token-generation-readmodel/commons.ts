@@ -16,7 +16,7 @@ import {
   GSIPKEServiceIdDescriptorId,
   GSIPKClientIdPurposeId,
   unsafeBrandId,
-  GSIPKKid,
+  GSIPKClientIdKid,
 } from "../brandedIds.js";
 
 export const makePlatformStatesEServiceDescriptorPK = ({
@@ -96,8 +96,13 @@ export const makeGSIPKClientIdPurposeId = ({
 }): GSIPKClientIdPurposeId =>
   unsafeBrandId<GSIPKClientIdPurposeId>(`${clientId}#${purposeId}`);
 
-export const makeGSIPKKid = (kid: string): GSIPKKid =>
-  unsafeBrandId<GSIPKKid>(kid);
+export const makeGSIPKClientIdKid = ({
+  clientId,
+  kid,
+}: {
+  clientId: ClientId;
+  kid: string;
+}): GSIPKClientIdKid => unsafeBrandId<GSIPKClientIdKid>(`${clientId}#${kid}`);
 
 export const clientKindTokenGenStates = {
   consumer: "CONSUMER",

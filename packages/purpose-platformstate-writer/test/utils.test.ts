@@ -123,7 +123,8 @@ describe("utils tests", async () => {
       };
       await writePlatformPurposeEntry(
         dynamoDBClient,
-        previousPlatformPurposeEntry
+        previousPlatformPurposeEntry,
+        genericLogger
       );
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
         dynamoDBClient,
@@ -148,9 +149,17 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(dynamoDBClient, platformPurposeEntry);
+      await writePlatformPurposeEntry(
+        dynamoDBClient,
+        platformPurposeEntry,
+        genericLogger
+      );
       await expect(
-        writePlatformPurposeEntry(dynamoDBClient, platformPurposeEntry)
+        writePlatformPurposeEntry(
+          dynamoDBClient,
+          platformPurposeEntry,
+          genericLogger
+        )
       ).rejects.toThrowError(ConditionalCheckFailedException);
     });
 
@@ -168,7 +177,11 @@ describe("utils tests", async () => {
       expect(
         await readPlatformPurposeEntry(dynamoDBClient, primaryKey)
       ).toBeUndefined();
-      await writePlatformPurposeEntry(dynamoDBClient, platformPurposeEntry);
+      await writePlatformPurposeEntry(
+        dynamoDBClient,
+        platformPurposeEntry,
+        genericLogger
+      );
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
         dynamoDBClient,
         primaryKey
@@ -182,7 +195,7 @@ describe("utils tests", async () => {
     it("should do no operation if previous entry doesn't exist", async () => {
       const primaryKey = makePlatformStatesPurposePK(generateId());
       await expect(
-        deletePlatformPurposeEntry(dynamoDBClient, primaryKey)
+        deletePlatformPurposeEntry(dynamoDBClient, primaryKey, genericLogger)
       ).resolves.not.toThrowError();
     });
 
@@ -199,9 +212,14 @@ describe("utils tests", async () => {
       };
       await writePlatformPurposeEntry(
         dynamoDBClient,
-        previousPlatformPurposeEntry
+        previousPlatformPurposeEntry,
+        genericLogger
       );
-      await deletePlatformPurposeEntry(dynamoDBClient, primaryKey);
+      await deletePlatformPurposeEntry(
+        dynamoDBClient,
+        primaryKey,
+        genericLogger
+      );
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
         dynamoDBClient,
         primaryKey
@@ -390,6 +408,7 @@ describe("utils tests", async () => {
           purposeState: itemState.active,
           version: 2,
           purposeVersionId: generateId<PurposeVersionId>(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(ConditionalCheckFailedException);
       const platformPurposeEntry = await readPlatformPurposeEntry(
@@ -418,7 +437,8 @@ describe("utils tests", async () => {
       ).toBeUndefined();
       await writePlatformPurposeEntry(
         dynamoDBClient,
-        previousPlatformPurposeEntry
+        previousPlatformPurposeEntry,
+        genericLogger
       );
       await updatePurposeDataInPlatformStatesEntry({
         dynamoDBClient,
@@ -426,6 +446,7 @@ describe("utils tests", async () => {
         purposeState: itemState.active,
         purposeVersionId,
         version: 2,
+        logger: genericLogger,
       });
 
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -462,7 +483,8 @@ describe("utils tests", async () => {
       ).toBeUndefined();
       await writePlatformPurposeEntry(
         dynamoDBClient,
-        previousPlatformPurposeEntry
+        previousPlatformPurposeEntry,
+        genericLogger
       );
       const newPurposeVersionId = generateId<PurposeVersionId>();
       await updatePurposeDataInPlatformStatesEntry({
@@ -471,6 +493,7 @@ describe("utils tests", async () => {
         purposeState: itemState.active,
         version: 2,
         purposeVersionId: newPurposeVersionId,
+        logger: genericLogger,
       });
 
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
@@ -508,6 +531,7 @@ describe("utils tests", async () => {
           purposeId: purpose.id,
           purposeState: itemState.inactive,
           purposeVersionId: purpose.versions[0].id,
+          logger: genericLogger,
         })
       ).resolves.not.toThrowError();
       const tokenGenStatesEntriesAfterUpdate = await readAllTokenGenStatesItems(
@@ -563,6 +587,7 @@ describe("utils tests", async () => {
         purposeId: purpose.id,
         purposeState: itemState.active,
         purposeVersionId: newPurposeVersionId,
+        logger: genericLogger,
       });
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
         dynamoDBClient
