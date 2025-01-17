@@ -515,7 +515,7 @@ export async function compareReadModelEServicesWithPlatformStates({
       logger.error(`Read model e-service not found for id: ${id}`);
     } else {
       // Descriptors with a state other than deprecated, published or suspended are not considered because they are not expected to be in the platform-states
-      const shouldPlatformStatesCatalogExist = eservice.descriptors.some(
+      const shouldPlatformStatesCatalogEntriesExist = eservice.descriptors.some(
         (d) =>
           d.state === descriptorState.deprecated ||
           d.state === descriptorState.published ||
@@ -524,7 +524,7 @@ export async function compareReadModelEServicesWithPlatformStates({
       const platformStatesEntries = platformStatesEServiceById.get(id);
 
       if (!platformStatesEntries) {
-        if (shouldPlatformStatesCatalogExist) {
+        if (shouldPlatformStatesCatalogEntriesExist) {
           logger.error(
             `platform-states entries not found for e-service with id: ${id}`
           );
@@ -539,7 +539,7 @@ export async function compareReadModelEServicesWithPlatformStates({
       >();
 
       eservice.descriptors.forEach((descriptor) => {
-        if (shouldPlatformStatesCatalogExist) {
+        if (shouldPlatformStatesCatalogEntriesExist) {
           expectedDescriptorsMap.set(descriptor.id, {
             PK: makePlatformStatesEServiceDescriptorPK({
               eserviceId: eservice.id,
