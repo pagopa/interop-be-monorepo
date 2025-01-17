@@ -44,6 +44,7 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
+  Delegation,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -110,6 +111,8 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
+  assertRequesterIsConsumer,
+  assertRequesterIsDelegateConsumer,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -1020,19 +1023,26 @@ export function purposeServiceBuilder(
         purposeSeed.freeOfChargeReason
       );
 
-      const consumerDelegation =
-        await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
-          {
-            eserviceId,
-            consumerId,
-          }
-        );
+      // eslint-disable-next-line functional/no-let
+      let consumerDelegation: Delegation | undefined;
 
-      assertRequesterCanActAsConsumer(
-        { eserviceId, consumerId },
-        authData,
-        consumerDelegation
-      );
+      try {
+        assertRequesterIsConsumer({ consumerId }, authData);
+      } catch {
+        consumerDelegation =
+          await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
+            {
+              eserviceId,
+              consumerId,
+            }
+          );
+
+        assertRequesterIsDelegateConsumer(
+          { eserviceId, consumerId },
+          authData,
+          consumerDelegation
+        );
+      }
 
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,

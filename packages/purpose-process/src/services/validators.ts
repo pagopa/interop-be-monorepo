@@ -86,7 +86,7 @@ export const assertConsistentFreeOfCharge = (
   }
 };
 
-const assertRequesterIsConsumer = (
+export const assertRequesterIsConsumer = (
   purpose: Pick<Purpose, "consumerId">,
   authData: Pick<AuthData, "organizationId">
 ): void => {
@@ -363,7 +363,7 @@ export const assertRequesterCanActAsConsumer = (
   }
 };
 
-const assertRequesterIsDelegateConsumer = (
+export const assertRequesterIsDelegateConsumer = (
   purpose: Pick<Purpose, "consumerId" | "eserviceId">,
   authData: Pick<AuthData, "organizationId">,
   activeConsumerDelegation: Delegation | undefined
