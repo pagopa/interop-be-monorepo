@@ -1546,15 +1546,23 @@ async function generateRiskAnalysisDocument({
   pdfGenerator: PDFGenerator;
   logger: Logger;
 }): Promise<PurposeVersionDocument> {
-  const [producer, consumer, producerDelegation] = await Promise.all([
-    retrieveTenant(eservice.producerId, readModelService),
-    retrieveTenant(purpose.consumerId, readModelService),
-    readModelService.getActiveProducerDelegationByEserviceId(eservice.id),
-  ]);
+  const [producer, consumer, producerDelegation, consumerDelegation] =
+    await Promise.all([
+      retrieveTenant(eservice.producerId, readModelService),
+      retrieveTenant(purpose.consumerId, readModelService),
+      readModelService.getActiveProducerDelegationByEserviceId(eservice.id),
+      purpose.delegationId &&
+        readModelService.getActiveConsumerDelegationByDelegationId(
+          purpose.delegationId
+        ),
+    ]);
 
-  const producerDelegate =
+  const [producerDelegate, consumerDelegate] = await Promise.all([
     producerDelegation &&
-    (await retrieveTenant(producerDelegation.delegateId, readModelService));
+      retrieveTenant(producerDelegation.delegateId, readModelService),
+    consumerDelegation &&
+      retrieveTenant(consumerDelegation.delegateId, readModelService),
+  ]);
 
   const eserviceInfo: PurposeDocumentEServiceInfo = {
     name: eservice.name,
@@ -1565,7 +1573,10 @@ async function generateRiskAnalysisDocument({
     consumerIpaCode: getIpaCode(consumer),
     producerDelegationId: producerDelegation?.id,
     producerDelegateName: producerDelegate?.name,
-    producerDelegateIpaCode: producerDelegate?.externalId.value,
+    producerDelegateIpaCode: producerDelegate && getIpaCode(producerDelegate),
+    consumerDelegationId: consumerDelegation?.id,
+    consumerDelegateName: consumerDelegate?.name,
+    consumerDelegateIpaCode: consumerDelegate && getIpaCode(consumerDelegate),
   };
 
   function getTenantKind(tenant: Tenant): TenantKind {
