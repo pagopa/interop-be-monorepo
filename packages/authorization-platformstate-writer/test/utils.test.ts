@@ -42,7 +42,6 @@ import {
   makePlatformStatesPurposePK,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
-  PlatformStatesAgreementGSIAgreement,
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
@@ -72,7 +71,6 @@ import {
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
   readConsumerClientsInTokenGenStatesV1,
-  readPlatformAgreementEntryByGSIPKConsumerIdEServiceId,
   retrievePlatformStatesByPurpose,
   updateTokenGenStatesDataForSecondRetrieval,
   upsertPlatformClientEntry,
@@ -826,45 +824,6 @@ describe("utils", () => {
     });
   });
 
-  it("readPlatformAgreementEntryByGSIPKConsumerIdEServiceId", async () => {
-    const pk1 = makePlatformStatesAgreementPK(generateId<AgreementId>());
-    const pk2 = makePlatformStatesAgreementPK(generateId<AgreementId>());
-    const pk3 = makePlatformStatesAgreementPK(generateId<AgreementId>());
-
-    const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-      consumerId: generateId(),
-      eserviceId: generateId(),
-    });
-
-    const threeHoursAgo = new Date();
-    threeHoursAgo.setHours(threeHoursAgo.getHours() - 3);
-
-    const agreementEntry1: PlatformStatesAgreementEntry = {
-      ...getMockPlatformStatesAgreementEntry(pk1, GSIPK_consumerId_eserviceId),
-      GSISK_agreementTimestamp: threeHoursAgo.toISOString(),
-    };
-
-    const agreementEntry2: PlatformStatesAgreementEntry = {
-      ...getMockPlatformStatesAgreementEntry(pk2, GSIPK_consumerId_eserviceId),
-      GSISK_agreementTimestamp: new Date().toISOString(),
-    };
-
-    const agreementEntry3 = getMockPlatformStatesAgreementEntry(pk3);
-
-    await writePlatformAgreementEntry(agreementEntry1, dynamoDBClient);
-    await writePlatformAgreementEntry(agreementEntry2, dynamoDBClient);
-    await writePlatformAgreementEntry(agreementEntry3, dynamoDBClient);
-
-    const res = await readPlatformAgreementEntryByGSIPKConsumerIdEServiceId(
-      GSIPK_consumerId_eserviceId,
-      dynamoDBClient
-    );
-
-    expect(res).toEqual(
-      PlatformStatesAgreementGSIAgreement.parse(agreementEntry2)
-    );
-  });
-
   describe("upsertTokenGenStatesConsumerClient", () => {
     it("write", async () => {
       const tokenGenStatesConsumerClient =
@@ -1009,14 +968,13 @@ describe("utils", () => {
 
     await writePlatformPurposeEntry(purposeEntry, dynamoDBClient);
 
-    const agreementPK = makePlatformStatesAgreementPK(agreementId);
+    const agreementPK = makePlatformStatesAgreementPK({
+      consumerId,
+      eserviceId,
+    });
     const agreementEntry: PlatformStatesAgreementEntry = {
-      ...getMockPlatformStatesAgreementEntry(agreementPK),
+      ...getMockPlatformStatesAgreementEntry(agreementPK, agreementId),
       agreementDescriptorId: descriptorId,
-      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-        consumerId,
-        eserviceId,
-      }),
     };
 
     await writePlatformAgreementEntry(agreementEntry, dynamoDBClient);
@@ -1044,7 +1002,7 @@ describe("utils", () => {
 
     expect(res).toEqual({
       purposeEntry,
-      agreementEntry: PlatformStatesAgreementGSIAgreement.parse(agreementEntry),
+      agreementEntry,
       catalogEntry,
     });
   });
@@ -1183,7 +1141,7 @@ describe("utils", () => {
     );
   });
 
-  it("updateTokenDataForSecondRetrieval", async () => {
+  it("updateTokenGenStatesDataForSecondRetrieval", async () => {
     const consumerId = generateId<TenantId>();
     const descriptor = getMockDescriptor();
     const eservice: EService = {
@@ -1256,15 +1214,15 @@ describe("utils", () => {
     };
 
     const platformAgreementEntry: PlatformStatesAgreementEntry = {
-      PK: makePlatformStatesAgreementPK(agreement.id),
-      version: 1,
-      state: itemState.inactive,
-      updatedAt: new Date().toISOString(),
-      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+      PK: makePlatformStatesAgreementPK({
         consumerId,
         eserviceId: eservice.id,
       }),
-      GSISK_agreementTimestamp: new Date().toISOString(),
+      version: 1,
+      state: itemState.inactive,
+      updatedAt: new Date().toISOString(),
+      agreementId: agreement.id,
+      agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
       agreementDescriptorId: agreement.descriptorId,
     };
 

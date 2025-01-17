@@ -148,18 +148,18 @@ describe("Token Generation Read Model Checker tests", () => {
         dynamoDBClient
       );
 
-      const agreementEntryPK = makePlatformStatesAgreementPK(agreement.id);
+      const agreementEntryPK = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
       const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement.consumerId,
-          eserviceId: generateId(),
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement.stamps.activation!.when.toISOString(),
-        agreementDescriptorId: agreement.descriptorId,
+        agreementDescriptorId: generateId(),
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -463,15 +463,15 @@ describe("Token Generation Read Model Checker tests", () => {
       await addOneAgreement(agreement2);
 
       // platform-states
-      const agreementEntryPK1 = makePlatformStatesAgreementPK(agreement1.id);
+      const agreementEntryPK1 = makePlatformStatesAgreementPK({
+        consumerId: agreement1.consumerId,
+        eserviceId: agreement1.eserviceId,
+      });
       const platformStatesAgreementEntry1: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK1,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement1.consumerId,
-          eserviceId: agreement1.eserviceId,
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement1.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
@@ -483,15 +483,15 @@ describe("Token Generation Read Model Checker tests", () => {
         dynamoDBClient
       );
 
-      const agreementEntryPK2 = makePlatformStatesAgreementPK(agreement2.id);
+      const agreementEntryPK2 = makePlatformStatesAgreementPK({
+        consumerId: agreement2.consumerId,
+        eserviceId: agreement2.eserviceId,
+      });
       const platformStatesAgreementEntry2: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK2,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement2.consumerId,
-          eserviceId: agreement2.eserviceId,
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement2.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
@@ -545,15 +545,15 @@ describe("Token Generation Read Model Checker tests", () => {
       await addOneAgreement(agreement2);
 
       // platform-states
-      const agreementEntryPK1 = makePlatformStatesAgreementPK(agreement1.id);
+      const agreementEntryPK1 = makePlatformStatesAgreementPK({
+        consumerId: agreement1.consumerId,
+        eserviceId: agreement1.eserviceId,
+      });
       const platformStatesAgreementEntry1: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK1,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement1.consumerId,
-          eserviceId: agreement1.eserviceId,
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement1.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: generateId(),
@@ -565,15 +565,15 @@ describe("Token Generation Read Model Checker tests", () => {
         dynamoDBClient
       );
 
-      const agreementEntryPK2 = makePlatformStatesAgreementPK(agreement2.id);
+      const agreementEntryPK2 = makePlatformStatesAgreementPK({
+        consumerId: agreement2.consumerId,
+        eserviceId: agreement2.eserviceId,
+      });
       const platformStatesAgreementEntry2: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK2,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: generateId(),
-          eserviceId: generateId(),
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement2.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: generateId(),
@@ -660,15 +660,15 @@ describe("Token Generation Read Model Checker tests", () => {
       };
 
       // platform-states
-      const agreementEntryPK = makePlatformStatesAgreementPK(agreement.id);
+      const agreementEntryPK = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
       const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement.consumerId,
-          eserviceId: agreement.eserviceId,
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,

@@ -8,6 +8,7 @@ import {
   getMockTokenGenStatesConsumerClient,
   readAllTokenGenStatesItems,
   readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId,
+  writePlatformAgreementEntry,
   writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import {
@@ -41,15 +42,14 @@ import {
 import { genericLogger } from "pagopa-interop-commons";
 import { z } from "zod";
 import {
-  updateAgreementStateInPlatformStatesEntryV2,
+  updateAgreementStateInPlatformStatesEntry,
   readAgreementEntry,
-  writeAgreementEntry,
   deleteAgreementEntry,
   agreementStateToItemState,
   updateAgreementStateOnTokenGenStates,
   updateAgreementStateAndDescriptorInfoOnTokenGenStates,
   isLatestAgreement,
-  updateAgreementStateInPlatformStatesEntryV1,
+  upsertPlatformStatesAgreementEntry,
 } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
@@ -68,80 +68,14 @@ describe("utils", async () => {
     vi.useRealTimers();
   });
 
-  describe("updateAgreementStateInPlatformStatesEntryV1", async () => {
+  describe("updateAgreementStateInPlatformStatesEntry", async () => {
     it("should throw error if previous entry doesn't exist", async () => {
-      const primaryKey = makePlatformStatesAgreementPK(
-        generateId<AgreementId>()
-      );
-      const timestamp = new Date().toISOString();
-      expect(
-        updateAgreementStateInPlatformStatesEntryV1({
-          dynamoDBClient,
-          primaryKey,
-          state: itemState.active,
-          timestamp,
-          version: 1,
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(ConditionalCheckFailedException);
-      const agreementEntry = await readAgreementEntry(
-        primaryKey,
-        dynamoDBClient
-      );
-      expect(agreementEntry).toBeUndefined();
-    });
-
-    it("should update state if previous entry exists", async () => {
-      const primaryKey = makePlatformStatesAgreementPK(
-        generateId<AgreementId>()
-      );
-
-      const sixHoursAgo = new Date();
-      sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
-
-      const currentDate = new Date();
-
-      const previousAgreementStateEntry: PlatformStatesAgreementEntry = {
-        ...getMockPlatformStatesAgreementEntry(primaryKey),
-        GSISK_agreementTimestamp: sixHoursAgo.toISOString(),
-      };
-      expect(
-        await readAgreementEntry(primaryKey, dynamoDBClient)
-      ).toBeUndefined();
-      await writeAgreementEntry(
-        previousAgreementStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
-      await updateAgreementStateInPlatformStatesEntryV1({
-        dynamoDBClient,
-        primaryKey,
-        state: itemState.active,
-        timestamp: currentDate.toISOString(),
-        version: 2,
-        logger: genericLogger,
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: generateId<TenantId>(),
+        eserviceId: generateId<EServiceId>(),
       });
-
-      const result = await readAgreementEntry(primaryKey, dynamoDBClient);
-      const expectedAgreementEntry: PlatformStatesAgreementEntry = {
-        ...previousAgreementStateEntry,
-        state: itemState.active,
-        GSISK_agreementTimestamp: currentDate.toISOString(),
-        version: 2,
-        updatedAt: new Date().toISOString(),
-      };
-
-      expect(result).toEqual(expectedAgreementEntry);
-    });
-  });
-
-  describe("updateAgreementStateInPlatformStatesEntryV2", async () => {
-    it("should throw error if previous entry doesn't exist", async () => {
-      const primaryKey = makePlatformStatesAgreementPK(
-        generateId<AgreementId>()
-      );
       expect(
-        updateAgreementStateInPlatformStatesEntryV2(
+        updateAgreementStateInPlatformStatesEntry(
           dynamoDBClient,
           primaryKey,
           itemState.active,
@@ -157,20 +91,22 @@ describe("utils", async () => {
     });
 
     it("should update state if previous entry exists", async () => {
-      const primaryKey = makePlatformStatesAgreementPK(
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: generateId<TenantId>(),
+        eserviceId: generateId<EServiceId>(),
+      });
+      const previousAgreementStateEntry = getMockPlatformStatesAgreementEntry(
+        primaryKey,
         generateId<AgreementId>()
       );
-      const previousAgreementStateEntry =
-        getMockPlatformStatesAgreementEntry(primaryKey);
       expect(
         await readAgreementEntry(primaryKey, dynamoDBClient)
       ).toBeUndefined();
-      await writeAgreementEntry(
+      await writePlatformAgreementEntry(
         previousAgreementStateEntry,
-        dynamoDBClient,
-        genericLogger
+        dynamoDBClient
       );
-      await updateAgreementStateInPlatformStatesEntryV2(
+      await updateAgreementStateInPlatformStatesEntry(
         dynamoDBClient,
         primaryKey,
         itemState.active,
@@ -190,43 +126,60 @@ describe("utils", async () => {
     });
   });
 
-  describe("writeAgreementEntry", async () => {
-    it("should throw error if previous entry exists", async () => {
-      const primaryKey = makePlatformStatesAgreementPK(
+  describe("upsertPlatformStatesAgreementEntry", async () => {
+    it("should insert the entry if it doesn't exist", async () => {
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: generateId<TenantId>(),
+        eserviceId: generateId<EServiceId>(),
+      });
+      const agreementStateEntry = getMockPlatformStatesAgreementEntry(
+        primaryKey,
         generateId<AgreementId>()
       );
-      const agreementStateEntry =
-        getMockPlatformStatesAgreementEntry(primaryKey);
-      await writeAgreementEntry(
+      expect(
+        await readAgreementEntry(primaryKey, dynamoDBClient)
+      ).toBeUndefined();
+
+      await upsertPlatformStatesAgreementEntry(
         agreementStateEntry,
         dynamoDBClient,
         genericLogger
       );
       expect(
-        writeAgreementEntry(agreementStateEntry, dynamoDBClient, genericLogger)
+        writePlatformAgreementEntry(agreementStateEntry, dynamoDBClient)
       ).rejects.toThrowError(ConditionalCheckFailedException);
     });
 
-    it("should write if previous entry doesn't exist", async () => {
-      const primaryKey = makePlatformStatesAgreementPK(
-        generateId<AgreementId>()
-      );
-      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-        consumerId: generateId(),
-        eserviceId: generateId(),
+    it("should update the entry if it exists", async () => {
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: generateId<TenantId>(),
+        eserviceId: generateId<EServiceId>(),
       });
-      const agreementStateEntry: PlatformStatesAgreementEntry = {
+      const previousPlatformStatesAgreement: PlatformStatesAgreementEntry = {
         PK: primaryKey,
         state: itemState.inactive,
         version: 1,
         updatedAt: new Date().toISOString(),
-        GSIPK_consumerId_eserviceId,
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: generateId<AgreementId>(),
+        agreementTimestamp: new Date().toISOString(),
         agreementDescriptorId: generateId<DescriptorId>(),
       };
+      await writePlatformAgreementEntry(
+        previousPlatformStatesAgreement,
+        dynamoDBClient
+      );
 
-      await writeAgreementEntry(
-        agreementStateEntry,
+      const updatedPlatformStatesAgreement: PlatformStatesAgreementEntry = {
+        PK: primaryKey,
+        state: itemState.active,
+        version: 2,
+        updatedAt: new Date().toISOString(),
+        agreementId: generateId<AgreementId>(),
+        agreementTimestamp: new Date().toISOString(),
+        agreementDescriptorId: generateId<DescriptorId>(),
+      };
+      await upsertPlatformStatesAgreementEntry(
+        updatedPlatformStatesAgreement,
         dynamoDBClient,
         genericLogger
       );
@@ -235,16 +188,16 @@ describe("utils", async () => {
         primaryKey,
         dynamoDBClient
       );
-
-      expect(retrievedAgreementEntry).toEqual(agreementStateEntry);
+      expect(retrievedAgreementEntry).toEqual(updatedPlatformStatesAgreement);
     });
   });
 
   describe("readAgreementEntry", async () => {
     it("should return undefined if entry doesn't exist", async () => {
-      const primaryKey = makePlatformStatesAgreementPK(
-        generateId<AgreementId>()
-      );
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: generateId<TenantId>(),
+        eserviceId: generateId<EServiceId>(),
+      });
       const agreementEntry = await readAgreementEntry(
         primaryKey,
         dynamoDBClient
@@ -253,27 +206,20 @@ describe("utils", async () => {
     });
 
     it("should return entry if it exists", async () => {
-      const primaryKey = makePlatformStatesAgreementPK(
-        generateId<AgreementId>()
-      );
-      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-        consumerId: generateId(),
-        eserviceId: generateId(),
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: generateId<TenantId>(),
+        eserviceId: generateId<EServiceId>(),
       });
       const agreementStateEntry: PlatformStatesAgreementEntry = {
         PK: primaryKey,
         state: itemState.inactive,
         version: 1,
         updatedAt: new Date().toISOString(),
-        GSIPK_consumerId_eserviceId,
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: generateId<AgreementId>(),
+        agreementTimestamp: new Date().toISOString(),
         agreementDescriptorId: generateId<DescriptorId>(),
       };
-      await writeAgreementEntry(
-        agreementStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
+      await writePlatformAgreementEntry(agreementStateEntry, dynamoDBClient);
       const retrievedEntry = await readAgreementEntry(
         primaryKey,
         dynamoDBClient
@@ -285,42 +231,84 @@ describe("utils", async () => {
 
   describe("deleteAgreementEntry", async () => {
     it("should not throw error if previous entry doesn't exist", async () => {
-      const primaryKey = makePlatformStatesAgreementPK(
-        generateId<AgreementId>()
-      );
+      const agreementId = generateId<AgreementId>();
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: generateId<TenantId>(),
+        eserviceId: generateId<EServiceId>(),
+      });
       expect(
-        deleteAgreementEntry(primaryKey, dynamoDBClient, genericLogger)
+        deleteAgreementEntry(
+          primaryKey,
+          agreementId,
+          dynamoDBClient,
+          genericLogger
+        )
       ).resolves.not.toThrowError();
     });
 
     it("should delete the entry if it exists", async () => {
-      const primaryKey = makePlatformStatesAgreementPK(
-        generateId<AgreementId>()
-      );
-      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-        consumerId: generateId(),
-        eserviceId: generateId(),
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: generateId<TenantId>(),
+        eserviceId: generateId<EServiceId>(),
       });
-      const agreementStateEntry: PlatformStatesAgreementEntry = {
+      const agreementPlatformStateEntry: PlatformStatesAgreementEntry = {
         PK: primaryKey,
         state: itemState.inactive,
         version: 1,
         updatedAt: new Date().toISOString(),
-        GSIPK_consumerId_eserviceId,
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: generateId<AgreementId>(),
+        agreementTimestamp: new Date().toISOString(),
         agreementDescriptorId: generateId<DescriptorId>(),
       };
-      await writeAgreementEntry(
-        agreementStateEntry,
+      await writePlatformAgreementEntry(
+        agreementPlatformStateEntry,
+        dynamoDBClient
+      );
+      await deleteAgreementEntry(
+        primaryKey,
+        agreementPlatformStateEntry.agreementId,
         dynamoDBClient,
         genericLogger
       );
-      await deleteAgreementEntry(primaryKey, dynamoDBClient, genericLogger);
       const retrievedAgreementEntry = await readAgreementEntry(
         primaryKey,
         dynamoDBClient
       );
       expect(retrievedAgreementEntry).toBeUndefined();
+    });
+
+    it("should not delete the entry if it refers to a different agreementId", async () => {
+      const agreementId1 = generateId<AgreementId>();
+      const agreementId2 = generateId<AgreementId>();
+
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: generateId<TenantId>(),
+        eserviceId: generateId<EServiceId>(),
+      });
+      const agreementPlatformStateEntry: PlatformStatesAgreementEntry = {
+        PK: primaryKey,
+        state: itemState.inactive,
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        agreementId: agreementId1,
+        agreementTimestamp: new Date().toISOString(),
+        agreementDescriptorId: generateId<DescriptorId>(),
+      };
+      await writePlatformAgreementEntry(
+        agreementPlatformStateEntry,
+        dynamoDBClient
+      );
+      await deleteAgreementEntry(
+        primaryKey,
+        agreementId2,
+        dynamoDBClient,
+        genericLogger
+      );
+      const retrievedAgreementEntry = await readAgreementEntry(
+        primaryKey,
+        dynamoDBClient
+      );
+      expect(retrievedAgreementEntry).toEqual(agreementPlatformStateEntry);
     });
   });
 
@@ -731,73 +719,45 @@ describe("utils", async () => {
       const threeHoursAgo = new Date();
       threeHoursAgo.setHours(threeHoursAgo.getHours() - 3);
 
-      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+      const platformStatesAgreementPK = makePlatformStatesAgreementPK({
         consumerId,
         eserviceId,
       });
 
-      const agreementPK1 = makePlatformStatesAgreementPK(agreementId1);
-      const agreementPK2 = makePlatformStatesAgreementPK(agreementId2);
-
-      const agreementEntry1: PlatformStatesAgreementEntry = {
+      const platformStatesAgreement1: PlatformStatesAgreementEntry = {
         ...getMockPlatformStatesAgreementEntry(
-          agreementPK1,
-          GSIPK_consumerId_eserviceId
+          platformStatesAgreementPK,
+          agreementId1
         ),
-        GSISK_agreementTimestamp: now.toISOString(),
-        state: itemState.active,
+        agreementTimestamp: now.toISOString(),
       };
 
-      const agreementEntry2: PlatformStatesAgreementEntry = {
+      const platformStatesAgreement2: PlatformStatesAgreementEntry = {
         ...getMockPlatformStatesAgreementEntry(
-          agreementPK2,
-          GSIPK_consumerId_eserviceId
+          platformStatesAgreementPK,
+          agreementId2
         ),
-        GSISK_agreementTimestamp: threeHoursAgo.toISOString(),
-        state: itemState.inactive,
+        agreementTimestamp: threeHoursAgo.toISOString(),
       };
-
-      await writeAgreementEntry(agreementEntry1, dynamoDBClient, genericLogger);
-      await writeAgreementEntry(agreementEntry2, dynamoDBClient, genericLogger);
 
       expect(
-        await isLatestAgreement(
-          GSIPK_consumerId_eserviceId,
-          agreementId1,
-          agreementEntry1.GSISK_agreementTimestamp,
-          dynamoDBClient
+        isLatestAgreement(
+          platformStatesAgreement2,
+          platformStatesAgreement1.agreementTimestamp
         )
       ).toEqual(true);
 
       expect(
-        await isLatestAgreement(
-          GSIPK_consumerId_eserviceId,
-          agreementId2,
-          agreementEntry2.GSISK_agreementTimestamp,
-          dynamoDBClient
+        isLatestAgreement(
+          platformStatesAgreement1,
+          platformStatesAgreement2.agreementTimestamp
         )
       ).toEqual(false);
     });
 
     it("should return true if there are no other agreements", async () => {
-      const eserviceId = generateId<EServiceId>();
-      const consumerId = generateId<TenantId>();
-      const agreementId1 = generateId<AgreementId>();
       const agreementTimestamp = new Date().toISOString();
-
-      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-        consumerId,
-        eserviceId,
-      });
-
-      expect(
-        await isLatestAgreement(
-          GSIPK_consumerId_eserviceId,
-          agreementId1,
-          agreementTimestamp,
-          dynamoDBClient
-        )
-      ).toEqual(true);
+      expect(isLatestAgreement(undefined, agreementTimestamp)).toEqual(true);
     });
   });
 });
