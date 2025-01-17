@@ -223,7 +223,12 @@ const handleArchiving = async (
       logger,
     });
 
-    await deleteAgreementEntry(primaryKey, dynamoDBClient, logger);
+    await deleteAgreementEntry(
+      primaryKey,
+      agreementEntry.agreementId,
+      dynamoDBClient,
+      logger
+    );
   } else {
     logger.info(
       `Token-generation-states. Skipping processing of entry with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId} and agreement ${agreement.id}. Reason: agreement is not the latest`
