@@ -169,10 +169,7 @@ describe("update eService name on published eservice", () => {
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
   });
   it("should throw eserviceWithoutValidDescriptors if the eservice has only a draft descriptor", async () => {
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
-      interface: getMockDocument(),
-    };
+    const descriptor = getMockDescriptor(descriptorState.draft);
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
