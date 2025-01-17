@@ -34,6 +34,7 @@ import {
   readAllTokenGenStatesItems,
 } from "pagopa-interop-commons-test";
 import { writeTokenGenStatesConsumerClient } from "pagopa-interop-commons-test";
+import { genericLogger } from "pagopa-interop-commons";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
@@ -124,7 +125,7 @@ describe("V1 events", async () => {
           dynamoDBClient
         );
 
-        await handleMessageV1(message, dynamoDBClient);
+        await handleMessageV1(message, dynamoDBClient, genericLogger);
 
         const primaryKey = makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
@@ -206,7 +207,11 @@ describe("V1 events", async () => {
           version: 1,
           updatedAt: new Date().toISOString(),
         };
-        await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+        await writeCatalogEntry(
+          previousStateEntry,
+          dynamoDBClient,
+          genericLogger
+        );
 
         // token-generation-states
         const tokenGenStatesEntryPK1 =
@@ -249,7 +254,7 @@ describe("V1 events", async () => {
           dynamoDBClient
         );
 
-        await handleMessageV1(message, dynamoDBClient);
+        await handleMessageV1(message, dynamoDBClient, genericLogger);
 
         const retrievedCatalogEntry = await readCatalogEntry(
           primaryKey,
@@ -325,7 +330,11 @@ describe("V1 events", async () => {
           version: 2,
           updatedAt: new Date().toISOString(),
         };
-        await writeCatalogEntry(previousCatalogStateEntry, dynamoDBClient);
+        await writeCatalogEntry(
+          previousCatalogStateEntry,
+          dynamoDBClient,
+          genericLogger
+        );
 
         // token-generation-states
         const tokenGenStatesEntryPK1 =
@@ -368,7 +377,7 @@ describe("V1 events", async () => {
           dynamoDBClient
         );
 
-        await handleMessageV1(message, dynamoDBClient);
+        await handleMessageV1(message, dynamoDBClient, genericLogger);
 
         const retrievedCatalogEntry = await readCatalogEntry(
           catalogPrimaryKey,
@@ -429,7 +438,11 @@ describe("V1 events", async () => {
             version: 1,
             updatedAt: new Date().toISOString(),
           };
-          await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+          await writeCatalogEntry(
+            previousStateEntry,
+            dynamoDBClient,
+            genericLogger
+          );
 
           // token-generation-states
           const tokenGenStatesEntryPK1 =
@@ -471,7 +484,7 @@ describe("V1 events", async () => {
             tokenGenStatesConsumerClient2,
             dynamoDBClient
           );
-          await handleMessageV1(message, dynamoDBClient);
+          await handleMessageV1(message, dynamoDBClient, genericLogger);
 
           const retrievedEntry = await readCatalogEntry(
             primaryKey,
@@ -547,7 +560,11 @@ describe("V1 events", async () => {
             updatedAt: new Date().toISOString(),
           };
 
-          await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+          await writeCatalogEntry(
+            previousStateEntry,
+            dynamoDBClient,
+            genericLogger
+          );
 
           // token-generation-states
           const tokenGenStatesEntryPK1 =
@@ -589,7 +606,7 @@ describe("V1 events", async () => {
             dynamoDBClient
           );
 
-          await handleMessageV1(message, dynamoDBClient);
+          await handleMessageV1(message, dynamoDBClient, genericLogger);
 
           const retrievedEntry = await readCatalogEntry(
             primaryKey,
@@ -637,7 +654,7 @@ describe("V1 events", async () => {
             log_date: new Date(),
           };
 
-          await handleMessageV1(message, dynamoDBClient);
+          await handleMessageV1(message, dynamoDBClient, genericLogger);
 
           const primaryKey = makePlatformStatesEServiceDescriptorPK({
             eserviceId: eservice.id,
@@ -692,7 +709,11 @@ describe("V1 events", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+      await writeCatalogEntry(
+        previousStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =
@@ -735,7 +756,7 @@ describe("V1 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV1(message, dynamoDBClient);
+      await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       expect(retrievedEntry).toBeUndefined();

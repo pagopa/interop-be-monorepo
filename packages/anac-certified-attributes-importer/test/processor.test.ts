@@ -442,6 +442,93 @@ describe("ANAC Certified Attributes Importer", () => {
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(9);
   });
 
+  it("should succeed, case insensivity for IPA code", async () => {
+    const csvFileContent = `codiceFiscaleGestore,denominazioneGestore,PEC,codiceIPA,ANAC_incaricato,ANAC_abilitato,ANAC_in_convalida
+0123456789,Org name in IPA,gsp1@pec.it,ipa_CODE_123,TRUE,TRUE,TRUE`;
+
+    const readModelTenants: Tenant[] = [
+      {
+        ...persistentTenant,
+        externalId: { origin: "IPA", value: "ipa_code_123" },
+        attributes: [],
+      },
+    ];
+
+    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
+    const downloadCSVSpy = vi
+      .spyOn(sftpClientMock, "downloadCSV")
+      .mockImplementation(localDownloadCSVMock);
+
+    const getPATenantsMock = getTenantsMockGenerator((_) => readModelTenants);
+    const getPATenantsSpy = vi
+      .spyOn(readModelQueriesMock, "getPATenants")
+      .mockImplementation(getPATenantsMock);
+
+    await run();
+
+    expect(downloadCSVSpy).toBeCalledTimes(1);
+    expect(getTenantByIdSpy).toBeCalledTimes(1);
+    expect(getAttributeByExternalIdSpy).toBeCalledTimes(3);
+
+    expect(getPATenantsSpy).toBeCalledTimes(1);
+    expect(getNonPATenantsSpy).toBeCalledTimes(0);
+    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
+
+    expect(refreshableInternalTokenSpy).toBeCalledTimes(3);
+    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(3);
+    expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
+  });
+
+  it("should succeed, unassigning existing attributes with case insensivity for IPA code", async () => {
+    const csvFileContent = `codiceFiscaleGestore,denominazioneGestore,PEC,codiceIPA,ANAC_incaricato,ANAC_abilitato,ANAC_in_convalida
+0123456789,Org name in IPA,gsp1@pec.it,ipa_CODE_123,TRUE,TRUE,FALSE`;
+
+    const readModelTenants: Tenant[] = [
+      {
+        ...persistentTenant,
+        externalId: { origin: "IPA", value: "ipa_code_123" },
+        attributes: [
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_VALIDATION_ID),
+          },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
+          },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ASSIGNED_ID),
+          },
+        ],
+      },
+    ];
+
+    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
+    const downloadCSVSpy = vi
+      .spyOn(sftpClientMock, "downloadCSV")
+      .mockImplementation(localDownloadCSVMock);
+
+    const getPATenantsMock = getTenantsMockGenerator((_) => readModelTenants);
+    const getPATenantsSpy = vi
+      .spyOn(readModelQueriesMock, "getPATenants")
+      .mockImplementation(getPATenantsMock);
+
+    await run();
+
+    expect(downloadCSVSpy).toBeCalledTimes(1);
+    expect(getTenantByIdSpy).toBeCalledTimes(1);
+    expect(getAttributeByExternalIdSpy).toBeCalledTimes(3);
+
+    expect(getPATenantsSpy).toBeCalledTimes(1);
+    expect(getNonPATenantsSpy).toBeCalledTimes(0);
+    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
+
+    expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
+    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(0);
+    expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(1);
+  });
+
   it("should fail on CSV retrieve error", async () => {
     const localDownloadCSVMock = (): Promise<string> =>
       Promise.reject(new Error("CSV Retrieve error"));
