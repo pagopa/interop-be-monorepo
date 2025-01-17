@@ -206,9 +206,7 @@ export async function compareTokenGenerationReadModel(
       const parsedAgreement = PlatformStatesAgreementEntry.safeParse(e);
       if (parsedAgreement.success) {
         acc.agreements.set(
-          unsafeBrandId<AgreementId>(
-            getIdFromPlatformStatesPK(parsedAgreement.data.PK)
-          ),
+          parsedAgreement.data.agreementId,
           parsedAgreement.data
         );
         return acc;
@@ -445,13 +443,13 @@ export async function compareReadModelAgreementsWithPlatformStates({
     if (platformStatesEntry && agreement) {
       const expectedPlatformStatesAgreementEntry: ComparisonPlatformStatesAgreementEntry =
         {
-          PK: makePlatformStatesAgreementPK(agreement.id),
-          state: agreementStateToItemState(agreement.state),
-          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+          PK: makePlatformStatesAgreementPK({
             consumerId: agreement.consumerId,
             eserviceId: agreement.eserviceId,
           }),
-          GSISK_agreementTimestamp: extractAgreementTimestamp(agreement),
+          state: agreementStateToItemState(agreement.state),
+          agreementId: agreement.id,
+          agreementTimestamp: extractAgreementTimestamp(agreement),
           agreementDescriptorId: agreement.descriptorId,
         };
 

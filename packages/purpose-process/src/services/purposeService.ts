@@ -9,6 +9,7 @@ import {
   eventRepository,
   formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
+  getIpaCode,
   getLatestVersionFormRules,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
@@ -22,12 +23,10 @@ import {
   Purpose,
   PurposeId,
   TenantKind,
-  Ownership,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   PurposeVersionId,
-  ownership,
   purposeEventToBinaryData,
   purposeVersionState,
   PurposeRiskAnalysisForm,
@@ -37,7 +36,6 @@ import {
   unsafeBrandId,
   generateId,
   Agreement,
-  PurposeDocumentEServiceInfo,
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
@@ -90,6 +88,11 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
+import {
+  ownership,
+  Ownership,
+  PurposeDocumentEServiceInfo,
+} from "../model/domain/models.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
@@ -1562,20 +1565,29 @@ async function generateRiskAnalysisDocument({
   pdfGenerator: PDFGenerator;
   logger: Logger;
 }): Promise<PurposeVersionDocument> {
-  const [producer, consumer] = await Promise.all([
+  const [producer, consumer, producerDelegation] = await Promise.all([
     retrieveTenant(eservice.producerId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
+    readModelService.getActiveDelegation(
+      eservice.id,
+      delegationKind.delegatedProducer
+    ),
   ]);
+
+  const producerDelegate =
+    producerDelegation &&
+    (await retrieveTenant(producerDelegation.delegateId, readModelService));
 
   const eserviceInfo: PurposeDocumentEServiceInfo = {
     name: eservice.name,
     mode: eservice.mode,
     producerName: producer.name,
-    producerOrigin: producer.externalId.origin,
-    producerIPACode: producer.externalId.value,
+    producerIpaCode: getIpaCode(producer),
     consumerName: consumer.name,
-    consumerOrigin: consumer.externalId.origin,
-    consumerIPACode: consumer.externalId.value,
+    consumerIpaCode: getIpaCode(consumer),
+    producerDelegationId: producerDelegation?.id,
+    producerDelegateName: producerDelegate?.name,
+    producerDelegateIpaCode: producerDelegate?.externalId.value,
   };
 
   function getTenantKind(tenant: Tenant): TenantKind {
