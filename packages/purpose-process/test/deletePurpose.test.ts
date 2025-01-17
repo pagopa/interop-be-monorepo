@@ -409,6 +409,7 @@ describe("deletePurpose", () => {
   });
 
   it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation and is deleting a purpose created by a delegate in deletePurpose", async () => {
+    const authData = getRandomAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.draft
@@ -418,6 +419,7 @@ describe("deletePurpose", () => {
       eserviceId: mockEService.id,
       versions: [mockPurposeVersion],
       delegationId: generateId<DelegationId>(),
+      consumerId: authData.organizationId,
     };
 
     await addOnePurpose(mockPurpose);
@@ -433,5 +435,71 @@ describe("deletePurpose", () => {
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(mockEService.producerId)
     );
+  });
+  it("should throw organizationIsNotTheConsumer if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
+    const mockEService = getMockEService();
+    const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
+      purposeVersionState.draft
+    );
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+      delegationId: undefined,
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+    await addOnePurpose(mockPurpose);
+    await addOneDelegation(delegation);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+    expect(
+      purposeService.deletePurpose(mockPurpose.id, {
+        authData: getRandomAuthData(delegation.delegateId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
+    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
+  });
+
+  it("should throw organizationIsNotTheConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+    const mockEService = getMockEService();
+    const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
+      purposeVersionState.draft
+    );
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
+    };
+
+    const delegation = getMockDelegation({
+      id: generateId<DelegationId>(),
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+    await addOnePurpose(mockPurpose);
+    await addOneDelegation(delegation);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+    expect(
+      purposeService.deletePurpose(mockPurpose.id, {
+        authData: getRandomAuthData(delegation.delegateId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
+    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
   });
 });
