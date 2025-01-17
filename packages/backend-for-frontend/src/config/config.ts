@@ -84,7 +84,7 @@ export const AuthorizationProcessServerConfig = z
     SAML_CALLBACK_ERROR_URL: z.string().url(),
     SUPPORT_LANDING_TOKEN_DURATION_SECONDS: z.coerce.number().default(300),
     SUPPORT_TOKEN_DURATION_SECONDS: z.coerce.number().default(3600),
-    SAML_PUBLIC_CERTIFICATE: z.string(),
+    SAML_PUBLIC_CERTIFICATE: z.string(), // comment to trigger CI
   })
   .transform((c) => ({
     authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
