@@ -102,7 +102,7 @@ export const validateSamlResponse = (samlResponse: string): SAMLResponse => {
   }
 
   const sig = new SignedXml({
-    publicCert: config.samlPublicCertificate,
+    publicCert: config.samlPublicKey,
   });
 
   sig.loadSignature(node);
