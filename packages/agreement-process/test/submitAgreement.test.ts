@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-commons";
 import { addDays, subDays } from "date-fns";
 import {
+  addSomeRandomDelegations,
   decodeProtobufPayload,
   getMockAgreement,
   getMockAttribute,
@@ -77,7 +78,6 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
-  addSomeRandomDelegations,
   agreementService,
   authDataAndDelegationsFromRequesterIs,
   fileManager,
@@ -1076,7 +1076,7 @@ describe("submit agreement", () => {
       await addOneTenant(producerAndConsumer);
       await addOneTenant(producer);
       await addOneAgreement(agreement);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
       await addDelegationsAndDelegates({
         producerDelegation,
         delegateProducer,
@@ -1267,7 +1267,7 @@ describe("submit agreement", () => {
           await addOneAttribute(declaredAttribute);
           await addOneAttribute(certifiedAttribute);
           await addOneAgreement(agreement);
-          await addSomeRandomDelegations(agreement);
+          await addSomeRandomDelegations(agreement, addOneDelegation);
           await addDelegationsAndDelegates({
             producerDelegation,
             delegateProducer,
@@ -1509,7 +1509,7 @@ describe("submit agreement", () => {
       await addOneTenant(consumer);
       await addOneTenant(producer);
       await addOneAgreement(agreement);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
       await addDelegationsAndDelegates({
         producerDelegation: undefined,
         delegateProducer: undefined,
@@ -1710,7 +1710,7 @@ describe("submit agreement", () => {
           await addOneAttribute(declaredAttribute);
           await addOneAttribute(certifiedAttribute);
           await addOneAgreement(agreement);
-          await addSomeRandomDelegations(agreement);
+          await addSomeRandomDelegations(agreement, addOneDelegation);
           await addDelegationsAndDelegates({
             producerDelegation,
             delegateProducer,
@@ -1992,7 +1992,7 @@ describe("submit agreement", () => {
       await addOneAttribute(declaredAttribute);
       await addOneAttribute(verifiedAttribute);
       await addOneAgreement(agreement);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
       await addDelegationsAndDelegates({
         producerDelegation: undefined,
         delegateProducer: undefined,
@@ -2148,7 +2148,7 @@ describe("submit agreement", () => {
       await addOneAttribute(declaredAttribute);
       await addOneAttribute(verifiedAttribute);
       await addOneAgreement(agreement);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
       await addDelegationsAndDelegates({
         producerDelegation: undefined,
         delegateProducer: undefined,
