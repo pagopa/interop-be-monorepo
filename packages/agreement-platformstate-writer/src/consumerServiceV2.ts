@@ -2,15 +2,13 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   Agreement,
   AgreementEventEnvelopeV2,
+  agreementState,
   AgreementV2,
   fromAgreementV2,
   genericInternalError,
   makeGSIPKConsumerIdEServiceId,
-  makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesAgreementPK,
-  makePlatformStatesEServiceDescriptorPK,
   PlatformStatesAgreementEntry,
-  PlatformStatesCatalogEntry,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
@@ -18,12 +16,12 @@ import {
   agreementStateToItemState,
   deleteAgreementEntry,
   readAgreementEntry,
-  readCatalogEntry,
-  updateAgreementStateInPlatformStatesEntry,
+  updateAgreementStateInPlatformStatesEntryV2,
   updateAgreementStateOnTokenGenStates,
-  updateAgreementStateAndDescriptorInfoOnTokenGenStates,
   writeAgreementEntry,
   isLatestAgreement,
+  updateLatestAgreementOnTokenGenStates,
+  extractAgreementTimestamp,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -47,14 +45,17 @@ export async function handleMessageV2(
 
       if (existingAgreementEntry) {
         if (existingAgreementEntry.version > msg.version) {
-          // Stops processing if the message is older than the agreement entry
+          logger.info(
+            `Skipping processing of entry ${primaryKey}. Reason: a more recent entry already exists`
+          );
           return Promise.resolve();
         } else {
-          await updateAgreementStateInPlatformStatesEntry(
+          await updateAgreementStateInPlatformStatesEntryV2(
             dynamoDBClient,
             primaryKey,
             agreementStateToItemState(agreement.state),
-            msg.version
+            msg.version,
+            logger
           );
         }
       } else {
@@ -74,41 +75,14 @@ export async function handleMessageV2(
           agreementDescriptorId: agreement.descriptorId,
         };
 
-        await writeAgreementEntry(agreementEntry, dynamoDBClient);
+        await writeAgreementEntry(agreementEntry, dynamoDBClient, logger);
       }
 
-      if (
-        await isLatestAgreement(
-          GSIPK_consumerId_eserviceId,
-          agreement.id,
-          dynamoDBClient
-        )
-      ) {
-        const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
-          eserviceId: agreement.eserviceId,
-          descriptorId: agreement.descriptorId,
-        });
-        const catalogEntry = await readCatalogEntry(
-          pkCatalogEntry,
-          dynamoDBClient
-        );
-
-        const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-          eserviceId: agreement.eserviceId,
-          descriptorId: agreement.descriptorId,
-        });
-
-        // token-generation-states
-        await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
-          GSIPK_consumerId_eserviceId,
-          agreementId: agreement.id,
-          agreementState: agreement.state,
-          dynamoDBClient,
-          GSIPK_eserviceId_descriptorId,
-          catalogEntry,
-          logger,
-        });
-      }
+      await updateLatestAgreementOnTokenGenStates(
+        dynamoDBClient,
+        agreement,
+        logger
+      );
     })
     .with(
       { type: "AgreementUnsuspendedByProducer" },
@@ -125,14 +99,24 @@ export async function handleMessageV2(
           dynamoDBClient
         );
 
+        const agreementTimestamp = extractAgreementTimestamp(agreement);
+
         if (!agreementEntry || agreementEntry.version > msg.version) {
+          logger.info(
+            `Skipping processing of entry ${primaryKey}. Reason: ${
+              !agreementEntry
+                ? "entry not found in platform-states"
+                : "a more recent entry already exists"
+            }`
+          );
           return Promise.resolve();
         } else {
-          await updateAgreementStateInPlatformStatesEntry(
+          await updateAgreementStateInPlatformStatesEntryV2(
             dynamoDBClient,
             primaryKey,
             agreementStateToItemState(agreement.state),
-            msg.version
+            msg.version,
+            logger
           );
 
           const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
@@ -144,16 +128,21 @@ export async function handleMessageV2(
             await isLatestAgreement(
               GSIPK_consumerId_eserviceId,
               agreement.id,
+              agreementTimestamp,
               dynamoDBClient
             )
           ) {
             // token-generation-states only if agreement is the latest
-
             await updateAgreementStateOnTokenGenStates({
               GSIPK_consumerId_eserviceId,
               agreementState: agreement.state,
               dynamoDBClient,
+              logger,
             });
+          } else {
+            logger.info(
+              `Token-generation-states. Skipping processing of entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
+            );
           }
         }
       }
@@ -166,11 +155,6 @@ export async function handleMessageV2(
         dynamoDBClient
       );
 
-      const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: agreement.eserviceId,
-        descriptorId: agreement.descriptorId,
-      });
-
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: agreement.consumerId,
         eserviceId: agreement.eserviceId,
@@ -178,19 +162,31 @@ export async function handleMessageV2(
 
       if (agreementEntry) {
         if (agreementEntry.version > msg.version) {
+          logger.info(
+            `Skipping processing of entry ${agreementEntry.PK}. Reason: a more recent entry already exists`
+          );
+          return Promise.resolve();
+        } else if (
+          agreement.state !== agreementState.active &&
+          agreement.state !== agreementState.suspended
+        ) {
+          logger.info(
+            `Skipping processing of entry ${agreementEntry.PK}. Reason: the agreement state ${agreement.state} is not active or suspended`
+          );
           return Promise.resolve();
         } else {
-          await updateAgreementStateInPlatformStatesEntry(
+          await updateAgreementStateInPlatformStatesEntryV2(
             dynamoDBClient,
             primaryKey,
             agreementStateToItemState(agreement.state),
-            msg.version
+            msg.version,
+            logger
           );
         }
       } else {
-        if (!agreement.stamps.activation) {
+        if (!agreement.stamps.upgrade) {
           throw genericInternalError(
-            "An activated agreement should have activation stamp"
+            "An upgraded agreement should have an upgrade stamp"
           );
         }
         const newAgreementEntry: PlatformStatesAgreementEntry = {
@@ -199,67 +195,23 @@ export async function handleMessageV2(
           version: msg.version,
           updatedAt: new Date().toISOString(),
           GSIPK_consumerId_eserviceId,
-          GSISK_agreementTimestamp:
-            agreement.stamps.activation.when.toISOString(),
+          GSISK_agreementTimestamp: agreement.stamps.upgrade.when.toISOString(),
           agreementDescriptorId: agreement.descriptorId,
         };
 
-        await writeAgreementEntry(newAgreementEntry, dynamoDBClient);
+        await writeAgreementEntry(newAgreementEntry, dynamoDBClient, logger);
       }
 
-      const updateLatestAgreementOnTokenGenStates = async (
-        catalogEntry: PlatformStatesCatalogEntry | undefined
-      ): Promise<void> => {
-        if (
-          await isLatestAgreement(
-            GSIPK_consumerId_eserviceId,
-            agreement.id,
-            dynamoDBClient
-          )
-        ) {
-          // token-generation-states only if agreement is the latest
-          const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId(
-            {
-              eserviceId: agreement.eserviceId,
-              descriptorId: agreement.descriptorId,
-            }
-          );
-
-          await updateAgreementStateAndDescriptorInfoOnTokenGenStates({
-            GSIPK_consumerId_eserviceId,
-            agreementId: agreement.id,
-            agreementState: agreement.state,
-            dynamoDBClient,
-            GSIPK_eserviceId_descriptorId,
-            catalogEntry,
-            logger,
-          });
-        }
-      };
-
-      const catalogEntry = await readCatalogEntry(
-        pkCatalogEntry,
-        dynamoDBClient
+      await updateLatestAgreementOnTokenGenStates(
+        dynamoDBClient,
+        agreement,
+        logger
       );
-
-      await updateLatestAgreementOnTokenGenStates(catalogEntry);
-
-      const updatedCatalogEntry = await readCatalogEntry(
-        pkCatalogEntry,
-        dynamoDBClient
-      );
-
-      if (
-        updatedCatalogEntry &&
-        (!catalogEntry || updatedCatalogEntry.state !== catalogEntry.state)
-      ) {
-        await updateLatestAgreementOnTokenGenStates(updatedCatalogEntry);
-      }
     })
     .with({ type: "AgreementArchivedByUpgrade" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
       const pk = makePlatformStatesAgreementPK(agreement.id);
-      await deleteAgreementEntry(pk, dynamoDBClient);
+      await deleteAgreementEntry(pk, dynamoDBClient, logger);
     })
     .with({ type: "AgreementArchivedByConsumer" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
@@ -270,23 +222,30 @@ export async function handleMessageV2(
         eserviceId: agreement.eserviceId,
       });
 
+      const agreementTimestamp = extractAgreementTimestamp(agreement);
+
       if (
         await isLatestAgreement(
           GSIPK_consumerId_eserviceId,
           agreement.id,
+          agreementTimestamp,
           dynamoDBClient
         )
       ) {
         // token-generation-states only if agreement is the latest
-
         await updateAgreementStateOnTokenGenStates({
           GSIPK_consumerId_eserviceId,
           agreementState: agreement.state,
           dynamoDBClient,
+          logger,
         });
+      } else {
+        logger.info(
+          `Token-generation-states. Skipping processing of entry GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}. Reason: agreement is not the latest`
+        );
       }
 
-      await deleteAgreementEntry(primaryKey, dynamoDBClient);
+      await deleteAgreementEntry(primaryKey, dynamoDBClient, logger);
     })
     .with(
       { type: "AgreementAdded" },
