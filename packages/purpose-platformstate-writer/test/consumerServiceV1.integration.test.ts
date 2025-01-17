@@ -282,7 +282,8 @@ describe("integration tests for events V1", () => {
       };
       await writePlatformPurposeEntry(
         dynamoDBClient,
-        previousPlatformPurposeEntry
+        previousPlatformPurposeEntry,
+        genericLogger
       );
 
       // token-generation-states
@@ -367,7 +368,8 @@ describe("integration tests for events V1", () => {
       };
       await writePlatformPurposeEntry(
         dynamoDBClient,
-        previousPlatformPurposeEntry
+        previousPlatformPurposeEntry,
+        genericLogger
       );
 
       // token-generation-states
@@ -501,7 +503,11 @@ describe("integration tests for events V1", () => {
         version: previousEntryVersion,
         updatedAt: mockDate.toISOString(),
       };
-      await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
+      await writePlatformPurposeEntry(
+        dynamoDBClient,
+        previousStateEntry,
+        genericLogger
+      );
 
       // token-generation-states
       const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
@@ -782,7 +788,8 @@ describe("integration tests for events V1", () => {
       };
       await writePlatformPurposeEntry(
         dynamoDBClient,
-        previousPlatformPurposeEntry
+        previousPlatformPurposeEntry,
+        genericLogger
       );
 
       // token-generation-states
@@ -885,7 +892,8 @@ describe("integration tests for events V1", () => {
       };
       await writePlatformPurposeEntry(
         dynamoDBClient,
-        previousPlatformPurposeEntry
+        previousPlatformPurposeEntry,
+        genericLogger
       );
 
       // token-generation-states
@@ -1115,7 +1123,8 @@ describe("integration tests for events V1", () => {
       };
       await writePlatformPurposeEntry(
         dynamoDBClient,
-        previousPlatformPurposeEntry
+        previousPlatformPurposeEntry,
+        genericLogger
       );
 
       // token-generation-states

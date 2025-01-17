@@ -58,6 +58,7 @@ describe("exportDtdPublicCatalog", () => {
         version: descriptorMock.version,
       },
       technology: eserviceMock.technology.toUpperCase(),
+      producerId: producerMock.id,
       producerName: producerMock.name,
       id: eserviceMock.id,
       name: eserviceMock.name,

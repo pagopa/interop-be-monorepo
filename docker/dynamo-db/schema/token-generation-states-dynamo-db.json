@@ -22,7 +22,7 @@
       "AttributeType": "S"
     },
     {
-      "AttributeName": "GSIPK_kid",
+      "AttributeName": "GSIPK_clientId_kid",
       "AttributeType": "S"
     },
     {
@@ -103,15 +103,15 @@
           "consumerId",
           "clientKind",
           "publicKey",
-          "GSIPK_kid"
+          "GSIPK_clientId_kid"
         ]
       }
     },
     {
-      "IndexName": "Kid",
+      "IndexName": "ClientKid",
       "KeySchema": [
         {
-          "AttributeName": "GSIPK_kid",
+          "AttributeName": "GSIPK_clientId_kid",
           "KeyType": "HASH"
         }
       ],
@@ -131,7 +131,7 @@
         "ProjectionType": "INCLUDE",
         "NonKeyAttributes": [
           "GSIPK_clientId",
-          "GSIPK_kid",
+          "GSIPK_clientId_kid",
           "GSIPK_purposeId",
           "consumerId",
           "clientKind",
