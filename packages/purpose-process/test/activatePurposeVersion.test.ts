@@ -1553,6 +1553,7 @@ describe("activatePurposeVersion", () => {
       ...mockPurpose,
       versions: [purposeVersion],
       delegationId: generateId<DelegationId>(),
+      consumerId: mockConsumer.id,
     };
 
     const delegation = getMockDelegation({
