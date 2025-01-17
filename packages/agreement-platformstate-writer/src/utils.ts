@@ -136,7 +136,7 @@ export const deleteAgreementEntry = async (
   } catch (error: unknown) {
     if (error instanceof ConditionalCheckFailedException) {
       logger.info(
-        `Skipping deletion of agreement ${agreementId}. Reason: more recent agreement exists in platform-states`
+        `Skipping deletion of agreement ${agreementId}. Reason: a more recent agreement exists in platform-states`
       );
     } else {
       throw error;
