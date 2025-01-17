@@ -49,6 +49,9 @@ export async function handleMessageV2(
         if (existingPurposeEntry) {
           if (existingPurposeEntry.version > msg.version) {
             // Stops processing if the message is older than the purpose entry
+            logger.info(
+              `Skipping processing of entry ${existingPurposeEntry.PK}. Reason: a more recent entry already exists`
+            );
             return Promise.resolve();
           } else {
             // platform-states
@@ -58,6 +61,7 @@ export async function handleMessageV2(
               purposeState,
               purposeVersionId: purposeVersion.id,
               version: msg.version,
+              logger,
             });
           }
         } else {
@@ -71,7 +75,7 @@ export async function handleMessageV2(
             version: msg.version,
             updatedAt: new Date().toISOString(),
           };
-          await writePlatformPurposeEntry(dynamoDBClient, purposeEntry);
+          await writePlatformPurposeEntry(dynamoDBClient, purposeEntry, logger);
         }
 
         // token-generation-states
@@ -107,6 +111,13 @@ export async function handleMessageV2(
           existingPurposeEntry.version > msg.version
         ) {
           // Stops processing if the message is older than the purpose entry or if it doesn't exist
+          logger.info(
+            `Skipping processing of entry ${primaryKey}. Reason: ${
+              !existingPurposeEntry
+                ? "entry not found in platform-states"
+                : "a more recent entry already exists"
+            }`
+          );
           return Promise.resolve();
         } else {
           // platform-states
@@ -116,6 +127,7 @@ export async function handleMessageV2(
             purposeState,
             purposeVersionId,
             version: msg.version,
+            logger,
           });
 
           // token-generation-states
@@ -124,6 +136,7 @@ export async function handleMessageV2(
             purposeId: purpose.id,
             purposeState,
             purposeVersionId,
+            logger,
           });
         }
       }
@@ -136,7 +149,7 @@ export async function handleMessageV2(
       });
 
       // platform-states
-      await deletePlatformPurposeEntry(dynamoDBClient, primaryKey);
+      await deletePlatformPurposeEntry(dynamoDBClient, primaryKey, logger);
 
       // token-generation-states
       await updatePurposeDataInTokenGenStatesEntries({
@@ -144,6 +157,7 @@ export async function handleMessageV2(
         purposeId: purpose.id,
         purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
         purposeVersionId: unsafeBrandId(msg.data.versionId),
+        logger,
       });
     })
     .with(

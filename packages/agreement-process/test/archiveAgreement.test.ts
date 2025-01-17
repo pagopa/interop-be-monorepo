@@ -1,6 +1,7 @@
 import { fail } from "assert";
 import { genericLogger } from "pagopa-interop-commons";
 import {
+  addSomeRandomDelegations,
   decodeProtobufPayload,
   getMockAgreement,
   getMockDelegation,
@@ -30,7 +31,6 @@ import {
 import {
   addOneAgreement,
   addOneDelegation,
-  addSomeRandomDelegations,
   agreementService,
   readLastAgreementEvent,
 } from "./utils.js";
@@ -124,7 +124,7 @@ describe("archive agreement", () => {
 
     await addOneAgreement(agreement);
     await addOneDelegation(delegation);
-    await addSomeRandomDelegations(agreement);
+    await addSomeRandomDelegations(agreement, addOneDelegation);
 
     const returnedAgreement = await agreementService.archiveAgreement(
       agreement.id,

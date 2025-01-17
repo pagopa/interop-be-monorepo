@@ -52,8 +52,8 @@ export const writeTokenGenStatesApiClient = async (
       GSIPK_clientId: {
         S: tokenGenStatesEntry.GSIPK_clientId,
       },
-      GSIPK_kid: {
-        S: tokenGenStatesEntry.GSIPK_kid,
+      GSIPK_clientId_kid: {
+        S: tokenGenStatesEntry.GSIPK_clientId_kid,
       },
     },
     TableName: "token-generation-states",
@@ -131,8 +131,8 @@ export const writeTokenGenStatesConsumerClient = async (
       GSIPK_clientId: {
         S: tokenGenStatesEntry.GSIPK_clientId,
       },
-      GSIPK_kid: {
-        S: tokenGenStatesEntry.GSIPK_kid,
+      GSIPK_clientId_kid: {
+        S: tokenGenStatesEntry.GSIPK_clientId_kid,
       },
       ...(tokenGenStatesEntry.GSIPK_clientId_purposeId
         ? {
