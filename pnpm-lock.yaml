@@ -849,6 +849,9 @@ importers:
       '@aws-sdk/util-dynamodb':
         specifier: 3.693.0
         version: 3.693.0(@aws-sdk/client-dynamodb@3.693.0)
+      '@xmldom/xmldom':
+        specifier: 0.9.6
+        version: 0.9.6
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.7.4)(zod@3.23.8)
@@ -900,6 +903,9 @@ importers:
       uuid:
         specifier: 10.0.0
         version: 10.0.0
+      xml-crypto:
+        specifier: 6.0.0
+        version: 6.0.0
       yaml:
         specifier: 2.4.5
         version: 2.4.5
@@ -6441,6 +6447,21 @@ packages:
       pretty-format: 29.7.0
     dev: true
 
+  /@xmldom/is-dom-node@1.0.1:
+    resolution: {integrity: sha512-CJDxIgE5I0FH+ttq/Fxy6nRpxP70+e2O048EPe85J2use3XKdatVM7dDVvFNjQudd9B49NPoZ+8PG49zj4Er8Q==}
+    engines: {node: '>= 16'}
+    dev: false
+
+  /@xmldom/xmldom@0.8.10:
+    resolution: {integrity: sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==}
+    engines: {node: '>=10.0.0'}
+    dev: false
+
+  /@xmldom/xmldom@0.9.6:
+    resolution: {integrity: sha512-Su4xcxR0CPGwlDHNmVP09fqET9YxbyDXHaSob6JlBH7L6reTYaeim6zbk9o08UarO0L5GTRo3uzl0D+9lSxmvw==}
+    engines: {node: '>=14.6'}
+    dev: false
+
   /@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8):
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
     peerDependencies:
@@ -11517,6 +11538,20 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
+
+  /xml-crypto@6.0.0:
+    resolution: {integrity: sha512-L3RgnkaDrHaYcCnoENv4Idzt1ZRj5U1z1BDH98QdDTQfssScx8adgxhd9qwyYo+E3fXbQZjEQH7aiXHLVgxGvw==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@xmldom/is-dom-node': 1.0.1
+      '@xmldom/xmldom': 0.8.10
+      xpath: 0.0.33
+    dev: false
+
+  /xpath@0.0.33:
+    resolution: {integrity: sha512-NNXnzrkDrAzalLhIUc01jO2mOzXGXh1JwPgkihcLLzw98c0WgYDmmjSh1Kl3wzaxSVWMuA+fe0WTWOBDWCBmNA==}
+    engines: {node: '>=0.6.0'}
+    dev: false
 
   /xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
