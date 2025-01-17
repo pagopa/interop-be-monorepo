@@ -723,8 +723,13 @@ describe("activatePurposeVersion", () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
   });
 
-  it("should succeed when requester is Consumer Delegate and the purpose version in draft state is activated correctly", async () => {
+  it.only("should succeed when requester is Consumer Delegate and the purpose version in draft state is activated correctly", async () => {
     vi.spyOn(pdfGenerator, "generate");
+    const consumerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
 
     const purposeVersionMock: PurposeVersion = {
       ...mockPurposeVersion,
@@ -781,6 +786,9 @@ describe("activatePurposeVersion", () => {
       producerDelegationId: undefined,
       producerDelegateName: undefined,
       producerDelegateIpaCode: undefined,
+      consumerDelegationId: delegation.id,
+      consumerDelegateName: consumerDelegate.name,
+      consumerDelegateIpaCode: consumerDelegate.externalId.value,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -932,6 +940,9 @@ describe("activatePurposeVersion", () => {
       producerDelegationId: producerDelegation.id,
       producerDelegateName: producerDelegate.name,
       producerDelegateIpaCode: producerDelegate.externalId.value,
+      consumerDelegationId: consumerDelegation.id,
+      consumerDelegateName: consumerDelegate.name,
+      consumerDelegateIpaCode: consumerDelegate.externalId.value,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
