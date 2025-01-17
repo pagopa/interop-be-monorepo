@@ -1791,7 +1791,7 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
-  packages/delegation-archiver:
+  packages/delegation-items-archiver:
     dependencies:
       '@protobuf-ts/runtime':
         specifier: 2.9.4

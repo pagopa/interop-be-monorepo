@@ -13,7 +13,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { handleMessageV2 } from "./delegationArchiverConsumerServiceV2.js";
+import { handleMessageV2 } from "./delegationItemsArchiverConsumerServiceV2.js";
 import { config } from "./config/config.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 
@@ -33,7 +33,7 @@ async function processMessage({
     : generateId<CorrelationId>();
 
   const loggerInstance = logger({
-    serviceName: "delegation-archiver",
+    serviceName: "delegation-items-archiver",
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,

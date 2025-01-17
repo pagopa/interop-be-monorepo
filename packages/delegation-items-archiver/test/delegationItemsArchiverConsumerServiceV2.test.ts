@@ -25,7 +25,7 @@ import { describe, expect, it } from "vitest";
 //     }),
 //   },
 // }));
-describe("delegationArchiverConsumerServiceV2", () => {
+describe("delegationItemsArchiverConsumerServiceV2", () => {
   it("TODO", () => {
     expect(true).toBe(true);
   });
