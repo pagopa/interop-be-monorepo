@@ -134,7 +134,11 @@ export const deleteAgreementEntry = async (
     await dynamoDBClient.send(command);
     logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
   } catch (error: unknown) {
-    if (!(error instanceof ConditionalCheckFailedException)) {
+    if (error instanceof ConditionalCheckFailedException) {
+      logger.info(
+        `Skipping deletion of agreement ${agreementId}. Reason: more recent agreement exists in platform-states`
+      );
+    } else {
       throw error;
     }
   }
