@@ -79,11 +79,9 @@ export function getLastPurposeVersion(
 export function getPurposeStateFromPurposeVersion(
   purposeVersion: PurposeVersion
 ): ItemState {
-  if (purposeVersion.state === purposeVersionState.active) {
-    return itemState.active;
-  } else {
-    return itemState.inactive;
-  }
+  return purposeVersion.state === purposeVersionState.active
+    ? itemState.active
+    : itemState.inactive;
 }
 
 export function getLastAgreement(agreements: Agreement[]): Agreement {
@@ -369,6 +367,14 @@ export async function compareReadModelPurposesWithPlatformStates({
       }
 
       if (platformStatesEntry && lastPurposeVersion) {
+        if (lastPurposeVersion.state === purposeVersionState.archived) {
+          logger.error(
+            `platform-states entry with ${platformStatesEntry.PK} should not be in the table because the purpose is archived`
+          );
+          differencesCount++;
+          continue;
+        }
+
         const expectedPlatformStatesPurposeEntry: ComparisonPlatformStatesPurposeEntry =
           {
             PK: makePlatformStatesPurposePK(purpose.id),
@@ -399,6 +405,7 @@ export async function compareReadModelPurposesWithPlatformStates({
 }
 
 // agreements
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function compareReadModelAgreementsWithPlatformStates({
   platformStatesAgreementById,
   agreementsById,
@@ -441,6 +448,14 @@ export async function compareReadModelAgreementsWithPlatformStates({
     }
 
     if (platformStatesEntry && agreement) {
+      if (agreement.state === agreementState.archived) {
+        logger.error(
+          `platform-states entry with ${platformStatesEntry.PK} and agreementId ${agreement.id} should not be in the table because the agreement is archived`
+        );
+        differencesCount++;
+        continue;
+      }
+
       const expectedPlatformStatesAgreementEntry: ComparisonPlatformStatesAgreementEntry =
         {
           PK: makePlatformStatesAgreementPK({
@@ -499,25 +514,22 @@ export async function compareReadModelEServicesWithPlatformStates({
       differencesCount++;
       logger.error(`Read model e-service not found for id: ${id}`);
     } else {
-      // Descriptors with a state other than deprecated, published or suspended are not considered because they are not expected in the platform-states
-      if (
-        !eservice.descriptors.some(
-          (d) =>
-            d.state === descriptorState.deprecated ||
-            d.state === descriptorState.published ||
-            d.state === descriptorState.suspended
-        )
-      ) {
-        continue;
-      }
-
+      // Descriptors with a state other than deprecated, published or suspended are not considered because they are not expected to be in the platform-states
+      const shouldPlatformStatesCatalogEntriesExist = eservice.descriptors.some(
+        (d) =>
+          d.state === descriptorState.deprecated ||
+          d.state === descriptorState.published ||
+          d.state === descriptorState.suspended
+      );
       const platformStatesEntries = platformStatesEServiceById.get(id);
 
       if (!platformStatesEntries) {
-        logger.error(
-          `platform-states entries not found for e-service with id: ${id}`
-        );
-        differencesCount++;
+        if (shouldPlatformStatesCatalogEntriesExist) {
+          logger.error(
+            `platform-states entries not found for e-service with id: ${id}`
+          );
+          differencesCount++;
+        }
         continue;
       }
 
@@ -527,27 +539,30 @@ export async function compareReadModelEServicesWithPlatformStates({
       >();
 
       eservice.descriptors.forEach((descriptor) => {
-        expectedDescriptorsMap.set(descriptor.id, {
-          PK: makePlatformStatesEServiceDescriptorPK({
-            eserviceId: eservice.id,
-            descriptorId: descriptor.id,
-          }),
-          state: descriptorStateToItemState(descriptor.state),
-          descriptorAudience: descriptor.audience,
-          descriptorVoucherLifespan: descriptor.voucherLifespan,
-        });
+        if (shouldPlatformStatesCatalogEntriesExist) {
+          expectedDescriptorsMap.set(descriptor.id, {
+            PK: makePlatformStatesEServiceDescriptorPK({
+              eserviceId: eservice.id,
+              descriptorId: descriptor.id,
+            }),
+            state: descriptorStateToItemState(descriptor.state),
+            descriptorAudience: descriptor.audience,
+            descriptorVoucherLifespan: descriptor.voucherLifespan,
+          });
+        }
       });
       const allDescriptorIds = new Set([
         ...expectedDescriptorsMap.keys(),
         ...platformStatesEntries.keys(),
       ]);
-
       for (const descriptorId of allDescriptorIds) {
         const readModelEntry = expectedDescriptorsMap.get(descriptorId);
         const platformStatesEntry = platformStatesEntries.get(descriptorId);
 
         if (platformStatesEntry && !readModelEntry) {
-          logger.error(`Read model e-service not found for id: ${id}`);
+          logger.error(
+            `platform-states entry with ${platformStatesEntry.PK} should not be in the table because the descriptor state is not published, suspended or deprecated`
+          );
           differencesCount++;
         }
 
