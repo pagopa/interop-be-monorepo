@@ -504,7 +504,7 @@ describe("archivePurposeVersion", () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       versions: [mockPurposeVersion],
-      consumerId: generateId<TenantId>(),
+      consumerId: authData.organizationId,
       delegationId: generateId<DelegationId>(),
     };
 
@@ -570,5 +570,83 @@ describe("archivePurposeVersion", () => {
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(authData.organizationId)
     );
+  });
+  it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose in archivePurposeVersion", async () => {
+    const authData = getRandomAuthData();
+    const mockPurposeVersion: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.active,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      versions: [mockPurposeVersion],
+      consumerId: authData.organizationId,
+      delegationId: undefined,
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+    await addOnePurpose(mockPurpose);
+    await addOneDelegation(delegation);
+
+    expect(
+      purposeService.archivePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(delegation.delegateId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
+    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
+  });
+
+  it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in archivePurposeVersion", async () => {
+    const authData = getRandomAuthData();
+    const mockPurposeVersion: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.active,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      versions: [mockPurposeVersion],
+      consumerId: authData.organizationId,
+      delegationId: generateId<DelegationId>(),
+    };
+
+    const delegation = getMockDelegation({
+      id: generateId<DelegationId>(),
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+    await addOnePurpose(mockPurpose);
+    await addOneDelegation(delegation);
+
+    expect(
+      purposeService.archivePurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(delegation.delegateId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
+    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
   });
 });
