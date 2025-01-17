@@ -135,11 +135,6 @@ const handleActivationOrSuspension = async (
   );
 
   const agreementTimestamp = extractAgreementTimestamp(agreement);
-  if (!agreementTimestamp) {
-    throw genericInternalError(
-      "An activated agreement should have activation stamp"
-    );
-  }
   if (agreement.stamps.activation === undefined) {
     logger.warn(
       `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
@@ -223,7 +218,12 @@ const handleArchiving = async (
       logger,
     });
 
-    await deleteAgreementEntry(primaryKey, dynamoDBClient, logger);
+    await deleteAgreementEntry(
+      primaryKey,
+      agreementEntry.agreementId,
+      dynamoDBClient,
+      logger
+    );
   } else {
     logger.info(
       `Token-generation-states. Skipping processing of entry with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId} and agreement ${agreement.id}. Reason: agreement is not the latest`

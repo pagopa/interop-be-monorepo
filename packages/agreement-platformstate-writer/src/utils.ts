@@ -21,6 +21,7 @@ import {
 } from "pagopa-interop-models";
 import {
   AttributeValue,
+  ConditionalCheckFailedException,
   DeleteItemCommand,
   DeleteItemInput,
   DynamoDBClient,
@@ -109,18 +110,38 @@ export const readAgreementEntry = async (
 
 export const deleteAgreementEntry = async (
   primaryKey: PlatformStatesAgreementPK,
+  agreementId: AgreementId,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
-  const input: DeleteItemInput = {
-    Key: {
-      PK: { S: primaryKey },
-    },
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
-  };
-  const command = new DeleteItemCommand(input);
-  await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
+  try {
+    const input: DeleteItemInput = {
+      ConditionExpression: "#agreementId = :agreementId",
+      Key: {
+        PK: { S: primaryKey },
+      },
+      ExpressionAttributeNames: {
+        "#agreementId": "agreementId",
+      },
+      ExpressionAttributeValues: {
+        ":agreementId": {
+          S: agreementId,
+        },
+      },
+      TableName: config.tokenGenerationReadModelTableNamePlatform,
+    };
+    const command = new DeleteItemCommand(input);
+    await dynamoDBClient.send(command);
+    logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
+  } catch (error: unknown) {
+    if (error instanceof ConditionalCheckFailedException) {
+      logger.info(
+        `Skipping deletion of agreement ${agreementId}. Reason: a more recent agreement exists in platform-states`
+      );
+    } else {
+      throw error;
+    }
+  }
 };
 
 export const updateAgreementStateInPlatformStatesEntry = async (
