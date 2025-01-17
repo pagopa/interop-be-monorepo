@@ -135,11 +135,6 @@ const handleActivationOrSuspension = async (
   );
 
   const agreementTimestamp = extractAgreementTimestamp(agreement);
-  if (!agreementTimestamp) {
-    throw genericInternalError(
-      "An activated agreement should have activation stamp"
-    );
-  }
   if (agreement.stamps.activation === undefined) {
     logger.warn(
       `Missing agreement activation stamp for agreement with id ${agreement.id}. Using createdAt as fallback.`
