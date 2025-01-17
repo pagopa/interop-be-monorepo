@@ -1260,6 +1260,7 @@ export function purposeServiceBuilder(
         isFreeOfCharge: purposeToClone.data.isFreeOfCharge,
         freeOfChargeReason: purposeToClone.data.freeOfChargeReason,
         riskAnalysisForm: clonedRiskAnalysisForm,
+        delegationId: purposeToClone.data.delegationId,
       };
 
       const isRiskAnalysisValid = clonedRiskAnalysisForm
