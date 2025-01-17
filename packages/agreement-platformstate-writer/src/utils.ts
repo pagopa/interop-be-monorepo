@@ -21,6 +21,7 @@ import {
 } from "pagopa-interop-models";
 import {
   AttributeValue,
+  ConditionalCheckFailedException,
   DeleteItemCommand,
   DeleteItemInput,
   DynamoDBClient,
@@ -113,24 +114,30 @@ export const deleteAgreementEntry = async (
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
-  const input: DeleteItemInput = {
-    ConditionExpression: "#agreementId = :agreementId",
-    Key: {
-      PK: { S: primaryKey },
-    },
-    ExpressionAttributeNames: {
-      "#agreementId": "agreementId",
-    },
-    ExpressionAttributeValues: {
-      ":agreementId": {
-        S: agreementId,
+  try {
+    const input: DeleteItemInput = {
+      ConditionExpression: "#agreementId = :agreementId",
+      Key: {
+        PK: { S: primaryKey },
       },
-    },
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
-  };
-  const command = new DeleteItemCommand(input);
-  await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
+      ExpressionAttributeNames: {
+        "#agreementId": "agreementId",
+      },
+      ExpressionAttributeValues: {
+        ":agreementId": {
+          S: agreementId,
+        },
+      },
+      TableName: config.tokenGenerationReadModelTableNamePlatform,
+    };
+    const command = new DeleteItemCommand(input);
+    await dynamoDBClient.send(command);
+    logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
+  } catch (error: unknown) {
+    if (!(error instanceof ConditionalCheckFailedException)) {
+      throw error;
+    }
+  }
 };
 
 export const updateAgreementStateInPlatformStatesEntry = async (
