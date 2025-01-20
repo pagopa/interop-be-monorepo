@@ -165,9 +165,18 @@ async function buildGetPurposesAggregation(
             {
               $and: [
                 {
-                  "matchingDelegations.data.delegateId": {
-                    $in: consumersIds,
-                  },
+                  $or: [
+                    {
+                      "matchingDelegations.data.delegateId": {
+                        $in: consumersIds,
+                      },
+                    },
+                    {
+                      "matchingDelegations.data.delegatorId": {
+                        $in: consumersIds,
+                      },
+                    },
+                  ],
                 },
                 {
                   "matchingDelegations.data.state": delegationState.active,
