@@ -113,6 +113,7 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
+  verifyRequesterIsConsumerOrDelegateConsumer,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -1023,18 +1024,13 @@ export function purposeServiceBuilder(
         purposeSeed.freeOfChargeReason
       );
 
-      const consumerDelegation =
-        await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
-          {
-            eserviceId,
-            consumerId,
-          }
-        );
-
-      assertRequesterCanActAsConsumer(
-        { eserviceId, consumerId },
+      const delegationId = await verifyRequesterIsConsumerOrDelegateConsumer(
+        {
+          consumerId,
+          eserviceId,
+        },
         authData,
-        consumerDelegation
+        readModelService
       );
 
       const validatedFormSeed = validateAndTransformRiskAnalysis(
@@ -1059,7 +1055,7 @@ export function purposeServiceBuilder(
         createdAt: new Date(),
         eserviceId,
         consumerId,
-        delegationId: consumerDelegation?.id,
+        delegationId,
         versions: [
           {
             id: generateId(),

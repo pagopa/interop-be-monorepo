@@ -12,6 +12,7 @@ import {
   delegationKind,
   Delegation,
   delegationState,
+  DelegationId,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -379,5 +380,25 @@ const assertRequesterIsDelegateConsumer = (
       authData.organizationId,
       activeConsumerDelegation?.id
     );
+  }
+};
+
+export const verifyRequesterIsConsumerOrDelegateConsumer = async (
+  purpose: Pick<Purpose, "consumerId" | "eserviceId">,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<DelegationId | undefined> => {
+  try {
+    assertRequesterIsConsumer(purpose, authData);
+    return undefined;
+  } catch {
+    const consumerDelegation =
+      await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
+        purpose
+      );
+
+    assertRequesterIsDelegateConsumer(purpose, authData, consumerDelegation);
+
+    return consumerDelegation?.id;
   }
 };
