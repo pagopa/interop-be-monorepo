@@ -142,3 +142,116 @@ message EServiceDescriptorAttributesUpdatedV2 {
 message EServiceNameUpdatedV2 {
     EServiceV2 eservice = 1;
 }
+
+message EServiceTemplateAddedV2 {
+    EServiceTemplateV2 eserviceTemplate = 1;
+}
+
+message EServiceTemplateRiskAnalysisAddedV2 {
+    string riskAnalysisId = 1;
+    EServiceTemplateV2 eserviceTemplate = 2;
+}
+
+message EServiceTemplateRiskAnalysisDeletedV2 {
+    string riskAnalysisId = 1;
+    EServiceTemplateV2 eserviceTemplate = 2;
+}
+
+message EServiceTemplateRiskAnalysisUpdatedV2 {
+    string riskAnalysisId = 1;
+    EServiceTemplateV2 eserviceTemplate = 2;
+}
+
+message EServiceTemplateDraftVersionUpdatedV2 {
+  string versionId = 1;
+  EServiceTemplateV2 eserviceTemplate = 2;
+}
+
+message EServiceTemplateDraftVersionDeletedV2 {
+  string eserviceTemplateVersionId = 1;
+  EServiceTemplateV2 eserviceTemplate = 2;
+}
+
+message EServiceTemplateDeletedV2 {
+  string eserviceTemplateId = 1;
+  EServiceTemplateV2 eserviceTemplate = 2;
+}
+
+message EServiceTemplateVersionInterfaceAddedV2 {
+  string eserviceTemplateVersionId = 1;
+  string documentId = 2;
+  EServiceTemplateV2 eserviceTemplate = 3;
+}
+
+message EServiceTemplateVersionDocumentAddedV2 {
+  string eserviceTemplateVersionId = 1;
+  string documentId = 2;
+  EServiceTemplateV2 eserviceTemplate = 3;
+}
+
+message EServiceTemplateVersionInterfaceDeletedV2 {
+  string eserviceTemplateVersionId = 1;
+  string documentId = 2;
+  EServiceTemplateV2 eserviceTemplate = 3;
+}
+
+message EServiceTemplateVersionDocumentDeletedV2 {
+  string eserviceTemplateVersionId = 1;
+  string documentId = 2;
+  EServiceTemplateV2 eserviceTemplate = 3;
+}
+
+message EServiceTemplateVersionInterfaceUpdatedV2 {
+  string eserviceTemplateVersionId = 1;
+  string documentId = 2;
+  EServiceTemplateV2 eserviceTemplate = 3;
+}
+
+message EServiceTemplateVersionDocumentUpdatedV2 {
+  string eserviceTemplateVersionId = 1;
+  string documentId = 2;
+  EServiceTemplateV2 eserviceTemplate = 3;
+}
+
+message EServiceTemplateVersionPublishedV2 {
+  string eserviceTemplateVersionId = 1;
+  EServiceTemplateV2 eserviceTemplate = 2;
+}
+
+message EServiceTemplateNameUpdatedV2 {
+  EServiceTemplateV2 eserviceTemplate = 1;
+}
+
+message EServiceTemplateAudienceDescriptionUpdatedV2 {
+  EServiceTemplateV2 eserviceTemplate = 1;
+}
+
+message EServiceTemplateDescriptionUpdatedV2 {
+  EServiceTemplateV2 eserviceTemplate = 1;
+}
+
+message EServiceTemplateVersionQuotasUpdatedV2 {
+  string eserviceTemplateVersionId = 1;
+  EServiceTemplateV2 eserviceTemplate = 2;
+}
+
+message EServiceTemplateVersionAddedV2 {
+  string eserviceTemplateVersionId = 1;
+  EServiceTemplateV2 eserviceTemplate = 2;
+}
+
+message EServiceTemplateVersionAttributesUpdatedV2 {
+  string eserviceTemplateVersionId = 1;
+  repeated string attributeIds = 2;
+  EServiceTemplateV2 eserviceTemplate = 3;
+}
+
+message EServiceTemplateSuspendedV2 {
+  string eserviceTemplateVersionId = 1;
+  EServiceTemplateV2 eserviceTemplate = 2;
+}
+
+message EServiceTemplateActivatedV2 {
+  string eserviceTemplateVersionId = 1;
+  EServiceTemplateV2 eserviceTemplate = 2;
+}
