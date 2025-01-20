@@ -10,7 +10,6 @@ import {
   getMockTenant,
   getMockValidRiskAnalysis,
   getRandomAuthData,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -28,11 +27,7 @@ import {
   purposeVersionState,
   tenantKind,
   toPurposeV2,
-  toReadModelAgreement,
-  toReadModelEService,
-  toReadModelPurpose,
   unsafeBrandId,
-  toReadModelTenant,
   delegationKind,
   delegationState,
   TenantId,
@@ -57,14 +52,11 @@ import {
   addOneAgreement,
   addOneDelegation,
   addOneEService,
+  addOnePurpose,
   addOneTenant,
-  agreements,
-  eservices,
   getMockEService,
   purposeService,
-  purposes,
   readLastPurposeEvent,
-  tenants,
 } from "./utils.js";
 
 describe("createReversePurpose", () => {
@@ -109,10 +101,10 @@ describe("createReversePurpose", () => {
       dailyCalls: 1,
     };
 
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOneEService(mockEService);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneAgreement(mockAgreement);
 
     const { purpose, isRiskAnalysisValid } =
       await purposeService.createReversePurpose(reversePurposeSeed, {
@@ -173,6 +165,8 @@ describe("createReversePurpose", () => {
     const consumer = getMockTenant();
     const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
 
+    const delegateTenant = { ...getMockTenant(), kind: tenantKind.PA };
+
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -207,25 +201,24 @@ describe("createReversePurpose", () => {
       dailyCalls: 1,
     };
 
-    const authData = getRandomAuthData();
-
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockEService.id,
       delegatorId: mockAgreement.consumerId,
-      delegateId: authData.organizationId,
+      delegateId: delegateTenant.id,
       state: delegationState.active,
     });
 
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOneTenant(delegateTenant);
+    await addOneEService(mockEService);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneAgreement(mockAgreement);
 
     const { purpose, isRiskAnalysisValid } =
       await purposeService.createReversePurpose(reversePurposeSeed, {
-        authData,
+        authData: getRandomAuthData(delegateTenant.id),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
@@ -417,7 +410,7 @@ describe("createReversePurpose", () => {
     vi.useRealTimers();
   });
   it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
-    const consumer = getMockTenant();
+    const consumer = { ...getMockTenant(), kind: tenantKind.PA };
     const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
 
     const mockDescriptor: Descriptor = {
@@ -454,10 +447,10 @@ describe("createReversePurpose", () => {
       dailyCalls: 1,
     };
 
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOneEService(mockEService);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneAgreement(mockAgreement);
 
     expect(
       purposeService.createReversePurpose(reversePurposeSeed, {
@@ -506,10 +499,10 @@ describe("createReversePurpose", () => {
       dailyCalls: 1,
     };
 
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOneEService(mockEService);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneAgreement(mockAgreement);
 
     expect(
       purposeService.createReversePurpose(reversePurposeSeed, {
@@ -560,10 +553,10 @@ describe("createReversePurpose", () => {
       dailyCalls: 1,
     };
 
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOneEService(mockEService);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneAgreement(mockAgreement);
 
     expect(
       purposeService.createReversePurpose(reversePurposeSeed, {
@@ -614,10 +607,10 @@ describe("createReversePurpose", () => {
       dailyCalls: 1,
     };
 
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOneEService(mockEService);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneAgreement(mockAgreement);
 
     expect(
       purposeService.createReversePurpose(reversePurposeSeed, {
@@ -666,10 +659,10 @@ describe("createReversePurpose", () => {
       dailyCalls: 1,
     };
 
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOneEService(mockEService);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneAgreement(mockAgreement);
 
     expect(
       purposeService.createReversePurpose(reversePurposeSeed, {
@@ -711,9 +704,9 @@ describe("createReversePurpose", () => {
       dailyCalls: 1,
     };
 
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
+    await addOneEService(mockEService);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
 
     expect(
       purposeService.createReversePurpose(reversePurposeSeed, {
@@ -770,11 +763,11 @@ describe("createReversePurpose", () => {
       dailyCalls: 1,
     };
 
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneAgreement(mockAgreement);
 
     expect(
       purposeService.createReversePurpose(reversePurposeSeed, {
@@ -831,10 +824,10 @@ describe("createReversePurpose", () => {
       dailyCalls: 1,
     };
 
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOneEService(mockEService);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneAgreement(mockAgreement);
 
     expect(
       purposeService.createReversePurpose(reversePurposeSeed, {
@@ -850,9 +843,10 @@ describe("createReversePurpose", () => {
     );
   });
   it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
-    const consumer = getMockTenant();
+    const consumer = { ...getMockTenant(), kind: tenantKind.PA };
     const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getRandomAuthData();
+    const delegateTenant = { ...getMockTenant(), kind: tenantKind.PA };
 
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -879,7 +873,7 @@ describe("createReversePurpose", () => {
 
     const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
-      consumerId: authData.organizationId,
+      consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
       title: "test purpose title",
       description: "test purpose description",
@@ -891,16 +885,17 @@ describe("createReversePurpose", () => {
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockEService.id,
-      delegatorId: mockAgreement.consumerId,
-      delegateId: generateId<TenantId>(),
+      delegatorId: consumer.id,
+      delegateId: delegateTenant.id,
       state: delegationState.active,
     });
 
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOneTenant(delegateTenant);
+    await addOneEService(mockEService);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneAgreement(mockAgreement);
 
     expect(
       purposeService.createReversePurpose(reversePurposeSeed, {
