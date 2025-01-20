@@ -198,6 +198,7 @@ describe("getConsumerEservices", () => {
         {
           name: eservice4.name,
           id: eservice4.id,
+          producerId: eservice4.producerId,
         },
       ],
       totalCount: 4,
@@ -220,10 +221,12 @@ describe("getConsumerEservices", () => {
         {
           name: eservice1.name,
           id: eservice1.id,
+          producerId: eservice1.producerId,
         },
         {
           name: eservice2.name,
           id: eservice2.id,
+          producerId: eservice2.producerId,
         },
       ],
       totalCount: 2,
@@ -245,6 +248,7 @@ describe("getConsumerEservices", () => {
         {
           name: eservice4.name,
           id: eservice4.id,
+          producerId: eservice4.producerId,
         },
       ],
       totalCount: 1,
