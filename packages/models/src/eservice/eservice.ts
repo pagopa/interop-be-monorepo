@@ -4,6 +4,8 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
   TenantId,
 } from "../brandedIds.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
@@ -91,6 +93,7 @@ export const Descriptor = z.object({
   archivedAt: z.coerce.date().optional(),
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
+  templateVersionId: EServiceTemplateVersionId.optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -116,5 +119,54 @@ export const EService = z.object({
   riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
   isSignalHubEnabled: z.boolean().optional(),
+  templateId: EServiceTemplateId.optional(),
 });
 export type EService = z.infer<typeof EService>;
+
+export const eserviceTemplateVersionState = {
+  draft: "Draft",
+  active: "Active",
+  suspended: "Suspended",
+  deprecated: "Deprecated",
+} as const;
+export const EServiceTemplateVersionState = z.enum([
+  Object.values(eserviceTemplateVersionState)[0],
+  ...Object.values(eserviceTemplateVersionState).slice(1),
+]);
+export type EServiceTemplateVersionState = z.infer<
+  typeof EServiceTemplateVersionState
+>;
+
+export const EServiceTemplateVersion = z.object({
+  id: EServiceTemplateVersionId,
+  version: z.string(),
+  description: z.string().optional(),
+  interface: Document.optional(),
+  docs: z.array(Document),
+  state: EServiceTemplateVersionState,
+  voucherLifespan: z.number().int(),
+  dailyCallsPerConsumer: z.number().int().optional(),
+  dailyCallsTotal: z.number().int().optional(),
+  agreementApprovalPolicy: AgreementApprovalPolicy.optional(),
+  createdAt: z.coerce.date(),
+  publishedAt: z.coerce.date().optional(),
+  suspendedAt: z.coerce.date().optional(),
+  deprecatedAt: z.coerce.date().optional(),
+  attributes: EServiceAttributes,
+});
+export type EServiceTemplateVersion = z.infer<typeof EServiceTemplateVersion>;
+
+export const EServiceTemplate = z.object({
+  id: EServiceTemplateId,
+  creatorId: TenantId,
+  name: z.string(),
+  audienceDescription: z.string(),
+  eserviceDescription: z.string(),
+  technology: Technology,
+  versions: z.array(EServiceTemplateVersion),
+  createdAt: z.coerce.date(),
+  riskAnalysis: z.array(RiskAnalysis),
+  mode: EServiceMode,
+  isSignalHubEnabled: z.boolean().optional(),
+});
+export type EServiceTemplate = z.infer<typeof EServiceTemplate>;

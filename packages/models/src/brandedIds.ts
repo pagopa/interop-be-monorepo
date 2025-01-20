@@ -153,6 +153,15 @@ export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
 export const GSIPKClientIdKid = z.string().brand("clientId#kid");
 export type GSIPKClientIdKid = z.infer<typeof GSIPKClientIdKid>;
 
+export const EServiceTemplateId = z.string().uuid().brand("EServiceTemplateId");
+export type EServiceTemplateId = z.infer<typeof EServiceTemplateId>;
+
+export const EServiceTemplateVersionId = z
+  .string()
+  .uuid()
+  .brand("EServiceTemplateVersionId");
+export type EServiceTemplateVersionId = z.infer<typeof EServiceTemplateVersionId>;
+
 type IDS =
   | CorrelationId
   | EServiceId
