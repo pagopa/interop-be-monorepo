@@ -49,6 +49,7 @@ describe("update eService", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
+      isSignalHubEnabled,
     };
     const updatedName = "eservice new name";
     await addOneEService(eservice);
@@ -72,7 +73,6 @@ describe("update eService", () => {
     const updatedEService: EService = {
       ...eservice,
       name: updatedName,
-      isSignalHubEnabled,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
