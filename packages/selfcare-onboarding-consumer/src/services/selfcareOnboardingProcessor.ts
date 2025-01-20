@@ -9,7 +9,7 @@ import {
   generateId,
   CorrelationId,
   genericInternalError,
-  ORIGIN_IPA,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { TenantProcessClient } from "../clients/tenantProcessClient.js";
@@ -75,7 +75,7 @@ export function selfcareOnboardingProcessorBuilder(
         }
 
         const externalIdValue =
-          institution.origin === ORIGIN_IPA
+          institution.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
             ? institution.subUnitCode || institution.originId
             : institution.taxCode || institution.originId;
 
