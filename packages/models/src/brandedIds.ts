@@ -160,7 +160,9 @@ export const EServiceTemplateVersionId = z
   .string()
   .uuid()
   .brand("EServiceTemplateVersionId");
-export type EServiceTemplateVersionId = z.infer<typeof EServiceTemplateVersionId>;
+export type EServiceTemplateVersionId = z.infer<
+  typeof EServiceTemplateVersionId
+>;
 
 type IDS =
   | CorrelationId
