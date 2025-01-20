@@ -158,9 +158,29 @@ async function buildGetPurposesAggregation(
     : {};
 
   const consumersIdsFilter: ReadModelFilter<Purpose> =
-    ReadModelRepository.arrayToFilter(consumersIds, {
-      "data.consumerId": { $in: consumersIds },
-    });
+    consumersIds.length > 0
+      ? {
+          $or: [
+            { "data.consumerId": { $in: consumersIds } },
+            {
+              $and: [
+                {
+                  "matchingDelegations.data.delegateId": {
+                    $in: consumersIds,
+                  },
+                },
+                {
+                  "matchingDelegations.data.state": delegationState.active,
+                },
+                {
+                  "matchingDelegations.data.kind":
+                    delegationKind.delegatedConsumer,
+                },
+              ],
+            },
+          ],
+        }
+      : {};
 
   const notArchivedStates = Object.values(PurposeVersionState.Values).filter(
     (state) => state !== purposeVersionState.archived
@@ -272,6 +292,14 @@ async function buildGetPurposesAggregation(
     .otherwise(() => ({}));
 
   return [
+    {
+      $lookup: {
+        from: "delegations",
+        localField: "data.eserviceId",
+        foreignField: "data.eserviceId",
+        as: "matchingDelegations",
+      },
+    },
     {
       $match: {
         ...titleFilter,

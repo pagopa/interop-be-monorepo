@@ -667,4 +667,85 @@ describe("getPurposes", async () => {
       expect(results.results).toEqual([mockPurpose10, mockPurpose11]);
     });
   });
+
+  describe("Consumer Delegation active for provided consumetsIds filter", async () => {
+    it("should get the purposes if they exist (parameters: consumetsIds with only delegateId)", async () => {
+      const organizationId = generateId<TenantId>();
+      const delegate = getMockTenant(delegateId);
+      await addOneTenant(delegate);
+
+      const delegation = getMockDelegation({
+        delegateId,
+        state: delegationState.active,
+        eserviceId: mockPurpose2.eserviceId,
+        kind: delegationKind.delegatedConsumer,
+      });
+      await addOneDelegation(delegation);
+
+      const revokedDelegation = getMockDelegation({
+        delegateId,
+        state: delegationState.revoked,
+        eserviceId: mockPurpose3.eserviceId,
+        kind: delegationKind.delegatedConsumer,
+      });
+      await addOneDelegation(revokedDelegation);
+
+      const results = await purposeService.getPurposes(
+        organizationId, // irrelevant to check retrieved purposes
+        {
+          eservicesIds: [],
+          consumersIds: [delegateId],
+          producersIds: [],
+          states: [],
+          excludeDraft: false,
+        },
+        { offset: 0, limit: 50 },
+        genericLogger
+      );
+
+      expect(results.totalCount).toBe(2);
+      expect(results.results).toEqual([mockPurpose1, mockPurpose2]);
+    });
+    it("should get the purposes if they exist (parameters: consumetsIds that contains delegateId and generic consumerId)", async () => {
+      const delegate = getMockTenant(delegateId);
+      await addOneTenant(delegate);
+
+      const delegation = getMockDelegation({
+        delegateId,
+        state: delegationState.active,
+        eserviceId: mockPurpose2.eserviceId,
+        kind: delegationKind.delegatedConsumer,
+      });
+      await addOneDelegation(delegation);
+
+      const revokedDelegation = getMockDelegation({
+        delegateId,
+        state: delegationState.revoked,
+        eserviceId: mockPurpose3.eserviceId,
+        kind: delegationKind.delegatedConsumer,
+      });
+      await addOneDelegation(revokedDelegation);
+
+      const results = await purposeService.getPurposes(
+        generateId<TenantId>(),
+        {
+          eservicesIds: [],
+          consumersIds: [delegateId, consumerId1],
+          producersIds: [],
+          states: [],
+          excludeDraft: false,
+        },
+        { offset: 0, limit: 50 },
+        genericLogger
+      );
+
+      expect(results.totalCount).toBe(4);
+      expect(results.results).toEqual([
+        mockPurpose1,
+        mockPurpose2,
+        mockPurpose5,
+        mockPurpose6,
+      ]);
+    });
+  });
 });
