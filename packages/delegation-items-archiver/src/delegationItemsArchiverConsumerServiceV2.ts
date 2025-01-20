@@ -64,19 +64,8 @@ export async function handleMessageV2(
         }),
       });
     })
-    .with({ type: "ConsumerDelegationApproved" }, async (delegationMsg) => {
-      logger.info(
-        `Processing ${delegationMsg.type} message - Partition number: ${partition} - Offset: ${offset}`
-      );
-
-      if (!delegationMsg.data.delegation) {
-        throw missingKafkaMessageDataError("delegation", delegationMsg.type);
-      }
-
-      // const token = (await refreshableToken.get()).serialized;
-      // TODO: implement archiving logic
-    })
     .with(
+      { type: "ConsumerDelegationApproved" },
       { type: "ProducerDelegationSubmitted" },
       { type: "ProducerDelegationApproved" },
       { type: "ProducerDelegationRejected" },
