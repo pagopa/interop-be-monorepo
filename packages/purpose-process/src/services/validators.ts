@@ -12,6 +12,7 @@ import {
   delegationKind,
   Delegation,
   delegationState,
+  DelegationId,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -86,7 +87,7 @@ export const assertConsistentFreeOfCharge = (
   }
 };
 
-export const assertRequesterIsConsumer = (
+const assertRequesterIsConsumer = (
   purpose: Pick<Purpose, "consumerId">,
   authData: Pick<AuthData, "organizationId">
 ): void => {
@@ -363,7 +364,7 @@ export const assertRequesterCanActAsConsumer = (
   }
 };
 
-export const assertRequesterIsDelegateConsumer = (
+const assertRequesterIsDelegateConsumer = (
   purpose: Pick<Purpose, "consumerId" | "eserviceId">,
   authData: Pick<AuthData, "organizationId">,
   activeConsumerDelegation: Delegation | undefined
@@ -379,5 +380,25 @@ export const assertRequesterIsDelegateConsumer = (
       authData.organizationId,
       activeConsumerDelegation?.id
     );
+  }
+};
+
+export const verifyRequesterIsConsumerOrDelegateConsumer = async (
+  purpose: Pick<Purpose, "consumerId" | "eserviceId">,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<DelegationId | undefined> => {
+  try {
+    assertRequesterIsConsumer(purpose, authData);
+    return undefined;
+  } catch {
+    const consumerDelegation =
+      await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
+        purpose
+      );
+
+    assertRequesterIsDelegateConsumer(purpose, authData, consumerDelegation);
+
+    return consumerDelegation?.id;
   }
 };
