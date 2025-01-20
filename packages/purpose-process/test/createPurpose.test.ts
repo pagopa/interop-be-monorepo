@@ -44,7 +44,6 @@ import {
   missingFreeOfChargeReason,
   tenantKindNotFound,
   tenantNotFound,
-  organizationIsNotTheConsumer,
   riskAnalysisValidationFailed,
   agreementNotFound,
   duplicatedPurposeTitle,
@@ -186,17 +185,17 @@ describe("createPurpose", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
-    const authData = getRandomAuthData(tenant.id);
+    const delegateTenant = { ...getMockTenant(), kind: tenantKind.PA };
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: eService1.id,
-      delegatorId: agreementEservice1.consumerId,
-      delegateId: authData.organizationId,
+      delegatorId: unsafeBrandId<TenantId>(purposeSeed.consumerId),
+      delegateId: delegateTenant.id,
       state: delegationState.active,
     });
 
-    await addOneTenant(tenant);
+    await addOneTenant(delegateTenant);
     await addOneAgreement(agreementEservice1);
     await addOneEService(eService1);
     await addOneDelegation(delegation);
@@ -204,7 +203,7 @@ describe("createPurpose", () => {
     const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
       purposeSeed,
       {
-        authData,
+        authData: getRandomAuthData(delegateTenant.id),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
@@ -519,7 +518,7 @@ describe("createPurpose", () => {
       })
     ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
   });
-  it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer if the requester is not the consumer", async () => {
     await writeInReadmodel(toReadModelTenant(tenant), tenants);
     await writeInReadmodel(
       toReadModelAgreement(agreementEservice1),
@@ -542,7 +541,10 @@ describe("createPurpose", () => {
         serviceName: "",
       })
     ).rejects.toThrowError(
-      organizationIsNotTheConsumer(unsafeBrandId(purposeSeed.consumerId))
+      organizationIsNotTheDelegatedConsumer(
+        unsafeBrandId(purposeSeed.consumerId),
+        undefined
+      )
     );
   });
   it("should throw riskAnalysisValidationFailed if the purpose has a non valid risk analysis ", async () => {
@@ -602,40 +604,5 @@ describe("createPurpose", () => {
         serviceName: "",
       })
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeSeed.title));
-  });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
-    const authData = getRandomAuthData(tenant.id);
-
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedConsumer,
-      eserviceId: eService1.id,
-      delegatorId: agreementEservice1.consumerId,
-      delegateId: generateId<TenantId>(),
-      state: delegationState.active,
-    });
-
-    await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice1);
-    await addOneEService(eService1);
-    await addOneDelegation(delegation);
-
-    const seed: purposeApi.PurposeSeed = {
-      ...purposeSeed,
-      consumerId: authData.organizationId,
-    };
-
-    expect(
-      purposeService.createPurpose(seed, {
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
-    ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
-        authData.organizationId,
-        delegation.id
-      )
-    );
   });
 });
