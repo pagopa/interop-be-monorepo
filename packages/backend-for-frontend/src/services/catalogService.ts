@@ -53,16 +53,14 @@ import {
   toBffCatalogApiEserviceRiskAnalysisSeed,
   toCompactProducerDescriptor,
 } from "../api/catalogApiConverter.js";
-import {
-  catalogApiDescriptorState,
-  ConfigurationEservice,
-} from "../model/types.js";
+import { ConfigurationEservice } from "../model/types.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import {
   assertNotDelegatedEservice,
   assertRequesterIsProducer,
   assertRequesterCanActAsProducer,
+  isInvalidDescriptor,
 } from "./validators.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -141,11 +139,7 @@ const enhanceProducerEService = (
   requesterId: TenantId
 ): bffApi.ProducerEService => {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
-  const draftDescriptor = eservice.descriptors.find(
-    (d) =>
-      d.state === catalogApiDescriptorState.DRAFT ||
-      d.state === catalogApiDescriptorState.WAITING_FOR_APPROVAL
-  );
+  const draftDescriptor = eservice.descriptors.find(isInvalidDescriptor);
 
   const isRequesterDelegateProducer = requesterId !== eservice.producerId;
 

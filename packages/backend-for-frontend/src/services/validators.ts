@@ -29,6 +29,30 @@ import {
 import { BffAppContext } from "../utilities/context.js";
 import { getAllDelegations } from "./delegationService.js";
 
+export const invalidDescriptorStates: catalogApi.EServiceDescriptorState[] = [
+  catalogApi.EServiceDescriptorState.Values.DRAFT,
+  catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
+];
+
+export const validDescriptorStates: catalogApi.EServiceDescriptorState[] = [
+  catalogApi.EServiceDescriptorState.Values.PUBLISHED,
+  catalogApi.EServiceDescriptorState.Values.DEPRECATED,
+  catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+  catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+];
+
+export function isValidDescriptor(
+  descriptor: catalogApi.EServiceDescriptor
+): boolean {
+  return validDescriptorStates.includes(descriptor.state);
+}
+
+export function isInvalidDescriptor(
+  descriptor: catalogApi.EServiceDescriptor
+): boolean {
+  return invalidDescriptorStates.includes(descriptor.state);
+}
+
 export function isRequesterEserviceProducer(
   requesterId: string,
   eservice: catalogApi.EService
@@ -145,7 +169,7 @@ export function hasCertifiedAttributes(
 export function verifyExportEligibility(
   descriptor: catalogApi.EServiceDescriptor
 ): void {
-  if (descriptor.state === catalogApiDescriptorState.DRAFT) {
+  if (isValidDescriptor(descriptor)) {
     throw notValidDescriptor(descriptor.id, descriptor.state);
   }
 }
