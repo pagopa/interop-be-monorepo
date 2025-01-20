@@ -10,7 +10,7 @@ import { match } from "ts-pattern";
 import {
   Attribute,
   CorrelationId,
-  ORIGIN_IPA,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   attributeKind,
   generateId,
@@ -316,7 +316,7 @@ export async function getAttributesToRevoke(
   ): boolean => {
     const externalId = { origin: attribute.origin, code: attribute.code };
 
-    if (attribute.origin !== ORIGIN_IPA) {
+    if (attribute.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
       return false;
     }
 

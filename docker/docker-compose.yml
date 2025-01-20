@@ -3,7 +3,6 @@
 version: "3"
 name: pagopa-interop
 services:
-
   # Event Store Postgres DB
   event-store:
     volumes:
@@ -79,7 +78,7 @@ services:
       - dynamodb-local
     restart: always
     ports:
-      - "8001:8001"
+      - "8002:8001"
     environment:
       - DYNAMO_ENDPOINT=http://dynamodb-local:8000
       - AWS_REGION=eu-south-1
@@ -180,6 +179,7 @@ services:
         mc mb minio/interop-datalake-bucket || true;
         mc mb minio/interop-application-import-export-local || true;
         mc mb minio/interop-data-lake-interfaces-exports-local-es1 || true;
+        mc mb --with-lock minio/interop-generated-jwt-audit || true;
         mc cp --recursive data/ minio/;
       "
     volumes:

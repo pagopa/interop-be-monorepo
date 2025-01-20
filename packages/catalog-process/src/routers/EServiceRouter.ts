@@ -54,6 +54,10 @@ import {
   updateEServiceDescriptionErrorMapper,
   updateEServiceErrorMapper,
   updateRiskAnalysisErrorMapper,
+  updateDescriptorAttributesErrorMapper,
+  updateEServiceNameErrorMapper,
+  approveDelegatedEServiceDescriptorErrorMapper,
+  rejectDelegatedEServiceDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -110,6 +114,7 @@ const eservicesRouter = (
             states,
             agreementStates,
             mode,
+            delegated,
             offset,
             limit,
           } = req.query;
@@ -126,6 +131,7 @@ const eservicesRouter = (
               ),
               name,
               mode: mode ? apiEServiceModeToEServiceMode(mode) : undefined,
+              delegated,
             },
             offset,
             limit,
@@ -710,7 +716,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/update",
+      "/eservices/:eServiceId/description/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -731,6 +737,33 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateEServiceDescriptionErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/name/update",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const updatedEService = await catalogService.updateEServiceName(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.name,
+            ctx
+          );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceNameErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -761,7 +794,87 @@ const eservicesRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/approve",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await catalogService.approveDelegatedEServiceDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            approveDelegatedEServiceDescriptorErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/reject",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await catalogService.rejectDelegatedEServiceDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            rejectDelegatedEServiceDescriptorErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/attributes/update",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const updatedEService =
+            await catalogService.updateDescriptorAttributes(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateDescriptorAttributesErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
+
   return eservicesRouter;
 };
 export default eservicesRouter;

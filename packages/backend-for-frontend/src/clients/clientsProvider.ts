@@ -7,6 +7,7 @@ import {
   authorizationApi,
   selfcareV2ClientApi,
   selfcareV2InstitutionClientBuilder,
+  delegationApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -32,6 +33,11 @@ export type PurposeProcessClient = ReturnType<
   typeof purposeApi.createPurposeApiClient
 >;
 
+export type DelegationProcessClient = {
+  producer: ReturnType<typeof delegationApi.createProducerApiClient>;
+  delegation: ReturnType<typeof delegationApi.createDelegationApiClient>;
+};
+
 export type AuthorizationProcessClient = {
   client: ReturnType<typeof authorizationApi.createClientApiClient>;
   producerKeychain: ReturnType<
@@ -55,6 +61,7 @@ export type PagoPAInteropBeClients = {
   purposeProcessClient: PurposeProcessClient;
   authorizationClient: AuthorizationProcessClient;
   selfcareV2Client: SelfcareV2Client;
+  delegationProcessClient: DelegationProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -88,6 +95,14 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     },
     selfcareV2Client: {
       institution: selfcareV2InstitutionClientBuilder(config),
+    },
+    delegationProcessClient: {
+      producer: delegationApi.createProducerApiClient(
+        config.delegationProcessUrl
+      ),
+      delegation: delegationApi.createDelegationApiClient(
+        config.delegationProcessUrl
+      ),
     },
   };
 }

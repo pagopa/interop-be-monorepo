@@ -5,7 +5,6 @@
 
 import {
   DB,
-  EmailManager,
   EventStoreConfig,
   FileManager,
   FileManagerConfig,
@@ -20,6 +19,7 @@ import {
   initPecEmailManager,
   initFileManager,
   initRedisRateLimiter,
+  EmailManagerPEC,
 } from "pagopa-interop-commons";
 import axios from "axios";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
@@ -76,7 +76,7 @@ export function setupTestContainersVitest(
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
-  emailManager: EmailManager;
+  pecEmailManager: EmailManagerPEC;
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
@@ -89,7 +89,7 @@ export function setupTestContainersVitest(
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
-  emailManager: EmailManager;
+  pecEmailManager: EmailManagerPEC;
   redisRateLimiter: RateLimiter;
   cleanup: () => Promise<void>;
 }>;
@@ -103,7 +103,7 @@ export async function setupTestContainersVitest(
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
   fileManager?: FileManager;
-  emailManager?: EmailManager;
+  pecEmailManager?: EmailManagerPEC;
   redisRateLimiter?: RateLimiter;
   cleanup: () => Promise<void>;
 }> {
@@ -112,7 +112,7 @@ export async function setupTestContainersVitest(
   let readModelRepository: ReadModelRepository | undefined;
   let postgresDB: DB | undefined;
   let fileManager: FileManager | undefined;
-  let emailManager: EmailManager | undefined;
+  let pecEmailManager: EmailManagerPEC | undefined;
   let redisRateLimiter: RateLimiter | undefined;
   const redisRateLimiterGroup = "TEST";
 
@@ -137,7 +137,7 @@ export async function setupTestContainersVitest(
   }
 
   if (emailManagerConfig) {
-    emailManager = initPecEmailManager(emailManagerConfig, false);
+    pecEmailManager = initPecEmailManager(emailManagerConfig, false);
   }
 
   if (redisRateLimiterConfig) {
@@ -156,7 +156,7 @@ export async function setupTestContainersVitest(
     readModelRepository,
     postgresDB,
     fileManager,
-    emailManager,
+    pecEmailManager,
     redisRateLimiter,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
@@ -168,6 +168,7 @@ export async function setupTestContainersVitest(
       await readModelRepository?.keys.deleteMany({});
       await readModelRepository?.producerKeychains.deleteMany({});
       await readModelRepository?.producerKeys.deleteMany({});
+      await readModelRepository?.delegations.deleteMany({});
 
       await postgresDB?.none(
         "TRUNCATE TABLE agreement.events RESTART IDENTITY"
@@ -180,6 +181,9 @@ export async function setupTestContainersVitest(
       await postgresDB?.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
       await postgresDB?.none(
         'TRUNCATE TABLE "authorization".events RESTART IDENTITY'
+      );
+      await postgresDB?.none(
+        "TRUNCATE TABLE delegation.events RESTART IDENTITY"
       );
 
       if (s3OriginalBucket && fileManagerConfig && fileManager) {

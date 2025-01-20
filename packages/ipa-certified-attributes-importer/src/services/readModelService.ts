@@ -2,7 +2,7 @@ import { ReadModelRepository } from "pagopa-interop-commons";
 import {
   Attribute,
   attributeKind,
-  ORIGIN_IPA,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
 } from "pagopa-interop-models";
 import { z } from "zod";
@@ -15,7 +15,7 @@ export function readModelServiceBuilder(
   return {
     getIPATenants: async (): Promise<Tenant[]> => {
       const data = await tenants
-        .find({ "data.externalId.origin": ORIGIN_IPA })
+        .find({ "data.externalId.origin": PUBLIC_ADMINISTRATIONS_IDENTIFIER })
         .toArray();
 
       return z.array(Tenant).parse(data);
@@ -24,7 +24,7 @@ export function readModelServiceBuilder(
       const data = await attributes
         .find({
           "data.kind": attributeKind.certified,
-          "data.origin": ORIGIN_IPA,
+          "data.origin": PUBLIC_ADMINISTRATIONS_IDENTIFIER,
         })
         .toArray();
 

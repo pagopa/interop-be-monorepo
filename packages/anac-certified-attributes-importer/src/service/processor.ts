@@ -1,7 +1,7 @@
 /* eslint-disable max-params */
 import { parse } from "csv/sync";
 import { Logger, RefreshableInteropToken, zipBy } from "pagopa-interop-commons";
-import { CorrelationId, Tenant } from "pagopa-interop-models";
+import { TenantFeatureCertifier, CorrelationId } from "pagopa-interop-models";
 import {
   AnacAttributes,
   AttributeIdentifiers,
@@ -9,6 +9,7 @@ import {
 } from "../model/processorModel.js";
 import { CsvRow, NonPaRow, PaRow } from "../model/csvRowModel.js";
 import { InteropContext } from "../model/interopContextModel.js";
+import { AnacReadModelTenant } from "../model/tenant.js";
 import { TenantProcessService } from "./tenantProcessService.js";
 import { ReadModelQueries } from "./readmodelQueriesService.js";
 import { SftpClient } from "./sftpService.js";
@@ -102,7 +103,10 @@ async function processFileContent(
     const paOrgs: PaRow[] = batchResult.records
       .map((org: CsvRow) => {
         if ("codice_ipa" in org) {
-          return org;
+          return {
+            ...org,
+            codice_ipa: org.codice_ipa.toLocaleLowerCase(),
+          };
         } else {
           return null;
         }
@@ -196,9 +200,11 @@ async function getAttributesIdentifiers(
   readModel: ReadModelQueries,
   anacTenantId: string
 ): Promise<AnacAttributes> {
-  const anacTenant: Tenant = await readModel.getTenantById(anacTenantId);
+  const anacTenant: AnacReadModelTenant = await readModel.getTenantById(
+    anacTenantId
+  );
   const certifier = anacTenant.features.find(
-    (f) => f.type === "PersistentCertifier"
+    (f): f is TenantFeatureCertifier => f.type === "PersistentCertifier"
   );
 
   if (!certifier) {
@@ -253,7 +259,7 @@ const prepareTenantsProcessor = (
   async function processTenants<T extends CsvRow>(
     orgs: T[],
     extractTenantCode: (org: T) => string,
-    retrieveTenants: (codes: string[]) => Promise<Tenant[]>
+    retrieveTenants: (codes: string[]) => Promise<AnacReadModelTenant[]>
   ): Promise<void> {
     if (orgs.length === 0) {
       return;
@@ -344,7 +350,7 @@ const prepareTenantsProcessor = (
 async function assignAttribute(
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
-  tenant: Tenant,
+  tenant: AnacReadModelTenant,
   attribute: AttributeIdentifiers,
   logger: Logger,
   correlationId: CorrelationId
@@ -371,7 +377,7 @@ async function assignAttribute(
 async function unassignAttribute(
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
-  tenant: Tenant,
+  tenant: AnacReadModelTenant,
   attribute: AttributeIdentifiers,
   logger: Logger,
   correlationId: CorrelationId
@@ -395,7 +401,10 @@ async function unassignAttribute(
   }
 }
 
-function tenantContainsAttribute(tenant: Tenant, attributeId: string): boolean {
+function tenantContainsAttribute(
+  tenant: AnacReadModelTenant,
+  attributeId: string
+): boolean {
   return (
     tenant.attributes.find((attribute) => attribute.id === attributeId) !==
     undefined
@@ -404,7 +413,7 @@ function tenantContainsAttribute(tenant: Tenant, attributeId: string): boolean {
 
 function getMissingTenants(
   expectedExternalId: string[],
-  tenants: Tenant[]
+  tenants: AnacReadModelTenant[]
 ): string[] {
   const existingSet = new Set(tenants.map((t) => t.externalId.value));
 

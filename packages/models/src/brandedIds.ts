@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import crypto from "crypto";
 import { z } from "zod";
 
 export const CorrelationId = z.string().brand("CorrelationId");
@@ -74,24 +74,45 @@ export type SelfcareId = z.infer<typeof SelfcareId>;
 export const ProducerKeychainId = z.string().uuid().brand("ProducerKeychainId");
 export type ProducerKeychainId = z.infer<typeof ProducerKeychainId>;
 
+export const DelegationId = z.string().uuid().brand("DelegationId");
+export type DelegationId = z.infer<typeof DelegationId>;
+
+export const DelegationContractId = z
+  .string()
+  .uuid()
+  .brand("DelegationContractId");
+export type DelegationContractId = z.infer<typeof DelegationContractId>;
+
+const eserviceDescriptorPrefix = "ESERVICEDESCRIPTOR#";
 export const PlatformStatesEServiceDescriptorPK = z
   .string()
-  .brand(`ESERVICEDESCRIPTOR#eServiceId#descriptorId`);
+  .refine((pk) => pk.startsWith(eserviceDescriptorPrefix))
+  .brand(`${eserviceDescriptorPrefix}eServiceId#descriptorId`);
 export type PlatformStatesEServiceDescriptorPK = z.infer<
   typeof PlatformStatesEServiceDescriptorPK
 >;
 
+const agreementPrefix = "AGREEMENT#";
 export const PlatformStatesAgreementPK = z
   .string()
-  .brand(`AGREEMENT#agreementId`);
+  .refine((pk) => pk.startsWith(agreementPrefix))
+  .brand(`${agreementPrefix}consumerId#eserviceId`);
 export type PlatformStatesAgreementPK = z.infer<
   typeof PlatformStatesAgreementPK
 >;
 
-export const PlatformStatesPurposePK = z.string().brand(`PURPOSE#purposeId`);
+const purposePrefix = "PURPOSE#";
+export const PlatformStatesPurposePK = z
+  .string()
+  .refine((pk) => pk.startsWith(purposePrefix))
+  .brand(`${purposePrefix}purposeId`);
 export type PlatformStatesPurposePK = z.infer<typeof PlatformStatesPurposePK>;
 
-export const PlatformStatesClientPK = z.string().brand(`CLIENT#clientId`);
+const clientPrefix = "CLIENT#";
+export const PlatformStatesClientPK = z
+  .string()
+  .refine((pk) => pk.startsWith(clientPrefix))
+  .brand(`${clientPrefix}clientId`);
 export type PlatformStatesClientPK = z.infer<typeof PlatformStatesClientPK>;
 
 export const GSIPKConsumerIdEServiceId = z
@@ -129,8 +150,8 @@ export type GSIPKEServiceIdDescriptorId = z.infer<
 export const GSIPKClientIdPurposeId = z.string().brand(`clientId#purposeId`);
 export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
 
-export const GSIPKKid = z.string().brand("kid");
-export type GSIPKKid = z.infer<typeof GSIPKKid>;
+export const GSIPKClientIdKid = z.string().brand("clientId#kid");
+export type GSIPKClientIdKid = z.infer<typeof GSIPKClientIdKid>;
 
 type IDS =
   | CorrelationId
@@ -152,6 +173,8 @@ type IDS =
   | UserId
   | SelfcareId
   | ProducerKeychainId
+  | DelegationId
+  | DelegationContractId
   | PlatformStatesEServiceDescriptorPK
   | PlatformStatesAgreementPK
   | PlatformStatesPurposePK
@@ -161,13 +184,13 @@ type IDS =
   | TokenGenerationStatesClientKidPK
   | GSIPKEServiceIdDescriptorId
   | GSIPKClientIdPurposeId
-  | GSIPKKid;
+  | GSIPKClientIdKid;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result
 // the 'as' is used to cast the uuid string to the inferred type
 export function generateId<T extends IDS>(): T {
-  return randomUUID() as T;
+  return crypto.randomUUID() as T;
 }
 
 // This function is used to get a branded ID from a string

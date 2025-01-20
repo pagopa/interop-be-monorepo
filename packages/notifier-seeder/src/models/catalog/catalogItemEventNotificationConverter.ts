@@ -91,6 +91,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceCloned" }, // ClonedCatalogItemV1AddedV1
       { type: "DraftEServiceUpdated" }, // CatalogItemV1UpdatedV1
       { type: "EServiceDescriptionUpdated" }, // CatalogItemV1UpdatedV1
+      { type: "EServiceNameUpdated" }, // CatalogItemV1UpdatedV1
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
       })
@@ -108,7 +109,11 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorArchived" }, // CatalogItemDescriptorUpdatedV1
       { type: "EServiceDescriptorPublished" }, // CatalogItemDescriptorUpdatedV1
       { type: "EServiceDescriptorSuspended" }, // CatalogItemDescriptorUpdatedV1
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      { type: "EServiceDescriptorApprovedByDelegator" },
+      { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorQuotasUpdated" },
+      { type: "EServiceDescriptorAttributesUpdated" },
       (e): CatalogDescriptorNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(

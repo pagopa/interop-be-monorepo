@@ -64,6 +64,7 @@ export function selfcareOnboardingProcessorBuilder(
         const origin = match(institution.institutionType)
           .with("SCP", () => `${institution.origin}-SCP`)
           .with("PRV", () => `${institution.origin}-PRV`)
+          .with("PT", () => `${institution.origin}-PT`)
           .otherwise(() => institution.origin);
 
         if (!allowedOrigins.includes(origin)) {

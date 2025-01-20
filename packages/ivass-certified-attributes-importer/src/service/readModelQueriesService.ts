@@ -1,5 +1,6 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
-import { Attribute, Tenant } from "pagopa-interop-models";
+import { Attribute } from "pagopa-interop-models";
+import { IvassReadModelTenant } from "../model/tenant.js";
 
 const projectUnrevokedCertifiedAttributes = {
   _id: 0,
@@ -26,7 +27,9 @@ export class ReadModelQueries {
   /**
    * Retrieve tenants that match the given tax codes, with their unrevoked certified attribute
    */
-  public async getIVASSTenants(externalId: string[]): Promise<Tenant[]> {
+  public async getIVASSTenants(
+    externalId: string[]
+  ): Promise<IvassReadModelTenant[]> {
     return await this.readModelClient.tenants
       .aggregate([
         {
@@ -39,13 +42,13 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => Tenant.parse(data))
+      .map(({ data }) => IvassReadModelTenant.parse(data))
       .toArray();
   }
 
   public async getTenantsWithAttributes(
     attributeIds: string[]
-  ): Promise<Tenant[]> {
+  ): Promise<IvassReadModelTenant[]> {
     return await this.readModelClient.tenants
       .aggregate([
         {
@@ -57,11 +60,11 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => Tenant.parse(data))
+      .map(({ data }) => IvassReadModelTenant.parse(data))
       .toArray();
   }
 
-  public async getTenantById(tenantId: string): Promise<Tenant> {
+  public async getTenantById(tenantId: string): Promise<IvassReadModelTenant> {
     const result = await this.readModelClient.tenants
       .aggregate([
         {
@@ -73,7 +76,7 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => Tenant.parse(data))
+      .map(({ data }) => IvassReadModelTenant.parse(data))
       .toArray();
 
     if (result.length === 0) {

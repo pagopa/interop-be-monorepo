@@ -4,7 +4,7 @@
 import axios from "axios";
 import { z } from "zod";
 import { match } from "ts-pattern";
-import { ORIGIN_IPA } from "pagopa-interop-models";
+import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 
 type Classification = "Agency" | "AOO" | "UO";
@@ -114,7 +114,7 @@ export async function getAllCategories(): Promise<Category[]> {
       code,
       name,
       kind,
-      origin: ORIGIN_IPA,
+      origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
     });
 
     return accumulator;
@@ -249,7 +249,7 @@ export async function getAllInstitutions(
       digitalAddress,
       address,
       zipCode,
-      origin: ORIGIN_IPA,
+      origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
       kind,
       classification: match<InstitutionKind, Classification>(institutionKind)
         .with("Agency", () => "Agency")
