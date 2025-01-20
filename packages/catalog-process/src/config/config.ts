@@ -21,8 +21,8 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
           .transform((value) => value === "true"),
         SIGNALHUB_WHITELIST: z
           .string()
-          .uuid()
           .transform((value) => value.split(","))
+          .pipe(z.array(z.string().uuid()))
           .optional(),
       })
       .transform((c) => ({

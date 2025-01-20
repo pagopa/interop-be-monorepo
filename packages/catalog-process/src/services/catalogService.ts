@@ -325,7 +325,7 @@ async function parseAndCheckAttributes(
   };
 }
 
-function isOrganizationIdIncludesOnWhitelist(
+function isTenantInSignalHubWhitelist(
   organizationId: TenantId,
   isSignalubEnabled: boolean | undefined
 ): boolean | undefined {
@@ -453,7 +453,7 @@ export function catalogServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: config.featureFlagSignalhubWhitelist
-          ? isOrganizationIdIncludesOnWhitelist(
+          ? isTenantInSignalHubWhitelist(
               authData.organizationId,
               seed.isSignalHubEnabled
             )
@@ -579,7 +579,7 @@ export function catalogServiceBuilder(
             }))
           : eservice.data.descriptors,
         isSignalHubEnabled: config.featureFlagSignalhubWhitelist
-          ? isOrganizationIdIncludesOnWhitelist(
+          ? isTenantInSignalHubWhitelist(
               authData.organizationId,
               eservice.data.isSignalHubEnabled
             )
