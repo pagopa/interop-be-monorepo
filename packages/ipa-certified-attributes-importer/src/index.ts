@@ -217,6 +217,7 @@ export async function getAttributesToAssign(
       const tenant = tenantsIndex.get(toTenantKey(externalId));
 
       if (!tenant) {
+        loggerInstance.error(`Tenant ${externalId} not found in the platform`);
         return undefined;
       }
 
@@ -416,9 +417,9 @@ try {
   const registryData = await getRegistryData();
 
   const attributes = await readModelService.getAttributes();
-  const ipaTenants = await readModelService.getIPATenants();
+  const tenants = await readModelService.getIPATenants();
 
-  const tenantUpsertData = getTenantUpsertData(registryData, ipaTenants);
+  const tenantUpsertData = getTenantUpsertData(registryData, tenants);
 
   const newAttributes = getNewAttributes(
     registryData,
@@ -433,7 +434,7 @@ try {
   );
 
   const attributesToAssign = await getAttributesToAssign(
-    ipaTenants,
+    tenants,
     attributes,
     tenantUpsertData
   );
@@ -445,7 +446,7 @@ try {
 
   const attributesToRevoke = await getAttributesToRevoke(
     tenantUpsertData,
-    ipaTenants,
+    tenants,
     attributes
   );
 
