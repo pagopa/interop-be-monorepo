@@ -27,6 +27,7 @@ import {
   toReadModelTenant,
   toReadModelAgreement,
   DescriptorState,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -54,6 +55,7 @@ export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
 export const attributes = readModelRepository.attributes;
+export const delegations = readModelRepository.delegations;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
@@ -168,6 +170,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
   ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
   ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
+  rejectionReasons: [],
 });
 
 export const getMockEServiceAttribute = (): EServiceAttribute => ({
@@ -281,6 +284,12 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+};
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await writeInReadmodel(delegation, delegations);
 };
 
 export const readLastEserviceEvent = async (
