@@ -723,7 +723,7 @@ describe("activatePurposeVersion", () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
   });
 
-  it.only("should succeed when requester is Consumer Delegate and the purpose version in draft state is activated correctly", async () => {
+  it("should succeed when requester is Consumer Delegate and the purpose version in draft state is activated correctly", async () => {
     vi.spyOn(pdfGenerator, "generate");
     const consumerDelegate = {
       ...getMockTenant(),
@@ -746,7 +746,7 @@ describe("activatePurposeVersion", () => {
       kind: delegationKind.delegatedConsumer,
       eserviceId: purpose.eserviceId,
       delegatorId: purpose.consumerId,
-      delegateId: generateId<TenantId>(),
+      delegateId: consumerDelegate.id,
       state: delegationState.active,
     });
 
@@ -757,6 +757,7 @@ describe("activatePurposeVersion", () => {
     await addOneAgreement(mockAgreement);
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
+    await addOneTenant(consumerDelegate);
 
     const purposeVersion = await purposeService.activatePurposeVersion(
       {
