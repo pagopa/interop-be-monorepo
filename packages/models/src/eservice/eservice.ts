@@ -125,7 +125,7 @@ export type EService = z.infer<typeof EService>;
 
 export const eserviceTemplateVersionState = {
   draft: "Draft",
-  active: "Active",
+  published: "Published",
   suspended: "Suspended",
   deprecated: "Deprecated",
 } as const;
