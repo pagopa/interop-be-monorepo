@@ -488,7 +488,7 @@ export function delegationServiceBuilder(
         `Retrieving consumer delegated eservices of delegator ${delegatorId} with name ${q}, limit ${limit}, offset ${offset}`
       );
 
-      const eservicesWithoutProducer =
+      const eservicesData =
         await delegationClients.consumer.getConsumerEservices({
           queries: {
             delegatorId,
@@ -499,32 +499,33 @@ export function delegationServiceBuilder(
           headers,
         });
 
-      const compactEservices: bffApi.CompactEService[] = await Promise.all(
-        eservicesWithoutProducer.results.map(async (eservice) => {
-          const producer = await tenantClient.tenant.getTenant({
-            params: { id: eservice.producerId },
-            headers,
-          });
+      const eservicesWithProducerData: bffApi.CompactEService[] =
+        await Promise.all(
+          eservicesData.results.map(async (eservice) => {
+            const producer = await tenantClient.tenant.getTenant({
+              params: { id: eservice.producerId },
+              headers,
+            });
 
-          return {
-            id: eservice.id,
-            name: eservice.name,
-            producer: {
-              id: eservice.producerId,
-              name: producer.name,
-              kind: producer.kind,
-              contactMail: getLatestTenantContactEmail(producer),
-            },
-          };
-        })
-      );
+            return {
+              id: eservice.id,
+              name: eservice.name,
+              producer: {
+                id: eservice.producerId,
+                name: producer.name,
+                kind: producer.kind,
+                contactMail: getLatestTenantContactEmail(producer),
+              },
+            };
+          })
+        );
 
       return {
-        results: compactEservices,
+        results: eservicesWithProducerData,
         pagination: {
           offset,
           limit,
-          totalCount: eservicesWithoutProducer.totalCount,
+          totalCount: eservicesData.totalCount,
         },
       };
     },
