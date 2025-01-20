@@ -13596,7 +13596,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CompactEServicesLight"
+                $ref: "#/components/schemas/CompactEServices"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -15373,6 +15373,19 @@ components:
           type: string
         producer:
           $ref: "#/components/schemas/CompactOrganization"
+    CompactEServices:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactEService"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     CompactPurposeEService:
       type: object
       additionalProperties: false
