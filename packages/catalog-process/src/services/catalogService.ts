@@ -1824,9 +1824,7 @@ export function catalogServiceBuilder(
 
       if (
         eservice.data.descriptors.every(
-          (descriptor) =>
-            descriptor.state === descriptorState.draft ||
-            descriptor.state === descriptorState.archived
+          (descriptor) => descriptor.state === descriptorState.draft
         )
       ) {
         throw eserviceWithoutValidDescriptors(eserviceId);
