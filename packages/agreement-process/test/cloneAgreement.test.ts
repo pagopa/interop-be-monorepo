@@ -3,6 +3,7 @@
 /* eslint-disable fp/no-delete */
 import { FileManagerError, genericLogger } from "pagopa-interop-commons";
 import {
+  addSomeRandomDelegations,
   decodeProtobufPayload,
   getMockAgreement,
   getMockCertifiedTenantAttribute,
@@ -50,7 +51,6 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
-  addSomeRandomDelegations,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -275,7 +275,7 @@ describe("clone agreement", () => {
       state: delegationState.active,
     });
     await addOneDelegation(delegation);
-    await addSomeRandomDelegations(agreementToBeCloned);
+    await addSomeRandomDelegations(agreementToBeCloned, addOneDelegation);
 
     const anotherNonConflictingAgreement = {
       ...getMockAgreement(
@@ -415,7 +415,7 @@ describe("clone agreement", () => {
       state: delegationState.active,
     });
     await addOneDelegation(delegation);
-    await addSomeRandomDelegations(agreement);
+    await addSomeRandomDelegations(agreement, addOneDelegation);
     await expect(
       agreementService.cloneAgreement(agreement.id, {
         authData,
