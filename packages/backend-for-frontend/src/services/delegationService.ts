@@ -26,6 +26,7 @@ import {
 import { delegationNotFound } from "../model/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
+import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 
 // eslint-disable-next-line max-params
 async function enhanceDelegation<
@@ -482,12 +483,12 @@ export function delegationServiceBuilder(
         limit: number;
       },
       { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CompactEServicesLight> {
+    ): Promise<bffApi.CompactEServices> {
       logger.info(
         `Retrieving consumer delegated eservices of delegator ${delegatorId} with name ${q}, limit ${limit}, offset ${offset}`
       );
 
-      const eservicesData =
+      const eservicesWithoutProducer =
         await delegationClients.consumer.getConsumerEservices({
           queries: {
             delegatorId,
@@ -498,12 +499,32 @@ export function delegationServiceBuilder(
           headers,
         });
 
+      const compactEservices: bffApi.CompactEService[] = await Promise.all(
+        eservicesWithoutProducer.results.map(async (eservice) => {
+          const producer = await tenantClient.tenant.getTenant({
+            params: { id: eservice.producerId },
+            headers,
+          });
+
+          return {
+            id: eservice.id,
+            name: eservice.name,
+            producer: {
+              id: eservice.producerId,
+              name: producer.name,
+              kind: producer.kind,
+              contactMail: getLatestTenantContactEmail(producer),
+            },
+          };
+        })
+      );
+
       return {
-        results: eservicesData.results,
+        results: compactEservices,
         pagination: {
           offset,
           limit,
-          totalCount: eservicesData.totalCount,
+          totalCount: eservicesWithoutProducer.totalCount,
         },
       };
     },
