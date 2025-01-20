@@ -31,7 +31,7 @@ const agreementRouter = (
   const agreementService = agreementServiceBuilder(clients, fileManager);
 
   agreementRouter
-    .get("/agreements", async (req, res) => {
+    .get("/agreements/consumers", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
@@ -40,18 +40,53 @@ const agreementRouter = (
           eservicesIds,
           limit,
           offset,
-          producersIds,
           showOnlyUpgradeable,
           states,
         } = req.query;
 
-        const result = await agreementService.getAgreements(
+        const result = await agreementService.getConsumerAgreements(
           {
             offset,
             limit,
-            producersIds,
             eservicesIds,
             consumersIds,
+            states,
+            showOnlyUpgradeable,
+          },
+          ctx
+        );
+        return res.status(200).send(bffApi.Agreements.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getAgreementsErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          "Error retrieving agreements"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+
+    .get("/agreements/producers", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const {
+          producersIds,
+          eservicesIds,
+          limit,
+          offset,
+          showOnlyUpgradeable,
+          states,
+        } = req.query;
+
+        const result = await agreementService.getProducersAgreements(
+          {
+            offset,
+            limit,
+            eservicesIds,
+            producersIds,
             states,
             showOnlyUpgradeable,
           },
