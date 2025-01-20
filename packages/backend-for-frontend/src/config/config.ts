@@ -84,7 +84,7 @@ export const AuthorizationProcessServerConfig = z
     SAML_CALLBACK_ERROR_URL: z.string().url(),
     SUPPORT_LANDING_TOKEN_DURATION_SECONDS: z.coerce.number().default(300),
     SUPPORT_TOKEN_DURATION_SECONDS: z.coerce.number().default(3600),
-    SAML_PUBLIC_CERTIFICATE: z.string(),
+    SAML_PUBLIC_KEY: z.string(),
   })
   .transform((c) => ({
     authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
@@ -95,7 +95,7 @@ export const AuthorizationProcessServerConfig = z
     samlCallbackErrorUrl: c.SAML_CALLBACK_ERROR_URL,
     supportLandingJwtDuration: c.SUPPORT_LANDING_TOKEN_DURATION_SECONDS,
     supportJwtDuration: c.SUPPORT_TOKEN_DURATION_SECONDS,
-    samlPublicCertificate: c.SAML_PUBLIC_CERTIFICATE,
+    samlPublicKey: c.SAML_PUBLIC_KEY,
   }));
 export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
