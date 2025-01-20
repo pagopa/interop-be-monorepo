@@ -12,7 +12,6 @@ import {
   getMockPurposeVersion,
   getMockValidRiskAnalysisForm,
   getMockValidRiskAnalysis,
-  writeInReadmodel,
   decodeProtobufPayload,
   getRandomAuthData,
   getMockDelegation,
@@ -26,7 +25,6 @@ import {
   Purpose,
   purposeVersionState,
   generateId,
-  toReadModelEService,
   DraftPurposeUpdatedV2,
   toPurposeV2,
   PurposeId,
@@ -35,7 +33,6 @@ import {
   EServiceId,
   RiskAnalysis,
   eserviceMode,
-  toReadModelTenant,
   delegationKind,
   delegationState,
   Agreement,
@@ -62,9 +59,7 @@ import {
   addOnePurpose,
   createUpdatedPurpose,
   readLastPurposeEvent,
-  eservices,
   purposeService,
-  tenants,
   addOneDelegation,
   addOneTenant,
   addOneEService,
@@ -146,8 +141,8 @@ describe("updatePurpose and updateReversePurpose", () => {
 
   it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (including title change)", async () => {
     await addOnePurpose(purposeForDeliver);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     const { purpose, isRiskAnalysisValid } = await purposeService.updatePurpose(
       purposeForDeliver.id,
@@ -187,8 +182,8 @@ describe("updatePurpose and updateReversePurpose", () => {
   });
   it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (no title change)", async () => {
     await addOnePurpose(purposeForDeliver);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     const updateContentWithoutTitle = {
       ...purposeUpdateContent,
@@ -233,8 +228,8 @@ describe("updatePurpose and updateReversePurpose", () => {
   });
   it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE (including title change)", async () => {
     await addOnePurpose(purposeForReceive);
-    await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceReceive);
+    await addOneTenant(tenant);
 
     const { purpose, isRiskAnalysisValid } =
       await purposeService.updateReversePurpose(
@@ -292,8 +287,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     await addOnePurpose(delegatePurpose);
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     const updateContentWithoutTitle = {
       ...purposeUpdateContent,
@@ -356,8 +351,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     await addOnePurpose(delegatePurpose);
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(purposeForDeliver, addOneDelegation);
-    await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceReceive);
+    await addOneTenant(tenant);
 
     const { purpose, isRiskAnalysisValid } =
       await purposeService.updateReversePurpose(
@@ -606,8 +601,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     expect(isRiskAnalysisValid).toBe(true);
   });
   it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     const purposeId: PurposeId = unsafeBrandId(generateId());
 
@@ -627,8 +622,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     const organizationId: TenantId = unsafeBrandId(generateId());
 
@@ -654,8 +649,8 @@ describe("updatePurpose and updateReversePurpose", () => {
       };
 
       await addOnePurpose(mockPurpose);
-      await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-      await writeInReadmodel(toReadModelTenant(tenant), tenants);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
 
       expect(
         purposeService.updatePurpose(mockPurpose.id, purposeUpdateContent, {
@@ -702,7 +697,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneTenant(tenant);
 
     expect(
       purposeService.updatePurpose(mockPurpose.id, purposeUpdateContent, {
@@ -715,8 +710,8 @@ describe("updatePurpose and updateReversePurpose", () => {
   });
   it("should throw eServiceModeNotAllowed if the eService mode is incorrect when expecting DELIVER", async () => {
     await addOnePurpose(purposeForReceive);
-    await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceReceive);
+    await addOneTenant(tenant);
 
     expect(
       purposeService.updatePurpose(purposeForReceive.id, purposeUpdateContent, {
@@ -731,8 +726,8 @@ describe("updatePurpose and updateReversePurpose", () => {
   });
   it("should throw eServiceModeNotAllowed if the eService mode is incorrect when expecting RECEIVE", async () => {
     await addOnePurpose(purposeForDeliver);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     expect(
       purposeService.updateReversePurpose(
@@ -751,8 +746,8 @@ describe("updatePurpose and updateReversePurpose", () => {
   });
   it("Should throw missingFreeOfChargeReason if isFreeOfCharge is true but freeOfChargeReason is missing", async () => {
     await addOnePurpose(purposeForDeliver);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     expect(
       purposeService.updatePurpose(
@@ -772,8 +767,7 @@ describe("updatePurpose and updateReversePurpose", () => {
   });
   it("Should throw tenantNotFound if the tenant does not exist", async () => {
     await addOnePurpose(purposeForDeliver);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-
+    await addOneEService(eServiceDeliver);
     expect(
       purposeService.updatePurpose(purposeForDeliver.id, purposeUpdateContent, {
         authData: getRandomAuthData(tenant.id),
@@ -784,7 +778,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     ).rejects.toThrowError(tenantNotFound(tenant.id));
 
     await addOnePurpose(purposeForReceive);
-    await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
+    await addOneEService(eServiceReceive);
 
     expect(
       purposeService.updateReversePurpose(
@@ -806,8 +800,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     };
 
     await addOnePurpose(purposeForDeliver);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(mockTenant);
 
     expect(
       purposeService.updatePurpose(purposeForDeliver.id, purposeUpdateContent, {
@@ -820,8 +814,8 @@ describe("updatePurpose and updateReversePurpose", () => {
   });
   it("Should throw riskAnalysisValidationFailed if the risk analysis is not valid in updatePurpose", async () => {
     await addOnePurpose(purposeForDeliver);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     const invalidRiskAnalysis: RiskAnalysis = {
       ...validRiskAnalysis,
@@ -862,8 +856,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     };
 
     await addOnePurpose(purposeWithInvalidRiskAnalysis);
-    await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceReceive);
+    await addOneTenant(tenant);
 
     expect(
       purposeService.updateReversePurpose(
@@ -900,8 +894,8 @@ describe("updatePurpose and updateReversePurpose", () => {
 
     await addOnePurpose(delegatePurpose);
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
     expect(
       purposeService.updatePurpose(delegatePurpose.id, purposeUpdateContent, {
         authData,
@@ -936,8 +930,8 @@ describe("updatePurpose and updateReversePurpose", () => {
 
     await addOnePurpose(delegatePurpose);
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     expect(
       purposeService.updateReversePurpose(
@@ -967,8 +961,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     };
 
     await addOnePurpose(delegatePurpose);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     expect(
       purposeService.updateReversePurpose(
@@ -995,8 +989,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     };
 
     await addOnePurpose(delegatePurpose);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     expect(
       purposeService.updateReversePurpose(
@@ -1030,8 +1024,8 @@ describe("updatePurpose and updateReversePurpose", () => {
 
     await addOnePurpose(delegatePurpose);
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     expect(
       purposeService.updatePurpose(
@@ -1063,8 +1057,8 @@ describe("updatePurpose and updateReversePurpose", () => {
 
     await addOnePurpose(delegatePurpose);
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     expect(
       purposeService.updateReversePurpose(
@@ -1097,8 +1091,8 @@ describe("updatePurpose and updateReversePurpose", () => {
 
     await addOnePurpose(delegatePurpose);
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     expect(
       purposeService.updatePurpose(
@@ -1131,8 +1125,8 @@ describe("updatePurpose and updateReversePurpose", () => {
 
     await addOnePurpose(delegatePurpose);
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
 
     expect(
       purposeService.updateReversePurpose(
