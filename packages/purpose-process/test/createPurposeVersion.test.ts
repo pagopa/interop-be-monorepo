@@ -15,7 +15,6 @@ import {
   getMockPurposeVersion,
   getMockPurpose,
   getMockValidRiskAnalysisForm,
-  writeInReadmodel,
   getMockDelegation,
   getRandomAuthData,
   addSomeRandomDelegations,
@@ -31,12 +30,9 @@ import {
   Agreement,
   agreementState,
   PurposeVersion,
-  toReadModelEService,
   eserviceMode,
-  toReadModelAgreement,
   NewPurposeVersionActivatedV2,
   NewPurposeVersionWaitingForApprovalV2,
-  toReadModelTenant,
   delegationKind,
   delegationState,
   TenantId,
@@ -61,13 +57,10 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
-  agreements,
-  eservices,
   fileManager,
   pdfGenerator,
   postgresDB,
   purposeService,
-  tenants,
 } from "./utils.js";
 import { addOnePurpose } from "./utils.js";
 
@@ -137,10 +130,10 @@ describe("createPurposeVersion", () => {
     vi.spyOn(pdfGenerator, "generate");
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     const returnedPurposeVersion = await purposeService.createPurposeVersion(
       mockPurpose.id,
@@ -249,10 +242,10 @@ describe("createPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await addOneDelegation(producerDelegation);
     await addOneTenant(delegate);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     const returnedPurposeVersion = await purposeService.createPurposeVersion(
       mockPurpose.id,
@@ -349,10 +342,10 @@ describe("createPurposeVersion", () => {
     vi.spyOn(pdfGenerator, "generate");
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     const returnedPurposeVersion = await purposeService.createPurposeVersion(
       mockPurpose.id,
@@ -453,10 +446,10 @@ describe("createPurposeVersion", () => {
     const eservice = { ...mockEService, descriptors: [descriptor] };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(eservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(eservice);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     const returnedPurposeVersion = await purposeService.createPurposeVersion(
       mockPurpose.id,
@@ -510,7 +503,10 @@ describe("createPurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the creation of a new purpose version is successful", async () => {
-    const authData = getRandomAuthData();
+    const delegateConsumer: Tenant = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
 
     const delegatePurpose: Purpose = {
       ...mockPurpose,
@@ -522,17 +518,18 @@ describe("createPurposeVersion", () => {
       kind: delegationKind.delegatedConsumer,
       eserviceId: delegatePurpose.eserviceId,
       delegatorId: delegatePurpose.consumerId,
-      delegateId: authData.organizationId,
+      delegateId: delegateConsumer.id,
       state: delegationState.active,
     });
 
     await addOnePurpose(delegatePurpose);
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+    await addOneTenant(delegateConsumer);
 
     const returnedPurposeVersion = await purposeService.createPurposeVersion(
       delegatePurpose.id,
@@ -540,7 +537,7 @@ describe("createPurposeVersion", () => {
         dailyCalls: 24,
       },
       {
-        authData,
+        authData: getRandomAuthData(delegateConsumer.id),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
@@ -720,10 +717,10 @@ describe("createPurposeVersion", () => {
 
   it("should throw unchangedDailyCalls if the new request daily calls are the same of the previous version", async () => {
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     expect(
       async () =>
@@ -744,10 +741,10 @@ describe("createPurposeVersion", () => {
 
   it("should throw organizationIsNotTheConsumer if the caller is the producer", async () => {
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
       await purposeService.createPurposeVersion(
@@ -769,9 +766,9 @@ describe("createPurposeVersion", () => {
 
   it("should throw eserviceNotFound if the e-service does not exists in the readmodel", async () => {
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
       await purposeService.createPurposeVersion(
@@ -793,11 +790,11 @@ describe("createPurposeVersion", () => {
     const anotherTenant: Tenant = { ...getMockTenant(), kind: "PA" };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
-    await writeInReadmodel(toReadModelTenant(anotherTenant), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+    await addOneTenant(anotherTenant);
 
     expect(async () => {
       await purposeService.createPurposeVersion(
@@ -817,9 +814,9 @@ describe("createPurposeVersion", () => {
 
   it("should throw agreementNotFound if the caller has no agreement associated with the purpose in the read model", async () => {
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
       await purposeService.createPurposeVersion(
@@ -852,10 +849,10 @@ describe("createPurposeVersion", () => {
       const agreement: Agreement = { ...mockAgreement, state };
 
       await addOnePurpose(mockPurpose);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-      await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-      await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+      await addOneEService(mockEService);
+      await addOneAgreement(agreement);
+      await addOneTenant(mockConsumer);
+      await addOneTenant(mockProducer);
 
       expect(async () => {
         await purposeService.createPurposeVersion(
@@ -878,9 +875,9 @@ describe("createPurposeVersion", () => {
 
   it("should throw tenantNotFound if the purpose consumer is not found in the readmodel", async () => {
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
       await purposeService.createPurposeVersion(
@@ -900,9 +897,9 @@ describe("createPurposeVersion", () => {
 
   it("should throw tenantNotFound if the purpose producer is not found in the readmodel", async () => {
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
 
     expect(async () => {
       await purposeService.createPurposeVersion(
@@ -928,10 +925,10 @@ describe("createPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(eservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(eservice);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(consumer);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
       await purposeService.createPurposeVersion(
@@ -957,10 +954,10 @@ describe("createPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(eservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await addOneEService(eservice);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(producer);
 
     expect(async () => {
       await purposeService.createPurposeVersion(
@@ -985,14 +982,14 @@ describe("createPurposeVersion", () => {
     };
 
     await addOnePurpose(purpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
       await purposeService.createPurposeVersion(
-        mockPurpose.id,
+        purpose.id,
         {
           dailyCalls: 20,
         },
@@ -1024,14 +1021,14 @@ describe("createPurposeVersion", () => {
 
     await addOnePurpose(purpose);
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
       await purposeService.createPurposeVersion(
-        mockPurpose.id,
+        purpose.id,
         {
           dailyCalls: 20,
         },
@@ -1057,14 +1054,14 @@ describe("createPurposeVersion", () => {
     };
 
     await addOnePurpose(purpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
       await purposeService.createPurposeVersion(
-        mockPurpose.id,
+        purpose.id,
         {
           dailyCalls: 20,
         },
@@ -1077,6 +1074,83 @@ describe("createPurposeVersion", () => {
       );
     }).rejects.toThrowError(
       organizationIsNotTheConsumer(authData.organizationId)
+    );
+  });
+  it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
+    const delegatePurpose: Purpose = {
+      ...getMockPurpose(),
+      consumerId: mockConsumer.id,
+      delegationId: undefined,
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: delegatePurpose.eserviceId,
+      delegatorId: delegatePurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(delegatePurpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    expect(async () => {
+      await purposeService.createPurposeVersion(
+        delegatePurpose.id,
+        {
+          dailyCalls: 20,
+        },
+        {
+          authData: getRandomAuthData(delegation.delegateId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+    }).rejects.toThrowError(
+      organizationIsNotTheConsumer(delegation.delegateId)
+    );
+  });
+  it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+    const delegatePurpose: Purpose = {
+      ...getMockPurpose(),
+      consumerId: mockConsumer.id,
+      delegationId: generateId<DelegationId>(),
+    };
+
+    const delegation = getMockDelegation({
+      id: generateId<DelegationId>(),
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: delegatePurpose.eserviceId,
+      delegatorId: delegatePurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(delegatePurpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    expect(async () => {
+      await purposeService.createPurposeVersion(
+        delegatePurpose.id,
+        {
+          dailyCalls: 20,
+        },
+        {
+          authData: getRandomAuthData(delegation.delegateId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+    }).rejects.toThrowError(
+      organizationIsNotTheConsumer(delegation.delegateId)
     );
   });
 });
