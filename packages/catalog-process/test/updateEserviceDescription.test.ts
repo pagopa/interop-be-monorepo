@@ -159,7 +159,7 @@ describe("update eService description", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
-  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+  it("should throw operationForbidden if the given e-service has been delegated and the requester is not the delegate", async () => {
     const eservice = getMockEService();
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
