@@ -4,6 +4,10 @@ import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockDelegation,
+  getMockDescriptorPublished,
+  getMockEService,
+  getMockTenant,
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
@@ -17,6 +21,8 @@ import {
   EServiceId,
   TenantId,
   agreementState,
+  delegationKind,
+  delegationState,
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
@@ -32,6 +38,9 @@ import {
 import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
+  addOneDelegation,
+  addOneEService,
+  addOneTenant,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -71,6 +80,94 @@ describe("agreement consumer document", () => {
       );
 
       expect(result).toEqual(agreement1.consumerDocuments[0]);
+    });
+
+    it("should succed when the requester is the delegate", async () => {
+      const producer = getMockTenant();
+      const consumer = getMockTenant();
+      const authData = getRandomAuthData();
+      const eservice = {
+        ...getMockEService(),
+        producerId: producer.id,
+        consumerId: consumer.id,
+        descriptors: [getMockDescriptorPublished()],
+      };
+      const agreement = {
+        ...getMockAgreement(eservice.id),
+        descriptorId: eservice.descriptors[0].id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+        consumerDocuments: [generateMock(AgreementDocument)],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegateId: authData.organizationId,
+        eserviceId: eservice.id,
+        delegatorId: eservice.producerId,
+        state: delegationState.active,
+      });
+      const delegate = getMockTenant(delegation.delegateId);
+
+      await addOneTenant(delegate);
+      await addOneEService(eservice);
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+
+      const result = await agreementService.getAgreementConsumerDocument(
+        agreement.id,
+        agreement.consumerDocuments[0].id,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+
+      expect(result).toEqual(agreement.consumerDocuments[0]);
+    });
+
+    it("should succed when the requester is the producer, even if there is an active producer delegation", async () => {
+      const producer = getMockTenant();
+      const consumer = getMockTenant();
+      const authData = getRandomAuthData(producer.id);
+      const eservice = {
+        ...getMockEService(),
+        producerId: producer.id,
+        consumerId: consumer.id,
+        descriptors: [getMockDescriptorPublished()],
+      };
+      const agreement = {
+        ...getMockAgreement(eservice.id),
+        descriptorId: eservice.descriptors[0].id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+        consumerDocuments: [generateMock(AgreementDocument)],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegateId: generateId<TenantId>(),
+        eserviceId: eservice.id,
+        delegatorId: eservice.producerId,
+        state: delegationState.active,
+      });
+
+      await addOneEService(eservice);
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+
+      const result = await agreementService.getAgreementConsumerDocument(
+        agreement.id,
+        agreement.consumerDocuments[0].id,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+
+      expect(result).toEqual(agreement.consumerDocuments[0]);
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
