@@ -268,6 +268,34 @@ export async function handleMessageV2(
         );
       }
     })
+    .with({ type: "AgreementArchivedByUpgrade" }, async (msg) => {
+      const agreement = parseAgreement(msg.data.agreement);
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
+      const agreementEntry = await readAgreementEntry(
+        primaryKey,
+        dynamoDBClient
+      );
+      const agreementTimestamp = extractAgreementTimestamp(agreement);
+
+      if (
+        isLatestAgreement(agreementEntry, agreementTimestamp) &&
+        agreementEntry?.agreementId === agreement.id
+      ) {
+        await deleteAgreementEntry(
+          primaryKey,
+          agreementEntry.agreementId,
+          dynamoDBClient,
+          logger
+        );
+      } else {
+        logger.info(
+          `Platform-states. Skipping processing of entry with PK ${primaryKey} and agreement ${agreement.id}. Reason: agreement is not the latest`
+        );
+      }
+    })
     .with(
       { type: "AgreementAdded" },
       { type: "AgreementDeleted" },
@@ -278,7 +306,6 @@ export async function handleMessageV2(
       { type: "AgreementConsumerDocumentRemoved" },
       { type: "AgreementSetDraftByPlatform" },
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
-      { type: "AgreementArchivedByUpgrade" },
       () => Promise.resolve()
     )
     .exhaustive();
