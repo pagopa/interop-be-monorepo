@@ -112,7 +112,7 @@ export const validateSamlResponse = (samlResponse: string): SAMLResponse => {
       throw samlNotValid("Signature is not valid");
     }
   } catch (e) {
-    throw samlNotValid("Signature is not valid");
+    throw samlNotValid("Signature contains errors");
   }
 
   if (!response.Assertion || response.Assertion.length === 0) {
