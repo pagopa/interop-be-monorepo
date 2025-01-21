@@ -106,7 +106,14 @@ export const validateSamlResponse = (samlResponse: string): SAMLResponse => {
   });
 
   sig.loadSignature(node);
-  sig.checkSignature(samlResponse);
+  try {
+    const isValid = sig.checkSignature(samlResponse);
+    if (!isValid) {
+      throw samlNotValid("Signature is not valid");
+    }
+  } catch (e) {
+    throw samlNotValid("Signature is not valid");
+  }
 
   if (!response.Assertion || response.Assertion.length === 0) {
     throw samlNotValid("Missing Assertions");
