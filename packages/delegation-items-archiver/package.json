@@ -2,7 +2,7 @@
     "name": "pagopa-interop-delegation-items-archiver",
     "private": true,
     "version": "1.0.0",
-    "description": "PagoPA Interoperability client consumer service that archives purposes and agreements when a consumerDelegation is approved/revoked",
+    "description": "PagoPA Interoperability consumer service that archives purposes and agreements when a consumerDelegation is revoked",
     "main": "dist",
     "type": "module",
     "scripts": {
