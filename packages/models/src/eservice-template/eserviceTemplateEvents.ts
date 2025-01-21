@@ -149,32 +149,80 @@ export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
 
 export type EServiceTemplateEventV2 = z.infer<typeof EServiceTemplateEventV2>;
 
-export function eserviceTemplateEventToBinaryDataV2(event: EServiceTemplateEventV2): Uint8Array {
+export function eserviceTemplateEventToBinaryDataV2(
+  event: EServiceTemplateEventV2
+): Uint8Array {
   return match(event)
-  .with({ type: "EServiceTemplateActivated" }, ({ data }) =>   EServiceTemplateActivatedV2.toBinary(data))
-  .with({ type: "EServiceTemplateAdded" }, ({ data }) =>   EServiceTemplateAddedV2.toBinary(data))
-  .with({ type: "EServiceTemplateAudienceDescriptionUpdated" }, ({ data }) =>   EServiceTemplateAudienceDescriptionUpdatedV2.toBinary(data))
-  .with({ type: "EServiceTemplateEServiceDescriptionUpdated" }, ({ data }) =>   EServiceTemplateEServiceDescriptionUpdatedV2.toBinary(data))
-  .with({ type: "EServiceTemplateDeleted" }, ({ data }) =>   EServiceTemplateDeletedV2.toBinary(data))
-  .with({ type: "EServiceTemplateDraftVersionDeleted" }, ({ data }) =>   EServiceTemplateDraftVersionDeletedV2.toBinary(data))
-  .with({ type: "EServiceTemplateDraftVersionUpdated" }, ({ data }) =>   EServiceTemplateDraftVersionUpdatedV2.toBinary(data))
-  .with({ type: "EServiceTemplateDraftUpdated" }, ({ data }) =>   EServiceTemplateDraftUpdatedV2.toBinary(data))
-  .with({ type: "EServiceTemplateNameUpdated" }, ({ data }) =>   EServiceTemplateNameUpdatedV2.toBinary(data))
-  .with({ type: "EServiceTemplateRiskAnalysisAdded" }, ({ data }) =>   EServiceTemplateRiskAnalysisAddedV2.toBinary(data))
-  .with({ type: "EServiceTemplateRiskAnalysisDeleted" }, ({ data }) =>   EServiceTemplateRiskAnalysisDeletedV2.toBinary(data))
-  .with({ type: "EServiceTemplateRiskAnalysisUpdated" }, ({ data }) =>   EServiceTemplateRiskAnalysisUpdatedV2.toBinary(data))
-  .with({ type: "EServiceTemplateSuspended" }, ({ data }) =>   EServiceTemplateSuspendedV2.toBinary(data))
-  .with({ type: "EServiceTemplateVersionAdded" }, ({ data }) =>   EServiceTemplateVersionAddedV2.toBinary(data))
-  .with({ type: "EServiceTemplateVersionAttributesUpdated" }, ({ data }) =>   EServiceTemplateVersionAttributesUpdatedV2.toBinary(data))
-  .with({ type: "EServiceTemplateVersionDocumentAdded" }, ({ data }) =>   EServiceTemplateVersionDocumentAddedV2.toBinary(data))
-  .with({ type: "EServiceTemplateVersionDocumentDeleted" }, ({ data }) =>   EServiceTemplateVersionDocumentDeletedV2.toBinary(data))
-  .with({ type: "EServiceTemplateVersionDocumentUpdated" }, ({ data }) =>   EServiceTemplateVersionDocumentUpdatedV2.toBinary(data))
-  .with({ type: "EServiceTemplateVersionInterfaceAdded" }, ({ data }) =>   EServiceTemplateVersionInterfaceAddedV2.toBinary(data))
-  .with({ type: "EServiceTemplateVersionInterfaceDeleted" }, ({ data }) =>   EServiceTemplateVersionInterfaceDeletedV2.toBinary(data))
-  .with({ type: "EServiceTemplateVersionInterfaceUpdated" }, ({ data }) =>   EServiceTemplateVersionInterfaceUpdatedV2.toBinary(data))
-  .with({ type: "EServiceTemplateVersionPublished" }, ({ data }) =>   EServiceTemplateVersionPublishedV2.toBinary(data))
-  .with({ type: "EServiceTemplateVersionQuotasUpdated" }, ({ data }) =>   EServiceTemplateVersionQuotasUpdatedV2.toBinary(data))
-  .exhaustive();
+    .with({ type: "EServiceTemplateActivated" }, ({ data }) =>
+      EServiceTemplateActivatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateAdded" }, ({ data }) =>
+      EServiceTemplateAddedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateAudienceDescriptionUpdated" }, ({ data }) =>
+      EServiceTemplateAudienceDescriptionUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateEServiceDescriptionUpdated" }, ({ data }) =>
+      EServiceTemplateEServiceDescriptionUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateDeleted" }, ({ data }) =>
+      EServiceTemplateDeletedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateDraftVersionDeleted" }, ({ data }) =>
+      EServiceTemplateDraftVersionDeletedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateDraftVersionUpdated" }, ({ data }) =>
+      EServiceTemplateDraftVersionUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateDraftUpdated" }, ({ data }) =>
+      EServiceTemplateDraftUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateNameUpdated" }, ({ data }) =>
+      EServiceTemplateNameUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateRiskAnalysisAdded" }, ({ data }) =>
+      EServiceTemplateRiskAnalysisAddedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateRiskAnalysisDeleted" }, ({ data }) =>
+      EServiceTemplateRiskAnalysisDeletedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateRiskAnalysisUpdated" }, ({ data }) =>
+      EServiceTemplateRiskAnalysisUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateSuspended" }, ({ data }) =>
+      EServiceTemplateSuspendedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateVersionAdded" }, ({ data }) =>
+      EServiceTemplateVersionAddedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateVersionAttributesUpdated" }, ({ data }) =>
+      EServiceTemplateVersionAttributesUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateVersionDocumentAdded" }, ({ data }) =>
+      EServiceTemplateVersionDocumentAddedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateVersionDocumentDeleted" }, ({ data }) =>
+      EServiceTemplateVersionDocumentDeletedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateVersionDocumentUpdated" }, ({ data }) =>
+      EServiceTemplateVersionDocumentUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateVersionInterfaceAdded" }, ({ data }) =>
+      EServiceTemplateVersionInterfaceAddedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateVersionInterfaceDeleted" }, ({ data }) =>
+      EServiceTemplateVersionInterfaceDeletedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateVersionInterfaceUpdated" }, ({ data }) =>
+      EServiceTemplateVersionInterfaceUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateVersionPublished" }, ({ data }) =>
+      EServiceTemplateVersionPublishedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateVersionQuotasUpdated" }, ({ data }) =>
+      EServiceTemplateVersionQuotasUpdatedV2.toBinary(data)
+    )
+    .exhaustive();
 }
 
 const eventV2 = z
@@ -183,22 +231,32 @@ const eventV2 = z
   })
   .passthrough();
 
-export const EServiceTemplateEvent = z.discriminatedUnion("event_version", [eventV2]).transform((obj, ctx) => {
-  const res = match(obj)
-    .with({ event_version: 2 }, () => EServiceTemplateEventV2.safeParse(obj))
-    .exhaustive();
+export const EServiceTemplateEvent = z
+  .discriminatedUnion("event_version", [eventV2])
+  .transform((obj, ctx) => {
+    const res = match(obj)
+      .with({ event_version: 2 }, () => EServiceTemplateEventV2.safeParse(obj))
+      .exhaustive();
 
-  if (!res.success) {
-    res.error.issues.forEach(ctx.addIssue);
-    return z.NEVER;
-  }
-  return res.data;
-});
+    if (!res.success) {
+      res.error.issues.forEach(ctx.addIssue);
+      return z.NEVER;
+    }
+    return res.data;
+  });
 
 export type EServiceTemplateEvent = z.infer<typeof EServiceTemplateEvent>;
 
-export const EServiceTemplateEnvelopeV2 = EventEnvelope(EServiceTemplateEventV2);
-export type EServiceTemplateEnvelopeV2 = z.infer<typeof EServiceTemplateEnvelopeV2>;
+export const EServiceTemplateEnvelopeV2 = EventEnvelope(
+  EServiceTemplateEventV2
+);
+export type EServiceTemplateEnvelopeV2 = z.infer<
+  typeof EServiceTemplateEnvelopeV2
+>;
 
-export const EServiceTemplateEventEnvelope = EventEnvelope(EServiceTemplateEvent);
-export type EServiceTemplateEventEnvelope = z.infer<typeof EServiceTemplateEventEnvelope>;
+export const EServiceTemplateEventEnvelope = EventEnvelope(
+  EServiceTemplateEvent
+);
+export type EServiceTemplateEventEnvelope = z.infer<
+  typeof EServiceTemplateEventEnvelope
+>;

@@ -1,6 +1,16 @@
 import z from "zod";
-import { EServiceTemplateId, EServiceTemplateVersionId, TenantId } from "../brandedIds.js";
-import { Document, AgreementApprovalPolicy, EServiceAttributes, Technology, EServiceMode } from "../eservice/eservice.js";
+import {
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
+  TenantId,
+} from "../brandedIds.js";
+import {
+  Document,
+  AgreementApprovalPolicy,
+  EServiceAttributes,
+  Technology,
+  EServiceMode,
+} from "../eservice/eservice.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 
 export const eserviceTemplateVersionState = {

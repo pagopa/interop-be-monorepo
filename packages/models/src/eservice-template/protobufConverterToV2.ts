@@ -6,19 +6,45 @@ import {
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
 } from "./eserviceTemplate.js";
-import { EServiceTemplateV2, EServiceTemplateVersionStateV2, EServiceTemplateVersionV2 } from "../gen/v2/eservice-template/eservice-template.js";
-import { toAgreementApprovalPolicyV2, toDocumentV2, toEServiceAttributeV2, toEServiceModeV2, toEServiceTechnologyV2, toRiskAnalysisV2 } from "../eservice/protobufConverterToV2.js";
+import {
+  EServiceTemplateV2,
+  EServiceTemplateVersionStateV2,
+  EServiceTemplateVersionV2,
+} from "../gen/v2/eservice-template/eservice-template.js";
+import {
+  toAgreementApprovalPolicyV2,
+  toDocumentV2,
+  toEServiceAttributeV2,
+  toEServiceModeV2,
+  toEServiceTechnologyV2,
+  toRiskAnalysisV2,
+} from "../eservice/protobufConverterToV2.js";
 
-export const toEServiceTemplateVersionStateV2 = (state: EServiceTemplateVersionState): EServiceTemplateVersionStateV2 =>
+export const toEServiceTemplateVersionStateV2 = (
+  state: EServiceTemplateVersionState
+): EServiceTemplateVersionStateV2 =>
   match(state)
-    .with(eserviceTemplateVersionState.published, () => EServiceTemplateVersionStateV2.PUBLISHED)
-    .with(eserviceTemplateVersionState.draft, () => EServiceTemplateVersionStateV2.DRAFT)
-    .with(eserviceTemplateVersionState.suspended, () => EServiceTemplateVersionStateV2.SUSPENDED)
-    .with(eserviceTemplateVersionState.deprecated, () => EServiceTemplateVersionStateV2.DEPRECATED)
+    .with(
+      eserviceTemplateVersionState.published,
+      () => EServiceTemplateVersionStateV2.PUBLISHED
+    )
+    .with(
+      eserviceTemplateVersionState.draft,
+      () => EServiceTemplateVersionStateV2.DRAFT
+    )
+    .with(
+      eserviceTemplateVersionState.suspended,
+      () => EServiceTemplateVersionStateV2.SUSPENDED
+    )
+    .with(
+      eserviceTemplateVersionState.deprecated,
+      () => EServiceTemplateVersionStateV2.DEPRECATED
+    )
     .exhaustive();
 
-
-export const toEServiceTemplateVersionV2 = (input: EServiceTemplateVersion): EServiceTemplateVersionV2 => ({
+export const toEServiceTemplateVersionV2 = (
+  input: EServiceTemplateVersion
+): EServiceTemplateVersionV2 => ({
   ...input,
   version: BigInt(input.version),
   attributes: {
@@ -30,17 +56,19 @@ export const toEServiceTemplateVersionV2 = (input: EServiceTemplateVersion): ESe
   state: toEServiceTemplateVersionStateV2(input.state),
   interface:
     input.interface != null ? toDocumentV2(input.interface) : undefined,
-  agreementApprovalPolicy: input.agreementApprovalPolicy != null ? toAgreementApprovalPolicyV2(
-    input.agreementApprovalPolicy
-  ) : undefined,
+  agreementApprovalPolicy:
+    input.agreementApprovalPolicy != null
+      ? toAgreementApprovalPolicyV2(input.agreementApprovalPolicy)
+      : undefined,
   createdAt: dateToBigInt(input.createdAt),
   publishedAt: dateToBigInt(input.publishedAt),
   suspendedAt: dateToBigInt(input.suspendedAt),
   deprecatedAt: dateToBigInt(input.deprecatedAt),
 });
 
-
-export const toEServiceTemplateV2 = (input: EServiceTemplate): EServiceTemplateV2 => ({
+export const toEServiceTemplateV2 = (
+  input: EServiceTemplate
+): EServiceTemplateV2 => ({
   ...input,
   technology: toEServiceTechnologyV2(input.technology),
   versions: input.versions.map(toEServiceTemplateVersionV2),

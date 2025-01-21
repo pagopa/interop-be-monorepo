@@ -1,15 +1,28 @@
 import { unsafeBrandId } from "../brandedIds.js";
-import { fromAgreementApprovalPolicyV2, fromDocumentV2, fromEServiceAttributeV2, fromEServiceModeV2, fromEServiceTechnologyV2, fromRiskAnalysisV2 } from "../eservice/protobufConverterFromV2.js";
-import { EServiceTemplateV2, EServiceTemplateVersionStateV2, EServiceTemplateVersionV2 } from "../gen/v2/eservice-template/eservice-template.js";
+import {
+  fromAgreementApprovalPolicyV2,
+  fromDocumentV2,
+  fromEServiceAttributeV2,
+  fromEServiceModeV2,
+  fromEServiceTechnologyV2,
+  fromRiskAnalysisV2,
+} from "../eservice/protobufConverterFromV2.js";
+import {
+  EServiceTemplateV2,
+  EServiceTemplateVersionStateV2,
+  EServiceTemplateVersionV2,
+} from "../gen/v2/eservice-template/eservice-template.js";
 import { bigIntToDate } from "../utils.js";
 import {
   EServiceTemplate,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
-  eserviceTemplateVersionState
+  eserviceTemplateVersionState,
 } from "./eserviceTemplate.js";
 
-export const fromEServiceTemplateVersionStateV2 = (input: EServiceTemplateVersionStateV2): EServiceTemplateVersionState => {
+export const fromEServiceTemplateVersionStateV2 = (
+  input: EServiceTemplateVersionStateV2
+): EServiceTemplateVersionState => {
   switch (input) {
     case EServiceTemplateVersionStateV2.PUBLISHED:
       return eserviceTemplateVersionState.published;
@@ -22,7 +35,9 @@ export const fromEServiceTemplateVersionStateV2 = (input: EServiceTemplateVersio
   }
 };
 
-export const fromEServiceTemplateVersionV2 = (input: EServiceTemplateVersionV2): EServiceTemplateVersion => {
+export const fromEServiceTemplateVersionV2 = (
+  input: EServiceTemplateVersionV2
+): EServiceTemplateVersion => {
   return {
     ...input,
     id: unsafeBrandId(input.id),
@@ -43,9 +58,10 @@ export const fromEServiceTemplateVersionV2 = (input: EServiceTemplateVersionV2):
     state: fromEServiceTemplateVersionStateV2(input.state),
     interface:
       input.interface != null ? fromDocumentV2(input.interface) : undefined,
-    agreementApprovalPolicy: input.agreementApprovalPolicy != null ? fromAgreementApprovalPolicyV2(
-      input.agreementApprovalPolicy
-    ) : undefined,
+    agreementApprovalPolicy:
+      input.agreementApprovalPolicy != null
+        ? fromAgreementApprovalPolicyV2(input.agreementApprovalPolicy)
+        : undefined,
     createdAt: bigIntToDate(input.createdAt),
     publishedAt: bigIntToDate(input.publishedAt),
     suspendedAt: bigIntToDate(input.suspendedAt),
@@ -53,7 +69,9 @@ export const fromEServiceTemplateVersionV2 = (input: EServiceTemplateVersionV2):
   };
 };
 
-export const fromEServiceTemplateV2 = (input: EServiceTemplateV2): EServiceTemplate => {
+export const fromEServiceTemplateV2 = (
+  input: EServiceTemplateV2
+): EServiceTemplate => {
   return {
     ...input,
     id: unsafeBrandId(input.id),
