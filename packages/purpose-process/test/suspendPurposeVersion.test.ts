@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import {
   getMockPurposeVersion,
   getMockPurpose,
-  writeInReadmodel,
   decodeProtobufPayload,
   getMockDelegation,
   getRandomAuthData,
@@ -15,7 +14,6 @@ import {
   PurposeVersion,
   purposeVersionState,
   Purpose,
-  toReadModelEService,
   generateId,
   PurposeVersionSuspendedByConsumerV2,
   toPurposeV2,
@@ -46,8 +44,6 @@ import {
   addOneEService,
   addOnePurpose,
   addOneTenant,
-  delegations,
-  eservices,
   getMockEService,
   purposeService,
   readLastPurposeEvent,
@@ -69,7 +65,7 @@ describe("suspendPurposeVersion", () => {
       versions: [mockPurposeVersion1],
     };
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
       {
@@ -136,7 +132,7 @@ describe("suspendPurposeVersion", () => {
       versions: [mockPurposeVersion1],
     };
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
       {
@@ -203,7 +199,7 @@ describe("suspendPurposeVersion", () => {
       versions: [mockPurposeVersion1],
     };
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     const delegation = getMockDelegation({
       delegatorId: mockEService.producerId,
@@ -212,7 +208,7 @@ describe("suspendPurposeVersion", () => {
       state: delegationState.active,
     });
 
-    await writeInReadmodel(delegation, delegations);
+    await addOneDelegation(delegation);
 
     const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
       {
@@ -280,7 +276,7 @@ describe("suspendPurposeVersion", () => {
       versions: [mockPurposeVersion1],
     };
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
       {
@@ -361,7 +357,7 @@ describe("suspendPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(mockPurpose, addOneDelegation);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
       {
@@ -440,8 +436,8 @@ describe("suspendPurposeVersion", () => {
     });
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(delegation, delegations);
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
 
     const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
       {
@@ -654,7 +650,7 @@ describe("suspendPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.suspendPurposeVersion(
@@ -687,7 +683,7 @@ describe("suspendPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.suspendPurposeVersion(
@@ -718,7 +714,7 @@ describe("suspendPurposeVersion", () => {
       versions: [mockPurposeVersion],
     };
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     const delegateId = generateId<TenantId>();
     const delegation = getMockDelegation({
@@ -729,7 +725,7 @@ describe("suspendPurposeVersion", () => {
       state: delegationState.active,
     });
 
-    await writeInReadmodel(delegation, delegations);
+    await addOneDelegation(delegation);
 
     const randomCaller = getRandomAuthData();
 
@@ -764,7 +760,7 @@ describe("suspendPurposeVersion", () => {
         versions: [mockPurposeVersion],
       };
       await addOnePurpose(mockPurpose);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await addOneEService(mockEService);
 
       const delegateAuthData = getRandomAuthData();
       const delegation = getMockDelegation({
@@ -775,7 +771,7 @@ describe("suspendPurposeVersion", () => {
         state: delegationState,
       });
 
-      await writeInReadmodel(delegation, delegations);
+      await addOneDelegation(delegation);
 
       expect(
         purposeService.suspendPurposeVersion(
@@ -807,7 +803,7 @@ describe("suspendPurposeVersion", () => {
       versions: [mockPurposeVersion],
     };
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     const delegateId = generateId<TenantId>();
     const delegation = getMockDelegation({
@@ -818,7 +814,7 @@ describe("suspendPurposeVersion", () => {
       state: delegationState.active,
     });
 
-    await writeInReadmodel(delegation, delegations);
+    await addOneDelegation(delegation);
 
     expect(
       purposeService.suspendPurposeVersion(
@@ -854,7 +850,7 @@ describe("suspendPurposeVersion", () => {
       };
 
       await addOnePurpose(mockPurpose);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await addOneEService(mockEService);
 
       expect(
         purposeService.suspendPurposeVersion(
@@ -886,7 +882,7 @@ describe("suspendPurposeVersion", () => {
       versions: [mockPurposeVersion],
     };
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
@@ -895,7 +891,89 @@ describe("suspendPurposeVersion", () => {
       state: delegationState.active,
     });
 
-    await writeInReadmodel(delegation, delegations);
+    await addOneDelegation(delegation);
+
+    expect(
+      purposeService.suspendPurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(delegation.delegateId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
+    ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
+  });
+  it("should throw organizationNotAllowed when the requester is a delegate for the eservice and there is no delegationId in the purpose in suspendPurposeVersion", async () => {
+    const authData = getRandomAuthData();
+    const mockEService = getMockEService();
+    const mockPurposeVersion: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.active,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+      consumerId: authData.organizationId,
+      delegationId: undefined,
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
+
+    expect(
+      purposeService.suspendPurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData: getRandomAuthData(delegation.delegateId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
+    ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
+  });
+  it("should throw organizationNotAllowed when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in suspendPurposeVersion", async () => {
+    const mockEService = getMockEService();
+    const mockPurposeVersion: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.active,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
+    };
+
+    const delegation = getMockDelegation({
+      id: generateId<DelegationId>(),
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockEService.id,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
 
     expect(
       purposeService.suspendPurposeVersion(
