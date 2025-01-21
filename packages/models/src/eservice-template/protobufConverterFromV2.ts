@@ -37,49 +37,45 @@ export const fromEServiceTemplateVersionStateV2 = (
 
 export const fromEServiceTemplateVersionV2 = (
   input: EServiceTemplateVersionV2
-): EServiceTemplateVersion => {
-  return {
-    ...input,
-    id: unsafeBrandId(input.id),
-    version: input.version.toString(),
-    attributes:
-      input.attributes != null
-        ? {
-            certified: input.attributes.certified.map(fromEServiceAttributeV2),
-            declared: input.attributes.declared.map(fromEServiceAttributeV2),
-            verified: input.attributes.verified.map(fromEServiceAttributeV2),
-          }
-        : {
-            certified: [],
-            declared: [],
-            verified: [],
-          },
-    docs: input.docs.map(fromDocumentV2),
-    state: fromEServiceTemplateVersionStateV2(input.state),
-    interface:
-      input.interface != null ? fromDocumentV2(input.interface) : undefined,
-    agreementApprovalPolicy:
-      input.agreementApprovalPolicy != null
-        ? fromAgreementApprovalPolicyV2(input.agreementApprovalPolicy)
-        : undefined,
-    createdAt: bigIntToDate(input.createdAt),
-    publishedAt: bigIntToDate(input.publishedAt),
-    suspendedAt: bigIntToDate(input.suspendedAt),
-    deprecatedAt: bigIntToDate(input.deprecatedAt),
-  };
-};
+): EServiceTemplateVersion => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  version: input.version.toString(),
+  attributes:
+    input.attributes != null
+      ? {
+          certified: input.attributes.certified.map(fromEServiceAttributeV2),
+          declared: input.attributes.declared.map(fromEServiceAttributeV2),
+          verified: input.attributes.verified.map(fromEServiceAttributeV2),
+        }
+      : {
+          certified: [],
+          declared: [],
+          verified: [],
+        },
+  docs: input.docs.map(fromDocumentV2),
+  state: fromEServiceTemplateVersionStateV2(input.state),
+  interface:
+    input.interface != null ? fromDocumentV2(input.interface) : undefined,
+  agreementApprovalPolicy:
+    input.agreementApprovalPolicy != null
+      ? fromAgreementApprovalPolicyV2(input.agreementApprovalPolicy)
+      : undefined,
+  createdAt: bigIntToDate(input.createdAt),
+  publishedAt: bigIntToDate(input.publishedAt),
+  suspendedAt: bigIntToDate(input.suspendedAt),
+  deprecatedAt: bigIntToDate(input.deprecatedAt),
+});
 
 export const fromEServiceTemplateV2 = (
   input: EServiceTemplateV2
-): EServiceTemplate => {
-  return {
-    ...input,
-    id: unsafeBrandId(input.id),
-    creatorId: unsafeBrandId(input.creatorId),
-    technology: fromEServiceTechnologyV2(input.technology),
-    versions: input.versions.map(fromEServiceTemplateVersionV2),
-    createdAt: bigIntToDate(input.createdAt),
-    riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV2),
-    mode: fromEServiceModeV2(input.mode),
-  };
-};
+): EServiceTemplate => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  creatorId: unsafeBrandId(input.creatorId),
+  technology: fromEServiceTechnologyV2(input.technology),
+  versions: input.versions.map(fromEServiceTemplateVersionV2),
+  createdAt: bigIntToDate(input.createdAt),
+  riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV2),
+  mode: fromEServiceModeV2(input.mode),
+});

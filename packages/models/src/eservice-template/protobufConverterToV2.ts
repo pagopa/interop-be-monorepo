@@ -1,12 +1,6 @@
 import { match } from "ts-pattern";
 import { dateToBigInt } from "../utils.js";
 import {
-  EServiceTemplate,
-  EServiceTemplateVersion,
-  EServiceTemplateVersionState,
-  eserviceTemplateVersionState,
-} from "./eserviceTemplate.js";
-import {
   EServiceTemplateV2,
   EServiceTemplateVersionStateV2,
   EServiceTemplateVersionV2,
@@ -19,6 +13,12 @@ import {
   toEServiceTechnologyV2,
   toRiskAnalysisV2,
 } from "../eservice/protobufConverterToV2.js";
+import {
+  EServiceTemplate,
+  EServiceTemplateVersion,
+  EServiceTemplateVersionState,
+  eserviceTemplateVersionState,
+} from "./eserviceTemplate.js";
 
 export const toEServiceTemplateVersionStateV2 = (
   state: EServiceTemplateVersionState
