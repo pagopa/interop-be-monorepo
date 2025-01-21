@@ -6455,16 +6455,6 @@ paths:
             default: []
           explode: false
         - in: query
-          name: producersIds
-          description: comma separated sequence of producers IDs
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
           name: states
           description: comma separated sequence of states
           schema:
@@ -6543,16 +6533,6 @@ paths:
         - in: query
           name: eservicesIds
           description: comma separated sequence of EService IDs
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: consumersIds
-          description: comma separated sequence of consumers IDs
           schema:
             type: array
             items:

@@ -381,7 +381,6 @@ export function purposeServiceBuilder(
         name?: string | undefined;
         eservicesIds?: string[] | undefined;
         consumersIds?: string[] | undefined;
-        producersIds?: string[] | undefined;
         states?: purposeApi.PurposeVersionState[] | undefined;
       },
       offset: number,
@@ -389,11 +388,15 @@ export function purposeServiceBuilder(
       { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
       logger.info(
-        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Producers ${filters.producersIds}, offset ${offset}, limit ${limit}`
+        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
         authData.organizationId,
-        { ...filters, excludeDraft: true },
+        {
+          ...filters,
+          excludeDraft: true,
+          producersIds: [authData.organizationId],
+        },
         offset,
         limit,
         headers
@@ -403,7 +406,6 @@ export function purposeServiceBuilder(
       filters: {
         name?: string | undefined;
         eservicesIds?: string[] | undefined;
-        consumersIds?: string[] | undefined;
         producersIds?: string[] | undefined;
         states?: purposeApi.PurposeVersionState[] | undefined;
       },
@@ -412,11 +414,15 @@ export function purposeServiceBuilder(
       { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
       logger.info(
-        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Consumers ${filters.consumersIds}, offset ${offset}, limit ${limit}`
+        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
         authData.organizationId,
-        { ...filters, excludeDraft: false },
+        {
+          ...filters,
+          excludeDraft: false,
+          consumersIds: [authData.organizationId],
+        },
         offset,
         limit,
         headers
