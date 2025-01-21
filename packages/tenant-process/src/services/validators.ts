@@ -155,7 +155,7 @@ export async function assertRequesterAllowed(
 export function assertRequesterDelegationsAllowedOrigin(
   authData: AuthData
 ): void {
-  if (!config.delegationsAllowedOrigins.includes(authData.externalId.origin)) {
+  if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
     throw operationForbidden;
   }
 }
