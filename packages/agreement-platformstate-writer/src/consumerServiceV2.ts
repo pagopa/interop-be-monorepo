@@ -229,7 +229,6 @@ export async function handleMessageV2(
     .with(
       { type: "AgreementArchivedByConsumer" },
       { type: "AgreementArchivedByUpgrade" },
-      { type: "AgreementDeleted" },
       async (msg) => {
         const agreement = parseAgreement(msg.data.agreement);
 
@@ -275,6 +274,7 @@ export async function handleMessageV2(
     )
     .with(
       { type: "AgreementAdded" },
+      { type: "AgreementDeleted" },
       { type: "DraftAgreementUpdated" },
       { type: "AgreementSubmitted" },
       { type: "AgreementRejected" },
