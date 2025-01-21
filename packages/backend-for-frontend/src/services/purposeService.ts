@@ -388,7 +388,7 @@ export function purposeServiceBuilder(
       { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
       logger.info(
-        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, offset ${offset}, limit ${limit}`
+        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Consumers ${filters.consumersIds} offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
         authData.organizationId,
@@ -414,7 +414,7 @@ export function purposeServiceBuilder(
       { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
       logger.info(
-        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, offset ${offset}, limit ${limit}`
+        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Producers ${filters.producersIds} offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
         authData.organizationId,

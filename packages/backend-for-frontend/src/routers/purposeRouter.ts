@@ -154,7 +154,7 @@ const purposeRouter = (
           getPurposesErrorMapper,
           ctx.logger,
           ctx.correlationId,
-          `Error retrieving Purposes for name ${req.query.q}, EServices ${req.query.eservicesIds}, offset ${req.query.offset}, limit ${req.query.limit}`
+          `Error retrieving Purposes for name ${req.query.q}, EServices ${req.query.eservicesIds}, Producers ${req.query.producersIds} offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
