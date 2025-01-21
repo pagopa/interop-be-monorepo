@@ -10,6 +10,7 @@ import {
   EServiceId,
   TenantId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
 import {
   toDelegationKind,
@@ -44,13 +45,39 @@ export const validDescriptorStates: catalogApi.EServiceDescriptorState[] = [
 export function isValidDescriptor(
   descriptor: catalogApi.EServiceDescriptor
 ): boolean {
-  return validDescriptorStates.includes(descriptor.state);
+  return match(descriptor.state)
+    .with(
+      catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+      catalogApi.EServiceDescriptorState.Values.DEPRECATED,
+      catalogApi.EServiceDescriptorState.Values.PUBLISHED,
+      catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      () => true
+    )
+    .with(
+      catalogApi.EServiceDescriptorState.Values.DRAFT,
+      catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
+      () => false
+    )
+    .exhaustive();
 }
 
 export function isInvalidDescriptor(
   descriptor: catalogApi.EServiceDescriptor
 ): boolean {
-  return invalidDescriptorStates.includes(descriptor.state);
+  return match(descriptor.state)
+    .with(
+      catalogApi.EServiceDescriptorState.Values.DRAFT,
+      catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
+      () => true
+    )
+    .with(
+      catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+      catalogApi.EServiceDescriptorState.Values.DEPRECATED,
+      catalogApi.EServiceDescriptorState.Values.PUBLISHED,
+      catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      () => false
+    )
+    .exhaustive();
 }
 
 export function isRequesterEserviceProducer(

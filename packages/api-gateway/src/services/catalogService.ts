@@ -5,6 +5,7 @@ import {
   removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import {
   toApiGatewayCatalogEservice,
   toApiGatewayDescriptorIfIsValid,
@@ -27,7 +28,6 @@ import { getOrganization } from "./tenantService.js";
 import {
   assertAvailableDescriptorExists,
   assertIsValidDescriptor,
-  validDescriptorStates,
 } from "./validators.js";
 
 export function getAllEservices(
@@ -157,7 +157,20 @@ export function catalogServiceBuilder(
 }
 
 const isValidDescriptorState = (d: catalogApi.EServiceDescriptor): boolean =>
-  validDescriptorStates.includes(d.state);
+  match(d.state)
+    .with(
+      catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+      catalogApi.EServiceDescriptorState.Values.DEPRECATED,
+      catalogApi.EServiceDescriptorState.Values.PUBLISHED,
+      catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      () => true
+    )
+    .with(
+      catalogApi.EServiceDescriptorState.Values.DRAFT,
+      catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
+      () => false
+    )
+    .exhaustive();
 
 function retrieveEserviceDescriptor(
   eservice: catalogApi.EService,
