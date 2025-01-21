@@ -33,18 +33,24 @@ import {
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
-export const descriptorStatesAllowingDocumentOperations: DescriptorState[] = [
-  descriptorState.draft,
-  descriptorState.deprecated,
-  descriptorState.published,
-  descriptorState.suspended,
-];
-
-export const updatableDescriptorStates: DescriptorState[] = [
-  descriptorState.deprecated,
-  descriptorState.published,
-  descriptorState.suspended,
-];
+export function descriptorStatesNotAllowingDocumentOperations(
+  descriptor: Descriptor
+): boolean {
+  return match(descriptor.state)
+    .with(
+      descriptorState.draft,
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => false
+    )
+    .with(
+      descriptorState.archived,
+      descriptorState.waitingForApproval,
+      () => true
+    )
+    .exhaustive();
+}
 
 export const notActiveDescriptorState: DescriptorState[] = [
   descriptorState.draft,
@@ -52,15 +58,37 @@ export const notActiveDescriptorState: DescriptorState[] = [
 ];
 
 export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
-  return notActiveDescriptorState.includes(descriptor.state);
+  return match(descriptor.state)
+    .with(descriptorState.draft, descriptorState.waitingForApproval, () => true)
+    .with(
+      descriptorState.archived,
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => false
+    )
+    .exhaustive();
 }
 
 export function isActiveDescriptor(descriptor: Descriptor): boolean {
-  return !notActiveDescriptorState.includes(descriptor.state);
+  return !isNotActiveDescriptor(descriptor);
 }
 
-export function isDescriptorUpdeatable(descriptor: Descriptor): boolean {
-  return updatableDescriptorStates.includes(descriptor.state);
+export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
+  return match(descriptor.state)
+    .with(
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => true
+    )
+    .with(
+      descriptorState.draft,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      () => false
+    )
+    .exhaustive();
 }
 
 export async function assertRequesterIsDelegateProducerOrProducer(

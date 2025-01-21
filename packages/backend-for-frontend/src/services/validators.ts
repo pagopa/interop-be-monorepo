@@ -30,18 +30,6 @@ import {
 import { BffAppContext } from "../utilities/context.js";
 import { getAllDelegations } from "./delegationService.js";
 
-export const invalidDescriptorStates: catalogApi.EServiceDescriptorState[] = [
-  catalogApi.EServiceDescriptorState.Values.DRAFT,
-  catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
-];
-
-export const validDescriptorStates: catalogApi.EServiceDescriptorState[] = [
-  catalogApi.EServiceDescriptorState.Values.PUBLISHED,
-  catalogApi.EServiceDescriptorState.Values.DEPRECATED,
-  catalogApi.EServiceDescriptorState.Values.SUSPENDED,
-  catalogApi.EServiceDescriptorState.Values.ARCHIVED,
-];
-
 export function isValidDescriptor(
   descriptor: catalogApi.EServiceDescriptor
 ): boolean {
@@ -168,16 +156,25 @@ export function isAgreementUpgradable(
   );
 }
 
-const subscribedAgreementStates: agreementApi.AgreementState[] = [
-  agreementApiState.PENDING,
-  agreementApiState.ACTIVE,
-  agreementApiState.SUSPENDED,
-];
-
 export function isAgreementSubscribed(
   agreement: agreementApi.Agreement | undefined
 ): boolean {
-  return !!agreement && subscribedAgreementStates.includes(agreement.state);
+  return match(agreement?.state)
+    .with(
+      agreementApiState.PENDING,
+      agreementApiState.ACTIVE,
+      agreementApiState.SUSPENDED,
+      () => true
+    )
+    .with(
+      agreementApiState.REJECTED,
+      agreementApiState.ARCHIVED,
+      agreementApiState.MISSING_CERTIFIED_ATTRIBUTES,
+      agreementApiState.DRAFT,
+      () => false
+    )
+    .with(undefined, () => false)
+    .exhaustive();
 }
 
 export function hasCertifiedAttributes(

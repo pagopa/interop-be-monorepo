@@ -114,9 +114,9 @@ import {
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
   assertTenantKindExists,
-  descriptorStatesAllowingDocumentOperations,
+  descriptorStatesNotAllowingDocumentOperations,
   isActiveDescriptor,
-  isDescriptorUpdeatable,
+  isDescriptorUpdatable,
   isNotActiveDescriptor,
   validateRiskAnalysisSchemaOrThrow,
 } from "./validators.js";
@@ -712,9 +712,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (
-        !descriptorStatesAllowingDocumentOperations.includes(descriptor.state)
-      ) {
+      if (descriptorStatesNotAllowingDocumentOperations(descriptor)) {
         throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
@@ -876,9 +874,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (
-        !descriptorStatesAllowingDocumentOperations.includes(descriptor.state)
-      ) {
+      if (descriptorStatesNotAllowingDocumentOperations(descriptor)) {
         throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
@@ -1784,7 +1780,7 @@ export function catalogServiceBuilder(
       );
 
       const hasValidDescriptor = eservice.data.descriptors.some(
-        isDescriptorUpdeatable
+        isDescriptorUpdatable
       );
       if (!hasValidDescriptor) {
         throw eserviceWithoutValidDescriptors(eserviceId);
