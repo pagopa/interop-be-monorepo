@@ -33,6 +33,9 @@ import {
   QueryCommand,
   QueryCommandOutput,
   QueryInput,
+  ScanCommand,
+  ScanCommandOutput,
+  ScanInput,
   UpdateItemCommand,
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
@@ -609,6 +612,72 @@ export const updateLatestAgreementOnTokenGenStates = async (
       )}`
     );
   }
+};
+
+export const deleteAgreementEntryByAgreementIdV1 = async (
+  agreementId: AgreementId,
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+): Promise<void> => {
+  const runPaginatedQuery = async (
+    agreementId: AgreementId,
+    dynamoDBClient: DynamoDBClient,
+    logger: Logger,
+    exclusiveStartKey?: Record<string, AttributeValue>
+  ): Promise<void> => {
+    const readInput: ScanInput = {
+      TableName: config.tokenGenerationReadModelTableNamePlatform,
+      FilterExpression: "agreementId = :agreementId",
+      ExpressionAttributeValues: {
+        ":agreementId": { S: agreementId },
+      },
+      ExclusiveStartKey: exclusiveStartKey,
+      ConsistentRead: true,
+    };
+    const commandQuery = new ScanCommand(readInput);
+    const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+
+    if (!data.Items) {
+      throw genericInternalError(
+        `Unable to read platform-states agreement entries: result ${JSON.stringify(
+          data
+        )} `
+      );
+    } else {
+      const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+      const agreementEntries = z
+        .array(PlatformStatesAgreementEntry)
+        .safeParse(unmarshalledItems);
+
+      if (!agreementEntries.success) {
+        throw genericInternalError(
+          `Unable to parse platform-states agreement entries: result ${JSON.stringify(
+            agreementEntries
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      for (const entry of agreementEntries.data) {
+        await deleteAgreementEntry(
+          entry.PK,
+          agreementId,
+          dynamoDBClient,
+          logger
+        );
+      }
+
+      if (data.LastEvaluatedKey) {
+        await runPaginatedQuery(
+          agreementId,
+          dynamoDBClient,
+          logger,
+          data.LastEvaluatedKey
+        );
+      }
+    }
+  };
+  await runPaginatedQuery(agreementId, dynamoDBClient, logger, undefined);
 };
 
 export const extractAgreementTimestamp = (agreement: Agreement): string =>
