@@ -36,7 +36,7 @@ import {
 } from "./utils.js";
 
 describe("delete agreement", () => {
-  it.only.each(agreementDeletableStates)(
+  it.each(agreementDeletableStates)(
     "should succeed when requester is Consumer and the Agreement is in a deletable state (%s)",
     async (state) => {
       vi.spyOn(fileManager, "delete");
