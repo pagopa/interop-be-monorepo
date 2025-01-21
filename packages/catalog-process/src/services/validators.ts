@@ -48,7 +48,7 @@ export const updatableDescriptorStates: DescriptorState[] = [
 
 export const notActiveDescriptorState: DescriptorState[] = [
   descriptorState.draft,
-  delegationState.waitingForApproval,
+  descriptorState.waitingForApproval,
 ];
 
 export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
