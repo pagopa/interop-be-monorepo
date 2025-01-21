@@ -228,6 +228,7 @@ export async function handleMessageV2(
     })
     .with(
       { type: "AgreementArchivedByConsumer" },
+      { type: "AgreementArchivedByUpgrade" },
       { type: "AgreementDeleted" },
       async (msg) => {
         const agreement = parseAgreement(msg.data.agreement);
@@ -281,7 +282,6 @@ export async function handleMessageV2(
       { type: "AgreementConsumerDocumentRemoved" },
       { type: "AgreementSetDraftByPlatform" },
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
-      { type: "AgreementArchivedByUpgrade" },
       () => Promise.resolve()
     )
     .exhaustive();
