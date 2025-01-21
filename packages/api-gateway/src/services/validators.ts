@@ -8,7 +8,8 @@ import {
 } from "pagopa-interop-api-clients";
 import { Logger } from "pagopa-interop-commons";
 import { operationForbidden, TenantId } from "pagopa-interop-models";
-import { validCatalogApiDescriptor } from "../api/catalogApiConverter.js";
+import { match } from "ts-pattern";
+import { ValidCatalogApiDescriptor } from "../api/catalogApiConverter.js";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
   attributeNotFoundInRegistry,
@@ -83,19 +84,32 @@ export function assertAvailableDescriptorExists(
   }
 }
 
-export function assertNotValidDescriptor(
+export function assertIsValidDescriptor(
   descriptor: catalogApi.EServiceDescriptor,
   eserviceId: catalogApi.EService["id"],
   logger: Logger
-): asserts descriptor is validCatalogApiDescriptor {
-  if (invalidDescriptorStates.includes(descriptor.state)) {
-    throw unexpectedDescriptorState(
-      descriptor.state,
-      eserviceId,
-      descriptor.id,
-      logger
-    );
-  }
+): asserts descriptor is ValidCatalogApiDescriptor {
+  match(descriptor.state)
+    .with(
+      catalogApi.EServiceDescriptorState.Values.DRAFT,
+      catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
+      () => {
+        throw unexpectedDescriptorState(
+          descriptor.state,
+          eserviceId,
+          descriptor.id,
+          logger
+        );
+      }
+    )
+    .with(
+      catalogApi.EServiceDescriptorState.Values.PUBLISHED,
+      catalogApi.EServiceDescriptorState.Values.DEPRECATED,
+      catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+      () => descriptor
+    )
+    .exhaustive();
 }
 
 export function assertRegistryAttributeExists(

@@ -9,7 +9,7 @@ import {
   toApiGatewayCatalogEservice,
   toApiGatewayDescriptorIfIsValid,
   toApiGatewayEserviceAttributes,
-  validCatalogApiDescriptor,
+  ValidCatalogApiDescriptor,
 } from "../api/catalogApiConverter.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
@@ -26,7 +26,7 @@ import { getAllBulkAttributes } from "./attributeService.js";
 import { getOrganization } from "./tenantService.js";
 import {
   assertAvailableDescriptorExists,
-  assertNotValidDescriptor,
+  assertIsValidDescriptor,
   validDescriptorStates,
 } from "./validators.js";
 
@@ -175,14 +175,14 @@ function retrieveEserviceDescriptor(
 function getLatestValidDescriptor(
   eservice: catalogApi.EService,
   logger: Logger
-): validCatalogApiDescriptor {
+): ValidCatalogApiDescriptor {
   const latestValidDescriptor = eservice.descriptors
     .filter(isValidDescriptorState)
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
 
   assertAvailableDescriptorExists(latestValidDescriptor, eservice.id, logger);
-  assertNotValidDescriptor(latestValidDescriptor, eservice.id, logger);
+  assertIsValidDescriptor(latestValidDescriptor, eservice.id, logger);
 
   return latestValidDescriptor;
 }
@@ -190,7 +190,7 @@ function getLatestValidDescriptor(
 async function getDescriptorAttributes(
   attributeProcessClient: AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
-  descriptor: validCatalogApiDescriptor
+  descriptor: ValidCatalogApiDescriptor
 ): Promise<apiGatewayApi.EServiceAttributes> {
   const allDescriptorAttributesIds = removeDuplicates(
     [
