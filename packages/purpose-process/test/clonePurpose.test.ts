@@ -708,6 +708,7 @@ describe("clonePurpose", async () => {
       eserviceId: mockEService.id,
       consumerId: consumer.id,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
+      delegationId: generateId<DelegationId>(),
     };
 
     await addOnePurpose(purposeCreatedByDelegate);
@@ -749,7 +750,7 @@ describe("clonePurpose", async () => {
       agreementState.active
     );
 
-    const purposeCreatedByDelegate: Purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       consumerId: consumer.id,
@@ -759,13 +760,13 @@ describe("clonePurpose", async () => {
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
-      eserviceId: purposeCreatedByDelegate.eserviceId,
-      delegatorId: purposeCreatedByDelegate.consumerId,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
       delegateId: consumerDelegate.id,
       state: delegationState.active,
     });
 
-    await addOnePurpose(purposeCreatedByDelegate);
+    await addOnePurpose(purpose);
     await addOneTenant(consumer);
     await addOneTenant(consumerDelegate);
     await addOneAgreement(mockAgreement);
@@ -773,7 +774,7 @@ describe("clonePurpose", async () => {
 
     expect(
       purposeService.clonePurpose({
-        purposeId: purposeCreatedByDelegate.id,
+        purposeId: purpose.id,
         seed: {
           eserviceId: mockEService.id,
         },
