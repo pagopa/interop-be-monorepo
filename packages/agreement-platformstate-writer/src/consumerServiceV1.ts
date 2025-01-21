@@ -11,6 +11,7 @@ import {
   makeGSIPKConsumerIdEServiceId,
   unsafeBrandId,
   AgreementId,
+  itemState,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Logger } from "pagopa-interop-commons";
@@ -24,6 +25,7 @@ import {
   extractAgreementTimestamp,
   upsertPlatformStatesAgreementEntry,
   deleteAgreementEntryByAgreementIdV1,
+  updateAgreementStateInTokenGenStatesV1,
 } from "./utils.js";
 
 export async function handleMessageV1(
@@ -103,13 +105,19 @@ export async function handleMessageV1(
       await handleArchiving(agreement, dynamoDBClient, logger);
     })
     .with({ type: "AgreementDeleted" }, async (msg) => {
+      const agreementId = unsafeBrandId<AgreementId>(msg.data.agreementId);
       await deleteAgreementEntryByAgreementIdV1(
-        unsafeBrandId<AgreementId>(msg.data.agreementId),
+        agreementId,
         dynamoDBClient,
         logger
       );
 
-      // TODO token-generation-states
+      await updateAgreementStateInTokenGenStatesV1(
+        agreementId,
+        itemState.inactive,
+        dynamoDBClient,
+        logger
+      );
     })
     .with(
       { type: "VerifiedAttributeUpdated" },
