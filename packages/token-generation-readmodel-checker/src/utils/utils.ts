@@ -433,7 +433,9 @@ export async function compareReadModelAgreementsWithPlatformStates({
     }
 
     if (platformStatesEntry && !agreement) {
-      logger.error(`Read model agreement not found for id: ${id}`);
+      logger.error(
+        `Read model agreement not found for id ${id} and platform-states entry with PK ${platformStatesEntry.PK}`
+      );
       differencesCount++;
     }
 
@@ -576,7 +578,7 @@ export async function compareReadModelEServicesWithPlatformStates({
             differencesCount++;
             // For info: __old = platform-states entry and __new = read model e-service
             logger.error(
-              `Differences in platform-states when checking e-service with id ${eservice.id}`
+              `Differences in platform-states when checking catalog entry ${platformStatesEntry.PK}`
             );
             logger.error(JSON.stringify(objectsDiff, null, 2));
           }
