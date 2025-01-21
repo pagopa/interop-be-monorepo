@@ -11,6 +11,7 @@ import {
   AuthorizationEvent,
   Client,
   ClientId,
+  Delegation,
   ProducerKeychain,
   ProducerKeychainId,
   toClientV2,
@@ -37,6 +38,7 @@ export const {
   purposes,
   tenants,
   producerKeychains,
+  delegations,
 } = readModelRepository;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
@@ -98,6 +100,12 @@ export const addOneProducerKeychain = async (
     toReadModelProducerKeychain(producerKeychain),
     producerKeychains
   );
+};
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await writeInReadmodel(delegation, delegations);
 };
 
 export const readLastAuthorizationEvent = async (
