@@ -226,52 +226,76 @@ export async function handleMessageV2(
         return Promise.resolve();
       }
     })
-    .with(
-      { type: "AgreementArchivedByConsumer" },
-      { type: "AgreementArchivedByUpgrade" },
-      async (msg) => {
-        const agreement = parseAgreement(msg.data.agreement);
+    .with({ type: "AgreementArchivedByConsumer" }, async (msg) => {
+      const agreement = parseAgreement(msg.data.agreement);
 
-        const primaryKey = makePlatformStatesAgreementPK({
-          consumerId: agreement.consumerId,
-          eserviceId: agreement.eserviceId,
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
+      const agreementEntry = await readAgreementEntry(
+        primaryKey,
+        dynamoDBClient
+      );
+
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
+
+      const agreementTimestamp = extractAgreementTimestamp(agreement);
+
+      if (
+        isLatestAgreement(agreementEntry, agreementTimestamp) &&
+        agreementEntry?.agreementId === agreement.id
+      ) {
+        // token-generation-states only if agreement is the latest
+        await updateAgreementStateOnTokenGenStates({
+          GSIPK_consumerId_eserviceId,
+          agreementState: agreement.state,
+          dynamoDBClient,
+          logger,
         });
-        const agreementEntry = await readAgreementEntry(
+        await deleteAgreementEntry(
           primaryKey,
-          dynamoDBClient
+          agreementEntry.agreementId,
+          dynamoDBClient,
+          logger
         );
-
-        const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement.consumerId,
-          eserviceId: agreement.eserviceId,
-        });
-
-        const agreementTimestamp = extractAgreementTimestamp(agreement);
-
-        if (
-          isLatestAgreement(agreementEntry, agreementTimestamp) &&
-          agreementEntry?.agreementId === agreement.id
-        ) {
-          // token-generation-states only if agreement is the latest
-          await updateAgreementStateOnTokenGenStates({
-            GSIPK_consumerId_eserviceId,
-            agreementState: agreement.state,
-            dynamoDBClient,
-            logger,
-          });
-          await deleteAgreementEntry(
-            primaryKey,
-            agreementEntry.agreementId,
-            dynamoDBClient,
-            logger
-          );
-        } else {
-          logger.info(
-            `Platform-states and Token-generation-states. Skipping processing of entry with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId} and agreement ${agreement.id}. Reason: agreement is not the latest`
-          );
-        }
+      } else {
+        logger.info(
+          `Platform-states and Token-generation-states. Skipping processing of entry with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId} and agreement ${agreement.id}. Reason: agreement is not the latest`
+        );
       }
-    )
+    })
+    .with({ type: "AgreementArchivedByUpgrade" }, async (msg) => {
+      const agreement = parseAgreement(msg.data.agreement);
+      const primaryKey = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
+      const agreementEntry = await readAgreementEntry(
+        primaryKey,
+        dynamoDBClient
+      );
+      const agreementTimestamp = extractAgreementTimestamp(agreement);
+
+      if (
+        isLatestAgreement(agreementEntry, agreementTimestamp) &&
+        agreementEntry?.agreementId === agreement.id
+      ) {
+        await deleteAgreementEntry(
+          primaryKey,
+          agreementEntry.agreementId,
+          dynamoDBClient,
+          logger
+        );
+      } else {
+        logger.info(
+          `Platform-states. Skipping processing of entry with PK ${primaryKey} and agreement ${agreement.id}. Reason: agreement is not the latest`
+        );
+      }
+    })
     .with(
       { type: "AgreementAdded" },
       { type: "AgreementDeleted" },
