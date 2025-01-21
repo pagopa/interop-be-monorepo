@@ -386,7 +386,7 @@ export function catalogServiceBuilder(
     updateEServiceFlags: async (
       { headers, logger }: WithLogger<BffAppContext>,
       eServiceId: EServiceId,
-      updateSeed: bffApi.EServiceFlagsSeed
+      updateSeed: bffApi.EServiceFlagsUpdateSeed
     ): Promise<bffApi.CreatedResource> => {
       logger.info(`Updating EService Flags for eserviceId = ${eServiceId}`);
       const updatedEservice =

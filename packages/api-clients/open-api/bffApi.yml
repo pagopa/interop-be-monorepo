@@ -4173,7 +4173,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/delegationFlags:
+  /eservices/{eServiceId}/delegationFlags/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -4197,7 +4197,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceFlagsSeed"
+              $ref: "#/components/schemas/EServiceFlagsUpdateSeed"
       responses:
         "200":
           description: EService flags updated
@@ -14652,7 +14652,7 @@ components:
           type: string
       required:
         - description
-    EServiceFlagsSeed:
+    EServiceFlagsUpdateSeed:
       type: object
       additionalProperties: false
       properties:
