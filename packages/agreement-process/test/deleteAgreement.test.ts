@@ -36,66 +36,69 @@ import {
 } from "./utils.js";
 
 describe("delete agreement", () => {
-  it("should succeed when requester is Consumer and the Agreement is in a deletable state", async () => {
-    vi.spyOn(fileManager, "delete");
-    const agreementId = generateId<AgreementId>();
-    const consumerDocuments = [
-      getMockConsumerDocument(agreementId, "doc1"),
-      getMockConsumerDocument(agreementId, "doc2"),
-    ];
-    const agreement = {
-      ...getMockAgreement(),
-      id: agreementId,
-      state: randomArrayItem(agreementDeletableStates),
-      consumerDocuments,
-    };
-    await addOneAgreement(agreement);
+  it.only.each(agreementDeletableStates)(
+    "should succeed when requester is Consumer and the Agreement is in a deletable state (%s)",
+    async (state) => {
+      vi.spyOn(fileManager, "delete");
+      const agreementId = generateId<AgreementId>();
+      const consumerDocuments = [
+        getMockConsumerDocument(agreementId, "doc1"),
+        getMockConsumerDocument(agreementId, "doc2"),
+      ];
+      const agreement = {
+        ...getMockAgreement(),
+        id: agreementId,
+        state,
+        consumerDocuments,
+      };
+      await addOneAgreement(agreement);
 
-    await Promise.all(
-      consumerDocuments.map((doc) =>
-        uploadDocument(agreementId, doc.id, doc.name)
-      )
-    );
+      await Promise.all(
+        consumerDocuments.map((doc) =>
+          uploadDocument(agreementId, doc.id, doc.name)
+        )
+      );
 
-    const authData = getRandomAuthData(agreement.consumerId);
-    await agreementService.deleteAgreementById(agreement.id, {
-      authData,
-      serviceName: "",
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+      const authData = getRandomAuthData(agreement.consumerId);
+      await agreementService.deleteAgreementById(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      });
 
-    const agreementEvent = await readLastAgreementEvent(agreement.id);
+      const agreementEvent = await readLastAgreementEvent(agreement.id);
 
-    expect(agreementEvent).toMatchObject({
-      type: "AgreementDeleted",
-      event_version: 2,
-      version: "1",
-      stream_id: agreement.id,
-    });
+      expect(agreementEvent).toMatchObject({
+        type: "AgreementDeleted",
+        event_version: 2,
+        version: "1",
+        stream_id: agreement.id,
+      });
 
-    const agreementDeletedId = decodeProtobufPayload({
-      messageType: AgreementDeletedV2,
-      payload: agreementEvent.data,
-    }).agreement?.id;
+      const agreementDeletedId = decodeProtobufPayload({
+        messageType: AgreementDeletedV2,
+        payload: agreementEvent.data,
+      }).agreement?.id;
 
-    expect(agreementDeletedId).toEqual(agreement.id);
+      expect(agreementDeletedId).toEqual(agreement.id);
 
-    const filePaths = await fileManager.listFiles(
-      config.s3Bucket,
-      genericLogger
-    );
-
-    consumerDocuments.forEach((doc) => {
-      expect(fileManager.delete).toHaveBeenCalledWith(
+      const filePaths = await fileManager.listFiles(
         config.s3Bucket,
-        doc.path,
         genericLogger
       );
 
-      expect(filePaths).not.toContain(doc.path);
-    });
-  });
+      consumerDocuments.forEach((doc) => {
+        expect(fileManager.delete).toHaveBeenCalledWith(
+          config.s3Bucket,
+          doc.path,
+          genericLogger
+        );
+
+        expect(filePaths).not.toContain(doc.path);
+      });
+    }
+  );
 
   it("should succeed when requester is Consumer Delegate and the Agreement is in a deletable state", async () => {
     vi.spyOn(fileManager, "delete");
