@@ -1,71 +1,71 @@
 import {
   AgreementApprovalPolicy,
-  DescriptorState,
-  EService,
-  AgreementState,
-  agreementState,
   Technology,
   agreementApprovalPolicy,
-  descriptorState,
   technology,
   EServiceMode,
   eserviceMode,
-  Descriptor,
   Document,
+  eserviceTemplateVersionState,
+  EServiceTemplateVersionState,
+  EServiceTemplateVersion,
+  EServiceTemplate,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 
 export function technologyToApiTechnology(
   input: Technology
-): catalogApi.EServiceTechnology {
-  return match<Technology, catalogApi.EServiceTechnology>(input)
+): eserviceTemplateApi.EServiceTechnology {
+  return match<Technology, eserviceTemplateApi.EServiceTechnology>(input)
     .with(technology.rest, () => "REST")
     .with(technology.soap, () => "SOAP")
     .exhaustive();
 }
 
 export function apiTechnologyToTechnology(
-  input: catalogApi.EServiceTechnology
+  input: eserviceTemplateApi.EServiceTechnology
 ): Technology {
-  return match<catalogApi.EServiceTechnology, Technology>(input)
+  return match<eserviceTemplateApi.EServiceTechnology, Technology>(input)
     .with("REST", () => technology.rest)
     .with("SOAP", () => technology.soap)
     .exhaustive();
 }
 
-export function descriptorStateToApiEServiceDescriptorState(
-  input: DescriptorState
-): catalogApi.EServiceDescriptorState {
-  return match<DescriptorState, catalogApi.EServiceDescriptorState>(input)
-    .with(descriptorState.draft, () => "DRAFT")
-    .with(descriptorState.published, () => "PUBLISHED")
-    .with(descriptorState.suspended, () => "SUSPENDED")
-    .with(descriptorState.deprecated, () => "DEPRECATED")
-    .with(descriptorState.archived, () => "ARCHIVED")
-    .with(descriptorState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
+export function eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
+  input: EServiceTemplateVersionState
+): eserviceTemplateApi.EServiceTemplateVersionState {
+  return match<
+    EServiceTemplateVersionState,
+    eserviceTemplateApi.EServiceTemplateVersionState
+  >(input)
+    .with(eserviceTemplateVersionState.draft, () => "DRAFT")
+    .with(eserviceTemplateVersionState.published, () => "PUBLISHED")
+    .with(eserviceTemplateVersionState.suspended, () => "SUSPENDED")
+    .with(eserviceTemplateVersionState.deprecated, () => "DEPRECATED")
     .exhaustive();
 }
 
-export function apiDescriptorStateToDescriptorState(
-  input: catalogApi.EServiceDescriptorState
-): DescriptorState {
-  return match<catalogApi.EServiceDescriptorState, DescriptorState>(input)
-    .with("DRAFT", () => descriptorState.draft)
-    .with("PUBLISHED", () => descriptorState.published)
-    .with("SUSPENDED", () => descriptorState.suspended)
-    .with("DEPRECATED", () => descriptorState.deprecated)
-    .with("ARCHIVED", () => descriptorState.archived)
-    .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
+export function apiEServiceTemplateVersionStateToEServiceTemplateVersionState(
+  input: eserviceTemplateApi.EServiceTemplateVersionState
+): EServiceTemplateVersionState {
+  return match<
+    eserviceTemplateApi.EServiceTemplateVersionState,
+    EServiceTemplateVersionState
+  >(input)
+    .with("DRAFT", () => eserviceTemplateVersionState.draft)
+    .with("PUBLISHED", () => eserviceTemplateVersionState.published)
+    .with("SUSPENDED", () => eserviceTemplateVersionState.suspended)
+    .with("DEPRECATED", () => eserviceTemplateVersionState.deprecated)
     .exhaustive();
 }
 
 export function agreementApprovalPolicyToApiAgreementApprovalPolicy(
   input: AgreementApprovalPolicy | undefined
-): catalogApi.AgreementApprovalPolicy {
+): eserviceTemplateApi.AgreementApprovalPolicy {
   return match<
     AgreementApprovalPolicy | undefined,
-    catalogApi.AgreementApprovalPolicy
+    eserviceTemplateApi.AgreementApprovalPolicy
   >(input)
     .with(agreementApprovalPolicy.automatic, () => "AUTOMATIC")
     .with(agreementApprovalPolicy.manual, () => "MANUAL")
@@ -73,54 +73,21 @@ export function agreementApprovalPolicyToApiAgreementApprovalPolicy(
 }
 
 export function apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-  input: catalogApi.AgreementApprovalPolicy
+  input: eserviceTemplateApi.AgreementApprovalPolicy
 ): AgreementApprovalPolicy {
-  return match<catalogApi.AgreementApprovalPolicy, AgreementApprovalPolicy>(
-    input
-  )
+  return match<
+    eserviceTemplateApi.AgreementApprovalPolicy,
+    AgreementApprovalPolicy
+  >(input)
     .with("AUTOMATIC", () => agreementApprovalPolicy.automatic)
     .with("MANUAL", () => agreementApprovalPolicy.manual)
     .exhaustive();
 }
 
-export function agreementStateToApiAgreementState(
-  input: AgreementState
-): catalogApi.AgreementState {
-  return match<AgreementState, catalogApi.AgreementState>(input)
-    .with(agreementState.pending, () => "PENDING")
-    .with(agreementState.rejected, () => "REJECTED")
-    .with(agreementState.active, () => "ACTIVE")
-    .with(agreementState.suspended, () => "SUSPENDED")
-    .with(agreementState.archived, () => "ARCHIVED")
-    .with(agreementState.draft, () => "DRAFT")
-    .with(
-      agreementState.missingCertifiedAttributes,
-      () => "MISSING_CERTIFIED_ATTRIBUTES"
-    )
-    .exhaustive();
-}
-
-export function apiAgreementStateToAgreementState(
-  input: catalogApi.AgreementState
-): AgreementState {
-  return match<catalogApi.AgreementState, AgreementState>(input)
-    .with("PENDING", () => agreementState.pending)
-    .with("REJECTED", () => agreementState.rejected)
-    .with("ACTIVE", () => agreementState.active)
-    .with("SUSPENDED", () => agreementState.suspended)
-    .with("ARCHIVED", () => agreementState.archived)
-    .with("DRAFT", () => agreementState.draft)
-    .with(
-      "MISSING_CERTIFIED_ATTRIBUTES",
-      () => agreementState.missingCertifiedAttributes
-    )
-    .exhaustive();
-}
-
 export function apiEServiceModeToEServiceMode(
-  input: catalogApi.EServiceMode
+  input: eserviceTemplateApi.EServiceMode
 ): EServiceMode {
-  return match<catalogApi.EServiceMode, EServiceMode>(input)
+  return match<eserviceTemplateApi.EServiceMode, EServiceMode>(input)
     .with("RECEIVE", () => eserviceMode.receive)
     .with("DELIVER", () => eserviceMode.deliver)
     .exhaustive();
@@ -128,8 +95,8 @@ export function apiEServiceModeToEServiceMode(
 
 export function eServiceModeToApiEServiceMode(
   input: EServiceMode
-): catalogApi.EServiceMode {
-  return match<EServiceMode, catalogApi.EServiceMode>(input)
+): eserviceTemplateApi.EServiceMode {
+  return match<EServiceMode, eserviceTemplateApi.EServiceMode>(input)
     .with(eserviceMode.receive, () => "RECEIVE")
     .with(eserviceMode.deliver, () => "DELIVER")
     .exhaustive();
@@ -137,7 +104,7 @@ export function eServiceModeToApiEServiceMode(
 
 export const documentToApiDocument = (
   document: Document
-): catalogApi.EServiceDoc => ({
+): eserviceTemplateApi.EServiceDoc => ({
   id: document.id,
   name: document.name,
   contentType: document.contentType,
@@ -146,50 +113,46 @@ export const documentToApiDocument = (
   checksum: document.checksum,
 });
 
-export const descriptorToApiDescriptor = (
-  descriptor: Descriptor
-): catalogApi.EServiceDescriptor => ({
-  id: descriptor.id,
-  version: descriptor.version,
-  description: descriptor.description,
-  audience: descriptor.audience,
-  voucherLifespan: descriptor.voucherLifespan,
-  dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-  dailyCallsTotal: descriptor.dailyCallsTotal,
-  interface: descriptor.interface
-    ? documentToApiDocument(descriptor.interface)
+export const eserviceTemplateVersionToApiEServiceTemplateVersion = (
+  eserviceTemplateVersion: EServiceTemplateVersion
+): eserviceTemplateApi.EServiceTemplateVersion => ({
+  id: eserviceTemplateVersion.id,
+  version: eserviceTemplateVersion.version,
+  description: eserviceTemplateVersion.description,
+  voucherLifespan: eserviceTemplateVersion.voucherLifespan,
+  dailyCallsPerConsumer: eserviceTemplateVersion.dailyCallsPerConsumer,
+  dailyCallsTotal: eserviceTemplateVersion.dailyCallsTotal,
+  interface: eserviceTemplateVersion.interface
+    ? documentToApiDocument(eserviceTemplateVersion.interface)
     : undefined,
-  docs: descriptor.docs.map(documentToApiDocument),
-  state: descriptorStateToApiEServiceDescriptorState(descriptor.state),
-  agreementApprovalPolicy: agreementApprovalPolicyToApiAgreementApprovalPolicy(
-    descriptor.agreementApprovalPolicy
+  docs: eserviceTemplateVersion.docs.map(documentToApiDocument),
+  state: eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
+    eserviceTemplateVersion.state
   ),
-  serverUrls: descriptor.serverUrls,
-  publishedAt: descriptor.publishedAt?.toJSON(),
-  suspendedAt: descriptor.suspendedAt?.toJSON(),
-  deprecatedAt: descriptor.deprecatedAt?.toJSON(),
-  archivedAt: descriptor.archivedAt?.toJSON(),
+  agreementApprovalPolicy: agreementApprovalPolicyToApiAgreementApprovalPolicy(
+    eserviceTemplateVersion.agreementApprovalPolicy
+  ),
+  publishedAt: eserviceTemplateVersion.publishedAt?.toJSON(),
+  suspendedAt: eserviceTemplateVersion.suspendedAt?.toJSON(),
+  deprecatedAt: eserviceTemplateVersion.deprecatedAt?.toJSON(),
   attributes: {
-    certified: descriptor.attributes.certified,
-    declared: descriptor.attributes.declared,
-    verified: descriptor.attributes.verified,
+    certified: eserviceTemplateVersion.attributes.certified,
+    declared: eserviceTemplateVersion.attributes.declared,
+    verified: eserviceTemplateVersion.attributes.verified,
   },
-  rejectionReasons: descriptor.rejectionReasons?.map((reason) => ({
-    rejectionReason: reason.rejectionReason,
-    rejectedAt: reason.rejectedAt.toJSON(),
-  })),
 });
 
-export const eServiceToApiEService = (
-  eservice: EService
-): catalogApi.EService => ({
-  id: eservice.id,
-  producerId: eservice.producerId,
-  name: eservice.name,
-  description: eservice.description,
-  technology: technologyToApiTechnology(eservice.technology),
-  mode: eServiceModeToApiEServiceMode(eservice.mode),
-  riskAnalysis: eservice.riskAnalysis.map((riskAnalysis) => ({
+export const eserviceTemplateToApiEServiceTemplate = (
+  eserviceTemplate: EServiceTemplate
+): eserviceTemplateApi.EServiceTemplate => ({
+  id: eserviceTemplate.id,
+  creatorId: eserviceTemplate.creatorId,
+  name: eserviceTemplate.name,
+  audienceDescription: eserviceTemplate.audienceDescription,
+  eserviceDescription: eserviceTemplate.eserviceDescription,
+  technology: technologyToApiTechnology(eserviceTemplate.technology),
+  mode: eServiceModeToApiEServiceMode(eserviceTemplate.mode),
+  riskAnalysis: eserviceTemplate.riskAnalysis.map((riskAnalysis) => ({
     id: riskAnalysis.id,
     name: riskAnalysis.name,
     createdAt: riskAnalysis.createdAt.toJSON(),
@@ -200,6 +163,8 @@ export const eServiceToApiEService = (
       multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
     },
   })),
-  descriptors: eservice.descriptors.map(descriptorToApiDescriptor),
-  isSignalHubEnabled: eservice.isSignalHubEnabled,
+  versions: eserviceTemplate.versions.map(
+    eserviceTemplateVersionToApiEServiceTemplateVersion
+  ),
+  isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
 });

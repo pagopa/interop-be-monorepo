@@ -12,11 +12,12 @@ export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
-export function eServiceTemplateNotFound(eserviceTemplateId: EServiceTemplateId): ApiError<ErrorCodes> {
+export function eServiceTemplateNotFound(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService Template ${eserviceTemplateId} not found`,
     code: "eServiceTemplateNotFound",
     title: "EService Template not found",
   });
 }
-
