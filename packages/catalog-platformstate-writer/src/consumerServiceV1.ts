@@ -39,59 +39,63 @@ export async function handleMessageV1(
         descriptorId: descriptor.id,
       });
       await match(descriptor.state)
-        .with(descriptorState.published, async () => {
-          const existingCatalogEntry = await readCatalogEntry(
-            eserviceDescriptorPK,
-            dynamoDBClient
-          );
+        .with(
+          descriptorState.published,
+          descriptorState.deprecated,
+          async () => {
+            const existingCatalogEntry = await readCatalogEntry(
+              eserviceDescriptorPK,
+              dynamoDBClient
+            );
 
-          if (existingCatalogEntry) {
-            if (existingCatalogEntry.version > msg.version) {
-              // Stops processing if the message is older than the catalog entry
-              logger.info(
-                `Skipping processing of entry ${existingCatalogEntry.PK}. Reason: a more recent entry already exists`
-              );
-              return Promise.resolve();
+            if (existingCatalogEntry) {
+              if (existingCatalogEntry.version > msg.version) {
+                // Stops processing if the message is older than the catalog entry
+                logger.info(
+                  `Skipping processing of entry ${existingCatalogEntry.PK}. Reason: a more recent entry already exists`
+                );
+                return Promise.resolve();
+              } else {
+                // suspended->published
+
+                await updateDescriptorStateInPlatformStatesEntry(
+                  dynamoDBClient,
+                  eserviceDescriptorPK,
+                  descriptorStateToItemState(descriptor.state),
+                  msg.version,
+                  logger
+                );
+              }
             } else {
-              // suspended->published
+              // draft -> published
 
-              await updateDescriptorStateInPlatformStatesEntry(
-                dynamoDBClient,
-                eserviceDescriptorPK,
-                descriptorStateToItemState(descriptor.state),
-                msg.version,
-                logger
-              );
+              const catalogEntry: PlatformStatesCatalogEntry = {
+                PK: eserviceDescriptorPK,
+                state: descriptorStateToItemState(descriptor.state),
+                descriptorAudience: descriptor.audience,
+                descriptorVoucherLifespan: descriptor.voucherLifespan,
+                version: msg.version,
+                updatedAt: new Date().toISOString(),
+              };
+
+              await writeCatalogEntry(catalogEntry, dynamoDBClient, logger);
             }
-          } else {
-            // draft -> published
 
-            const catalogEntry: PlatformStatesCatalogEntry = {
-              PK: eserviceDescriptorPK,
-              state: descriptorStateToItemState(descriptor.state),
-              descriptorAudience: descriptor.audience,
-              descriptorVoucherLifespan: descriptor.voucherLifespan,
-              version: msg.version,
-              updatedAt: new Date().toISOString(),
-            };
-
-            await writeCatalogEntry(catalogEntry, dynamoDBClient, logger);
+            // token-generation-states
+            const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+              eserviceId,
+              descriptorId: descriptor.id,
+            });
+            await updateDescriptorInfoInTokenGenerationStatesTable(
+              eserviceId_descriptorId,
+              descriptorStateToItemState(descriptor.state),
+              descriptor.voucherLifespan,
+              descriptor.audience,
+              dynamoDBClient,
+              logger
+            );
           }
-
-          // token-generation-states
-          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-            eserviceId,
-            descriptorId: descriptor.id,
-          });
-          await updateDescriptorInfoInTokenGenerationStatesTable(
-            eserviceId_descriptorId,
-            descriptorStateToItemState(descriptor.state),
-            descriptor.voucherLifespan,
-            descriptor.audience,
-            dynamoDBClient,
-            logger
-          );
-        })
+        )
         .with(descriptorState.suspended, async () => {
           const existingCatalogEntry = await readCatalogEntry(
             eserviceDescriptorPK,
@@ -159,18 +163,13 @@ export async function handleMessageV1(
             logger
           );
         })
-        .with(
-          descriptorState.draft,
-          descriptorState.deprecated,
-          descriptorState.waitingForApproval,
-          () => {
-            logger.info(
-              `Skipping processing of entry ${eserviceDescriptorPK}. Reason: state ${descriptor.state}`
-            );
+        .with(descriptorState.draft, descriptorState.waitingForApproval, () => {
+          logger.info(
+            `Skipping processing of entry ${eserviceDescriptorPK}. Reason: state ${descriptor.state}`
+          );
 
-            return Promise.resolve();
-          }
-        )
+          return Promise.resolve();
+        })
         .exhaustive();
     })
     .with(
