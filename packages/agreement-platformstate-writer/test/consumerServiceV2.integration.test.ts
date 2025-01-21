@@ -14,6 +14,7 @@ import {
   Agreement,
   AgreementActivatedV2,
   AgreementArchivedByConsumerV2,
+  AgreementArchivedByUpgradeV2,
   AgreementEventEnvelope,
   AgreementSuspendedByConsumerV2,
   AgreementSuspendedByPlatformV2,
@@ -3120,6 +3121,256 @@ describe("integration tests V2 events", async () => {
         stream_id: previousAgreement.id,
         version: 2,
         type: "AgreementArchivedByConsumer",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      const platformStatesAgreementPK = makePlatformStatesAgreementPK({
+        consumerId,
+        eserviceId,
+      });
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      });
+      const platformStatesAgreement: PlatformStatesAgreementEntry = {
+        ...getMockPlatformStatesAgreementEntry(
+          platformStatesAgreementPK,
+          latestAgreement.id
+        ),
+        state: itemState.active,
+        agreementTimestamp:
+          latestAgreement.stamps.activation!.when.toISOString(),
+      };
+      await writePlatformAgreementEntry(
+        platformStatesAgreement,
+        dynamoDBClient
+      );
+
+      // token-generation-states
+      const tokenGenStatesEntryPK1 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
+          agreementId: latestAgreement.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient1,
+        dynamoDBClient
+      );
+
+      const tokenGenStatesEntryPK2 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
+          agreementId: latestAgreement.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient2,
+        dynamoDBClient
+      );
+
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
+
+      const retrievedEntry = await readAgreementEntry(
+        platformStatesAgreementPK,
+        dynamoDBClient
+      );
+      expect(retrievedEntry).toEqual(platformStatesAgreement);
+
+      // token-generation-states
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
+
+      expect(retrievedTokenGenStatesEntries).toHaveLength(2);
+      expect(retrievedTokenGenStatesEntries).toEqual(
+        expect.arrayContaining([
+          tokenGenStatesConsumerClient2,
+          tokenGenStatesConsumerClient1,
+        ])
+      );
+    });
+  });
+
+  describe("AgreementArchivedByUpgrade", () => {
+    it("should delete the entry if it exists and the agreement is the latest", async () => {
+      const consumerId = generateId<TenantId>();
+      const eserviceId = generateId<EServiceId>();
+
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId,
+        state: agreementState.active,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+      const archivedAgreement: Agreement = {
+        ...agreement,
+        state: agreementState.archived,
+      };
+      const payload: AgreementArchivedByUpgradeV2 = {
+        agreement: toAgreementV2(archivedAgreement),
+      };
+      const message: AgreementEventEnvelope = {
+        sequence_num: 1,
+        stream_id: archivedAgreement.id,
+        version: 2,
+        type: "AgreementArchivedByUpgrade",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      const platformStatesAgreementPK = makePlatformStatesAgreementPK({
+        consumerId,
+        eserviceId,
+      });
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      });
+      const platformStatesAgreement: PlatformStatesAgreementEntry = {
+        ...getMockPlatformStatesAgreementEntry(
+          platformStatesAgreementPK,
+          agreement.id
+        ),
+        state: itemState.active,
+        agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
+      };
+      await writePlatformAgreementEntry(
+        platformStatesAgreement,
+        dynamoDBClient
+      );
+
+      // token-generation-states
+      const tokenGenStatesEntryPK1 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
+          agreementId: agreement.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient1,
+        dynamoDBClient
+      );
+
+      const tokenGenStatesEntryPK2 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
+          agreementId: agreement.id,
+          agreementState: itemState.active,
+          GSIPK_consumerId_eserviceId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient2,
+        dynamoDBClient
+      );
+
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
+
+      const retrievedEntry = await readAgreementEntry(
+        platformStatesAgreementPK,
+        dynamoDBClient
+      );
+      expect(retrievedEntry).toBeUndefined();
+
+      // token-generation-states
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
+      const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          agreementState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+
+      expect(retrievedTokenGenStatesEntries).toHaveLength(2);
+      expect(retrievedTokenGenStatesEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenGenStatesConsumeClient1,
+          expectedTokenGenStatesConsumeClient2,
+        ])
+      );
+    });
+
+    it("should do no operation if the agreement is not the latest", async () => {
+      const sixHoursAgo = new Date();
+      sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+
+      const consumerId = generateId<TenantId>();
+      const eserviceId = generateId<EServiceId>();
+
+      const previousAgreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId,
+        state: agreementState.archived,
+        stamps: {
+          activation: {
+            when: sixHoursAgo,
+            who: generateId(),
+          },
+        },
+      };
+      const latestAgreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId,
+        state: agreementState.active,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+      const payload: AgreementArchivedByUpgradeV2 = {
+        agreement: toAgreementV2(previousAgreement),
+      };
+      const message: AgreementEventEnvelope = {
+        sequence_num: 1,
+        stream_id: previousAgreement.id,
+        version: 2,
+        type: "AgreementArchivedByUpgrade",
         event_version: 2,
         data: payload,
         log_date: new Date(),
