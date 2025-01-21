@@ -14,7 +14,7 @@ import {
 import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
 import { ReadModelService } from "./readModelService.js";
 import {
-  processAgreements,
+  processAgreement,
   processPurposes,
 } from "./delegationItemsArchiverProcessors.js";
 
@@ -63,7 +63,7 @@ export async function handleMessageV2(
         ),
       });
 
-      await processAgreements({
+      await processAgreement({
         agreementProcessClient,
         headers,
         delegation: delegationMsg.data.delegation,

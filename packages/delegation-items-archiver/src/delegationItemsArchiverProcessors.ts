@@ -67,7 +67,7 @@ export const processPurposes = async ({
   );
 };
 
-export const processAgreements = async ({
+export const processAgreement = async ({
   readModelService,
   agreementProcessClient,
   headers,
