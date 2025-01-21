@@ -7,6 +7,7 @@ import {
   PDFGenerator,
   dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
+  getIpaCode,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
 import {
@@ -24,7 +25,6 @@ import {
   tenantAttributeType,
   AgreementDocument,
   Delegation,
-  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -155,11 +155,6 @@ const getPdfPayload = async (
   consumerDelegationData: DelegationData | undefined,
   readModelService: ReadModelService
 ): Promise<AgreementContractPDFPayload> => {
-  const getIpaCode = (tenant: Tenant): string | undefined =>
-    tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
-      ? tenant.externalId.value
-      : undefined;
-
   const today = new Date();
 
   const { certified, declared, verified } = await getAttributesData(

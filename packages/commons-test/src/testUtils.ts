@@ -61,7 +61,7 @@ import {
   GSIPKConsumerIdEServiceId,
   PlatformStatesAgreementEntry,
   PlatformStatesAgreementPK,
-  makeGSIPKKid,
+  makeGSIPKClientIdKid,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesApiClient,
   makeTokenGenerationStatesClientKidPK,
@@ -487,7 +487,7 @@ export const getMockTokenGenStatesConsumerClient = (
       clientKind: clientKindTokenGenStates.consumer,
       publicKey: "PEM",
       GSIPK_clientId: clientId,
-      GSIPK_kid: makeGSIPKKid(kid),
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
       agreementState: itemState.active,
       GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
         eserviceId,
@@ -508,7 +508,7 @@ export const getMockTokenGenStatesConsumerClient = (
       clientKind: clientKindTokenGenStates.consumer,
       publicKey: "PEM",
       GSIPK_clientId: clientId,
-      GSIPK_kid: makeGSIPKKid(kid),
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
     };
   }
 };
@@ -553,7 +553,7 @@ export const getMockTokenGenStatesApiClient = (
     clientKind: clientKindTokenGenStates.api,
     publicKey: "PEM",
     GSIPK_clientId: clientId,
-    GSIPK_kid: makeGSIPKKid(kid),
+    GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
   };
 };
 
