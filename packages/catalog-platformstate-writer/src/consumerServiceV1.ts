@@ -56,7 +56,8 @@ export async function handleMessageV1(
                 );
                 return Promise.resolve();
               } else {
-                // suspended->published
+                // suspended -> published
+                // suspended -> deprecated
 
                 await updateDescriptorStateInPlatformStatesEntry(
                   dynamoDBClient,
