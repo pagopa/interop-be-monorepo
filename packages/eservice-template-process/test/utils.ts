@@ -1,7 +1,4 @@
-
-import {
-  setupTestContainersVitest,
-} from "pagopa-interop-commons-test/index.js";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import { inject, afterEach } from "vitest";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
