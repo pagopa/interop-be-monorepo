@@ -7,7 +7,9 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const EServiceTemplateProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
+const EServiceTemplateProcessConfig = CommonHTTPServiceConfig.and(
+  ReadModelDbConfig
+)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(EventStoreConfig)
@@ -23,8 +25,9 @@ const EServiceTemplateProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbCon
       }))
   );
 
-export type EServiceTemplateProcessConfig = z.infer<typeof EServiceTemplateProcessConfig>;
+export type EServiceTemplateProcessConfig = z.infer<
+  typeof EServiceTemplateProcessConfig
+>;
 
-export const config: EServiceTemplateProcessConfig = EServiceTemplateProcessConfig.parse(
-  process.env
-);
+export const config: EServiceTemplateProcessConfig =
+  EServiceTemplateProcessConfig.parse(process.env);
