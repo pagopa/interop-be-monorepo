@@ -4071,7 +4071,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/description:
+  /eservices/{eServiceId}/description/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -4095,7 +4095,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptionSeed"
+              $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
       responses:
         "200":
           description: EService description updated
@@ -14644,7 +14644,7 @@ components:
           type: string
         description:
           type: string
-    EServiceDescriptionSeed:
+    EServiceDescriptionUpdateSeed:
       type: object
       additionalProperties: false
       properties:
