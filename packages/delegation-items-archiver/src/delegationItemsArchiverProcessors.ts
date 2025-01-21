@@ -1,7 +1,15 @@
 import { match } from "ts-pattern";
-import { DelegationId, purposeVersionState } from "pagopa-interop-models";
+import {
+  agreementState,
+  DelegationId,
+  DelegationV2,
+  purposeVersionState,
+} from "pagopa-interop-models";
 import { InteropHeaders } from "pagopa-interop-commons";
-import { PurposeProcessClient } from "./clients/clientsProvider.js";
+import {
+  AgreementProcessClient,
+  PurposeProcessClient,
+} from "./clients/clientsProvider.js";
 import { ReadModelService } from "./readModelService.js";
 
 export const processPurposes = async ({
@@ -57,4 +65,66 @@ export const processPurposes = async ({
       return Promise.resolve();
     })
   );
+};
+
+export const processAgreements = async ({
+  readModelService,
+  agreementProcessClient,
+  headers,
+  delegation,
+}: {
+  readModelService: ReadModelService;
+  agreementProcessClient: AgreementProcessClient;
+  headers: InteropHeaders;
+  delegation: DelegationV2;
+}): Promise<void> => {
+  const agreement = await readModelService.getAgreement(delegation);
+
+  if (!agreement) {
+    return Promise.resolve();
+  }
+
+  const isDeletable = match(agreement.state)
+    .with(
+      agreementState.draft,
+      agreementState.missingCertifiedAttributes,
+      agreementState.pending,
+      () => true
+    )
+    .with(
+      agreementState.rejected,
+      agreementState.archived,
+      agreementState.suspended,
+      agreementState.active,
+      () => false
+    )
+    .exhaustive();
+
+  if (isDeletable) {
+    await agreementProcessClient.deleteAgreement(undefined, {
+      params: { agreementId: agreement.id },
+      headers,
+    });
+  }
+
+  const activeOrSuspendedAgreement = match(agreement.state)
+    .with(agreementState.active, agreementState.suspended, () => true)
+    .with(
+      agreementState.draft,
+      agreementState.archived,
+      agreementState.rejected,
+      agreementState.missingCertifiedAttributes,
+      agreementState.pending,
+      () => false
+    )
+    .exhaustive();
+
+  if (activeOrSuspendedAgreement) {
+    await agreementProcessClient.archiveAgreement(undefined, {
+      params: {
+        agreementId: agreement.id,
+      },
+      headers,
+    });
+  }
 };

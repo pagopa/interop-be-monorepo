@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/no-let */
 import {
+  Agreement,
+  agreementState,
   ConsumerDelegationRevokedV2,
   CorrelationId,
   DelegationEventEnvelopeV2,
@@ -14,16 +16,20 @@ import {
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { genericLogger, RefreshableInteropToken } from "pagopa-interop-commons";
 import {
+  getMockAgreement,
   getMockDelegation,
   getMockPurpose,
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test/index.js";
 import { handleMessageV2 } from "../src/delegationItemsArchiverConsumerServiceV2.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
-import { addOnePurpose, readModelService } from "./utils.js";
+import { addOneAgreement, addOnePurpose, readModelService } from "./utils.js";
 
 const mockClients = {
-  agreementProcessClient: {},
+  agreementProcessClient: {
+    deleteAgreement: vi.fn(),
+    archiveAgreement: vi.fn(),
+  },
   purposeProcessClient: {
     deletePurpose: vi.fn(),
     archivePurposeVersion: vi.fn(),
@@ -46,9 +52,17 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       kind: delegationKind.delegatedConsumer,
     });
 
-    const mockPurpose = {
+    const mockPurpose: Purpose = {
       ...getMockPurpose(),
+      consumerId: delegation.delegatorId,
       delegationId: delegation.id,
+      eserviceId: delegation.eserviceId,
+    };
+
+    const mockAgreement: Agreement = {
+      ...getMockAgreement(),
+      consumerId: delegation.delegatorId,
+      eserviceId: delegation.eserviceId,
     };
 
     const payload: ConsumerDelegationRevokedV2 = {
@@ -76,55 +90,73 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       vi.clearAllMocks();
     });
 
-    it("The consumer should call the deletePurpose when the purpose is deletable", async () => {
-      const purpose1: Purpose = {
-        ...mockPurpose,
-        versions: [
-          getMockPurposeVersion(purposeVersionState.draft),
-          getMockPurposeVersion(purposeVersionState.waitingForApproval),
-        ],
-      };
+    it.each([agreementState.suspended, agreementState.active])(
+      "The consumer should call the deletePurpose when the purpose is deletable and should call archiveAgreement for the agreement in %s state",
+      async (agreementState) => {
+        const purpose1: Purpose = {
+          ...mockPurpose,
+          versions: [
+            getMockPurposeVersion(purposeVersionState.draft),
+            getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          ],
+        };
 
-      const purpose2: Purpose = {
-        ...mockPurpose,
-        versions: [getMockPurposeVersion(purposeVersionState.draft)],
-      };
+        const purpose2: Purpose = {
+          ...mockPurpose,
+          versions: [getMockPurposeVersion(purposeVersionState.draft)],
+        };
 
-      const purpose3: Purpose = {
-        ...mockPurpose,
-        versions: [
-          getMockPurposeVersion(purposeVersionState.waitingForApproval),
-        ],
-      };
+        const purpose3: Purpose = {
+          ...mockPurpose,
+          versions: [
+            getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          ],
+        };
 
-      await addOnePurpose(purpose1);
-      await addOnePurpose(purpose2);
-      await addOnePurpose(purpose3);
+        const agreement = {
+          ...mockAgreement,
+          state: agreementState,
+        };
 
-      await handleMessageV2(
-        {
-          decodedMessage: decodedKafkaMessage,
-          refreshableToken: mockRefreshableToken,
-          partition: Math.random(),
-          offset: "10",
-          correlationId,
-          logger: genericLogger,
-          readModelService,
-        },
-        mockClients
-      );
+        await addOneAgreement(agreement);
+        await addOnePurpose(purpose1);
+        await addOnePurpose(purpose2);
+        await addOnePurpose(purpose3);
 
-      [purpose1, purpose2, purpose3].forEach((purpose) => {
+        await handleMessageV2(
+          {
+            decodedMessage: decodedKafkaMessage,
+            refreshableToken: mockRefreshableToken,
+            partition: Math.random(),
+            offset: "10",
+            correlationId,
+            logger: genericLogger,
+            readModelService,
+          },
+          mockClients
+        );
+
+        [purpose1, purpose2, purpose3].forEach((purpose) => {
+          expect(
+            mockClients.purposeProcessClient.deletePurpose
+          ).toHaveBeenCalledWith(undefined, {
+            params: {
+              id: purpose.id,
+            },
+            headers: testHeaders,
+          });
+        });
+
         expect(
-          mockClients.purposeProcessClient.deletePurpose
+          mockClients.agreementProcessClient.archiveAgreement
         ).toHaveBeenCalledWith(undefined, {
           params: {
-            id: purpose.id,
+            agreementId: agreement.id,
           },
           headers: testHeaders,
         });
-      });
-    });
+      }
+    );
 
     it("The consumer should call the deletePurpose when the purpose is archivable", async () => {
       const purpose1: Purpose = {
@@ -165,5 +197,43 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         });
       });
     });
+
+    it.each([
+      agreementState.draft,
+      agreementState.missingCertifiedAttributes,
+      agreementState.pending,
+    ])(
+      "The consumer should call deleteAgreement when the agreement is in %s state",
+      async (state) => {
+        const agreement = {
+          ...mockAgreement,
+          state,
+        };
+
+        await addOneAgreement(agreement);
+
+        await handleMessageV2(
+          {
+            decodedMessage: decodedKafkaMessage,
+            refreshableToken: mockRefreshableToken,
+            partition: Math.random(),
+            offset: "10",
+            correlationId,
+            logger: genericLogger,
+            readModelService,
+          },
+          mockClients
+        );
+
+        expect(
+          mockClients.agreementProcessClient.deleteAgreement
+        ).toHaveBeenCalledWith(undefined, {
+          params: {
+            agreementId: agreement.id,
+          },
+          headers: testHeaders,
+        });
+      }
+    );
   });
 });

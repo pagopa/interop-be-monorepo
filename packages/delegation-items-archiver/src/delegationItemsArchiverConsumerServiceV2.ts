@@ -13,7 +13,10 @@ import {
 } from "pagopa-interop-commons";
 import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
 import { ReadModelService } from "./readModelService.js";
-import { processPurposes } from "./delegationItemsArchiverProcessors.js";
+import {
+  processAgreements,
+  processPurposes,
+} from "./delegationItemsArchiverProcessors.js";
 
 export async function handleMessageV2(
   {
@@ -51,28 +54,21 @@ export async function handleMessageV2(
         correlationId,
       });
 
-      const delegationId = unsafeBrandId<DelegationId>(
-        delegationMsg.data.delegation.id
-      );
-
       await processPurposes({
         readModelService,
         purposeProcessClient,
         headers,
-        delegationId,
+        delegationId: unsafeBrandId<DelegationId>(
+          delegationMsg.data.delegation.id
+        ),
       });
 
-      // TODO: Implement agreement archiving
-      logger.debug(agreementProcessClient.baseURL);
-      // await agreementProcessClient.archiveAgreement(undefined, {
-      //   params: {
-      //     agreementId: "delegationMsg.data.delegation.agreementId",
-      //   },
-      //   headers: getInteropHeaders({
-      //     token,
-      //     correlationId,
-      //   }),
-      // });
+      await processAgreements({
+        agreementProcessClient,
+        headers,
+        delegation: delegationMsg.data.delegation,
+        readModelService,
+      });
     })
     .with(
       { type: "ConsumerDelegationApproved" },
