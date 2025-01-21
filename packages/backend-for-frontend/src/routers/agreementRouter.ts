@@ -31,12 +31,12 @@ const agreementRouter = (
   const agreementService = agreementServiceBuilder(clients, fileManager);
 
   agreementRouter
-    .get("/agreements/consumers", async (req, res) => {
+    .get("/consumer/agreements", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const {
-          consumersIds,
+          producersIds,
           eservicesIds,
           limit,
           offset,
@@ -49,7 +49,7 @@ const agreementRouter = (
             offset,
             limit,
             eservicesIds,
-            consumersIds,
+            producersIds,
             states,
             showOnlyUpgradeable,
           },
@@ -68,12 +68,12 @@ const agreementRouter = (
       }
     })
 
-    .get("/agreements/producers", async (req, res) => {
+    .get("/producer/agreements", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const {
-          producersIds,
+          consumersIds,
           eservicesIds,
           limit,
           offset,
@@ -81,12 +81,12 @@ const agreementRouter = (
           states,
         } = req.query;
 
-        const result = await agreementService.getProducersAgreements(
+        const result = await agreementService.getProducerAgreements(
           {
             offset,
             limit,
             eservicesIds,
-            producersIds,
+            consumersIds,
             states,
             showOnlyUpgradeable,
           },
