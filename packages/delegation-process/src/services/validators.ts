@@ -8,7 +8,6 @@ import {
   EService,
   EServiceId,
   operationForbidden,
-  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
@@ -21,9 +20,10 @@ import {
   incorrectState,
   operationRestrictedToDelegate,
   operationRestrictedToDelegator,
-  tenantIsNotIPAError,
+  originNotCompliant,
   tenantNotAllowedToDelegation,
 } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 /* ========= STATES ========= */
@@ -55,16 +55,16 @@ export const assertDelegatorIsNotDelegate = (
   }
 };
 
-export const assertDelegatorAndDelegateIPA = async (
+export const assertDelegatorAndDelegateAllowedOrigins = async (
   delegator: Tenant,
   delegate: Tenant
 ): Promise<void> => {
-  if (delegator?.externalId?.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
-    throw tenantIsNotIPAError(delegator, "Delegator");
+  if (!config.producerAllowedOrigins.includes(delegator?.externalId?.origin)) {
+    throw originNotCompliant(delegator, "Delegator");
   }
 
-  if (delegate?.externalId?.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
-    throw tenantIsNotIPAError(delegate, "Delegate");
+  if (!config.producerAllowedOrigins.includes(delegate?.externalId?.origin)) {
+    throw originNotCompliant(delegate, "Delegate");
   }
 };
 
