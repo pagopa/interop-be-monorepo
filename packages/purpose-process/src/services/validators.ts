@@ -383,53 +383,26 @@ const assertRequesterIsDelegateConsumer = (
   }
 };
 
-// export const verifyRequesterIsConsumerOrDelegateConsumer = async (
-//   purpose: Pick<Purpose, "consumerId" | "eserviceId">,
-//   authData: AuthData,
-//   readModelService: ReadModelService
-// ): Promise<DelegationId | undefined> => {
-//   try {
-//     assertRequesterIsConsumer(purpose, authData);
-//     return undefined;
-//   } catch {
-//     const consumerDelegation =
-//       await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
-//         purpose
-//       );
-
-//     assertRequesterIsDelegateConsumer(purpose, authData, consumerDelegation);
-
-//     return consumerDelegation?.id;
-//   }
-// };
-
 export const verifyRequesterIsConsumerOrDelegateConsumer = async (
   purpose: Pick<Purpose, "consumerId" | "eserviceId">,
   authData: AuthData,
   readModelService: ReadModelService
 ): Promise<DelegationId | undefined> => {
-  // eslint-disable-next-line functional/no-let
-  let consumerError: unknown;
   try {
     assertRequesterIsConsumer(purpose, authData);
     return undefined;
-  } catch (firstError) {
-    consumerError = firstError;
-  }
-  const consumerDelegation =
-    await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
-      purpose
-    );
+  } catch {
+    const consumerDelegation =
+      await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
+        purpose
+      );
 
-  if (!consumerDelegation) {
-    throw organizationIsNotTheConsumer(authData.organizationId);
-  }
+    if (!consumerDelegation) {
+      throw organizationIsNotTheConsumer(authData.organizationId);
+    }
 
-  try {
     assertRequesterIsDelegateConsumer(purpose, authData, consumerDelegation);
+
     return consumerDelegation?.id;
-  } catch (secondError) {
-    consumerError = secondError;
-    throw consumerError;
   }
 };
