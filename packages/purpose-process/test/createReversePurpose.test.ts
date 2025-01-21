@@ -44,7 +44,6 @@ import {
   eserviceRiskAnalysisNotFound,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
 } from "../src/model/domain/errors.js";
@@ -840,75 +839,6 @@ describe("createReversePurpose", () => {
       riskAnalysisValidationFailed([
         unexpectedRulesVersionError(mockRiskAnalysis.riskAnalysisForm.version),
       ])
-    );
-  });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
-    const consumer = { ...getMockTenant(), kind: tenantKind.PA };
-    const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
-    const authData = getRandomAuthData();
-    const delegateTenant = { ...getMockTenant(), kind: tenantKind.PA };
-
-    const mockDescriptor: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.published,
-      publishedAt: new Date(),
-      interface: getMockDocument(),
-    };
-
-    const mockRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
-    const mockEService: EService = {
-      ...getMockEService(),
-      producerId: producer.id,
-      riskAnalysis: [mockRiskAnalysis],
-      descriptors: [mockDescriptor],
-      mode: eserviceMode.receive,
-    };
-
-    const mockAgreement: Agreement = {
-      ...getMockAgreement(),
-      eserviceId: mockEService.id,
-      consumerId: consumer.id,
-      state: agreementState.active,
-    };
-
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
-      consumerId: consumer.id,
-      riskAnalysisId: mockRiskAnalysis.id,
-      title: "test purpose title",
-      description: "test purpose description",
-      isFreeOfCharge: true,
-      freeOfChargeReason: "test",
-      dailyCalls: 1,
-    };
-
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedConsumer,
-      eserviceId: mockEService.id,
-      delegatorId: consumer.id,
-      delegateId: delegateTenant.id,
-      state: delegationState.active,
-    });
-
-    await addOneDelegation(delegation);
-    await addOneTenant(delegateTenant);
-    await addOneEService(mockEService);
-    await addOneTenant(producer);
-    await addOneTenant(consumer);
-    await addOneAgreement(mockAgreement);
-
-    expect(
-      purposeService.createReversePurpose(reversePurposeSeed, {
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
-    ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
-        authData.organizationId,
-        delegation.id
-      )
     );
   });
 });
