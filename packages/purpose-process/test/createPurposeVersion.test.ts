@@ -1118,7 +1118,7 @@ describe("createPurposeVersion", () => {
       )
     );
   });
-  it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation", async () => {
+  it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation for a purpose with delegation", async () => {
     const authData = getRandomAuthData();
     const purpose = {
       ...mockPurpose,
