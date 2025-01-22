@@ -176,9 +176,7 @@ const consumerDelegationRouter = (
           ctx
         );
 
-        return res
-          .status(200)
-          .send(bffApi.CompactEServicesLight.parse(eservices));
+        return res.status(200).send(bffApi.CompactEServices.parse(eservices));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

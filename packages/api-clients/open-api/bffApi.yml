@@ -2087,6 +2087,11 @@ paths:
           schema:
             $ref: "#/components/schemas/EServiceMode"
         - in: query
+          name: isDelegable
+          description: EService isDelegable filter
+          schema:
+            type: boolean
+        - in: query
           name: offset
           required: true
           schema:
@@ -13596,7 +13601,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CompactEServicesLight"
+                $ref: "#/components/schemas/CompactEServices"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -15373,6 +15378,19 @@ components:
           type: string
         producer:
           $ref: "#/components/schemas/CompactOrganization"
+    CompactEServices:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactEService"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     CompactPurposeEService:
       type: object
       additionalProperties: false
@@ -15891,7 +15909,7 @@ components:
         eservices:
           type: array
           items:
-            $ref: "#/components/schemas/ProducerKeychainEService"
+            $ref: "#/components/schemas/CompactEServiceLight"
         description:
           type: string
       required:
@@ -15901,17 +15919,6 @@ components:
         - eservices
         - createdAt
         - description
-    ProducerKeychainEService:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-      required:
-        - id
-        - name
     EServiceAdditionDetailsSeed:
       type: object
       properties:

@@ -224,10 +224,19 @@ export function catalogServiceBuilder(
       { headers, authData, logger }: WithLogger<BffAppContext>,
       queries: catalogApi.GetEServicesQueryParams
     ): Promise<bffApi.CatalogEServices> => {
-      const { offset, limit, producersIds, states, attributesIds, name } =
-        queries;
+      const {
+        offset,
+        limit,
+        producersIds,
+        states,
+        attributesIds,
+        name,
+        mode,
+        agreementStates,
+        isDelegable,
+      } = queries;
       logger.info(
-        `Retrieving EServices for name = ${name}, producersIds = ${producersIds}, attributesIds = ${attributesIds}, states = ${states}, offset = ${offset}, limit = ${limit}`
+        `Retrieving EServices for name = ${name}, producersIds = ${producersIds}, attributesIds = ${attributesIds}, states = ${states}, agreementStates = ${agreementStates}, isDelegable = ${isDelegable}, mode = ${mode}, offset = ${offset}, limit = ${limit}`
       );
       const requesterId = authData.organizationId;
       const eservicesResponse: catalogApi.EServices =

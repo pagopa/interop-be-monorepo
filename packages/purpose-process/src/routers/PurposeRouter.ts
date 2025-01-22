@@ -454,10 +454,8 @@ const purposeRouter = (
           const { purpose, isRiskAnalysisValid } =
             await purposeService.clonePurpose({
               purposeId: unsafeBrandId(req.params.purposeId),
-              organizationId: req.ctx.authData.organizationId,
               seed: req.body,
-              correlationId: req.ctx.correlationId,
-              logger: ctx.logger,
+              ctx,
             });
           return res
             .status(200)
