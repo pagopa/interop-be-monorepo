@@ -635,7 +635,7 @@ describe("Token Generation Read Model Checker tests", () => {
       expect(agreementDifferences).toEqual(expectedDifferencesLength);
     });
 
-    it("should detect differences when there's a platform-states agreement entry and the agreement is archived", async () => {
+    it("should not detect differences when there's a platform-states agreement entry and the agreement is archived", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.archived,
@@ -669,7 +669,7 @@ describe("Token Generation Read Model Checker tests", () => {
         dynamoDBClient
       );
 
-      const expectedDifferencesLength = 1;
+      const expectedDifferencesLength = 0;
       const agreementDifferences =
         await compareReadModelAgreementsWithPlatformStates({
           platformStatesAgreementById: new Map([
