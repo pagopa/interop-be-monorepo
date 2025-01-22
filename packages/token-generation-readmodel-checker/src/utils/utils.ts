@@ -423,6 +423,10 @@ export async function compareReadModelAgreementsWithPlatformStates({
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
   for (const id of allIds) {
+    if (config.agreementsToSkip.includes(id)) {
+      continue;
+    }
+
     const platformStatesEntry = platformStatesAgreementById.get(id);
     const agreement = agreementsById.get(id);
 
