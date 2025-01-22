@@ -3,6 +3,7 @@ import {
   Client,
   ClientId,
   CorrelationId,
+  Delegation,
   EService,
   ProducerKeychain,
   ProducerKeychainId,
@@ -70,6 +71,20 @@ export const assertOrganizationIsPurposeConsumer = (
 ): void => {
   if (organizationId !== purpose.consumerId) {
     throw organizationNotAllowedOnPurpose(organizationId, purpose.id);
+  }
+};
+
+export const assertOrganizationIsDelegate = (
+  organizationId: TenantId,
+  purpose: Purpose,
+  delegation: Delegation
+): void => {
+  if (organizationId !== delegation.delegateId) {
+    throw organizationNotAllowedOnPurpose(
+      organizationId,
+      purpose.id,
+      delegation.id
+    );
   }
 };
 

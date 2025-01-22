@@ -24,6 +24,8 @@ import {
   ProducerKeychain,
   ProducerKeychainId,
   CorrelationId,
+  DelegationId,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -60,6 +62,8 @@ import {
   eserviceAlreadyLinkedToProducerKeychain,
   userNotAllowedToDeleteProducerKeychainKey,
   userNotAllowedToDeleteClientKey,
+  delegationNotFound,
+  eserviceNotDelegableForClientAccess,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -97,6 +101,7 @@ import {
   assertProducerKeychainKeysCountIsBelowThreshold,
   assertOrganizationIsEServiceProducer,
   assertKeyDoesNotAlreadyExist,
+  assertOrganizationIsDelegate,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -158,6 +163,19 @@ const retrieveProducerKeychain = async (
     throw producerKeychainNotFound(producerKeychainId);
   }
   return producerKeychain;
+};
+
+const retrieveActiveConsumerDelegation = async (
+  delegationId: DelegationId,
+  readModelService: ReadModelService
+): Promise<Delegation> => {
+  const delegation = await readModelService.getActiveConsumerDelegationById(
+    delegationId
+  );
+  if (delegation === undefined) {
+    throw delegationNotFound(delegationId);
+  }
+  return delegation;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -593,7 +611,16 @@ export function authorizationServiceBuilder(
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      assertOrganizationIsPurposeConsumer(organizationId, purpose);
+      const delegationId = purpose.delegationId;
+      if (delegationId && purpose.consumerId !== organizationId) {
+        const delegation = await retrieveActiveConsumerDelegation(
+          delegationId,
+          readModelService
+        );
+        assertOrganizationIsDelegate(organizationId, purpose, delegation);
+      } else {
+        assertOrganizationIsPurposeConsumer(organizationId, purpose);
+      }
 
       if (client.data.purposes.includes(purposeId)) {
         throw purposeAlreadyLinkedToClient(purposeId, client.data.id);
@@ -603,6 +630,14 @@ export function authorizationServiceBuilder(
         purpose.eserviceId,
         readModelService
       );
+
+      if (
+        delegationId &&
+        purpose.consumerId !== organizationId &&
+        !eservice.isClientAccessDelegable
+      ) {
+        throw eserviceNotDelegableForClientAccess(eservice);
+      }
 
       const agreement = await readModelService.getActiveOrSuspendedAgreement(
         eservice.id,
