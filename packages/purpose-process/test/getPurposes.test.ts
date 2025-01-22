@@ -748,14 +748,14 @@ describe("getPurposes", async () => {
       ]);
     });
     it("should get the purposes if they exist (parameters: consumetsIds that contains delegatorId)", async () => {
-      const delegatorId: TenantId = generateId();
+      const delegatorId: TenantId = mockPurpose5.consumerId;
       const delegator = getMockTenant(delegatorId);
       await addOneTenant(delegator);
 
       const delegation = getMockDelegation({
         delegatorId,
         state: delegationState.active,
-        eserviceId: mockPurpose2.eserviceId,
+        eserviceId: mockPurpose5.eserviceId,
         kind: delegationKind.delegatedConsumer,
       });
       await addOneDelegation(delegation);
@@ -763,7 +763,7 @@ describe("getPurposes", async () => {
       const revokedDelegation = getMockDelegation({
         delegatorId,
         state: delegationState.revoked,
-        eserviceId: mockPurpose3.eserviceId,
+        eserviceId: mockPurpose5.eserviceId,
         kind: delegationKind.delegatedConsumer,
       });
       await addOneDelegation(revokedDelegation);
