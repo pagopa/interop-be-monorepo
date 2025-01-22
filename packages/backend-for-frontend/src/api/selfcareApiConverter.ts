@@ -18,6 +18,23 @@ export const toBffApiCompactUser = (
       familyName: ur.surname ?? "",
     }));
 
+/**
+ * 
+      id: z.string().optional(),
+    institutionDescription: z.string().optional(),
+    institutionId: z.string().optional(),
+    institutionRootName: z.string().optional(),
+    products: z.array(UserProductResource).optional(),
+    userId: z.string(),
+ 
+ 
+    id: z.string().uuid(),
+    description: z.string(),
+    userProductRoles: z.array(z.string()),
+    parent: z.string().optional(),
+ 
+ */
+
 export const toApiSelfcareInstitution = (
   input: selfcareV2ClientApi.UserInstitutionResource
 ): bffApi.SelfcareInstitution =>
@@ -29,7 +46,7 @@ export const toApiSelfcareInstitution = (
         products: P.nonNullable,
       },
       (institution) => ({
-        id: institution.id,
+        id: institution.userId,
         description: institution.institutionDescription,
         userProductRoles: institution.products.flatMap((product) =>
           product.role ? [product.role] : []
