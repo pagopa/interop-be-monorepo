@@ -18,12 +18,10 @@ import {
   makeGSIPKConsumerIdEServiceId,
   EServiceId,
   TenantId,
+  TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
-  ConditionalCheckFailedException,
-  DeleteItemCommand,
-  DeleteItemInput,
   DynamoDBClient,
   GetItemCommand,
   GetItemCommandOutput,
@@ -33,6 +31,9 @@ import {
   QueryCommand,
   QueryCommandOutput,
   QueryInput,
+  ScanCommand,
+  ScanCommandOutput,
+  ScanInput,
   UpdateItemCommand,
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
@@ -108,42 +109,6 @@ export const readAgreementEntry = async (
   }
 };
 
-export const deleteAgreementEntry = async (
-  primaryKey: PlatformStatesAgreementPK,
-  agreementId: AgreementId,
-  dynamoDBClient: DynamoDBClient,
-  logger: Logger
-): Promise<void> => {
-  try {
-    const input: DeleteItemInput = {
-      ConditionExpression: "#agreementId = :agreementId",
-      Key: {
-        PK: { S: primaryKey },
-      },
-      ExpressionAttributeNames: {
-        "#agreementId": "agreementId",
-      },
-      ExpressionAttributeValues: {
-        ":agreementId": {
-          S: agreementId,
-        },
-      },
-      TableName: config.tokenGenerationReadModelTableNamePlatform,
-    };
-    const command = new DeleteItemCommand(input);
-    await dynamoDBClient.send(command);
-    logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
-  } catch (error: unknown) {
-    if (error instanceof ConditionalCheckFailedException) {
-      logger.info(
-        `Skipping deletion of agreement ${agreementId}. Reason: a more recent agreement exists in platform-states`
-      );
-    } else {
-      throw error;
-    }
-  }
-};
-
 export const updateAgreementStateInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesAgreementPK,
@@ -189,12 +154,15 @@ export const agreementStateToItemState = (state: AgreementState): ItemState =>
 
 export const updateAgreementStateOnTokenGenStatesEntries = async ({
   entriesToUpdate,
-  agreementState,
+  agreementItemState,
   dynamoDBClient,
   logger,
 }: {
-  entriesToUpdate: TokenGenStatesConsumerClientGSIAgreement[];
-  agreementState: AgreementState;
+  entriesToUpdate: Array<
+    | TokenGenStatesConsumerClientGSIAgreement
+    | TokenGenerationStatesConsumerClient
+  >;
+  agreementItemState: ItemState;
   dynamoDBClient: DynamoDBClient;
   logger: Logger;
 }): Promise<void> => {
@@ -209,7 +177,7 @@ export const updateAgreementStateOnTokenGenStatesEntries = async ({
       },
       ExpressionAttributeValues: {
         ":newState": {
-          S: agreementStateToItemState(agreementState),
+          S: agreementItemState,
         },
         ":newUpdatedAt": {
           S: new Date().toISOString(),
@@ -430,6 +398,7 @@ export const updateAgreementStateOnTokenGenStates = async ({
   logger: Logger;
 }): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
   const runPaginatedQuery = async (
+    agreementState: AgreementState,
     consumerId_eserviceId: GSIPKConsumerIdEServiceId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
@@ -469,7 +438,7 @@ export const updateAgreementStateOnTokenGenStates = async ({
 
       await updateAgreementStateOnTokenGenStatesEntries({
         entriesToUpdate: tokenGenStatesEntries.data,
-        agreementState,
+        agreementItemState: agreementStateToItemState(agreementState),
         dynamoDBClient,
         logger,
       });
@@ -480,6 +449,7 @@ export const updateAgreementStateOnTokenGenStates = async ({
         return [
           ...tokenGenStatesEntries.data,
           ...(await runPaginatedQuery(
+            agreementState,
             consumerId_eserviceId,
             dynamoDBClient,
             data.LastEvaluatedKey
@@ -490,6 +460,7 @@ export const updateAgreementStateOnTokenGenStates = async ({
   };
 
   return await runPaginatedQuery(
+    agreementState,
     GSIPK_consumerId_eserviceId,
     dynamoDBClient,
     undefined
@@ -609,6 +580,158 @@ export const updateLatestAgreementOnTokenGenStates = async (
       )}`
     );
   }
+};
+
+export const updateAgreementStateInPlatformStatesV1 = async (
+  agreementId: AgreementId,
+  agreementItemState: ItemState,
+  msgVersion: number,
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+): Promise<void> => {
+  const runPaginatedQuery = async ({
+    agreementId,
+    agreementItemState,
+    msgVersion,
+    dynamoDBClient,
+    logger,
+    exclusiveStartKey,
+  }: {
+    agreementId: AgreementId;
+    agreementItemState: ItemState;
+    msgVersion: number;
+    dynamoDBClient: DynamoDBClient;
+    logger: Logger;
+    exclusiveStartKey?: Record<string, AttributeValue>;
+  }): Promise<void> => {
+    const readInput: ScanInput = {
+      TableName: config.tokenGenerationReadModelTableNamePlatform,
+      FilterExpression: "agreementId = :agreementId",
+      ExpressionAttributeValues: {
+        ":agreementId": { S: agreementId },
+      },
+      ExclusiveStartKey: exclusiveStartKey,
+      ConsistentRead: true,
+    };
+    const commandQuery = new ScanCommand(readInput);
+    const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+
+    if (!data.Items) {
+      throw genericInternalError(
+        `Unable to read platform-states agreement entries: result ${JSON.stringify(
+          data
+        )} `
+      );
+    } else {
+      const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+      const agreementEntries = z
+        .array(PlatformStatesAgreementEntry)
+        .safeParse(unmarshalledItems);
+
+      if (!agreementEntries.success) {
+        throw genericInternalError(
+          `Unable to parse platform-states agreement entries: result ${JSON.stringify(
+            agreementEntries
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      for (const entry of agreementEntries.data) {
+        await updateAgreementStateInPlatformStatesEntry(
+          dynamoDBClient,
+          entry.PK,
+          agreementItemState,
+          msgVersion,
+          logger
+        );
+      }
+
+      if (data.LastEvaluatedKey) {
+        await runPaginatedQuery({
+          agreementId,
+          agreementItemState,
+          msgVersion,
+          dynamoDBClient,
+          logger,
+          exclusiveStartKey: data.LastEvaluatedKey,
+        });
+      }
+    }
+  };
+  await runPaginatedQuery({
+    agreementId,
+    agreementItemState,
+    msgVersion,
+    dynamoDBClient,
+    logger,
+    exclusiveStartKey: undefined,
+  });
+};
+
+export const updateAgreementStateInTokenGenStatesV1 = async (
+  agreementId: AgreementId,
+  agreementItemState: ItemState,
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+): Promise<void> => {
+  const runPaginatedQuery = async (
+    agreementId: AgreementId,
+    dynamoDBClient: DynamoDBClient,
+    logger: Logger,
+    exclusiveStartKey?: Record<string, AttributeValue>
+  ): Promise<void> => {
+    const readInput: ScanInput = {
+      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+      FilterExpression: "agreementId = :agreementId",
+      ExpressionAttributeValues: {
+        ":agreementId": { S: agreementId },
+      },
+      ExclusiveStartKey: exclusiveStartKey,
+      ConsistentRead: true,
+    };
+    const commandQuery = new ScanCommand(readInput);
+    const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+
+    if (!data.Items) {
+      throw genericInternalError(
+        `Unable to read token-generation-states entries with agreement id ${agreementId}: result ${JSON.stringify(
+          data
+        )} `
+      );
+    } else {
+      const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+      const consumerClients = z
+        .array(TokenGenerationStatesConsumerClient)
+        .safeParse(unmarshalledItems);
+
+      if (!consumerClients.success) {
+        throw genericInternalError(
+          `Unable to parse token-generation-states entries with agreement id ${agreementId}: result ${JSON.stringify(
+            consumerClients
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      await updateAgreementStateOnTokenGenStatesEntries({
+        entriesToUpdate: consumerClients.data,
+        agreementItemState,
+        dynamoDBClient,
+        logger,
+      });
+
+      if (data.LastEvaluatedKey) {
+        await runPaginatedQuery(
+          agreementId,
+          dynamoDBClient,
+          logger,
+          data.LastEvaluatedKey
+        );
+      }
+    }
+  };
+  await runPaginatedQuery(agreementId, dynamoDBClient, logger, undefined);
 };
 
 export const extractAgreementTimestamp = (agreement: Agreement): string =>
