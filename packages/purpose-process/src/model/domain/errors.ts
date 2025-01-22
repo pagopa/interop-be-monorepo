@@ -44,6 +44,7 @@ export const errorCodes = {
   riskAnalysisConfigLatestVersionNotFound: "0026",
   organizationIsNotTheDelegatedConsumer: "0027",
   organizationIsNotTheDelegatedProducer: "0028",
+  delegationNotFound: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -333,5 +334,16 @@ export function purposeVersionStateConflict(
     detail: `Operation is not allowed on state ${state} for Version ${versionId} of Purpose ${purposeId}`,
     code: "purposeVersionStateConflict",
     title: "Purpose version state conflict",
+  });
+}
+
+export function delegationNotFound(
+  consumerId: TenantId,
+  delegationId?: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} not found for tenant ${consumerId}`,
+    code: "delegationNotFound",
+    title: "Delegation not found",
   });
 }

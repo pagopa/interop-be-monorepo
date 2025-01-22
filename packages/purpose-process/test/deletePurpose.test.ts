@@ -35,6 +35,7 @@ import {
   organizationIsNotTheConsumer,
   purposeCannotBeDeleted,
   organizationIsNotTheDelegatedConsumer,
+  delegationNotFound,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -408,7 +409,7 @@ describe("deletePurpose", () => {
     );
   });
 
-  it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation and is deleting a purpose created by a delegate in deletePurpose", async () => {
+  it("should throw delegationNotFound when the requester is the Consumer with no delegation and is deleting a purpose created by a delegate in deletePurpose", async () => {
     const authData = getRandomAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
@@ -433,7 +434,7 @@ describe("deletePurpose", () => {
         serviceName: "",
       })
     ).rejects.toThrowError(
-      organizationIsNotTheConsumer(mockEService.producerId)
+      delegationNotFound(mockPurpose.consumerId, mockPurpose.delegationId)
     );
   });
   it("should throw organizationIsNotTheConsumer if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
@@ -469,7 +470,7 @@ describe("deletePurpose", () => {
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
   });
 
-  it("should throw organizationIsNotTheConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it("should throw delegationNotFound if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.draft
@@ -500,6 +501,8 @@ describe("deletePurpose", () => {
         logger: genericLogger,
         serviceName: "",
       })
-    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
+    ).rejects.toThrowError(
+      delegationNotFound(mockPurpose.consumerId, mockPurpose.delegationId)
+    );
   });
 });

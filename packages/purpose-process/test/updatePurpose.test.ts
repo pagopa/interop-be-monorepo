@@ -52,6 +52,7 @@ import {
   riskAnalysisValidationFailed,
   duplicatedPurposeTitle,
   organizationIsNotTheDelegatedConsumer,
+  delegationNotFound,
 } from "../src/model/domain/errors.js";
 import {
   getMockEService,
@@ -976,7 +977,10 @@ describe("updatePurpose and updateReversePurpose", () => {
         }
       )
     ).rejects.toThrowError(
-      organizationIsNotTheConsumer(authData.organizationId)
+      delegationNotFound(
+        delegatePurpose.consumerId,
+        delegatePurpose.delegationId
+      )
     );
   });
   it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation and is updating a purpose created by a delegate in updateReversePurpose", async () => {
@@ -1004,7 +1008,10 @@ describe("updatePurpose and updateReversePurpose", () => {
         }
       )
     ).rejects.toThrowError(
-      organizationIsNotTheConsumer(authData.organizationId)
+      delegationNotFound(
+        delegatePurpose.consumerId,
+        delegatePurpose.delegationId
+      )
     );
   });
   it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose in updatePurpose", async () => {
@@ -1073,7 +1080,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
   });
-  it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in updatePurpose", async () => {
+  it("should throw delegationNotFound when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in updatePurpose", async () => {
     const delegatePurpose: Purpose = {
       ...purposeForReceive,
       consumerId: tenant.id,
@@ -1105,9 +1112,14 @@ describe("updatePurpose and updateReversePurpose", () => {
           serviceName: "",
         }
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
+    ).rejects.toThrowError(
+      delegationNotFound(
+        delegatePurpose.consumerId,
+        delegatePurpose.delegationId
+      )
+    );
   });
-  it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in updateReversePurpose", async () => {
+  it("should throw delegationNotFound when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in updateReversePurpose", async () => {
     const delegatePurpose: Purpose = {
       ...purposeForReceive,
       consumerId: tenant.id,
@@ -1139,6 +1151,11 @@ describe("updatePurpose and updateReversePurpose", () => {
           serviceName: "",
         }
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
+    ).rejects.toThrowError(
+      delegationNotFound(
+        delegatePurpose.consumerId,
+        delegatePurpose.delegationId
+      )
+    );
   });
 });

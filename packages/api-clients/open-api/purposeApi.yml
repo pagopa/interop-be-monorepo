@@ -310,7 +310,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
-          description: Duplicated purpose title
+          description: Conflict
           content:
             application/json:
               schema:
@@ -429,7 +429,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
-          description: Version cannot be deleted
+          description: Conflict
           content:
             application/json:
               schema:
@@ -591,6 +591,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Delegation Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
       tags:
         - purpose
       description: activates the purpose version by id
@@ -632,7 +638,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
-          description: Purpose cannot be cloned
+          description: Conflict
           content:
             application/json:
               schema:
@@ -683,6 +689,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Delegation Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
       tags:
         - purpose
       description: suspends the purpose version by id
@@ -725,6 +737,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Delegation Not Found
           content:
             application/json:
               schema:
