@@ -57,11 +57,7 @@ export const deletePurposeVersionErrorMapper = (
       "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with(
-      "purposeVersionCannotBeDeleted",
-      "delegationNotFound",
-      () => HTTP_STATUS_CONFLICT
-    )
+    .with("purposeVersionCannotBeDeleted", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const rejectPurposeVersionErrorMapper = (
@@ -96,11 +92,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "duplicatedPurposeTitle",
-      "delegationNotFound",
-      () => HTTP_STATUS_CONFLICT
-    )
+    .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateReversePurposeErrorMapper = updatePurposeErrorMapper;
@@ -113,11 +105,7 @@ export const deletePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with(
-      "purposeCannotBeDeleted",
-      "delegationNotFound",
-      () => HTTP_STATUS_CONFLICT
-    )
+    .with("purposeCannotBeDeleted", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const archivePurposeVersionErrorMapper = (
@@ -134,7 +122,6 @@ export const archivePurposeVersionErrorMapper = (
       "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("delegationNotFound", () => HTTP_STATUS_CONFLICT)
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -149,7 +136,6 @@ export const suspendPurposeVersionErrorMapper = (
     )
     .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
-    .with("delegationNotFound", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createPurposeVersionErrorMapper = (
@@ -162,11 +148,7 @@ export const createPurposeVersionErrorMapper = (
       "organizationIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with(
-      "purposeVersionStateConflict",
-      "delegationNotFound",
-      () => HTTP_STATUS_CONFLICT
-    )
+    .with("purposeVersionStateConflict", () => HTTP_STATUS_CONFLICT)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -204,11 +186,7 @@ export const createReversePurposeErrorMapper = (
       "riskAnalysisValidationFailed",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with(
-      "duplicatedPurposeTitle",
-      // "delegationNotFound",
-      () => HTTP_STATUS_CONFLICT
-    )
+    .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -217,7 +195,6 @@ export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "duplicatedPurposeTitle",
       "purposeCannotBeCloned",
-      "delegationNotFound",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -266,5 +243,4 @@ export const activatePurposeVersionErrorMapper = (
       "purposeVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("delegationNotFound", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

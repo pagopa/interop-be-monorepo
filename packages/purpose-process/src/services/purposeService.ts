@@ -42,7 +42,6 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
-  DelegationId,
   Delegation,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
@@ -68,7 +67,7 @@ import {
   tenantKindNotFound,
   unchangedDailyCalls,
   organizationNotAllowed,
-  delegationNotFound,
+  puroposeDelegationNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -228,16 +227,18 @@ async function retrieveTenantKind(
 }
 
 export const retrievePurposeDelegation = async (
-  delegationId: DelegationId | undefined,
-  consumerId: TenantId,
+  purpose: Purpose,
   readModelService: ReadModelService
 ): Promise<Delegation | undefined> => {
-  if (!delegationId) {
+  if (!purpose.delegationId) {
     return undefined;
   }
-  const delegation = await readModelService.getDelegationById(delegationId);
+  const delegation =
+    await readModelService.getActiveConsumerDelegationByDelegationId(
+      purpose.delegationId
+    );
   if (!delegation) {
-    throw delegationNotFound(consumerId, delegationId);
+    throw puroposeDelegationNotFound(purpose.id, purpose.delegationId);
   }
   return delegation;
 };
@@ -342,8 +343,7 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       const consumerDelegation = await retrievePurposeDelegation(
-        purpose.data.delegationId,
-        purpose.data.consumerId,
+        purpose.data,
         readModelService
       );
 
@@ -478,8 +478,7 @@ export function purposeServiceBuilder(
       }
 
       const consumerDelegation = await retrievePurposeDelegation(
-        purpose.data.delegationId,
-        purpose.data.consumerId,
+        purpose.data,
         readModelService
       );
 
@@ -518,8 +517,7 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       const consumerDelegation = await retrievePurposeDelegation(
-        purpose.data.delegationId,
-        purpose.data.consumerId,
+        purpose.data,
         readModelService
       );
 
@@ -689,8 +687,7 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       const consumerDelegation = await retrievePurposeDelegation(
-        purpose.data.delegationId,
-        purpose.data.consumerId,
+        purpose.data,
         readModelService
       );
 
@@ -1123,11 +1120,6 @@ export function purposeServiceBuilder(
           }
         );
 
-      // i'm not sure if this check is right
-      // if (!consumerDelegation) {
-      //   throw delegationNotFound(unsafeBrandId(seed.consumerId));
-      // }
-
       assertRequesterCanActAsConsumer(
         { eserviceId, consumerId },
         authData,
@@ -1220,8 +1212,7 @@ export function purposeServiceBuilder(
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
       const consumerDelegation = await retrievePurposeDelegation(
-        purposeToClone.data.delegationId,
-        purposeToClone.data.consumerId,
+        purposeToClone.data,
         readModelService
       );
 
@@ -1415,8 +1406,7 @@ const getOrganizationRole = async ({
   } catch {
     try {
       const consumerDelegation = await retrievePurposeDelegation(
-        purpose.delegationId,
-        purpose.consumerId,
+        purpose,
         readModelService
       );
 
@@ -1500,8 +1490,7 @@ const performUpdatePurpose = async (
   }
 
   const consumerDelegation = await retrievePurposeDelegation(
-    purpose.data.delegationId,
-    purpose.data.consumerId,
+    purpose.data,
     readModelService
   );
 

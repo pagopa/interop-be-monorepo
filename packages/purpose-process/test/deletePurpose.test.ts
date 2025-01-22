@@ -35,7 +35,7 @@ import {
   organizationIsNotTheConsumer,
   purposeCannotBeDeleted,
   organizationIsNotTheDelegatedConsumer,
-  delegationNotFound,
+  puroposeDelegationNotFound,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -409,7 +409,7 @@ describe("deletePurpose", () => {
     );
   });
 
-  it("should throw delegationNotFound when the requester is the Consumer with no delegation and is deleting a purpose created by a delegate in deletePurpose", async () => {
+  it("should throw puroposeDelegationNotFound when the requester is the Consumer with no delegation and is deleting a purpose created by a delegate in deletePurpose", async () => {
     const authData = getRandomAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
@@ -434,7 +434,8 @@ describe("deletePurpose", () => {
         serviceName: "",
       })
     ).rejects.toThrowError(
-      delegationNotFound(mockPurpose.consumerId, mockPurpose.delegationId)
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      puroposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
     );
   });
   it("should throw organizationIsNotTheConsumer if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
@@ -470,7 +471,7 @@ describe("deletePurpose", () => {
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
   });
 
-  it("should throw delegationNotFound if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.draft
@@ -490,8 +491,19 @@ describe("deletePurpose", () => {
       delegateId: generateId<TenantId>(),
       state: delegationState.active,
     });
+
+    const purposeDelegation = getMockDelegation({
+      id: mockPurpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
     await addOnePurpose(mockPurpose);
     await addOneDelegation(delegation);
+    await addOneDelegation(purposeDelegation);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     expect(
@@ -502,7 +514,10 @@ describe("deletePurpose", () => {
         serviceName: "",
       })
     ).rejects.toThrowError(
-      delegationNotFound(mockPurpose.consumerId, mockPurpose.delegationId)
+      organizationIsNotTheDelegatedConsumer(
+        delegation.delegateId,
+        mockPurpose.delegationId
+      )
     );
   });
 });

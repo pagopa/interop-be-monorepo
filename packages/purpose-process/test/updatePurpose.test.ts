@@ -52,7 +52,7 @@ import {
   riskAnalysisValidationFailed,
   duplicatedPurposeTitle,
   organizationIsNotTheDelegatedConsumer,
-  delegationNotFound,
+  puroposeDelegationNotFound,
 } from "../src/model/domain/errors.js";
 import {
   getMockEService,
@@ -952,7 +952,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
   });
-  it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation and is updating a purpose created by a delegate in updatePurpose", async () => {
+  it("should throw delegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updateReversePurpose, but the delegation cannot be found in updatePurpose", async () => {
     const authData = getRandomAuthData();
 
     const delegatePurpose: Purpose = {
@@ -977,13 +977,13 @@ describe("updatePurpose and updateReversePurpose", () => {
         }
       )
     ).rejects.toThrowError(
-      delegationNotFound(
-        delegatePurpose.consumerId,
-        delegatePurpose.delegationId
+      puroposeDelegationNotFound(
+        delegatePurpose.id,
+        delegatePurpose.delegationId!
       )
     );
   });
-  it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation and is updating a purpose created by a delegate in updateReversePurpose", async () => {
+  it("should throw delegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updateReversePurpose, but the delegation cannot be found in updateReversePurpose", async () => {
     const authData = getRandomAuthData();
 
     const delegatePurpose: Purpose = {
@@ -1008,9 +1008,9 @@ describe("updatePurpose and updateReversePurpose", () => {
         }
       )
     ).rejects.toThrowError(
-      delegationNotFound(
-        delegatePurpose.consumerId,
-        delegatePurpose.delegationId
+      puroposeDelegationNotFound(
+        delegatePurpose.id,
+        delegatePurpose.delegationId!
       )
     );
   });
@@ -1080,8 +1080,8 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
   });
-  it("should throw delegationNotFound when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in updatePurpose", async () => {
-    const delegatePurpose: Purpose = {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in updatePurpose", async () => {
+    const purpose: Purpose = {
       ...purposeForReceive,
       consumerId: tenant.id,
       delegationId: generateId<DelegationId>(),
@@ -1090,37 +1090,43 @@ describe("updatePurpose and updateReversePurpose", () => {
     const delegation = getMockDelegation({
       id: generateId<DelegationId>(),
       kind: delegationKind.delegatedConsumer,
-      eserviceId: delegatePurpose.eserviceId,
-      delegatorId: delegatePurpose.consumerId,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
       delegateId: generateId<TenantId>(),
       state: delegationState.active,
     });
 
-    await addOnePurpose(delegatePurpose);
+    const purposeDelegation = getMockDelegation({
+      id: purpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(purpose);
     await addOneDelegation(delegation);
+    await addOneDelegation(purposeDelegation);
     await addOneEService(eServiceDeliver);
     await addOneTenant(tenant);
 
     expect(
-      purposeService.updatePurpose(
-        delegatePurpose.id,
-        reversePurposeUpdateContent,
-        {
-          authData: getRandomAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
-      )
+      purposeService.updatePurpose(purpose.id, reversePurposeUpdateContent, {
+        authData: getRandomAuthData(delegation.delegateId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      })
     ).rejects.toThrowError(
-      delegationNotFound(
-        delegatePurpose.consumerId,
-        delegatePurpose.delegationId
+      organizationIsNotTheDelegatedConsumer(
+        delegation.delegateId,
+        purpose.delegationId
       )
     );
   });
-  it("should throw delegationNotFound when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in updateReversePurpose", async () => {
-    const delegatePurpose: Purpose = {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in updateReversePurpose", async () => {
+    const purpose: Purpose = {
       ...purposeForReceive,
       consumerId: tenant.id,
       delegationId: generateId<DelegationId>(),
@@ -1129,20 +1135,30 @@ describe("updatePurpose and updateReversePurpose", () => {
     const delegation = getMockDelegation({
       id: generateId<DelegationId>(),
       kind: delegationKind.delegatedConsumer,
-      eserviceId: delegatePurpose.eserviceId,
-      delegatorId: delegatePurpose.consumerId,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
       delegateId: generateId<TenantId>(),
       state: delegationState.active,
     });
 
-    await addOnePurpose(delegatePurpose);
+    const purposeDelegation = getMockDelegation({
+      id: purpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(purpose);
     await addOneDelegation(delegation);
+    await addOneDelegation(purposeDelegation);
     await addOneEService(eServiceDeliver);
     await addOneTenant(tenant);
 
     expect(
       purposeService.updateReversePurpose(
-        delegatePurpose.id,
+        purpose.id,
         reversePurposeUpdateContent,
         {
           authData: getRandomAuthData(delegation.delegateId),
@@ -1152,9 +1168,9 @@ describe("updatePurpose and updateReversePurpose", () => {
         }
       )
     ).rejects.toThrowError(
-      delegationNotFound(
-        delegatePurpose.consumerId,
-        delegatePurpose.delegationId
+      organizationIsNotTheDelegatedConsumer(
+        delegation.delegateId,
+        purpose.delegationId
       )
     );
   });
