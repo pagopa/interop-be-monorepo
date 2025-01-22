@@ -19,13 +19,13 @@ import {
   readAgreementEntry,
   agreementStateToItemState,
   updateAgreementStateOnTokenGenStates,
-  deleteAgreementEntry,
   isLatestAgreement,
   updateLatestAgreementOnTokenGenStates,
   extractAgreementTimestamp,
   upsertPlatformStatesAgreementEntry,
-  deleteAgreementEntryByAgreementIdV1,
+  updateAgreementStateInPlatformStatesV1,
   updateAgreementStateInTokenGenStatesV1,
+  updateAgreementStateInPlatformStatesEntry,
 } from "./utils.js";
 
 export async function handleMessageV1(
@@ -60,7 +60,7 @@ export async function handleMessageV1(
           );
         })
         .with(agreementState.archived, async () => {
-          await handleArchiving(agreement, dynamoDBClient, logger);
+          await handleArchiving(agreement, dynamoDBClient, msg.version, logger);
         })
         .with(
           agreementState.draft,
@@ -102,12 +102,14 @@ export async function handleMessageV1(
     })
     .with({ type: "AgreementDeactivated" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
-      await handleArchiving(agreement, dynamoDBClient, logger);
+      await handleArchiving(agreement, dynamoDBClient, msg.version, logger);
     })
     .with({ type: "AgreementDeleted" }, async (msg) => {
       const agreementId = unsafeBrandId<AgreementId>(msg.data.agreementId);
-      await deleteAgreementEntryByAgreementIdV1(
+      await updateAgreementStateInPlatformStatesV1(
         agreementId,
+        itemState.inactive,
+        msg.version,
         dynamoDBClient,
         logger
       );
@@ -210,6 +212,7 @@ const handleActivationOrSuspension = async (
 const handleArchiving = async (
   agreement: Agreement,
   dynamoDBClient: DynamoDBClient,
+  msgVersion: number,
   logger: Logger
 ): Promise<void> => {
   const primaryKey = makePlatformStatesAgreementPK({
@@ -237,10 +240,11 @@ const handleArchiving = async (
       logger,
     });
 
-    await deleteAgreementEntry(
-      primaryKey,
-      agreementEntry.agreementId,
+    await updateAgreementStateInPlatformStatesEntry(
       dynamoDBClient,
+      primaryKey,
+      agreementStateToItemState(agreement.state),
+      msgVersion,
       logger
     );
   } else {

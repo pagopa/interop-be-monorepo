@@ -14,7 +14,6 @@ import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import {
   agreementStateToItemState,
-  deleteAgreementEntry,
   readAgreementEntry,
   updateAgreementStateInPlatformStatesEntry,
   updateAgreementStateOnTokenGenStates,
@@ -256,43 +255,16 @@ export async function handleMessageV2(
           dynamoDBClient,
           logger,
         });
-        await deleteAgreementEntry(
-          primaryKey,
-          agreementEntry.agreementId,
+        await updateAgreementStateInPlatformStatesEntry(
           dynamoDBClient,
+          primaryKey,
+          agreementStateToItemState(agreement.state),
+          msg.version,
           logger
         );
       } else {
         logger.info(
           `Platform-states and Token-generation-states. Skipping processing of entry with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId} and agreement ${agreement.id}. Reason: agreement is not the latest`
-        );
-      }
-    })
-    .with({ type: "AgreementArchivedByUpgrade" }, async (msg) => {
-      const agreement = parseAgreement(msg.data.agreement);
-      const primaryKey = makePlatformStatesAgreementPK({
-        consumerId: agreement.consumerId,
-        eserviceId: agreement.eserviceId,
-      });
-      const agreementEntry = await readAgreementEntry(
-        primaryKey,
-        dynamoDBClient
-      );
-      const agreementTimestamp = extractAgreementTimestamp(agreement);
-
-      if (
-        isLatestAgreement(agreementEntry, agreementTimestamp) &&
-        agreementEntry?.agreementId === agreement.id
-      ) {
-        await deleteAgreementEntry(
-          primaryKey,
-          agreementEntry.agreementId,
-          dynamoDBClient,
-          logger
-        );
-      } else {
-        logger.info(
-          `Platform-states. Skipping processing of entry with PK ${primaryKey} and agreement ${agreement.id}. Reason: agreement is not the latest`
         );
       }
     })
@@ -306,6 +278,7 @@ export async function handleMessageV2(
       { type: "AgreementConsumerDocumentRemoved" },
       { type: "AgreementSetDraftByPlatform" },
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
+      { type: "AgreementArchivedByUpgrade" },
       () => Promise.resolve()
     )
     .exhaustive();
