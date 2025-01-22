@@ -26,6 +26,7 @@ export function tokenGenerationReadModelServiceBuilder(
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNamePlatform,
           ExclusiveStartKey: exclusiveStartKey,
+          ConsistentRead: true,
         };
         const commandQuery = new ScanCommand(readInput);
         const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
@@ -74,6 +75,7 @@ export function tokenGenerationReadModelServiceBuilder(
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
           ExclusiveStartKey: exclusiveStartKey,
+          ConsistentRead: true,
         };
         const commandQuery = new ScanCommand(readInput);
         const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
