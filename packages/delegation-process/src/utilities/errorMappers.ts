@@ -47,7 +47,7 @@ export const createProducerDelegationErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "tenantIsNotIPAError",
+      "originNotCompliant",
       "tenantNotAllowedToDelegation",
       "differentEserviceProducer",
       () => HTTP_STATUS_FORBIDDEN

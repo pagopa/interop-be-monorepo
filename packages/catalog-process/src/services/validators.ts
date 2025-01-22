@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   Descriptor,
+  DescriptorState,
   EService,
   EServiceId,
   Tenant,
@@ -31,6 +32,64 @@ import {
   tenantKindNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
+
+export function descriptorStatesNotAllowingDocumentOperations(
+  descriptor: Descriptor
+): boolean {
+  return match(descriptor.state)
+    .with(
+      descriptorState.draft,
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => false
+    )
+    .with(
+      descriptorState.archived,
+      descriptorState.waitingForApproval,
+      () => true
+    )
+    .exhaustive();
+}
+
+export const notActiveDescriptorState: DescriptorState[] = [
+  descriptorState.draft,
+  descriptorState.waitingForApproval,
+];
+
+export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
+  return match(descriptor.state)
+    .with(descriptorState.draft, descriptorState.waitingForApproval, () => true)
+    .with(
+      descriptorState.archived,
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => false
+    )
+    .exhaustive();
+}
+
+export function isActiveDescriptor(descriptor: Descriptor): boolean {
+  return !isNotActiveDescriptor(descriptor);
+}
+
+export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
+  return match(descriptor.state)
+    .with(
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => true
+    )
+    .with(
+      descriptorState.draft,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      () => false
+    )
+    .exhaustive();
+}
 
 export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
@@ -116,11 +175,7 @@ export function assertTenantKindExists(
 export function assertHasNoDraftOrWaitingForApprovalDescriptor(
   eservice: EService
 ): void {
-  const hasInvalidDescriptor = eservice.descriptors.some(
-    (d: Descriptor) =>
-      d.state === descriptorState.draft ||
-      d.state === descriptorState.waitingForApproval
-  );
+  const hasInvalidDescriptor = eservice.descriptors.some(isNotActiveDescriptor);
   if (hasInvalidDescriptor) {
     throw draftDescriptorAlreadyExists(eservice.id);
   }

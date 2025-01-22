@@ -96,7 +96,7 @@ const agreementPrefix = "AGREEMENT#";
 export const PlatformStatesAgreementPK = z
   .string()
   .refine((pk) => pk.startsWith(agreementPrefix))
-  .brand(`${agreementPrefix}agreementId`);
+  .brand(`${agreementPrefix}consumerId#eserviceId`);
 export type PlatformStatesAgreementPK = z.infer<
   typeof PlatformStatesAgreementPK
 >;
@@ -150,7 +150,7 @@ export type GSIPKEServiceIdDescriptorId = z.infer<
 export const GSIPKClientIdPurposeId = z.string().brand(`clientId#purposeId`);
 export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
 
-export const GSIPKClientIdKid = z.string().brand("kid");
+export const GSIPKClientIdKid = z.string().brand("clientId#kid");
 export type GSIPKClientIdKid = z.infer<typeof GSIPKClientIdKid>;
 
 type IDS =
