@@ -96,6 +96,11 @@ paths:
           schema:
             $ref: "#/components/schemas/EServiceMode"
         - in: query
+          name: isDelegable
+          description: EService isDelegable filter
+          schema:
+            type: boolean
+        - in: query
           name: delegated
           description: if true only delegated e-services will be returned, if false only non-delegated e-services will be returned, if not present all e-services will be returned
           schema:
@@ -1024,7 +1029,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/description:
+  /eservices/{eServiceId}/description/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1048,7 +1053,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptionSeed"
+              $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
       responses:
         "200":
           description: EService description updated
@@ -1074,7 +1079,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/delegationFlags:
+  /eservices/{eServiceId}/delegationFlags/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1098,7 +1103,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceFlagsSeed"
+              $ref: "#/components/schemas/EServiceDelegationFlagsUpdateSeed"
       responses:
         "200":
           description: EService flags updated
@@ -1824,7 +1829,7 @@ components:
           type: string
         checksum:
           type: string
-    EServiceDescriptionSeed:
+    EServiceDescriptionUpdateSeed:
       type: object
       additionalProperties: false
       properties:
@@ -1834,7 +1839,7 @@ components:
           maxLength: 250
       required:
         - description
-    EServiceFlagsSeed:
+    EServiceDelegationFlagsUpdateSeed:
       type: object
       additionalProperties: false
       properties:

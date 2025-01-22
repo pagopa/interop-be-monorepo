@@ -3,6 +3,7 @@ import {
   decodeProtobufPayload,
   getMockAgreement,
   getMockClient,
+  getMockDelegation,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -19,6 +20,8 @@ import {
   Purpose,
   TenantId,
   agreementState,
+  delegationKind,
+  delegationState,
   descriptorState,
   generateId,
   purposeVersionState,
@@ -40,6 +43,7 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneClient,
+  addOneDelegation,
   agreements,
   authorizationService,
   eservices,
@@ -117,6 +121,166 @@ describe("addClientPurpose", async () => {
       }),
     });
   });
+
+  it("should write on event-store for the addition of a purpose into a client when the eservice has an active Consumer delegation and the requester is the delegator", async () => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      interface: getMockDocument(),
+      publishedAt: new Date(),
+    };
+
+    const mockEservice = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
+    const mockConsumerId: TenantId = generateId();
+
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEservice.id,
+      consumerId: mockConsumerId,
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      delegationId: undefined,
+    };
+
+    const mockClient: Client = {
+      ...getMockClient(),
+      consumerId: mockConsumerId,
+    };
+
+    const mockAgreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      eserviceId: mockEservice.id,
+      descriptorId: mockDescriptor.id,
+      consumerId: mockConsumerId,
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOneClient(mockClient);
+    await addOneDelegation(delegation);
+    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
+    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+
+    await authorizationService.addClientPurpose({
+      clientId: mockClient.id,
+      seed: { purposeId: mockPurpose.id },
+      organizationId: mockClient.consumerId,
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
+
+    const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockClient.id,
+      version: "1",
+      type: "ClientPurposeAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: ClientPurposeAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload).toEqual({
+      purposeId: mockPurpose.id,
+      client: toClientV2({
+        ...mockClient,
+        purposes: [...mockClient.purposes, mockPurpose.id],
+      }),
+    });
+  });
+
+  it("should write on event-store for the addition of a purpose created by the delegate into a client when the eservice has an active Consumer delegation and the requester is the delegator", async () => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      interface: getMockDocument(),
+      publishedAt: new Date(),
+    };
+
+    const mockEservice = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
+    const mockConsumerId: TenantId = generateId();
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockEservice.id,
+      delegatorId: mockConsumerId,
+      state: delegationState.active,
+    });
+
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEservice.id,
+      consumerId: mockConsumerId,
+      delegationId: delegation.id,
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+    };
+
+    const mockClient: Client = {
+      ...getMockClient(),
+      consumerId: mockConsumerId,
+    };
+
+    const mockAgreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      eserviceId: mockEservice.id,
+      descriptorId: mockDescriptor.id,
+      consumerId: mockConsumerId,
+    };
+
+    await addOneClient(mockClient);
+    await addOneDelegation(delegation);
+    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
+    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+
+    await authorizationService.addClientPurpose({
+      clientId: mockClient.id,
+      seed: { purposeId: mockPurpose.id },
+      organizationId: mockClient.consumerId,
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
+
+    const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockClient.id,
+      version: "1",
+      type: "ClientPurposeAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: ClientPurposeAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload).toEqual({
+      purposeId: mockPurpose.id,
+      client: toClientV2({
+        ...mockClient,
+        purposes: [...mockClient.purposes, mockPurpose.id],
+      }),
+    });
+  });
+
   it("should throw clientNotFound if the client doesn't exist", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
