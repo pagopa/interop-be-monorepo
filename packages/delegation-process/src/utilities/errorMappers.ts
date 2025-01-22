@@ -66,7 +66,7 @@ export const createConsumerDelegationErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "tenantIsNotIPAError",
+      "originNotCompliant",
       "tenantNotAllowedToDelegation",
       () => HTTP_STATUS_FORBIDDEN
     )
