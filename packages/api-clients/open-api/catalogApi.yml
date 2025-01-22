@@ -1098,7 +1098,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceFlagsUpdateSeed"
+              $ref: "#/components/schemas/EServiceDelegationFlagsUpdateSeed"
       responses:
         "200":
           description: EService flags updated
@@ -1834,7 +1834,7 @@ components:
           maxLength: 250
       required:
         - description
-    EServiceFlagsUpdateSeed:
+    EServiceDelegationFlagsUpdateSeed:
       type: object
       additionalProperties: false
       properties:
