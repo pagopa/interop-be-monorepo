@@ -2957,7 +2957,7 @@ describe("integration tests V2 events", async () => {
   });
 
   describe("AgreementArchivedByConsumer", () => {
-    it("should update agreement state to inactive if it exists and the agreement is the latest", async () => {
+    it("should update agreement state to inactive in the token generation read model if the platform-states entry exists and the agreement is the latest", async () => {
       const consumerId = generateId<TenantId>();
       const eserviceId = generateId<EServiceId>();
 
