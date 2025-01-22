@@ -375,7 +375,7 @@ export function catalogServiceBuilder(
     updateEServiceDescription: async (
       { headers, logger }: WithLogger<BffAppContext>,
       eServiceId: EServiceId,
-      updateSeed: bffApi.EServiceDescriptionSeed
+      updateSeed: bffApi.EServiceDescriptionUpdateSeed
     ): Promise<bffApi.CreatedResource> => {
       logger.info(
         `Updating EService Description for eserviceId = ${eServiceId}`
@@ -395,7 +395,7 @@ export function catalogServiceBuilder(
     updateEServiceFlags: async (
       { headers, logger }: WithLogger<BffAppContext>,
       eServiceId: EServiceId,
-      updateSeed: bffApi.EServiceFlagsSeed
+      updateSeed: bffApi.EServiceDelegationFlagsUpdateSeed
     ): Promise<bffApi.CreatedResource> => {
       logger.info(`Updating EService Flags for eserviceId = ${eServiceId}`);
       const updatedEservice =

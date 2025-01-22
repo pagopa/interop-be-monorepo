@@ -718,7 +718,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/description",
+      "/eservices/:eServiceId/description/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -747,7 +747,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/delegationFlags",
+      "/eservices/:eServiceId/delegationFlags/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
