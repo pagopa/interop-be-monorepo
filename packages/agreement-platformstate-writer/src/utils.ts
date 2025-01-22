@@ -22,9 +22,6 @@ import {
 } from "pagopa-interop-models";
 import {
   AttributeValue,
-  ConditionalCheckFailedException,
-  DeleteItemCommand,
-  DeleteItemInput,
   DynamoDBClient,
   GetItemCommand,
   GetItemCommandOutput,
@@ -109,42 +106,6 @@ export const readAgreementEntry = async (
       );
     }
     return agreementEntry.data;
-  }
-};
-
-export const deleteAgreementEntry = async (
-  primaryKey: PlatformStatesAgreementPK,
-  agreementId: AgreementId,
-  dynamoDBClient: DynamoDBClient,
-  logger: Logger
-): Promise<void> => {
-  try {
-    const input: DeleteItemInput = {
-      ConditionExpression: "#agreementId = :agreementId",
-      Key: {
-        PK: { S: primaryKey },
-      },
-      ExpressionAttributeNames: {
-        "#agreementId": "agreementId",
-      },
-      ExpressionAttributeValues: {
-        ":agreementId": {
-          S: agreementId,
-        },
-      },
-      TableName: config.tokenGenerationReadModelTableNamePlatform,
-    };
-    const command = new DeleteItemCommand(input);
-    await dynamoDBClient.send(command);
-    logger.info(`Platform-states. Deleted agreement entry ${primaryKey}`);
-  } catch (error: unknown) {
-    if (error instanceof ConditionalCheckFailedException) {
-      logger.info(
-        `Skipping deletion of agreement ${agreementId}. Reason: a more recent agreement exists in platform-states`
-      );
-    } else {
-      throw error;
-    }
   }
 };
 
@@ -621,17 +582,28 @@ export const updateLatestAgreementOnTokenGenStates = async (
   }
 };
 
-export const deleteAgreementEntryByAgreementIdV1 = async (
+export const updateAgreementStateInPlatformStatesV1 = async (
   agreementId: AgreementId,
+  agreementItemState: ItemState,
+  msgVersion: number,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
-  const runPaginatedQuery = async (
-    agreementId: AgreementId,
-    dynamoDBClient: DynamoDBClient,
-    logger: Logger,
-    exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<void> => {
+  const runPaginatedQuery = async ({
+    agreementId,
+    agreementItemState,
+    msgVersion,
+    dynamoDBClient,
+    logger,
+    exclusiveStartKey,
+  }: {
+    agreementId: AgreementId;
+    agreementItemState: ItemState;
+    msgVersion: number;
+    dynamoDBClient: DynamoDBClient;
+    logger: Logger;
+    exclusiveStartKey?: Record<string, AttributeValue>;
+  }): Promise<void> => {
     const readInput: ScanInput = {
       TableName: config.tokenGenerationReadModelTableNamePlatform,
       FilterExpression: "agreementId = :agreementId",
@@ -666,25 +638,35 @@ export const deleteAgreementEntryByAgreementIdV1 = async (
       }
 
       for (const entry of agreementEntries.data) {
-        await deleteAgreementEntry(
-          entry.PK,
-          agreementId,
+        await updateAgreementStateInPlatformStatesEntry(
           dynamoDBClient,
+          entry.PK,
+          agreementItemState,
+          msgVersion,
           logger
         );
       }
 
       if (data.LastEvaluatedKey) {
-        await runPaginatedQuery(
+        await runPaginatedQuery({
           agreementId,
+          agreementItemState,
+          msgVersion,
           dynamoDBClient,
           logger,
-          data.LastEvaluatedKey
-        );
+          exclusiveStartKey: data.LastEvaluatedKey,
+        });
       }
     }
   };
-  await runPaginatedQuery(agreementId, dynamoDBClient, logger, undefined);
+  await runPaginatedQuery({
+    agreementId,
+    agreementItemState,
+    msgVersion,
+    dynamoDBClient,
+    logger,
+    exclusiveStartKey: undefined,
+  });
 };
 
 export const updateAgreementStateInTokenGenStatesV1 = async (
