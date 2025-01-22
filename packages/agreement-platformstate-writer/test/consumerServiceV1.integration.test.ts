@@ -2055,7 +2055,7 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("Agreement Updated (archived by consumer or by upgrade)", () => {
-    it("should delete the platform-states entry and update token-generation-states if the agreement is the latest", async () => {
+    it("should update agreement state to inactive in token generation read model if the agreement is the latest", async () => {
       const consumerId = generateId<TenantId>();
       const eserviceId = generateId<EServiceId>();
 
@@ -2154,7 +2154,13 @@ describe("integration tests V1 events", async () => {
         platformStatesAgreementPK,
         dynamoDBClient
       );
-      expect(retrievedEntry).toBeUndefined();
+      const expectedPlatformStatesEntry: PlatformStatesAgreementEntry = {
+        ...platformStatesAgreement,
+        state: itemState.inactive,
+        version: 2,
+        updatedAt: new Date().toISOString(),
+      };
+      expect(retrievedEntry).toEqual(expectedPlatformStatesEntry);
 
       // token-generation-states
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
@@ -2311,7 +2317,7 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("AgreementDeactivated (archived by consumer or by upgrade)", () => {
-    it("should delete the platform-states entry and update token-generation-states if the agreement is the latest", async () => {
+    it("should update agreement state to inactive in token generation read model if the agreement is the latest", async () => {
       const consumerId = generateId<TenantId>();
       const eserviceId = generateId<EServiceId>();
 
@@ -2406,11 +2412,17 @@ describe("integration tests V1 events", async () => {
       await handleMessageV1(message, dynamoDBClient, genericLogger);
 
       // platform-states
-      const retrievedEntry = await readAgreementEntry(
+      const retrievedPlatformStatesEntry = await readAgreementEntry(
         platformStatesAgreementPK,
         dynamoDBClient
       );
-      expect(retrievedEntry).toBeUndefined();
+      const expectedPlatformStatesEntry: PlatformStatesAgreementEntry = {
+        ...platformStatesAgreement,
+        state: itemState.inactive,
+        version: 2,
+        updatedAt: new Date().toISOString(),
+      };
+      expect(retrievedPlatformStatesEntry).toEqual(expectedPlatformStatesEntry);
 
       // token-generation-states
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
@@ -2564,7 +2576,7 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("AgreementDeleted", () => {
-    it("should delete the platform-states entry and update agreement state to inactive in token-generation-states", async () => {
+    it("should update agreement state to inactive in token generation read model", async () => {
       const consumerId = generateId<TenantId>();
       const eserviceId = generateId<EServiceId>();
 
@@ -2647,7 +2659,13 @@ describe("integration tests V1 events", async () => {
         platformStatesAgreementPK,
         dynamoDBClient
       );
-      expect(retrievedEntry).toBeUndefined();
+      const expectedPlatformStatesEntry: PlatformStatesAgreementEntry = {
+        ...platformStatesAgreement,
+        state: itemState.inactive,
+        version: 2,
+        updatedAt: new Date().toISOString(),
+      };
+      expect(retrievedEntry).toEqual(expectedPlatformStatesEntry);
 
       // token-generation-states
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
