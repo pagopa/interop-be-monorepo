@@ -29,7 +29,7 @@ message EServiceTemplateDraftUpdatedV2 {
 }
 
 message EServiceTemplateDraftVersionUpdatedV2 {
-  string eserviceTemplateId = 1;
+  string eserviceTemplateVersionId = 1;
   EServiceTemplateV2 eserviceTemplate = 2;
 }
 
