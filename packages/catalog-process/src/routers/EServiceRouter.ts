@@ -115,6 +115,7 @@ const eservicesRouter = (
             agreementStates,
             mode,
             delegated,
+            isDelegable,
             offset,
             limit,
           } = req.query;
@@ -131,6 +132,7 @@ const eservicesRouter = (
               ),
               name,
               mode: mode ? apiEServiceModeToEServiceMode(mode) : undefined,
+              isDelegable,
               delegated,
             },
             offset,
