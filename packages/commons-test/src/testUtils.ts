@@ -58,7 +58,6 @@ import {
   TenantFeatureCertifier,
   TenantFeature,
   DescriptorState,
-  GSIPKConsumerIdEServiceId,
   PlatformStatesAgreementEntry,
   PlatformStatesAgreementPK,
   makeGSIPKClientIdKid,
@@ -515,19 +514,14 @@ export const getMockTokenGenStatesConsumerClient = (
 
 export const getMockPlatformStatesAgreementEntry = (
   primaryKey: PlatformStatesAgreementPK,
-  GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId(
-    {
-      consumerId: generateId<TenantId>(),
-      eserviceId: generateId<EServiceId>(),
-    }
-  )
+  agreementId: AgreementId
 ): PlatformStatesAgreementEntry => ({
   PK: primaryKey,
   state: itemState.inactive,
   version: 1,
   updatedAt: new Date().toISOString(),
-  GSIPK_consumerId_eserviceId,
-  GSISK_agreementTimestamp: new Date().toISOString(),
+  agreementId,
+  agreementTimestamp: new Date().toISOString(),
   agreementDescriptorId: generateId<DescriptorId>(),
 });
 

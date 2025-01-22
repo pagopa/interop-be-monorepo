@@ -99,6 +99,7 @@ import {
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
   assertRequesterIPAOrigin,
+  assertRequesterDelegationsAllowedOrigin,
   getTenantKind,
   assertFeatureAssigned,
   assertFeatureNotAssigned,
@@ -1737,7 +1738,7 @@ export function tenantServiceBuilder(
         `Assigning delegated producer feature to tenant ${organizationId}`
       );
 
-      assertRequesterIPAOrigin(authData);
+      assertRequesterDelegationsAllowedOrigin(authData);
 
       const requesterTenant = await retrieveTenant(
         organizationId,
@@ -1778,7 +1779,7 @@ export function tenantServiceBuilder(
         `Removing delegated producer feature to tenant ${organizationId}`
       );
 
-      assertRequesterIPAOrigin(authData);
+      assertRequesterDelegationsAllowedOrigin(authData);
 
       const requesterTenant = await retrieveTenant(
         organizationId,

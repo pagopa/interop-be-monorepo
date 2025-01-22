@@ -4,42 +4,12 @@
     {
       "AttributeName": "PK",
       "AttributeType": "S"
-    },
-    {
-      "AttributeName": "GSIPK_consumerId_eserviceId",
-      "AttributeType": "S"
-    },
-    {
-      "AttributeName": "GSISK_agreementTimestamp",
-      "AttributeType": "S"
     }
   ],
   "KeySchema": [
     {
       "AttributeName": "PK",
       "KeyType": "HASH"
-    }
-  ],
-  "GlobalSecondaryIndexes": [
-    {
-      "IndexName": "Agreement",
-      "KeySchema": [
-        {
-          "AttributeName": "GSIPK_consumerId_eserviceId",
-          "KeyType": "HASH"
-        },
-        {
-          "AttributeName": "GSISK_agreementTimestamp",
-          "KeyType": "RANGE"
-        }
-      ],
-      "Projection": {
-        "ProjectionType": "INCLUDE",
-        "NonKeyAttributes": [
-          "state",
-          "agreementDescriptorId"
-        ]
-      }
     }
   ],
   "ProvisionedThroughput": {

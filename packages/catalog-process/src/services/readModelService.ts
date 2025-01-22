@@ -41,6 +41,7 @@ import {
   Consumer,
   consumer,
 } from "../model/domain/models.js";
+import { notActiveDescriptorState } from "./validators.js";
 
 async function getEService(
   eservices: EServiceCollection,
@@ -256,10 +257,7 @@ export function readModelServiceBuilder(
                   { "data.descriptors": { $size: 1 } },
                   {
                     "data.descriptors.state": {
-                      $in: [
-                        descriptorState.draft,
-                        descriptorState.waitingForApproval,
-                      ],
+                      $in: notActiveDescriptorState,
                     },
                   },
                 ],
@@ -274,10 +272,7 @@ export function readModelServiceBuilder(
                   { "data.descriptors": { $size: 1 } },
                   {
                     "data.descriptors.state": {
-                      $in: [
-                        descriptorState.draft,
-                        descriptorState.waitingForApproval,
-                      ],
+                      $in: notActiveDescriptorState,
                     },
                   },
                 ],
