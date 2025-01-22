@@ -432,7 +432,11 @@ export async function compareReadModelAgreementsWithPlatformStates({
       );
     }
 
-    if (platformStatesEntry && !agreement) {
+    if (
+      platformStatesEntry &&
+      !agreement &&
+      platformStatesEntry.state === itemState.active
+    ) {
       logger.error(
         `Read model agreement not found for id ${id} and platform-states entry with PK ${platformStatesEntry.PK}`
       );
