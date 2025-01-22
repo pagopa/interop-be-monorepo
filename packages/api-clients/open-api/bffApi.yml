@@ -4076,7 +4076,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/description:
+  /eservices/{eServiceId}/description/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -4100,7 +4100,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptionSeed"
+              $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
       responses:
         "200":
           description: EService description updated
@@ -4178,7 +4178,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/delegationFlags:
+  /eservices/{eServiceId}/delegationFlags/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -4202,7 +4202,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceFlagsSeed"
+              $ref: "#/components/schemas/EServiceDelegationFlagsUpdateSeed"
       responses:
         "200":
           description: EService flags updated
@@ -14649,7 +14649,7 @@ components:
           type: string
         description:
           type: string
-    EServiceDescriptionSeed:
+    EServiceDescriptionUpdateSeed:
       type: object
       additionalProperties: false
       properties:
@@ -14657,7 +14657,7 @@ components:
           type: string
       required:
         - description
-    EServiceFlagsSeed:
+    EServiceDelegationFlagsUpdateSeed:
       type: object
       additionalProperties: false
       properties:
