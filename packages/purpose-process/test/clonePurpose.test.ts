@@ -706,7 +706,7 @@ describe("clonePurpose", async () => {
     const purposeCreatedByDelegate: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
-      consumerId: consumer.id,
+      consumerId: consumerDelegate.id,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
       delegationId: generateId<DelegationId>(),
     };
@@ -723,13 +723,13 @@ describe("clonePurpose", async () => {
           eserviceId: mockEService.id,
         },
         ctx: {
-          authData: getRandomAuthData(consumerDelegate.id),
+          authData: getRandomAuthData(consumer.id),
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
         },
       })
-    ).rejects.toThrowError(organizationIsNotTheConsumer(consumerDelegate.id));
+    ).rejects.toThrowError(organizationIsNotTheConsumer(consumer.id));
   });
   it("should throw organizationIsNotTheConsumer if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
     const consumer = {
