@@ -460,36 +460,4 @@ describe("getPurposeById", () => {
       )
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
-  // it.only("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
-  //   const tenant = { ...getMockTenant(), kind: tenantKind.PA };
-
-  //   console.log(tenant.id);
-  //   const mockEService: EService = {
-  //     ...getMockEService(),
-  //   };
-  //   const mockPurpose: Purpose = {
-  //     ...getMockPurpose(),
-  //     consumerId: tenant.id,
-  //     eserviceId: mockEService.id,
-  //     riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
-  //   };
-
-  //   const delegation = getMockDelegation({
-  //     kind: delegationKind.delegatedConsumer,
-  //     eserviceId: mockPurpose.eserviceId,
-  //     delegatorId: mockPurpose.consumerId,
-  //     delegateId: generateId<TenantId>(),
-  //     state: delegationState.active,
-  //   });
-
-  //   await addOneTenant(tenant);
-  //   await addOnePurpose(mockPurpose);
-  //   await addOneDelegation(delegation);
-  //   await addSomeRandomDelegations(mockPurpose, addOneDelegation);
-  //   await writeInReadmodel(toReadModelEService(mockEService), eservices);
-
-  //   expect(
-  //     purposeService.getPurposeById(mockPurpose.id, tenant.id, genericLogger)
-  //   ).rejects.toThrowError(organizationNotAllowed(tenant.id));
-  // });
 });
