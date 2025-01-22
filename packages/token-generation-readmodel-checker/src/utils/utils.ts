@@ -454,14 +454,6 @@ export async function compareReadModelAgreementsWithPlatformStates({
     }
 
     if (platformStatesEntry && agreement) {
-      if (agreement.state === agreementState.archived) {
-        logger.error(
-          `platform-states entry with ${platformStatesEntry.PK} and agreementId ${agreement.id} should not be in the table because the agreement is archived`
-        );
-        differencesCount++;
-        continue;
-      }
-
       const expectedPlatformStatesAgreementEntry: ComparisonPlatformStatesAgreementEntry =
         {
           PK: makePlatformStatesAgreementPK({
