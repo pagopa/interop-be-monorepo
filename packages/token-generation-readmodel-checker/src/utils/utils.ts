@@ -871,6 +871,12 @@ function validateTokenGenerationStates({
   }
 
   const missingEntriesCount = expectedTokenGenStatesEntriesCount - correctCount;
+  if (missingEntriesCount > 0) {
+    logger.error(
+      `${missingEntriesCount} missing token-generation-states entries for client id ${client.id}`
+    );
+  }
+
   return (
     missingEntriesCount +
     differencesCount -
