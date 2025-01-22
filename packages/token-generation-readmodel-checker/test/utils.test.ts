@@ -148,17 +148,15 @@ describe("Token Generation Read Model Checker utils tests", () => {
       await addOneAgreement(agreement2);
 
       // platform-states
-      const agreementEntryPrimaryKey1 = makePlatformStatesAgreementPK(
-        agreement1.id
-      );
+      const agreementEntryPrimaryKey1 = makePlatformStatesAgreementPK({
+        consumerId: agreement1.consumerId,
+        eserviceId: agreement1.eserviceId,
+      });
       const platformAgreementEntry1: PlatformStatesAgreementEntry = {
         PK: agreementEntryPrimaryKey1,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement1.consumerId,
-          eserviceId: agreement1.eserviceId,
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement1.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
@@ -166,17 +164,15 @@ describe("Token Generation Read Model Checker utils tests", () => {
         updatedAt: new Date().toISOString(),
       };
 
-      const agreementEntryPrimaryKey2 = makePlatformStatesAgreementPK(
-        agreement2.id
-      );
+      const agreementEntryPrimaryKey2 = makePlatformStatesAgreementPK({
+        consumerId: agreement2.consumerId,
+        eserviceId: agreement2.eserviceId,
+      });
       const platformAgreementEntry2: PlatformStatesAgreementEntry = {
         PK: agreementEntryPrimaryKey2,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: generateId(),
-          eserviceId: generateId(),
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement2.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: generateId(),
