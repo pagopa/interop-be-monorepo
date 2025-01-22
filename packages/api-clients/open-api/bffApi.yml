@@ -2087,6 +2087,11 @@ paths:
           schema:
             $ref: "#/components/schemas/EServiceMode"
         - in: query
+          name: isDelegable
+          description: EService isDelegable filter
+          schema:
+            type: boolean
+        - in: query
           name: offset
           required: true
           schema:
