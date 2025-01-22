@@ -1,8 +1,8 @@
 import { z } from "zod";
 import {
+  AgreementId,
   DescriptorId,
   EServiceId,
-  GSIPKConsumerIdEServiceId,
   PlatformStatesAgreementPK,
   PlatformStatesClientPK,
   PlatformStatesEServiceDescriptorPK,
@@ -51,8 +51,8 @@ export type PlatformStatesPurposeEntry = z.infer<
 
 export const PlatformStatesAgreementEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesAgreementPK,
-  GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
-  GSISK_agreementTimestamp: z.string().datetime(),
+  agreementId: AgreementId,
+  agreementTimestamp: z.string().datetime(),
   agreementDescriptorId: DescriptorId,
 });
 export type PlatformStatesAgreementEntry = z.infer<
@@ -76,17 +76,4 @@ export const PlatformStatesGenericEntry = PlatformStatesCatalogEntry.or(
   .or(PlatformStatesClientEntry);
 export type PlatformStatesGenericEntry = z.infer<
   typeof PlatformStatesGenericEntry
->;
-
-// GSI projection types
-export const PlatformStatesAgreementGSIAgreement =
-  PlatformStatesAgreementEntry.pick({
-    PK: true,
-    GSIPK_consumerId_eserviceId: true,
-    GSISK_agreementTimestamp: true,
-    agreementDescriptorId: true,
-    state: true,
-  });
-export type PlatformStatesAgreementGSIAgreement = z.infer<
-  typeof PlatformStatesAgreementGSIAgreement
 >;

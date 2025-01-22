@@ -28,7 +28,6 @@ import {
   deleteClientEntryFromPlatformStates,
   readPlatformClientEntry,
   deleteClientEntryFromTokenGenerationStates,
-  extractAgreementIdFromAgreementPK,
   retrievePlatformStatesByPurpose,
   upsertPlatformClientEntry,
   upsertTokenGenStatesApiClient,
@@ -143,9 +142,7 @@ export async function handleMessageV2(
                     : {}),
                   ...(purposeEntry && agreementEntry
                     ? {
-                        agreementId: extractAgreementIdFromAgreementPK(
-                          agreementEntry.PK
-                        ),
+                        agreementId: agreementEntry.agreementId,
                         agreementState: agreementEntry.state,
                         GSIPK_eserviceId_descriptorId:
                           makeGSIPKEServiceIdDescriptorId({
