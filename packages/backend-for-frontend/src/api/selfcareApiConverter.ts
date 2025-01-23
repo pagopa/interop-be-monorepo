@@ -36,8 +36,8 @@ export const toApiSelfcareInstitution = (
         ),
       })
     )
-    .with({ id: P.nullish }, () => {
-      throw selfcareEntityNotFilled("UserInstitutionResource", "id");
+    .with({ institutionId: P.nullish }, () => {
+      throw selfcareEntityNotFilled("UserInstitutionResource", "institutionId");
     })
     .with({ institutionDescription: P.nullish }, () => {
       throw selfcareEntityNotFilled(
