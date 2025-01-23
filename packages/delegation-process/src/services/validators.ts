@@ -165,3 +165,9 @@ export function assertStampExists<S extends keyof Delegation["stamps"]>(
     throw delegationStampNotFound(stamp);
   }
 }
+
+export const assertEserviceIsDelegable = (eservice: EService): void => {
+  if (!eservice.isDelegable) {
+    throw operationForbidden;
+  }
+};
