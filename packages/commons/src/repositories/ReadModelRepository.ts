@@ -10,6 +10,7 @@ import {
   ProducerKeychainReadModel,
   ProducerJWKKey,
   Delegation,
+  EServiceTemplate,
 } from "pagopa-interop-models";
 import {
   Collection,
@@ -45,6 +46,7 @@ export type ProducerKeychainCollection =
   GenericCollection<ProducerKeychainReadModel>;
 export type ProducerKeyCollection = GenericCollection<ProducerJWKKey>;
 export type DelegationCollection = GenericCollection<Delegation>;
+export type EServiceTemplateCollection = GenericCollection<EServiceTemplate>;
 
 export type Collections =
   | EServiceCollection
@@ -56,7 +58,8 @@ export type Collections =
   | ClientKeyCollection
   | ProducerKeychainCollection
   | ProducerKeyCollection
-  | DelegationCollection;
+  | DelegationCollection
+  | EServiceTemplateCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -169,6 +172,8 @@ export class ReadModelRepository {
 
   public delegations: DelegationCollection;
 
+  public eserviceTemplates: EServiceTemplateCollection;
+
   private client: MongoClient;
   private db: Db;
 
@@ -202,6 +207,9 @@ export class ReadModelRepository {
       ignoreUndefined: true,
     });
     this.delegations = this.db.collection("delegations", {
+      ignoreUndefined: true,
+    });
+    this.eserviceTemplates = this.db.collection("eservice_templates", {
       ignoreUndefined: true,
     });
   }

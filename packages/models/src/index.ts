@@ -57,6 +57,11 @@ export * from "./authorization/protobufConverterFromV2.js";
 export * from "./authorization/protobufConverterToV2.js";
 export * from "./authorization/authorizationReadModelAdapter.js";
 
+export * from "./eservice-template/eserviceTemplate.js";
+export * from "./eservice-template/eserviceTemplateEvents.js";
+export * from "./eservice-template/protobufConverterFromV2.js";
+export * from "./eservice-template/protobufConverterToV2.js";
+
 export * from "./user/user.js";
 
 // Token generation read model
@@ -116,3 +121,5 @@ export * from "./gen/v2/tenant/tenant.js";
 export * from "./gen/v2/tenant/events.js";
 export * from "./gen/v2/delegation/delegation.js";
 export * from "./gen/v2/delegation/events.js";
+export * from "./gen/v2/eservice-template/eservice-template.js";
+export * from "./gen/v2/eservice-template/events.js";

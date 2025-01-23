@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Catalog Process Micro Service
-  description: This service is the catalog process
+  title: EService Template Process Micro Service
+  description: This service is the eservice template process
   version: "v1"
   contact:
     name: API Support
@@ -11,13 +11,13 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/catalog-process/v1"
-    description: This service is the catalog process
+  - url: "/eservice-template-process/v1"
+    description: This service is the eservice template process
 security:
   - bearerAuth: []
 tags:
   - name: process
-    description: Implements catalog process
+    description: Implements eservice template process
     externalDocs:
       description: Find out more
       url: http://swagger.io
@@ -27,7 +27,7 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
-  /eservices:
+  /eservices/templates:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
@@ -35,23 +35,13 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Retrieve a list of E-Service
-      operationId: getEServices
+      summary: Retrieve a list of E-Service templates
+      operationId: getEServiceTemplates
       parameters:
         - in: query
           name: name
           schema:
             type: string
-        - in: query
-          name: eservicesIds
-          description: comma separated sequence of EService IDs
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
         - in: query
           name: producersIds
           description: comma separated sequence of producers IDs
@@ -63,8 +53,8 @@ paths:
             default: []
           explode: false
         - in: query
-          name: attributesIds
-          description: comma separated sequence of attributes IDs
+          name: creatorsIds
+          description: comma separated sequence of creator IDs
           schema:
             type: array
             items:
@@ -78,28 +68,9 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/EServiceDescriptorState"
+              $ref: "#/components/schemas/EServiceTemplateVersionState"
             default: []
           explode: false
-        - in: query
-          name: agreementStates
-          description: comma separated sequence of agreement states to filter the response with
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/AgreementState"
-            default: []
-          explode: false
-        - in: query
-          name: mode
-          description: mode
-          schema:
-            $ref: "#/components/schemas/EServiceMode"
-        - in: query
-          name: delegated
-          description: if true only delegated e-services will be returned, if false only non-delegated e-services will be returned, if not present all e-services will be returned
-          schema:
-            type: boolean
         - in: query
           name: offset
           required: true
@@ -117,32 +88,32 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: A list of E-Service
+          description: A list of E-Service templates
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServices"
+                $ref: "#/components/schemas/EServiceTemplates"
     post:
       security:
         - bearerAuth: []
       tags:
         - process
-      summary: Create a new e-service
-      operationId: createEService
+      summary: Create a new e-service template
+      operationId: createEServiceTemplate
       requestBody:
-        description: An E-Service seed
+        description: An E-Service template seed
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceSeed"
+              $ref: "#/components/schemas/EServiceTemplateSeed"
         required: true
       responses:
         "200":
-          description: EService created
+          description: EService template created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceTemplate"
         "400":
           description: Invalid input
           content:
@@ -155,7 +126,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}:
+  /eservices/templates/{eServiceTemplateId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
@@ -163,24 +134,24 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Get an e-service
-      operationId: getEServiceById
+      summary: Get an e-service template
+      operationId: getEServiceTemplateById
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: The E-Service id
+          description: The E-Service template id
           required: true
           schema:
             type: string
       responses:
         "200":
-          description: E-Service retrieved
+          description: E-Service template retrieved
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceTemplate"
         "404":
-          description: E-Service not found
+          description: E-Service template not found
           content:
             application/json:
               schema:
@@ -191,36 +162,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-    put:
+    post:
       security:
         - bearerAuth: []
       tags:
         - process
-      summary: Updates e-service general information
-      operationId: updateEServiceById
+      summary: Updates e-service template general information
+      operationId: updateEServiceTemplate
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
           description: The E-Service id to update
           required: true
           schema:
             type: string
       requestBody:
-        description: An E-Service update seed containing the possible updatable fields
+        description: An E-Service template update seed containing the possible updatable fields
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEServiceSeed"
+              $ref: "#/components/schemas/UpdateEServiceTemplateSeed"
       responses:
         "200":
-          description: E-Service updated
+          description: E-Service Template updated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceTemplate"
         "404":
-          description: E-Service not found
+          description: E-Service template not found
           content:
             application/json:
               schema:
@@ -231,89 +202,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-    delete:
-      security:
-        - bearerAuth: []
-      tags:
-        - process
-      summary: Deletes an e-service
-      operationId: deleteEService
-      parameters:
-        - name: eServiceId
-          in: path
-          description: the eservice id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "204":
-          description: EService deleted
-        "400":
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/consumers:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-    get:
-      security:
-        - bearerAuth: []
-      tags:
-        - process
-      summary: Retrieve Consumers for an EService
-      operationId: getEServiceConsumers
-      parameters:
-        - name: eServiceId
-          in: path
-          description: The E-Service id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - in: query
-          name: offset
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
-      responses:
-        "200":
-          description: E-Service consumers retrieved
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EServiceConsumers"
-        "404":
-          description: E-Service not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors:
+  /eservices/templates/{eServiceTemplateId}/versions:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -321,29 +210,29 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Adds a descriptor to the specified e-service
-      operationId: createDescriptor
+      summary: Adds a version to the specified e-service template
+      operationId: createEServiceTemplateVersion
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: The E-Service id
+          description: The E-Service template id
           required: true
           schema:
             type: string
       requestBody:
-        description: An E-Service Descriptor seed
+        description: An E-Service Template version seed
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptorSeed"
+              $ref: "#/components/schemas/EServiceTemplateVersionSeed"
         required: true
       responses:
         "200":
-          description: EService Descriptor created.
+          description: EService template version created.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptor"
+                $ref: "#/components/schemas/EServiceTemplateVersion"
         "400":
           description: Invalid input
           content:
@@ -356,7 +245,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}:
+  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     delete:
@@ -364,24 +253,24 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Deletes a draft descriptor
-      operationId: deleteDraft
+      summary: Deletes a draft template version
+      operationId: deleteDraftTemplateVersion
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: The E-Service Id
+          description: The E-Service template Id
           required: true
           schema:
             type: string
-        - name: descriptorId
+        - name: eServiceTemplateVersionId
           in: path
-          description: The Descriptor Id
+          description: The E-Service template version Id
           required: true
           schema:
             type: string
       responses:
         "204":
-          description: E-Service draft Descriptor deleted
+          description: The E-Service template version deleted
         "400":
           description: Invalid input
           content:
@@ -394,40 +283,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-    put:
+    post:
       security:
         - bearerAuth: []
       tags:
         - process
-      summary: Updates a draft descriptor
-      operationId: updateDraftDescriptor
+      summary: Updates a draft template version
+      operationId: updateDraftTemplateVersion
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: The E-Service id
+          description: The E-Service template id
           required: true
           schema:
             type: string
-        - name: descriptorId
+        - name: eServiceTemplateVersionId
           in: path
-          description: The Descriptor Id
+          description: The E-Service template version Id
           required: true
           schema:
             type: string
       requestBody:
-        description: An E-Service Descriptor seed
+        description: An E-Service template version seed
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEServiceDescriptorSeed"
+              $ref: "#/components/schemas/UpdateEServiceTemplateVersionSeed"
         required: true
       responses:
         "200":
-          description: EService with draft descriptor updated.
+          description: Template draft version updated.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceTemplate"
         "400":
           description: Invalid input
           content:
@@ -440,7 +329,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/publish:
+  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/publish:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -448,24 +337,24 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Publish the selected descriptor.
-      operationId: publishDescriptor
+      summary: Publish the selected template version.
+      operationId: publishTemplateVersion
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
-        - name: descriptorId
+        - name: eServiceTemplateVersionId
           in: path
-          description: the descriptor Id
+          description: the template version Id
           required: true
           schema:
             type: string
       responses:
         "204":
-          description: E-Service Descriptor published
+          description: E-Service Template version published
         "400":
           description: Invalid input
           content:
@@ -478,7 +367,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/suspend:
+  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/suspend:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -486,24 +375,24 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Suspend the selected descriptor.
-      operationId: suspendDescriptor
+      summary: Suspend the selected template version.
+      operationId: suspendTemplateVersion
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
-        - name: descriptorId
+        - name: eServiceTemplateVersionId
           in: path
-          description: the descriptor Id
+          description: the template version Id
           required: true
           schema:
             type: string
       responses:
         "204":
-          description: E-Service Descriptor suspended
+          description: E-Service Template version suspended
         "400":
           description: Invalid input
           content:
@@ -516,7 +405,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/activate:
+  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/activate:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -524,24 +413,24 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Activate the selected descriptor.
-      operationId: activateDescriptor
+      summary: Activate the selected template version.
+      operationId: activateTemplateVersion
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
-        - name: descriptorId
+        - name: eServiceTemplateVersionId
           in: path
-          description: the descriptor Id
+          description: the template version Id
           required: true
           schema:
             type: string
       responses:
         "204":
-          description: E-Service Descriptor activated
+          description: Template version activated
         "400":
           description: Invalid input
           content:
@@ -554,7 +443,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/clone:
+  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/quotas/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -562,103 +451,19 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Clones the selected descriptor.
-      operationId: cloneEServiceByDescriptor
+      summary: Update the quotas of the selecter template version
+      operationId: updateTemplateVersionQuotas
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
             format: uuid
-        - name: descriptorId
+        - name: eServiceTemplateVersionId
           in: path
-          description: the descriptor Id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: Cloned EService with a new draft descriptor updated.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EService"
-        "400":
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/archive:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-    post:
-      security:
-        - bearerAuth: []
-      tags:
-        - process
-      summary: Archive the selected descriptor.
-      operationId: archiveDescriptor
-      parameters:
-        - name: eServiceId
-          in: path
-          description: the eservice id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: descriptorId
-          in: path
-          description: the descriptor Id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "204":
-          description: E-Service Descriptor archived
-        "400":
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-    post:
-      security:
-        - bearerAuth: []
-      tags:
-        - process
-      summary: Update the selected descriptor.
-      operationId: updateDescriptor
-      parameters:
-        - name: eServiceId
-          in: path
-          description: the eservice id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: descriptorId
-          in: path
-          description: the descriptor Id
+          description: the template version Id
           required: true
           schema:
             type: string
@@ -669,14 +474,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEServiceDescriptorQuotasSeed"
+              $ref: "#/components/schemas/UpdateEServiceTemplateVersionQuotasSeed"
       responses:
         "200":
-          description: EService descriptor updated.
+          description: EService template version updated.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceTemplate"
         "400":
           description: Invalid input
           content:
@@ -689,7 +494,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/documents:
+  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -697,35 +502,35 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Add new e-service document
-      operationId: createEServiceDocument
+      summary: Add new e-service template document
+      operationId: createEServiceTemplateDocument
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
-        - name: descriptorId
+        - name: eServiceTemplateVersionId
           in: path
-          description: the descriptor Id
+          description: the template version Id
           required: true
           schema:
             type: string
       requestBody:
-        description: E-Service document
+        description: E-Service template document
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
+              $ref: "#/components/schemas/CreateEServiceTemplateVersionDocumentSeed"
       responses:
         "200":
-          description: EService Document created
+          description: EService Template Document created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceTemplate"
         "400":
           description: Invalid input
           content:
@@ -738,7 +543,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}:
+  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents/{documentId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
@@ -746,18 +551,18 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Get an e-service document
-      operationId: getEServiceDocumentById
+      summary: Get an e-service template document
+      operationId: getEServiceTemplateDocumentById
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
-        - name: descriptorId
+        - name: eServiceTemplateVersionId
           in: path
-          description: the descriptor Id
+          description: the template version Id
           required: true
           schema:
             type: string
@@ -769,13 +574,13 @@ paths:
             type: string
       responses:
         "200":
-          description: EService document metadata retrieved
+          description: EService template document metadata retrieved
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceDoc"
         "404":
-          description: EService not found
+          description: EService template not found
           content:
             application/json:
               schema:
@@ -791,18 +596,18 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Deletes an e-service document
-      operationId: deleteEServiceDocumentById
+      summary: Deletes an e-service template document
+      operationId: deleteEServiceTemplateDocumentById
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
-        - name: descriptorId
+        - name: eServiceTemplateVersionId
           in: path
-          description: the descriptor Id
+          description: the template version Id
           required: true
           schema:
             type: string
@@ -816,7 +621,7 @@ paths:
         "204":
           description: Document deleted.
         "404":
-          description: E-Service descriptor document not found
+          description: E-Service template document not found
           content:
             application/json:
               schema:
@@ -827,7 +632,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update:
+  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents/{documentId}/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -835,18 +640,18 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Updates an e-service document
-      operationId: updateEServiceDocumentById
+      summary: Updates an e-service template document
+      operationId: updateEServiceTemplateDocumentById
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
-        - name: descriptorId
+        - name: eServiceTemplateVersionId
           in: path
-          description: the descriptor Id
+          description: the template version Id
           required: true
           schema:
             type: string
@@ -862,10 +667,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEServiceDescriptorDocumentSeed"
+              $ref: "#/components/schemas/UpdateEServiceTemplateVersionDocumentSeed"
       responses:
         "200":
-          description: EService Document updated.
+          description: EService Template Document updated.
           content:
             application/json:
               schema:
@@ -882,7 +687,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/riskAnalysis:
+  /eservices/templates/{eServiceTemplateId}/riskAnalysis:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -890,12 +695,12 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Create an e-service risk analysis
-      operationId: createRiskAnalysis
+      summary: Create an e-service template risk analysis
+      operationId: createEServiceTemplateRiskAnalysis
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
@@ -909,7 +714,7 @@ paths:
               $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
       responses:
         "204":
-          description: EService Risk Analysis created.
+          description: EService Template Risk Analysis created.
         "403":
           description: Forbidden
           content:
@@ -928,7 +733,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId}:
+  /eservices/templates/{eServiceTemplateId}/riskAnalysis/{riskAnalysisId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -936,19 +741,19 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an e-service risk analysis
-      operationId: updateRiskAnalysis
+      summary: Update an e-service template risk analysis
+      operationId: updateEServiceTemplateRiskAnalysis
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
             format: uuid
         - name: riskAnalysisId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
@@ -962,7 +767,7 @@ paths:
               $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
       responses:
         "204":
-          description: EService Risk Analysis created.
+          description: EService Template Risk Analysis created.
         "403":
           description: Forbidden
           content:
@@ -970,7 +775,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: EService not found
+          description: EService Template not found
           content:
             application/json:
               schema:
@@ -986,12 +791,12 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Delete an e-service risk analysis
-      operationId: deleteRiskAnalysis
+      summary: Delete an e-service template risk analysis
+      operationId: deleteEServiceTemplateRiskAnalysis
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
@@ -1005,7 +810,7 @@ paths:
             format: uuid
       responses:
         "204":
-          description: EService Risk Analysis deleted.
+          description: EService Template Risk Analysis deleted.
         "403":
           description: Forbidden
           content:
@@ -1024,7 +829,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/description/update:
+  /eservices/templates/{eServiceTemplateId}/audienceDescription/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1032,12 +837,12 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an e-service description
-      operationId: updateEServiceDescription
+      summary: Update an e-service template audience description
+      operationId: updateEServiceTemplateAudienceDescription
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
@@ -1048,14 +853,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
+              $ref: "#/components/schemas/EServiceTemplateDescriptionUpdateSeed"
       responses:
         "200":
-          description: EService description updated
+          description: EService template audience description updated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceTemplate"
         "403":
           description: Forbidden
           content:
@@ -1063,7 +868,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: EService not found
+          description: EService template not found
           content:
             application/json:
               schema:
@@ -1074,7 +879,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/name/update:
+  /eservices/templates/{eServiceTemplateId}/eserviceDescription/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1082,12 +887,62 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an e-service name
-      operationId: updateEServiceName
+      summary: Update an e-service template e-service description
+      operationId: updateEServiceTemplateEServiceDescription
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the new description
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceTemplateDescriptionUpdateSeed"
+      responses:
+        "200":
+          description: EService template e-service description updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplate"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/templates/{eServiceTemplateId}/name/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update an e-service template name
+      operationId: updateEServiceTemplateName
+      parameters:
+        - name: eServiceTemplateId
+          in: path
+          description: the eservice template id
           required: true
           schema:
             type: string
@@ -1098,14 +953,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceNameUpdateSeed"
+              $ref: "#/components/schemas/EServiceTemplateNameUpdateSeed"
       responses:
         "200":
-          description: EService name updated
+          description: EService Template name updated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceTemplate"
         "403":
           description: Forbidden
           content:
@@ -1113,7 +968,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: EService not found
+          description: EService Template not found
           content:
             application/json:
               schema:
@@ -1124,7 +979,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/:eServiceId/descriptors/:descriptorId/approve:
+  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/attributes/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1132,118 +987,19 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: approve a delegated new e-service version
-      operationId: approveDelegatedEServiceDescriptor
+      summary: Update e-service published template version attributes
+      operationId: updateTemplateVersionAttributes
       parameters:
-        - name: eServiceId
+        - name: eServiceTemplateId
           in: path
-          description: the eservice id
+          description: the eservice template id
           required: true
           schema:
             type: string
             format: uuid
-        - name: descriptorId
+        - name: eServiceTemplateVersionId
           in: path
-          description: the descriptor id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "204":
-          description: New delegated e-service version approved
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: EService not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-  /eservices/:eServiceId/descriptors/:descriptorId/reject:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-    post:
-      security:
-        - bearerAuth: []
-      tags:
-        - process
-      summary: reject a delegated new e-service version
-      operationId: rejectDelegatedEServiceDescriptor
-      requestBody:
-        description: Payload containing the reason of the rejection
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RejectDelegatedEServiceDescriptorSeed"
-        required: true
-      parameters:
-        - name: eServiceId
-          in: path
-          description: the eservice id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: descriptorId
-          in: path
-          description: the descriptor id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "204":
-          description: New delegated e-service version rejected
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: EService not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-    post:
-      security:
-        - bearerAuth: []
-      tags:
-        - process
-      summary: Update e-service published descriptor attributes
-      operationId: updateDescriptorAttributes
-      parameters:
-        - name: eServiceId
-          in: path
-          description: the eservice id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: descriptorId
-          in: path
-          description: the descriptor id
+          description: the template version id
           required: true
           schema:
             type: string
@@ -1257,11 +1013,11 @@ paths:
               $ref: "#/components/schemas/AttributesSeed"
       responses:
         "200":
-          description: EService descriptor attributes updated
+          description: EService template version attributes updated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceTemplate"
         "403":
           description: Forbidden
           content:
@@ -1269,7 +1025,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: E-Service or descriptor not found
+          description: E-Service template not found
           content:
             application/json:
               schema:
@@ -1310,15 +1066,16 @@ components:
       schema:
         type: string
   schemas:
-    EServiceSeed:
+    EServiceTemplateSeed:
       type: object
       additionalProperties: false
       required:
         - name
-        - description
+        - audienceDecription
+        - eserviceDescription
         - technology
         - mode
-        - descriptor
+        - version
       properties:
         name:
           type: string
@@ -1332,16 +1089,17 @@ components:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
           $ref: "#/components/schemas/EServiceMode"
-        descriptor:
-          $ref: "#/components/schemas/DescriptorSeedForEServiceCreation"
+        version:
+          $ref: "#/components/schemas/VersionSeedForEServiceTemplateCreation"
         isSignalHubEnabled:
           type: boolean
-    UpdateEServiceSeed:
+    UpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
       required:
         - name
-        - description
+        - audienceDescription
+        - eserviceDescription
         - technology
         - mode
       properties:
@@ -1349,7 +1107,11 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-        description:
+        audienceDescription:
+          type: string
+          minLength: 10
+          maxLength: 250
+        eserviceDescription:
           type: string
           minLength: 10
           maxLength: 250
@@ -1359,13 +1121,9 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
-    DescriptorSeedForEServiceCreation:
+    VersionSeedForEServiceTemplateCreation:
       required:
-        - audience
         - voucherLifespan
-        - dailyCallsPerConsumer
-        - dailyCallsTotal
-        - agreementApprovalPolicy
       type: object
       additionalProperties: false
       properties:
@@ -1396,13 +1154,9 @@ components:
           minimum: 1
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
-    EServiceDescriptorSeed:
+    EServiceTemplateVersionSeed:
       required:
-        - audience
         - voucherLifespan
-        - dailyCallsPerConsumer
-        - dailyCallsTotal
-        - agreementApprovalPolicy
         - attributes
         - docs
       type: object
@@ -1412,12 +1166,6 @@ components:
           type: string
           minLength: 10
           maxLength: 250
-        audience:
-          type: array
-          items:
-            type: string
-            minLength: 0
-            maxLength: 250
         voucherLifespan:
           type: integer
           format: int32
@@ -1440,14 +1188,10 @@ components:
         docs:
           type: array
           items:
-            $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
-    UpdateEServiceDescriptorSeed:
+            $ref: "#/components/schemas/CreateEServiceTemplateVersionDocumentSeed"
+    UpdateEServiceTemplateVersionSeed:
       required:
-        - audience
         - voucherLifespan
-        - dailyCallsPerConsumer
-        - dailyCallsTotal
-        - agreementApprovalPolicy
         - attributes
       type: object
       additionalProperties: false
@@ -1456,12 +1200,6 @@ components:
           type: string
           minLength: 10
           maxLength: 250
-        audience:
-          type: array
-          items:
-            type: string
-            minLength: 1
-            maxLength: 250
         voucherLifespan:
           type: integer
           format: int32
@@ -1481,7 +1219,7 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
-    UpdateEServiceDescriptorQuotasSeed:
+    UpdateEServiceTemplateVersionQuotasSeed:
       type: object
       additionalProperties: false
       properties:
@@ -1500,9 +1238,7 @@ components:
           minimum: 1
       required:
         - voucherLifespan
-        - dailyCallsPerConsumer
-        - dailyCallsTotal
-    CreateEServiceDescriptorDocumentSeed:
+    CreateEServiceTemplateVersionDocumentSeed:
       required:
         - documentId
         - kind
@@ -1534,7 +1270,7 @@ components:
           type: array
           items:
             type: string
-    UpdateEServiceDescriptorDocumentSeed:
+    UpdateEServiceTemplateVersionDocumentSeed:
       required:
         - prettyName
       type: object
@@ -1618,35 +1354,38 @@ components:
       required:
         - version
         - answers
-    EService:
+    EServiceTemplate:
       type: object
       additionalProperties: false
       required:
         - id
-        - producerId
+        - creatorId
         - name
-        - description
+        - audienceDescription
+        - eserviceDescription
         - technology
-        - descriptors
+        - versions
         - riskAnalysis
         - mode
       properties:
         id:
           type: string
           format: uuid
-        producerId:
+        creatorId:
           type: string
           format: uuid
         name:
           type: string
-        description:
+        audienceDescription:
+          type: string
+        eserviceDescription:
           type: string
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
-        descriptors:
+        versions:
           type: array
           items:
-            $ref: "#/components/schemas/EServiceDescriptor"
+            $ref: "#/components/schemas/EServiceTemplateVersion"
         riskAnalysis:
           type: array
           items:
@@ -1655,8 +1394,6 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
-        template:
-          $ref: "#/components/schemas/EServiceTemplateBinding"
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -1735,49 +1472,14 @@ components:
           type: array
           items:
             type: string
-    EServiceConsumers:
+    EServiceTemplates:
       type: object
       additionalProperties: false
       properties:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/EServiceConsumer"
-        totalCount:
-          type: integer
-          format: int32
-      required:
-        - results
-        - totalCount
-    EServiceConsumer:
-      type: object
-      additionalProperties: false
-      required:
-        - descriptorVersion
-        - descriptorState
-        - agreementState
-        - consumerName
-        - consumerExternalId
-      properties:
-        descriptorVersion:
-          type: integer
-          format: int32
-        descriptorState:
-          $ref: "#/components/schemas/EServiceDescriptorState"
-        agreementState:
-          $ref: "#/components/schemas/AgreementState"
-        consumerName:
-          type: string
-        consumerExternalId:
-          type: string
-    EServices:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/EService"
+            $ref: "#/components/schemas/EServiceTemplate"
         totalCount:
           type: integer
           format: int32
@@ -1808,7 +1510,7 @@ components:
           type: string
         checksum:
           type: string
-    EServiceDescriptionUpdateSeed:
+    EServiceTemplateDescriptionUpdateSeed:
       type: object
       additionalProperties: false
       properties:
@@ -1818,7 +1520,7 @@ components:
           maxLength: 250
       required:
         - description
-    EServiceNameUpdateSeed:
+    EServiceTemplateNameUpdateSeed:
       type: object
       additionalProperties: false
       properties:
@@ -1828,7 +1530,7 @@ components:
           maxLength: 60
       required:
         - name
-    EServiceDescriptor:
+    EServiceTemplateVersion:
       type: object
       additionalProperties: false
       required:
@@ -1837,12 +1539,7 @@ components:
         - docs
         - state
         - creationDate
-        - audience
         - voucherLifespan
-        - dailyCallsPerConsumer
-        - dailyCallsTotal
-        - agreementApprovalPolicy
-        - serverUrls
         - attributes
       properties:
         id:
@@ -1852,10 +1549,6 @@ components:
           type: string
         description:
           type: string
-        audience:
-          type: array
-          items:
-            type: string
         voucherLifespan:
           type: integer
           format: int32
@@ -1876,13 +1569,9 @@ components:
           items:
             $ref: "#/components/schemas/EServiceDoc"
         state:
-          $ref: "#/components/schemas/EServiceDescriptorState"
+          $ref: "#/components/schemas/EServiceTemplateVersionState"
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
-        serverUrls:
-          type: array
-          items:
-            type: string
         publishedAt:
           type: string
           format: date-time
@@ -1892,15 +1581,8 @@ components:
         deprecatedAt:
           type: string
           format: date-time
-        archivedAt:
-          type: string
-          format: date-time
         attributes:
           $ref: "#/components/schemas/Attributes"
-        rejectionReasons:
-          type: array
-          items:
-            $ref: "#/components/schemas/RejectionReason"
     Attribute:
       type: object
       additionalProperties: false
@@ -1943,7 +1625,7 @@ components:
       enum:
         - REST
         - SOAP
-    EServiceDescriptorState:
+    EServiceTemplateVersionState:
       type: string
       description: EService Descriptor State
       enum:
@@ -1951,78 +1633,12 @@ components:
         - PUBLISHED
         - DEPRECATED
         - SUSPENDED
-        - ARCHIVED
-        - WAITING_FOR_APPROVAL
     EServiceDocumentKind:
       type: string
       description: EService Document Kind
       enum:
         - INTERFACE
-        - DOCUMENT
-    AgreementState:
-      type: string
-      description: Agreement State
-      enum:
-        - DRAFT
-        - PENDING
-        - ACTIVE
-        - SUSPENDED
-        - ARCHIVED
-        - MISSING_CERTIFIED_ATTRIBUTES
-        - REJECTED
-    RejectionReason:
-      type: object
-      additionalProperties: false
-      properties:
-        rejectionReason:
-          type: string
-        rejectedAt:
-          type: string
-          format: date-time
-      required:
-        - rejectionReason
-        - rejectedAt
-    RejectDelegatedEServiceDescriptorSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        rejectionReason:
-          type: string
-      required:
-        - rejectionReason
-    EServiceTemplateInterfaceInfo:
-      type: object
-      additionalProperties: false
-      properties:
-        name:
-          type: string
-        email:
-          type: string
-        url:
-          type: string
-        termsAndConditionsUrl:
-          type: string
-        serverUrl:
-          type: string
-      required:
-        - name
-        - email
-        - url
-        - termsAndConditionsUrl
-        - serverUrl
-    EServiceTemplateBinding:
-      type: object
-      additionalProperties: false
-      properties:
-        templateId:
-          type: string
-          format: uuid
-        istanceId:
-          type: string
-        interfaceInfo:
-          $ref: "#/components/schemas/EServiceTemplateInterfaceInfo"
-      required:
-        - templateId
+        - DOCUMENT    
     Problem:
       properties:
         type:
