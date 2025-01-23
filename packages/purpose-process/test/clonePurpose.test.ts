@@ -37,6 +37,7 @@ import {
   duplicatedPurposeTitle,
   organizationIsNotTheConsumer,
   organizationIsNotTheDelegatedConsumer,
+  puroposeDelegationNotFound,
   purposeCannotBeCloned,
   purposeNotFound,
   tenantKindNotFound,
@@ -684,7 +685,7 @@ describe("clonePurpose", async () => {
       organizationIsNotTheDelegatedConsumer(consumer.id, delegation.id)
     );
   });
-  it("should throw organizationIsNotTheConsumer when the requester is the Consumer with no delegation and is cloning a purpose created by a delegate in clonePurpose", async () => {
+  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is cloning a purpose created by a delegate in clonePurpose, but the delegation cannot be found", async () => {
     const consumer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -703,22 +704,22 @@ describe("clonePurpose", async () => {
       agreementState.active
     );
 
-    const purposeCreatedByDelegate: Purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
-      consumerId: consumerDelegate.id,
+      consumerId: consumer.id,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
       delegationId: generateId<DelegationId>(),
     };
 
-    await addOnePurpose(purposeCreatedByDelegate);
+    await addOnePurpose(purpose);
     await addOneTenant(consumer);
     await addOneTenant(consumerDelegate);
     await addOneAgreement(mockAgreement);
 
     expect(
       purposeService.clonePurpose({
-        purposeId: purposeCreatedByDelegate.id,
+        purposeId: purpose.id,
         seed: {
           eserviceId: mockEService.id,
         },
@@ -729,7 +730,10 @@ describe("clonePurpose", async () => {
           serviceName: "test",
         },
       })
-    ).rejects.toThrowError(organizationIsNotTheConsumer(consumer.id));
+    ).rejects.toThrowError(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      puroposeDelegationNotFound(purpose.id, purpose.delegationId!)
+    );
   });
   it("should throw organizationIsNotTheConsumer if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
     const consumer = {
@@ -787,7 +791,7 @@ describe("clonePurpose", async () => {
       })
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
   });
-  it("should throw organizationIsNotTheConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const consumer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -806,42 +810,55 @@ describe("clonePurpose", async () => {
       agreementState.active
     );
 
-    const purposeCreatedByDelegate: Purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
-      eserviceId: mockEService.id,
       consumerId: consumer.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
       delegationId: generateId<DelegationId>(),
     };
 
     const delegation = getMockDelegation({
       id: generateId<DelegationId>(),
       kind: delegationKind.delegatedConsumer,
-      eserviceId: purposeCreatedByDelegate.eserviceId,
-      delegatorId: purposeCreatedByDelegate.consumerId,
-      delegateId: consumerDelegate.id,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: generateId<TenantId>(),
       state: delegationState.active,
     });
 
-    await addOnePurpose(purposeCreatedByDelegate);
+    const purposeDelegation = getMockDelegation({
+      id: purpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(purpose);
+    await addOneDelegation(delegation);
+    await addOneDelegation(purposeDelegation);
     await addOneTenant(consumer);
     await addOneTenant(consumerDelegate);
     await addOneAgreement(mockAgreement);
-    await addOneDelegation(delegation);
 
     expect(
       purposeService.clonePurpose({
-        purposeId: purposeCreatedByDelegate.id,
+        purposeId: purpose.id,
         seed: {
           eserviceId: mockEService.id,
         },
         ctx: {
-          authData: getRandomAuthData(delegation.delegateId),
+          authData: getRandomAuthData(consumerDelegate.id),
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
         },
       })
-    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        consumerDelegate.id,
+        purpose.delegationId
+      )
+    );
   });
 });
