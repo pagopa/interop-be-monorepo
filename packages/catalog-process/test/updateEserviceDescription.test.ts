@@ -159,7 +159,7 @@ describe("update eService description", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
-  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+  it("should throw operationForbidden if the given e-service has been delegated and the requester is not the delegate", async () => {
     const eservice = getMockEService();
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
@@ -183,7 +183,7 @@ describe("update eService description", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
-  it("shoudl throw eserviceWithoutValidDescriptors if the eservice doesn't have any descriptors", async () => {
+  it("should throw eserviceWithoutValidDescriptors if the eservice doesn't have any descriptors", async () => {
     const eservice = getMockEService();
     await addOneEService(eservice);
 
@@ -200,7 +200,11 @@ describe("update eService description", () => {
       )
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
   });
-  it.each([descriptorState.draft, descriptorState.archived])(
+  it.each([
+    descriptorState.draft,
+    descriptorState.archived,
+    descriptorState.waitingForApproval,
+  ])(
     "should throw eserviceWithoutValidDescriptors if the eservice doesn't have valid descriptors (Descriptor with state %s)",
     async (state) => {
       const descriptor: Descriptor = {
