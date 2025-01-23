@@ -48,9 +48,9 @@ export const ComparisonPlatformStatesAgreementEntry =
   PlatformStatesAgreementEntry.pick({
     PK: true,
     state: true,
-    GSIPK_consumerId_eserviceId: true,
+    agreementId: true,
     agreementDescriptorId: true,
-    GSISK_agreementTimestamp: true,
+    agreementTimestamp: true,
   });
 export type ComparisonPlatformStatesAgreementEntry = z.infer<
   typeof ComparisonPlatformStatesAgreementEntry
