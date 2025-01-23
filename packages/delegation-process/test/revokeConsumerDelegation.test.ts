@@ -38,6 +38,7 @@ import {
   activeDelegationStates,
   inactiveDelegationStates,
 } from "../src/services/validators.js";
+import { DelegationRevocationPDFPayload } from "../src/model/domain/models.js";
 import {
   addOneDelegation,
   addOneEservice,
@@ -158,6 +159,23 @@ describe("revoke consumer delegation", () => {
     });
     expect(actualDelegation).toEqual(expectedDelegation);
 
+    const expectedPdfPayload: DelegationRevocationPDFPayload = {
+      delegationKindText: "alla fruizione",
+      todayDate: dateAtRomeZone(currentExecutionTime),
+      todayTime: timeAtRomeZone(currentExecutionTime),
+      delegationId: revokedDelegationWithoutContract.id,
+      delegatorName: delegator.name,
+      delegatorIpaCode: delegator.externalId.value,
+      delegateName: delegate.name,
+      delegateIpaCode: delegate.externalId.value,
+      eserviceId: eservice.id,
+      eserviceName: eservice.name,
+      submitterId: revokedDelegationWithoutContract.stamps.submission.who,
+      revokerId: revokedDelegationWithoutContract.stamps.revocation!.who,
+      revocationDate: dateAtRomeZone(currentExecutionTime),
+      revocationTime: timeAtRomeZone(currentExecutionTime),
+    };
+
     expect(pdfGenerator.generate).toHaveBeenCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
@@ -165,22 +183,7 @@ describe("revoke consumer delegation", () => {
         "resources/templates",
         "delegationRevokedTemplate.html"
       ),
-      {
-        delegationKindText: "alla fruizione",
-        todayDate: dateAtRomeZone(currentExecutionTime),
-        todayTime: timeAtRomeZone(currentExecutionTime),
-        delegationId: revokedDelegationWithoutContract.id,
-        delegatorName: delegator.name,
-        delegatorIpaCode: delegator.externalId.value,
-        delegateName: delegate.name,
-        delegateIpaCode: delegate.externalId.value,
-        eserviceId: eservice.id,
-        eserviceName: eservice.name,
-        submitterId: revokedDelegationWithoutContract.stamps.submission.who,
-        revokerId: revokedDelegationWithoutContract.stamps.revocation!.who,
-        revocationDate: dateAtRomeZone(currentExecutionTime),
-        revocationTime: timeAtRomeZone(currentExecutionTime),
-      }
+      expectedPdfPayload
     );
   });
 
