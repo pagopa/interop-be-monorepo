@@ -146,6 +146,9 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
             headers: testHeaders,
           });
         });
+        expect(
+          mockClients.purposeProcessClient.archivePurposeVersion
+        ).not.toHaveBeenCalled();
 
         expect(
           mockClients.agreementProcessClient.archiveAgreement
@@ -155,49 +158,118 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           },
           headers: testHeaders,
         });
+        expect(
+          mockClients.agreementProcessClient.deleteAgreement
+        ).not.toHaveBeenCalled();
       }
     );
 
-    it("The consumer should call the archivePurposeVersion when the purpose is archivable", async () => {
-      const purpose1: Purpose = {
-        ...mockPurpose,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
-      };
+    it.each([agreementState.suspended, agreementState.active])(
+      "The consumer should call the archivePurposeVersion when the purpose is archivable and should call archiveAgreement for the agreement in %s state",
+      async (agreementState) => {
+        const purpose1: Purpose = {
+          ...mockPurpose,
+          versions: [getMockPurposeVersion(purposeVersionState.active)],
+        };
 
-      const purpose2: Purpose = {
-        ...mockPurpose,
-        versions: [getMockPurposeVersion(purposeVersionState.suspended)],
-      };
+        const purpose2: Purpose = {
+          ...mockPurpose,
+          versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+        };
 
-      await addOnePurpose(purpose1);
-      await addOnePurpose(purpose2);
+        const agreement = {
+          ...mockAgreement,
+          state: agreementState,
+        };
 
-      await handleMessageV2(
-        {
-          decodedMessage: decodedKafkaMessage,
-          refreshableToken: mockRefreshableToken,
-          partition: Math.random(),
-          offset: "10",
-          correlationId,
-          logger: genericLogger,
-          readModelService,
-        },
-        mockClients
-      );
+        await addOneAgreement(agreement);
+        await addOnePurpose(purpose1);
+        await addOnePurpose(purpose2);
 
-      [purpose1, purpose2].forEach((purpose) => {
+        await handleMessageV2(
+          {
+            decodedMessage: decodedKafkaMessage,
+            refreshableToken: mockRefreshableToken,
+            partition: Math.random(),
+            offset: "10",
+            correlationId,
+            logger: genericLogger,
+            readModelService,
+          },
+          mockClients
+        );
+
+        [purpose1, purpose2].forEach((purpose) => {
+          expect(
+            mockClients.purposeProcessClient.archivePurposeVersion
+          ).toHaveBeenCalledWith(undefined, {
+            params: {
+              purposeId: purpose.id,
+              versionId: purpose.versions[0].id,
+            },
+            headers: testHeaders,
+          });
+        });
         expect(
-          mockClients.purposeProcessClient.archivePurposeVersion
+          mockClients.purposeProcessClient.deletePurpose
+        ).not.toHaveBeenCalled();
+
+        expect(
+          mockClients.agreementProcessClient.archiveAgreement
         ).toHaveBeenCalledWith(undefined, {
           params: {
-            purposeId: purpose.id,
-            versionId: purpose.versions[0].id,
+            agreementId: agreement.id,
           },
           headers: testHeaders,
         });
-      });
-    });
+        expect(
+          mockClients.agreementProcessClient.deleteAgreement
+        ).not.toHaveBeenCalled();
+      }
+    );
+    it.each([agreementState.active, agreementState.suspended])(
+      "The consumer should call the archiveAgreement for the agreement in %s state and there are no purposes",
+      async (state) => {
+        const agreement = {
+          ...mockAgreement,
+          state,
+        };
 
+        await addOneAgreement(agreement);
+
+        await handleMessageV2(
+          {
+            decodedMessage: decodedKafkaMessage,
+            refreshableToken: mockRefreshableToken,
+            partition: Math.random(),
+            offset: "10",
+            correlationId,
+            logger: genericLogger,
+            readModelService,
+          },
+          mockClients
+        );
+
+        expect(
+          mockClients.purposeProcessClient.archivePurposeVersion
+        ).not.toHaveBeenCalled();
+        expect(
+          mockClients.purposeProcessClient.deletePurpose
+        ).not.toHaveBeenCalled();
+
+        expect(
+          mockClients.agreementProcessClient.archiveAgreement
+        ).toHaveBeenCalledWith(undefined, {
+          params: {
+            agreementId: agreement.id,
+          },
+          headers: testHeaders,
+        });
+        expect(
+          mockClients.agreementProcessClient.deleteAgreement
+        ).not.toHaveBeenCalled();
+      }
+    );
     it.each([
       agreementState.draft,
       agreementState.missingCertifiedAttributes,
@@ -226,6 +298,13 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         );
 
         expect(
+          mockClients.purposeProcessClient.archivePurposeVersion
+        ).not.toHaveBeenCalled();
+        expect(
+          mockClients.purposeProcessClient.deletePurpose
+        ).not.toHaveBeenCalled();
+
+        expect(
           mockClients.agreementProcessClient.deleteAgreement
         ).toHaveBeenCalledWith(undefined, {
           params: {
@@ -233,6 +312,9 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           },
           headers: testHeaders,
         });
+        expect(
+          mockClients.agreementProcessClient.archiveAgreement
+        ).not.toHaveBeenCalled();
       }
     );
   });
