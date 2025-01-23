@@ -870,7 +870,7 @@ describe("suspendPurposeVersion", () => {
       );
     }
   );
-  it("should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw organizationNotAllowed when the requester is the Consumer and is suspend a purpose version created by the delegate", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -908,6 +908,41 @@ describe("suspendPurposeVersion", () => {
       )
     ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
   });
+
+  it("should throw organizationNotAllowed when the requester is the Consumer, is suspend a purpose version created by a delegate in suspendPurposeVersion, but the delegation cannot be found", async () => {
+    const authData = getRandomAuthData();
+    const mockEService = getMockEService();
+
+    const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
+      purposeVersionState.active
+    );
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
+      consumerId: authData.organizationId,
+    };
+
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+
+    expect(
+      purposeService.suspendPurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      )
+    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+  });
+
   it("should throw organizationNotAllowed when the requester is a delegate for the eservice and there is no delegationId in the purpose in suspendPurposeVersion", async () => {
     const authData = getRandomAuthData();
     const mockEService = getMockEService();
@@ -982,12 +1017,12 @@ describe("suspendPurposeVersion", () => {
           versionId: mockPurposeVersion.id,
         },
         {
-          authData: getRandomAuthData(delegation.delegateId),
+          authData: getRandomAuthData(mockPurpose.consumerId),
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
         }
       )
-    ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
+    ).rejects.toThrowError(organizationNotAllowed(mockPurpose.consumerId));
   });
 });
