@@ -626,3 +626,20 @@ export const toCreateEventEServiceIsClientAccessDelegableDisabled = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceNameUpdated = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceNameUpdated",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});

@@ -2,7 +2,6 @@ import { z } from "zod";
 import {
   EServiceId,
   DescriptorId,
-  AgreementId,
   PurposeId,
   ClientId,
   TenantId,
@@ -10,13 +9,13 @@ import {
   PlatformStatesAgreementPK,
   PlatformStatesPurposePK,
   PlatformStatesClientPK,
-  GSIPKConsumerIdEServiceId,
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientKidPK,
   GSIPKEServiceIdDescriptorId,
   GSIPKClientIdPurposeId,
   unsafeBrandId,
   GSIPKClientIdKid,
+  GSIPKConsumerIdEServiceId,
 } from "../brandedIds.js";
 
 export const makePlatformStatesEServiceDescriptorPK = ({
@@ -30,10 +29,16 @@ export const makePlatformStatesEServiceDescriptorPK = ({
     `ESERVICEDESCRIPTOR#${eserviceId}#${descriptorId}`
   );
 
-export const makePlatformStatesAgreementPK = (
-  agreementId: AgreementId
-): PlatformStatesAgreementPK =>
-  unsafeBrandId<PlatformStatesAgreementPK>(`AGREEMENT#${agreementId}`);
+export const makePlatformStatesAgreementPK = ({
+  consumerId,
+  eserviceId,
+}: {
+  consumerId: TenantId;
+  eserviceId: EServiceId;
+}): PlatformStatesAgreementPK =>
+  unsafeBrandId<PlatformStatesAgreementPK>(
+    `AGREEMENT#${consumerId}#${eserviceId}`
+  );
 
 export const makePlatformStatesPurposePK = (
   purposeId: PurposeId
