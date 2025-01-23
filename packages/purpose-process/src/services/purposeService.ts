@@ -1085,20 +1085,6 @@ export function purposeServiceBuilder(
       const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
 
-      const consumerDelegation =
-        await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
-          {
-            eserviceId,
-            consumerId,
-          }
-        );
-
-      assertRequesterCanActAsConsumer(
-        { eserviceId, consumerId },
-        authData,
-        consumerDelegation
-      );
-
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertEserviceMode(eservice, eserviceMode.receive);
 
@@ -1107,6 +1093,15 @@ export function purposeServiceBuilder(
       assertConsistentFreeOfCharge(
         seed.isFreeOfCharge,
         seed.freeOfChargeReason
+      );
+
+      const delegationId = await verifyRequesterIsConsumerOrDelegateConsumer(
+        {
+          consumerId,
+          eserviceId,
+        },
+        authData,
+        readModelService
       );
 
       const producerKind = await retrieveTenantKind(
@@ -1144,7 +1139,7 @@ export function purposeServiceBuilder(
         createdAt: new Date(),
         eserviceId,
         consumerId,
-        delegationId: consumerDelegation?.id,
+        delegationId,
         description: seed.description,
         versions: [newVersion],
         isFreeOfCharge: seed.isFreeOfCharge,
