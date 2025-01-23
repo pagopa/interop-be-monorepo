@@ -1,0 +1,157 @@
+import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { ZodiosRouter } from "@zodios/express";
+import {
+  ExpressContext,
+  ZodiosContext,
+  ReadModelRepository,
+  initDB,
+  initFileManager,
+  zodiosValidationErrorToApiProblem,
+  userRoles,
+  authorizationMiddleware,
+} from "pagopa-interop-commons";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { config } from "../config/config.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
+
+const readModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+
+const eserviceTemplateService = eserviceTemplateServiceBuilder(
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
+  readModelService,
+  initFileManager(config)
+);
+void eserviceTemplateService;
+
+const eserviceTemplatesRouter = (
+  ctx: ZodiosContext
+): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+  const { ADMIN_ROLE } = userRoles;
+
+  return ctx
+    .router(eserviceTemplateApi.processApi.api, {
+      validationErrorHandler: zodiosValidationErrorToApiProblem,
+    })
+    .get(
+      "/eservices/templates",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .get(
+      "/eservices/templates/:eServiceTemplateId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .delete(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/publish",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/suspend",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/activate",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/quotas/update",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .get(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .delete(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId/update",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/riskAnalysis",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .delete(
+      "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/audienceDescription/update",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/eserviceDescription/update",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/name/update",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/attributes/update",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(504)
+    );
+};
+export default eserviceTemplatesRouter;
