@@ -612,11 +612,11 @@ export function authorizationServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const delegationId = purpose.delegationId;
-      if (delegationId && purpose.consumerId !== organizationId) {
-        const delegation = await retrieveActiveConsumerDelegation(
-          delegationId,
-          readModelService
-        );
+      const delegation = delegationId
+        ? await retrieveActiveConsumerDelegation(delegationId, readModelService)
+        : undefined;
+
+      if (delegation && purpose.consumerId !== organizationId) {
         assertOrganizationIsDelegate(organizationId, purpose, delegation);
       } else {
         assertOrganizationIsPurposeConsumer(organizationId, purpose);
@@ -632,20 +632,24 @@ export function authorizationServiceBuilder(
       );
 
       if (
-        delegationId &&
+        delegation &&
         purpose.consumerId !== organizationId &&
         !eservice.isClientAccessDelegable
       ) {
         throw eserviceNotDelegableForClientAccess(eservice);
       }
 
+      const agreementConsumerId =
+        delegation && purpose.consumerId !== organizationId
+          ? delegation.delegatorId
+          : organizationId;
       const agreement = await readModelService.getActiveOrSuspendedAgreement(
         eservice.id,
-        organizationId
+        agreementConsumerId
       );
 
       if (agreement === undefined) {
-        throw noAgreementFoundInRequiredState(eservice.id, organizationId);
+        throw noAgreementFoundInRequiredState(eservice.id, agreementConsumerId);
       }
 
       retrieveDescriptor(agreement.descriptorId, eservice);
