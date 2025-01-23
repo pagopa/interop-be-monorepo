@@ -33,7 +33,6 @@ import {
   attributeNotFound,
   tenantDoesNotHaveFeature,
   tenantAlreadyHasFeature,
-  tenantIsNotIPA,
   eServiceNotFound,
   descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
@@ -151,12 +150,6 @@ export async function assertRequesterAllowed(
 ): Promise<void> {
   if (resourceId !== requesterId) {
     throw operationForbidden;
-  }
-}
-
-export function assertRequesterIPAOrigin(authData: AuthData): void {
-  if (authData.externalId.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
-    throw tenantIsNotIPA(authData.organizationId);
   }
 }
 

@@ -47,7 +47,7 @@ import {
   riskAnalysisValidationFailed,
   agreementNotFound,
   duplicatedPurposeTitle,
-  organizationIsNotTheDelegatedConsumer,
+  organizationIsNotTheConsumer,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -518,7 +518,7 @@ describe("createPurpose", () => {
       })
     ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
   });
-  it("should throw organizationIsNotTheDelegatedConsumer if the requester is not the consumer", async () => {
+  it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
     await writeInReadmodel(toReadModelTenant(tenant), tenants);
     await writeInReadmodel(
       toReadModelAgreement(agreementEservice1),
@@ -540,12 +540,7 @@ describe("createPurpose", () => {
         logger: genericLogger,
         serviceName: "",
       })
-    ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
-        unsafeBrandId(purposeSeed.consumerId),
-        undefined
-      )
-    );
+    ).rejects.toThrowError(organizationIsNotTheConsumer(tenant.id));
   });
   it("should throw riskAnalysisValidationFailed if the purpose has a non valid risk analysis ", async () => {
     await writeInReadmodel(toReadModelTenant(tenant), tenants);

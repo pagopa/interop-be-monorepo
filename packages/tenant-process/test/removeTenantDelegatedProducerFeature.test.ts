@@ -5,15 +5,13 @@ import {
   protobufDecoder,
   toTenantV2,
   TenantDelegatedProducerFeatureRemovedV2,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
-import {
-  tenantDoesNotHaveFeature,
-  tenantIsNotIPA,
-} from "../src/model/domain/errors.js";
+import { tenantDoesNotHaveFeature } from "../src/model/domain/errors.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("removeTenantDelegatedProducerFeature", async () => {
@@ -88,7 +86,7 @@ describe("removeTenantDelegatedProducerFeature", async () => {
       tenantDoesNotHaveFeature(tenant.id, "DelegatedProducer")
     );
   });
-  it("Should throw tenantIsNotIPA if the requester tenant is not a public administration", async () => {
+  it("Should throw operationForbidden if the requester tenant is not a public administration", async () => {
     const tenant: Tenant = {
       ...getMockTenant(),
       features: [
@@ -110,6 +108,6 @@ describe("removeTenantDelegatedProducerFeature", async () => {
         },
         logger: genericLogger,
       })
-    ).rejects.toThrowError(tenantIsNotIPA(tenant.id));
+    ).rejects.toThrowError(operationForbidden);
   });
 });
