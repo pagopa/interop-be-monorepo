@@ -82,7 +82,7 @@ export const prepareInsertDescriptor = (
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "insert-descriptor",
-    text: "INSERT INTO readmodel.descriptor(id, eservice_id, version, description, state, audience, voucher_lifespan, daily_calls_per_consumer, daily_calls_total, agreement_approval_policy, created_at, server_urls, published_at, suspended_at, deprecated_at, archived_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)",
+    text: "INSERT INTO readmodel.descriptor(id, eservice_id, version, description, state, audience, voucher_lifespan, daily_calls_per_consumer, daily_calls_total, agreement_approval_policy, created_at, server_urls, published_at, suspended_at, deprecated_at, archived_at, eservice_version) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)",
     values: [
       descriptorSQL.id,
       descriptorSQL.eservice_id,
@@ -100,6 +100,7 @@ export const prepareInsertDescriptor = (
       descriptorSQL.suspended_at,
       descriptorSQL.deprecated_at,
       descriptorSQL.archived_at,
+      descriptorSQL.eservice_version,
     ],
   });
 
@@ -152,7 +153,7 @@ export const prepareInsertDescriptorDocument = (
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "insert-document",
-    text: "INSERT INTO readmodel.descriptor_document(id, descriptor_id, name, content_type, pretty_name, path, checksum, upload_date, document_kind) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+    text: "INSERT INTO readmodel.descriptor_document(id, descriptor_id, name, content_type, pretty_name, path, checksum, upload_date, document_kind) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
     values: [
       documentSQL.id,
       documentSQL.descriptor_id,
@@ -163,6 +164,7 @@ export const prepareInsertDescriptorDocument = (
       documentSQL.checksum,
       documentSQL.upload_date,
       documentSQL.document_kind,
+      documentSQL.eservice_version,
     ],
   });
 
@@ -226,13 +228,14 @@ export const prepareInsertDescriptorAttribute = (
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "insert-descriptor-attribute",
-    text: "INSERT INTO readmodel.descriptor_attribute(attribute_id, descriptor_id, explicit_attribute_verification, kind, group_set) VALUES($1, $2, $3, $4, $5)",
+    text: "INSERT INTO readmodel.descriptor_attribute(attribute_id, descriptor_id, explicit_attribute_verification, kind, group_set) VALUES($1, $2, $3, $4, $5, $6)",
     values: [
       attributeSQL.attribute_id,
       attributeSQL.descriptor_id,
       attributeSQL.explicit_attribute_verification,
       attributeSQL.kind,
       attributeSQL.group_set,
+      attributeSQL.eservice_version,
     ],
   });
 
@@ -277,7 +280,7 @@ export const prepareInsertRiskAnalysis = (
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "insert-risk-analysis",
-    text: "INSERT INTO readmodel.eservice_risk_analysis(risk_analysis_id, eservice_id, name, created_at, risk_analysis_form_id, risk_analysis_form_version) VALUES($1, $2, $3, $4, $5, $6)",
+    text: "INSERT INTO readmodel.eservice_risk_analysis(risk_analysis_id, eservice_id, name, created_at, risk_analysis_form_id, risk_analysis_form_version) VALUES($1, $2, $3, $4, $5, $6, $7)",
     values: [
       riskAnalysisSQL.risk_analysis_id,
       riskAnalysisSQL.eservice_id,
@@ -285,6 +288,7 @@ export const prepareInsertRiskAnalysis = (
       riskAnalysisSQL.created_at,
       riskAnalysisSQL.risk_analysis_form_id,
       riskAnalysisSQL.risk_analysis_form_version,
+      riskAnalysisSQL.eservice_version,
     ],
   });
 
@@ -302,13 +306,14 @@ export const prepareInsertRiskAnalysisAnswer = (
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "insert-risk-analysis-answer",
-    text: "INSERT INTO readmodel.eservice_risk_analysis_answer(id, risk_analysis_form_id, kind, key, value) VALUES($1, $2, $3, $4, $5)",
+    text: "INSERT INTO readmodel.eservice_risk_analysis_answer(id, risk_analysis_form_id, kind, key, value) VALUES($1, $2, $3, $4, $5, $6)",
     values: [
       riskAnalysisAnswerSQL.id,
       riskAnalysisAnswerSQL.risk_analysis_form_id,
       riskAnalysisAnswerSQL.kind,
       riskAnalysisAnswerSQL.key,
       riskAnalysisAnswerSQL.value,
+      riskAnalysisAnswerSQL.eservice_version,
     ],
   });
 

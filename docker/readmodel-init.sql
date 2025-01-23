@@ -34,6 +34,7 @@ CREATE TABLE readmodel.descriptor(
   suspended_at timestamp with time zone,
   deprecated_at timestamp with time zone,
   archived_at timestamp with time zone,
+  eservice_version integer,
   -- attributes
   PRIMARY KEY(id)
 );
@@ -48,8 +49,8 @@ CREATE TABLE readmodel.descriptor_document(
   checksum varchar,
   upload_date timestamp with time zone,
   document_kind varchar, -- differs from model
+  eservice_version integer,
   PRIMARY KEY(id)
-
 );
 
 CREATE TABLE readmodel.descriptor_attribute(
@@ -58,6 +59,7 @@ CREATE TABLE readmodel.descriptor_attribute(
   explicit_attribute_verification boolean,
   kind varchar, -- differs from model
   group_set integer,
+  eservice_version integer,
   PRIMARY KEY(attribute_id, descriptor_id)
 );
 
@@ -77,6 +79,7 @@ CREATE TABLE readmodel.eservice_risk_analysis(
   created_at timestamp with time zone,
   risk_analysis_form_id uuid,
   risk_analysis_form_version varchar,
+  eservice_version integer,
   PRIMARY KEY(risk_analysis_id)
 );
 
@@ -103,6 +106,7 @@ CREATE TABLE readmodel.eservice_risk_analysis_answer(
   kind varchar, -- SINGLE/MULTI
   key varchar,
   value varchar ARRAY,
+  eservice_version integer,
   PRIMARY KEY(id)
 );
 

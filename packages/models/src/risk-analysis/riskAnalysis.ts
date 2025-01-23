@@ -52,6 +52,7 @@ export const EserviceRiskAnalysisSQL = z.object({
   created_at: z.coerce.date(),
   risk_analysis_form_id: RiskAnalysisFormId,
   risk_analysis_form_version: z.string(),
+  eservice_version: z.number().int(),
 });
 export type EserviceRiskAnalysisSQL = z.infer<typeof EserviceRiskAnalysisSQL>;
 
@@ -71,6 +72,7 @@ export const RiskAnalysisAnswerSQL = z.object({
   kind: RiskAnalysisAnswerKind,
   key: z.string(),
   value: z.array(z.string()),
+  eservice_version: z.number().int(),
 });
 export type RiskAnalysisAnswerSQL = z.infer<typeof RiskAnalysisAnswerSQL>;
 
