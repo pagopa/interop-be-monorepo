@@ -12,15 +12,11 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 
 afterEach(cleanup);
 
-export const agreements = readModelRepository.agreements;
-export const eservices = readModelRepository.eservices;
-export const tenants = readModelRepository.tenants;
-export const attributes = readModelRepository.attributes;
-export const delegations = readModelRepository.delegations;
+export const eserviceTemplates = readModelRepository.eserviceTemplates;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-export const catalogService = eserviceTemplateServiceBuilder(
+export const eserviceTemplateService = eserviceTemplateServiceBuilder(
   postgresDB,
   readModelService,
   fileManager
