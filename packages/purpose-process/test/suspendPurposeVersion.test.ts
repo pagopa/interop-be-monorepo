@@ -409,7 +409,7 @@ describe("suspendPurposeVersion", () => {
 
     vi.useRealTimers();
   });
-  it("should succeed when requester is Consumer Delegate and the purpose version is suspended by the producer", async () => {
+  it("should succeed when requester is Producer Delegate and the purpose version is suspended by the producer", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -870,7 +870,7 @@ describe("suspendPurposeVersion", () => {
       );
     }
   );
-  it("should throw organizationNotAllowed when the requester is the Consumer and is suspend a purpose version created by the delegate", async () => {
+  it("should throw organizationNotAllowed when the requester is the Consumer and is suspending a purpose version created by the delegate", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -880,11 +880,15 @@ describe("suspendPurposeVersion", () => {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
     };
+
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
 
     const delegation = getMockDelegation({
+      id: mockPurpose.delegationId,
+      delegatorId: mockPurpose.consumerId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockEService.id,
       delegateId: generateId<TenantId>(),
@@ -900,16 +904,16 @@ describe("suspendPurposeVersion", () => {
           versionId: mockPurposeVersion.id,
         },
         {
-          authData: getRandomAuthData(delegation.delegateId),
+          authData: getRandomAuthData(mockPurpose.consumerId),
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
         }
       )
-    ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
+    ).rejects.toThrowError(organizationNotAllowed(mockPurpose.consumerId));
   });
 
-  it("should throw organizationNotAllowed when the requester is the Consumer, is suspend a purpose version created by a delegate in suspendPurposeVersion, but the delegation cannot be found", async () => {
+  it("should throw organizationNotAllowed when the requester is the Consumer, is suspending a purpose version created by a delegate in suspendPurposeVersion, but the delegation cannot be found", async () => {
     const authData = getRandomAuthData();
     const mockEService = getMockEService();
 
@@ -1003,6 +1007,7 @@ describe("suspendPurposeVersion", () => {
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockEService.id,
       delegateId: generateId<TenantId>(),
+      delegatorId: mockPurpose.consumerId,
       state: delegationState.active,
     });
 
@@ -1017,12 +1022,12 @@ describe("suspendPurposeVersion", () => {
           versionId: mockPurposeVersion.id,
         },
         {
-          authData: getRandomAuthData(mockPurpose.consumerId),
+          authData: getRandomAuthData(delegation.delegateId),
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
         }
       )
-    ).rejects.toThrowError(organizationNotAllowed(mockPurpose.consumerId));
+    ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
   });
 });
