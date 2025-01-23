@@ -174,3 +174,13 @@ export const updateEServiceTemplateVersionAttributesErrorMapper = (
     .with("unchangedAttributes", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createEServiceTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateEServiceTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

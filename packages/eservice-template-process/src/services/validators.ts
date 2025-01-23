@@ -12,6 +12,7 @@ import {
   templateNotInReceiveMode,
   tenantKindNotFound,
 } from "../model/domain/errors.js";
+import { eserviceTemplateNotInDraftState } from "../model/domain/errors.js";
 
 export function assertRequesterEServiceTemplateCreator(
   creatorId: TenantId,
@@ -43,5 +44,17 @@ export function assertIsDraftTemplate(template: EServiceTemplate): void {
 export function assertIsReceiveTemplate(template: EServiceTemplate): void {
   if (template.mode !== eserviceMode.receive) {
     throw templateNotInReceiveMode(template.id);
+  }
+}
+
+export function assertIsDraftEserviceTemplate(
+  eserviceTemplate: EServiceTemplate
+): void {
+  if (
+    eserviceTemplate.versions.some(
+      (v) => v.state !== eserviceTemplateVersionState.draft
+    )
+  ) {
+    throw eserviceTemplateNotInDraftState(eserviceTemplate.id);
   }
 }
