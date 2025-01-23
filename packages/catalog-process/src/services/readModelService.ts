@@ -41,6 +41,7 @@ import {
   Consumer,
   consumer,
 } from "../model/domain/models.js";
+import { notActiveDescriptorState } from "./validators.js";
 
 async function getEService(
   eservices: EServiceCollection,
@@ -121,6 +122,7 @@ export function readModelServiceBuilder(
         name,
         attributesIds,
         mode,
+        isDelegable,
         delegated,
       } = filters;
       const ids = await match(agreementStates.length)
@@ -255,10 +257,7 @@ export function readModelServiceBuilder(
                   { "data.descriptors": { $size: 1 } },
                   {
                     "data.descriptors.state": {
-                      $in: [
-                        descriptorState.draft,
-                        descriptorState.waitingForApproval,
-                      ],
+                      $in: notActiveDescriptorState,
                     },
                   },
                 ],
@@ -273,10 +272,7 @@ export function readModelServiceBuilder(
                   { "data.descriptors": { $size: 1 } },
                   {
                     "data.descriptors.state": {
-                      $in: [
-                        descriptorState.draft,
-                        descriptorState.waitingForApproval,
-                      ],
+                      $in: notActiveDescriptorState,
                     },
                   },
                 ],
@@ -286,6 +282,10 @@ export function readModelServiceBuilder(
 
       const modeFilter: ReadModelFilter<EService> = mode
         ? { "data.mode": { $eq: mode } }
+        : {};
+
+      const isDelegableFilter: ReadModelFilter<EService> = isDelegable
+        ? { "data.isDelegable": { $eq: isDelegable } }
         : {};
 
       const delegatedFilter: ReadModelFilter<EService> = match(delegated)
@@ -321,6 +321,7 @@ export function readModelServiceBuilder(
         { $match: attributesFilter },
         { $match: visibilityFilter },
         { $match: modeFilter },
+        { $match: isDelegableFilter },
         { $match: delegatedFilter },
         {
           $project: {

@@ -96,7 +96,7 @@ const agreementPrefix = "AGREEMENT#";
 export const PlatformStatesAgreementPK = z
   .string()
   .refine((pk) => pk.startsWith(agreementPrefix))
-  .brand(`${agreementPrefix}agreementId`);
+  .brand(`${agreementPrefix}consumerId#eserviceId`);
 export type PlatformStatesAgreementPK = z.infer<
   typeof PlatformStatesAgreementPK
 >;
@@ -150,8 +150,8 @@ export type GSIPKEServiceIdDescriptorId = z.infer<
 export const GSIPKClientIdPurposeId = z.string().brand(`clientId#purposeId`);
 export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
 
-export const GSIPKKid = z.string().brand("kid");
-export type GSIPKKid = z.infer<typeof GSIPKKid>;
+export const GSIPKClientIdKid = z.string().brand("clientId#kid");
+export type GSIPKClientIdKid = z.infer<typeof GSIPKClientIdKid>;
 
 type IDS =
   | CorrelationId
@@ -184,7 +184,7 @@ type IDS =
   | TokenGenerationStatesClientKidPK
   | GSIPKEServiceIdDescriptorId
   | GSIPKClientIdPurposeId
-  | GSIPKKid;
+  | GSIPKClientIdKid;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result

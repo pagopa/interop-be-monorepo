@@ -51,7 +51,7 @@ import { ReadModelService } from "./readModelService.js";
 import {
   activeDelegationStates,
   assertDelegationNotExists,
-  assertDelegatorAndDelegateIPA,
+  assertDelegatorAndDelegateAllowedOrigins,
   assertDelegatorIsNotDelegate,
   assertDelegatorIsProducer,
   assertIsDelegate,
@@ -142,7 +142,7 @@ export function delegationServiceBuilder(
     ]);
 
     assertTenantAllowedToReceiveDelegation(delegate, kind);
-    await assertDelegatorAndDelegateIPA(delegator, delegate);
+    await assertDelegatorAndDelegateAllowedOrigins(delegator, delegate);
 
     if (kind === delegationKind.delegatedProducer) {
       assertDelegatorIsProducer(delegatorId, eservice);
@@ -635,7 +635,7 @@ export function delegationServiceBuilder(
         eserviceName?: string;
       },
       logger: Logger
-    ): Promise<delegationApi.CompactEservicesLight> {
+    ): Promise<delegationApi.CompactEServices> {
       logger.info(
         `Retrieving delegated consumer eservices with filters: ${JSON.stringify(
           filters

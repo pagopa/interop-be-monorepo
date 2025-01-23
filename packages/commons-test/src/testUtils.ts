@@ -58,10 +58,9 @@ import {
   TenantFeatureCertifier,
   TenantFeature,
   DescriptorState,
-  GSIPKConsumerIdEServiceId,
   PlatformStatesAgreementEntry,
   PlatformStatesAgreementPK,
-  makeGSIPKKid,
+  makeGSIPKClientIdKid,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesApiClient,
   makeTokenGenerationStatesClientKidPK,
@@ -72,6 +71,8 @@ import {
   DelegationKind,
   unsafeBrandId,
   UserId,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -485,7 +486,7 @@ export const getMockTokenGenStatesConsumerClient = (
       clientKind: clientKindTokenGenStates.consumer,
       publicKey: "PEM",
       GSIPK_clientId: clientId,
-      GSIPK_kid: makeGSIPKKid(kid),
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
       agreementState: itemState.active,
       GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
         eserviceId,
@@ -506,26 +507,21 @@ export const getMockTokenGenStatesConsumerClient = (
       clientKind: clientKindTokenGenStates.consumer,
       publicKey: "PEM",
       GSIPK_clientId: clientId,
-      GSIPK_kid: makeGSIPKKid(kid),
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
     };
   }
 };
 
 export const getMockPlatformStatesAgreementEntry = (
   primaryKey: PlatformStatesAgreementPK,
-  GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId(
-    {
-      consumerId: generateId<TenantId>(),
-      eserviceId: generateId<EServiceId>(),
-    }
-  )
+  agreementId: AgreementId
 ): PlatformStatesAgreementEntry => ({
   PK: primaryKey,
   state: itemState.inactive,
   version: 1,
   updatedAt: new Date().toISOString(),
-  GSIPK_consumerId_eserviceId,
-  GSISK_agreementTimestamp: new Date().toISOString(),
+  agreementId,
+  agreementTimestamp: new Date().toISOString(),
   agreementDescriptorId: generateId<DescriptorId>(),
 });
 
@@ -551,7 +547,7 @@ export const getMockTokenGenStatesApiClient = (
     clientKind: clientKindTokenGenStates.api,
     publicKey: "PEM",
     GSIPK_clientId: clientId,
-    GSIPK_kid: makeGSIPKKid(kid),
+    GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
   };
 };
 
@@ -665,4 +661,29 @@ const signClientAssertion = async ({
   return await new jose.SignJWT(payload)
     .setProtectedHeader(headers)
     .sign(privateKey);
+};
+
+export const addSomeRandomDelegations = async <
+  T extends { eserviceId: EServiceId }
+>(
+  domainObject: T,
+  addOneDelegation: (delegation: Delegation) => Promise<void>
+): Promise<void> => {
+  const states = [delegationState.rejected, delegationState.revoked];
+  const kinds = [
+    delegationKind.delegatedProducer,
+    delegationKind.delegatedConsumer,
+  ];
+
+  for (const state of states) {
+    for (const kind of kinds) {
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: domainObject.eserviceId,
+          kind,
+          state,
+        })
+      );
+    }
+  }
 };
