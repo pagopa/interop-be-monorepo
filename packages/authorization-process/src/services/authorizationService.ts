@@ -24,7 +24,6 @@ import {
   ProducerKeychain,
   ProducerKeychainId,
   CorrelationId,
-  DelegationId,
   Delegation,
 } from "pagopa-interop-models";
 import {
@@ -62,8 +61,8 @@ import {
   eserviceAlreadyLinkedToProducerKeychain,
   userNotAllowedToDeleteProducerKeychainKey,
   userNotAllowedToDeleteClientKey,
-  delegationNotFound,
   eserviceNotDelegableForClientAccess,
+  purposeDelegationNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -101,7 +100,7 @@ import {
   assertProducerKeychainKeysCountIsBelowThreshold,
   assertOrganizationIsEServiceProducer,
   assertKeyDoesNotAlreadyExist,
-  assertOrganizationIsDelegate,
+  assertRequesterIsDelegateConsumer,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -137,6 +136,24 @@ const retrievePurpose = async (
   return purpose;
 };
 
+const retrievePurposeDelegation = async (
+  purpose: Purpose,
+  readModelService: ReadModelService
+): Promise<Delegation | undefined> => {
+  if (!purpose.delegationId) {
+    return undefined;
+  }
+
+  const delegation = await readModelService.getActiveConsumerDelegationById(
+    purpose.delegationId
+  );
+  if (!delegation) {
+    throw purposeDelegationNotFound(purpose.delegationId);
+  }
+
+  return delegation;
+};
+
 const retrieveDescriptor = (
   descriptorId: DescriptorId,
   eservice: EService
@@ -163,19 +180,6 @@ const retrieveProducerKeychain = async (
     throw producerKeychainNotFound(producerKeychainId);
   }
   return producerKeychain;
-};
-
-const retrieveActiveConsumerDelegation = async (
-  delegationId: DelegationId,
-  readModelService: ReadModelService
-): Promise<Delegation> => {
-  const delegation = await readModelService.getActiveConsumerDelegationById(
-    delegationId
-  );
-  if (delegation === undefined) {
-    throw delegationNotFound(delegationId);
-  }
-  return delegation;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -592,13 +596,13 @@ export function authorizationServiceBuilder(
     async addClientPurpose({
       clientId,
       seed,
-      organizationId,
+      authData,
       correlationId,
       logger,
     }: {
       clientId: ClientId;
       seed: authorizationApi.PurposeAdditionDetails;
-      organizationId: TenantId;
+      authData: AuthData;
       correlationId: CorrelationId;
       logger: Logger;
     }): Promise<void> {
@@ -608,18 +612,21 @@ export function authorizationServiceBuilder(
       const purposeId: PurposeId = unsafeBrandId(seed.purposeId);
 
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      const delegationId = purpose.delegationId;
-      const delegation = delegationId
-        ? await retrieveActiveConsumerDelegation(delegationId, readModelService)
-        : undefined;
+      const delegation = await retrievePurposeDelegation(
+        purpose,
+        readModelService
+      );
 
-      if (delegation && purpose.consumerId !== organizationId) {
-        assertOrganizationIsDelegate(organizationId, purpose, delegation);
+      const isDelegateNotConsumer =
+        delegation && purpose.consumerId !== authData.organizationId;
+
+      if (isDelegateNotConsumer) {
+        assertRequesterIsDelegateConsumer(authData, purpose, delegation);
       } else {
-        assertOrganizationIsPurposeConsumer(organizationId, purpose);
+        assertOrganizationIsPurposeConsumer(authData.organizationId, purpose);
       }
 
       if (client.data.purposes.includes(purposeId)) {
@@ -631,25 +638,17 @@ export function authorizationServiceBuilder(
         readModelService
       );
 
-      if (
-        delegation &&
-        purpose.consumerId !== organizationId &&
-        !eservice.isClientAccessDelegable
-      ) {
+      if (isDelegateNotConsumer && !eservice.isClientAccessDelegable) {
         throw eserviceNotDelegableForClientAccess(eservice);
       }
 
-      const agreementConsumerId =
-        delegation && purpose.consumerId !== organizationId
-          ? delegation.delegatorId
-          : organizationId;
       const agreement = await readModelService.getActiveOrSuspendedAgreement(
         eservice.id,
-        agreementConsumerId
+        purpose.consumerId
       );
 
       if (agreement === undefined) {
-        throw noAgreementFoundInRequiredState(eservice.id, agreementConsumerId);
+        throw noAgreementFoundInRequiredState(eservice.id, purpose.consumerId);
       }
 
       retrieveDescriptor(agreement.descriptorId, eservice);

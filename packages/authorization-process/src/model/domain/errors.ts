@@ -41,7 +41,7 @@ export const errorCodes = {
   eserviceAlreadyLinkedToProducerKeychain: "0026",
   userNotAllowedToDeleteClientKey: "0027",
   userNotAllowedToDeleteProducerKeychainKey: "0028",
-  delegationNotFound: "0029",
+  purposeDelegationNotFound: "0029",
   eserviceNotDelegableForClientAccess: "0030",
 };
 
@@ -350,12 +350,12 @@ export function eserviceAlreadyLinkedToProducerKeychain(
   });
 }
 
-export function delegationNotFound(
+export function purposeDelegationNotFound(
   delegationId: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Delegation ${delegationId} not found`,
-    code: "delegationNotFound",
+    code: "purposeDelegationNotFound",
     title: "Deleagtion not found",
   });
 }

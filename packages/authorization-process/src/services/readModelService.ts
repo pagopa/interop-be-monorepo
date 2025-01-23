@@ -416,9 +416,9 @@ export function readModelServiceBuilder(
     ): Promise<Delegation | undefined> {
       const data = await delegations.findOne(
         {
-          "data.id": { $eq: id },
-          "data.state": { $eq: delegationState.active },
-          "data.kind": { $eq: delegationKind.delegatedConsumer },
+          "data.id": id,
+          "data.state": delegationState.active,
+          "data.kind": delegationKind.delegatedConsumer,
         },
         {
           projection: { data: true },
