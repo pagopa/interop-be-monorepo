@@ -1,4 +1,5 @@
-/* eslint-disable max-params */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { DB, FileManager, eventRepository } from "pagopa-interop-commons";
 import { eserviceTemplateEventToBinaryDataV2 } from "pagopa-interop-models";
 import { ReadModelService } from "./readModelService.js";
@@ -13,6 +14,7 @@ export function eserviceTemplateServiceBuilder(
     dbInstance,
     eserviceTemplateEventToBinaryDataV2
   );
+  void repository;
   return {};
 }
 

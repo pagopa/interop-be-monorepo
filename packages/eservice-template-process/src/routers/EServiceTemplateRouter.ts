@@ -32,6 +32,7 @@ const eserviceTemplateService = eserviceTemplateServiceBuilder(
   readModelService,
   initFileManager(config)
 );
+void eserviceTemplateService;
 
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext
