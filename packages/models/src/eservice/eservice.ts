@@ -107,7 +107,7 @@ export const EServiceMode = z.enum([
 ]);
 export type EServiceMode = z.infer<typeof EServiceMode>;
 
-export const EServiceTemplateInterfaceInfo = z.object({
+export const EServiceTemplateBindingInterface = z.object({
   name: z.string(),
   email: z.string(),
   url: z.string(),
@@ -115,16 +115,16 @@ export const EServiceTemplateInterfaceInfo = z.object({
   serverUrl: z.string(),
 });
 
-export type EServiceTemplateInterfaceInfo = z.infer<
-  typeof EServiceTemplateInterfaceInfo
+export type EServiceTemplateBindingInterface = z.infer<
+  typeof EServiceTemplateBindingInterface
 >;
 
-export const EServiceTemplateInstanceRef = z.object({
+export const EServiceTemplateBinding = z.object({
   templateId: EServiceTemplateId,
   istanceId: z.string().optional(),
-  interfaceInfo: EServiceTemplateInterfaceInfo.optional(),
+  interfaceInfo: EServiceTemplateBindingInterface.optional(),
 });
-export type EServiceTemplateInstanceRef = z.infer<typeof EServiceTemplateInstanceRef>;
+export type EServiceTemplateBinding = z.infer<typeof EServiceTemplateBinding>;
 
 export const EService = z.object({
   id: EServiceId,
@@ -138,6 +138,6 @@ export const EService = z.object({
   riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
   isSignalHubEnabled: z.boolean().optional(),
-  template: EServiceTemplateInstanceRef.optional(),
+  template: EServiceTemplateBinding.optional(),
 });
 export type EService = z.infer<typeof EService>;
