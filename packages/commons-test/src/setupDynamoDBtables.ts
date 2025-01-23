@@ -11,32 +11,9 @@ export const buildDynamoDBTables = async (
 ): Promise<void> => {
   const platformTableDefinition: CreateTableInput = {
     TableName: "platform-states",
-    AttributeDefinitions: [
-      { AttributeName: "PK", AttributeType: "S" },
-      { AttributeName: "GSIPK_consumerId_eserviceId", AttributeType: "S" },
-      { AttributeName: "GSISK_agreementTimestamp", AttributeType: "S" },
-    ],
+    AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
     KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
     BillingMode: "PAY_PER_REQUEST",
-    GlobalSecondaryIndexes: [
-      {
-        IndexName: "Agreement",
-        KeySchema: [
-          {
-            AttributeName: "GSIPK_consumerId_eserviceId",
-            KeyType: "HASH",
-          },
-          {
-            AttributeName: "GSISK_agreementTimestamp",
-            KeyType: "RANGE",
-          },
-        ],
-        Projection: {
-          ProjectionType: "INCLUDE",
-          NonKeyAttributes: ["state", "agreementDescriptorId"],
-        },
-      },
-    ],
   };
   const command1 = new CreateTableCommand(platformTableDefinition);
   await dynamoDBClient.send(command1);
@@ -49,7 +26,7 @@ export const buildDynamoDBTables = async (
       { AttributeName: "GSIPK_consumerId_eserviceId", AttributeType: "S" },
       { AttributeName: "GSIPK_purposeId", AttributeType: "S" },
       { AttributeName: "GSIPK_clientId", AttributeType: "S" },
-      { AttributeName: "GSIPK_kid", AttributeType: "S" },
+      { AttributeName: "GSIPK_clientId_kid", AttributeType: "S" },
       { AttributeName: "GSIPK_clientId_purposeId", AttributeType: "S" },
     ],
     KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
@@ -111,13 +88,13 @@ export const buildDynamoDBTables = async (
             "consumerId",
             "clientKind",
             "publicKey",
-            "GSIPK_kid",
+            "GSIPK_clientId_kid",
           ],
         },
       },
       {
-        IndexName: "Kid",
-        KeySchema: [{ AttributeName: "GSIPK_kid", KeyType: "HASH" }],
+        IndexName: "ClientKid",
+        KeySchema: [{ AttributeName: "GSIPK_clientId_kid", KeyType: "HASH" }],
         Projection: {
           ProjectionType: "KEYS_ONLY",
         },
@@ -131,7 +108,7 @@ export const buildDynamoDBTables = async (
           ProjectionType: "INCLUDE",
           NonKeyAttributes: [
             "GSIPK_clientId",
-            "GSIPK_kid",
+            "GSIPK_clientId_kid",
             "GSIPK_purposeId",
             "consumerId",
             "clientKind",

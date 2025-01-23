@@ -141,6 +141,7 @@ export async function sendCatalogAuthUpdate(
           "EServiceIsDelegableDisabled",
           "EServiceIsClientAccessDelegableEnabled",
           "EServiceIsClientAccessDelegableDisabled",
+          "EServiceNameUpdated",
           "EServiceDescriptorSubmittedByDelegate",
           "EServiceDescriptorRejectedByDelegator"
         ),
