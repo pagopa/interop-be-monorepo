@@ -254,14 +254,14 @@ async function buildGetPurposesAggregation(
       }
     : {};
 
-  const eservicesIdsFilter =
-    eservicesIds.length > 0
-      ? {
-          "data.eserviceId": {
-            $in: eservicesIds,
-          },
-        }
-      : {};
+  const eservicesIdsFilter = ReadModelRepository.arrayToFilter<Purpose>(
+    eservicesIds,
+    {
+      "data.eserviceId": {
+        $in: eservicesIds,
+      },
+    }
+  );
 
   const notArchivedStates = Object.values(PurposeVersionState.Values).filter(
     (state) => state !== purposeVersionState.archived
