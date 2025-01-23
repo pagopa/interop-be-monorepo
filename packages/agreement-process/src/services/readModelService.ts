@@ -366,9 +366,18 @@ function getConsumerDelegateAgreementsFilters(consumerIds: TenantId[]) {
                       as: "del",
                       in: {
                         $and: [
-                          { $eq: ["$$del.data.kind", "DelegatedConsumer"] },
-                          { $eq: ["$$del.data.state", "Active"] },
                           {
+                            $eq: [
+                              "$$del.data.kind",
+                              delegationKind.delegatedConsumer,
+                            ],
+                          },
+                          { $eq: ["$$del.data.state", delegationState.active] },
+                          {
+                            // We must perform this equality to identify the right consumer delegation
+                            // but an exact equality between the element
+                            // of a lookup and the original data item is possible only inside an $expr,
+                            // that's why we used an expression instead of normal filters
                             $eq: ["$$del.data.delegatorId", "$data.consumerId"],
                           },
                           {
