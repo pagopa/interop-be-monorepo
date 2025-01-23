@@ -11,32 +11,9 @@ export const buildDynamoDBTables = async (
 ): Promise<void> => {
   const platformTableDefinition: CreateTableInput = {
     TableName: "platform-states",
-    AttributeDefinitions: [
-      { AttributeName: "PK", AttributeType: "S" },
-      { AttributeName: "GSIPK_consumerId_eserviceId", AttributeType: "S" },
-      { AttributeName: "GSISK_agreementTimestamp", AttributeType: "S" },
-    ],
+    AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
     KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
     BillingMode: "PAY_PER_REQUEST",
-    GlobalSecondaryIndexes: [
-      {
-        IndexName: "Agreement",
-        KeySchema: [
-          {
-            AttributeName: "GSIPK_consumerId_eserviceId",
-            KeyType: "HASH",
-          },
-          {
-            AttributeName: "GSISK_agreementTimestamp",
-            KeyType: "RANGE",
-          },
-        ],
-        Projection: {
-          ProjectionType: "INCLUDE",
-          NonKeyAttributes: ["state", "agreementDescriptorId"],
-        },
-      },
-    ],
   };
   const command1 = new CreateTableCommand(platformTableDefinition);
   await dynamoDBClient.send(command1);

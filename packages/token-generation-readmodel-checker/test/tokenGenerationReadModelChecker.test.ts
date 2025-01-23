@@ -148,18 +148,18 @@ describe("Token Generation Read Model Checker tests", () => {
         dynamoDBClient
       );
 
-      const agreementEntryPK = makePlatformStatesAgreementPK(agreement.id);
+      const agreementEntryPK = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
       const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement.consumerId,
-          eserviceId: generateId(),
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement.stamps.activation!.when.toISOString(),
-        agreementDescriptorId: agreement.descriptorId,
+        agreementDescriptorId: generateId(),
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -370,6 +370,40 @@ describe("Token Generation Read Model Checker tests", () => {
       expect(purposeDifferences).toEqual(expectedDifferencesLength);
     });
 
+    it("should detect differences when there's a platform-states purpose entry and the purpose is archived", async () => {
+      const purpose = getMockPurpose([
+        getMockPurposeVersion(purposeVersionState.archived),
+      ]);
+      await addOnePurpose(purpose);
+
+      // platform-states
+      const purposeEntryPK = makePlatformStatesPurposePK(purpose.id);
+      const platformStatesPurposeEntry: PlatformStatesPurposeEntry = {
+        PK: purposeEntryPK,
+        state: itemState.inactive,
+        purposeVersionId: purpose.versions[0].id,
+        purposeEserviceId: purpose.eserviceId,
+        purposeConsumerId: purpose.consumerId,
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      await writePlatformPurposeEntry(
+        platformStatesPurposeEntry,
+        dynamoDBClient
+      );
+
+      const expectedDifferencesLength = 1;
+      const purposeDifferences =
+        await compareReadModelPurposesWithPlatformStates({
+          platformStatesPurposeById: new Map([
+            [purpose.id, platformStatesPurposeEntry],
+          ]),
+          purposesById: new Map([[purpose.id, purpose]]),
+          logger: genericLogger,
+        });
+      expect(purposeDifferences).toEqual(expectedDifferencesLength);
+    });
+
     it("should detect differences when the platform-states entry is missing and the purpose is not archived", async () => {
       const purpose = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
@@ -463,15 +497,15 @@ describe("Token Generation Read Model Checker tests", () => {
       await addOneAgreement(agreement2);
 
       // platform-states
-      const agreementEntryPK1 = makePlatformStatesAgreementPK(agreement1.id);
+      const agreementEntryPK1 = makePlatformStatesAgreementPK({
+        consumerId: agreement1.consumerId,
+        eserviceId: agreement1.eserviceId,
+      });
       const platformStatesAgreementEntry1: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK1,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement1.consumerId,
-          eserviceId: agreement1.eserviceId,
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement1.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
@@ -483,15 +517,15 @@ describe("Token Generation Read Model Checker tests", () => {
         dynamoDBClient
       );
 
-      const agreementEntryPK2 = makePlatformStatesAgreementPK(agreement2.id);
+      const agreementEntryPK2 = makePlatformStatesAgreementPK({
+        consumerId: agreement2.consumerId,
+        eserviceId: agreement2.eserviceId,
+      });
       const platformStatesAgreementEntry2: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK2,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement2.consumerId,
-          eserviceId: agreement2.eserviceId,
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement2.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
@@ -545,15 +579,15 @@ describe("Token Generation Read Model Checker tests", () => {
       await addOneAgreement(agreement2);
 
       // platform-states
-      const agreementEntryPK1 = makePlatformStatesAgreementPK(agreement1.id);
+      const agreementEntryPK1 = makePlatformStatesAgreementPK({
+        consumerId: agreement1.consumerId,
+        eserviceId: agreement1.eserviceId,
+      });
       const platformStatesAgreementEntry1: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK1,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement1.consumerId,
-          eserviceId: agreement1.eserviceId,
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement1.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: generateId(),
@@ -565,15 +599,15 @@ describe("Token Generation Read Model Checker tests", () => {
         dynamoDBClient
       );
 
-      const agreementEntryPK2 = makePlatformStatesAgreementPK(agreement2.id);
+      const agreementEntryPK2 = makePlatformStatesAgreementPK({
+        consumerId: agreement2.consumerId,
+        eserviceId: agreement2.eserviceId,
+      });
       const platformStatesAgreementEntry2: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK2,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: generateId(),
-          eserviceId: generateId(),
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement2.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: generateId(),
@@ -596,6 +630,52 @@ describe("Token Generation Read Model Checker tests", () => {
             [agreement1.id, agreement1],
             [agreement2.id, agreement2],
           ]),
+          logger: genericLogger,
+        });
+      expect(agreementDifferences).toEqual(expectedDifferencesLength);
+    });
+
+    it("should detect differences when there's a platform-states agreement entry and the agreement is archived", async () => {
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.archived,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+      await addOneAgreement(agreement);
+
+      // platform-states
+      const agreementEntryPK = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
+        PK: agreementEntryPK,
+        state: itemState.inactive,
+        agreementId: agreement.id,
+        agreementTimestamp:
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          agreement.stamps.activation!.when.toISOString(),
+        agreementDescriptorId: agreement.descriptorId,
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      await writePlatformAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient
+      );
+
+      const expectedDifferencesLength = 1;
+      const agreementDifferences =
+        await compareReadModelAgreementsWithPlatformStates({
+          platformStatesAgreementById: new Map([
+            [agreement.id, platformStatesAgreementEntry],
+          ]),
+          agreementsById: new Map([[agreement.id, agreement]]),
           logger: genericLogger,
         });
       expect(agreementDifferences).toEqual(expectedDifferencesLength);
@@ -660,15 +740,15 @@ describe("Token Generation Read Model Checker tests", () => {
       };
 
       // platform-states
-      const agreementEntryPK = makePlatformStatesAgreementPK(agreement.id);
+      const agreementEntryPK = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
       const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: agreementEntryPK,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: agreement.consumerId,
-          eserviceId: agreement.eserviceId,
-        }),
-        GSISK_agreementTimestamp:
+        agreementId: agreement.id,
+        agreementTimestamp:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
@@ -874,6 +954,52 @@ describe("Token Generation Read Model Checker tests", () => {
             [eservice1.id, eservice1],
             [eservice2.id, eservice2],
           ]),
+          logger: genericLogger,
+        });
+      expect(catalogDifferences).toEqual(expectedDifferencesLength);
+    });
+
+    it("should detect differences when there's a platform-states catalog entry and the descriptor is not published, deprecated or suspended", async () => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.archived,
+        audience: ["pagopa.it"],
+      };
+
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+
+      // platform-states
+      const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      });
+      const platformStatesCatalogEntry: PlatformStatesCatalogEntry = {
+        PK: catalogEntryPK,
+        state: itemState.inactive,
+        descriptorAudience: descriptor.audience,
+        descriptorVoucherLifespan: descriptor.voucherLifespan,
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      await writePlatformCatalogEntry(
+        platformStatesCatalogEntry,
+        dynamoDBClient
+      );
+
+      const expectedDifferencesLength = 1;
+      const catalogDifferences =
+        await compareReadModelEServicesWithPlatformStates({
+          platformStatesEServiceById: new Map([
+            [
+              eservice.id,
+              new Map([[descriptor.id, platformStatesCatalogEntry]]),
+            ],
+          ]),
+          eservicesById: new Map([[eservice.id, eservice]]),
           logger: genericLogger,
         });
       expect(catalogDifferences).toEqual(expectedDifferencesLength);

@@ -397,6 +397,10 @@ export const verifyRequesterIsConsumerOrDelegateConsumer = async (
         purpose
       );
 
+    if (!consumerDelegation) {
+      throw organizationIsNotTheConsumer(authData.organizationId);
+    }
+
     assertRequesterIsDelegateConsumer(purpose, authData, consumerDelegation);
 
     return consumerDelegation?.id;

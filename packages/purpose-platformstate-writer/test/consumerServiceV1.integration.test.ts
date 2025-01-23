@@ -14,9 +14,12 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
   readAllTokenGenStatesItems,
+  writePlatformAgreementEntry,
+  writePlatformCatalogEntry,
   writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   generateId,
   itemState,
   makeGSIPKConsumerIdEServiceId,
@@ -50,11 +53,7 @@ import {
   readPlatformPurposeEntry,
   writePlatformPurposeEntry,
 } from "../src/utils.js";
-import {
-  dynamoDBClient,
-  writeAgreementEntry,
-  writeCatalogEntry,
-} from "./utils.js";
+import { dynamoDBClient } from "./utils.js";
 
 describe("integration tests for events V1", () => {
   beforeEach(async () => {
@@ -625,13 +624,20 @@ describe("integration tests for events V1", () => {
 
       // platform-states
       const mockDescriptor = getMockDescriptor();
-      const mockAgreement = {
+      const mockAgreement: Agreement = {
         ...getMockAgreement(purpose.eserviceId, purpose.consumerId),
         descriptorId: mockDescriptor.id,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
       };
-      const catalogAgreementEntryPK = makePlatformStatesAgreementPK(
-        mockAgreement.id
-      );
+      const catalogAgreementEntryPK = makePlatformStatesAgreementPK({
+        consumerId: purpose.consumerId,
+        eserviceId: purpose.eserviceId,
+      });
       const gsiPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId({
         consumerId: mockAgreement.consumerId,
         eserviceId: mockAgreement.eserviceId,
@@ -639,13 +645,14 @@ describe("integration tests for events V1", () => {
       const previousAgreementEntry: PlatformStatesAgreementEntry = {
         PK: catalogAgreementEntryPK,
         state: itemState.active,
-        GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: mockAgreement.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        agreementTimestamp: mockAgreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: mockAgreement.descriptorId,
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writeAgreementEntry(previousAgreementEntry, dynamoDBClient);
+      await writePlatformAgreementEntry(previousAgreementEntry, dynamoDBClient);
 
       const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
         eserviceId: purpose.eserviceId,
@@ -659,7 +666,7 @@ describe("integration tests for events V1", () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(dynamoDBClient, previousDescriptorEntry);
+      await writePlatformCatalogEntry(previousDescriptorEntry, dynamoDBClient);
 
       // token-generation-states
       const purposeId = purpose.id;
