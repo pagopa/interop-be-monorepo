@@ -1656,7 +1656,7 @@ components:
         isSignalHubEnabled:
           type: boolean
         template:
-          $ref: "#/components/schemas/EServiceTemplateInstanceRef"
+          $ref: "#/components/schemas/EServiceTemplateBinding"
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -2010,7 +2010,7 @@ components:
         - url
         - termsAndConditionsUrl
         - serverUrl
-    EServiceTemplateInstanceRef:
+    EServiceTemplateBinding:
       type: object
       additionalProperties: false
       properties:
