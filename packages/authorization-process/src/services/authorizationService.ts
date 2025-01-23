@@ -618,10 +618,10 @@ export function authorizationServiceBuilder(
         readModelService
       );
 
-      const isDelegateNotConsumer =
+      const isDelegate =
         delegation && purpose.consumerId !== authData.organizationId;
 
-      if (isDelegateNotConsumer) {
+      if (isDelegate) {
         assertRequesterIsDelegateConsumer(authData, purpose, delegation);
       } else {
         assertOrganizationIsPurposeConsumer(authData.organizationId, purpose);
@@ -636,7 +636,7 @@ export function authorizationServiceBuilder(
         readModelService
       );
 
-      if (isDelegateNotConsumer && !eservice.isClientAccessDelegable) {
+      if (isDelegate && !eservice.isClientAccessDelegable) {
         throw eserviceNotDelegableForClientAccess(eservice);
       }
 
