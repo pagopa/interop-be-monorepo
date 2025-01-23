@@ -412,91 +412,93 @@ describe("create consumer delegation", () => {
     ).rejects.toThrowError(delegatorAndDelegateSameIdError());
   });
 
-  it("should throw a originNotCompliant error if delegator has externalId origin different from IPA", async () => {
-    const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
-    const delegator = {
-      ...getMockTenant(delegatorId),
-      externalId: {
-        origin: "NOT_IPA",
-        value: "test",
-      },
-    };
-    const delegate = {
-      ...getMockTenant(),
-      features: [
-        {
-          type: "DelegatedConsumer" as const,
-          availabilityTimestamp: new Date(),
+  describe("origin compliance tests", () => {
+    it("should throw a originNotCompliant error if delegator has externalId origin not compliant", async () => {
+      const delegatorId = generateId<TenantId>();
+      const authData = getRandomAuthData(delegatorId);
+      const delegator = {
+        ...getMockTenant(delegatorId),
+        externalId: {
+          origin: "UNKNOWN_ORIGIN",
+          value: "test",
         },
-      ],
-    };
-    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
+      };
+      const delegate = {
+        ...getMockTenant(),
+        features: [
+          {
+            type: "DelegatedConsumer" as const,
+            availabilityTimestamp: new Date(),
+          },
+        ],
+      };
+      const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
-    await addOneTenant(delegator);
-    await addOneTenant(delegate);
-    await addOneEservice(eservice);
+      await addOneTenant(delegator);
+      await addOneTenant(delegate);
+      await addOneEservice(eservice);
 
-    await expect(
-      delegationService.createConsumerDelegation(
-        {
-          delegateId: delegate.id,
-          eserviceId: eservice.id,
+      await expect(
+        delegationService.createConsumerDelegation(
+          {
+            delegateId: delegate.id,
+            eserviceId: eservice.id,
+          },
+          {
+            authData,
+            logger: genericLogger,
+            correlationId: generateId(),
+            serviceName: "DelegationServiceTest",
+          }
+        )
+      ).rejects.toThrowError(originNotCompliant(delegator, "Delegator"));
+    });
+
+    it("should throw a originNotCompliant error if delegate has externalId origin not compliant", async () => {
+      const delegatorId = generateId<TenantId>();
+      const authData = getRandomAuthData(delegatorId);
+      const delegator = {
+        ...getMockTenant(delegatorId),
+        externalId: {
+          origin: "IPA",
+          value: "test",
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
-      )
-    ).rejects.toThrowError(originNotCompliant(delegator, "Delegator"));
-  });
+      };
 
-  it("should throw a originNotCompliant error if delegate has externalId origin different from IPA", async () => {
-    const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
-    const delegator = {
-      ...getMockTenant(delegatorId),
-      externalId: {
-        origin: "IPA",
-        value: "test",
-      },
-    };
-
-    const delegate = {
-      ...getMockTenant(),
-      externalId: {
-        origin: "NOT_IPA",
-        value: "test",
-      },
-      features: [
-        {
-          type: "DelegatedConsumer" as const,
-          availabilityTimestamp: new Date(),
+      const delegate = {
+        ...getMockTenant(),
+        externalId: {
+          origin: "UNKNOWN_ORIGIN",
+          value: "test",
         },
-      ],
-    };
-    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
+        features: [
+          {
+            type: "DelegatedConsumer" as const,
+            availabilityTimestamp: new Date(),
+          },
+        ],
+      };
+      const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
-    await addOneTenant(delegator);
-    await addOneTenant(delegate);
-    await addOneEservice(eservice);
+      await addOneTenant(delegator);
+      await addOneTenant(delegate);
+      await addOneEservice(eservice);
 
-    await expect(
-      delegationService.createConsumerDelegation(
-        {
-          delegateId: delegate.id,
-          eserviceId: eservice.id,
-        },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
-      )
-    ).rejects.toThrowError(originNotCompliant(delegate, "Delegate"));
+      await expect(
+        delegationService.createConsumerDelegation(
+          {
+            delegateId: delegate.id,
+            eserviceId: eservice.id,
+          },
+          {
+            authData,
+            logger: genericLogger,
+            correlationId: generateId(),
+            serviceName: "DelegationServiceTest",
+          }
+        )
+      ).rejects.toThrowError(originNotCompliant(delegate, "Delegate"));
+    });
   });
 
   it("should throw an eserviceNotFound error if Eservice does not exist", async () => {
