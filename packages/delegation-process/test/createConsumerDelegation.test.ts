@@ -24,7 +24,7 @@ import {
   delegationAlreadyExists,
   delegatorAndDelegateSameIdError,
   eserviceNotFound,
-  tenantIsNotIPAError,
+  originNotCompliant,
   tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
@@ -412,7 +412,7 @@ describe("create consumer delegation", () => {
     ).rejects.toThrowError(delegatorAndDelegateSameIdError());
   });
 
-  it("should throw a tenantIsNotIPAError error if delegator has externalId origin different from IPA", async () => {
+  it("should throw a originNotCompliant error if delegator has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegator = {
@@ -450,10 +450,10 @@ describe("create consumer delegation", () => {
           serviceName: "DelegationServiceTest",
         }
       )
-    ).rejects.toThrowError(tenantIsNotIPAError(delegator, "Delegator"));
+    ).rejects.toThrowError(originNotCompliant(delegator, "Delegator"));
   });
 
-  it("should throw a tenantIsNotIPAError error if delegate has externalId origin different from IPA", async () => {
+  it("should throw a originNotCompliant error if delegate has externalId origin different from IPA", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegator = {
@@ -496,7 +496,7 @@ describe("create consumer delegation", () => {
           serviceName: "DelegationServiceTest",
         }
       )
-    ).rejects.toThrowError(tenantIsNotIPAError(delegate, "Delegate"));
+    ).rejects.toThrowError(originNotCompliant(delegate, "Delegate"));
   });
 
   it("should throw an eserviceNotFound error if Eservice does not exist", async () => {
