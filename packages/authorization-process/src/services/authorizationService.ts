@@ -598,14 +598,12 @@ export function authorizationServiceBuilder(
     async addClientPurpose({
       clientId,
       seed,
-      ctx,
+      ctx: { authData, correlationId, logger },
     }: {
       clientId: ClientId;
       seed: authorizationApi.PurposeAdditionDetails;
       ctx: WithLogger<AppContext>;
     }): Promise<void> {
-      const { authData, correlationId, logger } = ctx;
-
       logger.info(
         `Adding purpose with id ${seed.purposeId} to client ${clientId}`
       );
