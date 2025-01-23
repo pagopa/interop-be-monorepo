@@ -11,6 +11,7 @@ import {
   timeAtRomeZone,
 } from "pagopa-interop-commons";
 import {
+  addSomeRandomDelegations,
   decodeProtobufPayload,
   getMockAgreement,
   getMockAgreementAttribute,
@@ -83,7 +84,6 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
-  addSomeRandomDelegations,
   agreementService,
   authDataAndDelegationsFromRequesterIs,
   fileManager,
@@ -309,7 +309,7 @@ describe("activate agreement", () => {
         await addOneAttribute(verifiedAttribute);
         const relatedAgreements = await addRelatedAgreements(agreement);
 
-        await addSomeRandomDelegations(agreement);
+        await addSomeRandomDelegations(agreement, addOneDelegation);
         await addDelegationsAndDelegates({
           producerDelegation,
           delegateProducer,
@@ -719,7 +719,7 @@ describe("activate agreement", () => {
 
       await addOneAgreement(agreement);
       await addOneDelegation(consumerDelegation);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
         agreementService.activateAgreement(agreement.id, {
@@ -750,7 +750,7 @@ describe("activate agreement", () => {
 
       await addOneAgreement(agreement);
       await addOneDelegation(producerDelegation);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
         agreementService.activateAgreement(agreement.id, {
@@ -881,7 +881,7 @@ describe("activate agreement", () => {
         await addOneAgreement(agreement);
         const relatedAgreements = await addRelatedAgreements(agreement);
 
-        await addSomeRandomDelegations(agreement);
+        await addSomeRandomDelegations(agreement, addOneDelegation);
         await addDelegationsAndDelegates({
           producerDelegation,
           delegateProducer,
@@ -1237,7 +1237,7 @@ describe("activate agreement", () => {
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
 
-          await addSomeRandomDelegations(agreement);
+          await addSomeRandomDelegations(agreement, addOneDelegation);
           await addDelegationsAndDelegates({
             producerDelegation,
             delegateProducer,
@@ -1299,7 +1299,7 @@ describe("activate agreement", () => {
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
 
-          await addSomeRandomDelegations(agreement);
+          await addSomeRandomDelegations(agreement, addOneDelegation);
           await addDelegationsAndDelegates({
             producerDelegation,
             delegateProducer,
@@ -1538,7 +1538,7 @@ describe("activate agreement", () => {
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
 
-          await addSomeRandomDelegations(agreement);
+          await addSomeRandomDelegations(agreement, addOneDelegation);
           await addDelegationsAndDelegates({
             producerDelegation,
             delegateProducer,
@@ -1593,7 +1593,7 @@ describe("activate agreement", () => {
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
 
-          await addSomeRandomDelegations(agreement);
+          await addSomeRandomDelegations(agreement, addOneDelegation);
           await addDelegationsAndDelegates({
             producerDelegation,
             delegateProducer,
@@ -1673,7 +1673,7 @@ describe("activate agreement", () => {
 
       await addOneAgreement(agreement);
       await addOneDelegation(producerDelegation);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
         agreementService.activateAgreement(agreement.id, {
@@ -1704,7 +1704,7 @@ describe("activate agreement", () => {
 
       await addOneAgreement(agreement);
       await addOneDelegation(consumerDelegation);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
         agreementService.activateAgreement(agreement.id, {
@@ -1758,7 +1758,7 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
       await addOneDelegation(producerDelegation);
       await addOneDelegation(consumerDelegation);
-      await addSomeRandomDelegations(agreement);
+      await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
         agreementService.activateAgreement(agreement.id, {

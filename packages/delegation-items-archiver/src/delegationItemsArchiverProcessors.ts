@@ -34,7 +34,14 @@ export const processPurposes = async ({
             purposeVersionState.waitingForApproval,
             () => true
           )
-          .otherwise(() => false)
+          .with(
+            purposeVersionState.archived,
+            purposeVersionState.rejected,
+            purposeVersionState.active,
+            purposeVersionState.suspended,
+            () => false
+          )
+          .exhaustive()
       );
       if (isDeletable) {
         return purposeProcessClient.deletePurpose(undefined, {
@@ -50,7 +57,14 @@ export const processPurposes = async ({
             purposeVersionState.suspended,
             () => true
           )
-          .otherwise(() => false)
+          .with(
+            purposeVersionState.archived,
+            purposeVersionState.rejected,
+            purposeVersionState.draft,
+            purposeVersionState.waitingForApproval,
+            () => false
+          )
+          .exhaustive()
       );
       if (activeOrSuspendedVersion) {
         return purposeProcessClient.archivePurposeVersion(undefined, {

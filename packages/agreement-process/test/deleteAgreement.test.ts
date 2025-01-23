@@ -1,6 +1,7 @@
 /* eslint-disable functional/no-let */
 import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
+  addSomeRandomDelegations,
   decodeProtobufPayload,
   getMockAgreement,
   getMockDelegation,
@@ -27,7 +28,6 @@ import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneDelegation,
-  addSomeRandomDelegations,
   agreementService,
   fileManager,
   getMockConsumerDocument,
@@ -128,7 +128,7 @@ describe("delete agreement", () => {
 
     await addOneAgreement(agreement);
     await addOneDelegation(delegation);
-    await addSomeRandomDelegations(agreement);
+    await addSomeRandomDelegations(agreement, addOneDelegation);
 
     await Promise.all(
       consumerDocuments.map((doc) =>
