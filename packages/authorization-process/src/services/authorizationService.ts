@@ -34,6 +34,8 @@ import {
   userRoles,
   calculateKid,
   createJWK,
+  WithLogger,
+  AppContext,
 } from "pagopa-interop-commons";
 import {
   authorizationApi,
@@ -596,16 +598,14 @@ export function authorizationServiceBuilder(
     async addClientPurpose({
       clientId,
       seed,
-      authData,
-      correlationId,
-      logger,
+      ctx,
     }: {
       clientId: ClientId;
       seed: authorizationApi.PurposeAdditionDetails;
-      authData: AuthData;
-      correlationId: CorrelationId;
-      logger: Logger;
+      ctx: WithLogger<AppContext>;
     }): Promise<void> {
+      const { authData, correlationId, logger } = ctx;
+
       logger.info(
         `Adding purpose with id ${seed.purposeId} to client ${clientId}`
       );

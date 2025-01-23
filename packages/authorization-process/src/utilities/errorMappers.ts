@@ -92,7 +92,7 @@ export const addClientPurposeErrorMapper = (
     .with(
       "clientNotFound",
       "purposeNotFound",
-      "delegationNotFound",
+      "purposeDelegationNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(

@@ -540,9 +540,7 @@ const authorizationRouter = (
           await authorizationService.addClientPurpose({
             clientId: unsafeBrandId(req.params.clientId),
             seed: req.body,
-            authData: ctx.authData,
-            correlationId: ctx.correlationId,
-            logger: ctx.logger,
+            ctx,
           });
           return res.status(204).send();
         } catch (error) {
