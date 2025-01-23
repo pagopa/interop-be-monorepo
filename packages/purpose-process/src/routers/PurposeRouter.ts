@@ -285,7 +285,7 @@ const purposeRouter = (
     )
     .delete(
       "/purposes/:id",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {

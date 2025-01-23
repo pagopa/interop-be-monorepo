@@ -290,7 +290,7 @@ const agreementRouter = (
 
   agreementRouter.post(
     "/agreements/:agreementId/archive",
-    authorizationMiddleware([ADMIN_ROLE]),
+    authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
     async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
@@ -510,7 +510,7 @@ const agreementRouter = (
 
   agreementRouter.delete(
     "/agreements/:agreementId",
-    authorizationMiddleware([ADMIN_ROLE]),
+    authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
     async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
