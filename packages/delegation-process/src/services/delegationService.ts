@@ -58,6 +58,7 @@ import {
   assertIsDelegate,
   assertIsDelegator,
   assertIsState,
+  assertNoDelegationRelatedAgreementExists,
   assertRequesterIsDelegateOrDelegator,
   assertTenantAllowedToReceiveDelegation,
 } from "./validators.js";
@@ -157,6 +158,13 @@ export function delegationServiceBuilder(
       delegator,
       eserviceId,
       kind,
+      readModelService
+    );
+
+    await assertNoDelegationRelatedAgreementExists(
+      delegate.id,
+      delegator.id,
+      eservice.id,
       readModelService
     );
 
