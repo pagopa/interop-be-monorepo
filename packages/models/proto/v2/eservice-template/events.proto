@@ -24,8 +24,7 @@ message EServiceTemplateRiskAnalysisUpdatedV2 {
 }
 
 message EServiceTemplateDraftUpdatedV2 {
-  string eserviceTemplateId = 1;
-  EServiceTemplateV2 eserviceTemplate = 2;
+  EServiceTemplateV2 eserviceTemplate = 1;
 }
 
 message EServiceTemplateDraftVersionUpdatedV2 {
@@ -39,8 +38,7 @@ message EServiceTemplateDraftVersionDeletedV2 {
 }
 
 message EServiceTemplateDeletedV2 {
-  string eserviceTemplateId = 1;
-  EServiceTemplateV2 eserviceTemplate = 2;
+  EServiceTemplateV2 eserviceTemplate = 1;
 }
 
 message EServiceTemplateVersionInterfaceAddedV2 {
