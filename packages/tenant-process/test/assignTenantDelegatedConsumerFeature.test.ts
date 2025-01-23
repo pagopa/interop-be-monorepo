@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   generateId,
@@ -16,6 +17,7 @@ import {
   tenantAlreadyHasFeature,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("assignTenantDelegatedConsumerFeature", async () => {
@@ -28,45 +30,55 @@ describe("assignTenantDelegatedConsumerFeature", async () => {
     vi.useRealTimers();
   });
 
-  it("Should correctly assign the feature", async () => {
-    const mockTenant: Tenant = getMockTenant();
-    await addOneTenant(mockTenant);
-    await tenantService.assignTenantDelegatedConsumerFeature({
-      authData: getMockAuthData(mockTenant.id),
-      serviceName: "TenantService",
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
-    const writtenEvent = await readLastEventByStreamId(
-      mockTenant.id,
-      "tenant",
-      postgresDB
-    );
-
-    expect(writtenEvent).toMatchObject({
-      stream_id: mockTenant.id,
-      version: "1",
-      type: "TenantDelegatedConsumerFeatureAdded",
-      event_version: 2,
-    });
-
-    const writtenPayload: TenantDelegatedConsumerFeatureAddedV2 | undefined =
-      protobufDecoder(TenantDelegatedConsumerFeatureAddedV2).parse(
-        writtenEvent.data
+  config.delegationsAllowedOrigins = ["IPA", "TEST"];
+  it.each(config.delegationsAllowedOrigins)(
+    "Should correctly assign the feature (origin: %s)",
+    async (origin) => {
+      const mockTenant: Tenant = {
+        ...getMockTenant(),
+        externalId: {
+          value: generateId(),
+          origin,
+        },
+      };
+      await addOneTenant(mockTenant);
+      await tenantService.assignTenantDelegatedConsumerFeature({
+        authData: getMockAuthData(mockTenant.id),
+        serviceName: "TenantService",
+        correlationId: generateId(),
+        logger: genericLogger,
+      });
+      const writtenEvent = await readLastEventByStreamId(
+        mockTenant.id,
+        "tenant",
+        postgresDB
       );
 
-    const updatedTenant: Tenant = {
-      ...mockTenant,
-      features: [
-        {
-          type: "DelegatedConsumer",
-          availabilityTimestamp: new Date(),
-        },
-      ],
-      updatedAt: new Date(),
-    };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-  });
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockTenant.id,
+        version: "1",
+        type: "TenantDelegatedConsumerFeatureAdded",
+        event_version: 2,
+      });
+
+      const writtenPayload: TenantDelegatedConsumerFeatureAddedV2 | undefined =
+        protobufDecoder(TenantDelegatedConsumerFeatureAddedV2).parse(
+          writtenEvent.data
+        );
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        features: [
+          {
+            type: "DelegatedConsumer",
+            availabilityTimestamp: new Date(),
+          },
+        ],
+        updatedAt: new Date(),
+      };
+      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    }
+  );
   it("Should throw tenantNotFound if the requester tenant doesn't exist", async () => {
     const organizationId = generateId<TenantId>();
     expect(
@@ -102,7 +114,7 @@ describe("assignTenantDelegatedConsumerFeature", async () => {
       tenantAlreadyHasFeature(mockTenant.id, "DelegatedConsumer")
     );
   });
-  it("Should throw operationForbidden if the requester tenant is not a public administration", async () => {
+  it("Should throw operationForbidden if the requester tenant has externalId origin not compliant", async () => {
     const organizationId = generateId<TenantId>();
 
     expect(
