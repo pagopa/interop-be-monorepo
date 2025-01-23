@@ -92,12 +92,13 @@ export const addClientPurposeErrorMapper = (
     .with(
       "clientNotFound",
       "purposeNotFound",
-
+      "delegationNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
       "noAgreementFoundInRequiredState",
       "noPurposeVersionsFoundInRequiredState",
+      "eserviceNotDelegableForClientAccess",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("purposeAlreadyLinkedToClient", () => HTTP_STATUS_CONFLICT)
