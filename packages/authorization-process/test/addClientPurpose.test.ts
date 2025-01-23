@@ -10,7 +10,6 @@ import {
   getMockEService,
   getMockPurpose,
   getMockPurposeVersion,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import {
@@ -27,9 +26,6 @@ import {
   generateId,
   purposeVersionState,
   toClientV2,
-  toReadModelAgreement,
-  toReadModelEService,
-  toReadModelPurpose,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -45,12 +41,12 @@ import {
   purposeNotFound,
 } from "../src/model/domain/errors.js";
 import {
+  addOneAgreement,
   addOneClient,
   addOneDelegation,
-  agreements,
+  addOneEService,
+  addOnePurpose,
   authorizationService,
-  eservices,
-  purposes,
   readLastAuthorizationEvent,
 } from "./utils.js";
 
@@ -90,9 +86,9 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
@@ -173,9 +169,9 @@ describe("addClientPurpose", async () => {
 
     await addOneClient(mockClient);
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
@@ -255,9 +251,9 @@ describe("addClientPurpose", async () => {
 
     await addOneClient(mockClient);
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
@@ -327,9 +323,9 @@ describe("addClientPurpose", async () => {
       consumerId: mockConsumerId,
     };
 
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     expect(
       authorizationService.addClientPurpose({
@@ -379,9 +375,9 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     expect(
       authorizationService.addClientPurpose({
@@ -433,8 +429,8 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     expect(
       authorizationService.addClientPurpose({
@@ -484,9 +480,9 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     expect(
       authorizationService.addClientPurpose({
@@ -538,8 +534,8 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneAgreement(mockAgreement);
 
     expect(
       authorizationService.addClientPurpose({
@@ -580,8 +576,8 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
 
     expect(
       authorizationService.addClientPurpose({
@@ -638,9 +634,9 @@ describe("addClientPurpose", async () => {
       };
 
       await addOneClient(mockClient);
-      await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-      await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+      await addOnePurpose(mockPurpose);
+      await addOneEService(mockEservice);
+      await addOneAgreement(mockAgreement);
 
       expect(
         authorizationService.addClientPurpose({
@@ -694,9 +690,9 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     expect(
       authorizationService.addClientPurpose({
@@ -747,9 +743,9 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     expect(
       authorizationService.addClientPurpose({
@@ -810,9 +806,9 @@ describe("addClientPurpose", async () => {
       };
 
       await addOneClient(mockClient);
-      await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-      await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+      await addOnePurpose(mockPurpose);
+      await addOneEService(mockEservice);
+      await addOneAgreement(mockAgreement);
 
       expect(
         authorizationService.addClientPurpose({
@@ -866,9 +862,9 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     expect(
       authorizationService.addClientPurpose({
@@ -932,9 +928,9 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
@@ -1015,9 +1011,9 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
@@ -1099,9 +1095,9 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     expect(
       authorizationService.addClientPurpose({
@@ -1163,9 +1159,9 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     expect(
       authorizationService.addClientPurpose({
@@ -1229,9 +1225,9 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     expect(
       authorizationService.addClientPurpose({
@@ -1293,9 +1289,9 @@ describe("addClientPurpose", async () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEservice);
+    await addOneAgreement(mockAgreement);
 
     expect(
       authorizationService.addClientPurpose({
