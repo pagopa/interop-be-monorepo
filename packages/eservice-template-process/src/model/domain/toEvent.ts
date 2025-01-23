@@ -97,7 +97,6 @@ export const toCreateEventEServiceTemplateDraftUpdated = (
     type: "EServiceTemplateDraftUpdated",
     event_version: 2,
     data: {
-      eserviceTemplateId: eserviceTemplate.id,
       eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
     },
   },
@@ -156,7 +155,6 @@ export const toCreateEventEServiceTemplateDeleted = (
     type: "EServiceTemplateDeleted",
     event_version: 2,
     data: {
-      eserviceTemplateId: eserviceTemplate.id,
       eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
     },
   },
