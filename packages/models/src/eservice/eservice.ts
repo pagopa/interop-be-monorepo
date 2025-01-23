@@ -119,12 +119,12 @@ export type EServiceTemplateInterfaceInfo = z.infer<
   typeof EServiceTemplateInterfaceInfo
 >;
 
-export const EServiceTemplateInfo = z.object({
+export const EServiceTemplateInstanceRef = z.object({
   templateId: EServiceTemplateId,
   istanceId: z.string().optional(),
   interfaceInfo: EServiceTemplateInterfaceInfo.optional(),
 });
-export type EServiceTemplateInfo = z.infer<typeof EServiceTemplateInfo>;
+export type EServiceTemplateInstanceRef = z.infer<typeof EServiceTemplateInstanceRef>;
 
 export const EService = z.object({
   id: EServiceId,
@@ -138,6 +138,6 @@ export const EService = z.object({
   riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
   isSignalHubEnabled: z.boolean().optional(),
-  template: EServiceTemplateInfo.optional(),
+  template: EServiceTemplateInstanceRef.optional(),
 });
 export type EService = z.infer<typeof EService>;
