@@ -59,7 +59,6 @@ export const DescriptorAttributeSQL = z.object({
   explicit_attribute_verification: z.boolean(),
   kind: AttributeKind,
   group_set: z.number(),
-  eservice_version: z.number().int(),
 });
 export type DescriptorAttributeSQL = z.infer<typeof DescriptorAttributeSQL>;
 
@@ -94,7 +93,6 @@ export const DocumentSQL = z.object({
   checksum: z.string(),
   upload_date: z.coerce.date(),
   document_kind: DocumentKind,
-  eservice_version: z.number().int(),
 });
 export type DocumentSQL = z.infer<typeof DocumentSQL>;
 
@@ -148,7 +146,6 @@ export const DescriptorSQL = z.object({
   suspended_at: z.coerce.date().optional().nullable(),
   deprecated_at: z.coerce.date().optional().nullable(),
   archived_at: z.coerce.date().optional().nullable(),
-  eservice_version: z.number().int(),
   // attributes: EServiceAttributes,
 });
 export type DescriptorSQL = z.infer<typeof DescriptorSQL>;
@@ -189,6 +186,6 @@ export const EServiceSQL = z.object({
   created_at: z.coerce.date(),
   // riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
-  version: z.number().int(),
+  version: z.number(),
 });
 export type EServiceSQL = z.infer<typeof EServiceSQL>;
