@@ -1033,7 +1033,7 @@ describe("addClientPurpose", async () => {
       })
     ).rejects.toThrowError(purposeDelegationNotFound(delegation.id));
   });
-  it("should throw organizationNotAllowedOnPurpose if the requester is not the purpose delegation delegate", async () => {
+  it("should throw organizationNotAllowedOnPurpose if the requester is not the purpose delegation delegate nor delegator", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
