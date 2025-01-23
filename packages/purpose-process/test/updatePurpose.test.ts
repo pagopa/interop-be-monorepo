@@ -911,7 +911,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester and is updating a purpose created by the delegate in updateReversePurpose", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is updating a purpose created by the delegate in updateReversePurpose", async () => {
     const authData = getRandomAuthData();
 
     const delegatePurpose: Purpose = {
@@ -952,7 +952,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
   });
-  it("should throw delegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updateReversePurpose, but the delegation cannot be found in updatePurpose", async () => {
+  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updatePurpose, but the delegation cannot be found", async () => {
     const authData = getRandomAuthData();
 
     const delegatePurpose: Purpose = {
@@ -966,7 +966,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     await addOneTenant(tenant);
 
     expect(
-      purposeService.updateReversePurpose(
+      purposeService.updatePurpose(
         delegatePurpose.id,
         reversePurposeUpdateContent,
         {
@@ -983,7 +983,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
   });
-  it("should throw delegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updateReversePurpose, but the delegation cannot be found in updateReversePurpose", async () => {
+  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updateReversePurpose, but the delegation cannot be found", async () => {
     const authData = getRandomAuthData();
 
     const delegatePurpose: Purpose = {

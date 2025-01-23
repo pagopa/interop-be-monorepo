@@ -409,7 +409,7 @@ describe("deletePurpose", () => {
     );
   });
 
-  it("should throw puroposeDelegationNotFound when the requester is the Consumer with no delegation and is deleting a purpose created by a delegate in deletePurpose", async () => {
+  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is deleting a purpose created by a delegate in deletePurpose, but the delegation cannot be found", async () => {
     const authData = getRandomAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(

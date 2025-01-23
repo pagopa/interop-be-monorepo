@@ -342,15 +342,10 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      const consumerDelegation = await retrievePurposeDelegation(
-        purpose.data,
-        readModelService
-      );
-
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        consumerDelegation
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
@@ -477,15 +472,10 @@ export function purposeServiceBuilder(
         throw purposeCannotBeDeleted(purpose.data.id);
       }
 
-      const consumerDelegation = await retrievePurposeDelegation(
-        purpose.data,
-        readModelService
-      );
-
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        consumerDelegation
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const event = purposeIsDraft(purpose.data)
@@ -516,15 +506,10 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      const consumerDelegation = await retrievePurposeDelegation(
-        purpose.data,
-        readModelService
-      );
-
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        consumerDelegation
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
@@ -686,15 +671,10 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      const consumerDelegation = await retrievePurposeDelegation(
-        purpose.data,
-        readModelService
-      );
-
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        consumerDelegation
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const previousVersion = [
