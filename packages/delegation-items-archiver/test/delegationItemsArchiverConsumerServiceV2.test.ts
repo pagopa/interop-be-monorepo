@@ -126,7 +126,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       });
     });
 
-    it("The consumer should call the deletePurpose when the purpose is archivable", async () => {
+    it("The consumer should call the archivePurposeVersion when the purpose is archivable", async () => {
       const purpose1: Purpose = {
         ...mockPurpose,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
