@@ -298,7 +298,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
         const tokenEntryPK = entry.PK;
 
         // Agreement data from platform-states
-        // Agreement infos should be filled when the fields are missing or outdated
+        // Agreement info should be filled when the fields are missing or outdated
         const isAgreementMissingInTokenGenStates =
           !!platformAgreementEntry &&
           !!gsiPKEServiceIdDescriptorId &&
@@ -335,7 +335,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
           : "";
 
         // Descriptor data from platform-states
-        // Descriptor infos should be filled when the fields are missing or outdated
+        // Descriptor info should be filled when the fields are missing or outdated
         const isDescriptorDataMissingInTokenGenStates =
           !!platformAgreementEntry &&
           !!catalogEntry &&

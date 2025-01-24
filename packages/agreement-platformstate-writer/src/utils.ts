@@ -215,7 +215,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
     logger: Logger;
   }): Promise<void> => {
     for (const entry of entriesToUpdate) {
-      // Descriptor infos should be filled when the fields are missing or outdated
+      // Descriptor info should be filled when the fields are missing or outdated
       const additionalDescriptorInfo =
         catalogEntry &&
         (entry.descriptorState !== catalogEntry.state ||
