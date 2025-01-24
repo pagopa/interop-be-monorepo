@@ -85,7 +85,7 @@ export function toCreateEventConsumerDelegationSubmitted(
 ): CreateEvent<DelegationEventV2> {
   return {
     streamId: delegation.id,
-    version: 0,
+    version: undefined,
     event: {
       type: "ConsumerDelegationSubmitted",
       event_version: 2,
