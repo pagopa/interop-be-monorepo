@@ -525,7 +525,7 @@ describe("deletePurposeVersion", () => {
           versionId: mockPurposeVersion.id,
         },
         {
-          authData: getRandomAuthData(mockEService.producerId),
+          authData,
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
