@@ -33,10 +33,10 @@ import {
   attributeNotFound,
   tenantDoesNotHaveFeature,
   tenantAlreadyHasFeature,
-  tenantIsNotIPA,
   eServiceNotFound,
   descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 export function assertVerifiedAttributeExistsInTenant(
@@ -153,9 +153,11 @@ export async function assertRequesterAllowed(
   }
 }
 
-export function assertRequesterIPAOrigin(authData: AuthData): void {
-  if (authData.externalId.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
-    throw tenantIsNotIPA(authData.organizationId);
+export function assertRequesterDelegationsAllowedOrigin(
+  authData: AuthData
+): void {
+  if (!config.delegationsAllowedOrigins.includes(authData.externalId.origin)) {
+    throw operationForbidden;
   }
 }
 

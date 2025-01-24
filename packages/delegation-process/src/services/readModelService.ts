@@ -144,12 +144,6 @@ export function readModelServiceBuilder(
     ): Promise<WithMetadata<EService> | undefined> {
       return this.getEService(eservices, { "data.id": id });
     },
-    async createDelegation(delegation: Delegation): Promise<void> {
-      await delegations.insertOne({
-        data: delegation,
-        metadata: { version: 0 },
-      });
-    },
     async getTenantById(tenantId: string): Promise<Tenant | undefined> {
       const data = await tenants.findOne(
         { "data.id": tenantId },
@@ -465,7 +459,7 @@ export function readModelServiceBuilder(
       limit: number;
       offset: number;
       eserviceName?: string;
-    }): Promise<delegationApi.CompactEservicesLight> {
+    }): Promise<delegationApi.CompactEServices> {
       const aggregationPipeline = [
         {
           $match: {
@@ -534,6 +528,7 @@ export function readModelServiceBuilder(
           $group: {
             _id: "$eservice.data.id",
             name: { $first: "$eservice.data.name" },
+            producerId: { $first: "$eservice.data.producerId" },
           },
         },
         {
@@ -541,6 +536,7 @@ export function readModelServiceBuilder(
             _id: 0,
             id: "$_id",
             name: 1,
+            producerId: 1,
           },
         },
         {
@@ -559,9 +555,7 @@ export function readModelServiceBuilder(
         )
         .toArray();
 
-      const result = z
-        .array(delegationApi.CompactEserviceLight)
-        .safeParse(data);
+      const result = z.array(delegationApi.CompactEService).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(
