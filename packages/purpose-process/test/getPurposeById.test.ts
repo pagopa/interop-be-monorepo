@@ -388,7 +388,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it.only("Should return an empty list if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
+  it("Should return an empty list if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
     const tenant = { ...getMockTenant(), kind: tenantKind.PA };
     const eservice = getMockEService();
     const purpose: Purpose = {
