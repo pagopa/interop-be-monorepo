@@ -1,0 +1,38 @@
+{
+  "name": "pagopa-interop-ipa-certified-attributes-importer",
+  "main": "./dist/index.js",
+  "type": "module",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PagoPA Interoperability ipa certified attributes importer",
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "vitest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "devDependencies": {
+    "@pagopa/eslint-config": "3.0.0",
+    "@types/node": "20.4.9",
+    "prettier": "2.8.8",
+    "typescript": "5.4.5",
+    "vitest": "1.6.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.4",
+    "dotenv-flow": "4.1.0",
+    "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-api-clients": "workspace:*",
+    "ts-pattern": "5.2.0",
+    "zod": "^3.23.8"
+  }
+}

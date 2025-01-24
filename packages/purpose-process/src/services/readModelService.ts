@@ -23,6 +23,10 @@ import {
   agreementState,
   PurposeVersionState,
   TenantReadModel,
+  delegationState,
+  Delegation,
+  DelegationKind,
+  delegationKind,
 } from "pagopa-interop-models";
 import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
@@ -173,10 +177,47 @@ async function buildGetPurposesAggregation(
       }
     : {};
 
+  const eserviceIdsFilters =
+    producersIds.length > 0
+      ? [
+          {
+            $lookup: {
+              from: "delegations",
+              localField: "data.id",
+              foreignField: "data.eserviceId",
+              as: "matchingDelegations",
+            },
+          },
+          {
+            $match: {
+              $or: [
+                { "data.producerId": { $in: producersIds } },
+                {
+                  $and: [
+                    {
+                      "matchingDelegations.data.delegateId": {
+                        $in: producersIds,
+                      },
+                    },
+                    {
+                      "matchingDelegations.data.state": delegationState.active,
+                    },
+                    {
+                      "matchingDelegations.data.kind":
+                        delegationKind.delegatedProducer,
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ]
+      : [];
+
   const producerEServicesIds =
     producersIds.length > 0
       ? await eservices
-          .find({ "data.producerId": { $in: producersIds } })
+          .aggregate(eserviceIdsFilters)
           .toArray()
           .then((results) =>
             results.map((eservice) => eservice.data.id.toString())
@@ -233,7 +274,8 @@ async function buildGetPurposesAggregation(
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { eservices, purposes, tenants, agreements } = readModelRepository;
+  const { eservices, purposes, tenants, agreements, delegations } =
+    readModelRepository;
 
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -332,6 +374,25 @@ export function readModelServiceBuilder(
       }
 
       return result.data;
+    },
+    async getActiveDelegation(
+      eserviceId: EServiceId,
+      kind: DelegationKind
+    ): Promise<Delegation | undefined> {
+      const data = await delegations.findOne({
+        "data.eserviceId": eserviceId,
+        "data.kind": kind,
+        "data.state": delegationState.active,
+      });
+      if (!data) {
+        return undefined;
+      } else {
+        const result = Delegation.safeParse(data.data);
+        if (!result.success) {
+          throw genericError("Unable to parse delegation item");
+        }
+        return result.data;
+      }
     },
   };
 }

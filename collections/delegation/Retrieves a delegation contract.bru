@@ -1,0 +1,21 @@
+meta {
+  name: Retrieves a delegation contract
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-delegation}}/delegations/:delegationId/contracts/:contractId
+  body: none
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+  contractId: {{contractId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
