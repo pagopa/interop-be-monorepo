@@ -34,6 +34,7 @@ import {
   incorrectState,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
+import { DelegationActivationPDFPayload } from "../src/model/domain/models.js";
 import {
   addOneDelegation,
   addOneTenant,
@@ -134,6 +135,25 @@ describe("approve consumer delegation", () => {
     });
     expect(actualDelegation).toEqual(expectedDelegation);
 
+    const expectedPdfPayload: DelegationActivationPDFPayload = {
+      delegationKindText: "alla fruizione",
+      todayDate: dateAtRomeZone(currentExecutionTime),
+      todayTime: timeAtRomeZone(currentExecutionTime),
+      delegationId: approvedDelegationWithoutContract.id,
+      delegatorName: delegator.name,
+      delegateIpaCode: delegate.externalId.value,
+      delegateName: delegate.name,
+      delegatorIpaCode: delegator.externalId.value,
+      eserviceId: eservice.id,
+      eserviceName: eservice.name,
+      submitterId: approvedDelegationWithoutContract.stamps.submission.who,
+      submissionDate: dateAtRomeZone(currentExecutionTime),
+      submissionTime: timeAtRomeZone(currentExecutionTime),
+      activatorId: approvedDelegationWithoutContract.stamps.activation!.who,
+      activationDate: dateAtRomeZone(currentExecutionTime),
+      activationTime: timeAtRomeZone(currentExecutionTime),
+    };
+
     expect(pdfGenerator.generate).toHaveBeenCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
@@ -141,24 +161,7 @@ describe("approve consumer delegation", () => {
         "resources/templates",
         "delegationApprovedTemplate.html"
       ),
-      {
-        delegationKindText: "alla fruizione",
-        todayDate: dateAtRomeZone(currentExecutionTime),
-        todayTime: timeAtRomeZone(currentExecutionTime),
-        delegationId: approvedDelegationWithoutContract.id,
-        delegatorName: delegator.name,
-        delegatorIpaCode: delegator.externalId.value,
-        delegateName: delegate.name,
-        delegateIpaCode: delegate.externalId.value,
-        eserviceId: eservice.id,
-        eserviceName: eservice.name,
-        submitterId: approvedDelegationWithoutContract.stamps.submission.who,
-        submissionDate: dateAtRomeZone(currentExecutionTime),
-        submissionTime: timeAtRomeZone(currentExecutionTime),
-        activatorId: approvedDelegationWithoutContract.stamps.activation!.who,
-        activationDate: dateAtRomeZone(currentExecutionTime),
-        activationTime: timeAtRomeZone(currentExecutionTime),
-      }
+      expectedPdfPayload
     );
   });
 
