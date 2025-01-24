@@ -422,7 +422,10 @@ describe("suspendPurposeVersion", () => {
     vi.setSystemTime(new Date());
 
     const authData = getRandomAuthData();
-    const mockEService = getMockEService();
+    const mockEService = {
+      ...getMockEService(),
+      producerId: authData.organizationId,
+    };
     const mockPurposeVersion1: PurposeVersion = {
       ...getMockPurposeVersion(),
       state: randomArrayItem(isSuspendable),
@@ -438,8 +441,8 @@ describe("suspendPurposeVersion", () => {
       id: mockPurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockPurpose.eserviceId,
-      delegatorId: mockEService.producerId,
-      delegateId: authData.organizationId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: generateId<TenantId>(),
       state: delegationState.active,
     });
 
@@ -453,7 +456,7 @@ describe("suspendPurposeVersion", () => {
         versionId: mockPurposeVersion1.id,
       },
       {
-        authData: getRandomAuthData(mockEService.producerId),
+        authData,
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
