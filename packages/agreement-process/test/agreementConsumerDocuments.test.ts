@@ -35,7 +35,9 @@ import {
   agreementDocumentNotFound,
   agreementNotFound,
   documentChangeNotAllowed,
-  operationNotAllowed,
+  organizationIsNotTheConsumer,
+  organizationIsNotTheDelegatedConsumer,
+  organizationNotAllowed,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -291,7 +293,7 @@ describe("agreement consumer document", () => {
       ).rejects.toThrowError(agreementNotFound(randomAgreementId));
     });
 
-    it("should throw an operationNotAllowed error when the requester is not the consumer or producer", async () => {
+    it("should throw an organizationNotAllowed error when the requester is not the consumer or producer", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         consumerDocuments: [
@@ -315,7 +317,7 @@ describe("agreement consumer document", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     });
 
     it("should throw an agreementDocumentNotFound error when the document does not exist", async () => {
@@ -501,7 +503,7 @@ describe("agreement consumer document", () => {
       );
     });
 
-    it("should throw an operationNotAllowed if is not consumer", async () => {
+    it("should throw an organizationIsNotTheConsumer if is not consumer", async () => {
       const authData = getRandomAuthData();
       const organizationId = authData.organizationId;
       const agreement = getMockAgreement();
@@ -522,11 +524,11 @@ describe("agreement consumer document", () => {
       );
 
       await expect(actualConsumerDocument).rejects.toThrowError(
-        operationNotAllowed(organizationId)
+        organizationIsNotTheConsumer(organizationId)
       );
     });
 
-    it("should throw an operationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+    it("should throw an organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
       const authData = getRandomAuthData();
       const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
       const agreement = getMockAgreement(generateId<EServiceId>(), consumerId);
@@ -557,7 +559,7 @@ describe("agreement consumer document", () => {
       );
 
       await expect(actualConsumerDocument).rejects.toThrowError(
-        operationNotAllowed(consumerId)
+        organizationIsNotTheDelegatedConsumer(consumerId, delegation.id)
       );
     });
 
@@ -739,7 +741,7 @@ describe("agreement consumer document", () => {
       expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
     });
 
-    it("should throw operationNotAllowed when the requester is the consumer but there is a consumer delegation", async () => {
+    it("should throw organizationIsNotTheDelegatedConsumer when the requester is the consumer but there is a consumer delegation", async () => {
       const authData = getRandomAuthData(agreement1.consumerId);
 
       const delegation = getMockDelegation({
@@ -763,7 +765,12 @@ describe("agreement consumer document", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(
+        organizationIsNotTheDelegatedConsumer(
+          authData.organizationId,
+          delegation.id
+        )
+      );
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
@@ -787,7 +794,7 @@ describe("agreement consumer document", () => {
       );
     });
 
-    it("should throw an operationNotAllowed if is not consumer", async () => {
+    it("should throw an organizationIsNotTheConsumer if is not consumer", async () => {
       const authData = getRandomAuthData();
 
       const removeAgreementConsumerDocument =
@@ -803,7 +810,7 @@ describe("agreement consumer document", () => {
         );
 
       await expect(removeAgreementConsumerDocument).rejects.toThrowError(
-        operationNotAllowed(authData.organizationId)
+        organizationIsNotTheConsumer(authData.organizationId)
       );
     });
 

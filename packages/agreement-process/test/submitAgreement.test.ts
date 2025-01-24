@@ -66,7 +66,7 @@ import {
   descriptorNotInExpectedState,
   eServiceNotFound,
   notLatestEServiceDescriptor,
-  operationNotAllowed,
+  organizationIsNotTheDelegatedConsumer,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
@@ -209,7 +209,7 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw an operationNotAllowed error when requester is not Consumer or Delegate Consumer", async () => {
+  it("should throw an organizationIsNotTheDelegatedConsumer error when requester is not Consumer or Delegate Consumer", async () => {
     const agreement = {
       ...getMockAgreement(),
       state: agreementState.draft,
@@ -239,10 +239,15 @@ describe("submit agreement", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        consumerDelegation.id
+      )
+    );
   });
 
-  it("should throw operationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const agreement = {
       ...getMockAgreement(),
       state: agreementState.draft,
@@ -272,7 +277,12 @@ describe("submit agreement", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        consumerDelegation.id
+      )
+    );
   });
 
   it("should throw an agreementNotInExpectedState error when the agreement is state different from DRAFT", async () => {

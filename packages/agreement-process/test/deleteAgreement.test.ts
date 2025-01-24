@@ -22,7 +22,8 @@ import { agreementDeletableStates } from "../src/model/domain/agreement-validato
 import {
   agreementNotFound,
   agreementNotInExpectedState,
-  operationNotAllowed,
+  organizationIsNotTheConsumer,
+  organizationIsNotTheDelegatedConsumer,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -176,7 +177,7 @@ describe("delete agreement", () => {
     });
   });
 
-  it("should throw operationNotAllowed when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getRandomAuthData();
 
     const agreement = {
@@ -201,7 +202,12 @@ describe("delete agreement", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
@@ -218,7 +224,7 @@ describe("delete agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw operationNotAllowed when the requester is not the Consumer", async () => {
+  it("should throw organizationIsNotTheConsumer when the requester is not the Consumer", async () => {
     const authData = getRandomAuthData();
     const agreement = getMockAgreement();
     await addOneAgreement(agreement);
@@ -229,7 +235,9 @@ describe("delete agreement", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheConsumer(authData.organizationId)
+    );
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a deletable state", async () => {

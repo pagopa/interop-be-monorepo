@@ -46,7 +46,7 @@ import {
   eServiceNotFound,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
-  operationNotAllowed,
+  organizationIsNotTheDelegatedConsumer,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -816,7 +816,7 @@ describe("create agreement", () => {
       missingCertifiedAttributesError(descriptor.id, consumer.id)
     );
   });
-  it("should throw operationNotAllowed error when there is an active delegation and the requester is the delegator", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer error when there is an active delegation and the requester is the delegator", async () => {
     const authData = getRandomAuthData();
 
     const eservice = getMockEService(
@@ -825,15 +825,15 @@ describe("create agreement", () => {
       [getMockDescriptorPublished()]
     );
 
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+      delegatorId: authData.organizationId,
+    });
+
     await addOneEService(eservice);
-    await addOneDelegation(
-      getMockDelegation({
-        kind: delegationKind.delegatedConsumer,
-        eserviceId: eservice.id,
-        state: delegationState.active,
-        delegatorId: authData.organizationId,
-      })
-    );
+    await addOneDelegation(delegation);
 
     await expect(
       agreementService.createAgreement(
@@ -848,7 +848,12 @@ describe("create agreement", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
   });
   it("should throw delegationNotFound error when the provided delegation id does not exist", async () => {
     const delegationId = generateId<DelegationId>();
@@ -883,7 +888,7 @@ describe("create agreement", () => {
       )
     ).rejects.toThrowError(delegationNotFound(delegationId));
   });
-  it("should throw operationNotAllowed error when the requester is not the delegate if delegationId is provided", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer error when the requester is not the delegate if delegationId is provided", async () => {
     const authData = getRandomAuthData();
     const eservice = getMockEService(
       generateId<EServiceId>(),
@@ -914,6 +919,11 @@ describe("create agreement", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
   });
 });

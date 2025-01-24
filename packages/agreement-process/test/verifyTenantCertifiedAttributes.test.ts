@@ -21,7 +21,8 @@ import {
 import {
   descriptorNotFound,
   eServiceNotFound,
-  operationNotAllowed,
+  organizationIsNotTheConsumer,
+  organizationIsNotTheDelegatedConsumer,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -100,7 +101,7 @@ describe("Verify Tenant Certified Attributes", () => {
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
     });
-    it("should throw operationNotAllowed when organizationId is not the delegate", async () => {
+    it("should throw organizationIsNotTheDelegatedConsumer when organizationId is not the delegate", async () => {
       const authData = getRandomAuthData();
       const delegation = {
         ...mockDelegation,
@@ -124,7 +125,12 @@ describe("Verify Tenant Certified Attributes", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(
+        organizationIsNotTheDelegatedConsumer(
+          authData.organizationId,
+          delegation.id
+        )
+      );
     });
   });
   describe("Without delegationId", () => {
@@ -148,7 +154,7 @@ describe("Verify Tenant Certified Attributes", () => {
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
     });
-    it("should throw operationNotAllowed when organizationId !== tenantId", async () => {
+    it("should throw organizationIsNotTheConsumer when organizationId !== tenantId", async () => {
       const authData = getRandomAuthData();
 
       await expect(
@@ -165,7 +171,9 @@ describe("Verify Tenant Certified Attributes", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(
+        organizationIsNotTheConsumer(authData.organizationId)
+      );
     });
     it("should return true if the consumer is the producer even if the tenant has invalid certified attributes", async () => {
       const tenant: Tenant = {
