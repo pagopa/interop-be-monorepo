@@ -533,14 +533,18 @@ describe("getPurposes", async () => {
     expect(result.results).toEqual([]);
   });
   it("should get the purposes if the requester is an e-service delegated consumer", async () => {
+    const delegatedPurpose: Purpose = {
+      ...getMockPurpose(),
+      delegationId: generateId<DelegationId>(),
+    };
     const delegation = getMockDelegation({
+      id: delegatedPurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
-      eserviceId: mockPurpose1.eserviceId,
-      delegatorId: mockPurpose1.consumerId,
-      delegateId: consumerId1,
+      eserviceId: delegatedPurpose.eserviceId,
+      delegatorId: delegatedPurpose.consumerId,
+      delegateId: generateId<TenantId>(),
       state: delegationState.active,
     });
-
     await addOneDelegation(delegation);
 
     const result = await purposeService.getPurposes(
@@ -660,6 +664,91 @@ describe("getPurposes", async () => {
       mockPurpose6,
       mockPurpose7,
     ]);
+  });
+  it("Should return an empty list if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
+    await purposes.deleteMany({});
+    await eservices.deleteMany({});
+
+    const eservice = getMockEService();
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eservice.id,
+      delegationId: undefined,
+    };
+
+    const purposeDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+    await addOnePurpose(purpose);
+    await addOneEService(eservice);
+    await addOneDelegation(purposeDelegation);
+
+    const result = await purposeService.getPurposes(
+      purposeDelegation.delegateId,
+      {
+        eservicesIds: [],
+        consumersIds: [purposeDelegation.delegateId],
+        producersIds: [],
+        states: [],
+        excludeDraft: false,
+      },
+      { offset: 0, limit: 50 },
+      genericLogger
+    );
+    expect(result.totalCount).toBe(0);
+    expect(result.results).toEqual([]);
+  });
+  it("Should return an empty list if exists a purpose delegation but the requester is not the purpose delegate", async () => {
+    await purposes.deleteMany({});
+    await eservices.deleteMany({});
+
+    const eservice = getMockEService();
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eservice.id,
+      delegationId: generateId<DelegationId>(),
+    };
+
+    const delegation = getMockDelegation({
+      id: generateId<DelegationId>(),
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: generateId<TenantId>(),
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    const purposeDelegation = getMockDelegation({
+      id: purpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+    await addOnePurpose(purpose);
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+    await addOneDelegation(purposeDelegation);
+
+    const result = await purposeService.getPurposes(
+      delegation.delegateId,
+      {
+        eservicesIds: [],
+        consumersIds: [delegation.delegateId],
+        producersIds: [],
+        states: [],
+        excludeDraft: false,
+      },
+      { offset: 0, limit: 50 },
+      genericLogger
+    );
+    expect(result.totalCount).toBe(0);
+    expect(result.results).toEqual([]);
   });
 
   describe("Producer Delegation active for provided producerIds filter", async () => {
