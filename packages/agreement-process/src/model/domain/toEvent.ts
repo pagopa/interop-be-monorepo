@@ -32,7 +32,7 @@ export function toCreateEventAgreementAdded(
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
-    version: 0,
+    version: undefined,
     event: {
       type: "AgreementAdded",
       event_version: 2,
@@ -126,7 +126,7 @@ export function toCreateEventAgreementUpgraded(
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
-    version: 0,
+    version: undefined,
     event: {
       type: "AgreementUpgraded",
       event_version: 2,
