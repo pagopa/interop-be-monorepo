@@ -9,6 +9,7 @@ import {
   addSomeRandomDelegations,
   getMockAgreement,
   getMockTenant,
+  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -50,73 +51,80 @@ import {
 } from "./utils.js";
 
 describe("suspendPurposeVersion", () => {
-  it("should write on event-store for the suspension of a purpose version by the consumer", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
+  const isSuspendable = [
+    purposeVersionState.active,
+    purposeVersionState.suspended,
+  ];
+  it.each(isSuspendable)(
+    "should write on event-store for the suspension of a purpose version by the consumer",
+    async (s) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
 
-    const mockEService = getMockEService();
-    const mockPurposeVersion1: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
-    };
-    const mockPurpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: mockEService.id,
-      versions: [mockPurposeVersion1],
-    };
-    await addOnePurpose(mockPurpose);
-    await addOneEService(mockEService);
+      const mockEService = getMockEService();
+      const mockPurposeVersion1: PurposeVersion = {
+        ...getMockPurposeVersion(),
+        state: s,
+      };
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: mockEService.id,
+        versions: [mockPurposeVersion1],
+      };
+      await addOnePurpose(mockPurpose);
+      await addOneEService(mockEService);
 
-    const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
-      {
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion1.id,
-      },
-      {
-        authData: getRandomAuthData(mockPurpose.consumerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
-    );
-
-    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
-
-    expect(writtenEvent).toMatchObject({
-      stream_id: mockPurpose.id,
-      version: "1",
-      type: "PurposeVersionSuspendedByConsumer",
-      event_version: 2,
-    });
-
-    const expectedPurpose: Purpose = {
-      ...mockPurpose,
-      versions: [
+      const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
         {
-          ...mockPurposeVersion1,
-          state: purposeVersionState.suspended,
-          suspendedAt: new Date(),
-          updatedAt: new Date(),
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion1.id,
         },
-      ],
-      updatedAt: new Date(),
-      suspendedByConsumer: true,
-    };
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
 
-    const writtenPayload = decodeProtobufPayload({
-      messageType: PurposeVersionSuspendedByConsumerV2,
-      payload: writtenEvent.data,
-    });
+      const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(
-      writtenPayload.purpose?.versions.find(
-        (v) => v.id === returnedPurposeVersion.id
-      )
-    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockPurpose.id,
+        version: "1",
+        type: "PurposeVersionSuspendedByConsumer",
+        event_version: 2,
+      });
 
-    vi.useRealTimers();
-  });
+      const expectedPurpose: Purpose = {
+        ...mockPurpose,
+        versions: [
+          {
+            ...mockPurposeVersion1,
+            state: purposeVersionState.suspended,
+            suspendedAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        updatedAt: new Date(),
+        suspendedByConsumer: true,
+      };
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: PurposeVersionSuspendedByConsumerV2,
+        payload: writtenEvent.data,
+      });
+
+      expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      expect(
+        writtenPayload.purpose?.versions.find(
+          (v) => v.id === returnedPurposeVersion.id
+        )
+      ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
+
+      vi.useRealTimers();
+    }
+  );
   it("should write on event-store for the suspension of a purpose version by the producer", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -124,7 +132,7 @@ describe("suspendPurposeVersion", () => {
     const mockEService = getMockEService();
     const mockPurposeVersion1: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
+      state: randomArrayItem(isSuspendable),
     };
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -191,7 +199,7 @@ describe("suspendPurposeVersion", () => {
     const mockEService = getMockEService();
     const mockPurposeVersion1: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
+      state: randomArrayItem(isSuspendable),
     };
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -267,7 +275,7 @@ describe("suspendPurposeVersion", () => {
     const mockEService = getMockEService();
     const mockPurposeVersion1: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
+      state: randomArrayItem(isSuspendable),
     };
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -336,7 +344,7 @@ describe("suspendPurposeVersion", () => {
     const mockEService = getMockEService();
     const mockPurposeVersion1: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
+      state: randomArrayItem(isSuspendable),
     };
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -409,7 +417,7 @@ describe("suspendPurposeVersion", () => {
 
     vi.useRealTimers();
   });
-  it("should succeed when requester is Producer Delegate and the purpose version is suspended by the producer", async () => {
+  it("When there's a consumer delegation should succeed when requester is Producer and the purpose version is suspended by the producer", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -417,7 +425,7 @@ describe("suspendPurposeVersion", () => {
     const mockEService = getMockEService();
     const mockPurposeVersion1: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
+      state: randomArrayItem(isSuspendable),
     };
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -529,7 +537,7 @@ describe("suspendPurposeVersion", () => {
 
     const mockPurposeVersion1: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
+      state: randomArrayItem(isSuspendable),
     };
 
     const delegatePurpose: Purpose = {
@@ -674,7 +682,7 @@ describe("suspendPurposeVersion", () => {
     const randomAuthData = getRandomAuthData();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
+      state: randomArrayItem(isSuspendable),
     };
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -706,7 +714,7 @@ describe("suspendPurposeVersion", () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
+      state: randomArrayItem(isSuspendable),
     };
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -752,7 +760,7 @@ describe("suspendPurposeVersion", () => {
       const mockEService = getMockEService();
       const mockPurposeVersion: PurposeVersion = {
         ...getMockPurposeVersion(),
-        state: purposeVersionState.active,
+        state: randomArrayItem(isSuspendable),
       };
       const mockPurpose: Purpose = {
         ...getMockPurpose(),
@@ -795,7 +803,7 @@ describe("suspendPurposeVersion", () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
+      state: randomArrayItem(isSuspendable),
     };
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -874,7 +882,7 @@ describe("suspendPurposeVersion", () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
+      state: randomArrayItem(isSuspendable),
     };
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -918,7 +926,7 @@ describe("suspendPurposeVersion", () => {
     const mockEService = getMockEService();
 
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
-      purposeVersionState.active
+      randomArrayItem(isSuspendable)
     );
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -947,12 +955,12 @@ describe("suspendPurposeVersion", () => {
     ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
 
-  it("should throw organizationNotAllowed when the requester is a delegate for the eservice and there is no delegationId in the purpose in suspendPurposeVersion", async () => {
+  it("should throw organizationNotAllowed when the requester is the Delegate and is suspending a purpose version created by the Consumer", async () => {
     const authData = getRandomAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
+      state: randomArrayItem(isSuspendable),
     };
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -993,7 +1001,7 @@ describe("suspendPurposeVersion", () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
+      state: randomArrayItem(isSuspendable),
     };
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
