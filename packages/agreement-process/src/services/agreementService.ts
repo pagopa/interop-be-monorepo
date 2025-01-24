@@ -398,14 +398,12 @@ export function agreementServiceBuilder(
         agreementDeletableStates
       );
 
-      const activeConsumerDelegation =
-        await readModelService.getActiveConsumerDelegationByAgreement(
-          agreement.data
-        );
       assertRequesterCanActAsConsumer(
         agreement.data,
         authData,
-        activeConsumerDelegation
+        await readModelService.getActiveConsumerDelegationByAgreement(
+          agreement.data
+        )
       );
 
       for (const d of agreement.data.consumerDocuments) {

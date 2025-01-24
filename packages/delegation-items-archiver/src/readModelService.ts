@@ -1,6 +1,9 @@
 import { ReadModelFilter, ReadModelRepository } from "pagopa-interop-commons";
 import {
+  Agreement,
+  AgreementState,
   DelegationId,
+  DelegationV2,
   Purpose,
   PurposeVersionState,
 } from "pagopa-interop-models";
@@ -9,7 +12,7 @@ import {
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { purposes } = readModelRepository;
+  const { purposes, agreements } = readModelRepository;
 
   return {
     async getPurposes(delegationId: DelegationId): Promise<Purpose[]> {
@@ -27,6 +30,31 @@ export function readModelServiceBuilder(
         } satisfies ReadModelFilter<Purpose>)
         .map(({ data }) => Purpose.parse(data))
         .toArray();
+    },
+    async getAgreement(
+      delegation: DelegationV2
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne(
+        {
+          "data.eserviceId": delegation.eserviceId,
+          "data.consumerId": delegation.delegatorId,
+          "data.state": {
+            $in: [
+              "Active",
+              "Suspended",
+              "Draft",
+              "MissingCertifiedAttributes",
+              "Pending",
+            ] satisfies AgreementState[],
+          },
+        } satisfies ReadModelFilter<Agreement>,
+        { projection: { data: true } }
+      );
+
+      if (!data) {
+        return undefined;
+      }
+      return Agreement.parse(data.data);
     },
   };
 }
