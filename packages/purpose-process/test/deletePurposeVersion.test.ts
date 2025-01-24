@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import {
   getMockPurposeVersion,
   getMockPurpose,
-  writeInReadmodel,
   decodeProtobufPayload,
   getRandomAuthData,
   getMockDelegation,
@@ -14,7 +13,6 @@ import {
 import {
   purposeVersionState,
   Purpose,
-  toReadModelEService,
   generateId,
   WaitingForApprovalPurposeVersionDeletedV2,
   toPurposeV2,
@@ -45,7 +43,6 @@ import {
   addOneEService,
   addOnePurpose,
   addOneTenant,
-  eservices,
   getMockEService,
   purposeService,
   readLastPurposeEvent,
@@ -70,7 +67,7 @@ describe("deletePurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     await purposeService.deletePurposeVersion(
       {
@@ -141,7 +138,7 @@ describe("deletePurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(mockPurpose, addOneDelegation);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     await purposeService.deletePurposeVersion(
       {
@@ -309,7 +306,7 @@ describe("deletePurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.deletePurposeVersion(
@@ -336,7 +333,7 @@ describe("deletePurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.deletePurposeVersion(
@@ -368,7 +365,7 @@ describe("deletePurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.deletePurposeVersion(
@@ -406,7 +403,7 @@ describe("deletePurposeVersion", () => {
       };
 
       await addOnePurpose(mockPurpose);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await addOneEService(mockEService);
 
       expect(
         purposeService.deletePurposeVersion(
@@ -438,7 +435,7 @@ describe("deletePurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.deletePurposeVersion(
@@ -457,50 +454,54 @@ describe("deletePurposeVersion", () => {
       purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
     );
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is deleting a purpose version created by the delegate in deletePurposeVersion", async () => {
-    const authData = getRandomAuthData();
-    const mockPurposeVersion: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
-    };
-    const mockPurpose: Purpose = {
-      ...getMockPurpose(),
-      versions: [mockPurposeVersion],
-      consumerId: authData.organizationId,
-      delegationId: generateId<DelegationId>(),
-    };
+  it.each([purposeVersionState.active, purposeVersionState.waitingForApproval])(
+    "should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is deleting a purpose version created by the delegate in deletePurposeVersion",
+    async (s) => {
+      const authData = getRandomAuthData();
+      const mockPurposeVersion: PurposeVersion = {
+        ...getMockPurposeVersion(),
+        state: s,
+      };
 
-    const delegation = getMockDelegation({
-      id: mockPurpose.delegationId,
-      kind: delegationKind.delegatedConsumer,
-      eserviceId: mockPurpose.eserviceId,
-      delegatorId: mockPurpose.consumerId,
-      delegateId: generateId<TenantId>(),
-      state: delegationState.active,
-    });
-    await addOnePurpose(mockPurpose);
-    await addOneDelegation(delegation);
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        versions: [mockPurposeVersion],
+        consumerId: authData.organizationId,
+        delegationId: generateId<DelegationId>(),
+      };
 
-    expect(
-      purposeService.deletePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-        },
-        {
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
-      )
-    ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
-        authData.organizationId,
-        delegation.id
-      )
-    );
-  });
+      const delegation = getMockDelegation({
+        id: mockPurpose.delegationId,
+        kind: delegationKind.delegatedConsumer,
+        eserviceId: mockPurpose.eserviceId,
+        delegatorId: mockPurpose.consumerId,
+        delegateId: generateId<TenantId>(),
+        state: delegationState.active,
+      });
+      await addOnePurpose(mockPurpose);
+      await addOneDelegation(delegation);
+
+      expect(
+        purposeService.deletePurposeVersion(
+          {
+            purposeId: mockPurpose.id,
+            versionId: mockPurposeVersion.id,
+          },
+          {
+            authData,
+            correlationId: generateId(),
+            logger: genericLogger,
+            serviceName: "",
+          }
+        )
+      ).rejects.toThrowError(
+        organizationIsNotTheDelegatedConsumer(
+          authData.organizationId,
+          delegation.id
+        )
+      );
+    }
+  );
   it("should throw puroposeDelegationNotFound when the requester is the Consumer, is deleting a purpose created by a delegate in deletePurpose, but the delegation cannot be found", async () => {
     const authData = getRandomAuthData();
     const mockEService = getMockEService();
@@ -516,7 +517,7 @@ describe("deletePurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.deletePurposeVersion(
