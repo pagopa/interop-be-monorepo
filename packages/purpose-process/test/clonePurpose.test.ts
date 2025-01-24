@@ -821,7 +821,7 @@ describe("clonePurpose", async () => {
       kind: delegationKind.delegatedConsumer,
       eserviceId: purpose.eserviceId,
       delegatorId: purpose.consumerId,
-      delegateId: generateId<TenantId>(),
+      delegateId: consumerDelegate.id,
       state: delegationState.active,
     });
 
