@@ -102,7 +102,7 @@ export const addClientPurposeErrorMapper = (
       "organizationNotAllowedOnPurpose",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("purposeDelegationNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("purposeDelegationNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getClientKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
