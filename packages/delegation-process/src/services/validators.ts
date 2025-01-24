@@ -60,11 +60,15 @@ export const assertDelegatorAndDelegateAllowedOrigins = async (
   delegator: Tenant,
   delegate: Tenant
 ): Promise<void> => {
-  if (!config.producerAllowedOrigins.includes(delegator?.externalId?.origin)) {
+  if (
+    !config.delegationsAllowedOrigins.includes(delegator?.externalId?.origin)
+  ) {
     throw originNotCompliant(delegator, "Delegator");
   }
 
-  if (!config.producerAllowedOrigins.includes(delegate?.externalId?.origin)) {
+  if (
+    !config.delegationsAllowedOrigins.includes(delegate?.externalId?.origin)
+  ) {
     throw originNotCompliant(delegate, "Delegate");
   }
 };
