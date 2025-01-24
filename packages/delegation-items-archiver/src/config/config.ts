@@ -2,6 +2,7 @@ import {
   APIEndpoint,
   DelegationTopicConfig,
   KafkaConsumerConfig,
+  ReadModelDbConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -20,7 +21,8 @@ const DelegationItemsArchiverConfig = APIProcessServerConfig.and(
   DelegationTopicConfig
 )
   .and(TokenGenerationConfig)
-  .and(KafkaConsumerConfig);
+  .and(KafkaConsumerConfig)
+  .and(ReadModelDbConfig);
 
 export type DelegationItemsArchiverConfig = z.infer<
   typeof DelegationItemsArchiverConfig

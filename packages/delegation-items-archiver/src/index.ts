@@ -3,6 +3,7 @@ import {
   decodeKafkaMessage,
   InteropTokenGenerator,
   logger,
+  ReadModelRepository,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
@@ -16,6 +17,7 @@ import { match } from "ts-pattern";
 import { handleMessageV2 } from "./delegationItemsArchiverConsumerServiceV2.js";
 import { config } from "./config/config.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
+import { readModelServiceBuilder } from "./readModelService.js";
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)
@@ -41,6 +43,10 @@ async function processMessage({
   });
   loggerInstance.debug(decodedMessage);
 
+  const readModelService = readModelServiceBuilder(
+    ReadModelRepository.init(config)
+  );
+
   await match(decodedMessage)
     .with({ event_version: 2 }, (msg) =>
       handleMessageV2(
@@ -51,6 +57,7 @@ async function processMessage({
           offset: message.offset,
           logger: loggerInstance,
           correlationId,
+          readModelService,
         },
         getInteropBeClients()
       )
