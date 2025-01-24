@@ -155,3 +155,49 @@ CREATE TABLE readmodel.agreement_consumer_document(
   created_at timestamp with time zone,
   kind varchar --consumerDoc / contract
 );
+
+
+-- ATTRIBUTE
+CREATE TABLE readmodel.attribute(
+  id uuid,
+  code varchar,
+  kind varchar,
+  description varchar,
+  origin varchar,
+  name varchar,
+  creation_time timestamp with time zone
+);
+
+
+-- PURPOSE
+CREATE TABLE readmodel.purpose(
+  id uuid,
+  eserviceId uuid,
+  consumerId uuid,
+  -- versions
+  suspended_by_consumer boolean,
+  suspende_by_producer boolean,
+  title varchar,
+  description varchar,
+  -- riskAnalysisForm TODO
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone,
+  is_free_of_charge boolean,
+  free_of_charge_reason boolean
+);
+
+
+CREATE TABLE readmodel.purpose_version(
+  id uuid,
+  state varchar,
+  risk_analysis_id_ uuid,
+  risk_analysis_content_type varchar,
+  risk_analysis_path varchar,
+  risk_analysis_created_at timestamp with time zone,
+  daily_calls integer,
+  rejection_reason varchar,
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone,
+  first_activation_at timestamp with time zone,
+  suspended_at timestamp with time zone
+)
