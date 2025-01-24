@@ -635,7 +635,7 @@ describe("Token Generation Read Model Checker tests", () => {
       expect(agreementDifferences).toEqual(expectedDifferencesLength);
     });
 
-    it("should detect differences when there's a platform-states agreement entry and the agreement is archived", async () => {
+    it("should not detect differences when there's a platform-states agreement entry and the agreement is archived", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.archived,
@@ -669,7 +669,7 @@ describe("Token Generation Read Model Checker tests", () => {
         dynamoDBClient
       );
 
-      const expectedDifferencesLength = 1;
+      const expectedDifferencesLength = 0;
       const agreementDifferences =
         await compareReadModelAgreementsWithPlatformStates({
           platformStatesAgreementById: new Map([
@@ -761,6 +761,51 @@ describe("Token Generation Read Model Checker tests", () => {
       );
 
       const expectedDifferencesLength = 1;
+      const agreementDifferences =
+        await compareReadModelAgreementsWithPlatformStates({
+          platformStatesAgreementById: new Map([
+            [agreement.id, platformStatesAgreementEntry],
+          ]),
+          agreementsById: new Map(),
+          logger: genericLogger,
+        });
+      expect(agreementDifferences).toEqual(expectedDifferencesLength);
+    });
+
+    it("should not detect differences when the read model agreement is missing and the platform-states agreement state is inactive", async () => {
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.active,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+
+      // platform-states
+      const agreementEntryPK = makePlatformStatesAgreementPK({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
+        PK: agreementEntryPK,
+        state: itemState.inactive,
+        agreementId: agreement.id,
+        agreementTimestamp:
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          agreement.stamps.activation!.when.toISOString(),
+        agreementDescriptorId: agreement.descriptorId,
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      await writePlatformAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient
+      );
+
+      const expectedDifferencesLength = 0;
       const agreementDifferences =
         await compareReadModelAgreementsWithPlatformStates({
           platformStatesAgreementById: new Map([
