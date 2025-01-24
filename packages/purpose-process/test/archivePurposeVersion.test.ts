@@ -540,7 +540,7 @@ describe("archivePurposeVersion", () => {
       )
     );
   });
-  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is deleting a purpose created by a delegate in deletePurpose, but the delegation cannot be found", async () => {
+  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is archiving a purpose created by a delegate, but the delegation cannot be found", async () => {
     const authData = getRandomAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
@@ -563,7 +563,7 @@ describe("archivePurposeVersion", () => {
           versionId: mockPurposeVersion.id,
         },
         {
-          authData: getRandomAuthData(mockEService.producerId),
+          authData,
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
