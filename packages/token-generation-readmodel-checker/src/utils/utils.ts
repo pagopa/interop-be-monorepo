@@ -871,26 +871,17 @@ function validateTokenGenerationStates({
       .exhaustive();
   }
 
-  const missingEntriesCount = expectedTokenGenStatesEntriesCount - correctCount;
+  const missingEntriesCount = Math.max(
+    expectedTokenGenStatesEntriesCount - correctCount - differencesCount,
+    0
+  );
   if (missingEntriesCount > 0) {
     logger.error(
       `${missingEntriesCount} missing token-generation-states entries for client id ${client.id}`
     );
   }
 
-  return (
-    missingEntriesCount +
-    differencesCount -
-    /*
-    This calculates the overlap between the expected count and the differences count.
-    Examples:
-    1) 1 missing entry but 3 wrong entries, only 1 wrong entry can "replace" the missing entry. The other 2 wrong entries remain wrong.
-      -> Overlap = min(1, 3) = 1.
-    2) 2 missing entries and 1 wrong entry, only 1 missing entry can be "replaced" by the wrong entry. The other missing entry remains missing.
-      -> Overlap = min(2, 1) = 1.
-    */
-    Math.min(missingEntriesCount, differencesCount)
-  );
+  return missingEntriesCount + differencesCount;
 }
 
 export const agreementStateToItemState = (state: AgreementState): ItemState =>
