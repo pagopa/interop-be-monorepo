@@ -388,6 +388,79 @@ describe("getPurposeById", () => {
     });
   });
 
+  it.only("Should return an empty list if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
+    const tenant = { ...getMockTenant(), kind: tenantKind.PA };
+    const eservice = getMockEService();
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eservice.id,
+      delegationId: undefined,
+    };
+
+    const purposeDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: tenant.id,
+      state: delegationState.active,
+    });
+    await addOnePurpose(purpose);
+    await addOneEService(eservice);
+    await addOneDelegation(purposeDelegation);
+    await addOneTenant(tenant);
+
+    const result = await purposeService.getPurposeById(
+      purpose.id,
+      purposeDelegation.delegateId,
+      genericLogger
+    );
+    expect(result).toMatchObject({
+      purpose: {},
+      isRiskAnalysisValid: false,
+    });
+  });
+  it("Should return an empty list if exists a purpose delegation but the requester is not the purpose delegate", async () => {
+    const tenant = { ...getMockTenant(), kind: tenantKind.PA };
+    const eservice = getMockEService();
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eservice.id,
+      delegationId: generateId<DelegationId>(),
+    };
+
+    const delegation = getMockDelegation({
+      id: generateId<DelegationId>(),
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: generateId<TenantId>(),
+      delegateId: tenant.id,
+      state: delegationState.active,
+    });
+
+    const purposeDelegation = getMockDelegation({
+      id: purpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+    await addOnePurpose(purpose);
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+    await addOneDelegation(purposeDelegation);
+    await addOneTenant(tenant);
+
+    const result = await purposeService.getPurposeById(
+      purpose.id,
+      delegation.delegateId,
+      genericLogger
+    );
+    expect(result).toMatchObject({
+      purpose: {},
+      isRiskAnalysisValid: false,
+    });
+  });
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
     const notExistingId: PurposeId = generateId();
     const mockTenant = getMockTenant();
