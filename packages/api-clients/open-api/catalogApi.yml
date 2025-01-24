@@ -1029,7 +1029,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/description:
+  /eservices/{eServiceId}/description/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1053,7 +1053,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptionSeed"
+              $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
       responses:
         "200":
           description: EService description updated
@@ -1079,7 +1079,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/delegationFlags:
+  /eservices/{eServiceId}/delegationFlags/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1103,7 +1103,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceFlagsSeed"
+              $ref: "#/components/schemas/EServiceDelegationFlagsUpdateSeed"
       responses:
         "200":
           description: EService flags updated
@@ -1125,6 +1125,56 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/name/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update an e-service name
+      operationId: updateEServiceName
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the new name
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceNameUpdateSeed"
+      responses:
+        "200":
+          description: EService name updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
           content:
             application/json:
               schema:
@@ -1829,7 +1879,7 @@ components:
           type: string
         checksum:
           type: string
-    EServiceDescriptionSeed:
+    EServiceDescriptionUpdateSeed:
       type: object
       additionalProperties: false
       properties:
@@ -1839,7 +1889,7 @@ components:
           maxLength: 250
       required:
         - description
-    EServiceFlagsSeed:
+    EServiceDelegationFlagsUpdateSeed:
       type: object
       additionalProperties: false
       properties:
@@ -1850,6 +1900,16 @@ components:
       required:
         - isDelegable
         - isClientAccessDelegable
+    EServiceNameUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 60
+      required:
+        - name
     EServiceDescriptor:
       type: object
       additionalProperties: false

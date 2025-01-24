@@ -79,11 +79,9 @@ export function getLastPurposeVersion(
 export function getPurposeStateFromPurposeVersion(
   purposeVersion: PurposeVersion
 ): ItemState {
-  if (purposeVersion.state === purposeVersionState.active) {
-    return itemState.active;
-  } else {
-    return itemState.inactive;
-  }
+  return purposeVersion.state === purposeVersionState.active
+    ? itemState.active
+    : itemState.inactive;
 }
 
 export function getLastAgreement(agreements: Agreement[]): Agreement {
@@ -206,9 +204,7 @@ export async function compareTokenGenerationReadModel(
       const parsedAgreement = PlatformStatesAgreementEntry.safeParse(e);
       if (parsedAgreement.success) {
         acc.agreements.set(
-          unsafeBrandId<AgreementId>(
-            getIdFromPlatformStatesPK(parsedAgreement.data.PK)
-          ),
+          parsedAgreement.data.agreementId,
           parsedAgreement.data
         );
         return acc;
@@ -371,6 +367,14 @@ export async function compareReadModelPurposesWithPlatformStates({
       }
 
       if (platformStatesEntry && lastPurposeVersion) {
+        if (lastPurposeVersion.state === purposeVersionState.archived) {
+          logger.error(
+            `platform-states entry with ${platformStatesEntry.PK} should not be in the table because the purpose is archived`
+          );
+          differencesCount++;
+          continue;
+        }
+
         const expectedPlatformStatesPurposeEntry: ComparisonPlatformStatesPurposeEntry =
           {
             PK: makePlatformStatesPurposePK(purpose.id),
@@ -401,6 +405,7 @@ export async function compareReadModelPurposesWithPlatformStates({
 }
 
 // agreements
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function compareReadModelAgreementsWithPlatformStates({
   platformStatesAgreementById,
   agreementsById,
@@ -418,6 +423,10 @@ export async function compareReadModelAgreementsWithPlatformStates({
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
   for (const id of allIds) {
+    if (config.agreementsToSkip.includes(id)) {
+      continue;
+    }
+
     const platformStatesEntry = platformStatesAgreementById.get(id);
     const agreement = agreementsById.get(id);
 
@@ -427,8 +436,14 @@ export async function compareReadModelAgreementsWithPlatformStates({
       );
     }
 
-    if (platformStatesEntry && !agreement) {
-      logger.error(`Read model agreement not found for id: ${id}`);
+    if (
+      platformStatesEntry &&
+      !agreement &&
+      platformStatesEntry.state === itemState.active
+    ) {
+      logger.error(
+        `Read model agreement not found for id ${id} and platform-states entry with PK ${platformStatesEntry.PK}`
+      );
       differencesCount++;
     }
 
@@ -445,13 +460,13 @@ export async function compareReadModelAgreementsWithPlatformStates({
     if (platformStatesEntry && agreement) {
       const expectedPlatformStatesAgreementEntry: ComparisonPlatformStatesAgreementEntry =
         {
-          PK: makePlatformStatesAgreementPK(agreement.id),
-          state: agreementStateToItemState(agreement.state),
-          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+          PK: makePlatformStatesAgreementPK({
             consumerId: agreement.consumerId,
             eserviceId: agreement.eserviceId,
           }),
-          GSISK_agreementTimestamp: extractAgreementTimestamp(agreement),
+          state: agreementStateToItemState(agreement.state),
+          agreementId: agreement.id,
+          agreementTimestamp: extractAgreementTimestamp(agreement),
           agreementDescriptorId: agreement.descriptorId,
         };
 
@@ -501,25 +516,22 @@ export async function compareReadModelEServicesWithPlatformStates({
       differencesCount++;
       logger.error(`Read model e-service not found for id: ${id}`);
     } else {
-      // Descriptors with a state other than deprecated, published or suspended are not considered because they are not expected in the platform-states
-      if (
-        !eservice.descriptors.some(
-          (d) =>
-            d.state === descriptorState.deprecated ||
-            d.state === descriptorState.published ||
-            d.state === descriptorState.suspended
-        )
-      ) {
-        continue;
-      }
-
+      // Descriptors with a state other than deprecated, published or suspended are not considered because they are not expected to be in the platform-states
+      const shouldPlatformStatesCatalogEntriesExist = eservice.descriptors.some(
+        (d) =>
+          d.state === descriptorState.deprecated ||
+          d.state === descriptorState.published ||
+          d.state === descriptorState.suspended
+      );
       const platformStatesEntries = platformStatesEServiceById.get(id);
 
       if (!platformStatesEntries) {
-        logger.error(
-          `platform-states entries not found for e-service with id: ${id}`
-        );
-        differencesCount++;
+        if (shouldPlatformStatesCatalogEntriesExist) {
+          logger.error(
+            `platform-states entries not found for e-service with id: ${id}`
+          );
+          differencesCount++;
+        }
         continue;
       }
 
@@ -529,27 +541,30 @@ export async function compareReadModelEServicesWithPlatformStates({
       >();
 
       eservice.descriptors.forEach((descriptor) => {
-        expectedDescriptorsMap.set(descriptor.id, {
-          PK: makePlatformStatesEServiceDescriptorPK({
-            eserviceId: eservice.id,
-            descriptorId: descriptor.id,
-          }),
-          state: descriptorStateToItemState(descriptor.state),
-          descriptorAudience: descriptor.audience,
-          descriptorVoucherLifespan: descriptor.voucherLifespan,
-        });
+        if (shouldPlatformStatesCatalogEntriesExist) {
+          expectedDescriptorsMap.set(descriptor.id, {
+            PK: makePlatformStatesEServiceDescriptorPK({
+              eserviceId: eservice.id,
+              descriptorId: descriptor.id,
+            }),
+            state: descriptorStateToItemState(descriptor.state),
+            descriptorAudience: descriptor.audience,
+            descriptorVoucherLifespan: descriptor.voucherLifespan,
+          });
+        }
       });
       const allDescriptorIds = new Set([
         ...expectedDescriptorsMap.keys(),
         ...platformStatesEntries.keys(),
       ]);
-
       for (const descriptorId of allDescriptorIds) {
         const readModelEntry = expectedDescriptorsMap.get(descriptorId);
         const platformStatesEntry = platformStatesEntries.get(descriptorId);
 
         if (platformStatesEntry && !readModelEntry) {
-          logger.error(`Read model e-service not found for id: ${id}`);
+          logger.error(
+            `platform-states entry with ${platformStatesEntry.PK} should not be in the table because the descriptor state is not published, suspended or deprecated`
+          );
           differencesCount++;
         }
 
@@ -563,7 +578,7 @@ export async function compareReadModelEServicesWithPlatformStates({
             differencesCount++;
             // For info: __old = platform-states entry and __new = read model e-service
             logger.error(
-              `Differences in platform-states when checking e-service with id ${eservice.id}`
+              `Differences in platform-states when checking catalog entry ${platformStatesEntry.PK}`
             );
             logger.error(JSON.stringify(objectsDiff, null, 2));
           }
@@ -638,7 +653,7 @@ function validateTokenGenerationStates({
 }): number {
   // eslint-disable-next-line functional/no-let
   let expectedTokenGenStatesEntriesCount =
-    client.purposes.length > 0
+    client.purposes.length > 0 || client.kind === clientKind.consumer
       ? client.keys.length * client.purposes.length
       : client.keys.length;
 
@@ -812,8 +827,9 @@ function validateTokenGenerationStates({
             );
             differencesCount++;
           } else {
-            // Ignore consumer clients with CLIENTKID PK
-            expectedTokenGenStatesEntriesCount--;
+            // Ignore consumer clients with CLIENTKID PK. If there's a consumer client with CLIENTKID, it's generated by events V1 that add incomplete consumer clients (KeysAdded but no purposes yet).
+            correctCount++;
+            expectedTokenGenStatesEntriesCount++;
           }
         }
       })
@@ -856,6 +872,12 @@ function validateTokenGenerationStates({
   }
 
   const missingEntriesCount = expectedTokenGenStatesEntriesCount - correctCount;
+  if (missingEntriesCount > 0) {
+    logger.error(
+      `${missingEntriesCount} missing token-generation-states entries for client id ${client.id}`
+    );
+  }
+
   return (
     missingEntriesCount +
     differencesCount -

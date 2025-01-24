@@ -56,6 +56,7 @@ export function toOutboundEventV2(
       { type: "EServiceIsDelegableDisabled" },
       { type: "EServiceIsClientAccessDelegableEnabled" },
       { type: "EServiceIsClientAccessDelegableDisabled" },
+      { type: "EServiceNameUpdated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

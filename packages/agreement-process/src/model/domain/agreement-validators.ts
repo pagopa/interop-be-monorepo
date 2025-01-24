@@ -87,6 +87,7 @@ export const agreementRejectableStates: AgreementState[] = [
 export const agreementDeletableStates: AgreementState[] = [
   agreementState.draft,
   agreementState.missingCertifiedAttributes,
+  agreementState.pending,
 ];
 
 export const agreementClonableStates: AgreementState[] = [

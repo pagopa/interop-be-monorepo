@@ -36,7 +36,6 @@ import {
   deleteEntriesFromTokenGenStatesByClientIdKidV1,
   deleteEntriesFromTokenGenStatesByClientIdV1,
   deleteEntriesFromTokenGenStatesByClientIdPurposeIdV1,
-  extractAgreementIdFromAgreementPK,
   extractKidFromTokenGenStatesEntryPK,
   readConsumerClientsInTokenGenStatesV1,
   readPlatformClientEntry,
@@ -171,9 +170,7 @@ export async function handleMessageV1(
                         : {}),
                       ...(purposeEntry && agreementEntry
                         ? {
-                            agreementId: extractAgreementIdFromAgreementPK(
-                              agreementEntry.PK
-                            ),
+                            agreementId: agreementEntry.agreementId,
                             agreementState: agreementEntry.state,
                             GSIPK_eserviceId_descriptorId:
                               makeGSIPKEServiceIdDescriptorId({

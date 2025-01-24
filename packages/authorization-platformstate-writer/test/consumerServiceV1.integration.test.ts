@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   afterAll,
   afterEach,
@@ -395,6 +396,7 @@ describe("integration tests V1 events", async () => {
       const consumerId = generateId<TenantId>();
       const purpose1: Purpose = {
         ...getMockPurpose(),
+        consumerId,
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
       const purpose2: Purpose = {
@@ -453,17 +455,27 @@ describe("integration tests V1 events", async () => {
       };
       await writePlatformPurposeEntry(platformPurposeEntry2, dynamoDBClient);
 
-      const agreement1 = getMockAgreement();
+      const agreement1: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId: purpose1.eserviceId,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
       const platformAgreementEntry1: PlatformStatesAgreementEntry = {
-        PK: makePlatformStatesAgreementPK(agreement1.id),
+        PK: makePlatformStatesAgreementPK({
+          consumerId,
+          eserviceId: agreement1.eserviceId,
+        }),
         version: 1,
         state: itemState.active,
         updatedAt: new Date().toISOString(),
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: purpose1.consumerId,
-          eserviceId: purpose1.eserviceId,
-        }),
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: agreement1.id,
+        agreementTimestamp: agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
       };
       await writePlatformAgreementEntry(
@@ -471,17 +483,27 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      const agreement2 = getMockAgreement();
+      const agreement2: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId: purpose2.eserviceId,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
       const platformAgreementEntry2: PlatformStatesAgreementEntry = {
-        PK: makePlatformStatesAgreementPK(agreement2.id),
+        PK: makePlatformStatesAgreementPK({
+          consumerId,
+          eserviceId: agreement2.eserviceId,
+        }),
         version: 1,
         state: itemState.active,
         updatedAt: new Date().toISOString(),
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: purpose2.consumerId,
-          eserviceId: purpose2.eserviceId,
-        }),
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: agreement2.id,
+        agreementTimestamp: agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
       };
       await writePlatformAgreementEntry(
@@ -615,12 +637,14 @@ describe("integration tests V1 events", async () => {
             kid: addedKey.kid,
             purposeId: purpose1.id,
           }),
-          GSIPK_consumerId_eserviceId:
-            platformAgreementEntry1.GSIPK_consumerId_eserviceId,
+          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+            consumerId,
+            eserviceId: agreement1.eserviceId,
+          }),
           agreementId: agreement1.id,
           agreementState: platformAgreementEntry1.state,
           GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-            eserviceId: purpose1.eserviceId,
+            eserviceId: agreement1.eserviceId,
             descriptorId: descriptor1.id,
           }),
           descriptorState: previousDescriptorEntry1.state,
@@ -649,12 +673,14 @@ describe("integration tests V1 events", async () => {
             kid: addedKey.kid,
             purposeId: purpose2.id,
           }),
-          GSIPK_consumerId_eserviceId:
-            platformAgreementEntry2.GSIPK_consumerId_eserviceId,
+          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+            consumerId,
+            eserviceId: agreement2.eserviceId,
+          }),
           agreementId: agreement2.id,
           agreementState: platformAgreementEntry2.state,
           GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-            eserviceId: purpose2.eserviceId,
+            eserviceId: agreement2.eserviceId,
             descriptorId: descriptor2.id,
           }),
           descriptorState: previousDescriptorEntry2.state,
@@ -753,17 +779,27 @@ describe("integration tests V1 events", async () => {
       };
       await writePlatformPurposeEntry(platformPurposeEntry2, dynamoDBClient);
 
-      const agreement1 = getMockAgreement();
+      const agreement1: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId: purpose1.eserviceId,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
       const platformAgreementEntry1: PlatformStatesAgreementEntry = {
-        PK: makePlatformStatesAgreementPK(agreement1.id),
+        PK: makePlatformStatesAgreementPK({
+          consumerId,
+          eserviceId: agreement1.eserviceId,
+        }),
         version: 1,
         state: itemState.active,
         updatedAt: new Date().toISOString(),
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: purpose1.consumerId,
-          eserviceId: purpose1.eserviceId,
-        }),
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: agreement1.id,
+        agreementTimestamp: agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
       };
       await writePlatformAgreementEntry(
@@ -771,17 +807,27 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      const agreement2 = getMockAgreement();
+      const agreement2: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId: purpose2.eserviceId,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
       const platformAgreementEntry2: PlatformStatesAgreementEntry = {
-        PK: makePlatformStatesAgreementPK(agreement2.id),
+        PK: makePlatformStatesAgreementPK({
+          consumerId,
+          eserviceId: agreement2.eserviceId,
+        }),
         version: 1,
         state: itemState.active,
         updatedAt: new Date().toISOString(),
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: purpose2.consumerId,
-          eserviceId: purpose2.eserviceId,
-        }),
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: agreement2.id,
+        agreementTimestamp: agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
       };
       await writePlatformAgreementEntry(
@@ -969,12 +1015,14 @@ describe("integration tests V1 events", async () => {
             kid: addedKey.kid,
             purposeId: purpose1.id,
           }),
-          GSIPK_consumerId_eserviceId:
-            platformAgreementEntry1.GSIPK_consumerId_eserviceId,
+          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+            consumerId,
+            eserviceId: agreement1.eserviceId,
+          }),
           agreementId: agreement1.id,
           agreementState: platformAgreementEntry1.state,
           GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-            eserviceId: purpose1.eserviceId,
+            eserviceId: agreement1.eserviceId,
             descriptorId: descriptor1.id,
           }),
           descriptorState: previousDescriptorEntry1.state,
@@ -1003,12 +1051,14 @@ describe("integration tests V1 events", async () => {
             kid: addedKey.kid,
             purposeId: purpose2.id,
           }),
-          GSIPK_consumerId_eserviceId:
-            platformAgreementEntry2.GSIPK_consumerId_eserviceId,
+          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+            consumerId,
+            eserviceId: agreement2.eserviceId,
+          }),
           agreementId: agreement2.id,
           agreementState: platformAgreementEntry2.state,
           GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-            eserviceId: purpose2.eserviceId,
+            eserviceId: agreement2.eserviceId,
             descriptorId: descriptor2.id,
           }),
           descriptorState: previousDescriptorEntry2.state,
@@ -1834,15 +1884,15 @@ describe("integration tests V1 events", async () => {
         eserviceId: purpose.eserviceId,
       };
       const platformAgreementEntry: PlatformStatesAgreementEntry = {
-        PK: makePlatformStatesAgreementPK(agreement.id),
+        PK: makePlatformStatesAgreementPK({
+          consumerId,
+          eserviceId: agreement.eserviceId,
+        }),
         version: 1,
         state: itemState.active,
         updatedAt: new Date().toISOString(),
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId,
-          eserviceId: purpose.eserviceId,
-        }),
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: agreement.id,
+        agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
       };
       await writePlatformAgreementEntry(platformAgreementEntry, dynamoDBClient);
@@ -1954,12 +2004,14 @@ describe("integration tests V1 events", async () => {
         GSIPK_purposeId: purpose.id,
         purposeState: platformPurposeEntry.state,
         purposeVersionId: platformPurposeEntry.purposeVersionId,
-        GSIPK_consumerId_eserviceId:
-          platformAgreementEntry.GSIPK_consumerId_eserviceId,
+        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+          consumerId,
+          eserviceId: agreement.eserviceId,
+        }),
         agreementId: agreement.id,
         agreementState: platformAgreementEntry.state,
         GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-          eserviceId: purpose.eserviceId,
+          eserviceId: agreement.eserviceId,
           descriptorId: descriptor.id,
         }),
         descriptorState: previousDescriptorEntry.state,
@@ -2067,17 +2119,27 @@ describe("integration tests V1 events", async () => {
       };
       await writePlatformPurposeEntry(platformPurposeEntry2, dynamoDBClient);
 
-      const agreement1 = getMockAgreement();
+      const agreement1: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId: purpose1.eserviceId,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
       const platformAgreementEntry1: PlatformStatesAgreementEntry = {
-        PK: makePlatformStatesAgreementPK(agreement1.id),
+        PK: makePlatformStatesAgreementPK({
+          consumerId,
+          eserviceId: agreement1.eserviceId,
+        }),
         version: 1,
         state: itemState.active,
         updatedAt: new Date().toISOString(),
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: purpose1.consumerId,
-          eserviceId: purpose1.eserviceId,
-        }),
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: agreement1.id,
+        agreementTimestamp: agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
       };
       await writePlatformAgreementEntry(
@@ -2085,17 +2147,27 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      const agreement2 = getMockAgreement();
+      const agreement2: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId: purpose2.eserviceId,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
       const platformAgreementEntry2: PlatformStatesAgreementEntry = {
-        PK: makePlatformStatesAgreementPK(agreement2.id),
+        PK: makePlatformStatesAgreementPK({
+          consumerId,
+          eserviceId: agreement2.eserviceId,
+        }),
         version: 1,
         state: itemState.active,
         updatedAt: new Date().toISOString(),
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: purpose2.consumerId,
-          eserviceId: purpose2.eserviceId,
-        }),
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: agreement2.id,
+        agreementTimestamp: agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
       };
       await writePlatformAgreementEntry(
@@ -2238,8 +2310,10 @@ describe("integration tests V1 events", async () => {
         GSIPK_purposeId: purpose2.id,
         purposeState: platformPurposeEntry2.state,
         purposeVersionId: platformPurposeEntry2.purposeVersionId,
-        GSIPK_consumerId_eserviceId:
-          platformAgreementEntry2.GSIPK_consumerId_eserviceId,
+        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+          consumerId,
+          eserviceId: agreement2.eserviceId,
+        }),
         agreementId: agreement2.id,
         agreementState: platformAgreementEntry2.state,
         GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
@@ -2353,17 +2427,27 @@ describe("integration tests V1 events", async () => {
       };
       await writePlatformPurposeEntry(platformPurposeEntry2, dynamoDBClient);
 
-      const agreement1 = getMockAgreement();
+      const agreement1: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId: purpose1.eserviceId,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
       const platformAgreementEntry1: PlatformStatesAgreementEntry = {
-        PK: makePlatformStatesAgreementPK(agreement1.id),
+        PK: makePlatformStatesAgreementPK({
+          consumerId,
+          eserviceId: agreement1.eserviceId,
+        }),
         version: 1,
         state: itemState.active,
         updatedAt: new Date().toISOString(),
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: purpose1.consumerId,
-          eserviceId: purpose1.eserviceId,
-        }),
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: agreement1.id,
+        agreementTimestamp: agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
       };
       await writePlatformAgreementEntry(
@@ -2371,17 +2455,27 @@ describe("integration tests V1 events", async () => {
         dynamoDBClient
       );
 
-      const agreement2 = getMockAgreement();
+      const agreement2: Agreement = {
+        ...getMockAgreement(),
+        consumerId,
+        eserviceId: purpose2.eserviceId,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
       const platformAgreementEntry2: PlatformStatesAgreementEntry = {
-        PK: makePlatformStatesAgreementPK(agreement2.id),
+        PK: makePlatformStatesAgreementPK({
+          consumerId,
+          eserviceId: agreement2.eserviceId,
+        }),
         version: 1,
         state: itemState.active,
         updatedAt: new Date().toISOString(),
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId: purpose2.consumerId,
-          eserviceId: purpose2.eserviceId,
-        }),
-        GSISK_agreementTimestamp: new Date().toISOString(),
+        agreementId: agreement2.id,
+        agreementTimestamp: agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
       };
       await writePlatformAgreementEntry(
@@ -2566,12 +2660,14 @@ describe("integration tests V1 events", async () => {
         GSIPK_purposeId: purpose2.id,
         purposeState: platformPurposeEntry2.state,
         purposeVersionId: platformPurposeEntry2.purposeVersionId,
-        GSIPK_consumerId_eserviceId:
-          platformAgreementEntry2.GSIPK_consumerId_eserviceId,
+        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+          consumerId,
+          eserviceId: agreement2.eserviceId,
+        }),
         agreementId: agreement2.id,
         agreementState: platformAgreementEntry2.state,
         GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-          eserviceId: purpose2.eserviceId,
+          eserviceId: agreement2.eserviceId,
           descriptorId: descriptor2.id,
         }),
         descriptorState: previousDescriptorEntry2.state,
