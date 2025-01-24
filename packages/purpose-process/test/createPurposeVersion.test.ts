@@ -1075,7 +1075,7 @@ describe("createPurposeVersion", () => {
       );
     }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is creating a purpose version created by the delegate", async () => {
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is creating a purpose version for a purpose created by the delegate", async () => {
     const authData = getRandomAuthData();
     const purpose = {
       ...mockPurpose,
@@ -1119,7 +1119,7 @@ describe("createPurposeVersion", () => {
       )
     );
   });
-  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is deleting a purpose created by a delegate in deletePurpose, but the delegation cannot be found", async () => {
+  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is creating a purpose version for a purpose created by a delegate, but the delegation cannot be found", async () => {
     const authData = getRandomAuthData();
     const mockEService = getMockEService();
     const mockPurpose: Purpose = {
@@ -1138,7 +1138,7 @@ describe("createPurposeVersion", () => {
           dailyCalls: 20,
         },
         {
-          authData: getRandomAuthData(mockEService.producerId),
+          authData,
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
