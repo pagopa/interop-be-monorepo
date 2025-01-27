@@ -715,7 +715,7 @@ describe("create consumer delegation", () => {
       delegationRelatedAgreementExists(
         activeAgreement.id,
         eservice.id,
-        delegate.id
+        delegator.id
       )
     );
   });
