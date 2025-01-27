@@ -152,18 +152,18 @@ export function delegationServiceBuilder(
 
     if (kind === delegationKind.delegatedConsumer) {
       assertEserviceIsDelegable(eservice);
+
+      await assertNoDelegationRelatedAgreementExists(
+        delegator.id,
+        eservice.id,
+        readModelService
+      );
     }
 
     await assertDelegationNotExists(
       delegator,
       eserviceId,
       kind,
-      readModelService
-    );
-
-    await assertNoDelegationRelatedAgreementExists(
-      delegator.id,
-      eservice.id,
       readModelService
     );
 
