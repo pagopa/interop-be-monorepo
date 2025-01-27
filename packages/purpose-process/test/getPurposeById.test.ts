@@ -247,7 +247,7 @@ describe("getPurposeById", () => {
     }
   );
 
-  it("should get the purpose with the risk analysis form if the requester is an e-service delegated consumer", async () => {
+  it("should get the purpose created by the delegated consumer with the risk analysis form if the requester is an e-service delegated consumer", async () => {
     const consumer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -295,7 +295,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it("should get the purpose with the risk analysis form if the requester is an e-service delegated producer", async () => {
+  it("should get the purpose created by the delegated consumer with the risk analysis form if the requester is an e-service delegated producer", async () => {
     const producer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -352,7 +352,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it("should get the purpose with the risk analysis form if the requester is an e-service producer", async () => {
+  it("should get the purpose created by the delegated consumer with the risk analysis form if the requester is an e-service producer", async () => {
     const producer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -374,7 +374,7 @@ describe("getPurposeById", () => {
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockPurpose1.eserviceId,
       delegatorId: mockPurpose1.consumerId,
-      delegateId: producer.id,
+      delegateId: generateId<TenantId>(),
       state: delegationState.active,
     });
 
@@ -395,7 +395,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it("should get the purpose with the risk analysis form if the requester is an e-service consumer", async () => {
+  it("should get the purpose created by the delegated consumer with the risk analysis form if the requester is an e-service consumer", async () => {
     const consumer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -437,7 +437,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and you should get the purpose with the risk analysis form", async () => {
+  it("should succeed, with the risk analysis, when requester is Consumer Delegate and the eservice was created by a delegated producer", async () => {
     const producer = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
@@ -524,7 +524,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it("Should return an empty list if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
+  it("Should return an empty list if the requester is a delegate for the eservice when retrieving a purpose created by the consumer", async () => {
     const tenant = { ...getMockTenant(), kind: tenantKind.PA };
     const eservice = getMockEService();
     const purpose: Purpose = {
