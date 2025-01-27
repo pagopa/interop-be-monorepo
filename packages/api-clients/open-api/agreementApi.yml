@@ -910,6 +910,76 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  "/internal/agreements/{agreementId}":
+    parameters:
+    - $ref: "#/components/parameters/CorrelationIdHeader"
+    - name: agreementId
+      in: path
+      description: The identifier of the agreement
+      required: true
+      schema:
+        type: string
+        format: uuid
+    - name: delegationId
+      in: query
+      description: The identifier of the delegation
+      required: true
+      schema:
+        type: string
+        format: uuid
+    post:
+      tags:
+        - agreement
+      description: Archive the agreement.
+      summary: Archive Agreement
+      operationId: internalArchiveAgreement
+      responses:
+        "204":
+          description: Agreement archived.
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Agreement not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      tags:
+        - agreement
+      summary: Delete an agreement. This operation is valid only for agreements in DRAFT or MISSING_CERTIFIED_ATTRIBUTES
+      operationId: internalDeleteAgreement
+      responses:
+        "204":
+          description: Agreement deleted
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Agreement not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   parameters:
     CorrelationIdHeader:
