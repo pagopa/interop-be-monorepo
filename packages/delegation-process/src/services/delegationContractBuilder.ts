@@ -28,10 +28,10 @@ const CONTENT_TYPE_PDF = "application/pdf";
 
 const createDelegationContractPrettyName = (
   eServiceName: string,
-  documentType: "activation" | "revocation" // make these as const in models
+  documentType: "activation" | "revocation" // turn these into const in models
 ): string => {
   const prettyName = `${
-    documentType === "activation" ? "Delega" : "Revoca_Delega" // make these as const in models
+    documentType === "activation" ? "Delega" : "Revoca_Delega" // turn these into const in models
   }_${eServiceName}`;
   return prettyName.length > 45 ? prettyName.slice(0, 45) : prettyName;
 };
@@ -43,7 +43,7 @@ const getIpaCode = (tenant: Tenant): string | undefined =>
 
 const createDelegationDocumentName = (
   documentCreatedAt: Date,
-  documentType: "activation" | "revocation" // turn this into const in models
+  documentType: "activation" | "revocation" // same as above
 ): string =>
   `${formatDateyyyyMMddHHmmss(
     documentCreatedAt
