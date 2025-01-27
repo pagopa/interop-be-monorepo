@@ -76,7 +76,7 @@ describe("revoke consumer delegation", () => {
 
     const delegate = getMockTenant(delegateId);
     const delegator = getMockTenant(delegatorId);
-    const eservice = getMockEService(eserviceId);
+    const eservice = getMockEService({ eserviceId });
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
