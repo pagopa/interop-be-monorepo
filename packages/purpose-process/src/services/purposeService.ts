@@ -42,6 +42,7 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
+  Delegation,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -66,6 +67,7 @@ import {
   tenantKindNotFound,
   unchangedDailyCalls,
   organizationNotAllowed,
+  puroposeDelegationNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -224,6 +226,23 @@ async function retrieveTenantKind(
   return tenant.kind;
 }
 
+export const retrievePurposeDelegation = async (
+  purpose: Purpose,
+  readModelService: ReadModelService
+): Promise<Delegation | undefined> => {
+  if (!purpose.delegationId) {
+    return undefined;
+  }
+  const delegation =
+    await readModelService.getActiveConsumerDelegationByDelegationId(
+      purpose.delegationId
+    );
+  if (!delegation) {
+    throw puroposeDelegationNotFound(purpose.id, purpose.delegationId);
+  }
+  return delegation;
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   dbInstance: DB,
@@ -326,10 +345,7 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        purpose.data.delegationId &&
-          (await readModelService.getActiveConsumerDelegationByDelegationId(
-            purpose.data.delegationId
-          ))
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
@@ -459,10 +475,7 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        purpose.data.delegationId &&
-          (await readModelService.getActiveConsumerDelegationByDelegationId(
-            purpose.data.delegationId
-          ))
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const event = purposeIsDraft(purpose.data)
@@ -496,10 +509,7 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        purpose.data.delegationId &&
-          (await readModelService.getActiveConsumerDelegationByDelegationId(
-            purpose.data.delegationId
-          ))
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
@@ -664,10 +674,7 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        purpose.data.delegationId &&
-          (await readModelService.getActiveConsumerDelegationByDelegationId(
-            purpose.data.delegationId
-          ))
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const previousVersion = [
@@ -1085,20 +1092,6 @@ export function purposeServiceBuilder(
       const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
 
-      const consumerDelegation =
-        await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
-          {
-            eserviceId,
-            consumerId,
-          }
-        );
-
-      assertRequesterCanActAsConsumer(
-        { eserviceId, consumerId },
-        authData,
-        consumerDelegation
-      );
-
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertEserviceMode(eservice, eserviceMode.receive);
 
@@ -1107,6 +1100,15 @@ export function purposeServiceBuilder(
       assertConsistentFreeOfCharge(
         seed.isFreeOfCharge,
         seed.freeOfChargeReason
+      );
+
+      const delegationId = await verifyRequesterIsConsumerOrDelegateConsumer(
+        {
+          consumerId,
+          eserviceId,
+        },
+        authData,
+        readModelService
       );
 
       const producerKind = await retrieveTenantKind(
@@ -1144,7 +1146,7 @@ export function purposeServiceBuilder(
         createdAt: new Date(),
         eserviceId,
         consumerId,
-        delegationId: consumerDelegation?.id,
+        delegationId,
         description: seed.description,
         versions: [newVersion],
         isFreeOfCharge: seed.isFreeOfCharge,
@@ -1184,13 +1186,15 @@ export function purposeServiceBuilder(
 
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
+      const consumerDelegation = await retrievePurposeDelegation(
+        purposeToClone.data,
+        readModelService
+      );
+
       assertRequesterCanActAsConsumer(
         purposeToClone.data,
         authData,
-        purposeToClone.data.delegationId &&
-          (await readModelService.getActiveConsumerDelegationByDelegationId(
-            purposeToClone.data.delegationId
-          ))
+        consumerDelegation
       );
 
       if (purposeIsDraft(purposeToClone.data)) {
@@ -1379,10 +1383,7 @@ const getOrganizationRole = async ({
       assertRequesterCanActAsConsumer(
         purpose,
         authData,
-        purpose.delegationId &&
-          (await readModelService.getActiveConsumerDelegationByDelegationId(
-            purpose.delegationId
-          ))
+        await retrievePurposeDelegation(purpose, readModelService)
       );
       return ownership.CONSUMER;
     } catch {
@@ -1462,14 +1463,12 @@ const performUpdatePurpose = async (
     });
   }
 
-  assertRequesterCanActAsConsumer(
+  const consumerDelegation = await retrievePurposeDelegation(
     purpose.data,
-    authData,
-    purpose.data.delegationId &&
-      (await readModelService.getActiveConsumerDelegationByDelegationId(
-        purpose.data.delegationId
-      ))
+    readModelService
   );
+
+  assertRequesterCanActAsConsumer(purpose.data, authData, consumerDelegation);
 
   const eservice = await retrieveEService(
     purpose.data.eserviceId,

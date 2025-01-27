@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   generateId,
@@ -6,6 +7,7 @@ import {
   toTenantV2,
   TenantDelegatedConsumerFeatureRemovedV2,
   TenantId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -13,9 +15,9 @@ import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventS
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
 import {
   tenantDoesNotHaveFeature,
-  tenantIsNotIPA,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("removeTenantDelegatedConsumerFeature", async () => {
@@ -28,48 +30,57 @@ describe("removeTenantDelegatedConsumerFeature", async () => {
     vi.useRealTimers();
   });
 
-  it("Should correctly remove the feature", async () => {
-    const mockTenant: Tenant = {
-      ...getMockTenant(),
-      features: [
-        {
-          type: "DelegatedConsumer",
-          availabilityTimestamp: new Date(),
+  config.delegationsAllowedOrigins = ["IPA", "TEST"];
+  it.each(config.delegationsAllowedOrigins)(
+    "Should correctly remove the feature (origin: %s)",
+    async (origin) => {
+      const mockTenant: Tenant = {
+        ...getMockTenant(),
+        externalId: {
+          value: generateId(),
+          origin,
         },
-      ],
-    };
-    await addOneTenant(mockTenant);
-    await tenantService.removeTenantDelegatedConsumerFeature({
-      organizationId: mockTenant.id,
-      correlationId: generateId(),
-      authData: getMockAuthData(mockTenant.id),
-      logger: genericLogger,
-    });
-    const writtenEvent = await readLastEventByStreamId(
-      mockTenant.id,
-      "tenant",
-      postgresDB
-    );
-
-    expect(writtenEvent).toMatchObject({
-      stream_id: mockTenant.id,
-      version: "1",
-      type: "TenantDelegatedConsumerFeatureRemoved",
-      event_version: 2,
-    });
-
-    const writtenPayload: TenantDelegatedConsumerFeatureRemovedV2 | undefined =
-      protobufDecoder(TenantDelegatedConsumerFeatureRemovedV2).parse(
-        writtenEvent.data
+        features: [
+          {
+            type: "DelegatedConsumer",
+            availabilityTimestamp: new Date(),
+          },
+        ],
+      };
+      await addOneTenant(mockTenant);
+      await tenantService.removeTenantDelegatedConsumerFeature({
+        organizationId: mockTenant.id,
+        correlationId: generateId(),
+        authData: getMockAuthData(mockTenant.id),
+        logger: genericLogger,
+      });
+      const writtenEvent = await readLastEventByStreamId(
+        mockTenant.id,
+        "tenant",
+        postgresDB
       );
 
-    const updatedTenant: Tenant = {
-      ...mockTenant,
-      features: [],
-      updatedAt: new Date(),
-    };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-  });
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockTenant.id,
+        version: "1",
+        type: "TenantDelegatedConsumerFeatureRemoved",
+        event_version: 2,
+      });
+
+      const writtenPayload:
+        | TenantDelegatedConsumerFeatureRemovedV2
+        | undefined = protobufDecoder(
+        TenantDelegatedConsumerFeatureRemovedV2
+      ).parse(writtenEvent.data);
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        features: [],
+        updatedAt: new Date(),
+      };
+      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    }
+  );
   it("Should throw tenantNotFound if the requester tenant doesn't exist", async () => {
     const organizationId = generateId<TenantId>();
     expect(
@@ -100,7 +111,7 @@ describe("removeTenantDelegatedConsumerFeature", async () => {
       tenantDoesNotHaveFeature(tenant.id, "DelegatedConsumer")
     );
   });
-  it("Should throw tenantIsNotIPA if the requester tenant is not a public administration", async () => {
+  it("Should throw operationForbidden if the requester tenant has externalId origin not compliant", async () => {
     const tenant: Tenant = {
       ...getMockTenant(),
       features: [
@@ -122,6 +133,6 @@ describe("removeTenantDelegatedConsumerFeature", async () => {
         },
         logger: genericLogger,
       })
-    ).rejects.toThrowError(tenantIsNotIPA(tenant.id));
+    ).rejects.toThrowError(operationForbidden);
   });
 });

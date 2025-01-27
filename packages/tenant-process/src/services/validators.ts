@@ -33,7 +33,6 @@ import {
   attributeNotFound,
   tenantDoesNotHaveFeature,
   tenantAlreadyHasFeature,
-  tenantIsNotIPA,
   eServiceNotFound,
   descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
@@ -154,16 +153,10 @@ export async function assertRequesterAllowed(
   }
 }
 
-export function assertRequesterIPAOrigin(authData: AuthData): void {
-  if (authData.externalId.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
-    throw tenantIsNotIPA(authData.organizationId);
-  }
-}
-
 export function assertRequesterDelegationsAllowedOrigin(
   authData: AuthData
 ): void {
-  if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
+  if (!config.delegationsAllowedOrigins.includes(authData.externalId.origin)) {
     throw operationForbidden;
   }
 }

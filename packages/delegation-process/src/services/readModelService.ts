@@ -145,12 +145,6 @@ export function readModelServiceBuilder(
     ): Promise<WithMetadata<EService> | undefined> {
       return this.getEService(eservices, { "data.id": id });
     },
-    async createDelegation(delegation: Delegation): Promise<void> {
-      await delegations.insertOne({
-        data: delegation,
-        metadata: { version: 0 },
-      });
-    },
     async getTenantById(tenantId: string): Promise<Tenant | undefined> {
       const data = await tenants.findOne(
         { "data.id": tenantId },
