@@ -18,6 +18,7 @@ import {
   delegationStampNotFound,
   delegatorAndDelegateSameIdError,
   differentEServiceProducer,
+  eserviceNotDelegable,
   incorrectState,
   operationRestrictedToDelegate,
   operationRestrictedToDelegator,
@@ -168,7 +169,7 @@ export function assertStampExists<S extends keyof Delegation["stamps"]>(
 
 export const assertEserviceIsDelegable = (eservice: EService): void => {
   if (!eservice.isDelegable) {
-    throw operationForbidden;
+    throw eserviceNotDelegable(eservice.id);
   }
 };
 
