@@ -115,7 +115,6 @@ export const enhanceCatalogEservices = async (
     ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
     async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
       const producerTenant = getCachedTenant(eservice.producerId as TenantId);
-      const requesterTenant = getCachedTenant(requesterId);
 
       const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
 
@@ -131,7 +130,6 @@ export const enhanceCatalogEservices = async (
       return toBffCatalogApiEService(
         eservice,
         producerTenant,
-        requesterTenant,
         isRequesterEqProducer,
         latestActiveDescriptor,
         latestAgreement
