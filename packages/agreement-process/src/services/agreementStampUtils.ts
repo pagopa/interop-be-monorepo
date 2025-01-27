@@ -2,6 +2,7 @@ import {
   Agreement,
   AgreementStamp,
   AgreementState,
+  DelegationId,
   TenantId,
   UserId,
   agreementState,
@@ -9,8 +10,12 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
-export const createStamp = (userId: UserId): AgreementStamp => ({
+export const createStamp = (
+  userId: UserId,
+  delegationId?: DelegationId | undefined
+): AgreementStamp => ({
   who: unsafeBrandId(userId),
+  delegationId,
   when: new Date(),
 });
 
@@ -29,9 +34,21 @@ export const suspendedByProducerStamp = (
   agreement: Agreement,
   requesterOrgId: TenantId,
   destinationState: AgreementState,
-  stamp: AgreementStamp
+  stamp: AgreementStamp,
+  delegateProducerId: TenantId | undefined
 ): AgreementStamp | undefined =>
-  match([requesterOrgId, destinationState])
-    .with([agreement.producerId, agreementState.suspended], () => stamp)
-    .with([agreement.producerId, P.any], () => undefined)
+  match<[TenantId | undefined, AgreementState]>([
+    requesterOrgId,
+    destinationState,
+  ])
+    .with(
+      [agreement.producerId, agreementState.suspended],
+      [delegateProducerId, agreementState.suspended],
+      () => stamp
+    )
+    .with(
+      [agreement.producerId, P.any],
+      [delegateProducerId, P.any],
+      () => undefined
+    )
     .otherwise(() => agreement.stamps.suspensionByProducer);

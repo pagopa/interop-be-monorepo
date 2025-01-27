@@ -4,7 +4,12 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { isDefined, WithLogger } from "pagopa-interop-commons";
-import { AttributeId, CorrelationId, TenantId } from "pagopa-interop-models";
+import {
+  AgreementId,
+  AttributeId,
+  CorrelationId,
+  TenantId,
+} from "pagopa-interop-models";
 import {
   AttributeProcessClient,
   SelfcareV2InstitutionClient,
@@ -110,6 +115,7 @@ export function tenantServiceBuilder(
     },
     async getTenants(
       name: string | undefined,
+      features: tenantApi.TenantFeatureType[] | undefined,
       limit: number,
       { logger, headers, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.Tenants> {
@@ -118,6 +124,7 @@ export function tenantServiceBuilder(
       const pagedResults = await tenantProcessClient.tenant.getTenants({
         queries: {
           name,
+          features,
           limit,
           offset,
         },
@@ -386,13 +393,14 @@ export function tenantServiceBuilder(
     async revokeVerifiedAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
+      agreementId: AgreementId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(
         `Revoking verified attribute ${attributeId} for tenant ${tenantId}`
       );
       await tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(
-        undefined,
+        { agreementId },
         {
           params: { tenantId, attributeId },
           headers,
@@ -420,6 +428,26 @@ export function tenantServiceBuilder(
         params: { tenantId, mailId },
         headers,
       });
+    },
+    async assignTenantDelegatedProducerFeature(
+      tenantId: TenantId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Assigning delegated producer feature to tenant ${tenantId}`);
+      await tenantProcessClient.tenant.assignTenantDelegatedProducerFeature(
+        undefined,
+        { headers }
+      );
+    },
+    async removeTenantDelegatedProducerFeature(
+      tenantId: TenantId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Removing delegated producer feature to tenant ${tenantId}`);
+      await tenantProcessClient.tenant.removeTenantDelegatedProducerFeature(
+        undefined,
+        { headers }
+      );
     },
   };
 }
