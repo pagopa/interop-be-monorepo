@@ -137,7 +137,7 @@ export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceTemplateSuspended"),
+    type: z.literal("EServiceTemplateVersionSuspended"),
     data: protobufDecoder(EServiceTemplateVersionSuspendedV2),
   }),
   z.object({
@@ -189,7 +189,7 @@ export function eserviceTemplateEventToBinaryDataV2(
     .with({ type: "EServiceTemplateRiskAnalysisUpdated" }, ({ data }) =>
       EServiceTemplateRiskAnalysisUpdatedV2.toBinary(data)
     )
-    .with({ type: "EServiceTemplateSuspended" }, ({ data }) =>
+    .with({ type: "EServiceTemplateVersionSuspended" }, ({ data }) =>
       EServiceTemplateVersionSuspendedV2.toBinary(data)
     )
     .with({ type: "EServiceTemplateVersionAdded" }, ({ data }) =>

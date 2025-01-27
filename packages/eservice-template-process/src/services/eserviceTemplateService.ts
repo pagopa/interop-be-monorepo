@@ -29,8 +29,8 @@ import {
   toCreateEventEServiceTemplateActivated,
   toCreateEventEServiceTemplateAudienceDescriptionUpdated,
   toCreateEventEServiceTemplateEServiceDescriptionUpdated,
+  toCreateEventEServiceTemplateVersionSuspended,
   toCreateEventEServiceTemplateNameUpdated,
-  toCreateEventEServiceTemplateSuspended,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import { assertRequesterEServiceTemplateCreator } from "./validators.js";
@@ -206,7 +206,7 @@ export function eserviceTemplateServiceBuilder(
         updatedEServiceTemplateVersion
       );
 
-      const event = toCreateEventEServiceTemplateSuspended(
+      const event = toCreateEventEServiceTemplateVersionSuspended(
         eserviceTemplateId,
         eserviceTemplate.metadata.version,
         eserviceTemplateVersionId,
