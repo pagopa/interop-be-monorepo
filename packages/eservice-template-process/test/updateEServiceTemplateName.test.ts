@@ -159,6 +159,7 @@ describe("updateEServiceTemplateName", () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       interface: getMockDocument(),
+      state: eserviceTemplateVersionState.published,
     };
     const eserviceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
@@ -173,8 +174,8 @@ describe("updateEServiceTemplateName", () => {
       creatorId,
       name: duplicateName,
     };
-    await addOneEServiceTemplate(eserviceTemplate);
 
+    await addOneEServiceTemplate(eserviceTemplate);
     await addOneEServiceTemplate(eserviceTemplateWithSameName);
 
     const updatedName = duplicateName;
