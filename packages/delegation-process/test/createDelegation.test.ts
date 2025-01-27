@@ -86,6 +86,11 @@ describe("create", () => {
     "%s delegation",
     // eslint-disable-next-line sonarjs/cognitive-complexity
     async (kind) => {
+      const createFn =
+        kind === delegationKind.delegatedConsumer
+          ? delegationService.createConsumerDelegation
+          : delegationService.createProducerDelegation;
+
       config.delegationsAllowedOrigins = ["IPA", "TEST"];
 
       it.each(config.delegationsAllowedOrigins)(
@@ -125,19 +130,18 @@ describe("create", () => {
           await addOneTenant(delegate);
           await addOneEservice(eservice);
 
-          const actualDelegation =
-            await delegationService.createConsumerDelegation(
-              {
-                delegateId: delegate.id,
-                eserviceId: eservice.id,
-              },
-              {
-                authData,
-                logger: genericLogger,
-                correlationId: generateId(),
-                serviceName: "DelegationServiceTest",
-              }
-            );
+          const actualDelegation = await createFn(
+            {
+              delegateId: delegate.id,
+              eserviceId: eservice.id,
+            },
+            {
+              authData,
+              logger: genericLogger,
+              correlationId: generateId(),
+              serviceName: "DelegationServiceTest",
+            }
+          );
 
           const expectedDelegation: Delegation = {
             id: actualDelegation.id,
@@ -211,11 +215,6 @@ describe("create", () => {
           await addOneTenant(delegate);
           await addOneEservice(eservice);
           await addOneDelegation(existentDelegation);
-
-          const createFn =
-            kind === delegationKind.delegatedConsumer
-              ? delegationService.createConsumerDelegation
-              : delegationService.createProducerDelegation;
 
           const actualDelegation = await createFn(
             {
@@ -338,11 +337,6 @@ describe("create", () => {
             })
           );
 
-          const createFn =
-            kind === delegationKind.delegatedConsumer
-              ? delegationService.createConsumerDelegation
-              : delegationService.createProducerDelegation;
-
           await expect(
             createFn(
               {
@@ -390,11 +384,6 @@ describe("create", () => {
         await addOneTenant(delegator);
         await addOneEservice(eservice);
 
-        const createFn =
-          kind === delegationKind.delegatedConsumer
-            ? delegationService.createConsumerDelegation
-            : delegationService.createProducerDelegation;
-
         await expect(
           createFn(
             {
@@ -437,11 +426,6 @@ describe("create", () => {
         await addOneTenant(delegate);
         await addOneEservice(eservice);
 
-        const createFn =
-          kind === delegationKind.delegatedConsumer
-            ? delegationService.createConsumerDelegation
-            : delegationService.createProducerDelegation;
-
         await expect(
           createFn(
             {
@@ -461,11 +445,6 @@ describe("create", () => {
       it("should throw an invalidDelegatorAndDelegateAreSame error if delegatorId and delegateId is the same", async () => {
         const sameTenantId = generateId<TenantId>();
         const authData = getRandomAuthData(sameTenantId);
-
-        const createFn =
-          kind === delegationKind.delegatedConsumer
-            ? delegationService.createConsumerDelegation
-            : delegationService.createProducerDelegation;
 
         await expect(
           createFn(
@@ -512,11 +491,6 @@ describe("create", () => {
         await addOneTenant(delegator);
         await addOneTenant(delegate);
         await addOneEservice(eservice);
-
-        const createFn =
-          kind === delegationKind.delegatedConsumer
-            ? delegationService.createConsumerDelegation
-            : delegationService.createProducerDelegation;
 
         await expect(
           createFn(
@@ -568,11 +542,6 @@ describe("create", () => {
         await addOneTenant(delegate);
         await addOneEservice(eservice);
 
-        const createFn =
-          kind === delegationKind.delegatedConsumer
-            ? delegationService.createConsumerDelegation
-            : delegationService.createProducerDelegation;
-
         await expect(
           createFn(
             {
@@ -614,11 +583,6 @@ describe("create", () => {
         await addOneTenant(delegator);
         await addOneTenant(delegate);
 
-        const createFn =
-          kind === delegationKind.delegatedConsumer
-            ? delegationService.createConsumerDelegation
-            : delegationService.createProducerDelegation;
-
         await expect(
           createFn(
             {
@@ -656,11 +620,6 @@ describe("create", () => {
         await addOneTenant(delegate);
         await addOneTenant(delegator);
         await addOneEservice(eservice);
-
-        const createFn =
-          kind === delegationKind.delegatedConsumer
-            ? delegationService.createConsumerDelegation
-            : delegationService.createProducerDelegation;
 
         await expect(
           createFn(
