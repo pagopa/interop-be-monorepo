@@ -71,22 +71,22 @@ describe("read-model-queries.service", () => {
 
     it("should return all eServices", async () => {
       const eservicesData = [
-        getMockEService(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          getMockDescriptorList().map((d) => ({
+        getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
+          descriptors: getMockDescriptorList().map((d) => ({
             ...d,
             state: randomArrayItem(validEserviceDescriptorStates),
-          }))
-        ),
-        getMockEService(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          getMockDescriptorList().map((d) => ({
+          })),
+        }),
+        getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
+          descriptors: getMockDescriptorList().map((d) => ({
             ...d,
             state: randomArrayItem(validEserviceDescriptorStates),
-          }))
-        ),
+          })),
+        }),
       ].map(toReadModelEService);
       await seedCollection(eservicesData, eservices);
 
@@ -96,25 +96,29 @@ describe("read-model-queries.service", () => {
 
     it("should not return draft descriptors in the e-service", async () => {
       const eservicesData = [
-        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
-          {
-            ...getMockDescriptor(),
-            id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f2"),
-            version: "2",
-            state: descriptorState.published,
-          },
-          {
-            ...getMockDescriptor(),
-            id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f3"),
-            state: descriptorState.draft,
-            version: "1",
-            attributes: {
-              certified: [],
-              verified: [],
-              declared: [],
+        getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
+          descriptors: [
+            {
+              ...getMockDescriptor(),
+              id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f2"),
+              version: "2",
+              state: descriptorState.published,
             },
-          },
-        ]),
+            {
+              ...getMockDescriptor(),
+              id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f3"),
+              state: descriptorState.draft,
+              version: "1",
+              attributes: {
+                certified: [],
+                verified: [],
+                declared: [],
+              },
+            },
+          ],
+        }),
       ].map(toReadModelEService);
 
       await seedCollection(eservicesData, eservices);
@@ -127,25 +131,29 @@ describe("read-model-queries.service", () => {
 
     it("should not return waiting for approval descriptors in the e-service", async () => {
       const eservicesData = [
-        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
-          {
-            ...getMockDescriptor(),
-            id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f2"),
-            version: "2",
-            state: descriptorState.published,
-          },
-          {
-            ...getMockDescriptor(),
-            id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f3"),
-            state: descriptorState.waitingForApproval,
-            version: "1",
-            attributes: {
-              certified: [],
-              verified: [],
-              declared: [],
+        getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
+          descriptors: [
+            {
+              ...getMockDescriptor(),
+              id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f2"),
+              version: "2",
+              state: descriptorState.published,
             },
-          },
-        ]),
+            {
+              ...getMockDescriptor(),
+              id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f3"),
+              state: descriptorState.waitingForApproval,
+              version: "1",
+              attributes: {
+                certified: [],
+                verified: [],
+                declared: [],
+              },
+            },
+          ],
+        }),
       ].map(toReadModelEService);
 
       await seedCollection(eservicesData, eservices);
@@ -163,12 +171,18 @@ describe("read-model-queries.service", () => {
 
     it("should not return eServices with only one descriptor with Draft state", async () => {
       const eservicesData = [
-        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
-          getMockDescriptor(randomArrayItem(validEserviceDescriptorStates)),
-        ]),
-        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
-          getMockDescriptor(descriptorState.draft),
-        ]),
+        getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
+          descriptors: [
+            getMockDescriptor(randomArrayItem(validEserviceDescriptorStates)),
+          ],
+        }),
+        getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
+          descriptors: [getMockDescriptor(descriptorState.draft)],
+        }),
       ].map(toReadModelEService);
 
       await seedCollection(eservicesData, eservices);
@@ -180,10 +194,16 @@ describe("read-model-queries.service", () => {
 
     it("should not return eServices with no descriptors", async () => {
       const eservicesData = [
-        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
-          getMockDescriptor(descriptorState.published),
-        ]),
-        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), []),
+        getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
+          descriptors: [getMockDescriptor(descriptorState.published)],
+        }),
+        getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
+          descriptors: [],
+        }),
       ].map(toReadModelEService);
 
       await seedCollection(eservicesData, eservices);
