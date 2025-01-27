@@ -449,7 +449,7 @@ export const toCreateEventEServiceTemplateVersionSuspended = (
   correlationId,
 });
 
-export const toCreateEventEServiceTemplateActivated = (
+export const toCreateEventEServiceTemplateVersionActivated = (
   streamId: string,
   version: number,
   eserviceTemplateVersionId: EServiceTemplateVersionId,
@@ -459,7 +459,7 @@ export const toCreateEventEServiceTemplateActivated = (
   streamId,
   version,
   event: {
-    type: "EServiceTemplateActivated",
+    type: "EServiceTemplateVersionActivated",
     event_version: 2,
     data: {
       eserviceTemplateVersionId,
