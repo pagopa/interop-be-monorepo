@@ -39,9 +39,9 @@ export const errorCodes = {
   agreementDocumentAlreadyExists: "0025",
   delegationNotFound: "0026",
   organizationIsNotTheConsumer: "0027",
-  organizationIsNotTheDelegatedConsumer: "0028",
+  organizationIsNotTheDelegateConsumer: "0028",
   organizationIsNotTheProducer: "0029",
-  organizationIsNotTheDelegatedProducer: "0030",
+  organizationIsNotTheDelegateProducer: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -306,12 +306,12 @@ export function organizationIsNotTheConsumer(
   });
 }
 
-export function organizationIsNotTheDelegatedConsumer(
+export function organizationIsNotTheDelegateConsumer(
   organizationId: TenantId,
   delegationId: DelegationId | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation because is not the delegated consumer${
+    detail: `Organization ${organizationId} is not allowed to perform the operation because is not the delegate consumer${
       delegationId ? ` of delegation ${delegationId}` : ""
     }`,
     code: "organizationIsNotTheDelegatedConsumer",
@@ -329,7 +329,7 @@ export function organizationIsNotTheProducer(
   });
 }
 
-export function organizationIsNotTheDelegatedProducer(
+export function organizationIsNotTheDelegateProducer(
   organizationId: TenantId,
   delegationId: DelegationId | undefined
 ): ApiError<ErrorCodes> {
