@@ -40,8 +40,8 @@ import {
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
-  organizationIsNotTheDelegatedProducer,
+  organizationIsNotTheDelegateConsumer,
+  organizationIsNotTheDelegateProducer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
 } from "./errors.js";
@@ -248,7 +248,7 @@ const assertRequesterIsDelegateProducer = (
     activeProducerDelegation?.state !== delegationState.active ||
     activeProducerDelegation?.eserviceId !== agreement.eserviceId
   ) {
-    throw organizationIsNotTheDelegatedProducer(
+    throw organizationIsNotTheDelegateProducer(
       authData.organizationId,
       activeProducerDelegation?.id
     );
@@ -300,7 +300,7 @@ export const assertRequesterIsDelegateConsumer = (
     activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
     activeConsumerDelegation?.state !== delegationState.active
   ) {
-    throw organizationIsNotTheDelegatedConsumer(
+    throw organizationIsNotTheDelegateConsumer(
       authData.organizationId,
       activeConsumerDelegation?.id
     );

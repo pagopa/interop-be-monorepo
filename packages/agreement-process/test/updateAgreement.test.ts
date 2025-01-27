@@ -23,7 +23,7 @@ import {
   agreementNotFound,
   agreementNotInExpectedState,
   organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  organizationIsNotTheDelegateConsumer,
 } from "../src/model/domain/errors.js";
 import { agreementUpdatableStates } from "../src/model/domain/agreement-validators.js";
 import {
@@ -192,7 +192,7 @@ describe("update agreement", () => {
     );
   });
 
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw organizationIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getRandomAuthData();
     const agreement = {
       ...getMockAgreement(),
@@ -219,7 +219,7 @@ describe("update agreement", () => {
         }
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      organizationIsNotTheDelegateConsumer(
         authData.organizationId,
         delegation.id
       )

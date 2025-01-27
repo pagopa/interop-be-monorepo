@@ -27,7 +27,7 @@ import {
   agreementNotFound,
   agreementNotInExpectedState,
   organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  organizationIsNotTheDelegateConsumer,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -180,7 +180,7 @@ describe("archive agreement", () => {
     vi.useRealTimers();
   });
 
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the consumer but there is a consumer delegation", async () => {
+  it("should throw organizationIsNotTheDelegateConsumer when the requester is the consumer but there is a consumer delegation", async () => {
     const authData = getRandomAuthData();
 
     const agreement = {
@@ -208,7 +208,7 @@ describe("archive agreement", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      organizationIsNotTheDelegateConsumer(
         authData.organizationId,
         delegation.id
       )

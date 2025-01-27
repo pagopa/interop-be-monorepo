@@ -71,7 +71,7 @@ import {
   descriptorNotFound,
   descriptorNotInExpectedState,
   eServiceNotFound,
-  organizationIsNotTheDelegatedProducer,
+  organizationIsNotTheDelegateProducer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
   tenantNotFound,
@@ -737,7 +737,7 @@ describe("activate agreement", () => {
       );
     });
 
-    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws organizationIsNotTheDelegatedProducer", async () => {
+    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws organizationIsNotTheDelegateProducer", async () => {
       const producerId = generateId<TenantId>();
       const authData = getRandomAuthData(producerId);
       const agreement: Agreement = {
@@ -766,7 +766,7 @@ describe("activate agreement", () => {
           logger: genericLogger,
         })
       ).rejects.toThrowError(
-        organizationIsNotTheDelegatedProducer(
+        organizationIsNotTheDelegateProducer(
           authData.organizationId,
           producerDelegation.id
         )

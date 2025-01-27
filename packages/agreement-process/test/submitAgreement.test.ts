@@ -66,7 +66,7 @@ import {
   descriptorNotInExpectedState,
   eServiceNotFound,
   notLatestEServiceDescriptor,
-  organizationIsNotTheDelegatedConsumer,
+  organizationIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
@@ -209,7 +209,7 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw an organizationIsNotTheDelegatedConsumer error when requester is not Consumer or Delegate Consumer", async () => {
+  it("should throw an organizationIsNotTheDelegateConsumer error when requester is not Consumer or Delegate Consumer", async () => {
     const agreement = {
       ...getMockAgreement(),
       state: agreementState.draft,
@@ -240,14 +240,14 @@ describe("submit agreement", () => {
         }
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      organizationIsNotTheDelegateConsumer(
         authData.organizationId,
         consumerDelegation.id
       )
     );
   });
 
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw organizationIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const agreement = {
       ...getMockAgreement(),
       state: agreementState.draft,
@@ -278,7 +278,7 @@ describe("submit agreement", () => {
         }
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      organizationIsNotTheDelegateConsumer(
         authData.organizationId,
         consumerDelegation.id
       )

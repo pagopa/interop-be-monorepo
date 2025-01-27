@@ -53,7 +53,7 @@ import {
   descriptorNotFound,
   eServiceNotFound,
   noNewerDescriptor,
-  organizationIsNotTheDelegatedConsumer,
+  organizationIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -1479,7 +1479,7 @@ async function getConsumerFromDelegationOrRequester(
 
     if (delegation) {
       // If a delegation exists, the delegator cannot create the agreement
-      throw organizationIsNotTheDelegatedConsumer(
+      throw organizationIsNotTheDelegateConsumer(
         authData.organizationId,
         delegation.id
       );

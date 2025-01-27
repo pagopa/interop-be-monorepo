@@ -46,7 +46,7 @@ import {
   eServiceNotFound,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
-  organizationIsNotTheDelegatedConsumer,
+  organizationIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -816,7 +816,7 @@ describe("create agreement", () => {
       missingCertifiedAttributesError(descriptor.id, consumer.id)
     );
   });
-  it("should throw organizationIsNotTheDelegatedConsumer error when there is an active delegation and the requester is the delegator", async () => {
+  it("should throw organizationIsNotTheDelegateConsumer error when there is an active delegation and the requester is the delegator", async () => {
     const authData = getRandomAuthData();
 
     const eservice = getMockEService(
@@ -849,7 +849,7 @@ describe("create agreement", () => {
         }
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      organizationIsNotTheDelegateConsumer(
         authData.organizationId,
         delegation.id
       )
@@ -888,7 +888,7 @@ describe("create agreement", () => {
       )
     ).rejects.toThrowError(delegationNotFound(delegationId));
   });
-  it("should throw organizationIsNotTheDelegatedConsumer error when the requester is not the delegate if delegationId is provided", async () => {
+  it("should throw organizationIsNotTheDelegateConsumer error when the requester is not the delegate if delegationId is provided", async () => {
     const authData = getRandomAuthData();
     const eservice = getMockEService(
       generateId<EServiceId>(),
@@ -920,7 +920,7 @@ describe("create agreement", () => {
         }
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      organizationIsNotTheDelegateConsumer(
         authData.organizationId,
         delegation.id
       )

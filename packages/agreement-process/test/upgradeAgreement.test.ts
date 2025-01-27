@@ -60,7 +60,7 @@ import {
   missingCertifiedAttributesError,
   noNewerDescriptor,
   organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  organizationIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -921,7 +921,7 @@ describe("upgrade Agreement", () => {
     );
   });
 
-  it("should throw an organizationIsNotTheDelegatedConsumer error when the requester is the consumer but there is an active consumer delegation", async () => {
+  it("should throw an organizationIsNotTheDelegateConsumer error when the requester is the consumer but there is an active consumer delegation", async () => {
     const authData = getRandomAuthData();
     const agreement = {
       ...getMockAgreement(),
@@ -946,7 +946,7 @@ describe("upgrade Agreement", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      organizationIsNotTheDelegateConsumer(
         authData.organizationId,
         delegation.id
       )

@@ -314,7 +314,7 @@ export function organizationIsNotTheDelegateConsumer(
     detail: `Organization ${organizationId} is not allowed to perform the operation because is not the delegate consumer${
       delegationId ? ` of delegation ${delegationId}` : ""
     }`,
-    code: "organizationIsNotTheDelegatedConsumer",
+    code: "organizationIsNotTheDelegateConsumer",
     title: "Organization not allowed",
   });
 }
@@ -337,7 +337,7 @@ export function organizationIsNotTheDelegateProducer(
     detail: `Organization ${organizationId} is not allowed to perform the operation because is not the delegate producer${
       delegationId ? ` of delegation ${delegationId}` : ""
     }`,
-    code: "organizationIsNotTheDelegatedProducer",
+    code: "organizationIsNotTheDelegateProducer",
     title: "Organization not allowed",
   });
 }

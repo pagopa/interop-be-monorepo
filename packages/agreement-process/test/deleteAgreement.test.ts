@@ -23,7 +23,7 @@ import {
   agreementNotFound,
   agreementNotInExpectedState,
   organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  organizationIsNotTheDelegateConsumer,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -177,7 +177,7 @@ describe("delete agreement", () => {
     });
   });
 
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw organizationIsNotTheConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getRandomAuthData();
 
     const agreement = {
@@ -203,7 +203,7 @@ describe("delete agreement", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      organizationIsNotTheDelegateConsumer(
         authData.organizationId,
         delegation.id
       )

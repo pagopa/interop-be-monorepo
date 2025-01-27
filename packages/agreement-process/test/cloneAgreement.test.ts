@@ -43,7 +43,7 @@ import {
   eServiceNotFound,
   missingCertifiedAttributesError,
   organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  organizationIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
@@ -401,7 +401,7 @@ describe("clone agreement", () => {
     );
   });
 
-  it("should throw an organizationIsNotTheDelegatedConsumer error when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw an organizationIsNotTheDelegateConsumer error when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getRandomAuthData();
     const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
     const agreement = getMockAgreement(
@@ -427,7 +427,7 @@ describe("clone agreement", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      organizationIsNotTheDelegateConsumer(
         authData.organizationId,
         delegation.id
       )

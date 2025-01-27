@@ -41,7 +41,7 @@ import {
   agreementNotInExpectedState,
   descriptorNotFound,
   eServiceNotFound,
-  organizationIsNotTheDelegatedProducer,
+  organizationIsNotTheDelegateProducer,
   organizationIsNotTheProducer,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
@@ -424,7 +424,7 @@ describe("reject agreement", () => {
     );
   });
 
-  it("should throw organizationIsNotTheDelegatedProducer when the requester is the producer and there is an active delegation", async () => {
+  it("should throw organizationIsNotTheDelegateProducer when the requester is the producer and there is an active delegation", async () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptorPublished()],
@@ -465,7 +465,7 @@ describe("reject agreement", () => {
         }
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedProducer(
+      organizationIsNotTheDelegateProducer(
         authData.organizationId,
         delegation.id
       )

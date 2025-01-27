@@ -22,7 +22,7 @@ import {
   descriptorNotFound,
   eServiceNotFound,
   organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  organizationIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -101,7 +101,7 @@ describe("Verify Tenant Certified Attributes", () => {
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
     });
-    it("should throw organizationIsNotTheDelegatedConsumer when organizationId is not the delegate", async () => {
+    it("should throw organizationIsNotTheDelegateConsumer when organizationId is not the delegate", async () => {
       const authData = getRandomAuthData();
       const delegation = {
         ...mockDelegation,
@@ -126,7 +126,7 @@ describe("Verify Tenant Certified Attributes", () => {
           }
         )
       ).rejects.toThrowError(
-        organizationIsNotTheDelegatedConsumer(
+        organizationIsNotTheDelegateConsumer(
           authData.organizationId,
           delegation.id
         )

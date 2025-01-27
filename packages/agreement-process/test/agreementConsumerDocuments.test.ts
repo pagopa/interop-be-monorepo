@@ -36,7 +36,7 @@ import {
   agreementNotFound,
   documentChangeNotAllowed,
   organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  organizationIsNotTheDelegateConsumer,
   organizationNotAllowed,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
@@ -528,7 +528,7 @@ describe("agreement consumer document", () => {
       );
     });
 
-    it("should throw an organizationIsNotTheDelegatedConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
+    it("should throw an organizationIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
       const authData = getRandomAuthData();
       const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
       const agreement = getMockAgreement(generateId<EServiceId>(), consumerId);
@@ -559,7 +559,7 @@ describe("agreement consumer document", () => {
       );
 
       await expect(actualConsumerDocument).rejects.toThrowError(
-        organizationIsNotTheDelegatedConsumer(consumerId, delegation.id)
+        organizationIsNotTheDelegateConsumer(consumerId, delegation.id)
       );
     });
 
@@ -741,7 +741,7 @@ describe("agreement consumer document", () => {
       expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
     });
 
-    it("should throw organizationIsNotTheDelegatedConsumer when the requester is the consumer but there is a consumer delegation", async () => {
+    it("should throw organizationIsNotTheDelegateConsumer when the requester is the consumer but there is a consumer delegation", async () => {
       const authData = getRandomAuthData(agreement1.consumerId);
 
       const delegation = getMockDelegation({
@@ -766,7 +766,7 @@ describe("agreement consumer document", () => {
           }
         )
       ).rejects.toThrowError(
-        organizationIsNotTheDelegatedConsumer(
+        organizationIsNotTheDelegateConsumer(
           authData.organizationId,
           delegation.id
         )
