@@ -5,13 +5,7 @@ import {
   getMockEService,
   getMockAgreement,
 } from "pagopa-interop-commons-test/index.js";
-import {
-  EService,
-  Tenant,
-  generateId,
-  EServiceId,
-  agreementState,
-} from "pagopa-interop-models";
+import { EService, Tenant, agreementState } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 import { CompactEService } from "../src/model/domain/models.js";
 import {
