@@ -82,7 +82,9 @@ describe("suspendEServiceTemplateVersion", () => {
       ],
     });
 
-    expect(writtenPayload.eserviceTemplate).toEqual(eserviceTemplateVersion.id);
+    expect(writtenPayload.eserviceTemplateVersionId).toEqual(
+      eserviceTemplateVersion.id
+    );
     expect(writtenPayload.eserviceTemplate).toEqual(expectedEServiceTemplate);
   });
 
