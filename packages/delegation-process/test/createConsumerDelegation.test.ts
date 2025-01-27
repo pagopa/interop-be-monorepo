@@ -611,7 +611,7 @@ describe("create consumer delegation", () => {
     );
   });
 
-  it("should throw an operationForbidden error if Eservice is not delegable", async () => {
+  it("should throw an eserviceNotDelegable error if Eservice is not delegable", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegator = {
