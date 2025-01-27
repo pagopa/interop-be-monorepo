@@ -174,14 +174,12 @@ export const assertEserviceIsDelegable = (eservice: EService): void => {
 
 export const assertNoDelegationRelatedAgreementExists = async (
   consumerId: TenantId,
-  producerId: TenantId,
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<void> => {
   const agreement = await readModelService.getDelegationRelatedAgreement(
     eserviceId,
-    consumerId,
-    producerId
+    consumerId
   );
 
   if (agreement) {

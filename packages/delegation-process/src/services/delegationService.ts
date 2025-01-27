@@ -162,7 +162,6 @@ export function delegationServiceBuilder(
     );
 
     await assertNoDelegationRelatedAgreementExists(
-      delegate.id,
       delegator.id,
       eservice.id,
       readModelService

@@ -582,13 +582,11 @@ export function readModelServiceBuilder(
     },
     async getDelegationRelatedAgreement(
       eserviceId: EServiceId,
-      consumerId: TenantId,
-      producerId: TenantId
+      consumerId: TenantId
     ): Promise<Agreement | null> {
       const data = await agreements.findOne({
         "data.eserviceId": eserviceId,
         "data.consumerId": consumerId,
-        "data.producerId": producerId,
         "data.state": agreementState.active,
       });
 
