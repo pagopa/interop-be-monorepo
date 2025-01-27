@@ -588,7 +588,7 @@ export function readModelServiceBuilder(
         return null;
       }
 
-      const result = Agreement.safeParse(data);
+      const result = Agreement.safeParse(data.data);
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse agreement: ${JSON.stringify(result)}`
