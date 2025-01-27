@@ -1380,12 +1380,11 @@ const getOrganizationRole = async ({
     return ownership.PRODUCER;
   } catch {
     try {
-      const consumerDelegation = await retrievePurposeDelegation(
+      assertRequesterCanActAsConsumer(
         purpose,
-        readModelService
+        authData,
+        await retrievePurposeDelegation(purpose, readModelService)
       );
-
-      assertRequesterCanActAsConsumer(purpose, authData, consumerDelegation);
       return ownership.CONSUMER;
     } catch {
       throw organizationNotAllowed(authData.organizationId);
