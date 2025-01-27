@@ -42,19 +42,19 @@ describe("get agreement eservices", () => {
     tenant3 = getMockTenant();
 
     eservice1 = {
-      ...getMockEService(generateId<EServiceId>(), tenant1.id),
+      ...getMockEService({ producerId: tenant1.id }),
       name: "EService 1 Foo",
     };
     eservice2 = {
-      ...getMockEService(generateId<EServiceId>(), tenant2.id),
+      ...getMockEService({ producerId: tenant2.id }),
       name: "EService 2 Bar",
     };
     eservice3 = {
-      ...getMockEService(generateId<EServiceId>(), tenant3.id),
+      ...getMockEService({ producerId: tenant3.id }),
       name: "EService 3 FooBar",
     };
     eservice4 = {
-      ...getMockEService(generateId<EServiceId>(), tenant3.id),
+      ...getMockEService({ producerId: tenant3.id }),
       name: "EService 4 FooBar",
     };
 
