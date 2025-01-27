@@ -10,12 +10,12 @@ import {
 import {
   operationForbidden,
   generateId,
-  EServiceNameUpdatedV2,
   TenantId,
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
   EServiceTemplate,
   toEServiceTemplateV2,
+  EServiceTemplateNameUpdatedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -29,8 +29,8 @@ import {
   readLastEserviceTemplateEvent,
 } from "./utils.js";
 
-describe("update eService template name on published eservice template", () => {
-  it("should write on event-store for the update of the eService name", async () => {
+describe("updateEServiceTemplateName", () => {
+  it("should write on event-store for the update of the eService template name", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
@@ -67,13 +67,13 @@ describe("update eService template name on published eservice template", () => {
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceNameUpdatedV2,
+      messageType: EServiceTemplateNameUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eservice).toEqual(
+    expect(writtenPayload.eserviceTemplate).toEqual(
       toEServiceTemplateV2(updatedEServiceTemplate)
     );
-    expect(writtenPayload.eservice).toEqual(
+    expect(writtenPayload.eserviceTemplate).toEqual(
       toEServiceTemplateV2(returnedEServiceTemplate)
     );
   });
