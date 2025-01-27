@@ -15353,7 +15353,6 @@ components:
         - description
         - producer
         - isMine
-        - hasCertifiedAttributes
       properties:
         id:
           type: string
@@ -15367,8 +15366,6 @@ components:
         agreement:
           $ref: "#/components/schemas/CompactAgreement"
         isMine:
-          type: boolean
-        hasCertifiedAttributes:
           type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
