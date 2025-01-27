@@ -688,7 +688,7 @@ export function authorizationServiceBuilder(
         throw invalidKey(keySeed.key, "Not an RSA key");
       }
 
-      assertValidateRsaKeyLength(keySeed.key);
+      assertValidateRsaKeyLength(jwk);
 
       const newKey: Key = {
         name: keySeed.name,
@@ -1068,7 +1068,7 @@ export function authorizationServiceBuilder(
         throw invalidKey(keySeed.key, "Not an RSA key");
       }
 
-      assertValidateRsaKeyLength(keySeed.key);
+      assertValidateRsaKeyLength(jwk);
 
       const newKey: Key = {
         name: keySeed.name,

@@ -11,7 +11,7 @@ import {
   UserId,
   generateId,
   invalidKey,
-  invalidKeyLenght,
+  invalidKeyLength,
   notAllowedCertificateException,
   notAllowedPrivateKeyException,
   toClientV2,
@@ -458,7 +458,7 @@ describe("createKeys", () => {
     ).rejects.toThrowError(notAllowedCertificateException());
   });
 
-  it("should throw invalidKeyLenght if the key doesn't have 2048 bites", async () => {
+  it("should throw invalidKeyLength if the key doesn't have 2048 bites", async () => {
     const key = crypto.generateKeyPairSync("rsa", {
       modulusLength: 1024,
     }).publicKey;
@@ -474,6 +474,8 @@ describe("createKeys", () => {
       alg: "",
     };
 
+    const jwk = createJWK(keySeed.key);
+
     const keysSeeds: authorizationApi.KeysSeed = [keySeed];
 
     await addOneClient(mockClient);
@@ -486,6 +488,6 @@ describe("createKeys", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(invalidKeyLenght(keySeed.key));
+    ).rejects.toThrowError(invalidKeyLength(JSON.stringify(jwk)));
   });
 });

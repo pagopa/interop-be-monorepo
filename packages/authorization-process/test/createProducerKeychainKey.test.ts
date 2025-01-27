@@ -11,9 +11,9 @@ import {
   Key,
   ProducerKeychainKeyAddedV2,
   invalidKey,
+  invalidKeyLength,
   toProducerKeychainV2,
   Client,
-  invalidKeyLenght,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -427,7 +427,7 @@ describe("createProducerKeychainKey", () => {
     );
   });
 
-  it("should throw invalidKeyLenght if the key doesn't have 2048 bites", async () => {
+  it("should throw invalidKeyLength if the key doesn't have 2048 bites", async () => {
     const key = crypto.generateKeyPairSync("rsa", {
       modulusLength: 1024,
     }).publicKey;
@@ -443,6 +443,8 @@ describe("createProducerKeychainKey", () => {
       alg: "",
     };
 
+    const jwk = createJWK(keySeed.key);
+
     await addOneProducerKeychain(mockProducerKeychain);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
@@ -453,6 +455,6 @@ describe("createProducerKeychainKey", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(invalidKeyLenght(keySeed.key));
+    ).rejects.toThrowError(invalidKeyLength(JSON.stringify(jwk)));
   });
 });

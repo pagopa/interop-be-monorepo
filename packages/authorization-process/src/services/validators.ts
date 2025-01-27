@@ -1,10 +1,11 @@
+import { JsonWebKey } from "crypto";
 import { userRoles } from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
   CorrelationId,
   EService,
-  invalidKeyLenght,
+  invalidKeyLength,
   ProducerKeychain,
   ProducerKeychainId,
   Purpose,
@@ -129,20 +130,11 @@ export const assertKeyDoesNotAlreadyExist = async (
 };
 
 export function assertValidateRsaKeyLength(
-  base64Key: string,
+  jwk: JsonWebKey,
   minLength: number = 2048
 ): void {
-  const bitLength = getByteLengthFromBase64(base64Key) * 8;
-  // Verifica la lunghezza
-  if (bitLength < minLength) {
-    throw invalidKeyLenght(base64Key);
+  const keyLength = jwk.n && Buffer.from(jwk.n, "base64url").length * 8;
+  if (!keyLength || (keyLength && keyLength < minLength)) {
+    throw invalidKeyLength(JSON.stringify(jwk));
   }
-}
-
-function getByteLengthFromBase64(base64Key: string): number {
-  // remove padding '=' from the end of the base64 string
-  const trimmedBase64 = base64Key.replace(/=+$/, "");
-  const byteLength = (trimmedBase64.length * 3) / 4;
-
-  return Math.floor(byteLength);
 }
