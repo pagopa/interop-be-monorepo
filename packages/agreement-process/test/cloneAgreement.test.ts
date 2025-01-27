@@ -92,11 +92,7 @@ describe("clone agreement", () => {
       [[getMockEServiceAttribute()]],
       [[getMockEServiceAttribute()]]
     );
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+    const eservice = getMockEService({ descriptors: [descriptor] });
 
     const agreementId = generateId<AgreementId>();
 
@@ -235,11 +231,8 @@ describe("clone agreement", () => {
       [[getMockEServiceAttribute()]],
       [[getMockEServiceAttribute()]]
     );
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+
+    const eservice = getMockEService({ descriptors: [descriptor] });
 
     const agreementId = generateId<AgreementId>();
 
@@ -512,11 +505,9 @@ describe("clone agreement", () => {
     const consumerId = authData.organizationId;
 
     const descriptor = getMockDescriptorPublished();
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+
+    const eservice = getMockEService({ descriptors: [descriptor] });
+
     const agreement = {
       ...getMockAgreement(
         eservice.id,
@@ -602,11 +593,8 @@ describe("clone agreement", () => {
     const descriptor = getMockDescriptorPublished(generateId<DescriptorId>(), [
       [invalidCertifiedEserviceAttribute],
     ]);
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+
+    const eservice = getMockEService({ descriptors: [descriptor] });
 
     const agreementId = generateId<AgreementId>();
 
@@ -644,11 +632,8 @@ describe("clone agreement", () => {
     const consumer = getMockTenant(consumerId);
 
     const descriptor = getMockDescriptorPublished();
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+
+    const eservice = getMockEService({ descriptors: [descriptor] });
 
     const agreementId = generateId<AgreementId>();
 
