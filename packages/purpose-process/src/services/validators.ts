@@ -276,14 +276,12 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
       assertRequesterIsProducer(eservice, authData);
     } catch {
       try {
-        const activeProducerDelegation =
-          await readModelService.getActiveProducerDelegationByEserviceId(
-            purpose.eserviceId
-          );
         assertRequesterIsDelegateProducer(
           eservice,
           authData,
-          activeProducerDelegation
+          await readModelService.getActiveProducerDelegationByEserviceId(
+            purpose.eserviceId
+          )
         );
       } catch {
         try {
