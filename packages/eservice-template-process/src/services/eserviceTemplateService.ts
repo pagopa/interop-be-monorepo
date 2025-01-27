@@ -24,7 +24,7 @@ import {
   notValidEServiceTemplateVersionState,
 } from "../model/domain/errors.js";
 import {
-  toCreateEventEServiceTemplateActivated,
+  toCreateEventEServiceTemplateVersionActivated,
   toCreateEventEServiceTemplateVersionSuspended,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
@@ -255,7 +255,7 @@ export function eserviceTemplateServiceBuilder(
         updatedEServiceTemplateVersion
       );
 
-      const event = toCreateEventEServiceTemplateActivated(
+      const event = toCreateEventEServiceTemplateVersionActivated(
         eserviceTemplateId,
         eserviceTemplate.metadata.version,
         eserviceTemplateVersionId,
