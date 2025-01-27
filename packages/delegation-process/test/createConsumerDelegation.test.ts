@@ -684,7 +684,7 @@ describe("create consumer delegation", () => {
     const eservice = getMockEService({
       eserviceId: generateId<EServiceId>(),
       producerId: delegatorId,
-      isDelegable: false,
+      isDelegable: true,
     });
 
     const activeAgreement = getMockAgreement(
