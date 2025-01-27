@@ -15,6 +15,7 @@ import {
 import { match } from "ts-pattern";
 import {
   delegationAlreadyExists,
+  delegationRelatedAgreementExists,
   delegationStampNotFound,
   delegatorAndDelegateSameIdError,
   differentEServiceProducer,
@@ -184,6 +185,10 @@ export const assertNoDelegationRelatedAgreementExists = async (
   );
 
   if (agreement) {
-    throw operationForbidden;
+    throw delegationRelatedAgreementExists(
+      agreement.id,
+      agreement.eserviceId,
+      agreement.consumerId
+    );
   }
 };

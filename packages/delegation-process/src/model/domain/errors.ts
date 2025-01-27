@@ -9,6 +9,7 @@ import {
   DelegationContractId,
   DelegationKind,
   Tenant,
+  AgreementId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -28,6 +29,7 @@ export const errorCodes = {
   delegationContractNotFound: "0013",
   requesterIsNotConsumerDelegate: "0014",
   eserviceNotDelegable: "0015",
+  delegationRelatedAgreementExists: "0016",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -195,6 +197,18 @@ export function eserviceNotDelegable(
   return new ApiError({
     detail: `Eservice ${eserviceId} is not delegable`,
     code: "eserviceNotDelegable",
-    title: "Eservice not delegable",
+    title: "Eservice is not delegable",
+  });
+}
+
+export function delegationRelatedAgreementExists(
+  agreementId: AgreementId,
+  eserviceId: EServiceId,
+  consumerId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Active agreement ${agreementId} for eservice ${eserviceId} and consumer ${consumerId} exists`,
+    code: "delegationRelatedAgreementExists",
+    title: "Active agreement for this eservice and consumer exists",
   });
 }
