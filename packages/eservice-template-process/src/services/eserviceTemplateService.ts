@@ -27,6 +27,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventEServiceTemplateActivated,
+  toCreateEventEServiceTemplateVersionSuspended,
   toCreateEventEServiceTemplateNameUpdated,
   toCreateEventEServiceTemplateSuspended,
 } from "../model/domain/toEvent.js";
@@ -204,7 +205,7 @@ export function eserviceTemplateServiceBuilder(
         updatedEServiceTemplateVersion
       );
 
-      const event = toCreateEventEServiceTemplateSuspended(
+      const event = toCreateEventEServiceTemplateVersionSuspended(
         eserviceTemplateId,
         eserviceTemplate.metadata.version,
         eserviceTemplateVersionId,
