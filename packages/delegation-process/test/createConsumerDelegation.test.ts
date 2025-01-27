@@ -2,6 +2,7 @@ import { fail } from "assert";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockAgreement,
   getMockDelegation,
   getMockEService,
   getMockTenant,
@@ -22,6 +23,7 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import {
   delegationAlreadyExists,
+  delegationRelatedAgreementExists,
   delegatorAndDelegateSameIdError,
   eserviceNotDelegable,
   eserviceNotFound,
@@ -36,6 +38,7 @@ import {
 } from "../src/services/validators.js";
 import { config } from "../src/config/config.js";
 import {
+  addOneAgreement,
   addOneDelegation,
   addOneEservice,
   addOneTenant,
@@ -655,5 +658,65 @@ describe("create consumer delegation", () => {
         }
       )
     ).rejects.toThrowError(eserviceNotDelegable(eservice.id));
+  });
+
+  it("should throw a delegationRelatedAgreementExists error if an agreement exists", async () => {
+    const delegatorId = generateId<TenantId>();
+    const authData = getRandomAuthData(delegatorId);
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "IPA",
+        value: "test",
+      },
+    };
+
+    const delegate = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "DelegatedConsumer" as const,
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
+
+    const eservice = getMockEService({
+      eserviceId: generateId<EServiceId>(),
+      producerId: delegatorId,
+      isDelegable: false,
+    });
+
+    const activeAgreement = getMockAgreement(
+      eservice.id,
+      delegator.id,
+      delegationState.active
+    );
+
+    await addOneTenant(delegator);
+    await addOneTenant(delegate);
+    await addOneEservice(eservice);
+    await addOneAgreement(activeAgreement);
+
+    await expect(
+      delegationService.createConsumerDelegation(
+        {
+          delegateId: delegate.id,
+          eserviceId: eservice.id,
+        },
+        {
+          authData,
+          logger: genericLogger,
+          correlationId: generateId(),
+          serviceName: "DelegationServiceTest",
+        }
+      )
+    ).rejects.toThrowError(
+      delegationRelatedAgreementExists(
+        activeAgreement.id,
+        eservice.id,
+        delegate.id
+      )
+    );
   });
 });
