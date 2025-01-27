@@ -42,7 +42,6 @@ export function toEserviceCatalogProcessQueryParams(
 export function toBffCatalogApiEService(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,
-  requesterTenant: tenantApi.Tenant,
   isRequesterEqProducer: boolean,
   activeDescriptor?: catalogApi.EServiceDescriptor,
   agreement?: agreementApi.Agreement
@@ -56,10 +55,6 @@ export function toBffCatalogApiEService(
       name: producerTenant.name,
     },
     isMine: isRequesterEqProducer,
-    hasCertifiedAttributes: hasCertifiedAttributes(
-      activeDescriptor,
-      requesterTenant
-    ),
   };
 
   return {
