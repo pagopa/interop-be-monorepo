@@ -23,6 +23,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   delegationAlreadyExists,
   delegatorAndDelegateSameIdError,
+  eserviceNotDelegable,
   eserviceNotFound,
   originNotCompliant,
   tenantNotAllowedToDelegation,
@@ -608,5 +609,51 @@ describe("create consumer delegation", () => {
         delegationKind.delegatedConsumer
       )
     );
+  });
+
+  it("should throw an operationForbidden error if Eservice is not delegable", async () => {
+    const delegatorId = generateId<TenantId>();
+    const authData = getRandomAuthData(delegatorId);
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "IPA",
+        value: "test",
+      },
+    };
+
+    const delegate = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "DelegatedConsumer" as const,
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
+
+    const eservice = getMockEService({
+      producerId: delegatorId,
+      isDelegable: false,
+    });
+
+    await addOneTenant(delegator);
+    await addOneTenant(delegate);
+    await addOneEservice(eservice);
+
+    await expect(
+      delegationService.createConsumerDelegation(
+        {
+          delegateId: delegate.id,
+          eserviceId: eservice.id,
+        },
+        {
+          authData,
+          logger: genericLogger,
+          correlationId: generateId(),
+          serviceName: "DelegationServiceTest",
+        }
+      )
+    ).rejects.toThrowError(eserviceNotDelegable(eservice.id));
   });
 });
