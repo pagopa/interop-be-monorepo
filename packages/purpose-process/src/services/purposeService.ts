@@ -9,6 +9,7 @@ import {
   eventRepository,
   formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
+  getIpaCode,
   getLatestVersionFormRules,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
@@ -22,12 +23,10 @@ import {
   Purpose,
   PurposeId,
   TenantKind,
-  Ownership,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   PurposeVersionId,
-  ownership,
   purposeEventToBinaryData,
   purposeVersionState,
   PurposeRiskAnalysisForm,
@@ -37,11 +36,12 @@ import {
   unsafeBrandId,
   generateId,
   Agreement,
-  PurposeDocumentEServiceInfo,
   RiskAnalysisId,
   RiskAnalysis,
   CorrelationId,
   delegationKind,
+  Delegation,
+  DelegationKind,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -88,6 +88,11 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
+import {
+  ownership,
+  Ownership,
+  PurposeDocumentEServiceInfo,
+} from "../model/domain/models.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
@@ -218,6 +223,14 @@ async function retrieveTenantKind(
   return tenant.kind;
 }
 
+async function retrieveActiveDelegation(
+  eserviceId: EServiceId,
+  delegationKind: DelegationKind,
+  readModelService: ReadModelService
+): Promise<Delegation | undefined> {
+  return readModelService.getActiveDelegation(eserviceId, delegationKind);
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   dbInstance: DB,
@@ -241,11 +254,18 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      const activeProducerDelegation =
+        await readModelService.getActiveDelegation(
+          purpose.data.eserviceId,
+          delegationKind.delegatedProducer
+        );
+
       return authorizeRiskAnalysisForm({
         purpose: purpose.data,
         producerId: eservice.producerId,
         organizationId,
         tenantKind: await retrieveTenantKind(organizationId, readModelService),
+        activeProducerDelegation,
       });
     },
     async getRiskAnalysisDocument({
@@ -615,18 +635,27 @@ export function purposeServiceBuilder(
           if (eservice === undefined) {
             throw eserviceNotFound(purpose.eserviceId);
           }
+
+          const activeProducerDelegation = await retrieveActiveDelegation(
+            eservice.id,
+            delegationKind.delegatedProducer,
+            readModelService
+          );
+
           return {
             purpose,
             eservice,
+            activeProducerDelegation,
           };
         })
       );
 
       const purposesToReturn = mappingPurposeEservice.map(
-        ({ purpose, eservice }) => {
+        ({ purpose, eservice, activeProducerDelegation }) => {
           const isProducerOrConsumer =
             organizationId === purpose.consumerId ||
-            organizationId === eservice.producerId;
+            organizationId === eservice.producerId ||
+            organizationId === activeProducerDelegation?.delegateId;
 
           return {
             ...purpose,
@@ -780,7 +809,6 @@ export function purposeServiceBuilder(
 
       return newPurposeVersion;
     },
-
     async activatePurposeVersion({
       purposeId,
       versionId,
@@ -1005,7 +1033,6 @@ export function purposeServiceBuilder(
       await repository.createEvent(event);
       return updatedPurposeVersion;
     },
-
     async createPurpose(
       purposeSeed: purposeApi.PurposeSeed,
       organizationId: TenantId,
@@ -1321,13 +1348,19 @@ const authorizeRiskAnalysisForm = ({
   producerId,
   organizationId,
   tenantKind,
+  activeProducerDelegation,
 }: {
   purpose: Purpose;
   producerId: TenantId;
   organizationId: TenantId;
   tenantKind: TenantKind;
+  activeProducerDelegation: Delegation | undefined;
 }): { purpose: Purpose; isRiskAnalysisValid: boolean } => {
-  if (organizationId === purpose.consumerId || organizationId === producerId) {
+  if (
+    organizationId === purpose.consumerId ||
+    organizationId === producerId ||
+    organizationId === activeProducerDelegation?.delegateId
+  ) {
     if (purposeIsDraft(purpose)) {
       const isRiskAnalysisValid = isRiskAnalysisFormValid(
         purpose.riskAnalysisForm,
@@ -1532,20 +1565,29 @@ async function generateRiskAnalysisDocument({
   pdfGenerator: PDFGenerator;
   logger: Logger;
 }): Promise<PurposeVersionDocument> {
-  const [producer, consumer] = await Promise.all([
+  const [producer, consumer, producerDelegation] = await Promise.all([
     retrieveTenant(eservice.producerId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
+    readModelService.getActiveDelegation(
+      eservice.id,
+      delegationKind.delegatedProducer
+    ),
   ]);
+
+  const producerDelegate =
+    producerDelegation &&
+    (await retrieveTenant(producerDelegation.delegateId, readModelService));
 
   const eserviceInfo: PurposeDocumentEServiceInfo = {
     name: eservice.name,
     mode: eservice.mode,
     producerName: producer.name,
-    producerOrigin: producer.externalId.origin,
-    producerIPACode: producer.externalId.value,
+    producerIpaCode: getIpaCode(producer),
     consumerName: consumer.name,
-    consumerOrigin: consumer.externalId.origin,
-    consumerIPACode: consumer.externalId.value,
+    consumerIpaCode: getIpaCode(consumer),
+    producerDelegationId: producerDelegation?.id,
+    producerDelegateName: producerDelegate?.name,
+    producerDelegateIpaCode: producerDelegate?.externalId.value,
   };
 
   function getTenantKind(tenant: Tenant): TenantKind {

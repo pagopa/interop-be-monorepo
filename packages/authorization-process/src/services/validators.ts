@@ -42,12 +42,11 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   correlationId: CorrelationId;
 }): Promise<void> => {
   const users =
-    await selfcareV2InstitutionClient.getInstitutionProductUsersUsingGET({
+    await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
       params: { institutionId: selfcareId },
       queries: {
-        userIdForAuth: requesterUserId,
         userId: userIdToCheck,
-        productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
+        productRoles: [userRoles.ADMIN_ROLE, userRoles.SECURITY_ROLE].join(","),
       },
       headers: {
         "X-Correlation-Id": correlationId,

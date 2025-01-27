@@ -892,33 +892,42 @@ describe("activate agreement", () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
       const authData = getRandomAuthData();
-      const esevice = {
+      const eservice = {
         ...getMockEService(),
         producerId: producer.id,
         consumerId: consumer.id,
         descriptors: [getMockDescriptorPublished()],
       };
+      const mockAgreement = getMockAgreement(eservice.id);
       const agreement: Agreement = {
-        ...getMockAgreement(esevice.id),
+        ...getMockAgreement(eservice.id),
         state: agreementState.suspended,
-        descriptorId: esevice.descriptors[0].id,
+        descriptorId: eservice.descriptors[0].id,
         producerId: producer.id,
         consumerId: consumer.id,
         suspendedAt: new Date(),
         suspendedByConsumer: false,
-        suspendedByProducer: false,
+        suspendedByProducer: true,
         suspendedByPlatform: false,
+        stamps: {
+          ...mockAgreement.stamps,
+          suspensionByProducer: {
+            who: authData.userId,
+            when: new Date(),
+          },
+        },
       };
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedProducer,
         eserviceId: agreement.eserviceId,
         delegateId: authData.organizationId,
+        delegatorId: eservice.producerId,
         state: delegationState.active,
       });
 
       await addOneTenant(consumer);
       await addOneTenant(producer);
-      await addOneEService(esevice);
+      await addOneEService(eservice);
       await addOneAgreement(agreement);
       await addOneDelegation(delegation);
 
@@ -940,6 +949,11 @@ describe("activate agreement", () => {
         declaredAttributes: actualAgreement.declaredAttributes,
         verifiedAttributes: actualAgreement.verifiedAttributes,
         suspendedAt: undefined,
+        suspendedByProducer: false,
+        stamps: {
+          ...agreement.stamps,
+          suspensionByProducer: undefined,
+        },
       };
 
       expect(actualAgreement).toEqual(expectedAgreement);

@@ -26,6 +26,7 @@ import {
   invalidZipStructure,
   missingDescriptorInClonedEservice,
   noDescriptorInEservice,
+  tenantNotFound,
 } from "../model/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import {
@@ -52,73 +53,93 @@ import {
   toBffCatalogApiEserviceRiskAnalysisSeed,
   toCompactProducerDescriptor,
 } from "../api/catalogApiConverter.js";
-import {
-  catalogApiDescriptorState,
-  ConfigurationEservice,
-} from "../model/types.js";
+import { ConfigurationEservice } from "../model/types.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import {
   assertNotDelegatedEservice,
   assertRequesterIsProducer,
+  assertRequesterCanActAsProducer,
+  isInvalidDescriptor,
 } from "./validators.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
-const enhanceCatalogEService =
-  (
-    tenantProcessClient: TenantProcessClient,
-    agreementProcessClient: AgreementProcessClient,
-    headers: Headers,
-    requesterId: TenantId
-  ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
-  async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
-    const producerTenant = await tenantProcessClient.tenant.getTenant({
-      headers,
-      params: {
-        id: eservice.producerId,
-      },
-    });
+export const enhanceCatalogEservices = async (
+  eservices: catalogApi.EService[],
+  tenantProcessClient: TenantProcessClient,
+  agreementProcessClient: AgreementProcessClient,
+  headers: Headers,
+  requesterId: TenantId
+): Promise<bffApi.CatalogEService[]> => {
+  const tenantsIds = new Set([
+    ...eservices.map((e) => e.producerId),
+    requesterId,
+  ] as TenantId[]);
 
-    const requesterTenant: tenantApi.Tenant =
-      requesterId !== eservice.producerId
-        ? await tenantProcessClient.tenant.getTenant({
+  const cachedTenants = new Map(
+    await Promise.all(
+      Array.from(tenantsIds).map(
+        async (tenantId): Promise<[TenantId, tenantApi.Tenant]> => [
+          tenantId,
+          await tenantProcessClient.tenant.getTenant({
             headers,
-            params: {
-              id: requesterId,
-            },
-          })
-        : producerTenant;
+            params: { id: tenantId },
+          }),
+        ]
+      )
+    )
+  );
 
-    const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
-
-    const latestAgreement = await getLatestAgreement(
-      agreementProcessClient,
-      requesterId,
-      eservice,
-      headers
-    );
-
-    const isRequesterEqProducer = requesterId === eservice.producerId;
-
-    return toBffCatalogApiEService(
-      eservice,
-      producerTenant,
-      requesterTenant,
-      isRequesterEqProducer,
-      latestActiveDescriptor,
-      latestAgreement
-    );
+  const getCachedTenant = (tenantId: TenantId): tenantApi.Tenant => {
+    const tenant = cachedTenants.get(tenantId);
+    if (!tenant) {
+      throw tenantNotFound(tenantId);
+    }
+    return tenant;
   };
+  const enhanceEService =
+    (
+      agreementProcessClient: AgreementProcessClient,
+      headers: Headers,
+      requesterId: TenantId
+    ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
+    async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
+      const producerTenant = getCachedTenant(eservice.producerId as TenantId);
+      const requesterTenant = getCachedTenant(requesterId);
+
+      const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
+
+      const latestAgreement = await getLatestAgreement(
+        agreementProcessClient,
+        requesterId,
+        eservice,
+        headers
+      );
+
+      const isRequesterEqProducer = requesterId === eservice.producerId;
+
+      return toBffCatalogApiEService(
+        eservice,
+        producerTenant,
+        requesterTenant,
+        isRequesterEqProducer,
+        latestActiveDescriptor,
+        latestAgreement
+      );
+    };
+
+  return await Promise.all(
+    eservices.map(enhanceEService(agreementProcessClient, headers, requesterId))
+  );
+};
 
 const enhanceProducerEService = (
   eservice: catalogApi.EService,
   requesterId: TenantId
 ): bffApi.ProducerEService => {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
-  const draftDescriptor = eservice.descriptors.find(
-    (d) => d.state === catalogApiDescriptorState.DRAFT
-  );
+  const draftDescriptor = eservice.descriptors.find(isInvalidDescriptor);
 
   const isRequesterDelegateProducer = requesterId !== eservice.producerId;
 
@@ -223,15 +244,12 @@ export function catalogServiceBuilder(
           queries,
         });
 
-      const results = await Promise.all(
-        eservicesResponse.results.map(
-          enhanceCatalogEService(
-            tenantProcessClient,
-            agreementProcessClient,
-            headers,
-            requesterId
-          )
-        )
+      const results = await enhanceCatalogEservices(
+        eservicesResponse.results,
+        tenantProcessClient,
+        agreementProcessClient,
+        headers,
+        requesterId
       );
       const response: bffApi.CatalogEServices = {
         results,
@@ -261,7 +279,12 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      assertRequesterIsProducer(requesterId, eservice);
+      await assertRequesterCanActAsProducer(
+        delegationProcessClient,
+        headers,
+        requesterId,
+        eservice
+      );
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
 
@@ -278,10 +301,10 @@ export function catalogServiceBuilder(
         descriptor
       );
 
-      const requesterTenant = await tenantProcessClient.tenant.getTenant({
+      const producerTenant = await tenantProcessClient.tenant.getTenant({
         headers,
         params: {
-          id: requesterId,
+          id: eservice.producerId,
         },
       });
 
@@ -302,8 +325,9 @@ export function catalogServiceBuilder(
         attributes: descriptorAttributes,
         eservice: toBffCatalogApiProducerDescriptorEService(
           eservice,
-          requesterTenant
+          producerTenant
         ),
+        rejectionReasons: descriptor.rejectionReasons,
       };
     },
     getProducerEServiceDetails: async (
@@ -323,7 +347,12 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      assertRequesterIsProducer(requesterId, eservice);
+      await assertRequesterCanActAsProducer(
+        delegationProcessClient,
+        headers,
+        requesterId,
+        eservice
+      );
 
       return {
         id: eservice.id,
@@ -340,7 +369,7 @@ export function catalogServiceBuilder(
     updateEServiceDescription: async (
       { headers, logger }: WithLogger<BffAppContext>,
       eServiceId: EServiceId,
-      updateSeed: bffApi.EServiceDescriptionSeed
+      updateSeed: bffApi.EServiceDescriptionUpdateSeed
     ): Promise<bffApi.CreatedResource> => {
       logger.info(
         `Updating EService Description for eserviceId = ${eServiceId}`
@@ -356,6 +385,19 @@ export function catalogServiceBuilder(
       return {
         id: updatedEservice.id,
       };
+    },
+    updateEServiceName: async (
+      { headers, logger }: WithLogger<BffAppContext>,
+      eServiceId: EServiceId,
+      nameUpdateSeed: bffApi.EServiceNameUpdateSeed
+    ): Promise<void> => {
+      logger.info(`Updating EService name of eservice with id = ${eServiceId}`);
+      await catalogProcessClient.updateEServiceName(nameUpdateSeed, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
     },
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
@@ -1249,6 +1291,23 @@ export function catalogServiceBuilder(
     ): Promise<void> => {
       logger.info(`Rejecting e-service ${eServiceId} version ${descriptorId}`);
       await catalogProcessClient.rejectDelegatedEServiceDescriptor(body, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+    updateDescriptorAttributes: async (
+      eServiceId: EServiceId,
+      descriptorId: EServiceId,
+      body: bffApi.DescriptorAttributesSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Updating attributes of Descriptor ${descriptorId} for EService ${eServiceId}`
+      );
+      await catalogProcessClient.updateDescriptorAttributes(body, {
         headers,
         params: {
           eServiceId,

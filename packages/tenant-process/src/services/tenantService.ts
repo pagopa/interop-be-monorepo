@@ -35,11 +35,7 @@ import {
   TenantFeatureType,
   AgreementId,
   Agreement,
-  delegationKind,
-  Delegation,
-  DelegationKind,
   AgreementState,
-  EServiceId,
   DelegationId,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
@@ -83,6 +79,7 @@ import {
   verifiedAttributeSelfRevocationNotAllowed,
   agreementNotFound,
   notValidMailAddress,
+  verifiedAttributeSelfVerificationNotAllowed,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -96,10 +93,10 @@ import {
   assertRequesterAllowed,
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
-  assertRequesterIPAOrigin,
   assertDelegatedProducerFeatureNotAssigned,
   getTenantKind,
   assertDelegatedProducerFeatureAssigned,
+  assertRequesterDelegationsAllowedOrigin,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -173,22 +170,6 @@ async function retrieveAgreement(
     throw agreementNotFound(agreementId);
   }
   return agreement;
-}
-
-async function retrieveActiveDelegation(
-  {
-    eserviceId,
-    kind,
-  }: {
-    eserviceId: EServiceId;
-    kind: DelegationKind;
-  },
-  readModelService: ReadModelService
-): Promise<Delegation | undefined> {
-  return await readModelService.getActiveDelegation({
-    eserviceId,
-    kind,
-  });
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -700,24 +681,23 @@ export function tenantServiceBuilder(
     async verifyVerifiedAttribute(
       {
         tenantId,
-        tenantAttributeSeed,
+        attributeId,
+        agreementId,
+        expirationDate,
         organizationId,
         correlationId,
       }: {
         tenantId: TenantId;
-        tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed;
+        attributeId: AttributeId;
+        agreementId: AgreementId;
+        expirationDate?: string;
         organizationId: TenantId;
         correlationId: CorrelationId;
       },
       logger: Logger
     ): Promise<Tenant> {
       logger.info(
-        `Verifying attribute ${tenantAttributeSeed.id} to tenant ${tenantId} for agreement ${tenantAttributeSeed.agreementId}`
-      );
-
-      const attributeId = unsafeBrandId<AttributeId>(tenantAttributeSeed.id);
-      const agreementId = unsafeBrandId<AgreementId>(
-        tenantAttributeSeed.agreementId
+        `Verifying attribute ${attributeId} to tenant ${tenantId} for agreement ${agreementId}`
       );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -729,30 +709,30 @@ export function tenantServiceBuilder(
         agreementState.active,
         agreementState.suspended,
       ];
+
       if (!allowedStatuses.includes(agreement.state)) {
         throw error;
       }
 
-      const producerDelegation = await retrieveActiveDelegation(
-        {
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedProducer,
-        },
-        readModelService
-      );
-
-      const delegateProducerId = producerDelegation?.delegateId;
-      const producerDelegator = producerDelegation?.delegatorId;
+      const producerDelegation =
+        await readModelService.getActiveProducerDelegationByEservice(
+          agreement.eserviceId
+        );
 
       await assertVerifiedAttributeOperationAllowed({
         requesterId: organizationId,
-        delegateProducerId,
-        consumerId: tenantId,
+        producerDelegation,
         attributeId,
         agreement,
         readModelService,
         error,
       });
+
+      const verifierId = agreement.producerId;
+
+      if (verifierId === tenantId) {
+        throw verifiedAttributeSelfVerificationNotAllowed();
+      }
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
@@ -773,15 +753,16 @@ export function tenantServiceBuilder(
           ? reassignVerifiedAttribute(
               targetTenant.data.attributes,
               verifiedTenantAttribute,
-              producerDelegator ?? organizationId,
+              verifierId,
               producerDelegation?.id,
-              tenantAttributeSeed
+              expirationDate
             )
           : assignVerifiedAttribute(
               targetTenant.data.attributes,
-              producerDelegator ?? organizationId,
+              verifierId,
               producerDelegation?.id,
-              tenantAttributeSeed
+              attributeId,
+              expirationDate
             ),
 
         updatedAt: new Date(),
@@ -791,7 +772,7 @@ export function tenantServiceBuilder(
         toCreateEventTenantVerifiedAttributeAssigned(
           targetTenant.metadata.version,
           updatedTenant,
-          unsafeBrandId(tenantAttributeSeed.id),
+          attributeId,
           correlationId
         )
       );
@@ -814,10 +795,6 @@ export function tenantServiceBuilder(
         `Revoking verified attribute ${attributeId} to tenant ${tenantId}`
       );
 
-      if (authData.organizationId === tenantId) {
-        throw verifiedAttributeSelfRevocationNotAllowed();
-      }
-
       const targetTenant = await retrieveTenant(tenantId, readModelService);
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
@@ -828,30 +805,30 @@ export function tenantServiceBuilder(
         agreementState.active,
         agreementState.suspended,
       ];
+
       if (!allowedStatuses.includes(agreement.state)) {
         throw error;
       }
 
-      const producerDelegation = await retrieveActiveDelegation(
-        {
-          eserviceId: agreement.eserviceId,
-          kind: delegationKind.delegatedProducer,
-        },
-        readModelService
-      );
-
-      const delegateProducerId = producerDelegation?.delegateId;
-      const producerDelegator = producerDelegation?.delegatorId;
+      const producerDelegation =
+        await readModelService.getActiveProducerDelegationByEservice(
+          agreement.eserviceId
+        );
 
       await assertVerifiedAttributeOperationAllowed({
         requesterId: authData.organizationId,
-        delegateProducerId,
-        consumerId: tenantId,
+        producerDelegation,
         attributeId,
         agreement,
         readModelService,
         error,
       });
+
+      const revokerId = agreement.producerId;
+
+      if (revokerId === tenantId) {
+        throw verifiedAttributeSelfRevocationNotAllowed();
+      }
 
       const verifiedTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is VerifiedTenantAttribute =>
@@ -863,7 +840,7 @@ export function tenantServiceBuilder(
       }
 
       const verifier = verifiedTenantAttribute.verifiedBy.find(
-        (a) => a.id === authData.organizationId
+        (a) => a.id === revokerId
       );
 
       if (!verifier) {
@@ -871,15 +848,11 @@ export function tenantServiceBuilder(
       }
 
       const isInRevokedBy = verifiedTenantAttribute.revokedBy.some(
-        (a) => a.id === authData.organizationId
+        (a) => a.id === revokerId
       );
 
       if (isInRevokedBy) {
-        throw attributeAlreadyRevoked(
-          tenantId,
-          authData.organizationId,
-          attributeId
-        );
+        throw attributeAlreadyRevoked(tenantId, revokerId, attributeId);
       }
 
       const updatedTenant: Tenant = {
@@ -890,13 +863,13 @@ export function tenantServiceBuilder(
             ? ({
                 ...verifiedTenantAttribute,
                 verifiedBy: verifiedTenantAttribute.verifiedBy.filter(
-                  (v) => v.id !== authData.organizationId
+                  (v) => v.id !== revokerId
                 ),
                 revokedBy: [
                   ...verifiedTenantAttribute.revokedBy,
                   {
                     ...verifier,
-                    id: producerDelegator ?? verifier.id,
+                    id: revokerId,
                     delegationId: producerDelegation?.id,
                     revocationDate: new Date(),
                   },
@@ -905,6 +878,7 @@ export function tenantServiceBuilder(
             : attr
         ),
       };
+
       await repository.createEvent(
         toCreateEventTenantVerifiedAttributeRevoked(
           targetTenant.metadata.version,
@@ -913,6 +887,7 @@ export function tenantServiceBuilder(
           correlationId
         )
       );
+
       return updatedTenant;
     },
 
@@ -1720,7 +1695,7 @@ export function tenantServiceBuilder(
         `Assigning delegated producer feature to tenant ${organizationId}`
       );
 
-      assertRequesterIPAOrigin(authData);
+      assertRequesterDelegationsAllowedOrigin(authData);
 
       const requesterTenant = await retrieveTenant(
         organizationId,
@@ -1761,7 +1736,7 @@ export function tenantServiceBuilder(
         `Removing delegated producer feature to tenant ${organizationId}`
       );
 
-      assertRequesterIPAOrigin(authData);
+      assertRequesterDelegationsAllowedOrigin(authData);
 
       const requesterTenant = await retrieveTenant(
         organizationId,
@@ -1905,12 +1880,13 @@ function assignVerifiedAttribute(
   attributes: TenantAttribute[],
   organizationId: TenantId,
   producerDelegationId: DelegationId | undefined,
-  tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed
+  attributeId: AttributeId,
+  expirationDate: string | undefined
 ): TenantAttribute[] {
   return [
     ...attributes,
     {
-      id: unsafeBrandId(tenantAttributeSeed.id),
+      id: attributeId,
       type: tenantAttributeType.VERIFIED,
       assignmentTimestamp: new Date(),
       verifiedBy: [
@@ -1918,12 +1894,8 @@ function assignVerifiedAttribute(
           id: organizationId,
           delegationId: producerDelegationId,
           verificationDate: new Date(),
-          expirationDate: tenantAttributeSeed.expirationDate
-            ? new Date(tenantAttributeSeed.expirationDate)
-            : undefined,
-          extensionDate: tenantAttributeSeed.expirationDate
-            ? new Date(tenantAttributeSeed.expirationDate)
-            : undefined,
+          expirationDate: expirationDate ? new Date(expirationDate) : undefined,
+          extensionDate: expirationDate ? new Date(expirationDate) : undefined,
         },
       ],
       revokedBy: [],
@@ -1936,7 +1908,7 @@ function reassignVerifiedAttribute(
   verifiedTenantAttribute: VerifiedTenantAttribute,
   organizationId: TenantId,
   producerDelegationId: DelegationId | undefined,
-  tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed
+  expirationDate: string | undefined
 ): TenantAttribute[] {
   return attributes.map((attr) =>
     attr.id === verifiedTenantAttribute.id
@@ -1946,7 +1918,7 @@ function reassignVerifiedAttribute(
             verifiedTenantAttribute.verifiedBy,
             organizationId,
             producerDelegationId,
-            tenantAttributeSeed.expirationDate
+            expirationDate
           ),
           revokedBy: verifiedTenantAttribute.revokedBy.filter(
             (i) => i.id !== organizationId

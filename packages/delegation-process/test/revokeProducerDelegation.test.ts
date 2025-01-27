@@ -135,7 +135,7 @@ describe("revoke producer delegation", () => {
       createdAt: currentExecutionTime,
       name: expectedContractName,
       path: `${config.delegationDocumentPath}/${existentDelegation.id}/${expectedContractId}/${expectedContractName}`,
-      prettyName: "Revoca della delega",
+      prettyName: `Revoca_Delega_${eservice.name}`,
     };
 
     expect(
@@ -173,9 +173,9 @@ describe("revoke producer delegation", () => {
         todayTime: timeAtRomeZone(currentExecutionTime),
         delegationId: revokedDelegationWithoutContract.id,
         delegatorName: delegator.name,
-        delegatorCode: delegator.externalId.value,
+        delegatorIpaCode: delegator.externalId.value,
         delegateName: delegate.name,
-        delegateCode: delegate.externalId.value,
+        delegateIpaCode: delegate.externalId.value,
         eserviceId: eservice.id,
         eserviceName: eservice.name,
         submitterId: revokedDelegationWithoutContract.stamps.submission.who,

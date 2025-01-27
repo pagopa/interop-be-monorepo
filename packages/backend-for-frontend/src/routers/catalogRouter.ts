@@ -587,7 +587,7 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/eservices/:eServiceId/update", async (req, res) => {
+    .post("/eservices/:eServiceId/description/update", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const id = await catalogService.updateEServiceDescription(
@@ -603,6 +603,26 @@ const catalogRouter = (
           ctx.logger,
           ctx.correlationId,
           `Error updating description of eservice with Id: ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/eservices/:eServiceId/name/update", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.updateEServiceName(
+          ctx,
+          unsafeBrandId(req.params.eServiceId),
+          req.body
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error updating name of eservice with Id: ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -789,6 +809,30 @@ const catalogRouter = (
             ctx.logger,
             ctx.correlationId,
             `Error rejecting eService ${req.params.eServiceId} version ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/attributes/update",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.updateDescriptorAttributes(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error updating attributes for eService ${req.params.eServiceId} descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

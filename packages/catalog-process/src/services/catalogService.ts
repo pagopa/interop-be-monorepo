@@ -23,6 +23,7 @@ import {
   DescriptorState,
   Document,
   EService,
+  EServiceAttribute,
   EServiceDocumentId,
   EServiceId,
   EserviceAttributes,
@@ -53,6 +54,7 @@ import {
 import {
   attributeNotFound,
   audienceCannotBeEmpty,
+  descriptorAttributeGroupSupersetMissingInAttributesSeed,
   eServiceDescriptorNotFound,
   eServiceDescriptorWithoutInterface,
   eServiceDocumentNotFound,
@@ -60,6 +62,7 @@ import {
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
   eserviceWithoutValidDescriptors,
+  inconsistentAttributesSeedGroupsCount,
   inconsistentDailyCalls,
   interfaceAlreadyExists,
   notValidDescriptorState,
@@ -67,6 +70,7 @@ import {
   prettyNameDuplicate,
   riskAnalysisDuplicated,
   tenantNotFound,
+  unchangedAttributes,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -76,12 +80,13 @@ import {
   toCreateEventEServiceDescriptionUpdated,
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
+  toCreateEventEServiceDescriptorApprovedByDelegator,
   toCreateEventEServiceDescriptorArchived,
-  toCreateEventEServiceDescriptorDelegateSubmitted,
-  toCreateEventEServiceDescriptorDelegatorApproved,
-  toCreateEventEServiceDescriptorDelegatorRejected,
+  toCreateEventEServiceDescriptorAttributesUpdated,
   toCreateEventEServiceDescriptorPublished,
   toCreateEventEServiceDescriptorQuotasUpdated,
+  toCreateEventEServiceDescriptorRejectedByDelegator,
+  toCreateEventEServiceDescriptorSubmittedByDelegate,
   toCreateEventEServiceDescriptorSuspended,
   toCreateEventEServiceDocumentAdded,
   toCreateEventEServiceDocumentDeleted,
@@ -91,6 +96,7 @@ import {
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
   toCreateEventEServiceInterfaceUpdated,
+  toCreateEventEServiceNameUpdated,
   toCreateEventEServiceRiskAnalysisAdded,
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
@@ -109,6 +115,10 @@ import {
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
   assertTenantKindExists,
+  descriptorStatesNotAllowingDocumentOperations,
+  isActiveDescriptor,
+  isDescriptorUpdatable,
+  isNotActiveDescriptor,
   validateRiskAnalysisSchemaOrThrow,
 } from "./validators.js";
 
@@ -523,6 +533,7 @@ export function catalogServiceBuilder(
         archivedAt: undefined,
         createdAt: creationDate,
         attributes: { certified: [], declared: [], verified: [] },
+        rejectionReasons: undefined,
       };
 
       const eserviceWithDescriptor: EService = {
@@ -702,12 +713,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (
-        descriptor.state !== descriptorState.draft &&
-        descriptor.state !== descriptorState.deprecated &&
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended
-      ) {
+      if (descriptorStatesNotAllowingDocumentOperations(descriptor)) {
         throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
@@ -869,12 +875,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (
-        descriptor.state !== descriptorState.draft &&
-        descriptor.state !== descriptorState.deprecated &&
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended
-      ) {
+      if (descriptorStatesNotAllowingDocumentOperations(descriptor)) {
         throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
@@ -996,6 +997,7 @@ export function catalogServiceBuilder(
         archivedAt: undefined,
         createdAt: new Date(),
         attributes: parsedAttributes,
+        rejectionReasons: undefined,
       };
 
       const newEservice: EService = {
@@ -1074,6 +1076,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
+      // Descriptor in state WaitingForApproval can be deleted
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(descriptorId, descriptor.state);
       }
@@ -1130,6 +1133,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
+      //  Descriptor in state WaitingForApproval can be updated
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(
           descriptorId,
@@ -1197,6 +1201,7 @@ export function catalogServiceBuilder(
       assertRequesterCanPublish(producerDelegation, eservice.data, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
+      // Descriptor in state WaitingForApproval can be published
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(
           descriptor.id,
@@ -1227,7 +1232,7 @@ export function catalogServiceBuilder(
           updateDescriptorState(descriptor, descriptorState.waitingForApproval)
         );
         await repository.createEvent(
-          toCreateEventEServiceDescriptorDelegateSubmitted(
+          toCreateEventEServiceDescriptorSubmittedByDelegate(
             eservice.metadata.version,
             descriptor.id,
             eserviceWithWaitingForApprovalDescriptor,
@@ -1776,10 +1781,7 @@ export function catalogServiceBuilder(
       );
 
       const hasValidDescriptor = eservice.data.descriptors.some(
-        (descriptor) =>
-          descriptor.state !== descriptorState.draft &&
-          descriptor.state !== descriptorState.waitingForApproval &&
-          descriptor.state !== descriptorState.archived
+        isDescriptorUpdatable
       );
       if (!hasValidDescriptor) {
         throw eserviceWithoutValidDescriptors(eserviceId);
@@ -1792,6 +1794,54 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(
         toCreateEventEServiceDescriptionUpdated(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+      return updatedEservice;
+    },
+    async updateEServiceName(
+      eserviceId: EServiceId,
+      name: string,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Updating name of EService ${eserviceId}`);
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      if (
+        eservice.data.descriptors.every(
+          (descriptor) =>
+            descriptor.state === descriptorState.draft ||
+            descriptor.state === descriptorState.archived
+        )
+      ) {
+        throw eserviceWithoutValidDescriptors(eserviceId);
+      }
+
+      if (name !== eservice.data.name) {
+        const eserviceWithSameName =
+          await readModelService.getEServiceByNameAndProducerId({
+            name,
+            producerId: eservice.data.producerId,
+          });
+        if (eserviceWithSameName !== undefined) {
+          throw eServiceDuplicate(name);
+        }
+      }
+      const updatedEservice: EService = {
+        ...eservice.data,
+        name,
+      };
+      await repository.createEvent(
+        toCreateEventEServiceNameUpdated(
           eservice.metadata.version,
           updatedEservice,
           correlationId
@@ -1826,7 +1876,7 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(
-        toCreateEventEServiceDescriptorDelegatorApproved(
+        toCreateEventEServiceDescriptorApprovedByDelegator(
           eservice.metadata.version,
           descriptor.id,
           updatedEService,
@@ -1876,7 +1926,7 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(
-        toCreateEventEServiceDescriptorDelegatorRejected(
+        toCreateEventEServiceDescriptorRejectedByDelegator(
           eservice.metadata.version,
           descriptor.id,
           updatedEService,
@@ -1884,35 +1934,137 @@ export function catalogServiceBuilder(
         )
       );
     },
+    async updateDescriptorAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.AttributesSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(
+        `Updating attributes of Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eserviceId,
+        authData,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended
+      ) {
+        throw notValidDescriptorState(descriptorId, descriptor.state);
+      }
+
+      /**
+       * In order for the descriptor attributes to be updatable,
+       * each attribute group contained in the seed must be a superset
+       * of the corresponding attribute group in the descriptor,
+       * meaning that each attribute group in the seed must contain all the attributes
+       * of his corresponding group in the descriptor, plus, optionally, some ones.
+       */
+      function validateAndRetrieveNewAttributes(
+        attributesDescriptor: EServiceAttribute[][],
+        attributesSeed: catalogApi.Attribute[][]
+      ): string[] {
+        // If the seed has a different number of attribute groups than the descriptor, it's invalid
+        if (attributesDescriptor.length !== attributesSeed.length) {
+          throw inconsistentAttributesSeedGroupsCount(eserviceId, descriptorId);
+        }
+
+        return attributesDescriptor.flatMap((attributeGroup) => {
+          // Get the seed group that is a superset of the descriptor group
+          const supersetSeed = attributesSeed.find((seedGroup) =>
+            attributeGroup.every((descriptorAttribute) =>
+              seedGroup.some(
+                (seedAttribute) => descriptorAttribute.id === seedAttribute.id
+              )
+            )
+          );
+
+          if (!supersetSeed) {
+            throw descriptorAttributeGroupSupersetMissingInAttributesSeed(
+              eserviceId,
+              descriptorId
+            );
+          }
+
+          // Return only the new attributes
+          return supersetSeed
+            .filter(
+              (seedAttribute) =>
+                !attributeGroup.some((att) => att.id === seedAttribute.id)
+            )
+            .flatMap((seedAttribute) => seedAttribute.id);
+        });
+      }
+
+      const certifiedAttributes = validateAndRetrieveNewAttributes(
+        descriptor.attributes.certified,
+        seed.certified
+      );
+
+      const verifiedAttributes = validateAndRetrieveNewAttributes(
+        descriptor.attributes.verified,
+        seed.verified
+      );
+
+      const declaredAttributes = validateAndRetrieveNewAttributes(
+        descriptor.attributes.declared,
+        seed.declared
+      );
+
+      const newAttributes = [
+        ...certifiedAttributes,
+        ...verifiedAttributes,
+        ...declaredAttributes,
+      ].map(unsafeBrandId<AttributeId>);
+
+      if (newAttributes.length === 0) {
+        throw unchangedAttributes(eserviceId, descriptorId);
+      }
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        attributes: await parseAndCheckAttributes(seed, readModelService),
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptorAttributesUpdated(
+          eservice.metadata.version,
+          descriptor.id,
+          newAttributes,
+          updatedEService,
+          correlationId
+        )
+      );
+
+      return updatedEService;
+    },
   };
 }
 
-async function isUserAllowedToSeeDraft(
+function isRequesterEServiceProducer(
   eservice: EService,
-  authData: AuthData,
-  readModelService: ReadModelService
-): Promise<boolean> {
-  if (
-    !hasPermission(
+  authData: AuthData
+): boolean {
+  return (
+    hasPermission(
       [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
       authData
-    )
-  ) {
-    return false;
-  }
-
-  if (authData.organizationId === eservice.producerId) {
-    return true;
-  }
-
-  const activeProducerDelegation = await readModelService.getLatestDelegation({
-    eserviceId: eservice.id,
-    delegateId: authData.organizationId,
-    kind: delegationKind.delegatedProducer,
-    states: [delegationState.active],
-  });
-
-  return activeProducerDelegation !== undefined;
+    ) && authData.organizationId === eservice.producerId
+  );
 }
 
 async function applyVisibilityToEService(
@@ -1920,26 +2072,31 @@ async function applyVisibilityToEService(
   authData: AuthData,
   readModelService: ReadModelService
 ): Promise<EService> {
-  if (await isUserAllowedToSeeDraft(eservice, authData, readModelService)) {
+  if (isRequesterEServiceProducer(eservice, authData)) {
     return eservice;
   }
 
-  if (
-    eservice.descriptors.length === 0 ||
-    (eservice.descriptors.length === 1 &&
-      (eservice.descriptors[0].state === descriptorState.draft ||
-        eservice.descriptors[0].state === descriptorState.waitingForApproval))
-  ) {
+  const producerDelegation = await readModelService.getLatestDelegation({
+    eserviceId: eservice.id,
+    delegateId: authData.organizationId,
+    kind: delegationKind.delegatedProducer,
+  });
+
+  if (producerDelegation?.state === delegationState.active) {
+    return eservice;
+  }
+
+  const hasNoActiveDescriptor = eservice.descriptors.every(
+    isNotActiveDescriptor
+  );
+
+  if (!producerDelegation && hasNoActiveDescriptor) {
     throw eServiceNotFound(eservice.id);
   }
 
   return {
     ...eservice,
-    descriptors: eservice.descriptors.filter(
-      (d) =>
-        d.state !== descriptorState.draft &&
-        d.state !== descriptorState.waitingForApproval
-    ),
+    descriptors: eservice.descriptors.filter(isActiveDescriptor),
   };
 }
 

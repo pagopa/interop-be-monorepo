@@ -7,6 +7,7 @@ import {
   FileManagerError,
   formatDateyyyyMMddHHmmss,
   genericLogger,
+  getIpaCode,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
 import {
@@ -36,7 +37,6 @@ import {
   Descriptor,
   EService,
   EServiceId,
-  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
   agreementState,
@@ -554,7 +554,7 @@ describe("upgrade Agreement", () => {
     }
   });
 
-  it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different and requester is a delegate", async () => {
+  it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different, requester is consumer, an active producer delegation exists and is taken into account for the PDF contract generation", async () => {
     const producer = getMockTenant();
 
     const validVerifiedTenantAttribute = {
@@ -800,11 +800,6 @@ describe("upgrade Agreement", () => {
 
     expect(submitterId).toEqual(actualAgreementUpgraded.stamps.submission?.who);
     expect(activatorId).toEqual(actualAgreementUpgraded.stamps.activation?.who);
-
-    const getIpaCode = (tenant: Tenant): string | undefined =>
-      tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
-        ? tenant.externalId.value
-        : undefined;
 
     const expectedAgreementContractPDFPayload: AgreementContractPDFPayload = {
       todayDate: dateAtRomeZone(currentExecutionTime),

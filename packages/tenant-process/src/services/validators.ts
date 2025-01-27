@@ -19,6 +19,7 @@ import {
   tenantKind,
   SCP,
   Agreement,
+  Delegation,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -28,13 +29,13 @@ import {
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
-  verifiedAttributeSelfVerificationNotAllowed,
   attributeNotFound,
   tenantAlreadyHasDelegatedProducerFeature,
   tenantHasNoDelegatedProducerFeature,
   eServiceNotFound,
   descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 export function assertVerifiedAttributeExistsInTenant(
@@ -49,23 +50,25 @@ export function assertVerifiedAttributeExistsInTenant(
 
 export async function assertVerifiedAttributeOperationAllowed({
   requesterId,
-  delegateProducerId,
-  consumerId,
+  producerDelegation,
   attributeId,
   agreement,
   readModelService,
   error,
 }: {
   requesterId: TenantId;
-  delegateProducerId: TenantId | undefined;
-  consumerId: TenantId;
+  producerDelegation: Delegation | undefined;
   attributeId: AttributeId;
   agreement: Agreement;
   readModelService: ReadModelService;
   error: Error;
 }): Promise<void> {
-  if ([requesterId, delegateProducerId].includes(consumerId)) {
-    throw verifiedAttributeSelfVerificationNotAllowed();
+  if (producerDelegation && producerDelegation.delegateId !== requesterId) {
+    throw error;
+  }
+
+  if (!producerDelegation && requesterId !== agreement.producerId) {
+    throw error;
   }
 
   const descriptorId = agreement.descriptorId;
@@ -92,14 +95,6 @@ export async function assertVerifiedAttributeOperationAllowed({
 
   // Check if attribute is allowed
   if (!attributeIds.has(attributeId)) {
-    throw error;
-  }
-
-  if (delegateProducerId && delegateProducerId !== requesterId) {
-    throw error;
-  }
-
-  if (!delegateProducerId && requesterId !== agreement.producerId) {
     throw error;
   }
 }
@@ -157,8 +152,10 @@ export async function assertRequesterAllowed(
   }
 }
 
-export function assertRequesterIPAOrigin(authData: AuthData): void {
-  if (authData.externalId.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
+export function assertRequesterDelegationsAllowedOrigin(
+  authData: AuthData
+): void {
+  if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
     throw operationForbidden;
   }
 }

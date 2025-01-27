@@ -102,13 +102,14 @@ describe("approve producer delegation", () => {
     const expectedContractName = `${formatDateyyyyMMddHHmmss(
       currentExecutionTime
     )}_delegation_activation_contract.pdf`;
+
     const expectedContract = {
       id: expectedContractId,
       contentType: "application/pdf",
       createdAt: currentExecutionTime,
       name: expectedContractName,
       path: `${config.delegationDocumentPath}/${delegation.id}/${expectedContractId}/${expectedContractName}`,
-      prettyName: "Delega",
+      prettyName: `Delega_${eservice.name}`,
     };
 
     expect(
@@ -146,9 +147,9 @@ describe("approve producer delegation", () => {
         todayTime: timeAtRomeZone(currentExecutionTime),
         delegationId: approvedDelegationWithoutContract.id,
         delegatorName: delegator.name,
-        delegatorCode: delegator.externalId.value,
+        delegatorIpaCode: delegator.externalId.value,
         delegateName: delegate.name,
-        delegateCode: delegate.externalId.value,
+        delegateIpaCode: delegate.externalId.value,
         eserviceId: eservice.id,
         eserviceName: eservice.name,
         submitterId: approvedDelegationWithoutContract.stamps.submission.who,
