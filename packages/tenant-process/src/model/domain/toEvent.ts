@@ -8,12 +8,13 @@ import {
   toTenantKindV2,
   CorrelationId,
 } from "pagopa-interop-models";
+
 export const toCreateEventTenantOnboarded = (
   tenant: Tenant,
   correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: tenant.id,
-  version: 0,
+  version: undefined,
   event: {
     event_version: 2,
     type: "TenantOnboarded",
