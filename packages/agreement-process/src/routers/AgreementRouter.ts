@@ -533,13 +533,13 @@ const agreementRouter = (
   );
 
   agreementRouter.delete(
-    "/internal/agreements/:agreementId",
+    "/internal/delegationRevoked/agreements/:agreementId",
     authorizationMiddleware([INTERNAL_ROLE]),
     async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        await agreementService.internalDeleteAgreementById(
+        await agreementService.internalDeleteAgreementAfterDelegationRevocation(
           unsafeBrandId(req.params.agreementId),
           unsafeBrandId(req.query.delegationId),
           ctx.correlationId,
@@ -559,13 +559,13 @@ const agreementRouter = (
   );
 
   agreementRouter.post(
-    "/internal/agreements/:agreementId",
+    "/internal/delegationRevoked/agreements/:agreementId/archive",
     authorizationMiddleware([INTERNAL_ROLE]),
     async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        await agreementService.internalArchiveAgreement(
+        await agreementService.internalArchiveAgreementAfterDelegationRevocation(
           unsafeBrandId(req.params.agreementId),
           unsafeBrandId(req.query.delegationId),
           ctx.correlationId,

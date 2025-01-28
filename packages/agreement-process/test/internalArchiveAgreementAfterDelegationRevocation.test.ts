@@ -54,7 +54,7 @@ describe("internal archive agreement", () => {
     await addOneAgreement(agreement);
     await addOneDelegation(consumerDelegation);
 
-    await agreementService.internalArchiveAgreement(
+    await agreementService.internalArchiveAgreementAfterDelegationRevocation(
       agreement.id,
       consumerDelegation.id,
       generateId(),
@@ -117,7 +117,7 @@ describe("internal archive agreement", () => {
     await addOneDelegation(consumerDelegation);
 
     await expect(
-      agreementService.internalArchiveAgreement(
+      agreementService.internalArchiveAgreementAfterDelegationRevocation(
         agreement.id,
         generateId<DelegationId>(),
         generateId(),
@@ -149,7 +149,7 @@ describe("internal archive agreement", () => {
     await addOneDelegation(consumerDelegation);
 
     await expect(
-      agreementService.internalArchiveAgreement(
+      agreementService.internalArchiveAgreementAfterDelegationRevocation(
         agreement.id,
         consumerDelegation.id,
         generateId(),
@@ -171,7 +171,7 @@ describe("internal archive agreement", () => {
     const invalidDelegationid = generateId<DelegationId>();
 
     await expect(
-      agreementService.internalArchiveAgreement(
+      agreementService.internalArchiveAgreementAfterDelegationRevocation(
         agreement.id,
         invalidDelegationid,
         generateId(),

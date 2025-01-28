@@ -422,7 +422,7 @@ export function agreementServiceBuilder(
         )
       );
     },
-    async internalDeleteAgreementById(
+    async internalDeleteAgreementAfterDelegationRevocation(
       agreementId: AgreementId,
       delegationId: DelegationId,
       correlationId: CorrelationId,
@@ -1312,7 +1312,7 @@ export function agreementServiceBuilder(
 
       return updatedAgreement;
     },
-    async internalArchiveAgreement(
+    async internalArchiveAgreementAfterDelegationRevocation(
       agreementId: AgreementId,
       delegationId: DelegationId,
       correlationId: CorrelationId,
