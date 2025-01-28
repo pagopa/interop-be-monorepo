@@ -168,7 +168,7 @@ export const getMockEService = ({
   eserviceId = generateId<EServiceId>(),
   producerId = generateId<TenantId>(),
   descriptors = [],
-  isDelegable = undefined,
+  isDelegable,
 }: {
   eserviceId?: EServiceId;
   producerId?: TenantId;
