@@ -5,7 +5,7 @@ import {
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
   GSIPKEServiceIdDescriptorId,
-  GSIPKKid,
+  GSIPKClientIdKid,
   PurposeId,
   PurposeVersionId,
   TenantId,
@@ -19,7 +19,7 @@ const TokenGenerationStatesBaseEntry = z.object({
   consumerId: TenantId,
   publicKey: z.string(),
   GSIPK_clientId: ClientId,
-  GSIPK_kid: GSIPKKid,
+  GSIPK_clientId_kid: GSIPKClientIdKid,
   updatedAt: z.string().datetime(),
 });
 type TokenGenerationStatesBaseEntry = z.infer<
@@ -86,46 +86,13 @@ export type TokenGenStatesConsumerClientGSIAgreement = z.infer<
   typeof TokenGenStatesConsumerClientGSIAgreement
 >;
 
-// Client
-export const TokenGenStatesApiClientGSIClient =
-  TokenGenerationStatesApiClient.pick({
-    PK: true,
-    GSIPK_clientId: true,
-    consumerId: true,
-    clientKind: true,
-    publicKey: true,
-    GSIPK_kid: true,
-  });
-export type TokenGenStatesApiClientGSIClient = z.infer<
-  typeof TokenGenStatesApiClientGSIClient
->;
-
-export const TokenGenStatesConsumerClientGSIClient =
-  TokenGenerationStatesConsumerClient.pick({
-    PK: true,
-    GSIPK_clientId: true,
-    consumerId: true,
-    clientKind: true,
-    publicKey: true,
-    GSIPK_kid: true,
-  });
-export type TokenGenStatesConsumerClientGSIClient = z.infer<
-  typeof TokenGenStatesConsumerClientGSIClient
->;
-
-export const TokenGenStatesGenericClientGSIClient =
-  TokenGenStatesApiClientGSIClient.or(TokenGenStatesConsumerClientGSIClient);
-export type TokenGenStatesGenericClientGSIClient = z.infer<
-  typeof TokenGenStatesGenericClientGSIClient
->;
-
 // ClientPurpose
 export const TokenGenStatesConsumerClientGSIClientPurpose =
   TokenGenerationStatesConsumerClient.pick({
     PK: true,
     GSIPK_clientId_purposeId: true,
     GSIPK_clientId: true,
-    GSIPK_kid: true,
+    GSIPK_clientId_kid: true,
     GSIPK_purposeId: true,
     consumerId: true,
     clientKind: true,
@@ -145,29 +112,31 @@ export type TokenGenStatesConsumerClientGSIDescriptor = z.infer<
   typeof TokenGenStatesConsumerClientGSIDescriptor
 >;
 
-// Kid
-export const TokenGenStatesApiClientGSIKid =
+// ClientKid
+export const TokenGenStatesApiClientGSIClientKid =
   TokenGenerationStatesApiClient.pick({
     PK: true,
-    GSIPK_kid: true,
+    GSIPK_clientId_kid: true,
   });
-export type TokenGenStatesApiClientGSIKid = z.infer<
-  typeof TokenGenStatesApiClientGSIKid
+export type TokenGenStatesApiClientGSIClientIdKid = z.infer<
+  typeof TokenGenStatesApiClientGSIClientKid
 >;
 
-export const TokenGenStatesConsumerClientGSIKid =
+export const TokenGenStatesConsumerClientGSIClientKid =
   TokenGenerationStatesConsumerClient.pick({
     PK: true,
-    GSIPK_kid: true,
+    GSIPK_clientId_kid: true,
   });
-export type TokenGenStatesConsumerClientGSIKid = z.infer<
-  typeof TokenGenStatesConsumerClientGSIKid
+export type TokenGenStatesConsumerClientGSIClientKid = z.infer<
+  typeof TokenGenStatesConsumerClientGSIClientKid
 >;
 
-export const TokenGenStatesGenericClientGSIKid =
-  TokenGenStatesApiClientGSIKid.or(TokenGenStatesConsumerClientGSIKid);
-export type TokenGenStatesGenericClientGSIKid = z.infer<
-  typeof TokenGenStatesGenericClientGSIKid
+export const TokenGenStatesGenericClientGSIClientKid =
+  TokenGenStatesApiClientGSIClientKid.or(
+    TokenGenStatesConsumerClientGSIClientKid
+  );
+export type TokenGenStatesGenericClientGSIClientKid = z.infer<
+  typeof TokenGenStatesGenericClientGSIClientKid
 >;
 
 // Purpose
