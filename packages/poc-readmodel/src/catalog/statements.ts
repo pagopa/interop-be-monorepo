@@ -32,6 +32,36 @@ export const prepareInsertEservice = (
     ],
   });
 
+export const prepareInsertEserviceWithExtraTypeCheck = ({
+  // this function makes sure that we don't forget new fields of EServiceSQL
+  id,
+  description,
+  mode,
+  name,
+  producer_id,
+  technology,
+  created_at,
+  version,
+  ...rest
+}: EServiceSQL): pgPromise.PreparedStatement => {
+  void (rest satisfies Record<string, never>);
+
+  return new pgPromise.PreparedStatement({
+    name: "insert-eservice",
+    text: "INSERT INTO readmodel.eservice(id, producer_id, name, description, technology, created_at, mode, version) VALUES($1, $2, $3, $4, $5, $6, $7, $8)",
+    values: [
+      id,
+      producer_id,
+      name,
+      description,
+      technology,
+      created_at,
+      mode,
+      version,
+    ],
+  });
+};
+
 export const prepareReadEservice = (
   id: EServiceId
 ): pgPromise.PreparedStatement =>
