@@ -53,7 +53,7 @@ import {
   descriptorNotFound,
   eServiceNotFound,
   noNewerDescriptor,
-  operationNotAllowed,
+  organizationIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -92,7 +92,6 @@ import {
   assertRequesterCanRetrieveConsumerDocuments,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
-  assertRequesterCanCreateAgrementForTenant,
   assertRequesterIsDelegateConsumer,
   assertSubmittableState,
   failOnActivationFailure,
@@ -1311,14 +1310,15 @@ export function agreementServiceBuilder(
         `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
       );
 
-      await assertRequesterCanCreateAgrementForTenant(
-        {
-          authData,
-          tenantIdToVerify: tenantId,
+      assertRequesterCanActAsConsumer(
+        { consumerId: tenantId, eserviceId },
+        authData,
+        await readModelService.getActiveConsumerDelegationByAgreement({
+          consumerId: tenantId,
           eserviceId,
-        },
-        readModelService
+        })
       );
+
       const consumer = await retrieveTenant(tenantId, readModelService);
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -1473,13 +1473,16 @@ async function getConsumerFromDelegationOrRequester(
     );
     return retrieveTenant(delegation.delegatorId, readModelService);
   } else {
-    const hasDelegated = delegations.some(
+    const delegation = delegations.find(
       (d) => d.delegatorId === authData.organizationId
     );
 
-    if (hasDelegated) {
+    if (delegation) {
       // If a delegation exists, the delegator cannot create the agreement
-      throw operationNotAllowed(authData.organizationId);
+      throw organizationIsNotTheDelegateConsumer(
+        authData.organizationId,
+        delegation.id
+      );
     }
 
     return retrieveTenant(authData.organizationId, readModelService);
