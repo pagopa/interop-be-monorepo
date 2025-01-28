@@ -16741,6 +16741,7 @@ components:
           format: int32
           minimum: 1
       required:
+        - voucherLifespan
     Problem:
       type: object
       additionalProperties: false
