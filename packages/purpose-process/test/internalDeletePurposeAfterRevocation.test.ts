@@ -150,7 +150,7 @@ describe("internalDeletePurposeAfterDelegationRevocation", () => {
         state !== purposeVersionState.draft
     )
   )(
-    "should throw purposeCannotBeDeleted if the purpose has a $s version ",
+    "should throw purposeCannotBeDeleted if the purpose has a %s version ",
     async (state) => {
       const mockPurposeVersion = getMockPurposeVersion(state);
 
