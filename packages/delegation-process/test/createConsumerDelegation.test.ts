@@ -654,68 +654,67 @@ describe("create consumer delegation", () => {
     ).rejects.toThrowError(eserviceNotConsumerDelegable(eservice.id));
   });
 
-  it("should throw a delegationRelatedAgreementExists error if an agreement exists", async () => {
-    const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
-    const delegator = {
-      ...getMockTenant(delegatorId),
-      externalId: {
-        origin: "IPA",
-        value: "test",
-      },
-    };
-
-    const delegate = {
-      ...getMockTenant(),
-      features: [
-        {
-          type: "DelegatedConsumer" as const,
-          availabilityTimestamp: new Date(),
+  it.each([
+    agreementState.active,
+    agreementState.pending,
+    agreementState.suspended,
+  ])(
+    "should throw delegationRelatedAgreementExists error for %s agreement",
+    async (state) => {
+      const delegatorId = generateId<TenantId>();
+      const authData = getRandomAuthData(delegatorId);
+      const delegator = {
+        ...getMockTenant(delegatorId),
+        externalId: {
+          origin: "IPA",
+          value: "test",
         },
-      ],
-    };
+      };
+      const delegate = {
+        ...getMockTenant(),
+        features: [
+          {
+            type: "DelegatedConsumer" as const,
+            availabilityTimestamp: new Date(),
+          },
+        ],
+      };
+      const eservice = {
+        ...getMockEService(generateId<EServiceId>(), delegatorId),
+        isDelegable: true,
+      };
 
-    const eservice = {
-      ...getMockEService(generateId<EServiceId>(), delegatorId),
-      isDelegable: true,
-    };
-
-    const randomAgreementState = randomArrayItem([
-      agreementState.active,
-      agreementState.pending,
-      agreementState.suspended,
-    ]);
-
-    const activeAgreement = getMockAgreement(
-      eservice.id,
-      delegator.id,
-      randomAgreementState
-    );
-
-    await addOneTenant(delegator);
-    await addOneTenant(delegate);
-    await addOneEservice(eservice);
-    await addOneAgreement(activeAgreement);
-
-    await expect(
-      delegationService.createConsumerDelegation(
-        {
-          delegateId: delegate.id,
-          eserviceId: eservice.id,
-        },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
-      )
-    ).rejects.toThrowError(
-      delegationRelatedAgreementExists(
-        activeAgreement.id,
+      const activeAgreement = getMockAgreement(
         eservice.id,
-        delegator.id
-      )
-    );
-  });
+        delegator.id,
+        state
+      );
+
+      await addOneTenant(delegator);
+      await addOneTenant(delegate);
+      await addOneEservice(eservice);
+      await addOneAgreement(activeAgreement);
+
+      await expect(
+        delegationService.createConsumerDelegation(
+          {
+            delegateId: delegate.id,
+            eserviceId: eservice.id,
+          },
+          {
+            authData,
+            logger: genericLogger,
+            correlationId: generateId(),
+            serviceName: "DelegationServiceTest",
+          }
+        )
+      ).rejects.toThrowError(
+        delegationRelatedAgreementExists(
+          activeAgreement.id,
+          eservice.id,
+          delegator.id
+        )
+      );
+    }
+  );
 });
