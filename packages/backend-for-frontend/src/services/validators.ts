@@ -10,6 +10,7 @@ import {
   EServiceId,
   TenantId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
 import {
   toDelegationKind,
@@ -28,6 +29,44 @@ import {
 } from "../model/types.js";
 import { BffAppContext } from "../utilities/context.js";
 import { getAllDelegations } from "./delegationService.js";
+
+export function isValidDescriptor(
+  descriptor: catalogApi.EServiceDescriptor
+): boolean {
+  return match(descriptor.state)
+    .with(
+      catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+      catalogApi.EServiceDescriptorState.Values.DEPRECATED,
+      catalogApi.EServiceDescriptorState.Values.PUBLISHED,
+      catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      () => true
+    )
+    .with(
+      catalogApi.EServiceDescriptorState.Values.DRAFT,
+      catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
+      () => false
+    )
+    .exhaustive();
+}
+
+export function isInvalidDescriptor(
+  descriptor: catalogApi.EServiceDescriptor
+): boolean {
+  return match(descriptor.state)
+    .with(
+      catalogApi.EServiceDescriptorState.Values.DRAFT,
+      catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
+      () => true
+    )
+    .with(
+      catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+      catalogApi.EServiceDescriptorState.Values.DEPRECATED,
+      catalogApi.EServiceDescriptorState.Values.PUBLISHED,
+      catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      () => false
+    )
+    .exhaustive();
+}
 
 export function isRequesterEserviceProducer(
   requesterId: string,
@@ -117,16 +156,25 @@ export function isAgreementUpgradable(
   );
 }
 
-const subscribedAgreementStates: agreementApi.AgreementState[] = [
-  agreementApiState.PENDING,
-  agreementApiState.ACTIVE,
-  agreementApiState.SUSPENDED,
-];
-
 export function isAgreementSubscribed(
   agreement: agreementApi.Agreement | undefined
 ): boolean {
-  return !!agreement && subscribedAgreementStates.includes(agreement.state);
+  return match(agreement?.state)
+    .with(
+      agreementApiState.PENDING,
+      agreementApiState.ACTIVE,
+      agreementApiState.SUSPENDED,
+      () => true
+    )
+    .with(
+      agreementApiState.REJECTED,
+      agreementApiState.ARCHIVED,
+      agreementApiState.MISSING_CERTIFIED_ATTRIBUTES,
+      agreementApiState.DRAFT,
+      () => false
+    )
+    .with(undefined, () => false)
+    .exhaustive();
 }
 
 export function hasCertifiedAttributes(
@@ -145,7 +193,7 @@ export function hasCertifiedAttributes(
 export function verifyExportEligibility(
   descriptor: catalogApi.EServiceDescriptor
 ): void {
-  if (descriptor.state === catalogApiDescriptorState.DRAFT) {
+  if (isValidDescriptor(descriptor)) {
     throw notValidDescriptor(descriptor.id, descriptor.state);
   }
 }

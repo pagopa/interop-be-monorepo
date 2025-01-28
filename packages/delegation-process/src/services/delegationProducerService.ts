@@ -36,7 +36,7 @@ import {
   assertTenantAllowedToReceiveDelegation,
   assertIsDelegate,
   assertIsState,
-  assertDelegatorAndDelegateIPA,
+  assertDelegatorAndDelegateAllowedOrigins,
   assertIsDelegator,
   activeDelegationStates,
 } from "./validators.js";
@@ -89,7 +89,7 @@ export function delegationProducerServiceBuilder(
         delegate,
         delegationKind.delegatedProducer
       );
-      await assertDelegatorAndDelegateIPA(delegator, delegate);
+      await assertDelegatorAndDelegateAllowedOrigins(delegator, delegate);
 
       const eservice = await retrieveEserviceById(eserviceId);
       assertDelegatorIsProducer(delegatorId, eservice);
