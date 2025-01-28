@@ -59,7 +59,8 @@ import {
   eServiceNotFound,
   missingCertifiedAttributesError,
   noNewerDescriptor,
-  operationNotAllowed,
+  organizationIsNotTheConsumer,
+  organizationIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -898,7 +899,7 @@ describe("upgrade Agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw an operationNotAllowed error when the requester is not the consumer", async () => {
+  it("should throw an organizationIsNotTheConsumer error when the requester is not the consumer", async () => {
     const authData = getRandomAuthData();
 
     const agreement: Agreement = getMockAgreement(
@@ -915,10 +916,12 @@ describe("upgrade Agreement", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheConsumer(authData.organizationId)
+    );
   });
 
-  it("should throw an operationNotAllowed error when the requester is the consumer but there is an active consumer delegation", async () => {
+  it("should throw an organizationIsNotTheDelegateConsumer error when the requester is the consumer but there is an active consumer delegation", async () => {
     const authData = getRandomAuthData();
     const agreement = {
       ...getMockAgreement(),
@@ -942,7 +945,12 @@ describe("upgrade Agreement", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegateConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
   });
 
   it("should throw an agreementNotInExpectedState error when the agreement doesn't have an upgradable states", async () => {
