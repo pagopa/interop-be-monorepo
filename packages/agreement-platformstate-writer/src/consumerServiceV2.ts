@@ -14,7 +14,6 @@ import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import {
   agreementStateToItemState,
-  deleteAgreementEntry,
   readAgreementEntry,
   updateAgreementStateInPlatformStatesEntry,
   updateAgreementStateOnTokenGenStates,
@@ -256,10 +255,11 @@ export async function handleMessageV2(
           dynamoDBClient,
           logger,
         });
-        await deleteAgreementEntry(
-          primaryKey,
-          agreementEntry.agreementId,
+        await updateAgreementStateInPlatformStatesEntry(
           dynamoDBClient,
+          primaryKey,
+          agreementStateToItemState(agreement.state),
+          msg.version,
           logger
         );
       } else {

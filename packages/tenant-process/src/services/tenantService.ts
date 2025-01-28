@@ -93,10 +93,10 @@ import {
   assertRequesterAllowed,
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
-  assertRequesterIPAOrigin,
   assertDelegatedProducerFeatureNotAssigned,
   getTenantKind,
   assertDelegatedProducerFeatureAssigned,
+  assertRequesterDelegationsAllowedOrigin,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -1695,7 +1695,7 @@ export function tenantServiceBuilder(
         `Assigning delegated producer feature to tenant ${organizationId}`
       );
 
-      assertRequesterIPAOrigin(authData);
+      assertRequesterDelegationsAllowedOrigin(authData);
 
       const requesterTenant = await retrieveTenant(
         organizationId,
@@ -1736,7 +1736,7 @@ export function tenantServiceBuilder(
         `Removing delegated producer feature to tenant ${organizationId}`
       );
 
-      assertRequesterIPAOrigin(authData);
+      assertRequesterDelegationsAllowedOrigin(authData);
 
       const requesterTenant = await retrieveTenant(
         organizationId,

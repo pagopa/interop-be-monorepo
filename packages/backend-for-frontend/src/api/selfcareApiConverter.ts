@@ -24,20 +24,20 @@ export const toApiSelfcareInstitution = (
   match(input)
     .with(
       {
-        id: P.nonNullable,
+        institutionId: P.nonNullable,
         institutionDescription: P.nonNullable,
         products: P.nonNullable,
       },
       (institution) => ({
-        id: institution.id,
+        id: institution.institutionId,
         description: institution.institutionDescription,
         userProductRoles: institution.products.flatMap((product) =>
           product.role ? [product.role] : []
         ),
       })
     )
-    .with({ id: P.nullish }, () => {
-      throw selfcareEntityNotFilled("UserInstitutionResource", "id");
+    .with({ institutionId: P.nullish }, () => {
+      throw selfcareEntityNotFilled("UserInstitutionResource", "institutionId");
     })
     .with({ institutionDescription: P.nullish }, () => {
       throw selfcareEntityNotFilled(
