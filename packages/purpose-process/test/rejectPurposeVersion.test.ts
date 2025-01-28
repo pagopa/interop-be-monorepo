@@ -175,7 +175,7 @@ describe("rejectPurposeVersion", () => {
 
     vi.useRealTimers();
   });
-  it("should write on event-store for the rejection of a purpose version created by a delegatedConsumer ", async () => {
+  it("should write on event-store for the rejection of a purpose version created by a consumer delegate when the requester is the producer", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -192,7 +192,8 @@ describe("rejectPurposeVersion", () => {
     };
 
     const producerDelegation = getMockDelegation({
-      kind: delegationKind.delegatedProducer,
+      id: mockPurpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
       eserviceId: mockEService.id,
       state: delegationState.active,
       delegatorId: mockEService.producerId,
@@ -209,7 +210,7 @@ describe("rejectPurposeVersion", () => {
         rejectionReason: "test",
       },
       {
-        authData: getRandomAuthData(producerDelegation.delegateId),
+        authData: getRandomAuthData(mockEService.producerId),
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
@@ -246,7 +247,7 @@ describe("rejectPurposeVersion", () => {
 
     vi.useRealTimers();
   });
-  it("should write on event-store for the rejection of a purpose version created by a consumer Delegate when the requester is delegate producer", async () => {
+  it("should write on event-store for the rejection of a purpose version created by a consumer delegate when the requester is delegate producer", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
