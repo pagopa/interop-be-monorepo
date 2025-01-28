@@ -19,6 +19,7 @@ import {
   generateId,
   TenantId,
   toDelegationV2,
+  agreementState,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -682,7 +683,7 @@ describe("create consumer delegation", () => {
     const activeAgreement = getMockAgreement(
       eservice.id,
       delegator.id,
-      delegationState.active
+      agreementState.active
     );
 
     await addOneTenant(delegator);
