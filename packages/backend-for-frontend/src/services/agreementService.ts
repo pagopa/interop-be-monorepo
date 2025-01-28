@@ -82,21 +82,19 @@ export function agreementServiceBuilder(
       return { id };
     },
 
-    async getAgreements(
+    async getConsumerAgreements(
       {
         offset,
         limit,
-        producersIds,
         eservicesIds,
-        consumersIds,
+        producersIds,
         states,
         showOnlyUpgradeable,
       }: {
         offset: number;
         limit: number;
-        producersIds: string[];
         eservicesIds: string[];
-        consumersIds: string[];
+        producersIds: string[];
         states: bffApi.AgreementState[];
         showOnlyUpgradeable?: boolean;
       },
@@ -111,8 +109,55 @@ export function agreementServiceBuilder(
             limit,
             showOnlyUpgradeable,
             eservicesIds,
-            consumersIds,
+            consumersIds: [ctx.authData.organizationId],
             producersIds,
+            states,
+          },
+          headers: ctx.headers,
+        });
+
+      const agreements = results.map((a) =>
+        enrichAgreementListEntry(a, clients, ctx)
+      );
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+        results: await Promise.all(agreements),
+      };
+    },
+
+    async getProducerAgreements(
+      {
+        offset,
+        limit,
+        eservicesIds,
+        consumersIds,
+        states,
+        showOnlyUpgradeable,
+      }: {
+        offset: number;
+        limit: number;
+        eservicesIds: string[];
+        consumersIds: string[];
+        states: bffApi.AgreementState[];
+        showOnlyUpgradeable?: boolean;
+      },
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreements> {
+      ctx.logger.info("Retrieving agreements");
+
+      const { results, totalCount } =
+        await agreementProcessClient.getAgreements({
+          queries: {
+            producersIds: [ctx.authData.organizationId],
+            offset,
+            limit,
+            showOnlyUpgradeable,
+            eservicesIds,
+            consumersIds,
             states,
           },
           headers: ctx.headers,

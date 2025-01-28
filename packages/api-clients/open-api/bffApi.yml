@@ -82,15 +82,15 @@ tags:
       description: Find out more
       url: "http://swagger.io"
 paths:
-  "/agreements":
+  "/consumer/agreements":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - agreements
-      summary: retrieves a list of agreements
-      description: retrieves a list of agreements
-      operationId: getAgreements
+      summary: retrieves a list of consumer agreements
+      description: retrieves a list of consumer agreements
+      operationId: getConsumerAgreements
       parameters:
         - in: query
           name: offset
@@ -120,6 +120,113 @@ paths:
         - in: query
           name: producersIds
           description: comma separated sequence of producers IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: states
+          description: comma separated sequence of agreement states to filter the response with
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AgreementState"
+            default: []
+          explode: false
+        - in: query
+          name: showOnlyUpgradeable
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Agreements found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agreements"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/producer/agreements":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - agreements
+      summary: retrieves a list of producers agreements
+      description: retrieves a list of producers agreements
+      operationId: getProducerAgreements
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: eservicesIds
+          description: comma separated sequence of eservices IDs
           schema:
             type: array
             items:
@@ -209,6 +316,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/agreements":
     post:
       summary: Agreement Creation
       operationId: createAgreement
@@ -6621,16 +6729,6 @@ paths:
             default: []
           explode: false
         - in: query
-          name: producersIds
-          description: comma separated sequence of producers IDs
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
           name: states
           description: comma separated sequence of states
           schema:
@@ -6709,16 +6807,6 @@ paths:
         - in: query
           name: eservicesIds
           description: comma separated sequence of EService IDs
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: consumersIds
-          description: comma separated sequence of consumers IDs
           schema:
             type: array
             items:
