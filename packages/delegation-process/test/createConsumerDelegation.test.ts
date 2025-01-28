@@ -1,89 +1,28 @@
-import { fail } from "assert";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  decodeProtobufPayload,
   getMockAgreement,
-  getMockDelegation,
   getMockEService,
   getMockTenant,
   getRandomAuthData,
-  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
-  Delegation,
-  DelegationId,
-  delegationKind,
   delegationState,
-  ConsumerDelegationSubmittedV2,
   EServiceId,
   generateId,
   TenantId,
-  toDelegationV2,
 } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  delegationAlreadyExists,
   delegationRelatedAgreementExists,
-  delegatorAndDelegateSameIdError,
   eserviceNotDelegable,
-  eserviceNotFound,
-  originNotCompliant,
-  tenantNotAllowedToDelegation,
-  tenantNotFound,
 } from "../src/model/domain/errors.js";
-
-import {
-  activeDelegationStates,
-  inactiveDelegationStates,
-} from "../src/services/validators.js";
 import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
-  addOneDelegation,
   addOneEservice,
   addOneTenant,
   delegationService,
-  readLastDelegationEvent,
 } from "./utils.js";
-
-/**
- * Validates the creation of a delegation by comparing the actual delegation
- * with the expected delegation. It ensures that the delegation IDs are defined
- * and equal, and verifies that the last delegation event matches the expected
- * delegation data.
- *
- * @param actualDelegation - The actual delegation object to be validated,
- * typically a response from an API.
- * @param expectedDelegation - The expected delegation object to compare against.
- * @returns A promise that resolves to void.
- * @throws Will fail if the delegation is not found in the event store.
- */
-const expectedDelegationCreation = async (
-  actualDelegation: Delegation,
-  expectedDelegation: Delegation
-): Promise<void> => {
-  expect(actualDelegation.id).toBeDefined();
-  expect(expectedDelegation.id).toBeDefined();
-  expect(actualDelegation.id).toEqual(expectedDelegation.id);
-
-  const lastDelegationEvent = await readLastDelegationEvent(
-    actualDelegation.id
-  );
-
-  if (!lastDelegationEvent) {
-    fail("Creation fails: delegation not found in event-store");
-  }
-
-  const actualDelegationData = decodeProtobufPayload({
-    messageType: ConsumerDelegationSubmittedV2,
-    payload: lastDelegationEvent.data,
-  });
-
-  expect(actualDelegation).toMatchObject(expectedDelegation);
-  expect(actualDelegationData.delegation).toEqual(
-    toDelegationV2(expectedDelegation)
-  );
-};
 
 describe("create consumer delegation", () => {
   config.delegationsAllowedOrigins = ["IPA", "TEST"];
