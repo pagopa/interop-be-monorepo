@@ -72,12 +72,16 @@ describe("read-model-queries.service", () => {
     it("should return all eServices", async () => {
       const eservicesData = [
         getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
           descriptors: getMockDescriptorList().map((d) => ({
             ...d,
             state: randomArrayItem(validEserviceDescriptorStates),
           })),
         }),
         getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
           descriptors: getMockDescriptorList().map((d) => ({
             ...d,
             state: randomArrayItem(validEserviceDescriptorStates),
@@ -93,6 +97,8 @@ describe("read-model-queries.service", () => {
     it("should not return draft descriptors in the e-service", async () => {
       const eservicesData = [
         getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
           descriptors: [
             {
               ...getMockDescriptor(),
@@ -126,6 +132,8 @@ describe("read-model-queries.service", () => {
     it("should not return waiting for approval descriptors in the e-service", async () => {
       const eservicesData = [
         getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
           descriptors: [
             {
               ...getMockDescriptor(),
@@ -164,11 +172,15 @@ describe("read-model-queries.service", () => {
     it("should not return eServices with only one descriptor with Draft state", async () => {
       const eservicesData = [
         getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
           descriptors: [
             getMockDescriptor(randomArrayItem(validEserviceDescriptorStates)),
           ],
         }),
         getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
           descriptors: [getMockDescriptor(descriptorState.draft)],
         }),
       ].map(toReadModelEService);
@@ -183,9 +195,13 @@ describe("read-model-queries.service", () => {
     it("should not return eServices with no descriptors", async () => {
       const eservicesData = [
         getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
           descriptors: [getMockDescriptor(descriptorState.published)],
         }),
         getMockEService({
+          eserviceId: generateId<EServiceId>(),
+          producerId: generateId<TenantId>(),
           descriptors: [],
         }),
       ].map(toReadModelEService);
