@@ -2,7 +2,6 @@
 import {
   getMockPurposeVersion,
   getMockPurpose,
-  writeInReadmodel,
   decodeProtobufPayload,
   getMockAuthData,
   getMockDelegation,
@@ -11,7 +10,6 @@ import {
 import {
   purposeVersionState,
   Purpose,
-  toReadModelEService,
   generateId,
   PurposeVersionRejectedV2,
   PurposeVersion,
@@ -20,6 +18,7 @@ import {
   PurposeVersionId,
   delegationState,
   delegationKind,
+  DelegationId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -35,9 +34,9 @@ import {
   getMockEService,
   addOnePurpose,
   readLastPurposeEvent,
-  eservices,
   purposeService,
-  delegations,
+  addOneDelegation,
+  addOneEService,
 } from "./utils.js";
 
 describe("rejectPurposeVersion", () => {
@@ -57,7 +56,7 @@ describe("rejectPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     await purposeService.rejectPurposeVersion(
       {
@@ -103,7 +102,7 @@ describe("rejectPurposeVersion", () => {
 
     vi.useRealTimers();
   });
-  it("should write on event-store for the rejection of a purpose version when the requester is delegate", async () => {
+  it("should write on event-store for the rejection of a purpose version when the requester is delegate producer", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -119,7 +118,7 @@ describe("rejectPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     const delegate = getMockAuthData();
     const delegation = getMockDelegation({
@@ -130,7 +129,7 @@ describe("rejectPurposeVersion", () => {
       delegatorId: mockEService.producerId,
     });
 
-    await writeInReadmodel(delegation, delegations);
+    await addOneDelegation(delegation);
 
     await purposeService.rejectPurposeVersion(
       {
@@ -176,6 +175,162 @@ describe("rejectPurposeVersion", () => {
 
     vi.useRealTimers();
   });
+  it("should write on event-store for the rejection of a purpose version created by a consumer delegate when the requester is the producer", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const mockEService = getMockEService();
+    const mockPurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.waitingForApproval,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
+    };
+
+    const producerDelegation = getMockDelegation({
+      id: mockPurpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+      delegatorId: mockEService.producerId,
+    });
+
+    await addOneDelegation(producerDelegation);
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+
+    await purposeService.rejectPurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+        rejectionReason: "test",
+      },
+      {
+        authData: getRandomAuthData(mockEService.producerId),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      }
+    );
+
+    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockPurpose.id,
+      version: "1",
+      type: "PurposeVersionRejected",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeVersionRejectedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedPurposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.rejected,
+      rejectionReason: "test",
+      updatedAt: new Date(),
+    };
+    const expectedPurpose: Purpose = {
+      ...mockPurpose,
+      versions: [expectedPurposeVersion],
+      updatedAt: new Date(),
+    };
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+
+    vi.useRealTimers();
+  });
+  it("should write on event-store for the rejection of a purpose version created by a consumer delegate when the requester is delegate producer", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const mockEService = getMockEService();
+    const mockPurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.waitingForApproval,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
+    };
+
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+
+    const producerDelegate = getMockAuthData();
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      delegateId: producerDelegate.organizationId,
+      state: delegationState.active,
+      delegatorId: mockEService.producerId,
+    });
+
+    const consumerDelegation = getMockDelegation({
+      id: mockPurpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+      delegatorId: mockPurpose.consumerId,
+    });
+
+    await addOneDelegation(producerDelegation);
+    await addOneDelegation(consumerDelegation);
+
+    await purposeService.rejectPurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+        rejectionReason: "test",
+      },
+      {
+        authData: getRandomAuthData(producerDelegate.organizationId),
+        serviceName: "",
+        correlationId: generateId(),
+        logger: genericLogger,
+      }
+    );
+
+    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockPurpose.id,
+      version: "1",
+      type: "PurposeVersionRejected",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeVersionRejectedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedPurposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.rejected,
+      rejectionReason: "test",
+      updatedAt: new Date(),
+    };
+    const expectedPurpose: Purpose = {
+      ...mockPurpose,
+      versions: [expectedPurposeVersion],
+      updatedAt: new Date(),
+      delegationId: mockPurpose.delegationId,
+    };
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+
+    vi.useRealTimers();
+  });
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion = getMockPurposeVersion();
@@ -187,7 +342,7 @@ describe("rejectPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.rejectPurposeVersion(
@@ -242,7 +397,7 @@ describe("rejectPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.rejectPurposeVersion(
@@ -272,7 +427,7 @@ describe("rejectPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     const delegate = getMockAuthData();
     const delegation = getMockDelegation({
@@ -282,7 +437,7 @@ describe("rejectPurposeVersion", () => {
       state: delegationState.active,
     });
 
-    await writeInReadmodel(delegation, delegations);
+    await addOneDelegation(delegation);
 
     expect(
       purposeService.rejectPurposeVersion(
@@ -315,7 +470,7 @@ describe("rejectPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     const delegate = getMockAuthData();
     const delegation = getMockDelegation({
@@ -325,7 +480,7 @@ describe("rejectPurposeVersion", () => {
       state: delegationState.active,
     });
 
-    await writeInReadmodel(delegation, delegations);
+    await addOneDelegation(delegation);
 
     const randomCaller = getMockAuthData();
 
@@ -364,7 +519,7 @@ describe("rejectPurposeVersion", () => {
       };
 
       await addOnePurpose(mockPurpose);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await addOneEService(mockEService);
 
       const delegate = getMockAuthData();
       const delegation = getMockDelegation({
@@ -374,7 +529,7 @@ describe("rejectPurposeVersion", () => {
         state: delegationState,
       });
 
-      await writeInReadmodel(delegation, delegations);
+      await addOneDelegation(delegation);
 
       expect(
         purposeService.rejectPurposeVersion(
@@ -406,7 +561,7 @@ describe("rejectPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.rejectPurposeVersion(
@@ -443,7 +598,7 @@ describe("rejectPurposeVersion", () => {
       };
 
       await addOnePurpose(mockPurpose);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await addOneEService(mockEService);
 
       expect(
         purposeService.rejectPurposeVersion(
