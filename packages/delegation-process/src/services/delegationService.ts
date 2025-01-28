@@ -54,7 +54,7 @@ import {
   assertDelegatorAndDelegateAllowedOrigins,
   assertDelegatorIsNotDelegate,
   assertDelegatorIsProducer,
-  assertEserviceIsDelegable,
+  assertEserviceIsConsumerDelegable,
   assertIsDelegate,
   assertIsDelegator,
   assertIsState,
@@ -151,7 +151,7 @@ export function delegationServiceBuilder(
     }
 
     if (kind === delegationKind.delegatedConsumer) {
-      assertEserviceIsDelegable(eservice);
+      assertEserviceIsConsumerDelegable(eservice);
 
       await assertNoDelegationRelatedAgreementExists(
         delegator.id,

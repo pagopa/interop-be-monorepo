@@ -28,7 +28,7 @@ export const errorCodes = {
   differentEserviceProducer: "0012",
   delegationContractNotFound: "0013",
   requesterIsNotConsumerDelegate: "0014",
-  eserviceNotDelegable: "0015",
+  eserviceNotConsumerDelegable: "0015",
   delegationRelatedAgreementExists: "0016",
 };
 
@@ -191,13 +191,13 @@ export function requesterIsNotConsumerDelegate(
   });
 }
 
-export function eserviceNotDelegable(
+export function eserviceNotConsumerDelegable(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Eservice ${eserviceId} is not delegable`,
-    code: "eserviceNotDelegable",
-    title: "Eservice is not delegable",
+    detail: `Eservice ${eserviceId} is not consumer delegable`,
+    code: "eserviceNotConsumerDelegable",
+    title: "Eservice is not consumer delegable",
   });
 }
 

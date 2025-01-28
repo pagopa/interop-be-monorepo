@@ -25,7 +25,7 @@ import {
   delegationAlreadyExists,
   delegationRelatedAgreementExists,
   delegatorAndDelegateSameIdError,
-  eserviceNotDelegable,
+  eserviceNotConsumerDelegable,
   eserviceNotFound,
   originNotCompliant,
   tenantNotAllowedToDelegation,
@@ -607,7 +607,7 @@ describe("create consumer delegation", () => {
     );
   });
 
-  it("should throw an eserviceNotDelegable error if Eservice is not delegable", async () => {
+  it("should throw an eserviceNotConsumerDelegable error if Eservice is not consumer delegable", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegator = {
@@ -650,7 +650,7 @@ describe("create consumer delegation", () => {
           serviceName: "DelegationServiceTest",
         }
       )
-    ).rejects.toThrowError(eserviceNotDelegable(eservice.id));
+    ).rejects.toThrowError(eserviceNotConsumerDelegable(eservice.id));
   });
 
   it("should throw a delegationRelatedAgreementExists error if an agreement exists", async () => {
