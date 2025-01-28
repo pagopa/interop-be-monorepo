@@ -154,7 +154,7 @@ const eserviceTemplateRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/quotas/update",
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/quotas/update",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
