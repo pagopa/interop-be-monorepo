@@ -115,8 +115,9 @@ export const processAgreement = async ({
     .exhaustive();
 
   if (isDeletable) {
-    await agreementProcessClient.deleteAgreement(undefined, {
-      params: { agreementId: agreement.id, delegationId: delegation.id },
+    await agreementProcessClient.internalDeleteAgreement(undefined, {
+      params: { agreementId: agreement.id },
+      queries: { delegationId: delegation.id },
       headers,
     });
   }
@@ -135,10 +136,8 @@ export const processAgreement = async ({
 
   if (activeOrSuspendedAgreement) {
     await agreementProcessClient.internalArchiveAgreement(undefined, {
-      params: {
-        agreementId: agreement.id,
-        delegationId: delegation.id,
-      },
+      params: { agreementId: agreement.id },
+      queries: { delegationId: delegation.id },
       headers,
     });
   }
