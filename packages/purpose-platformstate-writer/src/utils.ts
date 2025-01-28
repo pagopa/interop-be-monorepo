@@ -296,19 +296,22 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
 
       for (const entry of result.tokenGenStatesEntries) {
         const tokenEntryPK = entry.PK;
+
+        // Agreement data from platform-states
+        // Agreement info should be filled when the fields are missing or outdated
         const isAgreementMissingInTokenGenStates =
           !!platformAgreementEntry &&
           !!gsiPKEServiceIdDescriptorId &&
-          (!entry.agreementId ||
-            !entry.agreementState ||
-            !entry.GSIPK_eserviceId_descriptorId);
+          (entry.agreementId !== platformAgreementEntry.agreementId ||
+            entry.agreementState !== platformAgreementEntry.state ||
+            entry.GSIPK_eserviceId_descriptorId !==
+              gsiPKEServiceIdDescriptorId);
 
         if (isAgreementMissingInTokenGenStates) {
           logger.info(
             `Adding agreement info to token-generation-states entry with PK ${tokenEntryPK} and GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId}`
           );
         }
-        // Agreement data from platform-states
         const agreementExpressionAttributeValues: Record<
           string,
           AttributeValue
@@ -332,12 +335,14 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
           : "";
 
         // Descriptor data from platform-states
+        // Descriptor info should be filled when the fields are missing or outdated
         const isDescriptorDataMissingInTokenGenStates =
           !!platformAgreementEntry &&
           !!catalogEntry &&
-          (!entry.descriptorAudience ||
-            !entry.descriptorState ||
-            !entry.descriptorVoucherLifespan);
+          (entry.descriptorAudience !== catalogEntry.descriptorAudience ||
+            entry.descriptorState !== catalogEntry.state ||
+            entry.descriptorVoucherLifespan !==
+              catalogEntry.descriptorVoucherLifespan);
 
         if (isDescriptorDataMissingInTokenGenStates) {
           logger.info(
