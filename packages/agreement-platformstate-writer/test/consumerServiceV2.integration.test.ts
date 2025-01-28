@@ -2957,7 +2957,7 @@ describe("integration tests V2 events", async () => {
   });
 
   describe("AgreementArchivedByConsumer", () => {
-    it("should delete the entry if it exists and the agreement is the latest", async () => {
+    it("should update agreement state to inactive in the token generation read model if the platform-states entry exists and the agreement is the latest", async () => {
       const consumerId = generateId<TenantId>();
       const eserviceId = generateId<EServiceId>();
 
@@ -2989,6 +2989,8 @@ describe("integration tests V2 events", async () => {
         data: payload,
         log_date: new Date(),
       };
+
+      // platform-states
       const platformStatesAgreementPK = makePlatformStatesAgreementPK({
         consumerId,
         eserviceId,
@@ -3049,11 +3051,18 @@ describe("integration tests V2 events", async () => {
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
+      // platform-states
       const retrievedEntry = await readAgreementEntry(
         platformStatesAgreementPK,
         dynamoDBClient
       );
-      expect(retrievedEntry).toBeUndefined();
+      const expectedPlatformStatesEntry: PlatformStatesAgreementEntry = {
+        ...platformStatesAgreement,
+        state: itemState.inactive,
+        version: 2,
+        updatedAt: new Date().toISOString(),
+      };
+      expect(retrievedEntry).toEqual(expectedPlatformStatesEntry);
 
       // token-generation-states
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
