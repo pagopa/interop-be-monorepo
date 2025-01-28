@@ -185,11 +185,7 @@ describe("create consumer delegation", () => {
           },
         ],
       };
-      const eservice = getMockEService({
-        eserviceId: generateId<EServiceId>(),
-        producerId: delegatorId,
-        isDelegable: true,
-      });
+      const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
       const existentDelegation = {
         ...getMockDelegation({
@@ -266,11 +262,7 @@ describe("create consumer delegation", () => {
           },
         ],
       };
-      const eservice = getMockEService({
-        eserviceId: generateId<EServiceId>(),
-        producerId: delegatorId,
-        isDelegable: true,
-      });
+      const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
       const existientActiveDelegation = {
         ...getMockDelegation({
           kind: delegationKind.delegatedConsumer,
@@ -453,12 +445,7 @@ describe("create consumer delegation", () => {
         },
       ],
     };
-
-    const eservice = getMockEService({
-      eserviceId: generateId<EServiceId>(),
-      producerId: delegatorId,
-      isDelegable: true,
-    });
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegator);
     await addOneTenant(delegate);
@@ -504,11 +491,7 @@ describe("create consumer delegation", () => {
         },
       ],
     };
-    const eservice = getMockEService({
-      eserviceId: generateId<EServiceId>(),
-      producerId: delegatorId,
-      isDelegable: true,
-    });
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegator);
     await addOneTenant(delegate);
@@ -583,11 +566,7 @@ describe("create consumer delegation", () => {
     };
 
     const delegate = getMockTenant();
-    const eservice = getMockEService({
-      eserviceId: generateId<EServiceId>(),
-      producerId: delegatorId,
-      isDelegable: true,
-    });
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);

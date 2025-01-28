@@ -101,6 +101,8 @@ describe("create producer delegation", () => {
         },
       };
 
+      const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
+
       const delegate = {
         ...getMockTenant(),
         features: [
@@ -110,10 +112,6 @@ describe("create producer delegation", () => {
           },
         ],
       };
-      const eservice = getMockEService({
-        eserviceId: generateId<EServiceId>(),
-        producerId: delegatorId,
-      });
 
       await addOneTenant(delegator);
       await addOneTenant(delegate);
@@ -180,11 +178,7 @@ describe("create producer delegation", () => {
           },
         ],
       };
-      const eservice = getMockEService({
-        eserviceId: generateId<EServiceId>(),
-        producerId: delegatorId,
-        isDelegable: true,
-      });
+      const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
       const existentDelegation = {
         ...getMockDelegation({
@@ -309,11 +303,7 @@ describe("create producer delegation", () => {
           },
         ],
       };
-      const eservice = getMockEService({
-        eserviceId: generateId<EServiceId>(),
-        producerId: delegatorId,
-        isDelegable: true,
-      });
+      const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
       const existentActiveDelegation = {
         ...getMockDelegation({
           kind: delegationKind.delegatedProducer,
@@ -395,11 +385,7 @@ describe("create producer delegation", () => {
     const delegator = getMockTenant(delegatorId);
 
     const delegateId = generateId<TenantId>();
-    const eservice = getMockEService({
-      eserviceId: generateId<EServiceId>(),
-      producerId: delegatorId,
-      isDelegable: true,
-    });
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegator);
     await addOneEservice(eservice);
@@ -433,11 +419,7 @@ describe("create producer delegation", () => {
         },
       ],
     };
-    const eservice = getMockEService({
-      eserviceId: generateId<EServiceId>(),
-      producerId: delegatorId,
-      isDelegable: true,
-    });
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
     await addOneTenant(delegate);
     await addOneEservice(eservice);
 
@@ -497,11 +479,7 @@ describe("create producer delegation", () => {
         },
       ],
     };
-    const eservice = getMockEService({
-      eserviceId: generateId<EServiceId>(),
-      producerId: delegatorId,
-      isDelegable: true,
-    });
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
@@ -547,11 +525,7 @@ describe("create producer delegation", () => {
         },
       ],
     };
-    const eservice = getMockEService({
-      eserviceId: generateId<EServiceId>(),
-      producerId: delegatorId,
-      isDelegable: true,
-    });
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);
@@ -625,11 +599,7 @@ describe("create producer delegation", () => {
       },
     };
     const delegate = getMockTenant();
-    const eservice = getMockEService({
-      eserviceId: generateId<EServiceId>(),
-      producerId: delegatorId,
-      isDelegable: true,
-    });
+    const eservice = getMockEService(generateId<EServiceId>(), delegatorId);
 
     await addOneTenant(delegate);
     await addOneTenant(delegator);

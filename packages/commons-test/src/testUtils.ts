@@ -164,17 +164,11 @@ export const getMockAgreementAttribute = (
 export const getMockEServiceAttributes = (num: number): EServiceAttribute[] =>
   new Array(num).map(() => getMockEServiceAttribute());
 
-export const getMockEService = ({
-  eserviceId = generateId<EServiceId>(),
-  producerId = generateId<TenantId>(),
-  descriptors = [],
-  isDelegable,
-}: {
-  eserviceId?: EServiceId;
-  producerId?: TenantId;
-  descriptors?: Descriptor[];
-  isDelegable?: boolean;
-} = {}): EService => ({
+export const getMockEService = (
+  eserviceId: EServiceId = generateId<EServiceId>(),
+  producerId: TenantId = generateId<TenantId>(),
+  descriptors: Descriptor[] = []
+): EService => ({
   id: eserviceId,
   name: "eService name",
   description: "eService description",
@@ -185,7 +179,6 @@ export const getMockEService = ({
   attributes: undefined,
   riskAnalysis: [],
   mode: "Deliver",
-  isDelegable,
 });
 
 export const getMockVerifiedTenantAttribute = (
