@@ -13750,7 +13750,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/quotas/update:
+  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/quotas/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
