@@ -44,7 +44,7 @@ import {
   agreementNotInExpectedState,
   descriptorNotFound,
   eServiceNotFound,
-  operationNotAllowed,
+  organizationNotAllowed,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -517,7 +517,7 @@ describe("suspend agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw operationNotAllowed when the requester is not the Consumer or the Producer", async () => {
+  it("should throw organizationNotAllowed when the requester is not the Consumer or the Producer", async () => {
     const authData = getRandomAuthData();
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
@@ -532,7 +532,7 @@ describe("suspend agreement", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a rejectable state", async () => {
@@ -637,7 +637,7 @@ describe("suspend agreement", () => {
     { kind: delegationKind.delegatedConsumer, desc: "consumer" },
     { kind: delegationKind.delegatedProducer, desc: "producer" },
   ])(
-    "should throw a operationNotAllowed error when the requester is the $desc but not the $kind",
+    "should throw organizationNotAllowed a error when the requester is the $desc but not the $kind",
     async ({ kind }) => {
       const eservice: EService = {
         ...getMockEService(),
@@ -683,12 +683,12 @@ describe("suspend agreement", () => {
           correlationId: generateId(),
           logger: genericLogger,
         })
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     }
   );
 
   it.each([delegationKind.delegatedProducer, delegationKind.delegatedConsumer])(
-    "should throw a operationNotAllowed error when the requester is the %s but the delegation in not active",
+    "should throw a organizationNotAllowed error when the requester is the %s but the delegation in not active",
     async (kind) => {
       const eservice: EService = {
         ...getMockEService(),
@@ -727,7 +727,7 @@ describe("suspend agreement", () => {
           correlationId: generateId(),
           logger: genericLogger,
         })
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     }
   );
 });

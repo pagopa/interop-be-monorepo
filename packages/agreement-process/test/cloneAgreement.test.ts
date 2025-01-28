@@ -42,7 +42,8 @@ import {
   descriptorNotFound,
   eServiceNotFound,
   missingCertifiedAttributesError,
-  operationNotAllowed,
+  organizationIsNotTheConsumer,
+  organizationIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
@@ -373,7 +374,7 @@ describe("clone agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw an operationNotAllowed error when the requester is not the Consumer", async () => {
+  it("should throw an organizationIsNotTheConsumer error when the requester is not the Consumer", async () => {
     const authData = getRandomAuthData();
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
@@ -388,10 +389,12 @@ describe("clone agreement", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheConsumer(authData.organizationId)
+    );
   });
 
-  it("should throw an operationNotAllowed error when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw an organizationIsNotTheDelegateConsumer error when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getRandomAuthData();
     const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
     const agreement = getMockAgreement(
@@ -416,7 +419,12 @@ describe("clone agreement", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegateConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
   });
 
   it("should throw an agreementNotInExpectedState error when the Agreement is not in a clonable state", async () => {
