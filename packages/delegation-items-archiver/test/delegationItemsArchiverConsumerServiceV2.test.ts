@@ -31,8 +31,8 @@ const mockClients = {
     internalArchiveAgreement: vi.fn(),
   },
   purposeProcessClient: {
-    deletePurpose: vi.fn(),
-    archivePurposeVersion: vi.fn(),
+    internalDeletePurposeAfterDelegationRevocation: vi.fn(),
+    internalArchivePurposeVersionAfterDelegationRevocation: vi.fn(),
   },
 } as unknown as PagoPAInteropBeClients;
 
@@ -138,16 +138,17 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
 
         [purpose1, purpose2, purpose3].forEach((purpose) => {
           expect(
-            mockClients.purposeProcessClient.deletePurpose
+            mockClients.purposeProcessClient
+              .internalDeletePurposeAfterDelegationRevocation
           ).toHaveBeenCalledWith(undefined, {
-            params: {
-              id: purpose.id,
-            },
+            params: { id: purpose.id },
+            queries: { delegationId: delegation.id },
             headers: testHeaders,
           });
         });
         expect(
-          mockClients.purposeProcessClient.archivePurposeVersion
+          mockClients.purposeProcessClient
+            .internalArchivePurposeVersionAfterDelegationRevocation
         ).not.toHaveBeenCalled();
 
         expect(
@@ -200,17 +201,20 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
 
         [purpose1, purpose2].forEach((purpose) => {
           expect(
-            mockClients.purposeProcessClient.archivePurposeVersion
+            mockClients.purposeProcessClient
+              .internalArchivePurposeVersionAfterDelegationRevocation
           ).toHaveBeenCalledWith(undefined, {
             params: {
               purposeId: purpose.id,
               versionId: purpose.versions[0].id,
             },
+            queries: { delegationId: delegation.id },
             headers: testHeaders,
           });
         });
         expect(
-          mockClients.purposeProcessClient.deletePurpose
+          mockClients.purposeProcessClient
+            .internalDeletePurposeAfterDelegationRevocation
         ).not.toHaveBeenCalled();
 
         expect(
@@ -249,10 +253,12 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         );
 
         expect(
-          mockClients.purposeProcessClient.archivePurposeVersion
+          mockClients.purposeProcessClient
+            .internalArchivePurposeVersionAfterDelegationRevocation
         ).not.toHaveBeenCalled();
         expect(
-          mockClients.purposeProcessClient.deletePurpose
+          mockClients.purposeProcessClient
+            .internalDeletePurposeAfterDelegationRevocation
         ).not.toHaveBeenCalled();
 
         expect(
@@ -295,10 +301,12 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         );
 
         expect(
-          mockClients.purposeProcessClient.archivePurposeVersion
+          mockClients.purposeProcessClient
+            .internalArchivePurposeVersionAfterDelegationRevocation
         ).not.toHaveBeenCalled();
         expect(
-          mockClients.purposeProcessClient.deletePurpose
+          mockClients.purposeProcessClient
+            .internalDeletePurposeAfterDelegationRevocation
         ).not.toHaveBeenCalled();
 
         expect(
