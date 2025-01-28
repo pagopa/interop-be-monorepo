@@ -579,7 +579,11 @@ describe("suspend agreement", () => {
   it("should throw a tenantNotFound error when the consumer does not exist", async () => {
     await addOneTenant(getMockTenant());
     const descriptor = getMockDescriptorPublished();
-    const eservice = getMockEService({ descriptors: [descriptor] });
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      [descriptor]
+    );
     const consumer = getMockTenant();
     const agreement = {
       ...getMockAgreement(),

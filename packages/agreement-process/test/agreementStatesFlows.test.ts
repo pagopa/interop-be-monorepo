@@ -18,6 +18,7 @@ import {
   Descriptor,
   DescriptorId,
   EService,
+  EServiceId,
   Tenant,
   VerifiedTenantAttribute,
   agreementState,
@@ -119,10 +120,11 @@ describe("Agreeement states flows", () => {
       agreementApprovalPolicy: "Automatic",
     };
 
-    const eservice: EService = getMockEService({
-      producerId: producer.id,
-      descriptors: [descriptorV1],
-    });
+    const eserviceId = generateId<EServiceId>();
+    const eservice: EService = {
+      ...getMockEService(eserviceId, producer.id, [descriptorV1]),
+    };
+
     await addOneEService(eservice);
     await addOneTenant(producer);
     await addOneTenant(consumer);
@@ -147,7 +149,7 @@ describe("Agreeement states flows", () => {
     const consumerAuthData = getRandomAuthData(consumer.id);
     const createdAgreement = await agreementService.createAgreement(
       {
-        eserviceId: eservice.id,
+        eserviceId,
         descriptorId,
       },
       {
@@ -397,10 +399,10 @@ describe("Agreeement states flows", () => {
       agreementApprovalPolicy: "Automatic",
     };
 
-    const eservice: EService = getMockEService({
-      producerId: producer.id,
-      descriptors: [descriptorV1],
-    });
+    const eserviceId = generateId<EServiceId>();
+    const eservice: EService = {
+      ...getMockEService(eserviceId, producer.id, [descriptorV1]),
+    };
 
     await addOneEService(eservice);
     await addOneTenant(producer);
@@ -426,7 +428,7 @@ describe("Agreeement states flows", () => {
     const consumerAuthData = getRandomAuthData(consumer.id);
     const createdAgreement = await agreementService.createAgreement(
       {
-        eserviceId: eservice.id,
+        eserviceId,
         descriptorId,
       },
       {

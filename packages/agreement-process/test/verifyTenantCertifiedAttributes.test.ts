@@ -62,7 +62,11 @@ describe("Verify Tenant Certified Attributes", () => {
     ]
   );
 
-  const mockEService = getMockEService({ descriptors: [mockDescriptor] });
+  const mockEService = getMockEService(
+    generateId<EServiceId>(),
+    generateId<TenantId>(),
+    [mockDescriptor]
+  );
   describe("With delegationId", () => {
     const mockDelegation = getMockDelegation({
       kind: "DelegatedConsumer",

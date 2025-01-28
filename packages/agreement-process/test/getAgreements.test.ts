@@ -15,6 +15,7 @@ import {
   Agreement,
   descriptorState,
   generateId,
+  EServiceId,
   agreementState,
   TenantId,
   delegationKind,
@@ -88,46 +89,31 @@ describe("get agreements", () => {
     };
     descriptor5 = getMockDescriptorPublished();
     eservice1 = {
-      ...getMockEService({
-        producerId: tenant1.id,
-        descriptors: [
-          descriptor1,
-          descriptor2,
-          // descriptor2 is the latest - agreements for descriptor1 are upgradeable
-        ],
-      }),
+      ...getMockEService(generateId<EServiceId>(), tenant1.id, [
+        descriptor1,
+        descriptor2,
+        // descriptor2 is the latest - agreements for descriptor1 are upgradeable
+      ]),
       name: "EService1", // Adding name because results are sorted by esevice name
     };
     eservice2 = {
-      ...getMockEService({
-        producerId: tenant2.id,
-        descriptors: [
-          descriptor3,
-          descriptor4,
-          // descriptor4 is not the latest - agreements for descriptor3 are not upgradeable
-        ],
-      }),
+      ...getMockEService(generateId<EServiceId>(), tenant2.id, [
+        descriptor3,
+        descriptor4,
+        // descriptor4 is not the latest - agreements for descriptor3 are not upgradeable
+      ]),
       name: "EService2", // Adding name because results are sorted by esevice name
     };
     eservice3 = {
-      ...getMockEService({
-        producerId: tenant3.id,
-        descriptors: [descriptor5],
-      }),
+      ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
       name: "EService3", // Adding name because results are sorted by esevice name
     };
     eservice4 = {
-      ...getMockEService({
-        producerId: tenant3.id,
-        descriptors: [descriptor5],
-      }),
+      ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
       name: "EService4", // Adding name because results are sorted by esevice name
     };
     eservice5 = {
-      ...getMockEService({
-        producerId: tenant4.id,
-        descriptors: [descriptor5],
-      }),
+      ...getMockEService(generateId<EServiceId>(), tenant4.id, [descriptor5]),
       name: "EService5", // Adding name because results are sorted by esevice name
     };
 
