@@ -680,10 +680,16 @@ describe("create consumer delegation", () => {
       isDelegable: true,
     };
 
+    const randomAgreementState = randomArrayItem([
+      agreementState.active,
+      agreementState.pending,
+      agreementState.suspended,
+    ]);
+
     const activeAgreement = getMockAgreement(
       eservice.id,
       delegator.id,
-      agreementState.active
+      randomAgreementState
     );
 
     await addOneTenant(delegator);
