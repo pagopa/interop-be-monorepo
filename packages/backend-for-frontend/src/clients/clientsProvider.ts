@@ -7,6 +7,7 @@ import {
   authorizationApi,
   selfcareV2ClientApi,
   selfcareV2InstitutionClientBuilder,
+  selfcareV2UsersClientBuilder,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -41,10 +42,14 @@ export type AuthorizationProcessClient = {
   token: ReturnType<typeof authorizationApi.createTokenGenerationApiClient>;
 };
 
-export type SelfcareV2Client = {
+export type SelfcareV2InstitutionClient = {
   institution: ReturnType<
-    typeof selfcareV2ClientApi.createInstitutionsApiClient
+    typeof selfcareV2ClientApi.createInstitutionApiClient
   >;
+};
+
+export type SelfcareV2UserClient = {
+  user: ReturnType<typeof selfcareV2ClientApi.createUserApiClient>;
 };
 
 export type PagoPAInteropBeClients = {
@@ -54,7 +59,8 @@ export type PagoPAInteropBeClients = {
   agreementProcessClient: AgreementProcessClient;
   purposeProcessClient: PurposeProcessClient;
   authorizationClient: AuthorizationProcessClient;
-  selfcareV2Client: SelfcareV2Client;
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
+  selfcareV2UserClient: SelfcareV2UserClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -86,8 +92,11 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
         config.authorizationUrl
       ),
     },
-    selfcareV2Client: {
+    selfcareV2InstitutionClient: {
       institution: selfcareV2InstitutionClientBuilder(config),
+    },
+    selfcareV2UserClient: {
+      user: selfcareV2UsersClientBuilder(config),
     },
   };
 }
