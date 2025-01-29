@@ -146,19 +146,20 @@ export function delegationServiceBuilder(
     assertTenantAllowedToReceiveDelegation(delegate, kind);
     await assertDelegatorAndDelegateAllowedOrigins(delegator, delegate);
 
-    if (kind === delegationKind.delegatedProducer) {
-      assertDelegatorIsProducer(delegatorId, eservice);
-    }
+    await match(kind)
+      .with(delegationKind.delegatedProducer, () =>
+        assertDelegatorIsProducer(delegatorId, eservice)
+      )
+      .with(delegationKind.delegatedConsumer, async () => {
+        assertEserviceIsConsumerDelegable(eservice);
 
-    if (kind === delegationKind.delegatedConsumer) {
-      assertEserviceIsConsumerDelegable(eservice);
-
-      await assertNoDelegationRelatedAgreementExists(
-        delegator.id,
-        eservice.id,
-        readModelService
-      );
-    }
+        await assertNoDelegationRelatedAgreementExists(
+          delegator.id,
+          eservice.id,
+          readModelService
+        );
+      })
+      .exhaustive();
 
     await assertDelegationNotExists(
       delegator,
