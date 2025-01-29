@@ -27,8 +27,8 @@ import { addOneAgreement, addOnePurpose, readModelService } from "./utils.js";
 
 const mockClients = {
   agreementProcessClient: {
-    internalDeleteAgreement: vi.fn(),
-    internalArchiveAgreement: vi.fn(),
+    internalDeleteAgreementAfterDelegationRevocation: vi.fn(),
+    internalArchiveAgreementAfterDelegationRevocation: vi.fn(),
   },
   purposeProcessClient: {
     internalDeletePurposeAfterDelegationRevocation: vi.fn(),
@@ -152,14 +152,16 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         ).not.toHaveBeenCalled();
 
         expect(
-          mockClients.agreementProcessClient.internalArchiveAgreement
+          mockClients.agreementProcessClient
+            .internalArchiveAgreementAfterDelegationRevocation
         ).toHaveBeenCalledWith(undefined, {
           params: { agreementId: agreement.id },
           queries: { delegationId: delegation.id },
           headers: testHeaders,
         });
         expect(
-          mockClients.agreementProcessClient.internalDeleteAgreement
+          mockClients.agreementProcessClient
+            .internalDeleteAgreementAfterDelegationRevocation
         ).not.toHaveBeenCalled();
       }
     );
@@ -218,14 +220,16 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         ).not.toHaveBeenCalled();
 
         expect(
-          mockClients.agreementProcessClient.internalArchiveAgreement
+          mockClients.agreementProcessClient
+            .internalArchiveAgreementAfterDelegationRevocation
         ).toHaveBeenCalledWith(undefined, {
           params: { agreementId: agreement.id },
           queries: { delegationId: delegation.id },
           headers: testHeaders,
         });
         expect(
-          mockClients.agreementProcessClient.internalDeleteAgreement
+          mockClients.agreementProcessClient
+            .internalDeleteAgreementAfterDelegationRevocation
         ).not.toHaveBeenCalled();
       }
     );
@@ -262,14 +266,16 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         ).not.toHaveBeenCalled();
 
         expect(
-          mockClients.agreementProcessClient.internalArchiveAgreement
+          mockClients.agreementProcessClient
+            .internalArchiveAgreementAfterDelegationRevocation
         ).toHaveBeenCalledWith(undefined, {
           params: { agreementId: agreement.id },
           queries: { delegationId: delegation.id },
           headers: testHeaders,
         });
         expect(
-          mockClients.agreementProcessClient.internalDeleteAgreement
+          mockClients.agreementProcessClient
+            .internalDeleteAgreementAfterDelegationRevocation
         ).not.toHaveBeenCalled();
       }
     );
@@ -310,14 +316,16 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         ).not.toHaveBeenCalled();
 
         expect(
-          mockClients.agreementProcessClient.internalDeleteAgreement
+          mockClients.agreementProcessClient
+            .internalDeleteAgreementAfterDelegationRevocation
         ).toHaveBeenCalledWith(undefined, {
           params: { agreementId: agreement.id },
           queries: { delegationId: delegation.id },
           headers: testHeaders,
         });
         expect(
-          mockClients.agreementProcessClient.internalArchiveAgreement
+          mockClients.agreementProcessClient
+            .internalArchiveAgreementAfterDelegationRevocation
         ).not.toHaveBeenCalled();
       }
     );

@@ -69,7 +69,7 @@ describe("internal delete agreement", () => {
         )
       );
 
-      await agreementService.internalDeleteAgreementById(
+      await agreementService.internalDeleteAgreementAfterDelegationRevocation(
         agreement.id,
         consumerDelegation.id,
         generateId(),
@@ -129,7 +129,7 @@ describe("internal delete agreement", () => {
     await addOneDelegation(consumerDelegation);
 
     await expect(
-      agreementService.internalDeleteAgreementById(
+      agreementService.internalDeleteAgreementAfterDelegationRevocation(
         agreement.id,
         consumerDelegation.id,
         generateId(),
@@ -159,7 +159,7 @@ describe("internal delete agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.internalDeleteAgreementById(
+      agreementService.internalDeleteAgreementAfterDelegationRevocation(
         agreement.id,
         consumerDelegation.id,
         generateId(),
@@ -191,7 +191,7 @@ describe("internal delete agreement", () => {
     await addOneDelegation(consumerDelegation);
     await addOneAgreement(agreement);
     await expect(
-      agreementService.internalDeleteAgreementById(
+      agreementService.internalDeleteAgreementAfterDelegationRevocation(
         agreement.id,
         consumerDelegation.id,
         generateId(),
@@ -217,7 +217,7 @@ describe("internal delete agreement", () => {
     const invalidDelegationid = generateId<DelegationId>();
 
     await expect(
-      agreementService.internalDeleteAgreementById(
+      agreementService.internalDeleteAgreementAfterDelegationRevocation(
         agreement.id,
         invalidDelegationid,
         generateId(),

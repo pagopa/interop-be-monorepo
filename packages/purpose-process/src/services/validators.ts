@@ -36,7 +36,10 @@ import {
   riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
-import { retrieveActiveAgreement } from "./purposeService.js";
+import {
+  retrieveActiveAgreement,
+  retrievePurposeDelegation,
+} from "./purposeService.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -273,24 +276,19 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
       assertRequesterIsProducer(eservice, authData);
     } catch {
       try {
-        const activeProducerDelegation =
-          await readModelService.getActiveProducerDelegationByEserviceId(
-            purpose.eserviceId
-          );
         assertRequesterIsDelegateProducer(
           eservice,
           authData,
-          activeProducerDelegation
+          await readModelService.getActiveProducerDelegationByEserviceId(
+            purpose.eserviceId
+          )
         );
       } catch {
         try {
           assertRequesterIsDelegateConsumer(
             purpose,
             authData,
-            purpose.delegationId &&
-              (await readModelService.getActiveConsumerDelegationByDelegationId(
-                purpose.delegationId
-              ))
+            await retrievePurposeDelegation(purpose, readModelService)
           );
         } catch {
           throw organizationNotAllowed(authData.organizationId);

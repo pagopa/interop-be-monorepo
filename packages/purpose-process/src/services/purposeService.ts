@@ -1651,10 +1651,7 @@ async function generateRiskAnalysisDocument({
       retrieveTenant(eservice.producerId, readModelService),
       retrieveTenant(purpose.consumerId, readModelService),
       readModelService.getActiveProducerDelegationByEserviceId(eservice.id),
-      purpose.delegationId &&
-        readModelService.getActiveConsumerDelegationByDelegationId(
-          purpose.delegationId
-        ),
+      retrievePurposeDelegation(purpose, readModelService),
     ]);
 
   const [producerDelegate, consumerDelegate] = await Promise.all([

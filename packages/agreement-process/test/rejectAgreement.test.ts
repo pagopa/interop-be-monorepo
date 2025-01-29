@@ -41,7 +41,8 @@ import {
   agreementNotInExpectedState,
   descriptorNotFound,
   eServiceNotFound,
-  operationNotAllowed,
+  organizationIsNotTheDelegateProducer,
+  organizationIsNotTheProducer,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -280,7 +281,7 @@ describe("reject agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw operationNotAllowed when the requester is not the Producer", async () => {
+  it("should throw organizationIsNotTheProducer when the requester is not the Producer", async () => {
     const authData = getRandomAuthData();
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
@@ -299,7 +300,9 @@ describe("reject agreement", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheProducer(authData.organizationId)
+    );
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a rejectable state", async () => {
@@ -421,7 +424,7 @@ describe("reject agreement", () => {
     );
   });
 
-  it("should throw operationNotAllowed when the requester is the producer and there is an active delegation", async () => {
+  it("should throw organizationIsNotTheDelegateProducer when the requester is the producer and there is an active delegation", async () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptorPublished()],
@@ -461,10 +464,15 @@ describe("reject agreement", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegateProducer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
   });
 
-  it("should throw a operationNotAllowed error when the requester is the delegate but the delegation in not active", async () => {
+  it("should throw a organizationIsNotTheProducer error when the requester is the delegate but the delegation in not active", async () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptorPublished()],
@@ -503,6 +511,8 @@ describe("reject agreement", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheProducer(authData.organizationId)
+    );
   });
 });

@@ -39,7 +39,11 @@ import {
   documentChangeNotAllowed,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
-  operationNotAllowed,
+  organizationIsNotTheConsumer,
+  organizationIsNotTheDelegateConsumer,
+  organizationIsNotTheDelegateProducer,
+  organizationIsNotTheProducer,
+  organizationNotAllowed,
 } from "./errors.js";
 import {
   ActiveDelegations,
@@ -136,7 +140,7 @@ const assertRequesterIsConsumer = (
     !authData.userRoles.includes("internal") &&
     authData.organizationId !== agreement.consumerId
   ) {
-    throw operationNotAllowed(authData.organizationId);
+    throw organizationIsNotTheConsumer(authData.organizationId);
   }
 };
 
@@ -148,7 +152,7 @@ const assertRequesterIsProducer = (
     !authData.userRoles.includes("internal") &&
     authData.organizationId !== agreement.producerId
   ) {
-    throw operationNotAllowed(authData.organizationId);
+    throw organizationIsNotTheProducer(authData.organizationId);
   }
 };
 
@@ -163,12 +167,16 @@ export const assertRequesterCanActAsConsumerOrProducer = (
       authData,
       activeDelegations.consumerDelegation
     );
-  } catch (error) {
-    assertRequesterCanActAsProducer(
-      agreement,
-      authData,
-      activeDelegations.producerDelegation
-    );
+  } catch {
+    try {
+      assertRequesterCanActAsProducer(
+        agreement,
+        authData,
+        activeDelegations.producerDelegation
+      );
+    } catch {
+      throw organizationNotAllowed(authData.organizationId);
+    }
   }
 };
 
@@ -181,31 +189,30 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
   // can be performed also by the producer/consumer even when active producer/consumer delegations exist
   try {
     assertRequesterIsConsumer(agreement, authData);
-  } catch (error) {
+  } catch {
     try {
       assertRequesterIsProducer(agreement, authData);
-    } catch (error) {
+    } catch {
       try {
-        const activeProducerDelegation =
-          await readModelService.getActiveProducerDelegationByEserviceId(
-            agreement.eserviceId
-          );
         assertRequesterIsDelegateProducer(
           agreement,
           authData,
-          activeProducerDelegation
+          await readModelService.getActiveProducerDelegationByEserviceId(
+            agreement.eserviceId
+          )
         );
-      } catch (error) {
-        const activeConsumerDelegation =
-          await readModelService.getActiveConsumerDelegationByAgreement(
-            agreement
+      } catch {
+        try {
+          assertRequesterIsDelegateConsumer(
+            agreement,
+            authData,
+            await readModelService.getActiveConsumerDelegationByAgreement(
+              agreement
+            )
           );
-
-        assertRequesterIsDelegateConsumer(
-          agreement,
-          authData,
-          activeConsumerDelegation
-        );
+        } catch {
+          throw organizationNotAllowed(authData.organizationId);
+        }
       }
     }
   }
@@ -241,7 +248,10 @@ const assertRequesterIsDelegateProducer = (
     activeProducerDelegation?.state !== delegationState.active ||
     activeProducerDelegation?.eserviceId !== agreement.eserviceId
   ) {
-    throw operationNotAllowed(authData.organizationId);
+    throw organizationIsNotTheDelegateProducer(
+      authData.organizationId,
+      activeProducerDelegation?.id
+    );
   }
 };
 
@@ -290,37 +300,11 @@ export const assertRequesterIsDelegateConsumer = (
     activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
     activeConsumerDelegation?.state !== delegationState.active
   ) {
-    throw operationNotAllowed(authData.organizationId);
-  }
-};
-
-export const assertRequesterCanCreateAgrementForTenant = async (
-  {
-    authData,
-    tenantIdToVerify,
-    eserviceId,
-  }: {
-    authData: AuthData;
-    tenantIdToVerify: TenantId;
-    eserviceId: EServiceId;
-  },
-  readModelService: ReadModelService
-): Promise<Promise<void>> => {
-  const agreementToBeCreated = {
-    consumerId: tenantIdToVerify,
-    eserviceId,
-  };
-
-  const activeConsumerDelegation =
-    await readModelService.getActiveConsumerDelegationByAgreement(
-      agreementToBeCreated
+    throw organizationIsNotTheDelegateConsumer(
+      authData.organizationId,
+      activeConsumerDelegation?.id
     );
-
-  assertRequesterCanActAsConsumer(
-    agreementToBeCreated,
-    authData,
-    activeConsumerDelegation
-  );
+  }
 };
 
 export const assertRequesterCanActAsConsumer = (
