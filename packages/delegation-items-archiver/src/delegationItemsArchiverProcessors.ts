@@ -44,10 +44,14 @@ export const processPurposes = async ({
           .exhaustive()
       );
       if (isDeletable) {
-        return purposeProcessClient.deletePurpose(undefined, {
-          params: { id: p.id },
-          headers,
-        });
+        return purposeProcessClient.internalDeletePurposeAfterDelegationRevocation(
+          undefined,
+          {
+            params: { id: p.id },
+            queries: { delegationId },
+            headers,
+          }
+        );
       }
 
       const activeOrSuspendedVersion = p.versions.find((v) =>
@@ -67,13 +71,17 @@ export const processPurposes = async ({
           .exhaustive()
       );
       if (activeOrSuspendedVersion) {
-        return purposeProcessClient.archivePurposeVersion(undefined, {
-          params: {
-            purposeId: p.id,
-            versionId: activeOrSuspendedVersion.id,
-          },
-          headers,
-        });
+        return purposeProcessClient.internalArchivePurposeVersionAfterDelegationRevocation(
+          undefined,
+          {
+            params: {
+              purposeId: p.id,
+              versionId: activeOrSuspendedVersion.id,
+            },
+            queries: { delegationId },
+            headers,
+          }
+        );
       }
 
       return Promise.resolve();
@@ -115,10 +123,14 @@ export const processAgreement = async ({
     .exhaustive();
 
   if (isDeletable) {
-    await agreementProcessClient.deleteAgreement(undefined, {
-      params: { agreementId: agreement.id },
-      headers,
-    });
+    await agreementProcessClient.internalDeleteAgreementAfterDelegationRevocation(
+      undefined,
+      {
+        params: { agreementId: agreement.id },
+        queries: { delegationId: delegation.id },
+        headers,
+      }
+    );
   }
 
   const activeOrSuspendedAgreement = match(agreement.state)
@@ -134,11 +146,13 @@ export const processAgreement = async ({
     .exhaustive();
 
   if (activeOrSuspendedAgreement) {
-    await agreementProcessClient.archiveAgreement(undefined, {
-      params: {
-        agreementId: agreement.id,
-      },
-      headers,
-    });
+    await agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation(
+      undefined,
+      {
+        params: { agreementId: agreement.id },
+        queries: { delegationId: delegation.id },
+        headers,
+      }
+    );
   }
 };

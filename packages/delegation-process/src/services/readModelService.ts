@@ -581,7 +581,13 @@ export function readModelServiceBuilder(
       const data = await agreements.findOne({
         "data.eserviceId": eserviceId,
         "data.consumerId": consumerId,
-        "data.state": agreementState.active,
+        "data.state": {
+          $in: [
+            agreementState.active,
+            agreementState.suspended,
+            agreementState.pending,
+          ],
+        },
       });
 
       if (!data) {

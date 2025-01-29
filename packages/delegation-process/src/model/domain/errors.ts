@@ -29,7 +29,8 @@ export const errorCodes = {
   delegationContractNotFound: "0013",
   requesterIsNotConsumerDelegate: "0014",
   eserviceNotDelegable: "0015",
-  delegationRelatedAgreementExists: "0016",
+  eserviceNotConsumerDelegable: "0016",
+  delegationRelatedAgreementExists: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -198,6 +199,16 @@ export function eserviceNotDelegable(
     detail: `Eservice ${eserviceId} is not delegable`,
     code: "eserviceNotDelegable",
     title: "Eservice is not delegable",
+  });
+}
+
+export function eserviceNotConsumerDelegable(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Eservice ${eserviceId} is not consumer delegable`,
+    code: "eserviceNotConsumerDelegable",
+    title: "Eservice is not consumer delegable",
   });
 }
 
