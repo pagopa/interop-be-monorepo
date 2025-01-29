@@ -244,7 +244,7 @@ describe.each([
       (state) => state !== delegationState.waitingForApproval
     )
   )(
-    `should throw incorrectState when delegation is in ${kind} state`,
+    "should throw incorrectState when delegation is in %s state",
     async (state) => {
       const delegation = getMockDelegation({
         kind,
