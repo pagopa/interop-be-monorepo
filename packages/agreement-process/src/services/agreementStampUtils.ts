@@ -5,21 +5,20 @@ import {
   AgreementState,
   TenantId,
   agreementState,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ActiveDelegations } from "../model/domain/models.js";
 
 export const createStamp = (
-  authData: AuthData | undefined,
+  authData: AuthData,
   activeDelegations: ActiveDelegations
 ): AgreementStamp => {
   const isProducerDelegate =
     activeDelegations.producerDelegation?.delegateId ===
-    authData?.organizationId;
+    authData.organizationId;
   const isConsumerDelegate =
     activeDelegations.consumerDelegation?.delegateId ===
-    authData?.organizationId;
+    authData.organizationId;
 
   const delegationId = isProducerDelegate
     ? activeDelegations.producerDelegation?.id
@@ -28,7 +27,7 @@ export const createStamp = (
     : undefined;
 
   return {
-    who: authData?.userId ?? unsafeBrandId("platform"),
+    who: authData.userId,
     delegationId,
     when: new Date(),
   };
