@@ -1330,21 +1330,12 @@ export function agreementServiceBuilder(
         agreementArchivableStates
       );
 
-      const activeConsumerDelegation = await retrieveConsumerDelegationById(
-        delegationId,
-        readModelService
-      );
+      // Check that the delegation exists
+      await retrieveConsumerDelegationById(delegationId, readModelService);
 
       const updatedAgreement: Agreement = {
         ...agreement.data,
         state: agreementState.archived,
-        stamps: {
-          ...agreement.data.stamps,
-          archiving: createStamp(undefined, {
-            consumerDelegation: activeConsumerDelegation,
-            producerDelegation: undefined,
-          }),
-        },
       };
 
       await repository.createEvent(

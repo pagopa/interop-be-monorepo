@@ -12,7 +12,6 @@ import {
   DelegationId,
   EServiceId,
   TenantId,
-  UserId,
   agreementState,
   delegationKind,
   delegationState,
@@ -83,13 +82,6 @@ describe("internal archive agreement", () => {
     const expectedAgreemenentArchived: Agreement = {
       ...agreement,
       state: agreementState.archived,
-      stamps: {
-        ...agreement.stamps,
-        archiving: {
-          who: "platform" as UserId,
-          when: new Date(),
-        },
-      },
     };
 
     expect(actualAgreement).toEqual({
