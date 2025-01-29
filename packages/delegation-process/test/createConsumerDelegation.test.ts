@@ -14,7 +14,7 @@ import {
 import { describe, expect, it } from "vitest";
 import {
   delegationRelatedAgreementExists,
-  eserviceNotDelegable,
+  eserviceNotConsumerDelegable,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -67,7 +67,7 @@ describe("create consumer delegation", () => {
           serviceName: "DelegationServiceTest",
         }
       )
-    ).rejects.toThrowError(eserviceNotDelegable(eservice.id));
+    ).rejects.toThrowError(eserviceNotConsumerDelegable(eservice.id));
   });
 
   it.each([
