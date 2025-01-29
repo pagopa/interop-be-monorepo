@@ -26,7 +26,8 @@ import { agreementArchivableStates } from "../src/model/domain/agreement-validat
 import {
   agreementNotFound,
   agreementNotInExpectedState,
-  operationNotAllowed,
+  organizationIsNotTheConsumer,
+  organizationIsNotTheDelegateConsumer,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -179,7 +180,7 @@ describe("archive agreement", () => {
     vi.useRealTimers();
   });
 
-  it("should throw operationNotAllowed when the requester is the consumer but there is a consumer delegation", async () => {
+  it("should throw organizationIsNotTheDelegateConsumer when the requester is the consumer but there is a consumer delegation", async () => {
     const authData = getRandomAuthData();
 
     const agreement = {
@@ -206,7 +207,12 @@ describe("archive agreement", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegateConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
   });
 
   it("should throw a agreementNotFound error when the Agreement doesn't exist", async () => {
@@ -233,7 +239,7 @@ describe("archive agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementToArchiveId));
   });
 
-  it("should throw a operationNotAllowed error when the requester is not the Agreement consumer", async () => {
+  it("should throw a organizationIsNotTheConsumer error when the requester is not the Agreement consumer", async () => {
     const authData = getRandomAuthData();
     const eserviceId = generateId<EServiceId>();
 
@@ -252,7 +258,9 @@ describe("archive agreement", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheConsumer(authData.organizationId)
+    );
   });
 
   it("should throw a agreementNotInExpectedState error when the Agreement is not in a archivable states", async () => {

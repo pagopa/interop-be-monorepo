@@ -71,7 +71,9 @@ import {
   descriptorNotFound,
   descriptorNotInExpectedState,
   eServiceNotFound,
-  operationNotAllowed,
+  organizationIsNotTheDelegateProducer,
+  organizationIsNotTheProducer,
+  organizationNotAllowed,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
@@ -681,7 +683,7 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(agreementActivationFailed(agreement.id));
     });
 
-    it("Agreement Pending, Requester === Consumer -- error case: throws operationNotAllowed", async () => {
+    it("Agreement Pending, Requester === Consumer -- error case: throws organizationIsNotTheProducer", async () => {
       const consumerId = generateId<TenantId>();
       const authData = getRandomAuthData(consumerId);
 
@@ -698,10 +700,12 @@ describe("activate agreement", () => {
           correlationId: generateId(),
           logger: genericLogger,
         })
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(
+        organizationIsNotTheProducer(authData.organizationId)
+      );
     });
 
-    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws operationNotAllowed", async () => {
+    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws organizationIsNotTheProducer", async () => {
       const delegateId = generateId<TenantId>();
       const authData = getRandomAuthData(delegateId);
       const agreement: Agreement = {
@@ -728,10 +732,12 @@ describe("activate agreement", () => {
           correlationId: generateId(),
           logger: genericLogger,
         })
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(
+        organizationIsNotTheProducer(authData.organizationId)
+      );
     });
 
-    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws operationNotAllowed", async () => {
+    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws organizationIsNotTheDelegateProducer", async () => {
       const producerId = generateId<TenantId>();
       const authData = getRandomAuthData(producerId);
       const agreement: Agreement = {
@@ -759,7 +765,12 @@ describe("activate agreement", () => {
           correlationId: generateId(),
           logger: genericLogger,
         })
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(
+        organizationIsNotTheDelegateProducer(
+          authData.organizationId,
+          producerDelegation.id
+        )
+      );
     });
   });
 
@@ -1654,7 +1665,7 @@ describe("activate agreement", () => {
       }
     );
 
-    it("Agreement Suspended, Requester === Producer and active producer delegation exists -- error case: throws operationNotAllowed", async () => {
+    it("Agreement Suspended, Requester === Producer and active producer delegation exists -- error case: throws organizationNotAllowed", async () => {
       const producerId = generateId<TenantId>();
       const authData = getRandomAuthData(producerId);
       const agreement: Agreement = {
@@ -1682,10 +1693,10 @@ describe("activate agreement", () => {
           correlationId: generateId(),
           logger: genericLogger,
         })
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     });
 
-    it("Agreement Suspended, Requester === Consumer and active consumer delegation exists -- error case: throws operationNotAllowed", async () => {
+    it("Agreement Suspended, Requester === Consumer and active consumer delegation exists -- error case: throws organizationNotAllowed", async () => {
       const consumerId = generateId<TenantId>();
       const authData = getRandomAuthData(consumerId);
       const agreement: Agreement = {
@@ -1713,7 +1724,7 @@ describe("activate agreement", () => {
           correlationId: generateId(),
           logger: genericLogger,
         })
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     });
   });
 
@@ -1732,12 +1743,12 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
 
-    it("should throw an operationNotAllowed error when the requester is not the Consumer or Producer or Delegated Consumer or Delegate Producer or Delegate Consumer", async () => {
+    it("should throw an organizationNotAllowed error when the requester is not the Consumer or Producer or Delegated Consumer or Delegate Producer or Delegate Consumer", async () => {
       const authData = getRandomAuthData();
       const agreement: Agreement = getMockAgreement(
         generateId<EServiceId>(),
         generateId<TenantId>(),
-        randomArrayItem(agreementActivableStates)
+        agreementState.suspended
       );
 
       const producerDelegation = getMockDelegation({
@@ -1767,7 +1778,7 @@ describe("activate agreement", () => {
           correlationId: generateId(),
           logger: genericLogger,
         })
-      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     });
 
     it.each(
