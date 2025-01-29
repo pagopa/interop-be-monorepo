@@ -16,7 +16,9 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
       .object({
         ESERVICE_DOCUMENTS_PATH: z.string(),
         PRODUCER_ALLOWED_ORIGINS: z.string(),
-        FEATURE_FLAG_SIGNALHUB_WHITELIST: z.coerce.boolean(),
+        FEATURE_FLAG_SIGNALHUB_WHITELIST: z
+          .enum(["true", "false"])
+          .transform((value) => value === "true"),
         SIGNALHUB_WHITELIST: z
           .string()
           .transform((value) => value.split(","))
