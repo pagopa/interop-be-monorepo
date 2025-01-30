@@ -16009,6 +16009,8 @@ components:
           $ref: "#/components/schemas/CompactProducerDescriptor"
         draftDescriptor:
           $ref: "#/components/schemas/CompactProducerDescriptor"
+        delegation:
+          $ref: "#/components/schemas/DelegationWithCompactTenants"
     ProducerEServices:
       type: object
       additionalProperties: false
