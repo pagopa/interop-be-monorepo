@@ -30,17 +30,8 @@ import {
   WithMetadata,
   eserviceMode,
   eserviceTemplateEventToBinaryDataV2,
-  eserviceTemplateVersionState,
-  generateId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import {
-  toCreateEventEServiceTemplateVersionActivated,
-  toCreateEventEServiceTemplateVersionSuspended,
-  toCreateEventEServiceTemplateNameUpdated,
-} from "../model/domain/toEvent.js";
 import {
   eserviceTemaplateRiskAnalysisNameDuplicate,
   eServiceTemplateDuplicate,
@@ -64,13 +55,7 @@ import {
   toCreateEventEServiceTemplateRiskAnalysisDeleted,
   toCreateEventEServiceTemplateRiskAnalysisUpdated,
 } from "../model/domain/toEvent.js";
-import { ReadModelService } from "./readModelService.js";
 import {
-  assertIsDraftTemplate,
-  assertIsReceiveTemplate,
-  assertRequesterEServiceTemplateCreator,
-  assertTenantKindExists,
-} from "./validators.js";
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
@@ -79,6 +64,11 @@ import {
   toCreateEventEServiceTemplateAdded,
   toCreateEventEServiceTemplateDraftUpdated,
 } from "../model/domain/toEvent.js";
+import {
+  assertIsDraftTemplate,
+  assertIsReceiveTemplate,
+  assertTenantKindExists,
+} from "./validators.js";
 import { assertRequesterEServiceTemplateCreator } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 import { assertIsDraftEserviceTemplate } from "./validators.js";
@@ -788,6 +778,7 @@ export function eserviceTemplateServiceBuilder(
 
       return updatedEServiceTemplate;
     },
+  };
 }
 
 export type EServiceTemplateService = ReturnType<
