@@ -29,8 +29,8 @@ export const toApiSelfcareInstitution = (
         products: P.nonNullable,
       },
       (institution) => {
-        const pdndRole = institution.products.find(
-          (p) => p.productId?.includes("prod-interop")
+        const pdndRole = institution.products.find((p) =>
+          p.productId?.includes("prod-interop")
         )?.productRole;
 
         return {
