@@ -33,7 +33,6 @@ import {
 } from "pagopa-interop-models";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
-  eserviceTemaplateRiskAnalysisNameDuplicate,
   eServiceTemplateDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
@@ -43,6 +42,7 @@ import {
   tenantNotFound,
   inconsistentDailyCalls,
   originNotCompliant,
+  eserviceTemaplateRiskAnalysisNameDuplicate,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import {
