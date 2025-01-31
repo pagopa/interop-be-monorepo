@@ -44,7 +44,6 @@ import {
 import {
   attributeNotFound,
   versionAttributeGroupSupersetMissingInAttributesSeed,
-  eserviceTemaplateRiskAnalysisNameDuplicate,
   eServiceTemplateDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
@@ -56,6 +55,7 @@ import {
   riskAnalysisValidationFailed,
   tenantNotFound,
   originNotCompliant,
+  eserviceTemaplateRiskAnalysisNameDuplicate,
 } from "../model/domain/errors.js";
 import {
   toCreateEventEServiceTemplateAudienceDescriptionUpdated,
