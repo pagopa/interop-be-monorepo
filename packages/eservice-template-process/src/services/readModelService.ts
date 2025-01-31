@@ -55,7 +55,7 @@ export function readModelServiceBuilder(
       return getEServiceTemplate(eserviceTemplates, { "data.id": id });
     },
 
-    async getEServiceTemplateByNameAndProducerId({
+    async getEServiceTemplateByNameAndCreatorId({
       name,
       creatorId,
     }: {
