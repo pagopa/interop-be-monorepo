@@ -4,13 +4,12 @@ import {
   AgreementEventEnvelopeV1,
   AttributeEventEnvelope,
   EServiceEventEnvelopeV1,
-  AuthorizationEventV1,
   AuthorizationEventEnvelopeV1,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 export async function sendTenantKpiUpdatev1(
-  decodedMessage: TenantEventEnvelopeV1,
+  decodedMessage: TenantEventEnvelopeV1
 ): Promise<void> {
   await match(decodedMessage)
     .with({ type: "TenantCreated" }, async () => Promise.resolve())
@@ -24,7 +23,7 @@ export async function sendTenantKpiUpdatev1(
 }
 
 export async function sendPurposeKpiUpdatev1(
-  message: PurposeEventEnvelopeV1,
+  message: PurposeEventEnvelopeV1
 ): Promise<void> {
   await match(message)
     .with({ type: "PurposeCreated" }, async () => Promise.resolve())
@@ -36,7 +35,7 @@ export async function sendPurposeKpiUpdatev1(
       { type: "PurposeVersionArchived" },
       { type: "PurposeVersionWaitedForApproval" },
       { type: "PurposeVersionRejected" },
-      async () => Promise.resolve(),
+      async () => Promise.resolve()
     )
     .with({ type: "PurposeVersionUpdated" }, async () => Promise.resolve())
     .with({ type: "PurposeDeleted" }, async () => Promise.resolve())
@@ -45,7 +44,7 @@ export async function sendPurposeKpiUpdatev1(
 }
 
 export async function sendAgreementKpiUpdateV1(
-  message: AgreementEventEnvelopeV1,
+  message: AgreementEventEnvelopeV1
 ): Promise<void> {
   await match(message)
     .with({ type: "AgreementAdded" }, async () => Promise.resolve())
@@ -56,47 +55,47 @@ export async function sendAgreementKpiUpdateV1(
       { type: "AgreementSuspended" },
       { type: "AgreementDeactivated" },
       { type: "VerifiedAttributeUpdated" },
-      async () => Promise.resolve(),
+      async () => Promise.resolve()
     )
     .with({ type: "AgreementConsumerDocumentAdded" }, async () =>
-      Promise.resolve(),
+      Promise.resolve()
     )
     .with({ type: "AgreementConsumerDocumentRemoved" }, async () =>
-      Promise.resolve(),
+      Promise.resolve()
     )
     .with({ type: "AgreementContractAdded" }, async () => Promise.resolve())
     .exhaustive();
 }
 
 export async function sendAttributeKpiUpdateV1(
-  message: AttributeEventEnvelope,
+  message: AttributeEventEnvelope
 ): Promise<void> {
   await match(message)
     .with({ type: "AttributeAdded" }, async () => Promise.resolve())
     .with({ type: "MaintenanceAttributeDeleted" }, async () =>
-      Promise.resolve(),
+      Promise.resolve()
     )
     .exhaustive();
 }
 
 export async function sendCatalogKpiUpdateV1(
-  message: EServiceEventEnvelopeV1,
+  message: EServiceEventEnvelopeV1
 ): Promise<void> {
   await match(message)
     .with(
       { type: "EServiceAdded" },
       { type: "ClonedEServiceAdded" },
-      async () => Promise.resolve(),
+      async () => Promise.resolve()
     )
     .with(
       { type: "EServiceUpdated" },
       { type: "EServiceRiskAnalysisAdded" },
       { type: "MovedAttributesFromEserviceToDescriptors" },
       { type: "EServiceRiskAnalysisUpdated" },
-      async () => Promise.resolve(),
+      async () => Promise.resolve()
     )
     .with({ type: "EServiceWithDescriptorsDeleted" }, async () =>
-      Promise.resolve(),
+      Promise.resolve()
     )
     .with({ type: "EServiceDocumentUpdated" }, async () => Promise.resolve())
     .with({ type: "EServiceDeleted" }, async () => Promise.resolve())
@@ -105,19 +104,19 @@ export async function sendCatalogKpiUpdateV1(
     .with({ type: "EServiceDescriptorAdded" }, async () => Promise.resolve())
     .with({ type: "EServiceDescriptorUpdated" }, async () => Promise.resolve())
     .with({ type: "EServiceRiskAnalysisDeleted" }, async () =>
-      Promise.resolve(),
+      Promise.resolve()
     )
     .exhaustive();
 }
 
 export function sendAuthorizationKpiAuthUpdateV1(
-  event: AuthorizationEventEnvelopeV1,
+  event: AuthorizationEventEnvelopeV1
 ): Promise<void> {
   return match(event)
     .with({ type: "KeysAdded" }, async () => Promise.resolve())
     .with({ type: "KeyDeleted" }, async () => Promise.resolve())
     .with({ type: "KeyRelationshipToUserMigrated" }, async () =>
-      Promise.resolve(),
+      Promise.resolve()
     )
     .with({ type: "ClientAdded" }, async () => Promise.resolve())
     .with({ type: "ClientDeleted" }, async () => Promise.resolve())

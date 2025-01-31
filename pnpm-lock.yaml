@@ -2347,7 +2347,7 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
-  packages/kpi-event-consumer:
+  packages/analytics-consumer:
     dependencies:
       '@protobuf-ts/runtime':
         specifier: 2.9.4

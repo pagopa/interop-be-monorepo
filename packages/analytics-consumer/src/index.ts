@@ -11,11 +11,13 @@ import {
   CorrelationId,
   kafkaMessageProcessError,
 } from "pagopa-interop-models";
+import { runConsumer } from "../../kafka-iam-auth/dist/index.js";
 import { topicConfigMap } from "./utils.js";
 import { config } from "./config/config.js";
-import { runConsumer } from "kafka-iam-auth";
 
-export async function processMessage(messagePayload: EachMessagePayload) {
+export async function processMessage(
+  messagePayload: EachMessagePayload
+): Promise<void> {
   const { topic, partition, message } = messagePayload;
   const topicItem = topicConfigMap[topic];
 
@@ -27,7 +29,7 @@ export async function processMessage(messagePayload: EachMessagePayload) {
 
   if (!handler) {
     throw genericInternalError(
-      `Unsupported event_version: ${decoded.event_version} for topic: ${topic}`,
+      `Unsupported event_version: ${decoded.event_version} for topic: ${topic}`
     );
   }
 
@@ -44,7 +46,7 @@ export async function processMessage(messagePayload: EachMessagePayload) {
   });
 
   loggerInstance.info(
-    `Processing ${decoded.type} message - Partition ${partition} - Offset ${message.offset}`,
+    `Processing ${decoded.type} message - Partition ${partition} - Offset ${message.offset}`
   );
 
   await (handler as (msg: unknown) => Promise<void>)(decoded);
@@ -70,10 +72,10 @@ try {
           payload.topic,
           payload.partition,
           payload.message.offset,
-          err,
+          err
         );
       }
-    },
+    }
   );
 } catch (e) {
   genericLogger.error(`An error occurred during initialization:\n${e}`);

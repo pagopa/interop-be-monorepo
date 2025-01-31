@@ -9,7 +9,7 @@ import {
 import { P, match } from "ts-pattern";
 
 export async function sendTenantKpiUpdatev2(
-  decodedMessage: TenantEventV2,
+  decodedMessage: TenantEventV2
 ): Promise<void> {
   await match(decodedMessage)
     .with({ type: "MaintenanceTenantDeleted" }, async () => Promise.resolve())
@@ -32,22 +32,22 @@ export async function sendTenantKpiUpdatev2(
           "TenantMailDeleted",
           "TenantKindUpdated",
           "TenantDelegatedProducerFeatureAdded",
-          "TenantDelegatedProducerFeatureRemoved",
+          "TenantDelegatedProducerFeatureRemoved"
         ),
       },
-      async () => Promise.resolve(),
+      async () => Promise.resolve()
     )
     .exhaustive();
 }
 
 export async function sendPurposeKpiUpdatev2(
-  message: PurposeEventEnvelopeV2,
+  message: PurposeEventEnvelopeV2
 ): Promise<void> {
   await match(message)
     .with(
       { type: "DraftPurposeDeleted" },
       { type: "WaitingForApprovalPurposeDeleted" },
-      async () => Promise.resolve(),
+      async () => Promise.resolve()
     )
     .with(
       { type: "PurposeAdded" },
@@ -66,13 +66,13 @@ export async function sendPurposeKpiUpdatev2(
       { type: "WaitingForApprovalPurposeVersionDeleted" },
       { type: "PurposeVersionActivated" },
       { type: "PurposeCloned" },
-      async () => Promise.resolve(),
+      async () => Promise.resolve()
     )
     .exhaustive();
 }
 
 export async function sendAgreementKpiUpdateV2(
-  message: AgreementEventEnvelopeV2,
+  message: AgreementEventEnvelopeV2
 ): Promise<void> {
   await match(message)
     .with({ type: "AgreementDeleted" }, async () => Promise.resolve())
@@ -95,13 +95,13 @@ export async function sendAgreementKpiUpdateV2(
       { type: "AgreementArchivedByUpgrade" },
       { type: "AgreementSetDraftByPlatform" },
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
-      async () => Promise.resolve(),
+      async () => Promise.resolve()
     )
     .exhaustive();
 }
 
 export async function sendCatalogKpiUpdateV2(
-  message: EServiceEventEnvelopeV2,
+  message: EServiceEventEnvelopeV2
 ): Promise<void> {
   await match(message)
     .with({ type: "EServiceDeleted" }, async () => Promise.resolve())
@@ -132,13 +132,13 @@ export async function sendCatalogKpiUpdateV2(
       { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorAttributesUpdated" },
       { type: "EServiceNameUpdated" },
-      async () => Promise.resolve(),
+      async () => Promise.resolve()
     )
     .exhaustive();
 }
 
 export async function sendDelegationKpiUpdateV2(
-  message: DelegationEventEnvelopeV2,
+  message: DelegationEventEnvelopeV2
 ): Promise<void> {
   await match(message)
     .with(
@@ -146,13 +146,13 @@ export async function sendDelegationKpiUpdateV2(
       { type: "ProducerDelegationRejected" },
       { type: "ProducerDelegationRevoked" },
       { type: "ProducerDelegationSubmitted" },
-      async () => Promise.resolve(),
+      async () => Promise.resolve()
     )
     .exhaustive();
 }
 
 export async function sendAuthorizationKpiAuthUpdateV2(
-  decodedMessage: AuthorizationEventV2,
+  decodedMessage: AuthorizationEventV2
 ): Promise<void> {
   await match(decodedMessage)
     .with({ type: "ClientAdded" }, async () => Promise.resolve())
@@ -172,7 +172,7 @@ export async function sendAuthorizationKpiAuthUpdateV2(
       { type: "ProducerKeychainUserDeleted" },
       { type: "ProducerKeychainEServiceAdded" },
       { type: "ProducerKeychainEServiceRemoved" },
-      async () => Promise.resolve(),
+      async () => Promise.resolve()
     )
     .exhaustive();
 }

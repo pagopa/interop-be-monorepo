@@ -11,7 +11,7 @@ import {
 import { z } from "zod";
 
 export const KpiEventConsumerConfig = KafkaConsumerConfig.and(
-  CatalogTopicConfig,
+  CatalogTopicConfig
 )
   .and(AgreementTopicConfig)
   .and(AttributeTopicConfig)
@@ -27,11 +27,11 @@ export const KpiEventConsumerConfig = KafkaConsumerConfig.and(
       })
       .transform((c) => ({
         authorizationManagementUrl: c.AUTHORIZATION_MANAGEMENT_URL,
-      })),
+      }))
   );
 
 export type KpiEventConsumerConfig = z.infer<typeof KpiEventConsumerConfig>;
 
 export const config: KpiEventConsumerConfig = KpiEventConsumerConfig.parse(
-  process.env,
+  process.env
 );

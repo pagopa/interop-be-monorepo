@@ -1,9 +1,9 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../analytics-consumer/dist"
+    "outDir": "dist"
   },
   "include": [
-    "../analytics-consumer/src"
+    "src"
   ]
 }

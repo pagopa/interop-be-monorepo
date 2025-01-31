@@ -1,5 +1,5 @@
 {
-  "name": "pagopa-interop-kpi-event-consumer",
+  "name": "pagopa-interop-analytics-consumer",
   "private": true,
   "version": "1.0.0",
   "description": "PagoPA Interoperability kpi event consumer",
@@ -15,9 +15,7 @@
     "format:write": "prettier --write src",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
-    "check": "tsc --project tsconfig.check.json",
-    "test": "vitest",
-    "test:it": "vitest integration"
+    "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
   "author": "",
