@@ -15,7 +15,7 @@ export const toCreateEventEServiceAdded = (
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
-  version: 0,
+  version: undefined,
   event: {
     type: "EServiceAdded",
     event_version: 2,
@@ -31,7 +31,7 @@ export const toCreateEventClonedEServiceAdded = (
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: clonedEservice.id,
-  version: 0,
+  version: undefined,
   event: {
     type: "EServiceCloned",
     event_version: 2,
@@ -553,6 +553,23 @@ export const toCreateEventEServiceDescriptorAttributesUpdated = (
     data: {
       descriptorId,
       attributeIds,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceNameUpdated = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceNameUpdated",
+    event_version: 2,
+    data: {
       eservice: toEServiceV2(eservice),
     },
   },

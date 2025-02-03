@@ -59,6 +59,7 @@ export async function exportInterfaceV2(
       { type: "EServiceDescriptorSubmittedByDelegate" },
       { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorAttributesUpdated" },
+      { type: "EServiceNameUpdated" },
       () => undefined
     )
     .exhaustive();

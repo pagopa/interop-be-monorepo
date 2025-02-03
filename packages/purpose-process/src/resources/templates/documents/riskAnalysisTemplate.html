@@ -48,13 +48,31 @@
       </div>
 
       <div class="item">
-        <div class="label">Erogatore</div>
-        <div class="value">{{producerText}}</div>
+        <div class="label">Ente erogatore</div>
+        <div class="value">
+          {{producerName}}{{#if producerIPACode}} (codice IPA:
+          {{producerIPACode}}){{/if}}
+        </div>
       </div>
 
+      {{#if producerDelegationId}}
       <div class="item">
-        <div class="label">Fruitore</div>
-        <div class="value">{{consumerText}}</div>
+        <div class="label">Ente delegato all’erogazione</div>
+        <div class="value">
+          {{producerDelegateName}}{{#if producerDelegateIpaCode}} (codice IPA:
+          {{producerDelegateIpaCode}}){{/if}}
+        </div>
+      </div>
+      {{/if}}
+
+      <br />
+
+      <div class="item">
+        <div class="label">Ente fruitore</div>
+        <div class="value">
+          {{consumerName}}{{#if consumerIpaCode}} (codice IPA:
+          {{consumerIpaCode}}){{/if}}
+        </div>
       </div>
 
       <div class="item">
@@ -76,10 +94,8 @@
     <!-- Blocco dell'analisi del rischio -->
     <div class="purpose-answers">{{{answers}}}</div>
 
-    <!-- Sigla documento -->
-    <div class="signature">
+    <div class="release-date">
       <div class="date">{{date}}</div>
-      <div class="message">Firmato digitalmente da PagoPA S.p.A.</div>
     </div>
   </body>
 </html>

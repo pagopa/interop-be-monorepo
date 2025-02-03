@@ -7,6 +7,7 @@ import {
   FileManagerError,
   formatDateyyyyMMddHHmmss,
   genericLogger,
+  getIpaCode,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
 import {
@@ -36,7 +37,6 @@ import {
   Descriptor,
   EService,
   EServiceId,
-  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
   agreementState,
@@ -800,11 +800,6 @@ describe("upgrade Agreement", () => {
 
     expect(submitterId).toEqual(actualAgreementUpgraded.stamps.submission?.who);
     expect(activatorId).toEqual(actualAgreementUpgraded.stamps.activation?.who);
-
-    const getIpaCode = (tenant: Tenant): string | undefined =>
-      tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
-        ? tenant.externalId.value
-        : undefined;
 
     const expectedAgreementContractPDFPayload: AgreementContractPDFPayload = {
       todayDate: dateAtRomeZone(currentExecutionTime),
