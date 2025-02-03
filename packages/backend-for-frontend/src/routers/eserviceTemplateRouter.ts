@@ -43,7 +43,7 @@ const eserviceTemplateRouter = (
         const eserviceTemplate =
           await eserviceTemplateService.createEServiceTemplate(req.body, ctx);
         return res
-          .status(204)
+          .status(200)
           .send(
             bffApi.CreatedEServiceTemplateVersion.parse(
               toBffCreatedEServiceTemplateVersion(eserviceTemplate)
