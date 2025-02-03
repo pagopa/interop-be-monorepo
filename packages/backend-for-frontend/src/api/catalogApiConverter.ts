@@ -302,20 +302,20 @@ function toBffCatalogApiDescriptorAttributeGroups(
 
 export function toBffCatalogApiDescriptorAttributes(
   attributes: attributeRegistryApi.Attribute[],
-  descriptor: catalogApi.EServiceDescriptor
+  descriptorAttributes: catalogApi.Attributes
 ): bffApi.DescriptorAttributes {
   return {
     certified: toBffCatalogApiDescriptorAttributeGroups(
       attributes,
-      descriptor.attributes.certified
+      descriptorAttributes.certified
     ),
     declared: toBffCatalogApiDescriptorAttributeGroups(
       attributes,
-      descriptor.attributes.declared
+      descriptorAttributes.declared
     ),
     verified: toBffCatalogApiDescriptorAttributeGroups(
       attributes,
-      descriptor.attributes.verified
+      descriptorAttributes.verified
     ),
   };
 }
