@@ -165,6 +165,7 @@ CREATE TABLE readmodel.agreement(
   rejection_reason varchar,
   suspended_at timestamp with time zone,
 
+PRIMARY KEY (id)
 );
 
  CREATE TABLE readmodel.agreement_attribute(
@@ -185,4 +186,19 @@ CREATE TABLE readmodel.agreement(
    path varchar NOT NULL,
    created_at timestamp with time zone NOT NULL,
    kind varchar NOT NULL -- consumerDoc / contract
+ );
+
+
+ -- ATTRIBUTE
+ CREATE TABLE readmodel.attribute(
+   id UUID,
+   version INTEGER NOT NULL,
+   code VARCHAR NOT NULL,
+   kind VARCHAR NOT NULL,
+   description VARCHAR NOT NULL,
+   origin VARCHAR,
+   name VARCHAR NOT NULL,
+   creation_time TIMESTAMP WITH TIME ZONE NOT NULL,
+
+   PRIMARY KEY (id)
  );
