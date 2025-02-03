@@ -2,6 +2,7 @@
 
 import {
   AppContext,
+  AuthData,
   DB,
   FileManager,
   WithLogger,
@@ -401,6 +402,43 @@ export function eserviceTemplateServiceBuilder(
       );
       return updatedEserviceTemplate;
     },
+
+    async getEServiceTemplateById(
+      eserviceTemplateId: EServiceTemplateId,
+      { authData, logger }: WithLogger<AppContext>
+    ): Promise<EServiceTemplate> {
+      logger.info(`Retrieving EService template ${eserviceTemplateId}`);
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      return applyVisibilityToEServiceTemplate(eserviceTemplate.data, authData);
+    },
+  };
+}
+
+function applyVisibilityToEServiceTemplate(
+  eserviceTemplate: EServiceTemplate,
+  authData: AuthData
+): EServiceTemplate {
+  if (eserviceTemplate.creatorId === authData.organizationId) {
+    return eserviceTemplate;
+  }
+
+  const hasNoPublishedVersions = eserviceTemplate.versions.every(
+    (v) => v.state === eserviceTemplateVersionState.draft
+  );
+
+  if (hasNoPublishedVersions) {
+    throw eServiceTemplateNotFound(eserviceTemplate.id);
+  }
+
+  return {
+    ...eserviceTemplate,
+    versions: eserviceTemplate.versions.filter(
+      (v) => v.state !== eserviceTemplateVersionState.draft
+    ),
   };
 }
 

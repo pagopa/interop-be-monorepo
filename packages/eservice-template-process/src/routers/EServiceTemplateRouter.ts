@@ -23,6 +23,7 @@ import {
   updateEServiceTemplateNameErrorMapper,
   updateEServiceTemplateAudienceDescriptionErrorMapper,
   updateEServiceTemplateEServiceDescriptionErrorMapper,
+  getEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../model/domain/apiConverter.js";
 
@@ -47,7 +48,14 @@ const eserviceTemplateService = eserviceTemplateServiceBuilder(
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const { ADMIN_ROLE, API_ROLE } = userRoles;
+  const {
+    ADMIN_ROLE,
+    API_ROLE,
+    SECURITY_ROLE,
+    M2M_ROLE,
+    SUPPORT_ROLE,
+    INTERNAL_ROLE,
+  } = userRoles;
 
   return ctx
     .router(eserviceTemplateApi.processApi.api, {
@@ -65,8 +73,40 @@ const eserviceTemplatesRouter = (
     )
     .get(
       "/eservices/templates/:eServiceTemplateId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+        INTERNAL_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const eserviceTemplate =
+            await eserviceTemplateService.getEServiceTemplateById(
+              unsafeBrandId(req.params.eServiceTemplateId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              eserviceTemplateApi.EServiceTemplate.parse(
+                eserviceTemplateToApiEServiceTemplate(eserviceTemplate)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceTemplateErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId",
