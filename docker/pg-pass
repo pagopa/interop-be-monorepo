@@ -1,2 +1,3 @@
 # hostname:port:database:username:password
 event-store:5432:root:root:root
+readmodel-sql:5433:root:root:root
