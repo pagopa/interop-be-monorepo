@@ -1,11 +1,14 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { fileURLToPath } from "url";
+import path from "path";
 import {
+  dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
   genericLogger,
+  timeAtRomeZone,
 } from "pagopa-interop-commons";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -13,6 +16,7 @@ import {
   getMockAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
+  getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
@@ -25,6 +29,7 @@ import {
 import {
   Agreement,
   AgreementActivatedV2,
+  AgreementContractPDFPayload,
   AgreementId,
   AgreementSetMissingCertifiedAttributesByPlatformV2,
   AgreementSuspendedByPlatformV2,
@@ -36,19 +41,21 @@ import {
   DeclaredTenantAttribute,
   Descriptor,
   EService,
-  SelfcareId,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantAttribute,
   TenantId,
-  UserId,
   VerifiedTenantAttribute,
   agreementState,
+  attributeKind,
+  delegationKind,
+  delegationState,
   descriptorState,
   fromAgreementV2,
   generateId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { addDays } from "date-fns";
 import {
   agreementActivableStates,
   agreementActivationAllowedDescriptorStates,
@@ -56,10 +63,8 @@ import {
 } from "../src/model/domain/agreement-validators.js";
 import {
   agreementActivationFailed,
-  agreementMissingUserInfo,
   agreementNotFound,
   agreementNotInExpectedState,
-  agreementSelfcareIdNotFound,
   agreementStampNotFound,
   attributeNotFound,
   descriptorNotFound,
@@ -67,57 +72,22 @@ import {
   eServiceNotFound,
   operationNotAllowed,
   tenantNotFound,
-  userNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneAttribute,
+  addOneDelegation,
   addOneEService,
   addOneTenant,
   agreementService,
   fileManager,
+  pdfGenerator,
   readAgreementEventByVersion,
   readLastAgreementEvent,
-  selfcareV2ClientMock,
 } from "./utils.js";
 
 describe("activate agreement", () => {
-  const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
-    email: "test@test.com",
-    name: "Test Name",
-    surname: "Test Surname",
-    taxCode: "TSTTSTTSTTSTTSTT",
-    id: generateId(),
-  };
-
-  // eslint-disable-next-line functional/no-let
-  let mockSelfcareUserResponseWithMissingInfo: selfcareV2ClientApi.UserResponse =
-    mockSelfcareUserResponse;
-  while (
-    mockSelfcareUserResponseWithMissingInfo.name &&
-    mockSelfcareUserResponseWithMissingInfo.surname &&
-    mockSelfcareUserResponseWithMissingInfo.taxCode
-  ) {
-    // At least one of the three must be undefined to test the missing info case
-    mockSelfcareUserResponseWithMissingInfo = {
-      ...mockSelfcareUserResponse,
-      name: randomArrayItem([mockSelfcareUserResponse.name]),
-      surname: randomArrayItem([mockSelfcareUserResponse.surname]),
-      taxCode: randomArrayItem([mockSelfcareUserResponse.taxCode, undefined]),
-    };
-  }
-
-  beforeEach(async () => {
-    selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-      async () => mockSelfcareUserResponse
-    );
-  });
-
-  afterEach(async () => {
-    vi.clearAllMocks();
-  });
-
   async function addRelatedAgreements(agreement: Agreement): Promise<{
     archivableRelatedAgreement1: Agreement;
     archivableRelatedAgreement2: Agreement;
@@ -198,6 +168,7 @@ describe("activate agreement", () => {
 
   describe("Agreement Pending", () => {
     it("Agreement Pending, Requester === Producer, valid attributes -- success case: Pending >> Activated", async () => {
+      vi.spyOn(pdfGenerator, "generate");
       const producer: Tenant = getMockTenant();
 
       const certifiedAttribute: Attribute = {
@@ -231,7 +202,7 @@ describe("activate agreement", () => {
           {
             id: producer.id,
             verificationDate: new Date(),
-            extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+            extensionDate: addDays(new Date(), 30),
           },
         ],
       };
@@ -363,6 +334,82 @@ describe("activate agreement", () => {
         expectedActivatedAgreement
       );
 
+      expect(pdfGenerator.generate).toHaveBeenCalledWith(
+        path.resolve(
+          path.dirname(fileURLToPath(import.meta.url)),
+          "../src",
+          "resources/templates/documents/",
+          "agreementContractTemplate.html"
+        ),
+        {
+          todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+          todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+          agreementId: expectedActivatedAgreement.id,
+          submitterId: expectedActivatedAgreement.stamps.submission!.who,
+          submissionDate: dateAtRomeZone(
+            expectedActivatedAgreement.stamps.submission!.when
+          ),
+          submissionTime: timeAtRomeZone(
+            expectedActivatedAgreement.stamps.submission!.when
+          ),
+          activatorId: expectedActivatedAgreement.stamps.activation!.who,
+          activationDate: dateAtRomeZone(
+            expectedActivatedAgreement.stamps.activation!.when
+          ),
+          activationTime: timeAtRomeZone(
+            expectedActivatedAgreement.stamps.activation!.when
+          ),
+          eserviceId: eservice.id,
+          eserviceName: eservice.name,
+          descriptorId: eservice.descriptors[0].id,
+          descriptorVersion: eservice.descriptors[0].version,
+          producerName: producer.name,
+          producerIpaCode: producer.externalId.value,
+
+          consumerName: consumer.name,
+          consumerIpaCode: consumer.externalId.value,
+          certifiedAttributes: [
+            {
+              assignmentDate: dateAtRomeZone(
+                validTenantCertifiedAttribute.assignmentTimestamp
+              ),
+              assignmentTime: timeAtRomeZone(
+                validTenantCertifiedAttribute.assignmentTimestamp
+              ),
+              attributeName: certifiedAttribute.name,
+              attributeId: validTenantCertifiedAttribute.id,
+            },
+          ],
+          declaredAttributes: [
+            {
+              assignmentDate: dateAtRomeZone(
+                validTenantDeclaredAttribute.assignmentTimestamp
+              ),
+              assignmentTime: timeAtRomeZone(
+                validTenantDeclaredAttribute.assignmentTimestamp
+              ),
+              attributeName: declaredAttribute.name,
+              attributeId: validTenantDeclaredAttribute.id,
+            },
+          ],
+          verifiedAttributes: [
+            {
+              assignmentDate: dateAtRomeZone(
+                validTenantVerifiedAttribute.assignmentTimestamp
+              ),
+              assignmentTime: timeAtRomeZone(
+                validTenantVerifiedAttribute.assignmentTimestamp
+              ),
+              attributeName: verifiedAttribute.name,
+              attributeId: validTenantVerifiedAttribute.id,
+              expirationDate: dateAtRomeZone(
+                validTenantVerifiedAttribute.verifiedBy[0].extensionDate!
+              ),
+            },
+          ],
+        }
+      );
+
       expect(
         await fileManager.listFiles(config.s3Bucket, genericLogger)
       ).toContain(expectedContract.path);
@@ -392,7 +439,7 @@ describe("activate agreement", () => {
           {
             id: producer.id,
             verificationDate: new Date(),
-            extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+            extensionDate: addDays(new Date(), 30),
           },
         ],
       };
@@ -593,6 +640,324 @@ describe("activate agreement", () => {
         })
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
+
+    it("should succeed when the requester is the Delegate and first activation", async () => {
+      const consumerId = generateId<TenantId>();
+      const producerId = generateId<TenantId>();
+      const verifiedTenantAttributes = [
+        {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            {
+              id: producerId,
+              verificationDate: new Date(),
+              extensionDate: undefined,
+            },
+          ],
+          revokedBy: [],
+        },
+      ];
+      const certifiedTenantAttributes = [
+        {
+          ...getMockCertifiedTenantAttribute(),
+          revocationTimestamp: undefined,
+        },
+      ];
+      const declaredTenantAttributes = [
+        {
+          ...getMockDeclaredTenantAttribute(),
+          revocationTimestamp: undefined,
+        },
+      ];
+
+      const verifiedAttribute: Attribute = getMockAttribute(
+        attributeKind.verified,
+        verifiedTenantAttributes[0].id
+      );
+
+      const certifiedAttribute: Attribute = getMockAttribute(
+        attributeKind.certified,
+        certifiedTenantAttributes[0].id
+      );
+
+      const declaredAttribute: Attribute = getMockAttribute(
+        attributeKind.declared,
+        declaredTenantAttributes[0].id
+      );
+
+      const producer = getMockTenant(producerId);
+      const consumer = {
+        ...getMockTenant(consumerId),
+        attributes: [
+          verifiedTenantAttributes[0],
+          certifiedTenantAttributes[0],
+          declaredTenantAttributes[0],
+        ],
+      };
+      const authData = getRandomAuthData();
+
+      const descriptor = {
+        ...getMockDescriptorPublished(),
+        attributes: {
+          certified: [
+            [getMockEServiceAttribute(certifiedTenantAttributes[0].id)],
+          ],
+          declared: [
+            [getMockEServiceAttribute(declaredTenantAttributes[0].id)],
+          ],
+          verified: [
+            [getMockEServiceAttribute(verifiedTenantAttributes[0].id)],
+          ],
+        },
+      };
+      const eservice = {
+        ...getMockEService(),
+        producerId: producer.id,
+        consumerId: consumer.id,
+        descriptors: [descriptor],
+      };
+      const agreementSubmissionDate = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth() - 1,
+        1
+      );
+
+      const submitterId = authData.userId;
+      const activatorId = authData.userId;
+      const agreement: Agreement = {
+        ...getMockAgreement(eservice.id),
+        state: agreementState.pending,
+        descriptorId: eservice.descriptors[0].id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+        suspendedAt: undefined,
+        suspendedByConsumer: false,
+        suspendedByProducer: false,
+        suspendedByPlatform: false,
+        verifiedAttributes: [
+          ...verifiedTenantAttributes.map(({ id }) => ({
+            id,
+          })),
+        ],
+        certifiedAttributes: certifiedTenantAttributes.map(({ id }) => ({
+          id,
+        })),
+        declaredAttributes: declaredTenantAttributes.map(({ id }) => ({
+          id,
+        })),
+        stamps: {
+          submission: {
+            who: submitterId,
+            when: agreementSubmissionDate,
+          },
+        },
+      };
+
+      const delegator = getMockTenant(producer.id);
+      const delegate = getMockTenant(authData.organizationId);
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: agreement.eserviceId,
+        delegateId: delegate.id,
+        delegatorId: delegator.id,
+        state: delegationState.active,
+      });
+
+      await addOneAttribute(verifiedAttribute);
+      await addOneAttribute(certifiedAttribute);
+      await addOneAttribute(declaredAttribute);
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      await addOneTenant(delegator);
+      await addOneTenant(delegate);
+      await addOneEService(eservice);
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+
+      vi.spyOn(pdfGenerator, "generate");
+      const actualAgreement = await agreementService.activateAgreement(
+        agreement.id,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+
+      const expectedAgreement = {
+        ...agreement,
+        state: agreementState.active,
+        contract: actualAgreement.contract,
+        certifiedAttributes: actualAgreement.certifiedAttributes,
+        declaredAttributes: actualAgreement.declaredAttributes,
+        verifiedAttributes: actualAgreement.verifiedAttributes,
+        stamps: {
+          ...agreement.stamps,
+          activation: {
+            who: authData.userId,
+            when: expect.any(Date),
+            delegationId: delegation.id,
+          },
+        },
+      };
+
+      expect(actualAgreement).toEqual(expectedAgreement);
+
+      // ============================
+      // Verify agreement Document
+      // ============================
+
+      expect(
+        await fileManager.listFiles(config.s3Bucket, genericLogger)
+      ).toContain(actualAgreement.contract?.path);
+
+      expect(submitterId).toEqual(actualAgreement.stamps.submission?.who);
+      expect(activatorId).toEqual(actualAgreement.stamps.activation?.who);
+
+      const getIpaCode = (tenant: Tenant): string | undefined =>
+        tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
+          ? tenant.externalId.value
+          : undefined;
+
+      const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
+        todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+        agreementId: agreement.id,
+        submitterId,
+        submissionDate: dateAtRomeZone(agreementSubmissionDate),
+        submissionTime: timeAtRomeZone(agreementSubmissionDate),
+        activatorId,
+        activationDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        activationTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+        eserviceName: eservice.name,
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+        descriptorVersion: eservice.descriptors[0].version,
+        producerName: producer.name,
+        producerIpaCode: getIpaCode(producer),
+        consumerName: consumer.name,
+        consumerIpaCode: getIpaCode(consumer),
+        certifiedAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              certifiedTenantAttributes[0].assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              certifiedTenantAttributes[0].assignmentTimestamp
+            ),
+            attributeName: certifiedAttribute.name,
+            attributeId: certifiedTenantAttributes[0].id,
+          },
+        ],
+        declaredAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              declaredTenantAttributes[0].assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              declaredTenantAttributes[0].assignmentTimestamp
+            ),
+            attributeName: declaredAttribute.name,
+            attributeId: declaredTenantAttributes[0].id,
+          },
+        ],
+        verifiedAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              verifiedTenantAttributes[0].assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              verifiedTenantAttributes[0].assignmentTimestamp
+            ),
+            attributeName: verifiedAttribute.name,
+            attributeId: verifiedTenantAttributes[0].id,
+            expirationDate: undefined,
+          },
+        ],
+        producerDelegationId: delegation.id,
+        producerDelegatorName: producer.name,
+        producerDelegatorIpaCode: getIpaCode(producer),
+        producerDelegateName: delegate.name,
+        producerDelegateIpaCode: getIpaCode(delegate),
+      };
+
+      expect(pdfGenerator.generate).toHaveBeenCalledWith(
+        expect.any(String),
+        expectedAgreementPDFPayload
+      );
+    });
+
+    it("should succed when the requester is the Delegate and from Suspended", async () => {
+      const producer = getMockTenant();
+      const consumer = getMockTenant();
+      const authData = getRandomAuthData();
+      const eservice = {
+        ...getMockEService(),
+        producerId: producer.id,
+        consumerId: consumer.id,
+        descriptors: [getMockDescriptorPublished()],
+      };
+      const mockAgreement = getMockAgreement(eservice.id);
+      const agreement: Agreement = {
+        ...getMockAgreement(eservice.id),
+        state: agreementState.suspended,
+        descriptorId: eservice.descriptors[0].id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+        suspendedAt: new Date(),
+        suspendedByConsumer: false,
+        suspendedByProducer: true,
+        suspendedByPlatform: false,
+        stamps: {
+          ...mockAgreement.stamps,
+          suspensionByProducer: {
+            who: authData.userId,
+            when: new Date(),
+          },
+        },
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: agreement.eserviceId,
+        delegateId: authData.organizationId,
+        delegatorId: eservice.producerId,
+        state: delegationState.active,
+      });
+
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      await addOneEService(eservice);
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+
+      const actualAgreement = await agreementService.activateAgreement(
+        agreement.id,
+        {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        }
+      );
+
+      const expectedAgreement = {
+        ...agreement,
+        state: agreementState.active,
+        contract: actualAgreement.contract,
+        certifiedAttributes: actualAgreement.certifiedAttributes,
+        declaredAttributes: actualAgreement.declaredAttributes,
+        verifiedAttributes: actualAgreement.verifiedAttributes,
+        suspendedAt: undefined,
+        suspendedByProducer: false,
+        stamps: {
+          ...agreement.stamps,
+          suspensionByProducer: undefined,
+        },
+      };
+
+      expect(actualAgreement).toEqual(expectedAgreement);
+    });
   });
 
   describe("Agreement Suspended", () => {
@@ -630,7 +995,7 @@ describe("activate agreement", () => {
             {
               id: producer.id,
               verificationDate: new Date(),
-              extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+              extensionDate: addDays(new Date(), 30),
             },
           ],
         };
@@ -937,7 +1302,7 @@ describe("activate agreement", () => {
             {
               id: producer.id,
               verificationDate: new Date(),
-              extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+              extensionDate: addDays(new Date(), 30),
             },
           ],
         };
@@ -1460,6 +1825,33 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
+    it("should throw an operationNotAllowed error when the requester is the Producer but it is not the delegate", async () => {
+      const authData = getRandomAuthData();
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.pending,
+        producerId: authData.organizationId,
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: agreement.eserviceId,
+        state: delegationState.active,
+      });
+
+      const eservice = getMockEService(agreement.eserviceId);
+      await addOneEService(eservice);
+      await addOneAgreement(agreement);
+      await addOneDelegation(delegation);
+      await expect(
+        agreementService.activateAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
+
     it.each(
       Object.values(agreementState).filter(
         (state) => !agreementActivableStates.includes(state)
@@ -1714,300 +2106,6 @@ describe("activate agreement", () => {
           logger: genericLogger,
         })
       ).rejects.toThrowError(agreementStampNotFound("submission"));
-    });
-
-    it("should throw agreementSelfcareIdNotFound when the contract builder cannot find consumer selfcareId", async () => {
-      const producer: Tenant = getMockTenant();
-      const consumer: Tenant = { ...getMockTenant(), selfcareId: undefined };
-
-      const authData = getRandomAuthData(producer.id);
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const mockAgreement: Agreement = getMockAgreement();
-      const agreement: Agreement = {
-        ...mockAgreement,
-        state: agreementState.pending,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedByConsumer: false,
-        suspendedByProducer: randomBoolean(),
-        stamps: {
-          submission: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
-      };
-
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(agreementSelfcareIdNotFound(agreement.consumerId));
-    });
-
-    it("should throw userNotFound when the contract builder cannot fetch submission stamp user info from Selfcare API", async () => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(async () => undefined);
-
-      const producer: Tenant = getMockTenant();
-      const consumer: Tenant = {
-        ...getMockTenant(),
-        selfcareId: generateId(),
-      };
-
-      const authData = getRandomAuthData(producer.id);
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const mockAgreement: Agreement = getMockAgreement();
-      const agreement: Agreement = {
-        ...mockAgreement,
-        state: agreementState.pending,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedByConsumer: false,
-        suspendedByProducer: randomBoolean(),
-        stamps: {
-          submission: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
-      };
-
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(
-        userNotFound(unsafeBrandId(consumer.selfcareId!), authData.userId)
-      );
-    });
-
-    it("should throw agreementMissingUserInfo when the contract builder cannot find name, surname or taxcode in submission stamp user info from Selfcare API", async () => {
-      selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-        async () => mockSelfcareUserResponseWithMissingInfo
-      );
-
-      const producer: Tenant = getMockTenant();
-      const consumer: Tenant = {
-        ...getMockTenant(),
-        selfcareId: generateId(),
-      };
-
-      const authData = getRandomAuthData(producer.id);
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const mockAgreement: Agreement = getMockAgreement();
-      const agreement: Agreement = {
-        ...mockAgreement,
-        state: agreementState.pending,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedByConsumer: false,
-        suspendedByProducer: randomBoolean(),
-        stamps: {
-          submission: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
-      };
-
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(agreementMissingUserInfo(authData.userId));
-    });
-
-    it("should throw userNotFound when the contract builder cannot fetch activation stamp user info from Selfcare API", async () => {
-      const submissionStampUserId = generateId<UserId>();
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-        async ({ params: { id } }) =>
-          id === submissionStampUserId ? mockSelfcareUserResponse : undefined
-      );
-
-      const mockProducerSelfcareId: SelfcareId = generateId();
-
-      const producer: Tenant = {
-        ...getMockTenant(),
-        selfcareId: mockProducerSelfcareId,
-      };
-      const consumer: Tenant = getMockTenant();
-
-      const authData = getRandomAuthData(producer.id);
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const mockAgreement: Agreement = getMockAgreement();
-      const agreement: Agreement = {
-        ...mockAgreement,
-        state: agreementState.pending,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedByConsumer: false,
-        suspendedByProducer: randomBoolean(),
-        stamps: {
-          submission: {
-            who: submissionStampUserId,
-            when: new Date(),
-          },
-          activation: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
-      };
-
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(
-        userNotFound(mockProducerSelfcareId, authData.userId)
-      );
-    });
-
-    it("should throw agreementMissingUserInfo when the contract builder cannot find name, surname or taxcode in activation stamp user info from Selfcare API", async () => {
-      const submissionStampUserId = generateId<UserId>();
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-        async ({ params: { id } }) =>
-          id === submissionStampUserId
-            ? mockSelfcareUserResponse
-            : mockSelfcareUserResponseWithMissingInfo
-      );
-
-      const producer: Tenant = getMockTenant();
-      const consumer: Tenant = {
-        ...getMockTenant(),
-        selfcareId: generateId(),
-      };
-
-      const authData = getRandomAuthData(producer.id);
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const mockAgreement: Agreement = getMockAgreement();
-      const agreement: Agreement = {
-        ...mockAgreement,
-        state: agreementState.pending,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedByConsumer: false,
-        suspendedByProducer: randomBoolean(),
-        stamps: {
-          submission: {
-            who: submissionStampUserId,
-            when: new Date(),
-          },
-          activation: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
-      };
-
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(agreementMissingUserInfo(authData.userId));
     });
 
     it("should throw attributeNotFound when the contract builder cannot retrieve an attribute", async () => {

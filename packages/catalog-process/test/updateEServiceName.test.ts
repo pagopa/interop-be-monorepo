@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockDelegation,
+} from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -10,6 +13,8 @@ import {
   generateId,
   EServiceNameUpdatedV2,
   TenantId,
+  delegationKind,
+  delegationState,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -25,6 +30,7 @@ import {
   getMockDocument,
   getMockDescriptor,
   getMockEService,
+  addOneDelegation,
 } from "./utils.js";
 describe("update eService name on published eservice", () => {
   it("should write on event-store for the update of the eService name", async () => {
@@ -66,7 +72,6 @@ describe("update eService name on published eservice", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
-  /*
   it("should write on event-store for the update of the eService name (delegate)", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -112,7 +117,6 @@ describe("update eService name on published eservice", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
-  */
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const eservice = getMockEService();
     expect(
@@ -136,7 +140,6 @@ describe("update eService name on published eservice", () => {
       })
     ).rejects.toThrowError(operationForbidden);
   });
-  /*
   it("should throw operationForbidden if the given e-service has been delegated and the requester is not the delegate", async () => {
     const eservice = getMockEService();
     const delegation = getMockDelegation({
@@ -155,7 +158,6 @@ describe("update eService name on published eservice", () => {
       })
     ).rejects.toThrowError(operationForbidden);
   });
-  */
   it("should throw eserviceWithoutValidDescriptors if the eservice doesn't have any descriptors", async () => {
     const eservice = getMockEService();
     await addOneEService(eservice);

@@ -1,3 +1,4 @@
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   AuthData,
   RiskAnalysisValidatedForm,
@@ -5,37 +6,149 @@ import {
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
-  TenantId,
-  operationForbidden,
+  Descriptor,
+  DescriptorState,
   EService,
+  EServiceId,
+  Tenant,
+  TenantId,
+  TenantKind,
+  delegationKind,
+  delegationState,
   descriptorState,
   eserviceMode,
-  Tenant,
-  TenantKind,
-  Descriptor,
+  operationForbidden,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
-  eserviceNotInDraftState,
-  eserviceNotInReceiveMode,
-  tenantKindNotFound,
-  riskAnalysisValidationFailed,
   draftDescriptorAlreadyExists,
   eServiceRiskAnalysisIsRequired,
+  eserviceNotInDraftState,
+  eserviceNotInReceiveMode,
+  eserviceWithActiveOrPendingDelegation,
+  notValidDescriptorState,
   riskAnalysisNotValid,
-  notValidDescriptor,
+  riskAnalysisValidationFailed,
+  tenantKindNotFound,
 } from "../model/domain/errors.js";
+import { ReadModelService } from "./readModelService.js";
 
-export function assertRequesterAllowed(
+export function descriptorStatesNotAllowingDocumentOperations(
+  descriptor: Descriptor
+): boolean {
+  return match(descriptor.state)
+    .with(
+      descriptorState.draft,
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => false
+    )
+    .with(
+      descriptorState.archived,
+      descriptorState.waitingForApproval,
+      () => true
+    )
+    .exhaustive();
+}
+
+export const notActiveDescriptorState: DescriptorState[] = [
+  descriptorState.draft,
+  descriptorState.waitingForApproval,
+];
+
+export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
+  return match(descriptor.state)
+    .with(descriptorState.draft, descriptorState.waitingForApproval, () => true)
+    .with(
+      descriptorState.archived,
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => false
+    )
+    .exhaustive();
+}
+
+export function isActiveDescriptor(descriptor: Descriptor): boolean {
+  return !isNotActiveDescriptor(descriptor);
+}
+
+export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
+  return match(descriptor.state)
+    .with(
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => true
+    )
+    .with(
+      descriptorState.draft,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      () => false
+    )
+    .exhaustive();
+}
+
+export async function assertRequesterIsDelegateProducerOrProducer(
+  producerId: TenantId,
+  eserviceId: EServiceId,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<void> {
+  if (authData.userRoles.includes("internal")) {
+    return;
+  }
+
+  // Search for active producer delegation
+  const producerDelegation = await readModelService.getLatestDelegation({
+    eserviceId,
+    kind: delegationKind.delegatedProducer,
+    states: [delegationState.active],
+  });
+
+  // If an active producer delegation exists, check if the requester is the delegate
+  if (producerDelegation) {
+    const isRequesterDelegateProducer =
+      authData.organizationId === producerDelegation.delegateId;
+
+    if (!isRequesterDelegateProducer) {
+      throw operationForbidden;
+    }
+  } else {
+    // If no active producer delegation exists, ensure the requester is the producer
+    assertRequesterIsProducer(producerId, authData);
+  }
+}
+
+export function assertRequesterIsProducer(
   producerId: TenantId,
   authData: AuthData
 ): void {
-  if (
-    !authData.userRoles.includes("internal") &&
-    producerId !== authData.organizationId
-  ) {
+  if (authData.userRoles.includes("internal")) {
+    return;
+  }
+  if (producerId !== authData.organizationId) {
     throw operationForbidden;
+  }
+}
+
+export async function assertNoExistingProducerDelegationInActiveOrPendingState(
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<void> {
+  const producerDelegation = await readModelService.getLatestDelegation({
+    eserviceId,
+    kind: delegationKind.delegatedProducer,
+    states: [delegationState.active, delegationState.waitingForApproval],
+  });
+
+  if (producerDelegation) {
+    throw eserviceWithActiveOrPendingDelegation(
+      eserviceId,
+      producerDelegation.id
+    );
   }
 }
 
@@ -59,11 +172,11 @@ export function assertTenantKindExists(
   }
 }
 
-export function assertHasNoDraftDescriptor(eservice: EService): void {
-  const hasDraftDescriptor = eservice.descriptors.some(
-    (d: Descriptor) => d.state === descriptorState.draft
-  );
-  if (hasDraftDescriptor) {
+export function assertHasNoDraftOrWaitingForApprovalDescriptor(
+  eservice: EService
+): void {
+  const hasInvalidDescriptor = eservice.descriptors.some(isNotActiveDescriptor);
+  if (hasInvalidDescriptor) {
     throw draftDescriptorAlreadyExists(eservice.id);
   }
 }
@@ -113,8 +226,9 @@ export function assertInterfaceDeletableDescriptorState(
       descriptorState.deprecated,
       descriptorState.published,
       descriptorState.suspended,
+      descriptorState.waitingForApproval,
       () => {
-        throw notValidDescriptor(descriptor.id, descriptor.state);
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
     )
     .exhaustive();
@@ -129,10 +243,11 @@ export function assertDocumentDeletableDescriptorState(
       descriptorState.deprecated,
       descriptorState.published,
       descriptorState.suspended,
+      descriptorState.waitingForApproval,
       () => void 0
     )
     .with(descriptorState.archived, () => {
-      throw notValidDescriptor(descriptor.id, descriptor.state);
+      throw notValidDescriptorState(descriptor.id, descriptor.state);
     })
     .exhaustive();
 }

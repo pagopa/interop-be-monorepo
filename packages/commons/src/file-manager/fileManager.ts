@@ -1,4 +1,5 @@
 /* eslint-disable max-params */
+import crypto from "crypto";
 import {
   CopyObjectCommand,
   DeleteObjectCommand,
@@ -91,6 +92,11 @@ export function initFileManager(
           Bucket: bucket,
           Key: key,
           Body: fileContent,
+          ChecksumSHA256: crypto
+            .createHash("sha256")
+            .update(fileContent)
+            .digest("base64")
+            .toString(),
         })
       );
       return key;
