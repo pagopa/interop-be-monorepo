@@ -577,11 +577,10 @@ describe("validation test", async () => {
 
     it("ignore client_id claim", async () => {
       const { jws } = await getMockClientAssertion({
-          customClaims: {
-            client_id: "somevalue",
-          },
-        }
-      );
+        customClaims: {
+          client_id: "somevalue",
+        },
+      });
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
@@ -592,11 +591,10 @@ describe("validation test", async () => {
 
     it("ignore nbf claim", async () => {
       const { jws } = await getMockClientAssertion({
-          customClaims: {
-            nbf: 999999999999,
-          },
-        }
-      );
+        customClaims: {
+          nbf: 999999999999,
+        },
+      });
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
