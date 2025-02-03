@@ -33,6 +33,11 @@ export const errorCodes = {
   certifierWithExistingAttributes: "0024",
   attributeNotFoundInTenant: "0025",
   tenantNotFoundByExternalId: "0026",
+  tenantAlreadyHasDelegatedProducerFeature: "0027",
+  tenantHasNoDelegatedProducerFeature: "0028",
+  notValidMailAddress: "0029",
+  agreementNotFound: "0030",
+  descriptorNotFoundInEservice: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -290,5 +295,52 @@ export function attributeNotFoundInTenant(
     detail: `Attribute ${attributeId} not found in tenant ${tenantId}`,
     code: "attributeNotFoundInTenant",
     title: "Attribute not found in tenant",
+  });
+}
+
+export function tenantAlreadyHasDelegatedProducerFeature(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} already has delegated producer feature assigned`,
+    code: "tenantAlreadyHasDelegatedProducerFeature",
+    title: "Feature already assigned",
+  });
+}
+
+export function tenantHasNoDelegatedProducerFeature(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} has no delegated producer feature assigned`,
+    code: "tenantHasNoDelegatedProducerFeature",
+    title: "Feature not assigned",
+  });
+}
+
+export function agreementNotFound(agreementId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} not found`,
+    code: "agreementNotFound",
+    title: "Agreement not found",
+  });
+}
+
+export function descriptorNotFoundInEservice(
+  descriptorId: string,
+  eserviceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
+    code: "descriptorNotFoundInEservice",
+    title: "Descriptor not found in EService",
+  });
+}
+
+export function notValidMailAddress(address: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail address ${address} not valid`,
+    code: "notValidMailAddress",
+    title: "Not valid mail address",
   });
 }

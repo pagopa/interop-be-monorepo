@@ -352,7 +352,7 @@ async function enhanceEService(
   { catalogProcessClient, tenantProcessClient }: PagoPAInteropBeClients,
   eserviceId: string,
   { headers }: WithLogger<BffAppContext>
-): Promise<bffApi.ProducerKeychainEService> {
+): Promise<bffApi.CompactEService> {
   const eservice = await catalogProcessClient.getEServiceById({
     params: { eServiceId: eserviceId },
     headers,
