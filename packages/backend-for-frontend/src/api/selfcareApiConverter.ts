@@ -29,14 +29,16 @@ export const toApiSelfcareInstitution = (
         products: P.nonNullable,
       },
       (institution) => {
-        const pdndRole = institution.products.find((p) =>
-          p.productId?.includes("prod-interop")
-        )?.productRole;
+        const pdndRole = institution.products.flatMap((product) =>
+          product.productId?.includes("prod-interop") && product.productRole
+            ? [product.productRole]
+            : []
+        );
 
         return {
           id: institution.institutionId,
           description: institution.institutionDescription,
-          userProductRoles: pdndRole ? [pdndRole] : [],
+          userProductRoles: pdndRole ? pdndRole : [],
         };
       }
     )
