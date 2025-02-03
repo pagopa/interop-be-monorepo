@@ -1,3 +1,5 @@
+CREATE SCHEMA readmodel;
+
 CREATE TABLE IF NOT EXISTS readmodel.eservice (
   id uuid,
   version integer,
@@ -18,7 +20,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice (
 
 CREATE TABLE IF NOT EXISTS readmodel.descriptor (
     id uuid,
-    eservice_id uuid references readmodel.eservice (id) ONDELETE CASCADE,
+    eservice_id uuid references readmodel.eservice (id) ON DELETE CASCADE,
     eservice_version integer,
     version varchar,
     description varchar,
@@ -38,6 +40,7 @@ CREATE TABLE IF NOT EXISTS readmodel.descriptor (
     archived_at timestamp with time zone,
       -- attributes
       -- rejection_reasons
+    PRIMARY KEY (id)
   );
 
 CREATE TABLE IF NOT EXISTS readmodel.rejection_reason (
@@ -46,7 +49,8 @@ CREATE TABLE IF NOT EXISTS readmodel.rejection_reason (
     eservice_version integer,
     descriptor_id uuid REFERENCES readmodel.descriptor (id) ON DELETE CASCADE,
     rejection_reason varchar,
-    rejected_at timestamp with time zone
+    rejected_at timestamp with time zone,
+    PRIMARY KEY (id)
   );
 
 CREATE TABLE readmodel.descriptor_document(
@@ -83,7 +87,7 @@ CREATE TABLE readmodel.descriptor_document(
   kind varchar, -- CERTIFIED/DECLARED/VERIFIED
   group_id integer, -- id of the group
   sorting_id integer, -- index of the attribute inside its group
-  PRIMARY KEY(attribute_id, descriptor_id)
+  PRIMARY KEY(id, descriptor_id)
  );
 
 
@@ -91,14 +95,11 @@ CREATE TABLE readmodel.descriptor_document(
   id uuid,
   eservice_id uuid REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   eservice_version integer,
-
-
-   eservice_id uuid REFERENCES readmodel.eservice(id) ON DELETE CASCADE,
    name varchar,
    created_at timestamp with time zone,
    risk_analysis_form_id uuid,
    risk_analysis_form_version varchar,
-   PRIMARY KEY(risk_analysis_id)
+   PRIMARY KEY(id)
  );
 
 
