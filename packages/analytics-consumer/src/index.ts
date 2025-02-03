@@ -49,7 +49,7 @@ export async function processMessage(
     `Processing ${decoded.type} message - Partition ${partition} - Offset ${message.offset}`
   );
 
-  await (handler as (msg: unknown) => Promise<void>)(decoded);
+  await handler(decoded);
 }
 
 try {

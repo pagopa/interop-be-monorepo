@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export async function sendTenantKpiUpdatev1(
+export async function sendTenantAnalyticsUpdatev1(
   decodedMessage: TenantEventEnvelopeV1
 ): Promise<void> {
   await match(decodedMessage)
@@ -22,7 +22,7 @@ export async function sendTenantKpiUpdatev1(
     .exhaustive();
 }
 
-export async function sendPurposeKpiUpdatev1(
+export async function sendPurposeAnalyticsUpdatev1(
   message: PurposeEventEnvelopeV1
 ): Promise<void> {
   await match(message)
@@ -43,7 +43,7 @@ export async function sendPurposeKpiUpdatev1(
     .exhaustive();
 }
 
-export async function sendAgreementKpiUpdateV1(
+export async function sendAgreementAnalyticsUpdateV1(
   message: AgreementEventEnvelopeV1
 ): Promise<void> {
   await match(message)
@@ -67,7 +67,7 @@ export async function sendAgreementKpiUpdateV1(
     .exhaustive();
 }
 
-export async function sendAttributeKpiUpdateV1(
+export async function sendAttributeAnalyticsUpdateV1(
   message: AttributeEventEnvelope
 ): Promise<void> {
   await match(message)
@@ -78,7 +78,7 @@ export async function sendAttributeKpiUpdateV1(
     .exhaustive();
 }
 
-export async function sendCatalogKpiUpdateV1(
+export async function sendCatalogAnalyticsUpdateV1(
   message: EServiceEventEnvelopeV1
 ): Promise<void> {
   await match(message)

@@ -19,16 +19,7 @@ export const KpiEventConsumerConfig = KafkaConsumerConfig.and(
   .and(CatalogTopicConfig)
   .and(TenantTopicConfig)
   .and(AuthorizationTopicConfig)
-  .and(DelegationTopicConfig)
-  .and(
-    z
-      .object({
-        AUTHORIZATION_MANAGEMENT_URL: z.string(),
-      })
-      .transform((c) => ({
-        authorizationManagementUrl: c.AUTHORIZATION_MANAGEMENT_URL,
-      }))
-  );
+  .and(DelegationTopicConfig);
 
 export type KpiEventConsumerConfig = z.infer<typeof KpiEventConsumerConfig>;
 

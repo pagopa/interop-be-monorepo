@@ -1,6 +1,6 @@
 import {
   AgreementEventEnvelopeV2,
-  AuthorizationEventV2,
+  AuthorizationEventEnvelopeV2,
   DelegationEventEnvelopeV2,
   EServiceEventEnvelopeV2,
   PurposeEventEnvelopeV2,
@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
-export async function sendTenantKpiUpdatev2(
+export async function sendTenantAnalyticsUpdatev2(
   decodedMessage: TenantEventV2
 ): Promise<void> {
   await match(decodedMessage)
@@ -40,7 +40,7 @@ export async function sendTenantKpiUpdatev2(
     .exhaustive();
 }
 
-export async function sendPurposeKpiUpdatev2(
+export async function sendPurposeAnalyticsUpdatev2(
   message: PurposeEventEnvelopeV2
 ): Promise<void> {
   await match(message)
@@ -71,7 +71,7 @@ export async function sendPurposeKpiUpdatev2(
     .exhaustive();
 }
 
-export async function sendAgreementKpiUpdateV2(
+export async function sendAgreementAnalyticsUpdateV2(
   message: AgreementEventEnvelopeV2
 ): Promise<void> {
   await match(message)
@@ -100,7 +100,7 @@ export async function sendAgreementKpiUpdateV2(
     .exhaustive();
 }
 
-export async function sendCatalogKpiUpdateV2(
+export async function sendCatalogAnalyticsUpdateV2(
   message: EServiceEventEnvelopeV2
 ): Promise<void> {
   await match(message)
@@ -137,7 +137,7 @@ export async function sendCatalogKpiUpdateV2(
     .exhaustive();
 }
 
-export async function sendDelegationKpiUpdateV2(
+export async function sendDelegationAnalyticsUpdateV2(
   message: DelegationEventEnvelopeV2
 ): Promise<void> {
   await match(message)
@@ -152,7 +152,7 @@ export async function sendDelegationKpiUpdateV2(
 }
 
 export async function sendAuthorizationKpiAuthUpdateV2(
-  decodedMessage: AuthorizationEventV2
+  decodedMessage: AuthorizationEventEnvelopeV2
 ): Promise<void> {
   await match(decodedMessage)
     .with({ type: "ClientAdded" }, async () => Promise.resolve())
