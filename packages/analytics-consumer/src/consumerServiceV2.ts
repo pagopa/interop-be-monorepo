@@ -151,7 +151,7 @@ export async function sendDelegationAnalyticsUpdateV2(
     .exhaustive();
 }
 
-export async function sendAuthorizationKpiAuthUpdateV2(
+export async function sendAuthorizationAnalyticsAuthUpdateV2(
   decodedMessage: AuthorizationEventEnvelopeV2
 ): Promise<void> {
   await match(decodedMessage)

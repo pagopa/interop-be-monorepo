@@ -10,7 +10,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const KpiEventConsumerConfig = KafkaConsumerConfig.and(
+export const AnalyticsConsumerConfig = KafkaConsumerConfig.and(
   CatalogTopicConfig
 )
   .and(AgreementTopicConfig)
@@ -21,8 +21,8 @@ export const KpiEventConsumerConfig = KafkaConsumerConfig.and(
   .and(AuthorizationTopicConfig)
   .and(DelegationTopicConfig);
 
-export type KpiEventConsumerConfig = z.infer<typeof KpiEventConsumerConfig>;
+export type AnalyticsConsumerConfig = z.infer<typeof AnalyticsConsumerConfig>;
 
-export const config: KpiEventConsumerConfig = KpiEventConsumerConfig.parse(
+export const config: AnalyticsConsumerConfig = AnalyticsConsumerConfig.parse(
   process.env
 );

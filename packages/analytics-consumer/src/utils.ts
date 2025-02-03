@@ -14,7 +14,7 @@ import {
   sendCatalogAnalyticsUpdateV1,
   sendTenantAnalyticsUpdatev1,
   sendPurposeAnalyticsUpdatev1,
-  sendAuthorizationKpiAuthUpdateV1,
+  sendAuthorizationAnalyticsAuthUpdateV1,
 } from "./consumerServiceV1.js";
 import {
   sendAgreementAnalyticsUpdateV2,
@@ -22,7 +22,7 @@ import {
   sendTenantAnalyticsUpdatev2,
   sendPurposeAnalyticsUpdatev2,
   sendDelegationAnalyticsUpdateV2,
-  sendAuthorizationKpiAuthUpdateV2,
+  sendAuthorizationAnalyticsAuthUpdateV2,
 } from "./consumerServiceV2.js";
 
 type DecoderTypes =
@@ -86,8 +86,8 @@ export const topicConfigMap: Record<string, TopicType> = {
   [config.authorizationTopic]: {
     decoder: AuthorizationEvent,
     handlers: {
-      1: sendAuthorizationKpiAuthUpdateV1,
-      2: sendAuthorizationKpiAuthUpdateV2,
+      1: sendAuthorizationAnalyticsAuthUpdateV1,
+      2: sendAuthorizationAnalyticsAuthUpdateV2,
     },
   },
 };

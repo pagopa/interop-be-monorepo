@@ -109,7 +109,7 @@ export async function sendCatalogAnalyticsUpdateV1(
     .exhaustive();
 }
 
-export function sendAuthorizationKpiAuthUpdateV1(
+export function sendAuthorizationAnalyticsAuthUpdateV1(
   event: AuthorizationEventEnvelopeV1
 ): Promise<void> {
   return match(event)
