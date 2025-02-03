@@ -1,5 +1,7 @@
+import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
+  DelegationId,
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
@@ -7,7 +9,6 @@ import {
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 
 export const errorCodes = {
   eServiceDescriptorNotFound: "0001",
@@ -36,6 +37,7 @@ export const errorCodes = {
   inconsistentAttributesSeedGroupsCount: "0024",
   descriptorAttributeGroupSupersetMissingInAttributesSeed: "0025",
   unchangedAttributes: "0026",
+  eserviceWithActiveOrPendingDelegation: "0027",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -92,7 +94,7 @@ export function eServiceDocumentNotFound(
   });
 }
 
-export function notValidDescriptor(
+export function notValidDescriptorState(
   descriptorId: DescriptorId,
   descriptorStatus: string
 ): ApiError<ErrorCodes> {
@@ -305,5 +307,16 @@ export function unchangedAttributes(
     detail: `No new attributes detected in attribute seed for EService ${eserviceId} and Descriptor ${descriptorId}`,
     code: "unchangedAttributes",
     title: "Unchanged attributes",
+  });
+}
+
+export function eserviceWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} can't be deleted with an active or pending delegation ${delegationId}`,
+    code: "eserviceWithActiveOrPendingDelegation",
+    title: "E-service with active or pending delegation",
   });
 }

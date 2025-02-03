@@ -51,6 +51,16 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
+  - name: delegations
+    description: Delegation Module
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: producerDelegations
+    description: Producer Delegation Module
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
   - name: tools
     description: Utility Module
     externalDocs:
@@ -4101,6 +4111,217 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /eservices/{eServiceId}/descriptors/{descriptorId}/approve:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: approve a delegated new e-service version
+      operationId: approveDelegatedEServiceDescriptor
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: New delegated e-service version approved
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService or Descriptor not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/reject:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: reject a delegated new e-service version
+      operationId: rejectDelegatedEServiceDescriptor
+      requestBody:
+        description: Payload containing the reason of the rejection
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedEServiceDescriptorSeed"
+        required: true
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: New delegated e-service version rejected
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService or Descriptor not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"  
   /export/eservices/{eserviceId}/descriptors/{descriptorId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -4410,6 +4631,11 @@ paths:
               format: uuid
             default: []
           explode: false
+        - in: query
+          name: delegated
+          description: if true only delegated e-services will be returned, if false only non-delegated e-services will be returned, if not present all e-services will be returned
+          schema:
+            type: boolean
         - in: query
           name: offset
           required: true
@@ -7633,6 +7859,19 @@ paths:
         - tenants
       operationId: revokeVerifiedAttribute
       description: Revoke a Verified attribute to a Tenant by the requester Tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - agreementId
+              properties:
+                agreementId:
+                  type: string
+                  format: uuid
       responses:
         "204":
           description: Updated Tenant
@@ -8468,6 +8707,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: features
+        description: comma separated feature types to filter the teanants with
+        schema:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantFeatureType"
+          default: []
+        explode: false
+      - in: query
         name: limit
         required: true
         schema:
@@ -8521,6 +8769,125 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /tenants/delegatedProducer:
+    post:
+      tags:
+        - tenants
+      summary: Assign delegated producer feature to tenant caller
+      operationId: assignTenantDelegatedProducerFeature
+      responses:
+        "204":
+          description: Delegated producer feature assigned
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: Feature already assigned to tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+    delete:
+      tags:
+        - tenants
+      summary: Delete delegated producer feature to tenant caller
+      operationId: deleteTenantDelegatedProducerFeature
+      responses:
+        "204":
+          description: Delegated producer feature deleted
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: Feature not assigned to tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -10268,6 +10635,11 @@ paths:
   /purposes/riskAnalysis/latest:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantKind
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/TenantKind"
     get:
       tags:
         - purposes
@@ -12181,6 +12553,746 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /delegations:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - delegations
+      summary: List delegations
+      description: List delegations
+      operationId: getDelegations
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: states
+          description: comma separated sequence of delegation states to filter the results with
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/DelegationState"
+            default: []
+          explode: false
+        - in: query
+          name: delegatorIds
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+          description: "The delegator ids to filter by"
+        - in: query
+          name: delegateIds
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+          description: "The delegated ids to filter by"
+        - in: query
+          name: kind
+          schema:
+            $ref: "#/components/schemas/DelegationKind"
+          description: "The delegation kind to filter by"
+        - in: query
+          name: eserviceIds
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+      responses:
+        "200":
+          description: Delegations found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactDelegations"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /producer/delegations:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      summary: Producer delegation creation
+      operationId: createProducerDelegation
+      responses:
+        "200":
+          description: Delegation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+      tags:
+        - producerDelegations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationSeed"
+        description: payload for producer delegation creation
+        required: true
+      description: creates the producer delegation
+  "/producer/delegations/{delegationId}/approve":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      tags:
+        - producerDelegations
+      summary: Approves a producer delegation
+      description: Approves a producer delegation
+      operationId: approveDelegation
+      parameters:
+        - name: delegationId
+          in: path
+          description: The identifier of the delegation
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Delegation approved
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/producer/delegations/{delegationId}/reject":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      tags:
+        - producerDelegations
+      summary: Rejects a producer delegation
+      description: Rejects a producer delegation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegationPayload"
+      operationId: rejectDelegation
+      parameters:
+        - name: delegationId
+          in: path
+          description: The identifier of the delegation
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Delegation rejected
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /delegations/{delegationId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+    get:
+      description: Retrieves delegation
+      summary: Retrieves delegation
+      tags:
+        - delegations
+      operationId: getDelegation
+      responses:
+        "200":
+          description: Producer delegation retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /producer/delegations/{delegationId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+    delete:
+      description: Revokes a producer delegation
+      tags:
+        - producerDelegations
+      summary: Revokes a producer delegation
+      operationId: revokeProducerDelegation
+      responses:
+        "204":
+          description: Delegation revoked
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/delegations/{delegationId}/contracts/{contractId}":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: contractId
+        in: path
+        schema:
+          type: string
+          format: uuid
+        required: true
+    get:
+      tags:
+        - delegations
+      summary: Retrieve a contract of a delegation
+      description: Retrieve a contract of a delegation
+      operationId: getDelegationContract
+      responses:
+        "200":
+          description: Contract retrieved
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/status":
     get:
       security: []
@@ -12532,6 +13644,14 @@ components:
           type: string
       required:
         - name
+    RejectDelegatedEServiceDescriptorSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        rejectionReason:
+          type: string
+      required:
+        - rejectionReason
     CatalogEServiceDescriptor:
       type: object
       additionalProperties: false
@@ -12825,6 +13945,10 @@ components:
           $ref: "#/components/schemas/ProducerDescriptorEService"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributes"
+        rejectionReasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/DescriptorRejectionReason"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -12832,6 +13956,7 @@ components:
         - id
         - name
         - description
+        - producer
         - technology
         - mode
         - riskAnalysis
@@ -12844,6 +13969,8 @@ components:
           type: string
         description:
           type: string
+        producer:
+          $ref: "#/components/schemas/ProducerDescriptorEServiceProducer"
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -12862,6 +13989,17 @@ components:
           $ref: "#/components/schemas/Mail"
         isSignalHubEnabled:
           type: boolean
+    ProducerDescriptorEServiceProducer:
+      type: object
+      additionalProperties: false
+      required:
+        - id        
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
     EServiceDoc:
       type: object
       additionalProperties: false
@@ -12888,6 +14026,18 @@ components:
       properties:
         prettyName:
           type: string
+    DescriptorRejectionReason:
+      type: object
+      additionalProperties: false
+      properties:
+        rejectionReason:
+          type: string
+        rejectedAt:
+          type: string
+          format: date-time
+      required:
+        - rejectionReason
+        - rejectedAt 
     AgreementApprovalPolicy:
       type: string
       description: |
@@ -13387,6 +14537,28 @@ components:
           format: uri
       required:
         - url
+    CompactProducerDescriptor:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - state
+        - version
+        - audience
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: "#/components/schemas/EServiceDescriptorState"
+        version:
+          type: string
+        audience:
+          type: array
+          items:
+            type: string
+        requireCorrections:
+          type: boolean
     ProducerEService:
       type: object
       additionalProperties: false
@@ -13403,9 +14575,9 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         activeDescriptor:
-          $ref: "#/components/schemas/CompactDescriptor"
+          $ref: "#/components/schemas/CompactProducerDescriptor"
         draftDescriptor:
-          $ref: "#/components/schemas/CompactDescriptor"
+          $ref: "#/components/schemas/CompactProducerDescriptor"
     ProducerEServices:
       type: object
       additionalProperties: false
@@ -13419,21 +14591,6 @@ components:
       required:
         - results
         - pagination
-    ProductInfo:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-        role:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - id
-        - role
-        - createdAt
     SelfcareProduct:
       type: object
       additionalProperties: false
@@ -13681,7 +14838,7 @@ components:
         eservices:
           type: array
           items:
-            $ref: "#/components/schemas/ProducerKeychainEService"
+            $ref: "#/components/schemas/CompactEServiceLight"
         description:
           type: string
       required:
@@ -13691,17 +14848,6 @@ components:
         - eservices
         - createdAt
         - description
-    ProducerKeychainEService:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-      required:
-        - id
-        - name
     EServiceAdditionDetailsSeed:
       type: object
       properties:
@@ -13975,6 +15121,7 @@ components:
         - DEPRECATED
         - SUSPENDED
         - ARCHIVED
+        - WAITING_FOR_APPROVAL
     EServiceTechnology:
       type: string
       description: EService Descriptor State
@@ -14326,12 +15473,23 @@ components:
       required:
         - results
         - pagination
+    TenantFeatureType:
+      type: string
+      enum:
+        - PERSISTENT_CERTIFIER
+        - DELEGATED_PRODUCER
     TenantFeature:
-      type: object
-      additionalProperties: false
-      properties:
-        certifier:
-          $ref: "#/components/schemas/Certifier"
+      oneOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            certifier:
+              $ref: "#/components/schemas/Certifier"
+        - type: object
+          additionalProperties: false
+          properties:
+            delegatedProducer:
+              $ref: "#/components/schemas/DelegatedProducer"
     Certifier:
       description: Certifier Tenant Feature
       type: object
@@ -14341,6 +15499,16 @@ components:
           type: string
       required:
         - certifierId
+    DelegatedProducer:
+      description: Delegated producer Tenant Feature
+      type: object
+      additionalProperties: false
+      properties:
+        availabilityTimestamp:
+          type: string
+          format: date-time
+      required:
+        - availabilityTimestamp
     CompactTenant:
       properties:
         id:
@@ -14463,11 +15631,15 @@ components:
         id:
           type: string
           format: uuid
+        agreementId:
+          type: string
+          format: uuid
         expirationDate:
           type: string
           format: date-time
       required:
         - id
+        - agreementId
 
     CertifiedTenantAttribute:
       type: object
@@ -14536,6 +15708,9 @@ components:
         extensionDate:
           type: string
           format: date-time
+        delegationId: 
+          type: string
+          format: uuid
       required:
         - id
         - verificationDate
@@ -14558,6 +15733,10 @@ components:
         revocationDate:
           type: string
           format: date-time
+        delegationId: 
+          type: string
+          format: uuid
+
       required:
         - id
         - verificationDate
@@ -14697,6 +15876,147 @@ components:
           format: uuid
       required:
         - id
+    DelegationKind:
+      type: string
+      description: Delegation State
+      enum:
+        - DELEGATED_PRODUCER
+        - DELEGATED_CONSUMER
+    DelegationState:
+      type: string
+      description: Delegation State
+      enum:
+        - WAITING_FOR_APPROVAL
+        - ACTIVE
+        - REJECTED
+        - REVOKED
+    DelegationTenant:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+        - id
+        - name
+    DelegationEService:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        producerId:
+          type: string
+          format: uuid
+        producerName:
+          type: string
+        descriptors: 
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactDescriptor"
+      required:
+        - id
+        - name
+        - producerId
+        - producerName
+        - descriptors
+    Delegation:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eservice:
+          $ref: "#/components/schemas/DelegationEService"
+        delegate:
+          $ref: "#/components/schemas/DelegationTenant"
+        delegator:
+          $ref: "#/components/schemas/DelegationTenant"
+        activationContract:
+          $ref: "#/components/schemas/Document"
+        revocationContract:
+          $ref: "#/components/schemas/Document"
+        submittedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        state:
+          $ref: "#/components/schemas/DelegationState"
+        kind:
+          $ref: "#/components/schemas/DelegationKind"
+      required:
+        - id
+        - delegate
+        - delegator
+        - state
+        - kind
+    CompactDelegation:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eservice:
+          $ref: "#/components/schemas/CompactEServiceLight"
+        delegate:
+          $ref: "#/components/schemas/DelegationTenant"
+        delegator:
+          $ref: "#/components/schemas/DelegationTenant"
+        state:
+          $ref: "#/components/schemas/DelegationState"
+        kind:
+          $ref: "#/components/schemas/DelegationKind"
+      required:
+        - id
+        - delegate
+        - delegator
+        - state
+        - kind
+    CompactDelegations:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactDelegation"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    DelegationSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        eserviceId:
+          type: string
+          format: uuid
+        delegateId:
+          type: string
+          format: uuid
+      required:
+        - eserviceId
+        - delegateId
+    RejectDelegationPayload:
+      type: object
+      additionalProperties: false
+      properties:
+        rejectionReason:
+          type: string
+      required:
+        - rejectionReason
     Problem:
       type: object
       additionalProperties: false

@@ -199,12 +199,15 @@ describe("create eservice", () => {
     expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
   });
 
-  it("should throw eServiceDuplicate if an eservice with the same name already exists", async () => {
-    await addOneEService(mockEService);
+  it("should throw eServiceDuplicate if an eservice with the same name already exists, case insensitive", async () => {
+    await addOneEService({
+      ...mockEService,
+      name: mockEService.name.toUpperCase(),
+    });
     expect(
       catalogService.createEService(
         {
-          name: mockEService.name,
+          name: mockEService.name.toLowerCase(),
           description: mockEService.description,
           technology: "REST",
           mode: "DELIVER",
@@ -217,7 +220,7 @@ describe("create eservice", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(eServiceDuplicate(mockEService.name));
+    ).rejects.toThrowError(eServiceDuplicate(mockEService.name.toLowerCase()));
   });
 
   it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {

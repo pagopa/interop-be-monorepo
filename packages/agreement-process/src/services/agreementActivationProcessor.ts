@@ -6,9 +6,11 @@ import {
   AgreementEventV2,
   AgreementState,
   CorrelationId,
+  Delegation,
   Descriptor,
   EService,
   Tenant,
+  TenantId,
   UserId,
   agreementState,
   genericError,
@@ -47,6 +49,7 @@ export function createActivationUpdateAgreementSeed({
   suspendedByConsumer,
   suspendedByProducer,
   suspendedByPlatform,
+  producerDelegation,
 }: {
   isFirstActivation: boolean;
   newState: AgreementState;
@@ -58,8 +61,9 @@ export function createActivationUpdateAgreementSeed({
   suspendedByConsumer: boolean | undefined;
   suspendedByProducer: boolean | undefined;
   suspendedByPlatform: boolean | undefined;
+  producerDelegation: Delegation | undefined;
 }): UpdateAgreementSeed {
-  const stamp = createStamp(authData.userId);
+  const stamp = createStamp(authData.userId, producerDelegation?.id);
 
   return isFirstActivation
     ? {
@@ -95,7 +99,8 @@ export function createActivationUpdateAgreementSeed({
             agreement,
             authData.organizationId,
             agreementState.active,
-            stamp
+            stamp,
+            producerDelegation?.delegateId
           ),
         },
         suspendedByPlatform,
@@ -113,7 +118,8 @@ export async function createActivationEvent(
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
   authData: AuthData,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  delegateProducerId?: TenantId
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (isFirstActivation) {
     // Pending >>> Active
@@ -132,7 +138,7 @@ export async function createActivationEvent(
     /* Not a first activation, meaning that the agreement was already active
     and it was then suspended. If the requester is the producer (or producer === consumer),
     the updatedAgreement was updated setting the suspendedByProducer flag to false,
-    and here we create the unsuspension by producer event.
+    and here we create the unsuspension by producer event, it works in the same way if requester is delegate producer.
     Otherwise, the requester is the consumer, and the updatedAgreement was updated setting
     the suspendedByConsumer flag to false, so we create the unsuspension by consumer event.
 
@@ -150,30 +156,41 @@ export async function createActivationEvent(
       we also create the corresponding suspension/unsuspension by platform event.
     */
 
-    return match([authData.organizationId, updatedAgreement.state])
-      .with([updatedAgreement.producerId, agreementState.active], () => [
-        toCreateEventAgreementUnsuspendedByProducer(
-          updatedAgreement,
-          agreementEventStoreVersion,
-          correlationId
-        ),
-      ])
-      .with([updatedAgreement.producerId, agreementState.suspended], () => [
-        toCreateEventAgreementUnsuspendedByProducer(
-          {
-            ...updatedAgreement,
-            suspendedByPlatform: originalSuspendedByPlatform,
-          },
-          agreementEventStoreVersion,
-          correlationId
-        ),
-        ...maybeCreateSuspensionByPlatformEvents(
-          updatedAgreement,
-          suspendedByPlatformChanged,
-          agreementEventStoreVersion + 1,
-          correlationId
-        ),
-      ])
+    return match<[TenantId | undefined, AgreementState]>([
+      authData.organizationId,
+      updatedAgreement.state,
+    ])
+      .with(
+        [updatedAgreement.producerId, agreementState.active],
+        [delegateProducerId, agreementState.active],
+        () => [
+          toCreateEventAgreementUnsuspendedByProducer(
+            updatedAgreement,
+            agreementEventStoreVersion,
+            correlationId
+          ),
+        ]
+      )
+      .with(
+        [updatedAgreement.producerId, agreementState.suspended],
+        [delegateProducerId, agreementState.suspended],
+        () => [
+          toCreateEventAgreementUnsuspendedByProducer(
+            {
+              ...updatedAgreement,
+              suspendedByPlatform: originalSuspendedByPlatform,
+            },
+            agreementEventStoreVersion,
+            correlationId
+          ),
+          ...maybeCreateSuspensionByPlatformEvents(
+            updatedAgreement,
+            suspendedByPlatformChanged,
+            agreementEventStoreVersion + 1,
+            correlationId
+          ),
+        ]
+      )
       .with([updatedAgreement.consumerId, agreementState.active], () => [
         toCreateEventAgreementUnsuspendedByConsumer(
           updatedAgreement,

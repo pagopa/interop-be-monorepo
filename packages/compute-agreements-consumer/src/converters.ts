@@ -38,6 +38,7 @@ function toApiCompactTenantVerifiedAttribute(
       extensionDate: v.extensionDate?.toISOString(),
       verificationDate: v.verificationDate?.toISOString(),
       expirationDate: v.expirationDate?.toISOString(),
+      delegationId: v.delegationId,
     })),
     revokedBy: attr.revokedBy.map((v) => ({
       id: v.id,
@@ -45,6 +46,7 @@ function toApiCompactTenantVerifiedAttribute(
       verificationDate: v.verificationDate.toISOString(),
       revocationDate: v.revocationDate.toISOString(),
       expirationDate: v.expirationDate?.toISOString(),
+      delegationId: v.delegationId,
     })),
   };
 }

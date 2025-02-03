@@ -9,10 +9,7 @@ import {
   WithLogger,
   eventRepository,
 } from "pagopa-interop-commons";
-import {
-  agreementApi,
-  SelfcareV2UsersClient,
-} from "pagopa-interop-api-clients";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   Agreement,
   AgreementDocument,
@@ -37,6 +34,7 @@ import {
   unsafeBrandId,
   CompactTenant,
   CorrelationId,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   declaredAttributesSatisfied,
@@ -85,11 +83,12 @@ import {
   agreementUpdatableStates,
   agreementUpgradableStates,
   assertActivableState,
+  assertRequesterCanActAsProducer,
+  assertRequesterCanActAsConsumerOrProducer,
+  assertRequesterCanRetrieveConsumerDocuments,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
   assertRequesterIsConsumer,
-  assertRequesterIsConsumerOrProducer,
-  assertRequesterIsProducer,
   assertSubmittableState,
   failOnActivationFailure,
   matchingCertifiedAttributes,
@@ -172,7 +171,13 @@ export const retrieveTenant = async (
   return tenant;
 };
 
-const retrieveDescriptor = (
+export const retrieveActiveProducerDelegationByEserviceId = async (
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<Delegation | undefined> =>
+  await readModelService.getActiveProducerDelegationByEserviceId(eserviceId);
+
+export const retrieveDescriptor = (
   descriptorId: DescriptorId,
   eservice: EService
 ): Descriptor => {
@@ -204,8 +209,7 @@ export function agreementServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
   fileManager: FileManager,
-  pdfGenerator: PDFGenerator,
-  selfcareV2Client: SelfcareV2UsersClient
+  pdfGenerator: PDFGenerator
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -401,6 +405,12 @@ export function agreementServiceBuilder(
         readModelService
       );
 
+      const activeProducerDelegation =
+        await retrieveActiveProducerDelegationByEserviceId(
+          agreement.data.eserviceId,
+          readModelService
+        );
+
       const nextStateByAttributes = nextStateByAttributesFSM(
         agreement.data,
         descriptor,
@@ -471,10 +481,8 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
-        selfcareV2Client,
         config,
-        logger,
-        correlationId
+        logger
       );
 
       const isFirstActivation =
@@ -487,7 +495,8 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreement
+        updatedAgreement,
+        activeProducerDelegation
       );
 
       const agreementEvent =
@@ -615,10 +624,8 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
-        selfcareV2Client,
         config,
-        logger,
-        correlationId
+        logger
       );
 
       const [agreement, events] = await createUpgradeOrNewDraft({
@@ -757,7 +764,12 @@ export function agreementServiceBuilder(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
       );
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+
+      await assertRequesterCanRetrieveConsumerDocuments(
+        agreement.data,
+        authData,
+        readModelService
+      );
 
       return retrieveAgreementDocument(agreement.data, documentId);
     },
@@ -768,8 +780,19 @@ export function agreementServiceBuilder(
       logger.info(`Suspending agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
+      const activeProducerDelegation =
+        await retrieveActiveProducerDelegationByEserviceId(
+          agreement.data.eserviceId,
+          readModelService
+        );
 
-      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+      const delegateProducerId = activeProducerDelegation?.delegateId;
+
+      assertRequesterCanActAsConsumerOrProducer(
+        agreement.data,
+        authData,
+        activeProducerDelegation
+      );
 
       assertExpectedState(
         agreementId,
@@ -797,6 +820,7 @@ export function agreementServiceBuilder(
         authData,
         descriptor,
         consumer,
+        producerDelegation: activeProducerDelegation,
       });
 
       await repository.createEvent(
@@ -804,7 +828,8 @@ export function agreementServiceBuilder(
           authData.organizationId,
           correlationId,
           updatedAgreement,
-          agreement
+          agreement,
+          delegateProducerId
         )
       );
 
@@ -873,8 +898,17 @@ export function agreementServiceBuilder(
         agreementId,
         readModelService
       );
+      const activeProducerDelegation =
+        await retrieveActiveProducerDelegationByEserviceId(
+          agreementToBeRejected.data.eserviceId,
+          readModelService
+        );
 
-      assertRequesterIsProducer(agreementToBeRejected.data, authData);
+      assertRequesterCanActAsProducer(
+        agreementToBeRejected.data,
+        authData,
+        activeProducerDelegation
+      );
 
       assertExpectedState(
         agreementId,
@@ -913,7 +947,7 @@ export function agreementServiceBuilder(
         suspendedByPlatform: undefined,
         stamps: {
           ...agreementToBeRejected.data.stamps,
-          rejection: createStamp(authData.userId),
+          rejection: createStamp(authData.userId, activeProducerDelegation?.id),
         },
       };
 
@@ -936,15 +970,25 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
-        selfcareV2Client,
         config,
-        logger,
-        correlationId
+        logger
       );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
+      const activeProducerDelegation =
+        await retrieveActiveProducerDelegationByEserviceId(
+          agreement.data.eserviceId,
+          readModelService
+        );
 
-      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+      const delegateProducerId = activeProducerDelegation?.delegateId;
+
+      assertRequesterCanActAsConsumerOrProducer(
+        agreement.data,
+        authData,
+        activeProducerDelegation
+      );
+
       verifyConsumerDoesNotActivatePending(agreement.data, authData);
       assertActivableState(agreement.data);
 
@@ -1008,7 +1052,8 @@ export function agreementServiceBuilder(
       const suspendedByProducer = suspendedByProducerFlag(
         agreement.data,
         authData.organizationId,
-        targetDestinationState
+        targetDestinationState,
+        delegateProducerId
       );
 
       const newState = agreementStateByFlags(
@@ -1036,6 +1081,7 @@ export function agreementServiceBuilder(
           suspendedByConsumer,
           suspendedByProducer,
           suspendedByPlatform,
+          producerDelegation: activeProducerDelegation,
         });
 
       const updatedAgreementWithoutContract: Agreement = {
@@ -1049,7 +1095,8 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreementWithoutContract
+        updatedAgreementWithoutContract,
+        activeProducerDelegation
       );
 
       const suspendedByPlatformChanged =
@@ -1063,7 +1110,8 @@ export function agreementServiceBuilder(
         suspendedByPlatformChanged,
         agreement.metadata.version,
         authData,
-        correlationId
+        correlationId,
+        delegateProducerId
       );
 
       const archiveEvents = await archiveRelatedToAgreements(
@@ -1230,14 +1278,16 @@ async function addContractOnFirstActivation(
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  agreement: Agreement
+  agreement: Agreement,
+  producerDelegation: Delegation | undefined
 ): Promise<Agreement> {
   if (isFirstActivation) {
     const contract = await contractBuilder.createContract(
       agreement,
       eservice,
       consumer,
-      producer
+      producer,
+      producerDelegation
     );
 
     return {

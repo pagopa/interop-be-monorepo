@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package.json /app/
 COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
+COPY .npmrc /app/
 
 COPY ./packages/agreement-outbound-writer/package.json /app/packages/agreement-outbound-writer/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
