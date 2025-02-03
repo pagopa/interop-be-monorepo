@@ -115,11 +115,13 @@ describe("sendAgreementRejectEmail", () => {
     );
     expect(response.status).toBe(200);
     const lastEmail = response.data.emails[0];
-    expect(lastEmail).toBeDefined();
-    expect(lastEmail.subject).toBe(mail.subject);
-    expect(lastEmail.from).toBe(`${mail.from.name} <${mail.from.address}>`);
-    expect(lastEmail.destination.to).toEqual(mail.to);
-    expect(lastEmail.body.html).toBe(mail.body);
+
+    expect(lastEmail).toMatchObject({
+      subject: mail.subject,
+      from: `${mail.from.name} <${mail.from.address}>`,
+      destination: { to: mail.to },
+      body: { html: mail.body },
+    });
   });
 
   it("should should not send email if the producer has no mail", async () => {
