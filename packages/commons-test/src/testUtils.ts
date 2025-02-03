@@ -78,6 +78,7 @@ import {
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
   eserviceTemplateVersionState,
+  agreementApprovalPolicy,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -708,6 +709,7 @@ export const getMockEServiceTemplateVersion = (
   docs: [],
   state: eserviceTemplateVersionState.draft,
   voucherLifespan: 60,
+  agreementApprovalPolicy: agreementApprovalPolicy.automatic,
 });
 
 export const getMockEServiceTemplate = (
