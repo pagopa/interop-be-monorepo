@@ -82,7 +82,7 @@ export function riskAnalysisTemplateServiceBuilder(
 
       const template = await retrieveEServiceTemplate(id, readModelService);
       if (template.data.creatorId !== authData.organizationId) {
-        eserviceTemplateRequesterIsNotCreator(id);
+        throw eserviceTemplateRequesterIsNotCreator(id);
       }
       assertIsDraftTemplate(template.data);
       assertIsReceiveTemplate(template.data);
@@ -97,7 +97,9 @@ export function riskAnalysisTemplateServiceBuilder(
         (ra) => ra.name === createRiskAnalysis.name
       );
       if (raSameName) {
-        eserviceTemaplateRiskAnalysisNameDuplicate(createRiskAnalysis.name);
+        throw eserviceTemaplateRiskAnalysisNameDuplicate(
+          createRiskAnalysis.name
+        );
       }
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(

@@ -11,10 +11,16 @@ import {
   EServiceTemplate,
   EServiceTemplateEvent,
   EServiceTemplateId,
+  RiskAnalysis,
+  Tenant,
   toEServiceTemplateV2,
+  toReadModelTenant,
 } from "pagopa-interop-models";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
+import { riskAnalysisTemplateServiceBuilder } from "../src/services/riskAnalysisService.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
@@ -29,10 +35,17 @@ export const eserviceTemplates = readModelRepository.eserviceTemplates;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
+export const tenants = readModelRepository.tenants;
+
 export const eserviceTemplateService = eserviceTemplateServiceBuilder(
   postgresDB,
   readModelService,
   fileManager
+);
+
+export const riskAnalysisService = riskAnalysisTemplateServiceBuilder(
+  postgresDB,
+  readModelService
 );
 
 export const writeEServiceInEventstore = async (
@@ -68,3 +81,16 @@ export const readLastEserviceTemplateEvent = async (
     "eservice_template",
     postgresDB
   );
+
+export const buildRiskAnalysisSeed = (
+  riskAnalysis: RiskAnalysis
+): eserviceTemplateApi.EServiceRiskAnalysisSeed => ({
+  name: riskAnalysis.name,
+  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+    riskAnalysis.riskAnalysisForm
+  ),
+});
+
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
+};
