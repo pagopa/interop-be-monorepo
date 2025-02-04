@@ -25,6 +25,7 @@ import {
   updateEServiceTemplateEServiceDescriptionErrorMapper,
   getEServiceTemplateErrorMapper,
   createRiskAnalysisErrorMapper,
+  deleteRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../model/domain/apiConverter.js";
 import { riskAnalysisTemplateServiceBuilder } from "../services/riskAnalysisService.js";
@@ -253,7 +254,26 @@ const eserviceTemplatesRouter = (
     .delete(
       "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await riskAnalysisTemplateService.deleteRiskAnalysis(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteRiskAnalysisErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/audienceDescription/update",

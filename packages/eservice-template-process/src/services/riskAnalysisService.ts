@@ -27,7 +27,10 @@ import {
   riskAnalysisValidationFailed,
   tenantNotFound,
 } from "../model/domain/errors.js";
-import { toCreateEventEServiceTemplateRiskAnalysisAdded } from "../model/domain/toEvent.js";
+import {
+  toCreateEventEServiceTemplateRiskAnalysisAdded,
+  toCreateEventEServiceTemplateRiskAnalysisDeleted,
+} from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 import {
@@ -116,6 +119,42 @@ export function riskAnalysisTemplateServiceBuilder(
         template.data.id,
         template.metadata.version,
         generateId<RiskAnalysisId>(),
+        newTemplate,
+        correlationId
+      );
+
+      await repository.createEvent(event);
+    },
+    async deleteRiskAnalysis(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting risk analysis with id: ${riskAnalysisId} from eServiceTemplate with id: ${templateId}`
+      );
+
+      const template = await retrieveEServiceTemplate(
+        templateId,
+        readModelService
+      );
+      if (template.data.creatorId !== authData.organizationId) {
+        eserviceTemplateRequesterIsNotCreator(templateId);
+      }
+      assertIsDraftTemplate(template.data);
+      assertIsReceiveTemplate(template.data);
+
+      const newTemplate: EServiceTemplate = {
+        ...template.data,
+        riskAnalysis: template.data.riskAnalysis.filter(
+          (ra) => ra.id !== riskAnalysisId
+        ),
+      };
+
+      const event = toCreateEventEServiceTemplateRiskAnalysisDeleted(
+        template.data.id,
+        template.metadata.version,
+        riskAnalysisId,
         newTemplate,
         correlationId
       );

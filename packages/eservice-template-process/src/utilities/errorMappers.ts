@@ -101,3 +101,16 @@ export const createRiskAnalysisErrorMapper = (
     )
     .with("riskAnalysisNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("requesterIsNotCreator", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "eserviceTemplateNotInDraftState",
+      "eserviceTemplateNotInReceiveMode",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
