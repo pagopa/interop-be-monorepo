@@ -253,7 +253,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_declared_attribute
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   tenant_version INTEGER,
   assignment_timestamp TIMESTAMP NOT NULL,
-  revocation_timestamp TIMESTAMP,
+  revocation_timestamp TIMESTAMP WITH TIME ZONE,
 
   PRIMARY KEY (id)
 );
@@ -271,23 +271,51 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_verifier
 (
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   tenant_version INTEGER,
+
+  id UUID REFERENCES readmodel.tenant (id) -- verifier id
   tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.tenant_verified_attribute (id),
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
-  expiration_date TIMESTAMP WITH TIME ZONE NULL,
-  extension_date TIMESTAMP WITH TIME ZONE NULL,
+  expiration_date TIMESTAMP WITH TIME ZONE,
+  extension_date TIMESTAMP WITH TIME ZONE,
+  delegation_id UUID,
+
+  PRIMARY KEY (id, tenant_verified_attribute_id, tenant_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_revoker
 (
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   tenant_version INTEGER,
+  
+  id UUID REFERENCES readmodel.tenant (id) -- revoker id
   tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.tenant_verified_attribute (id),
-  verification_date TIMESTAMP NOT NULL,
-  expiration_date TIMESTAMP NULL,
-  extension_date TIMESTAMP NULL,
+  verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  expiration_date TIMESTAMP WITH TIME ZONE,
+  extension_date TIMESTAMP WITH TIME ZONE,
   revocation_date TIMESTAMP NOT NULL,
   delegation_id UUID,
-  tenant_id CHAR() NOT NULL REFERENCES readmodel.tenant (id)
+
+  PRIMARY KEY (id, tenant_verified_attribute_id, tenant_id)
 );
 
--- TODO tenant features (certifier, delegated producer, delegated consumer)
+CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_certifier(
+  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  tenant_version INTEGER,
+  certifier_id VARCHAR,
+
+  PRIMARY KEY (certifier_id)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_delegated_producer(
+  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  tenant_version INTEGER,
+  availability_timestamp TIMESTAMP WITH TIME ZONE,
+
+  PRIMARY KEY (tenant_id)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_delegated_consumer(
+  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  tenant_version INTEGER,
+  availability_timestamp TIMESTAMP WITH TIME ZONE
+);
