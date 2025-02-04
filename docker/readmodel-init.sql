@@ -381,6 +381,7 @@ CREATE TABLE IF NOT EXISTS readmodel.client
   -- users
   kind VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  -- keys
   PRIMARY KEY (id)
 );
 
@@ -405,6 +406,8 @@ CREATE TABLE IF NOT EXISTS readmodel.client_purpose
 CREATE TABLE IF NOT EXISTS readmodel.client_key
 (
   client_version INTEGER NOT NULL,
+  client_id UUID NOT NULL REFERENCES readmodel.client (id),
+
   user_id UUID NOT NULL,
   kid VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
@@ -412,10 +415,58 @@ CREATE TABLE IF NOT EXISTS readmodel.client_key
   algorithm VARCHAR NOT NULL,
   use VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE,
-  client_id UUID NOT NULL REFERENCES readmodel.client (id),
 
   PRIMARY KEY (kid) -- TODO: probably kid can't be primary key
 );
+
+-- PRODUCER KEYCHAIN
+CREATE TABLE IF NOT EXISTS readmodel.producer_keychain
+(
+  id UUID,
+  version INTEGER NOT NULL,
+  producer_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  name VARCHAR NOT NULL,
+  -- eservices
+  description VARCHAR,
+  -- users
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  -- keys
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_user
+(
+  producer_keychain_version INTEGER NOT NULL,
+  producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain (id),
+  user_id UUID NOT NULL,
+
+  PRIMARY KEY (producer_keychain_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_eservice
+(
+  producer_keychain_version INTEGER NOT NULL,
+  producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain (id),
+  eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id),
+
+  PRIMARY KEY (client_id, purpose_id)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_key
+(
+  producer_keychain_version INTEGER NOT NULL,
+  producer_keychain_id UUID NOT NULL REFERENCES producer_keychain.client (id),
+  user_id UUID NOT NULL,
+  kid VARCHAR NOT NULL,
+  name VARCHAR NOT NULL,
+  encoded_pem VARCHAR NOT NULL,
+  algorithm VARCHAR NOT NULL,
+  use VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE,
+
+  PRIMARY KEY (kid) -- TODO: probably kid can't be primary key
+);
+
 
 
 -- CLIENT JWK KEY
