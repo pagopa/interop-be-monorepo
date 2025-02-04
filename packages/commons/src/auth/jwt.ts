@@ -35,9 +35,10 @@ export const decodeJwtTokenHeaders = (
 
 export const readAuthDataFromJwtToken = (
   jwtToken: string,
+  maybeDecoded: JwtPayload | string | undefined,
   logger: Logger
 ): AuthData => {
-  const decoded = decodeJwtToken(jwtToken, logger);
+  const decoded = maybeDecoded ?? decodeJwtToken(jwtToken, logger);
   const token = AuthToken.safeParse(decoded);
   if (token.success === false) {
     throw invalidClaim(token.error);
@@ -70,14 +71,17 @@ export const verifyJwtToken = async (
   jwtToken: string,
   config: JWTConfig,
   logger: Logger
-): Promise<boolean> => {
+): Promise<{
+  verified: boolean;
+  maybeDecoded?: JwtPayload | string;
+}> => {
   try {
     const { acceptedAudiences } = config;
 
     const jwtHeader = decodeJwtTokenHeaders(jwtToken, logger);
     if (!jwtHeader?.kid) {
       logger.warn("Token verification failed: missing kid");
-      return Promise.resolve(false);
+      return Promise.resolve({ verified: false });
     }
 
     const jwksClients = buildJwksClients(config);
@@ -87,21 +91,25 @@ export const verifyJwtToken = async (
       jwt.verify(
         jwtToken,
         secret,
-        {
-          audience: acceptedAudiences,
-        },
-        function (err, _decoded) {
+        { audience: acceptedAudiences },
+        (err, decoded) => {
           if (err) {
             logger.warn(`Token verification failed: ${err}`);
-            return resolve(false);
+            resolve({
+              verified: false,
+            });
+          } else {
+            resolve({
+              verified: true,
+              maybeDecoded: decoded,
+            });
           }
-          return resolve(true);
         }
       );
     });
   } catch (error) {
     logger.error(`Error verifying JWT token: ${error}`);
-    return Promise.resolve(false);
+    return Promise.resolve({ verified: false });
   }
 };
 
