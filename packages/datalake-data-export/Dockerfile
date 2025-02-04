@@ -1,6 +1,6 @@
 FROM node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as build
 
-RUN corepack@0.31.0 enable && corepack@0.31.0 prepare pnpm@9.15.4 --activate
+RUN corepack@0.31.0 enable 
 
 WORKDIR /app
 COPY package.json /app/
