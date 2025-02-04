@@ -43,8 +43,8 @@ paths:
           schema:
             type: string
         - in: query
-          name: producersIds
-          description: comma separated sequence of producers IDs
+          name: eserviceTemplatesIds
+          description: comma separated sequence of eservice templates IDs
           schema:
             type: array
             items:

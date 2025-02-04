@@ -7,6 +7,8 @@ import {
   FileManager,
   WithLogger,
   eventRepository,
+  hasPermission,
+  userRoles,
 } from "pagopa-interop-commons";
 import {
   EServiceTemplate,
@@ -16,6 +18,7 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
+  ListResult,
   WithMetadata,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -33,7 +36,10 @@ import {
   toCreateEventEServiceTemplateVersionSuspended,
   toCreateEventEServiceTemplateNameUpdated,
 } from "../model/domain/toEvent.js";
-import { ReadModelService } from "./readModelService.js";
+import {
+  GetEServiceTemplatesFilters,
+  ReadModelService,
+} from "./readModelService.js";
 import { assertRequesterEServiceTemplateCreator } from "./validators.js";
 
 const retrieveEServiceTemplate = async (
@@ -415,6 +421,32 @@ export function eserviceTemplateServiceBuilder(
 
       return applyVisibilityToEServiceTemplate(eserviceTemplate.data, authData);
     },
+
+    async getEServiceTemplates(
+      filters: GetEServiceTemplatesFilters,
+      offset: number,
+      limit: number,
+      { authData, logger }: WithLogger<AppContext>
+    ): Promise<ListResult<EServiceTemplate>> {
+      logger.info(
+        `Getting EServices templates with name = ${filters.name}, ids = ${filters.eserviceTemplatesIds}, creators = ${filters.creatorsIds}, states = ${filters.states}, limit = ${limit}, offset = ${offset}`
+      );
+
+      const { results, totalCount } =
+        await readModelService.getEServiceTemplates(
+          filters,
+          offset,
+          limit,
+          authData
+        );
+
+      return {
+        results: results.map((eserviceTemplate) =>
+          applyVisibilityToEServiceTemplate(eserviceTemplate, authData)
+        ),
+        totalCount,
+      };
+    },
   };
 }
 
@@ -422,7 +454,13 @@ function applyVisibilityToEServiceTemplate(
   eserviceTemplate: EServiceTemplate,
   authData: AuthData
 ): EServiceTemplate {
-  if (eserviceTemplate.creatorId === authData.organizationId) {
+  if (
+    hasPermission(
+      [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
+      authData
+    ) &&
+    authData.organizationId === eserviceTemplate.creatorId
+  ) {
     return eserviceTemplate;
   }
 

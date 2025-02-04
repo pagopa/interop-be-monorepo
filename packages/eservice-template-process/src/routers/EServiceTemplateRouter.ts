@@ -12,7 +12,11 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
+import {
+  EServiceTemplateId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
@@ -25,7 +29,10 @@ import {
   updateEServiceTemplateEServiceDescriptionErrorMapper,
   getEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
-import { eserviceTemplateToApiEServiceTemplate } from "../model/domain/apiConverter.js";
+import {
+  apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
+  eserviceTemplateToApiEServiceTemplate,
+} from "../model/domain/apiConverter.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -63,8 +70,54 @@ const eserviceTemplatesRouter = (
     })
     .get(
       "/eservices/templates",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const {
+            name,
+            creatorsIds,
+            eserviceTemplatesIds,
+            states,
+            offset,
+            limit,
+          } = req.query;
+
+          const eserviceTemplates =
+            await eserviceTemplateService.getEServiceTemplates(
+              {
+                eserviceTemplatesIds:
+                  eserviceTemplatesIds.map<EServiceTemplateId>(unsafeBrandId),
+                creatorsIds: creatorsIds.map<TenantId>(unsafeBrandId),
+                states: states.map(
+                  apiEServiceTemplateVersionStateToEServiceTemplateVersionState
+                ),
+                name,
+              },
+              offset,
+              limit,
+              ctx
+            );
+
+          return res.status(200).send(
+            eserviceTemplateApi.EServiceTemplates.parse({
+              results: eserviceTemplates.results.map(
+                eserviceTemplateToApiEServiceTemplate
+              ),
+              totalCount: eserviceTemplates.totalCount,
+            })
+          );
+        } catch (error) {
+          return res.status(500).send();
+        }
+      }
     )
     .post(
       "/eservices/templates",
