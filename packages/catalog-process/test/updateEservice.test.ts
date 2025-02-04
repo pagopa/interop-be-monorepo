@@ -89,6 +89,7 @@ describe("update eService", () => {
     const updatedEService: EService = {
       ...eservice,
       name: updatedName,
+      isSignalHubEnabled,
       isDelegable,
       isClientAccessDelegable,
     };
@@ -153,6 +154,7 @@ describe("update eService", () => {
     const updatedEService: EService = {
       ...eservice,
       name: updatedName,
+      isSignalHubEnabled,
       isDelegable,
       isClientAccessDelegable: expectedIsClientAccessDelegable,
     };
