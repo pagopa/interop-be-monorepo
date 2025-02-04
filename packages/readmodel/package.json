@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "eslint": "8.57.0",
+    "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
