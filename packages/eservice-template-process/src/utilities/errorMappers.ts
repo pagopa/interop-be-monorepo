@@ -114,3 +114,26 @@ export const deleteRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceTemplateNotFound",
+      "tenantNotFound",
+      "tenantKindNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "operationForbidden",
+      "requesterIsNotCreator",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "eserviceTemplateNotInDraftState",
+      "eserviceTemplateNotInReceiveMode",
+      "riskAnalysisValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

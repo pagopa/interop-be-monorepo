@@ -30,6 +30,7 @@ import {
 import {
   toCreateEventEServiceTemplateRiskAnalysisAdded,
   toCreateEventEServiceTemplateRiskAnalysisDeleted,
+  toCreateEventEServiceTemplateRiskAnalysisUpdated,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
@@ -152,6 +153,63 @@ export function riskAnalysisTemplateServiceBuilder(
       };
 
       const event = toCreateEventEServiceTemplateRiskAnalysisDeleted(
+        template.data.id,
+        template.metadata.version,
+        riskAnalysisId,
+        newTemplate,
+        correlationId
+      );
+
+      await repository.createEvent(event);
+    },
+    async updateRiskAnalysis(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      updateRiskAnalysis: eserviceTemplateApi.EServiceRiskAnalysisSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Updating risk analysis with id: ${riskAnalysisId} from eServiceTemplate with id: ${templateId}`
+      );
+
+      const template = await retrieveEServiceTemplate(
+        templateId,
+        readModelService
+      );
+      if (template.data.creatorId !== authData.organizationId) {
+        eserviceTemplateRequesterIsNotCreator(templateId);
+      }
+      assertIsDraftTemplate(template.data);
+      assertIsReceiveTemplate(template.data);
+
+      const tenant = await retrieveTenant(
+        template.data.creatorId,
+        readModelService
+      );
+      assertTenantKindExists(tenant);
+
+      const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
+        updateRiskAnalysis.riskAnalysisForm,
+        tenant.kind
+      );
+
+      const updatedRiskAnalysis: RiskAnalysis =
+        riskAnalysisValidatedFormToNewRiskAnalysis(
+          validatedRiskAnalysisForm,
+          updateRiskAnalysis.name
+        );
+
+      const newTemplate: EServiceTemplate = {
+        ...template.data,
+        riskAnalysis: [
+          ...template.data.riskAnalysis.filter(
+            (ra) => ra.id !== riskAnalysisId
+          ),
+          updatedRiskAnalysis,
+        ],
+      };
+
+      const event = toCreateEventEServiceTemplateRiskAnalysisUpdated(
         template.data.id,
         template.metadata.version,
         riskAnalysisId,
