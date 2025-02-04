@@ -1,5 +1,6 @@
 CREATE SCHEMA readmodel;
 
+-- CATALOG
 -- TODO use tenants table for producerId reference
 CREATE TABLE IF NOT EXISTS readmodel.eservice (
   id UUID,
@@ -113,7 +114,6 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis_answer(
 
 
 -- AGREEMENT
-
 CREATE TABLE readmodel.agreement(
   id uuid,
   version integer NOT NULL,
@@ -169,7 +169,7 @@ PRIMARY KEY (id)
 );
 
  CREATE TABLE readmodel.agreement_attribute(
-  agreement_id uuid REFERENCES readmodel.agreement(id),
+  agreement_id uuid REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
   agreement_version integer NOT NULL,
   attribute_id uuid,
   kind varchar NOT NULL,
@@ -178,7 +178,7 @@ PRIMARY KEY (id)
 
  CREATE TABLE readmodel.agreement_consumer_document(
    id uuid,
-   agreement_id uuid REFERENCES readmodel.agreement(id),
+   agreement_id uuid REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
    agreement_version integer NOT NULL,
    name varchar NOT NULL,
    pretty_name varchar NOT NULL,
@@ -205,7 +205,6 @@ PRIMARY KEY (id)
 
 
  -- TENANT
-
  CREATE TABLE IF NOT EXISTS readmodel.tenant
 (
   id UUID,
@@ -240,7 +239,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_mail
 CREATE TABLE IF NOT EXISTS readmodel.tenant_certified_attribute
 (
   id UUID,
-  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
   tenant_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
   revocation_timestamp TIMESTAMP WITH TIME ZONE,
@@ -261,7 +260,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_declared_attribute
 CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute
 (
   id UUID,
-  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
   tenant_version INTEGER,
   assignment_timestamp TIMESTAMP NOT NULL,
   PRIMARY KEY (id)
@@ -272,8 +271,8 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_verifier
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   tenant_version INTEGER,
 
-  id UUID REFERENCES readmodel.tenant (id) -- verifier id
-  tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.tenant_verified_attribute (id),
+  id UUID REFERENCES readmodel.tenant (id), -- verifier id
+  tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.tenant_verified_attribute (id) ON DELETE CASCADE,
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
   extension_date TIMESTAMP WITH TIME ZONE,
@@ -287,8 +286,8 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_revoker
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   tenant_version INTEGER,
   
-  id UUID REFERENCES readmodel.tenant (id) -- revoker id
-  tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.tenant_verified_attribute (id),
+  id UUID REFERENCES readmodel.tenant (id), -- revoker id
+  tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.tenant_verified_attribute (id) ON DELETE CASCADE,
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
   extension_date TIMESTAMP WITH TIME ZONE,
@@ -299,7 +298,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_revoker
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_certifier(
-  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
   tenant_version INTEGER,
   certifier_id VARCHAR,
 
@@ -307,7 +306,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_certifier(
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_delegated_producer(
-  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
   tenant_version INTEGER,
   availability_timestamp TIMESTAMP WITH TIME ZONE,
 
@@ -315,21 +314,60 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_delegated_producer(
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_delegated_consumer(
-  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
   tenant_version INTEGER,
   availability_timestamp TIMESTAMP WITH TIME ZONE
 );
 
+-- DELEGATION
+CREATE TABLE IF NOT EXISTS readmodel.delegation(
+  id UUID,
+  version INTEGER,
+  delegator_id UUID REFERENCES readmodel.tenant(id),
+  delegate_id UUID REFERENCES readmodel.tenant(id),
+  eservice_id UUID REFERENCES readmodel.eservice(id),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  submitted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  approved_at TIMESTAMP WITH TIME ZONE,
+  rejected_at TIMESTAMP WITH TIME ZONE,
+  rejection_reason VARCHAR,
+  revoked_at TIMESTAMP WITH TIME ZONE,
+  state VARCHAR,
+  kind VARCHAR,
+  -- activationContract
+  -- revocationContract
+  submission_who UUID NOT NULL REFERENCES readmodel.tenant(id),
+  submission_when TIMESTAMP WITH TIME ZONE NOT NULL,
+  activation_who UUID REFERENCES readmodel.tenant(id),
+  activation_when TIMESTAMP WITH TIME ZONE,
+  rejection_who UUID REFERENCES readmodel.tenant(id),
+  rejection_when TIMESTAMP WITH TIME ZONE,
+  revocation_who UUID REFERENCES readmodel.tenant(id),
+  revocation_when TIMESTAMP WITH TIME ZONE,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel.delegation_contract_document(
+  id UUID,
+  delegation_id UUID NOT NULL REFERENCES readmodel.delegation (id) ON DELETE CASCADE,
+  delegation_version INTEGER NOT NULL,
+  name VARCHAR,
+  content_type VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR NOT NULL, -- activation/revocation
+  PRIMARY KEY(id)
+);
 
 -- PURPOSE
-
 CREATE TABLE IF NOT EXISTS readmodel.purpose
 (
   id UUID,
   version INTEGER,
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id),
   consumer_id UUID NOT NULL REFERENCES readmodel.tenant (id),
-  delegation_id -- TODO reference delegation table
+  delegation_id UUID REFERENCES readmodel.delegation (id),
   -- versions
   suspended_by_consumer TIMESTAMP WITH TIME ZONE,
   suspended_by_producer TIMESTAMP WITH TIME ZONE,
@@ -343,10 +381,10 @@ CREATE TABLE IF NOT EXISTS readmodel.purpose
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS domains.purpose_version
+CREATE TABLE IF NOT EXISTS readmodel.purpose_version
 (
   id UUID,
-  purpose_id UUID NOT NULL REFERENCES domains.purpose (id),
+  purpose_id UUID NOT NULL REFERENCES readmodel.purpose (id) ON DELETE CASCADE,
   purpose_version INTEGER, -- metadata
   state VARCHAR NOT NULL,
   -- riskAnalysis
@@ -388,7 +426,7 @@ CREATE TABLE IF NOT EXISTS readmodel.client
 CREATE TABLE IF NOT EXISTS readmodel.client_user
 (
   client_version INTEGER NOT NULL,
-  client_id UUID NOT NULL REFERENCES readmodel.client (id),
+  client_id UUID NOT NULL REFERENCES readmodel.client (id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
 
   PRIMARY KEY (client_id, user_id)
@@ -397,7 +435,7 @@ CREATE TABLE IF NOT EXISTS readmodel.client_user
 CREATE TABLE IF NOT EXISTS readmodel.client_purpose
 (
   client_version INTEGER NOT NULL,
-  client_id UUID NOT NULL REFERENCES readmodel.client (id),
+  client_id UUID NOT NULL REFERENCES readmodel.client (id) ON DELETE CASCADE,
   purpose_id UUID NOT NULL REFERENCES readmodel.purpose (id),
 
   PRIMARY KEY (client_id, purpose_id)
@@ -406,7 +444,7 @@ CREATE TABLE IF NOT EXISTS readmodel.client_purpose
 CREATE TABLE IF NOT EXISTS readmodel.client_key
 (
   client_version INTEGER NOT NULL,
-  client_id UUID NOT NULL REFERENCES readmodel.client (id),
+  client_id UUID NOT NULL REFERENCES readmodel.client (id) ON DELETE CASCADE,
 
   user_id UUID NOT NULL,
   kid VARCHAR NOT NULL,
@@ -437,7 +475,7 @@ CREATE TABLE IF NOT EXISTS readmodel.producer_keychain
 CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_user
 (
   producer_keychain_version INTEGER NOT NULL,
-  producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain (id),
+  producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain (id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
 
   PRIMARY KEY (producer_keychain_id, user_id)
@@ -446,16 +484,16 @@ CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_user
 CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_eservice
 (
   producer_keychain_version INTEGER NOT NULL,
-  producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain (id),
+  producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain (id) ON DELETE CASCADE,
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id),
 
-  PRIMARY KEY (client_id, purpose_id)
+  PRIMARY KEY (producer_keychain_id, eservice_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_key
 (
   producer_keychain_version INTEGER NOT NULL,
-  producer_keychain_id UUID NOT NULL REFERENCES producer_keychain.client (id),
+  producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain (id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
   kid VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
@@ -493,46 +531,4 @@ CREATE TABLE IF NOT EXISTS readmodel.producer_jwk_key(
   n VARCHAR NOT NULL,
   use VARCHAR NOT NULL,
   PRIMARY KEY (kid) -- same as above
-);
-
-
--- DELEGATION
-CREATE TABLE IF NOT EXISTS readmodel.delegation(
-  id UUID,
-  version INTEGER,
-  delegator_id UUID REFERENCES readmodel.tenant(id),
-  delegate_id UUID REFERENCES readmodel.tenant(id),
-  eservice_id UUID REFERENCES readmodel.eservice(id),
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  submitted_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  approved_at TIMESTAMP WITH TIME ZONE,
-  rejected_at TIMESTAMP WITH TIME ZONE,
-  rejection_reason VARCHAR,
-  revoked_at TIMESTAMP WITH TIME ZONE,
-  state VARCHAR,
-  kind VARCHAR,
-  -- activationContract
-  -- revocationContract
-  submission_who UUID NOT NULL REFERENCES readmodel.tenant(id),
-  submission_when TIMESTAMP WITH TIME ZONE NOT NULL,
-  activation_who UUID REFERENCES readmodel.tenant(id),
-  activation_when TIMESTAMP WITH TIME ZONE,
-  rejection_who UUID REFERENCES readmodel.tenant(id),
-  rejection_when TIMESTAMP WITH TIME ZONE,
-  revocation_who UUID REFERENCES readmodel.tenant(id),
-  revocation_when TIMESTAMP WITH TIME ZONE,
-  PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS readmodel.delegation_contract_document(
-  id UUID,
-  delegation_id UUID NOT NULL REFERENCES readmodel.delegation (id) ON DELETE CASCADE,
-  delegation_version INTEGER NOT NULL,
-  name VARCHAR,
-  content_type VARCHAR NOT NULL,
-  pretty_name VARCHAR NOT NULL,
-  path VARCHAR NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  kind VARCHAR NOT NULL, -- activation/revocation
-  PRIMARY KEY(id)
 );
