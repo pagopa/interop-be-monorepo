@@ -1,6 +1,6 @@
 FROM node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as build
 
-RUN RUN npm install -g corepack@0.31.0 && corepack enable && corepack prepare pnpm@9.15.2 --activate
+RUN npm install -g corepack@0.31.0 && corepack enable && corepack prepare pnpm@9.15.2 --activate
 
 
 WORKDIR /app
