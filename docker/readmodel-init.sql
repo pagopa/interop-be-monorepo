@@ -470,7 +470,7 @@ CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_key
 
 
 -- CLIENT JWK KEY
-CREATE TABLE IF NOT EXISTS client_jwk_key(
+CREATE TABLE IF NOT EXISTS readmodel.client_jwk_key(
   client_id UUID NOT NULL REFERENCES readmodel.client(id),
   version INTEGER NOT NULL,
   alg VARCHAR NOT NULL,
@@ -483,7 +483,7 @@ CREATE TABLE IF NOT EXISTS client_jwk_key(
 );
 
 -- PRODUCER JWK KEY
-CREATE TABLE IF NOT EXISTS producer_jwk_key(
+CREATE TABLE IF NOT EXISTS readmodel.producer_jwk_key(
   producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain(id),
   version INTEGER NOT NULL,
   alg VARCHAR NOT NULL,
@@ -493,4 +493,46 @@ CREATE TABLE IF NOT EXISTS producer_jwk_key(
   n VARCHAR NOT NULL,
   use VARCHAR NOT NULL,
   PRIMARY KEY (kid) -- same as above
+);
+
+
+-- DELEGATION
+CREATE TABLE IF NOT EXISTS readmodel.delegation(
+  id UUID,
+  version INTEGER,
+  delegator_id UUID REFERENCES readmodel.tenant(id),
+  delegate_id UUID REFERENCES readmodel.tenant(id),
+  eservice_id UUID REFERENCES readmodel.eservice(id),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  submitted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  approved_at TIMESTAMP WITH TIME ZONE,
+  rejected_at TIMESTAMP WITH TIME ZONE,
+  rejection_reason VARCHAR,
+  revoked_at TIMESTAMP WITH TIME ZONE,
+  state VARCHAR,
+  kind VARCHAR,
+  -- activationContract
+  -- revocationContract
+  submission_who UUID NOT NULL REFERENCES readmodel.tenant(id),
+  submission_when TIMESTAMP WITH TIME ZONE NOT NULL,
+  activation_who UUID REFERENCES readmodel.tenant(id),
+  activation_when TIMESTAMP WITH TIME ZONE,
+  rejection_who UUID REFERENCES readmodel.tenant(id),
+  rejection_when TIMESTAMP WITH TIME ZONE,
+  revocation_who UUID REFERENCES readmodel.tenant(id),
+  revocation_when TIMESTAMP WITH TIME ZONE,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel.delegation_contract_document(
+  id UUID,
+  delegation_id UUID NOT NULL REFERENCES readmodel.delegation (id) ON DELETE CASCADE,
+  delegation_version INTEGER NOT NULL,
+  name VARCHAR,
+  content_type VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR NOT NULL, -- activation/revocation
+  PRIMARY KEY(id)
 );
