@@ -367,7 +367,8 @@ export function agreementServiceBuilder(
           agreementToBeUpdated.data
         );
       assertRequesterCanActAsConsumer(
-        agreementToBeUpdated.data,
+        agreementToBeUpdated.data.consumerId,
+        agreementToBeUpdated.data.eserviceId,
         authData,
         activeConsumerDelegation
       );
@@ -402,7 +403,8 @@ export function agreementServiceBuilder(
       );
 
       assertRequesterCanActAsConsumer(
-        agreement.data,
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
         authData,
         await readModelService.getActiveConsumerDelegationByAgreement(
           agreement.data
@@ -471,7 +473,8 @@ export function agreementServiceBuilder(
         readModelService
       );
       assertRequesterCanActAsConsumer(
-        agreement.data,
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
         authData,
         activeDelegations.consumerDelegation
       );
@@ -655,7 +658,8 @@ export function agreementServiceBuilder(
         readModelService
       );
       assertRequesterCanActAsConsumer(
-        agreementToBeUpgraded.data,
+        agreementToBeUpgraded.data.consumerId,
+        agreementToBeUpgraded.data.eserviceId,
         authData,
         activeDelegations.consumerDelegation
       );
@@ -772,7 +776,8 @@ export function agreementServiceBuilder(
           agreementToBeCloned.data
         );
       assertRequesterCanActAsConsumer(
-        agreementToBeCloned.data,
+        agreementToBeCloned.data.consumerId,
+        agreementToBeCloned.data.eserviceId,
         authData,
         activeConsumerDelegation
       );
@@ -855,7 +860,8 @@ export function agreementServiceBuilder(
           agreement.data
         );
       assertRequesterCanActAsConsumer(
-        agreement.data,
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
         authData,
         activeConsumerDelegation
       );
@@ -990,7 +996,8 @@ export function agreementServiceBuilder(
           agreement.data
         );
       assertRequesterCanActAsConsumer(
-        agreement.data,
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
         authData,
         activeConsumerDelegation
       );
@@ -1284,7 +1291,8 @@ export function agreementServiceBuilder(
           agreement.data
         );
       assertRequesterCanActAsConsumer(
-        agreement.data,
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
         authData,
         activeConsumerDelegation
       );
@@ -1384,7 +1392,8 @@ export function agreementServiceBuilder(
       );
 
       assertRequesterCanActAsConsumer(
-        { consumerId: tenantId, eserviceId },
+        tenantId,
+        eserviceId,
         authData,
         await readModelService.getActiveConsumerDelegationByAgreement({
           consumerId: tenantId,
@@ -1545,7 +1554,8 @@ async function getConsumerFromDelegationOrRequester(
     }
 
     assertRequesterIsDelegateConsumer(
-      { consumerId: delegation.delegatorId, eserviceId },
+      delegation.delegatorId,
+      eserviceId,
       authData,
       delegation
     );
