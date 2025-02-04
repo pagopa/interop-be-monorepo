@@ -295,6 +295,7 @@ describe("update eService", () => {
     const updatedEService: EService = {
       ...mockEService,
       description: updatedDescription,
+      isSignalHubEnabled: false,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -309,6 +310,7 @@ describe("update eService", () => {
       payload: writtenEvent.data,
     });
 
+    console.log("written.payload", writtenPayload.eservice);
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
