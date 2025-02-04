@@ -179,6 +179,15 @@ export const InterfaceVersion = z
     backendForFrontendInterfaceVersion:
       c.BACKEND_FOR_FRONTEND_INTERFACE_VERSION,
   }));
+
+export const SelfcareProcessConfig = z
+  .object({
+    INTEROP_SELFCARE_PRODUCT_NAME: z.string(),
+  })
+  .transform((c) => ({
+    selfcareProductName: c.INTEROP_SELFCARE_PRODUCT_NAME,
+  }));
+export type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -195,7 +204,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(S3PrivacyNoticeConfig)
   .and(ExportFileConfig)
   .and(ImportFileConfig)
-  .and(InterfaceVersion);
+  .and(InterfaceVersion)
+  .and(SelfcareProcessConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
