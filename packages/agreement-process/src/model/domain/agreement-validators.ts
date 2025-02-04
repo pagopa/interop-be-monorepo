@@ -14,6 +14,11 @@ import {
   EServiceId,
   unsafeBrandId,
   TenantId,
+  AgreementStamp,
+  AgreementStamps,
+  delegationKind,
+  Delegation,
+  delegationState,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
@@ -28,6 +33,7 @@ import {
   agreementActivationFailed,
   agreementAlreadyExists,
   agreementNotInExpectedState,
+  agreementStampNotFound,
   agreementSubmissionFailed,
   descriptorNotFound,
   descriptorNotInExpectedState,
@@ -133,26 +139,91 @@ export const assertRequesterIsConsumer = (
   }
 };
 
-export function assertRequesterIsProducer(
+const assertRequesterIsProducer = (
   agreement: Agreement,
   authData: AuthData
-): void {
+): void => {
   if (
     !authData.userRoles.includes("internal") &&
     authData.organizationId !== agreement.producerId
   ) {
     throw operationNotAllowed(authData.organizationId);
   }
-}
+};
 
-export const assertRequesterIsConsumerOrProducer = (
+export const assertRequesterCanActAsConsumerOrProducer = (
   agreement: Agreement,
-  authData: AuthData
+  authData: AuthData,
+  activeProducerDelegation: Delegation | undefined
 ): void => {
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
+    assertRequesterCanActAsProducer(
+      agreement,
+      authData,
+      activeProducerDelegation
+    );
+  }
+};
+
+export const assertRequesterCanRetrieveConsumerDocuments = async (
+  agreement: Agreement,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<void> => {
+  // This operation has a dedicated assertion because it's the only operation that
+  // can be performed also by the producer even when an active producer delegation exists
+  try {
+    assertRequesterIsConsumer(agreement, authData);
+  } catch (error) {
+    try {
+      assertRequesterIsProducer(agreement, authData);
+    } catch (error) {
+      const activeProducerDelegation =
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreement.eserviceId
+        );
+      assertRequesterIsDelegateProducer(
+        agreement,
+        authData,
+        activeProducerDelegation
+      );
+    }
+  }
+};
+
+export const assertRequesterCanActAsProducer = (
+  agreement: Agreement,
+  authData: AuthData,
+  activeProducerDelegation: Delegation | undefined
+): void => {
+  if (!activeProducerDelegation) {
+    // No active producer delegation, the requester is authorized only if they are the producer
     assertRequesterIsProducer(agreement, authData);
+  } else {
+    // Active producer delegation, the requester is authorized only if they are the delegate
+    assertRequesterIsDelegateProducer(
+      agreement,
+      authData,
+      activeProducerDelegation
+    );
+  }
+};
+
+const assertRequesterIsDelegateProducer = (
+  agreement: Agreement,
+  authData: AuthData,
+  activeProducerDelegation: Delegation | undefined
+): void => {
+  if (
+    activeProducerDelegation?.delegateId !== authData.organizationId ||
+    activeProducerDelegation?.delegatorId !== agreement.producerId ||
+    activeProducerDelegation?.kind !== delegationKind.delegatedProducer ||
+    activeProducerDelegation?.state !== delegationState.active ||
+    activeProducerDelegation?.eserviceId !== agreement.eserviceId
+  ) {
+    throw operationNotAllowed(authData.organizationId);
   }
 };
 
@@ -207,8 +278,15 @@ const validateLatestDescriptor = (
   descriptorId: DescriptorId,
   allowedStates: DescriptorState[]
 ): Descriptor => {
+  const activeDescriptorStates: DescriptorState[] = [
+    descriptorState.archived,
+    descriptorState.deprecated,
+    descriptorState.published,
+    descriptorState.suspended,
+  ];
+
   const recentActiveDescriptors = eservice.descriptors
-    .filter((d) => d.state !== descriptorState.draft)
+    .filter((d) => activeDescriptorStates.includes(d.state))
     .sort((a, b) => Number(b.version) - Number(a.version));
 
   if (
@@ -407,3 +485,14 @@ export const matchingVerifiedAttributes = (
     verifiedAttributes
   ).map((id) => ({ id } as VerifiedAgreementAttribute));
 };
+
+export function assertStampExists<S extends keyof AgreementStamps>(
+  stamps: AgreementStamps,
+  stamp: S
+): asserts stamps is AgreementStamps & {
+  [key in S]: AgreementStamp;
+} {
+  if (!stamps[stamp]) {
+    throw agreementStampNotFound(stamp);
+  }
+}

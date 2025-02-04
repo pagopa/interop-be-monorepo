@@ -12,7 +12,10 @@ import {
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { toApiTenant } from "../model/domain/apiConverter.js";
+import {
+  apiTenantFeatureTypeToTenantFeatureType,
+  toApiTenant,
+} from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   getTenantByExternalIdErrorMapper,
@@ -37,6 +40,9 @@ import {
   internalUpsertTenantErrorMapper,
   m2mRevokeCertifiedAttributeErrorMapper,
   m2mUpsertTenantErrorMapper,
+  maintenanceTenantUpdatedErrorMapper,
+  assignTenantDelegatedProducerFeatureErrorMapper,
+  removeTenantDelegatedProducerFeatureErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
@@ -165,10 +171,11 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const { name, offset, limit } = req.query;
-          const tenants = await tenantService.getTenantsByName(
+          const { name, features, offset, limit } = req.query;
+          const tenants = await tenantService.getTenants(
             {
               name,
+              features: features.map(apiTenantFeatureTypeToTenantFeatureType),
               offset,
               limit,
             },
@@ -441,6 +448,33 @@ const tenantsRouter = (
         }
       }
     )
+    .post(
+      "/maintenance/tenants/:tenantId",
+      authorizationMiddleware([MAINTENANCE_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await tenantService.maintenanceTenantUpdate(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              version: req.body.currentVersion,
+              tenantUpdate: req.body.tenant,
+              correlationId: ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceTenantUpdatedErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete(
       "/tenants/:tenantId/mails/:mailId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
@@ -462,6 +496,54 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteTenantMailErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/tenants/delegatedProducer",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await tenantService.assignTenantDelegatedProducerFeature({
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+            authData: ctx.authData,
+            logger: ctx.logger,
+          });
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignTenantDelegatedProducerFeatureErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/tenants/delegatedProducer",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await tenantService.removeTenantDelegatedProducerFeature({
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+            authData: ctx.authData,
+            logger: ctx.logger,
+          });
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            removeTenantDelegatedProducerFeatureErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -744,7 +826,9 @@ const tenantsRouter = (
           const tenant = await tenantService.verifyVerifiedAttribute(
             {
               tenantId: unsafeBrandId(req.params.tenantId),
-              tenantAttributeSeed: req.body,
+              attributeId: unsafeBrandId(req.body.id),
+              agreementId: unsafeBrandId(req.body.agreementId),
+              expirationDate: req.body.expirationDate,
               organizationId: req.ctx.authData.organizationId,
               correlationId: req.ctx.correlationId,
             },
@@ -774,6 +858,7 @@ const tenantsRouter = (
             {
               tenantId: unsafeBrandId(req.params.tenantId),
               attributeId: unsafeBrandId(req.params.attributeId),
+              agreementId: unsafeBrandId(req.body.agreementId),
             },
             ctx
           );

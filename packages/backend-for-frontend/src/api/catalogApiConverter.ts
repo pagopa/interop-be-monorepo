@@ -15,19 +15,18 @@ import {
 import { attributeNotExists } from "../model/errors.js";
 import {
   getLatestActiveDescriptor,
-  getNotDraftDescriptor,
   getLatestTenantContactEmail,
+  getValidDescriptor,
 } from "../model/modelMappingUtils.js";
+import { ConfigurationRiskAnalysis } from "../model/types.js";
 import {
-  isRequesterEserviceProducer,
+  hasCertifiedAttributes,
   isAgreementSubscribed,
   isAgreementUpgradable,
-  hasCertifiedAttributes,
+  isInvalidDescriptor,
+  isRequesterEserviceProducer,
+  isValidDescriptor,
 } from "../services/validators.js";
-import {
-  ConfigurationRiskAnalysis,
-  catalogApiDescriptorState,
-} from "../model/types.js";
 import { toBffCompactAgreement } from "./agreementApiConverter.js";
 
 export function toEserviceCatalogProcessQueryParams(
@@ -105,7 +104,7 @@ export function toBffCatalogDescriptorEService(
     },
     description: eservice.description,
     technology: eservice.technology,
-    descriptors: getNotDraftDescriptor(eservice).map(toCompactDescriptor),
+    descriptors: getValidDescriptor(eservice).map(toCompactDescriptor),
     agreement: agreement && toBffCompactAgreement(agreement, eservice),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
     hasCertifiedAttributes: hasCertifiedAttributes(descriptor, requesterTenant),
@@ -240,18 +239,20 @@ export function toBffCatalogApiProducerDescriptorEService(
   const producerMail = getLatestTenantContactEmail(producer);
 
   const notDraftDecriptors = eservice.descriptors
-    .filter((d) => d.state !== catalogApiDescriptorState.DRAFT)
+    .filter(isValidDescriptor)
     .map(toCompactDescriptor);
 
-  const draftDescriptor = eservice.descriptors.find(
-    (d) => d.state === catalogApiDescriptorState.DRAFT
-  );
+  const draftDescriptor = eservice.descriptors.find(isInvalidDescriptor);
 
   return {
     id: eservice.id,
     name: eservice.name,
     description: eservice.description,
     technology: eservice.technology,
+    producer: {
+      id: producer.id,
+      tenantKind: producer.kind,
+    },
     mode: eservice.mode,
     mail: producerMail && {
       address: producerMail.address,
@@ -358,5 +359,24 @@ export function toCompactDescriptor(
     audience: descriptor.audience,
     state: descriptor.state,
     version: descriptor.version,
+  };
+}
+
+export function toCompactProducerDescriptor(
+  descriptor: catalogApi.EServiceDescriptor,
+  isRequesterProducerDelegate: boolean
+): bffApi.CompactProducerDescriptor {
+  return {
+    id: descriptor.id,
+    audience: descriptor.audience,
+    state: descriptor.state,
+    version: descriptor.version,
+    requireCorrections:
+      isRequesterProducerDelegate &&
+      // The WAITING_FOR_APPROVAL state is not relevant for the producer descriptor's requireCorrections field,
+      // so we don't consider it when determining whether corrections are required.
+      descriptor.state === catalogApi.EServiceDescriptorState.Values.DRAFT &&
+      descriptor.rejectionReasons &&
+      descriptor.rejectionReasons.length > 0,
   };
 }
