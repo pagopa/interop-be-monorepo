@@ -30,7 +30,7 @@ export const toApiSelfcareInstitution = (
       },
       (institution) => {
         const productRole = institution.products
-          .map((product) => product.productRole || null)
+          .map((product) => product.productRole)
           .filter((role): role is string => !!role);
 
         return {
