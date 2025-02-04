@@ -367,3 +367,79 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version
 
 
 -- TODO risk analysis
+
+
+-- CLIENT
+CREATE TABLE IF NOT EXISTS readmodel.client
+(
+  id UUID,
+  version INTEGER NOT NULL,
+  consumer_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  name VARCHAR NOT NULL,
+  -- purposes
+  description VARCHAR,
+  -- users
+  kind VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel.client_user
+(
+  client_version INTEGER NOT NULL,
+  client_id UUID NOT NULL REFERENCES readmodel.client (id),
+  user_id UUID NOT NULL,
+
+  PRIMARY KEY (client_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel.client_purpose
+(
+  client_version INTEGER NOT NULL,
+  client_id UUID NOT NULL REFERENCES readmodel.client (id),
+  purpose_id UUID NOT NULL REFERENCES readmodel.purpose (id),
+
+  PRIMARY KEY (client_id, purpose_id)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel.client_key
+(
+  client_version INTEGER NOT NULL,
+  user_id UUID NOT NULL,
+  kid VARCHAR NOT NULL,
+  name VARCHAR NOT NULL,
+  encoded_pem VARCHAR NOT NULL,
+  algorithm VARCHAR NOT NULL,
+  use VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE,
+  client_id UUID NOT NULL REFERENCES readmodel.client (id),
+
+  PRIMARY KEY (kid) -- TODO: probably kid can't be primary key
+);
+
+
+-- CLIENT JWK KEY
+CREATE TABLE IF NOT EXISTS client_jwk_key(
+  client_id UUID NOT NULL REFERENCES readmodel.client(id),
+  version INTEGER NOT NULL,
+  alg VARCHAR NOT NULL,
+  e VARCHAR NOT NULL,
+  kid VARCHAR NOT NULL,
+  kty VARCHAR NOT NULL,
+  n VARCHAR NOT NULL,
+  use VARCHAR NOT NULL,
+  PRIMARY KEY (kid) -- same as above
+);
+
+-- PRODUCER JWK KEY
+CREATE TABLE IF NOT EXISTS producer_jwk_key(
+  producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain(id),
+  version INTEGER NOT NULL,
+  alg VARCHAR NOT NULL,
+  e VARCHAR NOT NULL,
+  kid VARCHAR NOT NULL,
+  kty VARCHAR NOT NULL,
+  n VARCHAR NOT NULL,
+  use VARCHAR NOT NULL,
+  PRIMARY KEY (kid) -- same as above
+);
