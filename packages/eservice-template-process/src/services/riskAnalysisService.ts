@@ -142,7 +142,7 @@ export function riskAnalysisTemplateServiceBuilder(
         readModelService
       );
       if (template.data.creatorId !== authData.organizationId) {
-        eserviceTemplateRequesterIsNotCreator(templateId);
+        throw eserviceTemplateRequesterIsNotCreator(templateId);
       }
       assertIsDraftTemplate(template.data);
       assertIsReceiveTemplate(template.data);
@@ -179,7 +179,7 @@ export function riskAnalysisTemplateServiceBuilder(
         readModelService
       );
       if (template.data.creatorId !== authData.organizationId) {
-        eserviceTemplateRequesterIsNotCreator(templateId);
+        throw eserviceTemplateRequesterIsNotCreator(templateId);
       }
       assertIsDraftTemplate(template.data);
       assertIsReceiveTemplate(template.data);
