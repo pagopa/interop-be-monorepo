@@ -7,6 +7,8 @@ import {
   FileManager,
   WithLogger,
   eventRepository,
+  hasPermission,
+  userRoles,
 } from "pagopa-interop-commons";
 import {
   EServiceTemplate,
@@ -422,7 +424,13 @@ function applyVisibilityToEServiceTemplate(
   eserviceTemplate: EServiceTemplate,
   authData: AuthData
 ): EServiceTemplate {
-  if (eserviceTemplate.creatorId === authData.organizationId) {
+  if (
+    hasPermission(
+      [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
+      authData
+    ) &&
+    authData.organizationId === eserviceTemplate.creatorId
+  ) {
     return eserviceTemplate;
   }
 
