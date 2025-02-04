@@ -24,8 +24,10 @@ import {
   updateEServiceTemplateAudienceDescriptionErrorMapper,
   updateEServiceTemplateEServiceDescriptionErrorMapper,
   getEServiceTemplateErrorMapper,
+  createRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../model/domain/apiConverter.js";
+import { riskAnalysisTemplateServiceBuilder } from "../services/riskAnalysisService.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -43,6 +45,19 @@ const eserviceTemplateService = eserviceTemplateServiceBuilder(
   }),
   readModelService,
   initFileManager(config)
+);
+
+const riskAnalysisTemplateService = riskAnalysisTemplateServiceBuilder(
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
+  readModelService
 );
 
 const eserviceTemplatesRouter = (
@@ -209,7 +224,26 @@ const eserviceTemplatesRouter = (
     .post(
       "/eservices/templates/:eServiceTemplateId/riskAnalysis",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await riskAnalysisTemplateService.createRiskAnalysis(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createRiskAnalysisErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",

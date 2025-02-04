@@ -38,7 +38,7 @@ import {
 import { ReadModelService } from "./readModelService.js";
 import { assertRequesterEServiceTemplateCreator } from "./validators.js";
 
-const retrieveEServiceTemplate = async (
+export const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
   readModelService: ReadModelService
 ): Promise<WithMetadata<EServiceTemplate>> => {
