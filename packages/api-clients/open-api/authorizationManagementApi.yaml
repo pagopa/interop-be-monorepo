@@ -342,7 +342,7 @@ paths:
       tags:
         - key
       summary: Create Keys for the specific clientId.
-      operationId: createKeys
+      operationId: createKey
       responses:
         "200":
           description: Keys created
@@ -368,7 +368,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/KeysSeed"
+              $ref: "#/components/schemas/KeySeed"
       description: Creates one or more keys for the corresponding client.
       parameters:
         - name: clientId
@@ -784,10 +784,6 @@ components:
         - alg
         - name
         - createdAt
-    KeysSeed:
-      type: array
-      items:
-        $ref: "#/components/schemas/KeySeed"
     Keys:
       type: object
       additionalProperties: false

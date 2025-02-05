@@ -642,7 +642,7 @@ export function authorizationServiceBuilder(
       );
     },
 
-    async createKeys({
+    async createKey({
       clientId,
       authData,
       keySeed,
