@@ -17,7 +17,7 @@ import {
   authorizationEventToBinaryData,
   clientKind,
   generateId,
-  genericInternalError,
+  // genericInternalError,
   invalidKey,
   purposeVersionState,
   unsafeBrandId,
@@ -645,13 +645,13 @@ export function authorizationServiceBuilder(
     async createKeys({
       clientId,
       authData,
-      keysSeeds,
+      keySeed,
       correlationId,
       logger,
     }: {
       clientId: ClientId;
       authData: AuthData;
-      keysSeeds: authorizationApi.KeysSeed;
+      keySeed: authorizationApi.KeySeed;
       correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ client: Client; showUsers: boolean }> {
@@ -661,10 +661,7 @@ export function authorizationServiceBuilder(
         unsafeBrandId(authData.organizationId),
         client.data
       );
-      assertClientKeysCountIsBelowThreshold(
-        clientId,
-        client.data.keys.length + keysSeeds.length
-      );
+      assertClientKeysCountIsBelowThreshold(clientId, client.data.keys.length);
       if (!client.data.users.includes(authData.userId)) {
         throw userNotFound(authData.userId, authData.selfcareId);
       }
@@ -678,10 +675,10 @@ export function authorizationServiceBuilder(
         correlationId,
       });
 
-      if (keysSeeds.length !== 1) {
-        throw genericInternalError("Wrong number of keys");
-      }
-      const keySeed = keysSeeds[0];
+      // if (keySeed !== 1) {
+      //   throw genericInternalError("Wrong number of keys");
+      // }
+
       const jwk = createJWK(keySeed.key);
       if (jwk.kty !== "RSA") {
         throw invalidKey(keySeed.key, "Not an RSA key");

@@ -420,12 +420,12 @@ const authorizationRouter = (
           const { client } = await authorizationService.createKeys({
             clientId: unsafeBrandId(req.params.clientId),
             authData: req.ctx.authData,
-            keysSeeds: req.body,
+            keySeed: req.body,
             correlationId: req.ctx.correlationId,
             logger: ctx.logger,
           });
           return res.status(200).send(
-            authorizationApi.Keys.parse({
+            authorizationApi.Key.parse({
               keys: client.keys.map((key) => keyToApiKey(key)),
             })
           );

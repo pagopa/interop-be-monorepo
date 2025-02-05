@@ -76,8 +76,6 @@ describe("createKeys", () => {
     alg: "",
   };
 
-  const keysSeeds: authorizationApi.KeysSeed = [keySeed];
-
   function mockSelfcareV2ClientCall(
     value: Awaited<
       ReturnType<typeof selfcareV2Client.getInstitutionUsersByProductUsingGET>
@@ -121,7 +119,7 @@ describe("createKeys", () => {
     const { client } = await authorizationService.createKeys({
       clientId: mockClient.id,
       authData: mockAuthData,
-      keysSeeds,
+      keySeed,
       correlationId: generateId(),
       logger: genericLogger,
     });
@@ -167,7 +165,7 @@ describe("createKeys", () => {
       authorizationService.createKeys({
         clientId: mockClient.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -186,7 +184,7 @@ describe("createKeys", () => {
       authorizationService.createKeys({
         clientId: notConsumerClient.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -203,7 +201,7 @@ describe("createKeys", () => {
       authorizationService.createKeys({
         clientId: mockClient.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -234,15 +232,12 @@ describe("createKeys", () => {
       authorizationService.createKeys({
         clientId: clientWith100Keys.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      tooManyKeysPerClient(
-        clientWith100Keys.id,
-        clientWith100Keys.keys.length + keysSeeds.length
-      )
+      tooManyKeysPerClient(clientWith100Keys.id, clientWith100Keys.keys.length)
     );
   });
   it("should throw userNotFound if the user doesn't exist ", async () => {
@@ -257,7 +252,7 @@ describe("createKeys", () => {
       authorizationService.createKeys({
         clientId: noUsersClient.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -281,15 +276,13 @@ describe("createKeys", () => {
       alg: "",
     };
 
-    const keysSeeds: authorizationApi.KeysSeed = [keySeedByPrivateKey];
-
     await addOneClient(mockClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
       authorizationService.createKeys({
         clientId: mockClient.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed: keySeedByPrivateKey,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -312,7 +305,7 @@ describe("createKeys", () => {
       authorizationService.createKeys({
         clientId: clientWithDuplicateKey.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -343,7 +336,7 @@ describe("createKeys", () => {
       authorizationService.createKeys({
         clientId: client.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -373,7 +366,7 @@ describe("createKeys", () => {
       authorizationService.createKeys({
         clientId: client.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -395,15 +388,13 @@ describe("createKeys", () => {
       alg: "",
     };
 
-    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
-
     await addOneClient(mockClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
       authorizationService.createKeys({
         clientId: mockClient.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -417,15 +408,13 @@ describe("createKeys", () => {
       alg: "",
     };
 
-    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
-
     await addOneClient(mockClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
       authorizationService.createKeys({
         clientId: mockClient.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -445,12 +434,11 @@ describe("createKeys", () => {
       authorizationService.createKeys({
         clientId: mockClient.id,
         authData: mockAuthData,
-        keysSeeds: [
-          {
-            ...keySeed,
-            key: cert,
-          },
-        ],
+        keySeed: {
+          ...keySeed,
+          key: cert,
+        },
+
         correlationId: generateId(),
         logger: genericLogger,
       })
