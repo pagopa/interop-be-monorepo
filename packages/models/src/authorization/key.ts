@@ -47,7 +47,7 @@ export const ProducerJWKKey = JWKKey.extend({
 export type ProducerJWKKey = z.infer<typeof ProducerJWKKey>;
 
 export const ProducerJWKKeySQL = z.object({
-  producer_keychain_id: ClientId,
+  producer_keychain_id: ProducerKeychainId,
   version: z.number(),
   alg: z.string(),
   e: z.string(),
