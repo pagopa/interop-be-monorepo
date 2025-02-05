@@ -98,8 +98,8 @@ import {
   toCreateEventEServiceInterfaceUpdated,
   toCreateEventEServiceIsClientAccessDelegableDisabled,
   toCreateEventEServiceIsClientAccessDelegableEnabled,
-  toCreateEventEServiceIsDelegableDisabled,
-  toCreateEventEServiceIsDelegableEnabled,
+  toCreateEventEServiceIsConsumerDelegableDisabled,
+  toCreateEventEServiceIsConsumerDelegableEnabled,
   toCreateEventEServiceNameUpdated,
   toCreateEventEServiceRiskAnalysisAdded,
   toCreateEventEServiceRiskAnalysisDeleted,
@@ -415,7 +415,7 @@ export function catalogServiceBuilder(
       logger: Logger
     ): Promise<ListResult<EService>> {
       logger.info(
-        `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, mode = ${filters.mode}, isDelegable = ${filters.isDelegable}, limit = ${limit}, offset = ${offset}`
+        `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, mode = ${filters.mode}, isConsumerDelegable = ${filters.isConsumerDelegable}, limit = ${limit}, offset = ${offset}`
       );
       const eservicesList = await readModelService.getEServices(
         authData,
@@ -516,8 +516,8 @@ export function catalogServiceBuilder(
               seed.isSignalHubEnabled
             )
           : seed.isSignalHubEnabled,
-        isDelegable: seed.isDelegable,
-        isClientAccessDelegable: match(seed.isDelegable)
+        isConsumerDelegable: seed.isConsumerDelegable,
+        isClientAccessDelegable: match(seed.isConsumerDelegable)
           .with(P.nullish, () => undefined)
           .with(false, () => false)
           .with(true, () => seed.isClientAccessDelegable)
@@ -653,8 +653,8 @@ export function catalogServiceBuilder(
               eservice.data.isSignalHubEnabled
             )
           : eservice.data.isSignalHubEnabled,
-        isDelegable: eserviceSeed.isDelegable,
-        isClientAccessDelegable: match(eserviceSeed.isDelegable)
+        isConsumerDelegable: eserviceSeed.isConsumerDelegable,
+        isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
           .with(P.nullish, () => undefined)
           .with(false, () => false)
           .with(true, () => eserviceSeed.isClientAccessDelegable)
@@ -1839,10 +1839,10 @@ export function catalogServiceBuilder(
     async updateEServiceDelegationFlags(
       eserviceId: EServiceId,
       {
-        isDelegable,
+        isConsumerDelegable,
         isClientAccessDelegable,
       }: {
-        isDelegable: boolean;
+        isConsumerDelegable: boolean;
         isClientAccessDelegable: boolean;
       },
       { authData, correlationId, logger }: WithLogger<AppContext>
@@ -1867,38 +1867,38 @@ export function catalogServiceBuilder(
         throw eserviceWithoutValidDescriptors(eserviceId);
       }
 
-      if (!isDelegable && isClientAccessDelegable) {
+      if (!isConsumerDelegable && isClientAccessDelegable) {
         throw invalidEServiceFlags(eserviceId);
       }
 
       const updatedEservice: EService = {
         ...eservice.data,
-        isDelegable,
+        isConsumerDelegable,
         isClientAccessDelegable,
       };
 
       const events = match({
-        isDelegable,
-        oldIsDelegable: eservice.data.isDelegable || false,
+        isConsumerDelegable,
+        oldIsConsumerDelegable: eservice.data.isConsumerDelegable || false,
         isClientAccessDelegable,
         oldIsClientAccessDelegable:
           eservice.data.isClientAccessDelegable || false,
       })
         .with(
           {
-            isDelegable: true,
-            oldIsDelegable: false,
+            isConsumerDelegable: true,
+            oldIsConsumerDelegable: false,
             isClientAccessDelegable: false,
             oldIsClientAccessDelegable: false,
           },
           {
-            isDelegable: true,
-            oldIsDelegable: false,
+            isConsumerDelegable: true,
+            oldIsConsumerDelegable: false,
             isClientAccessDelegable: false,
             oldIsClientAccessDelegable: true, // should never happen
           },
           () => [
-            toCreateEventEServiceIsDelegableEnabled(
+            toCreateEventEServiceIsConsumerDelegableEnabled(
               eservice.metadata.version,
               updatedEservice,
               correlationId
@@ -1907,13 +1907,13 @@ export function catalogServiceBuilder(
         )
         .with(
           {
-            isDelegable: true,
-            oldIsDelegable: false,
+            isConsumerDelegable: true,
+            oldIsConsumerDelegable: false,
             isClientAccessDelegable: true,
             oldIsClientAccessDelegable: false,
           },
           () => [
-            toCreateEventEServiceIsDelegableEnabled(
+            toCreateEventEServiceIsConsumerDelegableEnabled(
               eservice.metadata.version,
               updatedEservice,
               correlationId
@@ -1927,11 +1927,11 @@ export function catalogServiceBuilder(
         )
         .with(
           {
-            isDelegable: false,
-            oldIsDelegable: true,
+            isConsumerDelegable: false,
+            oldIsConsumerDelegable: true,
           },
           () => [
-            toCreateEventEServiceIsDelegableDisabled(
+            toCreateEventEServiceIsConsumerDelegableDisabled(
               eservice.metadata.version,
               updatedEservice,
               correlationId
@@ -1940,8 +1940,8 @@ export function catalogServiceBuilder(
         )
         .with(
           {
-            isDelegable: true,
-            oldIsDelegable: true,
+            isConsumerDelegable: true,
+            oldIsConsumerDelegable: true,
             isClientAccessDelegable: true,
             oldIsClientAccessDelegable: false,
           },
@@ -1955,8 +1955,8 @@ export function catalogServiceBuilder(
         )
         .with(
           {
-            isDelegable: true,
-            oldIsDelegable: true,
+            isConsumerDelegable: true,
+            oldIsConsumerDelegable: true,
             isClientAccessDelegable: false,
             oldIsClientAccessDelegable: true,
           },
@@ -1970,8 +1970,8 @@ export function catalogServiceBuilder(
         )
         .with(
           {
-            isDelegable: false,
-            oldIsDelegable: false,
+            isConsumerDelegable: false,
+            oldIsConsumerDelegable: false,
           },
           {
             isClientAccessDelegable: true,

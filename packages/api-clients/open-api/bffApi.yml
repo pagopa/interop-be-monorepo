@@ -2366,8 +2366,8 @@ paths:
           schema:
             $ref: "#/components/schemas/EServiceMode"
         - in: query
-          name: isDelegable
-          description: EService isDelegable filter
+          name: isConsumerDelegable
+          description: EService isConsumerDelegable filter
           schema:
             type: boolean
         - in: query
@@ -14915,7 +14915,7 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
@@ -14938,7 +14938,7 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
@@ -15018,12 +15018,12 @@ components:
       type: object
       additionalProperties: false
       properties:
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
       required:
-        - isDelegable
+        - isConsumerDelegable
         - isClientAccessDelegable
     EServiceNameUpdateSeed:
       type: object
@@ -15220,7 +15220,7 @@ components:
           $ref: "#/components/schemas/Mail"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
@@ -15252,7 +15252,7 @@ components:
             $ref: "#/components/schemas/EServiceRiskAnalysis"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
@@ -15390,7 +15390,7 @@ components:
           $ref: "#/components/schemas/Mail"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean

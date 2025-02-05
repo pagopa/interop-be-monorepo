@@ -46,8 +46,8 @@ describe("create eservice", () => {
     config.signalhubWhitelist = [mockEService.producerId];
 
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
-    const isDelegable = randomArrayItem([false, true, undefined]);
-    const isClientAccessDelegable = match(isDelegable)
+    const isConsumerDelegable = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = match(isConsumerDelegable)
       .with(undefined, () => undefined)
       .with(true, () => randomArrayItem([false, true, undefined]))
       .with(false, () => false)
@@ -61,7 +61,7 @@ describe("create eservice", () => {
         mode: "DELIVER",
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
-        isDelegable,
+        isConsumerDelegable,
         isClientAccessDelegable,
       },
       {
@@ -110,7 +110,7 @@ describe("create eservice", () => {
       id: eservice.id,
       descriptors: [],
       isSignalHubEnabled,
-      isDelegable,
+      isConsumerDelegable,
       isClientAccessDelegable,
     };
     const expectedEserviceWithDescriptor: EService = {
@@ -118,7 +118,7 @@ describe("create eservice", () => {
       createdAt: new Date(),
       id: eservice.id,
       isSignalHubEnabled,
-      isDelegable,
+      isConsumerDelegable,
       isClientAccessDelegable,
       descriptors: [
         {
@@ -213,11 +213,14 @@ describe("create eservice", () => {
     expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
   });
 
-  it("should create an eservice correctly handling isClientAccessDelegable when isDelegable is not true", async () => {
+  it("should create an eservice correctly handling isClientAccessDelegable when isConsumerDelegable is not true", async () => {
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
-    const isDelegable: false | undefined = randomArrayItem([false, undefined]);
+    const isConsumerDelegable: false | undefined = randomArrayItem([
+      false,
+      undefined,
+    ]);
     const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
-    const expectedIsClientAccessDelegable = match(isDelegable)
+    const expectedIsClientAccessDelegable = match(isConsumerDelegable)
       .with(false, () => false)
       .with(undefined, () => undefined)
       .exhaustive();
@@ -230,7 +233,7 @@ describe("create eservice", () => {
         mode: "DELIVER",
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
-        isDelegable,
+        isConsumerDelegable,
         isClientAccessDelegable,
       },
       {
@@ -279,7 +282,7 @@ describe("create eservice", () => {
       id: eservice.id,
       descriptors: [],
       isSignalHubEnabled,
-      isDelegable,
+      isConsumerDelegable,
       isClientAccessDelegable: expectedIsClientAccessDelegable,
     };
     const expectedEserviceWithDescriptor: EService = {
@@ -287,7 +290,7 @@ describe("create eservice", () => {
       createdAt: new Date(),
       id: eservice.id,
       isSignalHubEnabled,
-      isDelegable,
+      isConsumerDelegable,
       isClientAccessDelegable: expectedIsClientAccessDelegable,
       descriptors: [
         {
