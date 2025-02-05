@@ -7,6 +7,7 @@ import {
   PDFGenerator,
   dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
+  getIpaCode,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
 import {
@@ -17,55 +18,30 @@ import {
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   EService,
-  SelfcareId,
   Tenant,
   TenantAttributeType,
   TenantId,
   VerifiedTenantAttribute,
-  UserId,
   generateId,
   tenantAttributeType,
-  unsafeBrandId,
   AgreementDocument,
-  CorrelationId,
+  Delegation,
 } from "pagopa-interop-models";
-import {
-  selfcareV2ClientApi,
-  SelfcareV2UsersClient,
-} from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import { isAxiosError } from "axios";
-import {
-  agreementMissingUserInfo,
-  agreementSelfcareIdNotFound,
-  agreementStampNotFound,
-  attributeNotFound,
-  userNotFound,
-} from "../model/domain/errors.js";
+import { getVerifiedAttributeExpirationDate } from "pagopa-interop-agreement-lifecycle";
+import { attributeNotFound } from "../model/domain/errors.js";
 import { AgreementProcessConfig } from "../config/config.js";
+import { assertStampExists } from "../model/domain/agreement-validators.js";
 import { ReadModelService } from "./readModelService.js";
+import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
 
-const retrieveUser = async (
-  selfcareV2Client: SelfcareV2UsersClient,
-  selfcareId: SelfcareId,
-  id: UserId,
-  correlationId: CorrelationId
-): Promise<selfcareV2ClientApi.UserResponse> => {
-  const user = await selfcareV2Client.getUserInfoUsingGET({
-    queries: { institutionId: selfcareId },
-    params: { id },
-    headers: {
-      "X-Correlation-Id": correlationId,
-    },
-  });
-
-  if (!user) {
-    throw userNotFound(selfcareId, id);
-  }
-  return user;
+export type DelegationData = {
+  producerDelegation: Delegation;
+  delegator: Tenant;
+  delegate: Tenant;
 };
 
 const createAgreementDocumentName = (
@@ -77,23 +53,37 @@ const createAgreementDocumentName = (
     documentCreatedAt
   )}_agreement_contract.pdf`;
 
-const getAttributeInvolved = async (
+const getAttributesData = async (
   consumer: Tenant,
   agreement: Agreement,
   readModelService: ReadModelService
 ): Promise<{
-  certified: Array<[Attribute, CertifiedTenantAttribute]>;
-  declared: Array<[Attribute, DeclaredTenantAttribute]>;
-  verified: Array<[Attribute, VerifiedTenantAttribute]>;
+  certified: Array<{
+    attribute: Attribute;
+    tenantAttribute: CertifiedTenantAttribute;
+  }>;
+  declared: Array<{
+    attribute: Attribute;
+    tenantAttribute: DeclaredTenantAttribute;
+  }>;
+  verified: Array<{
+    attribute: Attribute;
+    tenantAttribute: VerifiedTenantAttribute;
+  }>;
 }> => {
-  const getAgreementAttributeByType = async <
+  const getAttributesDataByType = async <
     T extends
       | CertifiedTenantAttribute
       | DeclaredTenantAttribute
       | VerifiedTenantAttribute
   >(
     type: TenantAttributeType
-  ): Promise<Array<[Attribute, T]>> => {
+  ): Promise<
+    Array<{
+      attribute: Attribute;
+      tenantAttribute: T;
+    }>
+  > => {
     const seedAttributes = match(type)
       .with(
         tenantAttributeType.CERTIFIED,
@@ -122,18 +112,21 @@ const getAttributeInvolved = async (
         if (!attribute) {
           throw attributeNotFound(tenantAttribute.id);
         }
-        return [attribute, tenantAttribute as unknown as T];
+        return {
+          attribute,
+          tenantAttribute: tenantAttribute as T,
+        };
       })
     );
   };
 
-  const certified = await getAgreementAttributeByType<CertifiedTenantAttribute>(
+  const certified = await getAttributesDataByType<CertifiedTenantAttribute>(
     tenantAttributeType.CERTIFIED
   );
-  const declared = await getAgreementAttributeByType<DeclaredTenantAttribute>(
+  const declared = await getAttributesDataByType<DeclaredTenantAttribute>(
     tenantAttributeType.DECLARED
   );
-  const verified = await getAgreementAttributeByType<VerifiedTenantAttribute>(
+  const verified = await getAttributesDataByType<VerifiedTenantAttribute>(
     tenantAttributeType.VERIFIED
   );
 
@@ -144,218 +137,100 @@ const getAttributeInvolved = async (
   };
 };
 
-const getSubmissionInfo = async (
-  selfcareV2Client: SelfcareV2UsersClient,
-  consumer: Tenant,
-  agreement: Agreement,
-  correlationId: CorrelationId
-): Promise<[string, Date]> => {
-  const submission = agreement.stamps.submission;
-  if (!submission) {
-    throw agreementStampNotFound("submission");
-  }
-
-  if (!consumer.selfcareId) {
-    throw agreementSelfcareIdNotFound(consumer.id);
-  }
-
-  const consumerSelfcareId: SelfcareId = unsafeBrandId(consumer.selfcareId);
-
-  const consumerUser: selfcareV2ClientApi.UserResponse = await retrieveUser(
-    selfcareV2Client,
-    consumerSelfcareId,
-    submission.who,
-    correlationId
-  );
-  if (consumerUser.name && consumerUser.surname && consumerUser.taxCode) {
-    return [
-      `${consumerUser.name} ${consumerUser.surname} (${consumerUser.taxCode})`,
-      submission.when,
-    ];
-  }
-
-  throw agreementMissingUserInfo(submission.who);
-};
-
-const getActivationInfo = async (
-  selfcareV2Client: SelfcareV2UsersClient,
-  producer: Tenant,
-  consumer: Tenant,
-  agreement: Agreement,
-  correlationId: CorrelationId
-): Promise<[string, Date]> => {
-  const activation = agreement.stamps.activation;
-  if (!activation) {
-    throw agreementStampNotFound("activation");
-  }
-
-  if (!producer.selfcareId) {
-    throw agreementSelfcareIdNotFound(producer.id);
-  }
-  if (!consumer.selfcareId) {
-    throw agreementSelfcareIdNotFound(consumer.id);
-  }
-
-  const producerSelfcareId: SelfcareId = unsafeBrandId(producer.selfcareId);
-  const consumerSelfcareId: SelfcareId = unsafeBrandId(consumer.selfcareId);
-
-  /**
-   * The user that activated the agreement, the one in the activation.who stamp, could both belong to the producer institution or the consumer institution.
-   * In case the user is not found with the producer institutionId, we try to retrieve it from the consumer selfcare.
-   */
-
-  // eslint-disable-next-line functional/no-let, @typescript-eslint/no-non-null-assertion
-  let user: selfcareV2ClientApi.UserResponse = undefined!;
-
-  try {
-    user = await retrieveUser(
-      selfcareV2Client,
-      producerSelfcareId,
-      activation.who,
-      correlationId
-    );
-  } catch (e) {
-    if (isAxiosError(e) && e.response?.status === 404) {
-      user = await retrieveUser(
-        selfcareV2Client,
-        consumerSelfcareId,
-        activation.who,
-        correlationId
-      );
-    } else {
-      throw e;
-    }
-  }
-
-  if (user.name && user.surname && user.taxCode) {
-    return [`${user.name} ${user.surname} (${user.taxCode})`, activation.when];
-  }
-
-  throw agreementMissingUserInfo(activation.who);
-};
-
 const getPdfPayload = async (
   agreement: Agreement,
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  readModelService: ReadModelService,
-  selfcareV2Client: SelfcareV2UsersClient,
-  correlationId: CorrelationId
+  producerDelegationData: DelegationData | undefined,
+  readModelService: ReadModelService
 ): Promise<AgreementContractPDFPayload> => {
-  const getTenantText = (name: string, origin: string, value: string): string =>
-    origin === "IPA" ? `"${name} (codice IPA: ${value})` : name;
-
-  const getCertifiedAttributeHtml = (
-    certifiedAttributes: Array<[Attribute, CertifiedTenantAttribute]>
-  ): string =>
-    certifiedAttributes
-      .map(
-        (attTuple: [Attribute, CertifiedTenantAttribute]) => `
-        <div>
-          In data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
-          )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,l’Infrastruttura ha registrato il possesso da parte del Fruitore del seguente attributo <strong>${
-          attTuple[0].name
-        }</strong> certificato,necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-        </div>`
-      )
-      .join("");
-
-  const getDeclaredAttributeHtml = (
-    declaredAttributes: Array<[Attribute, DeclaredTenantAttribute]>
-  ): string =>
-    declaredAttributes
-      .map(
-        (attTuple: [Attribute, DeclaredTenantAttribute]) => `
-      <div>
-         In data <strong>${dateAtRomeZone(
-           attTuple[1].assignmentTimestamp
-         )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,
-         l’Infrastruttura ha registrato la dichiarazione del Fruitore di possedere il seguente attributo <strong>${
-           attTuple[0].name
-         }</strong> dichiarato
-         ed avente il seguente periodo di validità ________,
-         necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-      </div>`
-      )
-      .join("");
-
-  const getVerifiedAttributeHtml = (
-    verifiedAttributes: Array<[Attribute, VerifiedTenantAttribute]>
-  ): string =>
-    verifiedAttributes
-      .map(
-        (attTuple: [Attribute, VerifiedTenantAttribute]) => `
-        <div>
-          In data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
-          )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,
-          l’Infrastruttura ha registrato la dichiarazione del Fruitore di possedere il seguente attributo <strong>${
-            attTuple[0].name
-          }</strong>,
-          verificata dall’aderente ________ OPPURE dall’Erogatore stesso in data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
-          )}</strong>,
-          necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-        </div>`
-      )
-      .join();
-
   const today = new Date();
-  const producerText = getTenantText(
-    producer.name,
-    producer.externalId.origin,
-    producer.externalId.value
-  );
 
-  const consumerText = getTenantText(
-    consumer.name,
-    consumer.externalId.origin,
-    consumer.externalId.value
-  );
-  const [submitter, submissionTimestamp] = await getSubmissionInfo(
-    selfcareV2Client,
-    consumer,
-    agreement,
-    correlationId
-  );
-  const [activator, activationTimestamp] = await getActivationInfo(
-    selfcareV2Client,
-    producer,
-    consumer,
-    agreement,
-    correlationId
-  );
-
-  const { certified, declared, verified } = await getAttributeInvolved(
+  const { certified, declared, verified } = await getAttributesData(
     consumer,
     agreement,
     readModelService
   );
 
+  const descriptor = retrieveDescriptor(agreement.descriptorId, eservice);
+
+  assertStampExists(agreement.stamps, "submission");
+  assertStampExists(agreement.stamps, "activation");
+
   return {
     todayDate: dateAtRomeZone(today),
     todayTime: timeAtRomeZone(today),
     agreementId: agreement.id,
-    submitter,
-    submissionDate: dateAtRomeZone(submissionTimestamp),
-    submissionTime: timeAtRomeZone(submissionTimestamp),
-    activator,
-    activationDate: dateAtRomeZone(activationTimestamp),
-    activationTime: timeAtRomeZone(activationTimestamp),
-    eServiceName: eservice.name,
-    producerText,
-    consumerText,
-    certifiedAttributes: getCertifiedAttributeHtml(certified),
-    declaredAttributes: getDeclaredAttributeHtml(declared),
-    verifiedAttributes: getVerifiedAttributeHtml(verified),
+    submitterId: agreement.stamps.submission.who,
+    submissionDate: dateAtRomeZone(agreement.stamps.submission.when),
+    submissionTime: timeAtRomeZone(agreement.stamps.submission.when),
+    activatorId: agreement.stamps.activation.who,
+    activationDate: dateAtRomeZone(agreement.stamps.activation.when),
+    activationTime: timeAtRomeZone(agreement.stamps.activation.when),
+    eserviceId: eservice.id,
+    eserviceName: eservice.name,
+    descriptorId: agreement.descriptorId,
+    descriptorVersion: descriptor.version,
+    producerName: producer.name,
+    producerIpaCode: getIpaCode(producer),
+    consumerName: consumer.name,
+    consumerIpaCode: getIpaCode(consumer),
+    certifiedAttributes: certified.map(({ attribute, tenantAttribute }) => ({
+      assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+      assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+      attributeName: attribute.name,
+      attributeId: attribute.id,
+    })),
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    declaredAttributes: declared.map(({ attribute, tenantAttribute }) => ({
+      assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+      assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+      attributeName: attribute.name,
+      attributeId: attribute.id,
+    })),
+    verifiedAttributes: verified.map(({ attribute, tenantAttribute }) => {
+      const expirationDate = getVerifiedAttributeExpirationDate(
+        producer.id,
+        tenantAttribute
+      );
+      return {
+        assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+        assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+        attributeName: attribute.name,
+        attributeId: attribute.id,
+        expirationDate: expirationDate
+          ? dateAtRomeZone(expirationDate)
+          : undefined,
+      };
+    }),
+    producerDelegationId: producerDelegationData?.producerDelegation.id,
+    producerDelegatorName: producerDelegationData?.delegator.name,
+    producerDelegatorIpaCode:
+      producerDelegationData && getIpaCode(producerDelegationData?.delegator),
+    producerDelegateName: producerDelegationData?.delegate.name,
+    producerDelegateIpaCode:
+      producerDelegationData && getIpaCode(producerDelegationData?.delegate),
+  };
+};
+
+const buildProducerDelegationData = async (
+  producerDelegation: Delegation,
+  readModelService: ReadModelService
+): Promise<DelegationData> => {
+  const delegator = await retrieveTenant(
+    producerDelegation.delegatorId,
+    readModelService
+  );
+  const delegate = await retrieveTenant(
+    producerDelegation.delegateId,
+    readModelService
+  );
+
+  return {
+    producerDelegation,
+    delegator,
+    delegate,
   };
 };
 
@@ -364,36 +239,40 @@ export const contractBuilder = (
   readModelService: ReadModelService,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
-  selfcareV2Client: SelfcareV2UsersClient,
   config: AgreementProcessConfig,
-  logger: Logger,
-  correlationId: CorrelationId
+  logger: Logger
 ) => {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
+  const templateFilePath = path.resolve(
+    dirname,
+    "..",
+    "resources/templates/documents",
+    "agreementContractTemplate.html"
+  );
 
   return {
     createContract: async (
       agreement: Agreement,
       eservice: EService,
       consumer: Tenant,
-      producer: Tenant
+      producer: Tenant,
+      producerDelegation: Delegation | undefined
     ): Promise<AgreementDocument> => {
-      const templateFilePath = path.resolve(
-        dirname,
-        "..",
-        "resources/templates/documents",
-        "agreementContractTemplate.html"
-      );
+      const producerDelegationData =
+        producerDelegation &&
+        (await buildProducerDelegationData(
+          producerDelegation,
+          readModelService
+        ));
 
       const pdfPayload = await getPdfPayload(
         agreement,
         eservice,
         consumer,
         producer,
-        readModelService,
-        selfcareV2Client,
-        correlationId
+        producerDelegationData,
+        readModelService
       );
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(

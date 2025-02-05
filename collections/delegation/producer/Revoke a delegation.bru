@@ -1,0 +1,20 @@
+meta {
+  name: Revoke a delegation
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{host-delegation}}/producer/delegations/:delegationId
+  body: none
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
