@@ -385,7 +385,7 @@ CREATE TABLE IF NOT EXISTS readmodel.purpose_version
 (
   id UUID,
   purpose_id UUID NOT NULL REFERENCES readmodel.purpose (id) ON DELETE CASCADE,
-  purpose_version INTEGER, -- metadata
+  purpose_version INTEGER, -- beware: this refers to metadata
   state VARCHAR NOT NULL,
   -- riskAnalysis
   risk_analysis_id CHAR,
@@ -404,7 +404,7 @@ CREATE TABLE IF NOT EXISTS readmodel.purpose_version
 );
 
 
--- TODO risk analysis
+-- TODO risk analysis form
 
 
 -- CLIENT
@@ -520,7 +520,7 @@ CREATE TABLE IF NOT EXISTS readmodel.client_jwk_key(
   PRIMARY KEY (kid) -- same as above
 );
 
--- PRODUCER JWK KEY
+-- PRODUCER KEYCHAIN JWK KEY
 CREATE TABLE IF NOT EXISTS readmodel.producer_jwk_key(
   producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain(id),
   version INTEGER NOT NULL,
