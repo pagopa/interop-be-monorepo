@@ -80,6 +80,32 @@ const eserviceTemplateRouter = (
       }
     })
     .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
+
+        try {
+          await eserviceTemplateService.updateDraftTemplateVersion(
+            unsafeBrandId(eServiceTemplateId),
+            unsafeBrandId(eServiceTemplateVersionId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error updating draft version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/suspend",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
