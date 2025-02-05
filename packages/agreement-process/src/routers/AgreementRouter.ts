@@ -19,7 +19,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
-import { selfcareV2UsersClientBuilder } from "pagopa-interop-api-clients";
 import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
@@ -65,8 +64,7 @@ const agreementService = agreementServiceBuilder(
   }),
   readModelService,
   initFileManager(config),
-  pdfGenerator,
-  selfcareV2UsersClientBuilder(config)
+  pdfGenerator
 );
 
 const {

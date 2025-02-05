@@ -41,6 +41,9 @@ import {
   EServiceRiskAnalysisUpdatedV2,
   EServiceRiskAnalysisDeletedV2,
   EServiceDescriptionUpdatedV2,
+  EServiceDescriptorSubmittedByDelegateV2,
+  EServiceDescriptorApprovedByDelegatorV2,
+  EServiceDescriptorRejectedByDelegatorV2,
   EServiceDescriptorAttributesUpdatedV2,
   EServiceNameUpdatedV2,
 } from "../gen/v2/eservice/events.js";
@@ -166,6 +169,15 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceDescriptionUpdated" }, ({ data }) =>
       EServiceDescriptionUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorSubmittedByDelegate" }, ({ data }) =>
+      EServiceDescriptorSubmittedByDelegateV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorApprovedByDelegator" }, ({ data }) =>
+      EServiceDescriptorApprovedByDelegatorV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorRejectedByDelegator" }, ({ data }) =>
+      EServiceDescriptorRejectedByDelegatorV2.toBinary(data)
     )
     .with({ type: "EServiceDescriptorAttributesUpdated" }, ({ data }) =>
       EServiceDescriptorAttributesUpdatedV2.toBinary(data)
@@ -360,6 +372,21 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceDescriptionUpdated"),
     data: protobufDecoder(EServiceDescriptionUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorSubmittedByDelegate"),
+    data: protobufDecoder(EServiceDescriptorSubmittedByDelegateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorApprovedByDelegator"),
+    data: protobufDecoder(EServiceDescriptorApprovedByDelegatorV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorRejectedByDelegator"),
+    data: protobufDecoder(EServiceDescriptorRejectedByDelegatorV2),
   }),
   z.object({
     event_version: z.literal(2),

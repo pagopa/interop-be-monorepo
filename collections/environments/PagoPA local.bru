@@ -9,6 +9,8 @@ vars {
   host-tenant: http://localhost:3500
   host-purpose: http://localhost:3400
   host-authorization: http://localhost:3300
+  host-delegation: http://localhost:3800
   host-api-gw: http://localhost:3700/api-gateway/0.0
-  JWT-M2M: {{process.env.JWT-M2M}}
+  JWT-M2M: Bearer {{process.env.JWT-M2M}}
+  JWT2: Bearer {{process.env.JWT2}}
 }

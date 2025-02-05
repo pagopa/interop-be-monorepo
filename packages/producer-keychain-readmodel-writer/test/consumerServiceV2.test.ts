@@ -26,14 +26,12 @@ import { producerKeychains } from "./utils.js";
 
 describe("Events V2", async () => {
   const mockProducerKeychain = getMockProducerKeychain();
-  const mockMessage: AuthorizationEventEnvelopeV2 = {
+  const mockMessage: Omit<AuthorizationEventEnvelopeV2, "type" | "data"> = {
     event_version: 2,
     stream_id: mockProducerKeychain.id,
     version: 1,
     sequence_num: 1,
     log_date: new Date(),
-    type: "ProducerKeychainAdded",
-    data: {},
   };
 
   it("ProducerKeychainAdded", async () => {

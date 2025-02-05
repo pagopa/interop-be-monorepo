@@ -178,7 +178,7 @@ export function toCreateEventPurposeAdded(
 ): CreateEvent<PurposeEventV2> {
   return {
     streamId: purpose.id,
-    version: 0,
+    version: undefined,
     event: {
       type: "PurposeAdded",
       event_version: 2,
@@ -202,7 +202,7 @@ export const toCreateEventPurposeCloned = ({
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
-  version: 0,
+  version: undefined,
   event: {
     type: "PurposeCloned",
     event_version: 2,

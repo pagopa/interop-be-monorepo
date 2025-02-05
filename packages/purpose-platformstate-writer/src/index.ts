@@ -31,8 +31,12 @@ async function processMessage({
   });
 
   await match(decodedMessage)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, dynamoDBClient))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, dynamoDBClient))
+    .with({ event_version: 1 }, (msg) =>
+      handleMessageV1(msg, dynamoDBClient, loggerInstance)
+    )
+    .with({ event_version: 2 }, (msg) =>
+      handleMessageV2(msg, dynamoDBClient, loggerInstance)
+    )
     .exhaustive();
 
   loggerInstance.info(

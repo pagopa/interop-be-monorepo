@@ -1,97 +1,155 @@
 <!DOCTYPE html>
 <html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Richiesta di fruizione</title>
+    <link
+      rel="stylesheet"
+      href="./agreementContractTemplate.css"
+      type="text/css"
+    />
+    {{{paged-pdf-polyfill}}}
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Richiesta di fruizione</title>
-  <link rel="stylesheet" href="./agreementContractTemplate.css" type="text/css" />
-  {{{paged-pdf-polyfill}}}
-</head>
-  
-<body>
-  <!-- Pié di pagina -->
-  <div class="footer">
-    <hr />
-    <div class="pagopa">
-      <div class="pagopa-data">
-        PagoPA S.p.A.<br />
-        società per azioni con socio unico<br />
-        capitale sociale di euro 1,000,000 interamente versato<br />
-        sede legale in Roma, Piazza Colonna 370, CAP 00187<br />
-        n. di iscrizione a Registro Imprese di Roma, CF e P.IVA 15376371009
+  <body>
+    <!-- Pié di pagina -->
+    <div class="footer">
+      <hr />
+      <div class="pagopa">
+        <div class="pagopa-data">
+          PagoPA S.p.A.<br />
+          società per azioni con socio unico<br />
+          capitale sociale di euro 1,000,000 interamente versato<br />
+          sede legale in Roma, Piazza Colonna 370, CAP 00187<br />
+          n. di iscrizione a Registro Imprese di Roma, CF e P.IVA 15376371009
+        </div>
+        <div class="pictogram">
+          <img src="../assets/media/pictogram_pagopa.svg" />
+        </div>
       </div>
-      <div class="pictogram">
-        <img src="../assets/media/pictogram_pagopa.svg" />
+    </div>
+
+    <!-- Intestazione di pagina -->
+    <div class="header">
+      <div class="logo">
+        <img src="../assets/media/logo_pagopa.png" />
       </div>
     </div>
-  </div>
 
-  <!-- Intestazione di pagina -->
-  <div class="header">
-    <div class="logo">
-      <img src="../assets/media/logo_pagopa.png" />
+    <!-- Titolo del documento -->
+    <h1>Richiesta di fruizione</h1>
+
+    <!-- Intro legale -->
+    <div class="legal-intro">
+      In data <strong>{{todayDate}}</strong> alle ore
+      <strong>{{todayTime}}</strong>, l’Infrastruttura ha ricevuto la richiesta
+      di fruizione contraddistinta da id <strong>{{agreementId}}</strong> (di
+      seguito “richiesta di fruizione”), inviata dall’aderente
+      <strong>{{consumerName}}</strong> {{#if consumerIpaCode}}(codice IPA:
+      <strong>{{consumerIpaCode}}</strong> — di seguito “fruitore”){{else}}(di
+      seguito “fruitore”){{/if}}, tramite l’operatore amministrativo con
+      identificativo Area Riservata <strong>{{submitterId}}</strong>, per
+      l’e-service <strong>{{eserviceName}}</strong>, contraddistinto da id
+      <strong>{{eserviceId}}</strong>, versione {{descriptorVersion}},
+      contraddistinta da id <strong>{{descriptorId}}</strong> (di seguito
+      “e-service”), reso disponibile dall’aderente
+      {{#if producerDelegationId}}
+      <strong>{{producerDelegatorName}}</strong>{{#if producerDelegatorIpaCode}} (codice IPA:
+      <strong>{{producerDelegatorIpaCode}}</strong> - di seguito “erogatore”){{else}}
+      (di seguito “erogatore”){{/if}}, per tramite dell’aderente
+      <strong>{{producerDelegateName}}</strong> {{#if producerDelegateIpaCode}}(codice IPA: 
+      <strong>{{producerDelegateIpaCode}}</strong> - di seguito “delegato all’erogazione”){{else}}(di seguito “delegato all’erogazione”){{/if}}
+      {{else}}
+      <strong>{{producerName}}</strong> {{#if producerIpaCode}}(codice IPA: 
+      <strong>{{producerIpaCode}}</strong> — di seguito “erogatore”){{else}}(di
+      seguito “erogatore”){{/if}} 
+      {{/if}}, di cui il fruitore soddisfa i seguenti requisiti di fruizione per lo stesso previsti dall’erogatore.
     </div>
-  </div>
+    <div class="content">
+      {{#if declaredAttributes}}
 
-  <!-- Titolo del documento -->
-  <h1>Richiesta di fruizione</h1>
+      <h2>Attributi dichiarati</h2>
+      {{#each declaredAttributes}}
+      <div>
+        In data
+        <strong>{{this.assignmentDate}}</strong>
+        alle ore
+        <strong>{{this.assignmentTime}}</strong>, l’infrastruttura ha registrato
+        la dichiarazione del fruitore di possedere l’attributo dichiarato
+        <strong>{{this.attributeName}}</strong>, contraddistinto da id
+        <strong>{{this.attributeId}}</strong>, necessario a soddisfare il
+        requisito di fruizione stabilito dall’erogatore per l’accesso
+        all’e-service.
+      </div>
+      {{/each}} {{/if}} 
+      {{#if verifiedAttributes}}
 
-  <!-- Intro legale -->
-  <div class="legal-intro">
-    In data <strong>{{todayDate}}</strong> alle ore
-    <strong>{{todayTime}}</strong>, l’Infrastruttura ha ricevuto la richiesta
-    di fruizione contraddistinta da id <strong>{{agreementId}}</strong> (di
-    seguito “Richiesta di Fruizione”), inviata dall’aderente
-    <strong>{{consumerText}}</strong> (di seguito “Fruitore”), tramite
-    l’operatore amministrativo <strong>{{submitter}}</strong>, per l’E-service
-    <strong>{{eServiceName}}</strong> reso disponibile dall’aderente
-    <strong>{{producerText}}</strong>
-    (di seguito “Erogatore”) di cui il Fruitore soddisfa i seguenti requisiti
-    di fruizione per lo stesso previsti dall’Erogatore.
-  </div>
-  <div class="content">
-    <h2>Attributi dichiarati</h2>
+      <h2>Attributi verificati</h2>
 
-    {{{declaredAttributes}}}
+      {{#each verifiedAttributes}}
+      <div>
+        In data
+        <strong>{{this.assignmentDate}}</strong>
+        alle ore
+        <strong>{{this.assignmentTime}}</strong>, l’infrastruttura ha registrato
+        la verifica {{#if producerDelegationId}}del delegato all’erogazione{{else}}dell’erogatore{{/if}}
+        che il fruitore possegga l’attributo verificato <strong>{{this.attributeName}}</strong>, 
+        contraddistinto da id <strong>{{this.attributeId}}</strong>, {{#if this.expirationDate}} ed
+        avente scadenza il <strong>{{this.expirationDate}}</strong>,{{/if}}
+        necessario a soddisfare il requisito di fruizione stabilito
+        dall’erogatore per l’accesso all’e-service.
+      </div>
 
-    <h2>Attributi verificati</h2>
+      {{/each}} {{/if}} 
+      {{#if certifiedAttributes}}
+      <h2>Attributi certificati</h2>
 
-    {{{verifiedAttributes}}}
+      {{#each certifiedAttributes}}
+      <div>
+        In data
+        <strong>{{this.assignmentDate}}</strong>
+        alle ore
+        <strong>{{this.assignmentTime}}</strong>, l’infrastruttura ha registrato
+        il possesso da parte del fruitore dell’attributo certificato
+        <strong>{{this.attributeName}}</strong>, contraddistinto da id
+        <strong>{{this.attributeId}}</strong>, necessario a soddisfare il
+        requisito di fruizione stabilito dall’erogatore per l’accesso
+        all’e-service.
+      </div>
+      {{/each}} {{/if}}
 
-    <h2>Attributi certificati</h2>
+      <h2>Registrazione</h2>
 
-    {{{certifiedAttributes}}}
+      <div>
+        In data <strong>{{submissionDate}}</strong> alle ore
+        <strong>{{submissionTime}}</strong>, l’Infrastruttura ha trasmesso
+        {{#if producerDelegationId}} al delegante all’erogazione{{else}} all’erogatore{{/if}} la richiesta di fruizione.
+      </div>
+      <div>
+        In data <strong>{{activationDate}}</strong> alle ore
+        <strong>{{activationTime}}</strong>, l’infrastruttura ha ricevuto
+        la dichiarazione di accettazione della richiesta di fruizione
+        (di seguito “dichiarazione di accettazione”) inviata {{#if producerDelegationId}}dal delegato all’erogazione,{{else}}dall’erogatore,{{/if}}
+        tramite l’operatore amministrativo con identificativo Area Riservata
+        <strong>{{activatorId}}</strong>.
+      </div>
+      <div>
+        In data <strong>{{activationDate}}</strong> alle ore
+        <strong>{{activationTime}}</strong>, l’Infrastruttura ha comunicato al
+        fruitore la dichiarazione di accettazione inviata {{#if producerDelegationId}}dal delegato all’erogazione{{else}}dall’erogatore{{/if}}.
+      </div>
 
-    <h2>Registrazione</h2>
-
-    <div>
-      In data <strong>{{submissionDate}}</strong> alle ore
-      <strong>{{submissionTime}}</strong>, l’Infrastruttura ha trasmesso
-      all’Erogatore la Richiesta di Fruizione.
+      <div>
+        In data <strong>{{activationDate}}</strong> alle ore
+        <strong>{{activationTime}}</strong>, l’Infrastruttura ha registrato il
+        fruitore quale soggetto titolato ad accedere all’e-service.
+      </div>
     </div>
 
-    <div>
-      In data <strong>{{activationDate}}</strong> alle ore
-      <strong>{{activationTime}}</strong>, l’Infrastruttura ha ricevuto la
-      dichiarazione di accettazione della Richiesta di Fruizione (di seguito
-      “Dichiarazione Accettazione”) inviata dall’Erogatore, tramite
-      l’operatore amministrativo <strong>{{activator}}</strong>.
+    <div class="release-date">
+      <div class="date">{{todayDate}}</div>
     </div>
-
-    <div>
-      In data <strong>{{activationDate}}</strong> alle ore
-      <strong>{{activationTime}}</strong>, l’Infrastruttura ha comunicato al
-      Fruitore la Dichiarazione Accettazione inviata dall’Erogatore.
-    </div>
-
-    <div>
-      In data <strong>{{activationDate}}</strong> alle ore
-      <strong>{{activationTime}}</strong>, l’Infrastruttura ha registrato il
-      Fruitore quale soggetto titolato ad accedere all’E-service.
-    </div>
-  </div>
-</body>
-
+  </body>
 </html>

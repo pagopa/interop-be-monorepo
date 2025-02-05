@@ -4,6 +4,8 @@ import {
   getMockPurposeVersion,
   getMockPurpose,
   writeInReadmodel,
+  getMockAuthData,
+  getMockDelegation,
 } from "pagopa-interop-commons-test";
 import {
   Purpose,
@@ -13,6 +15,8 @@ import {
   PurposeVersionId,
   PurposeVersionDocumentId,
   TenantId,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -28,31 +32,88 @@ import {
   addOnePurpose,
   eservices,
   purposeService,
+  delegations,
 } from "./utils.js";
 
 describe("getRiskAnalysisDocument", () => {
-  it("should get the purpose version document", async () => {
+  it("should get the purpose version document (consumer)", async () => {
     const mockDocument = getMockPurposeVersionDocument();
     const mockEService = getMockEService();
     const mockPurposeVersion = {
       ...getMockPurposeVersion(),
       riskAnalysis: mockDocument,
     };
-    const mockPurpose1: Purpose = {
+    const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       versions: [mockPurposeVersion],
     };
-    const mockPurpose2 = getMockPurpose();
-    await addOnePurpose(mockPurpose1);
-    await addOnePurpose(mockPurpose2);
+    await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     const result = await purposeService.getRiskAnalysisDocument({
-      purposeId: mockPurpose1.id,
+      purposeId: mockPurpose.id,
+      versionId: mockPurposeVersion.id,
+      documentId: mockDocument.id,
+      organizationId: mockPurpose.consumerId,
+      logger: genericLogger,
+    });
+    expect(result).toEqual(mockDocument);
+  });
+  it("should get the purpose version document (producer)", async () => {
+    const mockDocument = getMockPurposeVersionDocument();
+    const mockEService = getMockEService();
+    const mockPurposeVersion = {
+      ...getMockPurposeVersion(),
+      riskAnalysis: mockDocument,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+    };
+    await addOnePurpose(mockPurpose);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+    const result = await purposeService.getRiskAnalysisDocument({
+      purposeId: mockPurpose.id,
       versionId: mockPurposeVersion.id,
       documentId: mockDocument.id,
       organizationId: mockEService.producerId,
+      logger: genericLogger,
+    });
+    expect(result).toEqual(mockDocument);
+  });
+  it("should get the purpose version document (delegate)", async () => {
+    const mockDocument = getMockPurposeVersionDocument();
+    const mockEService = getMockEService();
+    const mockPurposeVersion = {
+      ...getMockPurposeVersion(),
+      riskAnalysis: mockDocument,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+    };
+    await addOnePurpose(mockPurpose);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+    const delegate = getMockAuthData();
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      delegateId: delegate.organizationId,
+      state: delegationState.active,
+    });
+
+    await writeInReadmodel(delegation, delegations);
+
+    const result = await purposeService.getRiskAnalysisDocument({
+      purposeId: mockPurpose.id,
+      versionId: mockPurposeVersion.id,
+      documentId: mockDocument.id,
+      organizationId: delegate.organizationId,
       logger: genericLogger,
     });
     expect(result).toEqual(mockDocument);
@@ -134,7 +195,7 @@ describe("getRiskAnalysisDocument", () => {
       )
     );
   });
-  it("should throw organizationNotAllowed if the requester is not the producer nor the consumer", async () => {
+  it("should throw organizationNotAllowed if the requester is not the producer nor the consumer nor the delegate", async () => {
     const randomId: TenantId = generateId();
     const mockDocument = getMockPurposeVersionDocument();
     const mockEService = getMockEService();
@@ -161,4 +222,45 @@ describe("getRiskAnalysisDocument", () => {
       })
     ).rejects.toThrowError(organizationNotAllowed(randomId));
   });
+  it.each(
+    Object.values(delegationState).filter((s) => s !== delegationState.active)
+  )(
+    "should throw organizationNotAllowed if the requester is the delegate but the delegation is in %s state",
+    async (delegationState) => {
+      const mockDocument = getMockPurposeVersionDocument();
+      const mockEService = getMockEService();
+      const mockPurposeVersion = {
+        ...getMockPurposeVersion(),
+        riskAnalysis: mockDocument,
+      };
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: mockEService.id,
+        versions: [mockPurposeVersion],
+      };
+
+      await addOnePurpose(mockPurpose);
+      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+      const delegate = getMockAuthData();
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: mockEService.id,
+        delegateId: delegate.organizationId,
+        state: delegationState,
+      });
+
+      await writeInReadmodel(delegation, delegations);
+
+      expect(
+        purposeService.getRiskAnalysisDocument({
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+          documentId: mockDocument.id,
+          organizationId: delegate.organizationId,
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(organizationNotAllowed(delegate.organizationId));
+    }
+  );
 });

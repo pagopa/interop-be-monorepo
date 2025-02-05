@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger, FileManagerError } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockDelegation,
+} from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -12,6 +15,8 @@ import {
   toEServiceV2,
   generateId,
   operationForbidden,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
@@ -30,6 +35,7 @@ import {
   getMockEService,
   getMockDescriptor,
   getMockDocument,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("clone descriptor", () => {
@@ -242,7 +248,7 @@ describe("clone descriptor", () => {
       })
     ).rejects.toThrowError(FileManagerError);
   });
-  it("should throw eServiceDuplicate if an eservice with the same name already exists", async () => {
+  it("should throw eServiceDuplicate if an eservice with the same name already exists, case insensitive", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -251,15 +257,16 @@ describe("clone descriptor", () => {
     };
     const eservice1: EService = {
       ...mockEService,
+      name: mockEService.name.toUpperCase(),
       id: generateId(),
       descriptors: [descriptor],
     };
     await addOneEService(eservice1);
 
     const cloneTimestamp = new Date();
-    const conflictEServiceName = `${
-      eservice1.name
-    } - clone - ${formatDateddMMyyyyHHmmss(cloneTimestamp)}`;
+    const conflictEServiceName = `${eservice1.name.toLowerCase()} - clone - ${formatDateddMMyyyyHHmmss(
+      cloneTimestamp
+    )}`;
 
     const eservice2: EService = {
       ...mockEService,
@@ -276,7 +283,13 @@ describe("clone descriptor", () => {
         serviceName: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(eServiceDuplicate(conflictEServiceName));
+    ).rejects.toThrowError(
+      eServiceDuplicate(
+        `${eservice1.name} - clone - ${formatDateddMMyyyyHHmmss(
+          cloneTimestamp
+        )}`
+      )
+    );
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(
@@ -301,6 +314,33 @@ describe("clone descriptor", () => {
     expect(
       catalogService.cloneDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw operationForbidden if the requester is a producer delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.cloneDescriptor(eservice.id, descriptor.id, {
+        authData: getMockAuthData(delegation.delegateId),
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
