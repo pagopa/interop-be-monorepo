@@ -464,10 +464,10 @@ CREATE TABLE IF NOT EXISTS readmodel.producer_keychain
   version INTEGER NOT NULL,
   producer_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   name VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   -- eservices
   description VARCHAR,
   -- users
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   -- keys
   PRIMARY KEY (id)
 );
