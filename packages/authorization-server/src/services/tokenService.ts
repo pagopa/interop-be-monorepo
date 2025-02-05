@@ -431,7 +431,7 @@ export const logTokenGenerationInfo = ({
   message: string;
   logger: Logger;
 }): void => {
-  const clientId = `[CLIENTID=${validatedJwt.payload.sub}`;
+  const clientId = `[CLIENTID=${validatedJwt.payload.sub}]`;
   const kid = `[KID=${validatedJwt.header.kid}]`;
   const purposeId = `[PURPOSEID=${validatedJwt.payload.purposeId}]`;
   const tokenType = `[TYPE=${clientKind}]`;
