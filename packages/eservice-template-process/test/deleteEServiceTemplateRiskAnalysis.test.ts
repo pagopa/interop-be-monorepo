@@ -33,7 +33,7 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
-  riskAnalysisService,
+  eserviceTemplateService,
   readLastEserviceTemplateEvent,
   addOneTenant,
 } from "./utils.js";
@@ -75,7 +75,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
     await addOneTenant(creator);
     await addOneEServiceTemplate(eserviceTemplate);
 
-    await riskAnalysisService.deleteRiskAnalysis(
+    await eserviceTemplateService.deleteRiskAnalysis(
       eserviceTemplate.id,
       riskAnalysis.id,
       {
@@ -131,7 +131,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
     };
 
     expect(
-      riskAnalysisService.deleteRiskAnalysis(
+      eserviceTemplateService.deleteRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis.id,
         {
@@ -171,7 +171,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     expect(
-      riskAnalysisService.deleteRiskAnalysis(
+      eserviceTemplateService.deleteRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis.id,
         {
@@ -213,7 +213,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     expect(
-      riskAnalysisService.deleteRiskAnalysis(
+      eserviceTemplateService.deleteRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis.id,
         {
@@ -253,7 +253,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     expect(
-      riskAnalysisService.deleteRiskAnalysis(
+      eserviceTemplateService.deleteRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis.id,
         {

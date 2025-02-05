@@ -29,7 +29,6 @@ import {
   updateRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../model/domain/apiConverter.js";
-import { riskAnalysisTemplateServiceBuilder } from "../services/riskAnalysisService.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -47,19 +46,6 @@ const eserviceTemplateService = eserviceTemplateServiceBuilder(
   }),
   readModelService,
   initFileManager(config)
-);
-
-const riskAnalysisTemplateService = riskAnalysisTemplateServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService
 );
 
 const eserviceTemplatesRouter = (
@@ -230,7 +216,7 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await riskAnalysisTemplateService.createRiskAnalysis(
+          await eserviceTemplateService.createRiskAnalysis(
             unsafeBrandId(req.params.eServiceTemplateId),
             req.body,
             ctx
@@ -254,7 +240,7 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await riskAnalysisTemplateService.updateRiskAnalysis(
+          await eserviceTemplateService.updateRiskAnalysis(
             unsafeBrandId(req.params.eServiceTemplateId),
             unsafeBrandId(req.params.riskAnalysisId),
             req.body,
@@ -279,7 +265,7 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await riskAnalysisTemplateService.deleteRiskAnalysis(
+          await eserviceTemplateService.deleteRiskAnalysis(
             unsafeBrandId(req.params.eServiceTemplateId),
             unsafeBrandId(req.params.riskAnalysisId),
             ctx

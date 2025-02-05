@@ -43,7 +43,7 @@ import {
 import {
   addOneEServiceTemplate,
   buildRiskAnalysisSeed,
-  riskAnalysisService,
+  eserviceTemplateService,
   readLastEserviceTemplateEvent,
   addOneTenant,
 } from "./utils.js";
@@ -94,7 +94,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
-    await riskAnalysisService.updateRiskAnalysis(
+    await eserviceTemplateService.updateRiskAnalysis(
       eserviceTemplate.id,
       riskAnalysis1.id,
       riskAnalysisSeed,
@@ -219,7 +219,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       riskAnalysis: [riskAnalysis1, riskAnalysis2],
     };
     expect(
-      riskAnalysisService.updateRiskAnalysis(
+      eserviceTemplateService.updateRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis1.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(creatorTenantKind)),
@@ -256,7 +256,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     await addOneTenant(getMockTenant(requesterId));
 
     expect(
-      riskAnalysisService.updateRiskAnalysis(
+      eserviceTemplateService.updateRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis1.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(creatorTenantKind)),
@@ -294,7 +294,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     await addOneTenant(getMockTenant(eserviceTemplate.creatorId));
 
     expect(
-      riskAnalysisService.updateRiskAnalysis(
+      eserviceTemplateService.updateRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis1.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(creatorTenantKind)),
@@ -330,7 +330,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     await addOneTenant(getMockTenant(eserviceTemplate.creatorId));
 
     expect(
-      riskAnalysisService.updateRiskAnalysis(
+      eserviceTemplateService.updateRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis1.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(creatorTenantKind)),
@@ -364,7 +364,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     expect(
-      riskAnalysisService.updateRiskAnalysis(
+      eserviceTemplateService.updateRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis1.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(creatorTenantKind)),
@@ -401,7 +401,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     await addOneTenant(creator);
 
     expect(
-      riskAnalysisService.updateRiskAnalysis(
+      eserviceTemplateService.updateRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis1.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
@@ -468,7 +468,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     };
 
     expect(
-      riskAnalysisService.updateRiskAnalysis(
+      eserviceTemplateService.updateRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis1.id,
         invalidRiskAnalysisSeed,
