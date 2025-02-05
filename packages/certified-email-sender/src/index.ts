@@ -3,12 +3,10 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   EmailManagerPEC,
-  EmailManagerSES,
   ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
   initPecEmailManager,
-  initSesMailManager,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -27,12 +25,6 @@ const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 const templateService = buildHTMLTemplateService();
-const interopFeBaseUrl = config.interopFeBaseUrl;
-const sesEmailManager: EmailManagerSES = initSesMailManager(config);
-const sesEmailsenderData = {
-  label: config.senderLabel,
-  mail: config.senderMail,
-};
 
 const pecEmailManager: EmailManagerPEC = initPecEmailManager(config);
 const pecEmailsenderData = {
@@ -43,11 +35,8 @@ const pecEmailsenderData = {
 const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
   pecEmailManager,
   pecEmailsenderData,
-  sesEmailManager,
-  sesEmailsenderData,
   readModelService,
-  templateService,
-  interopFeBaseUrl
+  templateService
 );
 
 export async function processMessage({
@@ -57,7 +46,7 @@ export async function processMessage({
 
   const decodedMessage = decodeKafkaMessage(message, AgreementEvent);
   const loggerInstance = logger({
-    serviceName: "agreement-email-sender",
+    serviceName: "certified-email-sender",
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
@@ -77,37 +66,7 @@ export async function processMessage({
               agreement,
               loggerInstance
             ),
-            agreementEmailSenderService.sendAgreementActivationSimpleEmail(
-              agreement,
-              loggerInstance
-            ),
           ]);
-        } else {
-          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
-        }
-      }
-    )
-    .with(
-      { event_version: 2, type: "AgreementSubmitted" },
-      async ({ data: { agreement } }) => {
-        if (agreement) {
-          await agreementEmailSenderService.sendAgreementSubmissionSimpleEmail(
-            agreement,
-            loggerInstance
-          );
-        } else {
-          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
-        }
-      }
-    )
-    .with(
-      { event_version: 2, type: "AgreementRejected" },
-      async ({ data: { agreement } }) => {
-        if (agreement) {
-          await agreementEmailSenderService.sendAgreementRejectSimpleEmail(
-            agreement,
-            loggerInstance
-          );
         } else {
           throw missingKafkaMessageDataError("agreement", decodedMessage.type);
         }
@@ -117,6 +76,8 @@ export async function processMessage({
       {
         event_version: 2,
         type: P.union(
+          "AgreementRejected",
+          "AgreementSubmitted",
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",

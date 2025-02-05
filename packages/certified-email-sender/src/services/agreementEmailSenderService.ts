@@ -7,7 +7,6 @@ import {
   EmailManager,
   EmailManagerKind,
   EmailManagerPEC,
-  EmailManagerSES,
   HtmlTemplateService,
   Logger,
   dateAtRomeZone,
@@ -40,9 +39,6 @@ import { ReadModelService } from "./readModelService.js";
 // Be careful to change this enum, it's used to find the html template files
 export const agreementEventMailTemplateType = {
   activationPEC: "activation-pec-mail",
-  activation: "activation-mail",
-  submission: "submission-mail",
-  rejection: "rejection-mail",
 } as const;
 
 const AgreementEventMailTemplateType = z.enum([
@@ -203,83 +199,10 @@ async function sendAgreementActivationEmail(
 export function agreementEmailSenderServiceBuilder(
   pecEmailManager: EmailManagerPEC,
   pecSenderData: { label: string; mail: string },
-  sesEmailManager: EmailManagerSES,
-  sesSenderData: { label: string; mail: string },
   readModelService: ReadModelService,
-  templateService: HtmlTemplateService,
-  interopFeBaseUrl?: string
+  templateService: HtmlTemplateService
 ) {
   return {
-    sendAgreementSubmissionSimpleEmail: async (
-      agreementV2Msg: AgreementV2,
-      logger: Logger
-    ): Promise<void> => {
-      const agreement = fromAgreementV2(agreementV2Msg);
-      const htmlTemplate = await retrieveHTMLTemplate(
-        agreementEventMailTemplateType.submission
-      );
-
-      const eservice = await retrieveAgreementEservice(
-        agreement,
-        readModelService
-      );
-
-      const producer = await retrieveTenant(
-        agreement.producerId,
-        readModelService
-      );
-      const consumer = await retrieveTenant(
-        agreement.consumerId,
-        readModelService
-      );
-
-      const submissionDate = getFormattedAgreementStampDate(
-        agreement,
-        "submission"
-      );
-
-      const producerEmail = getLatestTenantMailOfKind(
-        producer.mails,
-        tenantMailKind.ContactEmail
-      );
-
-      if (!producerEmail) {
-        logger.warn(
-          `Producer email not found for agreement ${agreement.id}, skipping email`
-        );
-        return;
-      }
-
-      const mail = {
-        from: { name: sesSenderData.label, address: sesSenderData.mail },
-        subject: `Nuova richiesta di fruizione per ${eservice.name} ricevuta`,
-        to: [producerEmail.address],
-        body: templateService.compileHtml(htmlTemplate, {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
-          producerName: producer.name,
-          consumerName: consumer.name,
-          eserviceName: eservice.name,
-          submissionDate,
-        }),
-      };
-
-      try {
-        logger.info(
-          `Sending email for agreement ${agreement.id} submission (SES)`
-        );
-        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
-        logger.info(
-          `Email sent for agreement ${agreement.id} submission (SES)`
-        );
-      } catch (err) {
-        logger.warn(
-          `Error sending email for agreement ${agreement.id}: ${err}`
-        );
-        throw genericInternalError(
-          `Error sending email for agreement ${agreement.id}: ${err}`
-        );
-      }
-    },
     sendAgreementActivationCertifiedEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
@@ -310,105 +233,6 @@ export function agreementEmailSenderServiceBuilder(
         producer.name,
         recepientsEmails
       );
-    },
-    sendAgreementActivationSimpleEmail: async (
-      agreementV2Msg: AgreementV2,
-      logger: Logger
-    ) => {
-      const consumer = await retrieveTenant(
-        unsafeBrandId(agreementV2Msg.consumerId),
-        readModelService
-      );
-      const producer = await retrieveTenant(
-        unsafeBrandId(agreementV2Msg.producerId),
-        readModelService
-      );
-
-      const recepientsEmails = [
-        retrieveTenantMailAddress(consumer, "SES").address,
-      ];
-
-      return sendAgreementActivationEmail(
-        sesEmailManager,
-        readModelService,
-        agreementV2Msg,
-        templateService,
-        agreementEventMailTemplateType.activation,
-        logger,
-        sesSenderData,
-        consumer.name,
-        producer.name,
-        recepientsEmails,
-        interopFeBaseUrl
-      );
-    },
-    sendAgreementRejectSimpleEmail: async (
-      agreementV2Msg: AgreementV2,
-      logger: Logger
-    ) => {
-      const agreement = fromAgreementV2(agreementV2Msg);
-      const htmlTemplate = await retrieveHTMLTemplate(
-        agreementEventMailTemplateType.rejection
-      );
-
-      const eservice = await retrieveAgreementEservice(
-        agreement,
-        readModelService
-      );
-
-      const producer = await retrieveTenant(
-        agreement.producerId,
-        readModelService
-      );
-      const consumer = await retrieveTenant(
-        agreement.consumerId,
-        readModelService
-      );
-
-      const rejectionDate = getFormattedAgreementStampDate(
-        agreement,
-        "rejection"
-      );
-
-      const consumerEmail = getLatestTenantMailOfKind(
-        consumer.mails,
-        tenantMailKind.ContactEmail
-      );
-
-      if (!consumerEmail) {
-        logger.warn(
-          `Consumer email not found for agreement ${agreement.id}, skipping email`
-        );
-        return;
-      }
-
-      const mail = {
-        from: { name: sesSenderData.label, address: sesSenderData.mail },
-        subject: `Richiesta di fruizione per ${eservice.name} rifiutata`,
-        to: [consumerEmail.address],
-        body: templateService.compileHtml(htmlTemplate, {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
-          producerName: producer.name,
-          consumerName: consumer.name,
-          eserviceName: eservice.name,
-          rejectionDate,
-        }),
-      };
-
-      try {
-        logger.info(
-          `Sending email for agreement ${agreement.id} rejection (SES)`
-        );
-        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
-        logger.info(`Email sent for agreement ${agreement.id} rejection (SES)`);
-      } catch (err) {
-        logger.warn(
-          `Error sending email for agreement ${agreement.id}: ${err}`
-        );
-        throw genericInternalError(
-          `Error sending email for agreement ${agreement.id}: ${err}`
-        );
-      }
     },
   };
 }
