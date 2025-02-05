@@ -8,7 +8,6 @@ import { match } from "ts-pattern";
 import {
   ExpressContext,
   fromAppContext,
-  getJwksClients,
   JWTConfig,
   jwtFromAuthHeader,
 } from "../index.js";
@@ -27,15 +26,8 @@ export const authenticationMiddleware: (
     const ctx = fromAppContext(req.ctx);
 
     try {
-      const jwksClients = getJwksClients(config);
-
       const jwtToken = jwtFromAuthHeader(req, ctx.logger);
-      const valid = await verifyJwtToken(
-        jwtToken,
-        jwksClients,
-        config,
-        ctx.logger
-      );
+      const valid = await verifyJwtToken(jwtToken, config, ctx.logger);
       if (!valid) {
         throw unauthorizedError("Invalid token");
       }

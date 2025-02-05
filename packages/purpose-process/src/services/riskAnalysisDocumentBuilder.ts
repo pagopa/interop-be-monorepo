@@ -17,14 +17,12 @@ import {
   unexpectedEmptyAnswerError,
 } from "pagopa-interop-commons";
 import {
-  PurposeDocumentEServiceInfo,
   Purpose,
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   TenantKind,
   generateId,
   PurposeRiskAnalysisForm,
-  RiskAnalysisDocumentPDFPayload,
   eserviceMode,
   RiskAnalysisSingleAnswer,
   RiskAnalysisMultiAnswer,
@@ -35,6 +33,10 @@ import {
   riskAnalysisConfigVersionNotFound,
 } from "../model/domain/errors.js";
 import { PurposeProcessConfig } from "../config/config.js";
+import {
+  PurposeDocumentEServiceInfo,
+  RiskAnalysisDocumentPDFPayload,
+} from "../model/domain/models.js";
 
 const YES = "Sì";
 const NO = "No";
@@ -165,20 +167,17 @@ const getPdfPayload = ({
     dailyCalls: dailyCalls.toString(),
     answers,
     eServiceName: eserviceInfo.name,
-    producerText: formatTenantDescription(
-      eserviceInfo.producerName,
-      eserviceInfo.producerOrigin,
-      eserviceInfo.producerIPACode
-    ),
-    consumerText: formatTenantDescription(
-      eserviceInfo.consumerName,
-      eserviceInfo.consumerOrigin,
-      eserviceInfo.consumerIPACode
-    ),
+    producerName: eserviceInfo.producerName,
+    producerIpaCode: eserviceInfo.producerIpaCode,
+    consumerName: eserviceInfo.consumerName,
+    consumerIpaCode: eserviceInfo.consumerIpaCode,
     freeOfCharge: freeOfChargeHtml,
     freeOfChargeReason: freeOfChargeReasonHtml,
     date: dateAtRomeZone(new Date()),
     eServiceMode,
+    producerDelegationId: eserviceInfo.producerDelegationId,
+    producerDelegateName: eserviceInfo.producerDelegateName,
+    producerDelegateIpaCode: eserviceInfo.producerDelegateIpaCode,
   };
 };
 
@@ -338,15 +337,4 @@ function formatFreeOfCharge(
     freeOfChargeHtml,
     freeOfChargeReasonHtml,
   };
-}
-
-function formatTenantDescription(
-  tenantName: string,
-  tenantOrigin: string,
-  tenantIPACode: string
-): string {
-  if (tenantOrigin === "IPA") {
-    return `${tenantName} (codice IPA: ${tenantIPACode})`;
-  }
-  return tenantName;
 }

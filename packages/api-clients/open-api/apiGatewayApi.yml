@@ -2687,6 +2687,7 @@ components:
         - DEPRECATED
         - SUSPENDED
         - ARCHIVED
+        - WAITING_FOR_APPROVAL
     EServiceDescriptors:
       description: eservice descriptors list model
       type: object

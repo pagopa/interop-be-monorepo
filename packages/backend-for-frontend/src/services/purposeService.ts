@@ -624,15 +624,17 @@ export function purposeServiceBuilder(
         headers
       );
     },
-    async retrieveLatestRiskAnalysisConfiguration({
-      headers,
-      logger,
-    }: WithLogger<BffAppContext>): Promise<bffApi.RiskAnalysisFormConfig> {
+    async retrieveLatestRiskAnalysisConfiguration(
+      tenantKind: bffApi.TenantKind | undefined,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisFormConfig> {
       logger.info(`Retrieving risk analysis latest configuration`);
 
       return await purposeProcessClient.retrieveLatestRiskAnalysisConfiguration(
         {
-          queries: undefined,
+          queries: {
+            tenantKind,
+          },
           headers,
         }
       );

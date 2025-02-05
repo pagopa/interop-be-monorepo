@@ -7,7 +7,7 @@ import {
   ItemState,
   PlatformStatesCatalogEntry,
   PlatformStatesEServiceDescriptorPK,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenStatesConsumerClientGSIDescriptor,
 } from "pagopa-interop-models";
 import {
   AttributeValue,
@@ -27,11 +27,13 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
+import { Logger } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 
 export const writeCatalogEntry = async (
   catalogEntry: PlatformStatesCatalogEntry,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -61,6 +63,7 @@ export const writeCatalogEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Written catalog entry ${catalogEntry.PK}`);
 };
 
 export const readCatalogEntry = async (
@@ -72,6 +75,7 @@ export const readCatalogEntry = async (
       PK: { S: primaryKey },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
   const data: GetItemCommandOutput = await dynamoDBClient.send(command);
@@ -84,7 +88,7 @@ export const readCatalogEntry = async (
 
     if (!catalogEntry.success) {
       throw genericInternalError(
-        `Unable to parse catalog entry item: result ${JSON.stringify(
+        `Unable to parse platform-states catalog entry: result ${JSON.stringify(
           catalogEntry
         )} - data ${JSON.stringify(data)} `
       );
@@ -95,7 +99,8 @@ export const readCatalogEntry = async (
 
 export const deleteCatalogEntry = async (
   primaryKey: PlatformStatesEServiceDescriptorPK,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> => {
   const input: DeleteItemInput = {
     Key: {
@@ -105,6 +110,7 @@ export const deleteCatalogEntry = async (
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Deleted catalog entry ${primaryKey}`);
 };
 
 export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
@@ -116,7 +122,8 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesEServiceDescriptorPK,
   state: ItemState,
-  version: number
+  version: number,
+  logger: Logger
 ): Promise<void> => {
   const input: UpdateItemInput = {
     ConditionExpression: "attribute_exists(PK)",
@@ -132,7 +139,7 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
       ":newVersion": {
         N: version.toString(),
       },
-      ":newUpdateAt": {
+      ":newUpdatedAt": {
         S: new Date().toISOString(),
       },
     },
@@ -140,24 +147,65 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
       "#state": "state",
     },
     UpdateExpression:
-      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt",
+      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdatedAt",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
   };
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
+  logger.info(
+    `Platform-states. Updated descriptor state in entry ${primaryKey}`
+  );
+};
+
+export const updateDescriptorVoucherLifespanInPlatformStateEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  primaryKey: PlatformStatesEServiceDescriptorPK,
+  voucherLifespan: number,
+  version: number,
+  logger: Logger
+): Promise<void> => {
+  const input: UpdateItemInput = {
+    ConditionExpression: "attribute_exists(PK)",
+    Key: {
+      PK: {
+        S: primaryKey,
+      },
+    },
+    ExpressionAttributeValues: {
+      ":newVoucherLifespan": {
+        N: voucherLifespan.toString(),
+      },
+      ":newVersion": {
+        N: version.toString(),
+      },
+      ":newUpdatedAt": {
+        S: new Date().toISOString(),
+      },
+    },
+    UpdateExpression:
+      "SET descriptorVoucherLifespan = :newVoucherLifespan, version = :newVersion, updatedAt = :newUpdatedAt",
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ReturnValues: "NONE",
+  };
+  const command = new UpdateItemCommand(input);
+  await dynamoDBClient.send(command);
+  logger.info(
+    `Platform-states. Updated descriptor voucher lifespan state in entry ${primaryKey}`
+  );
 };
 
 export const updateDescriptorStateInTokenGenerationStatesTable = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   descriptorState: ItemState,
-  dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
   const runPaginatedQuery = async (
     eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Descriptor",
@@ -172,34 +220,37 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
 
     if (!data.Items) {
       throw genericInternalError(
-        `Unable to read token state entries: result ${JSON.stringify(data)} `
+        `Unable to read token-generation-states entries: result ${JSON.stringify(
+          data
+        )} `
       );
     } else {
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-      const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+      const tokenGenStatesEntries = z
+        .array(TokenGenStatesConsumerClientGSIDescriptor)
         .safeParse(unmarshalledItems);
 
-      if (!tokenStateEntries.success) {
+      if (!tokenGenStatesEntries.success) {
         throw genericInternalError(
-          `Unable to parse token state entry item: result ${JSON.stringify(
-            tokenStateEntries
+          `Unable to parse token-generation-states entries: result ${JSON.stringify(
+            tokenGenStatesEntries
           )} - data ${JSON.stringify(data)} `
         );
       }
 
-      await updateDescriptorStateEntriesInTokenGenerationStatesTable(
+      await updateDescriptorStateInTokenGenerationStatesEntries(
         descriptorState,
         dynamoDBClient,
-        tokenStateEntries.data
+        tokenGenStatesEntries.data,
+        logger
       );
 
       if (!data.LastEvaluatedKey) {
-        return tokenStateEntries.data;
+        return tokenGenStatesEntries.data;
       } else {
         return [
-          ...tokenStateEntries.data,
+          ...tokenGenStatesEntries.data,
           ...(await runPaginatedQuery(
             eserviceId_descriptorId,
             dynamoDBClient,
@@ -217,14 +268,158 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
   );
 };
 
-const updateDescriptorStateEntriesInTokenGenerationStatesTable = async (
+export const updateDescriptorInfoInTokenGenerationStatesTable = async (
+  eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+  descriptorState: ItemState,
+  descriptorVoucherLifespan: number,
+  descriptorAudience: string[],
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+  // eslint-disable-next-line max-params
+): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
+  const runPaginatedQuery = async (
+    eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+    dynamoDBClient: DynamoDBClient,
+    exclusiveStartKey?: Record<string, AttributeValue>
+  ): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
+    const input: QueryInput = {
+      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+      IndexName: "Descriptor",
+      KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
+      ExpressionAttributeValues: {
+        ":gsiValue": { S: eserviceId_descriptorId },
+      },
+      ExclusiveStartKey: exclusiveStartKey,
+    };
+    const command = new QueryCommand(input);
+    const data: QueryCommandOutput = await dynamoDBClient.send(command);
+
+    if (!data.Items) {
+      throw genericInternalError(
+        `Unable to read token-generation-states entries: result ${JSON.stringify(
+          data
+        )} `
+      );
+    } else {
+      const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+      const tokenGenStatesEntries = z
+        .array(TokenGenStatesConsumerClientGSIDescriptor)
+        .safeParse(unmarshalledItems);
+
+      if (!tokenGenStatesEntries.success) {
+        throw genericInternalError(
+          `Unable to parse token-generation-states entries: result ${JSON.stringify(
+            tokenGenStatesEntries
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      await updateDescriptorInfoInTokenGenerationStatesEntries({
+        descriptorState,
+        descriptorVoucherLifespan,
+        descriptorAudience,
+        dynamoDBClient,
+        entriesToUpdate: tokenGenStatesEntries.data,
+        logger,
+      });
+
+      if (!data.LastEvaluatedKey) {
+        return tokenGenStatesEntries.data;
+      } else {
+        return [
+          ...tokenGenStatesEntries.data,
+          ...(await runPaginatedQuery(
+            eserviceId_descriptorId,
+            dynamoDBClient,
+            data.LastEvaluatedKey
+          )),
+        ];
+      }
+    }
+  };
+
+  return await runPaginatedQuery(
+    eserviceId_descriptorId,
+    dynamoDBClient,
+    undefined
+  );
+};
+
+export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
+  async (
+    eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+    voucherLifespan: number,
+    dynamoDBClient: DynamoDBClient,
+    logger: Logger
+  ): Promise<void> => {
+    const runPaginatedQuery = async (
+      eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+      dynamoDBClient: DynamoDBClient,
+      exclusiveStartKey?: Record<string, AttributeValue>
+    ): Promise<void> => {
+      const input: QueryInput = {
+        TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+        IndexName: "Descriptor",
+        KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
+        ExpressionAttributeValues: {
+          ":gsiValue": { S: eserviceId_descriptorId },
+        },
+        ExclusiveStartKey: exclusiveStartKey,
+      };
+      const command = new QueryCommand(input);
+      const data: QueryCommandOutput = await dynamoDBClient.send(command);
+
+      if (!data.Items) {
+        throw genericInternalError(
+          `Unable to read token-generation-states entries: result ${JSON.stringify(
+            data
+          )} `
+        );
+      } else {
+        const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+        const tokenGenStatesEntries = z
+          .array(TokenGenStatesConsumerClientGSIDescriptor)
+          .safeParse(unmarshalledItems);
+
+        if (!tokenGenStatesEntries.success) {
+          throw genericInternalError(
+            `Unable to parse token-generation-states entries: result ${JSON.stringify(
+              tokenGenStatesEntries
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+
+        await updateDescriptorVoucherLifespanInTokenGenerationStatesEntries(
+          voucherLifespan,
+          dynamoDBClient,
+          tokenGenStatesEntries.data,
+          logger
+        );
+
+        if (data.LastEvaluatedKey) {
+          await runPaginatedQuery(
+            eserviceId_descriptorId,
+            dynamoDBClient,
+            data.LastEvaluatedKey
+          );
+        }
+      }
+    };
+
+    await runPaginatedQuery(eserviceId_descriptorId, dynamoDBClient, undefined);
+  };
+
+const updateDescriptorStateInTokenGenerationStatesEntries = async (
   descriptorState: ItemState,
   dynamoDBClient: DynamoDBClient,
-  entriesToUpdate: TokenGenerationStatesClientPurposeEntry[]
+  entriesToUpdate: TokenGenStatesConsumerClientGSIDescriptor[],
+  logger: Logger
 ): Promise<void> => {
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
-      ConditionExpression: "attribute_exists(GSIPK_eserviceId_descriptorId)",
+      ConditionExpression: "attribute_exists(PK)",
       Key: {
         PK: {
           S: entry.PK,
@@ -234,16 +429,106 @@ const updateDescriptorStateEntriesInTokenGenerationStatesTable = async (
         ":newState": {
           S: descriptorState,
         },
-        ":newUpdateAt": {
+        ":newUpdatedAt": {
           S: new Date().toISOString(),
         },
       },
       UpdateExpression:
-        "SET descriptorState = :newState, updatedAt = :newUpdateAt",
+        "SET descriptorState = :newState, updatedAt = :newUpdatedAt",
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       ReturnValues: "NONE",
     };
     const command = new UpdateItemCommand(input);
     await dynamoDBClient.send(command);
+    logger.info(
+      `Token-generation-states. Updated descriptor state in entry ${entry.PK}`
+    );
+  }
+};
+
+const updateDescriptorInfoInTokenGenerationStatesEntries = async ({
+  descriptorState,
+  descriptorVoucherLifespan,
+  descriptorAudience,
+  dynamoDBClient,
+  entriesToUpdate,
+  logger,
+}: {
+  descriptorState: ItemState;
+  descriptorVoucherLifespan: number;
+  descriptorAudience: string[];
+  dynamoDBClient: DynamoDBClient;
+  entriesToUpdate: TokenGenStatesConsumerClientGSIDescriptor[];
+  logger: Logger;
+}): Promise<void> => {
+  for (const entry of entriesToUpdate) {
+    const input: UpdateItemInput = {
+      ConditionExpression: "attribute_exists(PK)",
+      Key: {
+        PK: {
+          S: entry.PK,
+        },
+      },
+      ExpressionAttributeValues: {
+        ":descriptorState": {
+          S: descriptorState,
+        },
+        ":descriptorAudience": {
+          L: descriptorAudience.map((item) => ({
+            S: item,
+          })),
+        },
+        ":descriptorVoucherLifespan": {
+          N: descriptorVoucherLifespan.toString(),
+        },
+        ":newUpdatedAt": {
+          S: new Date().toISOString(),
+        },
+      },
+      UpdateExpression:
+        "SET descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan, updatedAt = :newUpdatedAt",
+      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+      ReturnValues: "NONE",
+    };
+    const command = new UpdateItemCommand(input);
+    await dynamoDBClient.send(command);
+    logger.info(
+      `Token-generation-states. Updated descriptor info in entry ${entry.PK}`
+    );
+  }
+};
+
+const updateDescriptorVoucherLifespanInTokenGenerationStatesEntries = async (
+  voucherLifespan: number,
+  dynamoDBClient: DynamoDBClient,
+  entriesToUpdate: TokenGenStatesConsumerClientGSIDescriptor[],
+  logger: Logger
+): Promise<void> => {
+  for (const entry of entriesToUpdate) {
+    const input: UpdateItemInput = {
+      ConditionExpression: "attribute_exists(PK)",
+      Key: {
+        PK: {
+          S: entry.PK,
+        },
+      },
+      ExpressionAttributeValues: {
+        ":newVoucherLifespan": {
+          N: voucherLifespan.toString(),
+        },
+        ":newUpdatedAt": {
+          S: new Date().toISOString(),
+        },
+      },
+      UpdateExpression:
+        "SET descriptorVoucherLifespan = :newVoucherLifespan, updatedAt = :newUpdatedAt",
+      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+      ReturnValues: "NONE",
+    };
+    const command = new UpdateItemCommand(input);
+    await dynamoDBClient.send(command);
+    logger.info(
+      `Token-generation-states. Updated descriptor info in entry ${entry.PK}`
+    );
   }
 };

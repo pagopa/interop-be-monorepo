@@ -9,6 +9,7 @@ import {
   TenantKind,
   purposeVersionState,
   EServiceId,
+  delegationKind,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -23,6 +24,8 @@ import {
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
+  organizationIsNotTheProducer,
+  organizationNotAllowed,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
@@ -248,3 +251,62 @@ export async function isOverQuota(
     allPurposesRequestsSum + dailyCalls <= maxDailyCallsTotal
   );
 }
+
+export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async ({
+  eserviceId,
+  organizationId,
+  producerId,
+  consumerId,
+  readModelService,
+}: {
+  eserviceId: EServiceId;
+  organizationId: TenantId;
+  producerId: TenantId;
+  consumerId: TenantId;
+  readModelService: ReadModelService;
+}): Promise<void> => {
+  if (organizationId === producerId || organizationId === consumerId) {
+    return;
+  }
+
+  const activeProducerDelegation = await readModelService.getActiveDelegation(
+    eserviceId,
+    delegationKind.delegatedProducer
+  );
+
+  if (
+    activeProducerDelegation &&
+    organizationId === activeProducerDelegation.delegateId
+  ) {
+    return;
+  }
+
+  throw organizationNotAllowed(organizationId);
+};
+
+export const assertRequesterIsProducer = async ({
+  eserviceId,
+  organizationId,
+  producerId,
+  readModelService,
+}: {
+  eserviceId: EServiceId;
+  organizationId: TenantId;
+  producerId: TenantId;
+  readModelService: ReadModelService;
+}): Promise<void> => {
+  const activeProducerDelegation = await readModelService.getActiveDelegation(
+    eserviceId,
+    delegationKind.delegatedProducer
+  );
+
+  if (
+    (activeProducerDelegation &&
+      organizationId === activeProducerDelegation.delegateId) ||
+    (!activeProducerDelegation && organizationId === producerId)
+  ) {
+    return;
+  }
+
+  throw organizationIsNotTheProducer(organizationId);
+};

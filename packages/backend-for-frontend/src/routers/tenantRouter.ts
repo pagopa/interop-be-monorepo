@@ -6,7 +6,12 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { AttributeId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  AgreementId,
+  AttributeId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { tenantServiceBuilder } from "../services/tenantService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -308,9 +313,11 @@ const tenantRouter = (
           const attributeId = unsafeBrandId<AttributeId>(
             req.params.attributeId
           );
+          const agreementId = unsafeBrandId<AgreementId>(req.body.agreementId);
           await tenantService.revokeVerifiedAttribute(
             tenantId,
             attributeId,
+            agreementId,
             ctx
           );
 
@@ -381,31 +388,64 @@ const tenantRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get(
-      "/tenants",
+    .get("/tenants", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
-      async (req, res) => {
-        const ctx = fromBffAppContext(req.ctx, req.headers);
-
-        try {
-          const result = await tenantService.getTenants(
-            req.query.name,
-            req.query.limit,
-            ctx
-          );
-          return res.status(200).send(bffApi.Tenants.parse(result));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
-            `Error retrieving tenants`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      try {
+        const result = await tenantService.getTenants(
+          req.query.name,
+          req.query.features,
+          req.query.limit,
+          ctx
+        );
+        return res.status(200).send(bffApi.Tenants.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error retrieving tenants`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    );
+    })
+    .post("/tenants/delegatedProducer", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const tenantId = ctx.authData.organizationId;
+
+      try {
+        await tenantService.assignTenantDelegatedProducerFeature(tenantId, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error while assigning delegated producer feature to ${tenantId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/tenants/delegatedProducer", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const tenantId = ctx.authData.organizationId;
+
+      try {
+        await tenantService.removeTenantDelegatedProducerFeature(tenantId, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error while removing delegated producer feature to ${tenantId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return tenantRouter;
 };
