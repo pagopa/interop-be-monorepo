@@ -1,11 +1,10 @@
 CREATE SCHEMA readmodel;
 
 -- CATALOG
--- TODO use tenants table for producerId reference
 CREATE TABLE IF NOT EXISTS readmodel.eservice (
   id UUID,
   version INTEGER NOT NULL,
-  producer_id UUID NOT NULL,
+  producer_id UUID NOT NULL REFERENCES readmodel.tenant(id),
   name VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
   technology VARCHAR NOT NULL,
@@ -119,8 +118,8 @@ CREATE TABLE readmodel.agreement(
   version integer NOT NULL,
   eservice_id uuid NOT NULL REFERENCES readmodel.eservice(id),
   descriptor_id uuid NOT NULL REFERENCES readmodel.descriptor(id),
-  producer_id uuid NOT NULL,
-  consumer_id uuid NOT NULL,
+  producer_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  consumer_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   state varchar NOT NULL,
   -- verifiedAttributes
   -- certifiedAttributes
