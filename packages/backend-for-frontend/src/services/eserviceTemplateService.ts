@@ -3,8 +3,13 @@ import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
+  genericError,
 } from "pagopa-interop-models";
-import { bffApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  bffApi,
+  eserviceTemplateApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
 import {
   AttributeProcessClient,
   EServiceTemplateProcessClient,
@@ -15,8 +20,15 @@ import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
 } from "../api/catalogApiConverter.js";
-import { toBffEServiceTemplateApiEServiceTemplateDetails } from "../api/eserviceTemplateApiConverter.js";
-import { eserviceTemplateVersionNotFound } from "../model/errors.js";
+import {
+  toBffCatalogEServiceTemplate,
+  toBffEServiceTemplateApiEServiceTemplateDetails,
+} from "../api/eserviceTemplateApiConverter.js";
+import {
+  eserviceTemplateVersionNotFound,
+  tenantNotFound,
+} from "../model/errors.js";
+import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
@@ -173,7 +185,129 @@ export function eserviceTemplateServiceBuilder(
         ),
       };
     },
+    getCatalogEServiceTemplates: async (
+      name: string | undefined,
+      creatorsIds: string[],
+      offset: number,
+      limit: number,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CatalogEServiceTemplates> => {
+      logger.info(
+        `Retrieving Catalog EService templates for name = ${name}, creatorsIds = ${creatorsIds}, offset = ${offset}, limit = ${limit}`
+      );
+      const eserviceTemplatesResponse: eserviceTemplateApi.EServiceTemplates =
+        await eserviceTemplateClient.getEServiceTemplates({
+          headers,
+          queries: {
+            name,
+            states: [
+              eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED,
+            ],
+            creatorsIds,
+            limit,
+            offset,
+          },
+        });
+
+      const results = await enhanceCatalogEServiceTemplates(
+        eserviceTemplatesResponse.results,
+        tenantProcessClient,
+        headers
+      );
+
+      return {
+        results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: eserviceTemplatesResponse.totalCount,
+        },
+      };
+    },
+    getProducerEServiceTemplates: async (
+      name: string | undefined,
+      offset: number,
+      limit: number,
+      { headers, logger, authData }: WithLogger<BffAppContext>
+    ): Promise<bffApi.ProducerEServiceTemplates> => {
+      logger.info(
+        `Retrieving EService templates for creator ${authData.organizationId}, for name = ${name}, offset = ${offset}, limit = ${limit}`
+      );
+      const eserviceTemplatesResponse: eserviceTemplateApi.EServiceTemplates =
+        await eserviceTemplateClient.getEServiceTemplates({
+          headers,
+          queries: {
+            name,
+            creatorsIds: [authData.organizationId],
+            limit,
+            offset,
+          },
+        });
+
+      const results = await enhanceCatalogEServiceTemplates(
+        eserviceTemplatesResponse.results,
+        tenantProcessClient,
+        headers
+      );
+
+      return {
+        results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: eserviceTemplatesResponse.totalCount,
+        },
+      };
+    },
   };
+}
+
+async function enhanceCatalogEServiceTemplates(
+  eserviceTemplates: eserviceTemplateApi.EServiceTemplates["results"],
+  tenantProcessClient: TenantProcessClient,
+  headers: BffAppContext["headers"]
+): Promise<bffApi.CatalogEServiceTemplate[]> {
+  const creatorsIds = Array.from(
+    new Set(eserviceTemplates.map((t) => t.creatorId))
+  );
+
+  const tenants = await Promise.all(
+    creatorsIds.map(async (id) =>
+      tenantProcessClient.tenant.getTenant({ headers, params: { id } })
+    )
+  );
+
+  const tenantsMap: Map<string, tenantApi.Tenant> = new Map(
+    tenants.map((t) => [t.id, t])
+  );
+
+  return eserviceTemplates.map((eserviceTemplate) =>
+    enhanceCatalogEServiceTemplate(eserviceTemplate, tenantsMap)
+  );
+}
+
+function enhanceCatalogEServiceTemplate(
+  eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
+  tenantsMap: Map<string, tenantApi.Tenant>
+): bffApi.CatalogEServiceTemplate {
+  const creator = tenantsMap.get(eserviceTemplate.creatorId);
+  if (!creator) {
+    throw tenantNotFound(eserviceTemplate.creatorId);
+  }
+
+  const activeVersion = eserviceTemplate.versions.find(
+    (v) =>
+      v.state ===
+      eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED
+  );
+
+  if (!activeVersion) {
+    throw genericError(
+      `Active version not found for EService template ${eserviceTemplate.id}`
+    );
+  }
+
+  return toBffCatalogEServiceTemplate(eserviceTemplate, activeVersion, creator);
 }
 
 export const retrieveEServiceTemplateVersion = (

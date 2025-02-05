@@ -160,34 +160,61 @@ const eserviceTemplateRouter = (
         }
       }
     )
-    .get(
-      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
-      async (req, res) => {
-        const ctx = fromBffAppContext(req.ctx, req.headers);
-        const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
+    .get("/catalog/eservices/templates", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const { q, creatorsIds, offset, limit } = req.query;
 
-        try {
-          const response =
-            await eserviceTemplateService.getEServiceTemplateVersion(
-              unsafeBrandId(eServiceTemplateId),
-              unsafeBrandId(eServiceTemplateVersionId),
-              ctx
-            );
-          return res
-            .status(200)
-            .send(bffApi.EServiceTemplateVersionDetails.parse(response));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            bffGetEServiceTemplateErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
-            `Error retrieving version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
+      try {
+        const response =
+          await eserviceTemplateService.getCatalogEServiceTemplates(
+            q,
+            creatorsIds,
+            offset,
+            limit,
+            ctx
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+
+        return res
+          .status(200)
+          .send(bffApi.CatalogEServiceTemplates.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          "Error retrieving Catalog eservice templates"
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    );
+    })
+    .get("/producers/eservices/templates", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const { q, offset, limit } = req.query;
+
+      try {
+        const response =
+          await eserviceTemplateService.getProducerEServiceTemplates(
+            q,
+            offset,
+            limit,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(bffApi.ProducerEServiceTemplates.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          "Error retrieving Catalog eservice templates"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return eserviceTemplateRouter;
 };
