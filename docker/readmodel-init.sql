@@ -16,7 +16,20 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice (
   is_signal_hub_enabled BOOLEAN,
   is_delegable BOOLEAN,
   is_client_access_delegable BOOLEAN,
+  eservice_template_id UUID REFERENCES readmodel.eservice_template(id),
   PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel.eservice_template_binding (
+  eservice_id UUID REFERENCES readmodel.eservice(id),
+  eservice_version INTEGER,
+  eservice_template_id UUID REFERENCES readmodel.eservice_template(id),
+  instance_id VARCHAR,
+  name VARCHAR,
+  email VARCHAR,
+  url VARCHAR,
+  terms_and_conditions_url VARCHAR,
+  server_url VARCHAR,
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.descriptor (
