@@ -12,7 +12,10 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
-import { bffGetEServiceTemplateErrorMapper } from "../utilities/errorMappers.js";
+import {
+  bffGetCatalogEServiceTemplateErrorMapper,
+  bffGetEServiceTemplateErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const eserviceTemplateRouter = (
   ctx: ZodiosContext,
@@ -160,6 +163,34 @@ const eserviceTemplateRouter = (
         }
       }
     )
+    .get(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
+
+        try {
+          const response =
+            await eserviceTemplateService.getEServiceTemplateVersion(
+              unsafeBrandId(eServiceTemplateId),
+              unsafeBrandId(eServiceTemplateVersionId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(bffApi.EServiceTemplateVersionDetails.parse(response));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetEServiceTemplateErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error retrieving version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get("/catalog/eservices/templates", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       const { q, creatorsIds, offset, limit } = req.query;
@@ -180,7 +211,7 @@ const eserviceTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          bffGetCatalogErrorMapper,
+          bffGetCatalogEServiceTemplateErrorMapper,
           ctx.logger,
           ctx.correlationId,
           "Error retrieving Catalog eservice templates"
@@ -207,10 +238,10 @@ const eserviceTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          bffGetCatalogErrorMapper,
+          emptyErrorMapper,
           ctx.logger,
           ctx.correlationId,
-          "Error retrieving Catalog eservice templates"
+          "Error retrieving producer eservice templates"
         );
         return res.status(errorRes.status).send(errorRes);
       }

@@ -16876,7 +16876,7 @@ components:
         - name
         - description
         - creator
-        - version
+        - publishedVersion
       properties:
         id:
           type: string
@@ -16887,7 +16887,7 @@ components:
           type: string
         creator:
           $ref: "#/components/schemas/CompactOrganization"
-        activeVersion:
+        publishedVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
     ProducerEServiceTemplate:
       type: object

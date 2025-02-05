@@ -3,7 +3,6 @@ import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
-  genericError,
 } from "pagopa-interop-models";
 import {
   bffApi,
@@ -23,12 +22,12 @@ import {
 import {
   toBffCatalogEServiceTemplate,
   toBffEServiceTemplateApiEServiceTemplateDetails,
+  toBffProducerEServiceTemplate,
 } from "../api/eserviceTemplateApiConverter.js";
 import {
   eserviceTemplateVersionNotFound,
   tenantNotFound,
 } from "../model/errors.js";
-import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
@@ -209,11 +208,21 @@ export function eserviceTemplateServiceBuilder(
           },
         });
 
-      const results = await enhanceCatalogEServiceTemplates(
-        eserviceTemplatesResponse.results,
+      const creatorTenantsMap = await getTenantsFromEServiceTemplates(
         tenantProcessClient,
+        eserviceTemplatesResponse.results,
         headers
       );
+
+      const results = eserviceTemplatesResponse.results.map((template) => {
+        const creator = creatorTenantsMap.get(template.creatorId);
+
+        if (!creator) {
+          throw tenantNotFound(template.creatorId);
+        }
+
+        return toBffCatalogEServiceTemplate(template, creator);
+      });
 
       return {
         results,
@@ -244,14 +253,10 @@ export function eserviceTemplateServiceBuilder(
           },
         });
 
-      const results = await enhanceCatalogEServiceTemplates(
-        eserviceTemplatesResponse.results,
-        tenantProcessClient,
-        headers
-      );
-
       return {
-        results,
+        results: eserviceTemplatesResponse.results.map(
+          toBffProducerEServiceTemplate
+        ),
         pagination: {
           offset,
           limit,
@@ -260,54 +265,6 @@ export function eserviceTemplateServiceBuilder(
       };
     },
   };
-}
-
-async function enhanceCatalogEServiceTemplates(
-  eserviceTemplates: eserviceTemplateApi.EServiceTemplates["results"],
-  tenantProcessClient: TenantProcessClient,
-  headers: BffAppContext["headers"]
-): Promise<bffApi.CatalogEServiceTemplate[]> {
-  const creatorsIds = Array.from(
-    new Set(eserviceTemplates.map((t) => t.creatorId))
-  );
-
-  const tenants = await Promise.all(
-    creatorsIds.map(async (id) =>
-      tenantProcessClient.tenant.getTenant({ headers, params: { id } })
-    )
-  );
-
-  const tenantsMap: Map<string, tenantApi.Tenant> = new Map(
-    tenants.map((t) => [t.id, t])
-  );
-
-  return eserviceTemplates.map((eserviceTemplate) =>
-    enhanceCatalogEServiceTemplate(eserviceTemplate, tenantsMap)
-  );
-}
-
-function enhanceCatalogEServiceTemplate(
-  eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
-  tenantsMap: Map<string, tenantApi.Tenant>
-): bffApi.CatalogEServiceTemplate {
-  const creator = tenantsMap.get(eserviceTemplate.creatorId);
-  if (!creator) {
-    throw tenantNotFound(eserviceTemplate.creatorId);
-  }
-
-  const activeVersion = eserviceTemplate.versions.find(
-    (v) =>
-      v.state ===
-      eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED
-  );
-
-  if (!activeVersion) {
-    throw genericError(
-      `Active version not found for EService template ${eserviceTemplate.id}`
-    );
-  }
-
-  return toBffCatalogEServiceTemplate(eserviceTemplate, activeVersion, creator);
 }
 
 export const retrieveEServiceTemplateVersion = (
@@ -327,6 +284,24 @@ export const retrieveEServiceTemplateVersion = (
 
   return eserviceTemplateVersion;
 };
+
+async function getTenantsFromEServiceTemplates(
+  tenantClient: TenantProcessClient,
+  eserviceTemplates: eserviceTemplateApi.EServiceTemplate[],
+  headers: BffAppContext["headers"]
+): Promise<Map<string, tenantApi.Tenant>> {
+  const creatorsIds = Array.from(
+    new Set(eserviceTemplates.map((t) => t.creatorId))
+  );
+
+  const tenants = await Promise.all(
+    creatorsIds.map(async (id) =>
+      tenantClient.tenant.getTenant({ headers, params: { id } })
+    )
+  );
+
+  return new Map(tenants.map((t) => [t.id, t]));
+}
 
 const getAttributeIds = (
   eserviceTemplateVersion: eserviceTemplateApi.EServiceTemplateVersion
