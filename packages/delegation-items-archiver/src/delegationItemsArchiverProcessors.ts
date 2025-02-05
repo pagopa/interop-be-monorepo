@@ -83,8 +83,6 @@ export const processPurposes = async ({
           }
         );
       }
-
-      return Promise.resolve();
     })
   );
 };
@@ -103,7 +101,7 @@ export const processAgreement = async ({
   const agreement = await readModelService.getAgreement(delegation);
 
   if (!agreement) {
-    return Promise.resolve();
+    return;
   }
 
   const isDeletable = match(agreement.state)
