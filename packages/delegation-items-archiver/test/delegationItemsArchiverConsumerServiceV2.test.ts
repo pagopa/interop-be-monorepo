@@ -22,19 +22,20 @@ import {
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test/index.js";
 import { handleMessageV2 } from "../src/delegationItemsArchiverConsumerServiceV2.js";
-import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
+import {
+  AgreementProcessClient,
+  PurposeProcessClient,
+} from "../src/clients/clientsProvider.js";
 import { addOneAgreement, addOnePurpose, readModelService } from "./utils.js";
 
-const mockClients = {
-  agreementProcessClient: {
-    internalDeleteAgreementAfterDelegationRevocation: vi.fn(),
-    internalArchiveAgreementAfterDelegationRevocation: vi.fn(),
-  },
-  purposeProcessClient: {
-    internalDeletePurposeAfterDelegationRevocation: vi.fn(),
-    internalArchivePurposeVersionAfterDelegationRevocation: vi.fn(),
-  },
-} as unknown as PagoPAInteropBeClients;
+const agreementProcessClient = {
+  internalDeleteAgreementAfterDelegationRevocation: vi.fn(),
+  internalArchiveAgreementAfterDelegationRevocation: vi.fn(),
+} as unknown as AgreementProcessClient;
+const purposeProcessClient = {
+  internalDeletePurposeAfterDelegationRevocation: vi.fn(),
+  internalArchivePurposeVersionAfterDelegationRevocation: vi.fn(),
+} as unknown as PurposeProcessClient;
 
 describe("delegationItemsArchiverConsumerServiceV2", () => {
   describe("ConsumerDelegationRevoked", () => {
@@ -123,23 +124,21 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         await addOnePurpose(purpose2);
         await addOnePurpose(purpose3);
 
-        await handleMessageV2(
-          {
-            decodedMessage: decodedKafkaMessage,
-            refreshableToken: mockRefreshableToken,
-            partition: Math.random(),
-            offset: "10",
-            correlationId,
-            logger: genericLogger,
-            readModelService,
-          },
-          mockClients
-        );
+        await handleMessageV2({
+          decodedMessage: decodedKafkaMessage,
+          refreshableToken: mockRefreshableToken,
+          partition: Math.random(),
+          offset: "10",
+          correlationId,
+          logger: genericLogger,
+          readModelService,
+          agreementProcessClient,
+          purposeProcessClient,
+        });
 
         [purpose1, purpose2, purpose3].forEach((purpose) => {
           expect(
-            mockClients.purposeProcessClient
-              .internalDeletePurposeAfterDelegationRevocation
+            purposeProcessClient.internalDeletePurposeAfterDelegationRevocation
           ).toHaveBeenCalledWith(undefined, {
             params: { id: purpose.id },
             queries: { delegationId: delegation.id },
@@ -147,21 +146,18 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           });
         });
         expect(
-          mockClients.purposeProcessClient
-            .internalArchivePurposeVersionAfterDelegationRevocation
+          purposeProcessClient.internalArchivePurposeVersionAfterDelegationRevocation
         ).not.toHaveBeenCalled();
 
         expect(
-          mockClients.agreementProcessClient
-            .internalArchiveAgreementAfterDelegationRevocation
+          agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation
         ).toHaveBeenCalledWith(undefined, {
           params: { agreementId: agreement.id },
           queries: { delegationId: delegation.id },
           headers: testHeaders,
         });
         expect(
-          mockClients.agreementProcessClient
-            .internalDeleteAgreementAfterDelegationRevocation
+          agreementProcessClient.internalDeleteAgreementAfterDelegationRevocation
         ).not.toHaveBeenCalled();
       }
     );
@@ -188,23 +184,21 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         await addOnePurpose(purpose1);
         await addOnePurpose(purpose2);
 
-        await handleMessageV2(
-          {
-            decodedMessage: decodedKafkaMessage,
-            refreshableToken: mockRefreshableToken,
-            partition: Math.random(),
-            offset: "10",
-            correlationId,
-            logger: genericLogger,
-            readModelService,
-          },
-          mockClients
-        );
+        await handleMessageV2({
+          decodedMessage: decodedKafkaMessage,
+          refreshableToken: mockRefreshableToken,
+          partition: Math.random(),
+          offset: "10",
+          correlationId,
+          logger: genericLogger,
+          readModelService,
+          agreementProcessClient,
+          purposeProcessClient,
+        });
 
         [purpose1, purpose2].forEach((purpose) => {
           expect(
-            mockClients.purposeProcessClient
-              .internalArchivePurposeVersionAfterDelegationRevocation
+            purposeProcessClient.internalArchivePurposeVersionAfterDelegationRevocation
           ).toHaveBeenCalledWith(undefined, {
             params: {
               purposeId: purpose.id,
@@ -215,21 +209,18 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           });
         });
         expect(
-          mockClients.purposeProcessClient
-            .internalDeletePurposeAfterDelegationRevocation
+          purposeProcessClient.internalDeletePurposeAfterDelegationRevocation
         ).not.toHaveBeenCalled();
 
         expect(
-          mockClients.agreementProcessClient
-            .internalArchiveAgreementAfterDelegationRevocation
+          agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation
         ).toHaveBeenCalledWith(undefined, {
           params: { agreementId: agreement.id },
           queries: { delegationId: delegation.id },
           headers: testHeaders,
         });
         expect(
-          mockClients.agreementProcessClient
-            .internalDeleteAgreementAfterDelegationRevocation
+          agreementProcessClient.internalDeleteAgreementAfterDelegationRevocation
         ).not.toHaveBeenCalled();
       }
     );
@@ -243,39 +234,34 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
 
         await addOneAgreement(agreement);
 
-        await handleMessageV2(
-          {
-            decodedMessage: decodedKafkaMessage,
-            refreshableToken: mockRefreshableToken,
-            partition: Math.random(),
-            offset: "10",
-            correlationId,
-            logger: genericLogger,
-            readModelService,
-          },
-          mockClients
-        );
+        await handleMessageV2({
+          decodedMessage: decodedKafkaMessage,
+          refreshableToken: mockRefreshableToken,
+          partition: Math.random(),
+          offset: "10",
+          correlationId,
+          logger: genericLogger,
+          readModelService,
+          agreementProcessClient,
+          purposeProcessClient,
+        });
 
         expect(
-          mockClients.purposeProcessClient
-            .internalArchivePurposeVersionAfterDelegationRevocation
+          purposeProcessClient.internalArchivePurposeVersionAfterDelegationRevocation
         ).not.toHaveBeenCalled();
         expect(
-          mockClients.purposeProcessClient
-            .internalDeletePurposeAfterDelegationRevocation
+          purposeProcessClient.internalDeletePurposeAfterDelegationRevocation
         ).not.toHaveBeenCalled();
 
         expect(
-          mockClients.agreementProcessClient
-            .internalArchiveAgreementAfterDelegationRevocation
+          agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation
         ).toHaveBeenCalledWith(undefined, {
           params: { agreementId: agreement.id },
           queries: { delegationId: delegation.id },
           headers: testHeaders,
         });
         expect(
-          mockClients.agreementProcessClient
-            .internalDeleteAgreementAfterDelegationRevocation
+          agreementProcessClient.internalDeleteAgreementAfterDelegationRevocation
         ).not.toHaveBeenCalled();
       }
     );
@@ -293,39 +279,34 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
 
         await addOneAgreement(agreement);
 
-        await handleMessageV2(
-          {
-            decodedMessage: decodedKafkaMessage,
-            refreshableToken: mockRefreshableToken,
-            partition: Math.random(),
-            offset: "10",
-            correlationId,
-            logger: genericLogger,
-            readModelService,
-          },
-          mockClients
-        );
+        await handleMessageV2({
+          decodedMessage: decodedKafkaMessage,
+          refreshableToken: mockRefreshableToken,
+          partition: Math.random(),
+          offset: "10",
+          correlationId,
+          logger: genericLogger,
+          readModelService,
+          agreementProcessClient,
+          purposeProcessClient,
+        });
 
         expect(
-          mockClients.purposeProcessClient
-            .internalArchivePurposeVersionAfterDelegationRevocation
+          purposeProcessClient.internalArchivePurposeVersionAfterDelegationRevocation
         ).not.toHaveBeenCalled();
         expect(
-          mockClients.purposeProcessClient
-            .internalDeletePurposeAfterDelegationRevocation
+          purposeProcessClient.internalDeletePurposeAfterDelegationRevocation
         ).not.toHaveBeenCalled();
 
         expect(
-          mockClients.agreementProcessClient
-            .internalDeleteAgreementAfterDelegationRevocation
+          agreementProcessClient.internalDeleteAgreementAfterDelegationRevocation
         ).toHaveBeenCalledWith(undefined, {
           params: { agreementId: agreement.id },
           queries: { delegationId: delegation.id },
           headers: testHeaders,
         });
         expect(
-          mockClients.agreementProcessClient
-            .internalArchiveAgreementAfterDelegationRevocation
+          agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation
         ).not.toHaveBeenCalled();
       }
     );
