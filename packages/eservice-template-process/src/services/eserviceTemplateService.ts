@@ -53,6 +53,7 @@ import {
   toCreateEventEServiceTemplateDeleted,
   toCreateEventEServiceTemplateDraftVersionDeleted,
 } from "../model/domain/toEvent.js";
+import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertIsDraftTemplate,
@@ -205,7 +206,7 @@ export function validateRiskAnalysisSchemaOrThrow(
 export function eserviceTemplateServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
-  _fileManager: FileManager
+  fileManager: FileManager
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -495,6 +496,18 @@ export function eserviceTemplateServiceBuilder(
       }
 
       const isLastVersion = eserviceTemplate.data.versions.length === 1;
+
+      if (version.interface) {
+        await fileManager.delete(
+          config.s3Bucket,
+          version.interface.path,
+          logger
+        );
+      }
+
+      for (const document of version.docs) {
+        await fileManager.delete(config.s3Bucket, document.path, logger);
+      }
 
       if (isLastVersion) {
         await repository.createEvent(
