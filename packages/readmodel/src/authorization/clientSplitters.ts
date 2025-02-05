@@ -31,11 +31,11 @@ export const splitClientIntoObjectsSQL = (
   const clientSQL: ClientSQL = {
     id,
     version,
-    consumerId,
+    consumer_id: consumerId,
     name,
     description,
     kind,
-    createdAt,
+    created_at: createdAt,
   };
 
   const clientUsersSQL: ClientUserSQL[] = users.map((userId) => ({
