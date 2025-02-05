@@ -165,7 +165,7 @@ async function sendAgreementActivationEmail(
   };
   try {
     logger.info(
-      `Sending email for agreement ${agreement.id} activation (${emailManager.kind})`
+      `Sending certified email for agreement ${agreement.id} activation`
     );
     await emailManager.send(
       { name: sender.label, address: sender.mail },
@@ -174,14 +174,14 @@ async function sendAgreementActivationEmail(
       mail.body
     );
     logger.info(
-      `Email sent for agreement ${agreement.id} activation (${emailManager.kind})`
+      `Certified email sent for agreement ${agreement.id} activation`
     );
   } catch (err) {
     logger.error(
-      `Unexpected error sending email for agreement ${agreement.id} activation (${emailManager.kind}): ${err}`
+      `Unexpected error sending certified email for agreement ${agreement.id} activation: ${err}`
     );
     throw genericInternalError(
-      `Error sending email for agreement ${agreement.id}: ${err}`
+      `Error sending certified email for agreement ${agreement.id}: ${err}`
     );
   }
 }
