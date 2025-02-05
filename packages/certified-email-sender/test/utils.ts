@@ -13,8 +13,8 @@ import {
   toReadModelTenant,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
-import { agreementEmailSenderServiceBuilder } from "../src/services/certifiedEmailSenderService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { certifiedEmailSenderServiceBuilder } from "../src/services/certifiedEmailSenderService.js";
 
 export const readModelConfig = inject("readModelConfig");
 export const emailManagerConfig = inject("emailManagerConfig");
@@ -37,15 +37,15 @@ export const pecEmailsenderData = {
 };
 export const interopFeBaseUrl = "http://localhost/fe";
 
-export const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
+export const certifiedEmailSenderService = certifiedEmailSenderServiceBuilder(
   pecEmailManager,
   pecEmailsenderData,
   readModelService,
   templateService
 );
 
-export const agreementEmailSenderServiceFailure =
-  agreementEmailSenderServiceBuilder(
+export const certifiedEmailSenderServiceFailure =
+  certifiedEmailSenderServiceBuilder(
     pecEmailManager,
     pecEmailsenderData,
     readModelService,

@@ -26,7 +26,7 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  agreementEmailSenderService,
+  certifiedEmailSenderService,
   interopFeBaseUrl,
   pecEmailManager,
   pecEmailsenderData,
@@ -75,7 +75,7 @@ describe("sendAgreementActivationEmail", () => {
       };
       await addOneAgreement(agreement);
 
-      await agreementEmailSenderService.sendAgreementActivationCertifiedEmail(
+      await certifiedEmailSenderService.sendAgreementActivationCertifiedEmail(
         toAgreementV2(agreement),
         genericLogger
       );
@@ -142,7 +142,7 @@ describe("sendAgreementActivationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementEmailSenderService.sendAgreementActivationCertifiedEmail(
+        certifiedEmailSenderService.sendAgreementActivationCertifiedEmail(
           toAgreementV2(agreement),
           genericLogger
         )

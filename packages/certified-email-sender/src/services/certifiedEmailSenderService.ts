@@ -186,7 +186,7 @@ async function sendAgreementActivationEmail(
   }
 }
 
-export function agreementEmailSenderServiceBuilder(
+export function certifiedEmailSenderServiceBuilder(
   pecEmailManager: EmailManagerPEC,
   pecSenderData: { label: string; mail: string },
   readModelService: ReadModelService,

@@ -24,7 +24,7 @@ export const EmailSenderConfig = z
   }));
 export type EmailSenderConfig = z.infer<typeof EmailSenderConfig>;
 
-export const AgreementEmailSenderConfig = KafkaConsumerConfig.and(
+export const CertifiedEmailSenderConfig = KafkaConsumerConfig.and(
   ReadModelDbConfig
 )
   .and(AgreementTopicConfig)
@@ -32,9 +32,9 @@ export const AgreementEmailSenderConfig = KafkaConsumerConfig.and(
   .and(AWSSesConfig)
   .and(EmailSenderConfig);
 
-export type AgreementEmailSenderConfig = z.infer<
-  typeof AgreementEmailSenderConfig
+export type CertifiedEmailSenderConfig = z.infer<
+  typeof CertifiedEmailSenderConfig
 >;
 
-export const config: AgreementEmailSenderConfig =
-  AgreementEmailSenderConfig.parse(process.env);
+export const config: CertifiedEmailSenderConfig =
+  CertifiedEmailSenderConfig.parse(process.env);

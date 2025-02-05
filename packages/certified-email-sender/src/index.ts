@@ -18,7 +18,7 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { config } from "./config/config.js";
-import { agreementEmailSenderServiceBuilder } from "./services/certifiedEmailSenderService.js";
+import { certifiedEmailSenderServiceBuilder } from "./services/certifiedEmailSenderService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 
 const readModelService = readModelServiceBuilder(
@@ -32,7 +32,7 @@ const pecEmailsenderData = {
   mail: config.pecSenderMail,
 };
 
-const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
+const certifiedEmailSenderService = certifiedEmailSenderServiceBuilder(
   pecEmailManager,
   pecEmailsenderData,
   readModelService,
@@ -62,7 +62,7 @@ export async function processMessage({
       async ({ data: { agreement } }) => {
         if (agreement) {
           await Promise.all([
-            agreementEmailSenderService.sendAgreementActivationCertifiedEmail(
+            certifiedEmailSenderService.sendAgreementActivationCertifiedEmail(
               agreement,
               loggerInstance
             ),
