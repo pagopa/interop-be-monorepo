@@ -4,7 +4,6 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import {
-  EmailManager,
   EmailManagerPEC,
   HtmlTemplateService,
   Logger,
@@ -128,7 +127,7 @@ export function getFormattedAgreementStampDate(
 }
 
 async function sendAgreementActivationEmail(
-  emailManager: EmailManager,
+  emailManager: EmailManagerPEC,
   readModelService: ReadModelService,
   agreementV2Msg: AgreementV2,
   templateService: HtmlTemplateService,
