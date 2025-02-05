@@ -29,11 +29,11 @@ export type Client = z.infer<typeof Client>;
 export const ClientSQL = z.object({
   id: ClientId,
   version: z.number(),
-  consumerId: TenantId,
+  consumer_id: TenantId,
   name: z.string(),
   description: z.string().optional(),
   kind: ClientKind,
-  createdAt: z.coerce.date(),
+  created_at: z.coerce.date(),
 });
 
 export type ClientSQL = z.infer<typeof ClientSQL>;
