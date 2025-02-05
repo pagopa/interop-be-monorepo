@@ -1,7 +1,7 @@
 import { AgreementEventEnvelopeV1 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export async function sendAgreementAnalyticsUpdateV1(
+export async function handleAgreementMessageV1(
   message: AgreementEventEnvelopeV1
 ): Promise<void> {
   await match(message)

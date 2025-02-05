@@ -1,7 +1,7 @@
 import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export async function sendCatalogAnalyticsUpdateV2(
+export async function handleCatalogMessageV2(
   message: EServiceEventEnvelopeV2
 ): Promise<void> {
   await match(message)

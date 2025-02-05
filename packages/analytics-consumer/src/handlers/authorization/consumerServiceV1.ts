@@ -1,7 +1,7 @@
 import { AuthorizationEventEnvelopeV1 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export function sendAuthorizationAnalyticsAuthUpdateV1(
+export function handleAuthorizationMessageV1(
   event: AuthorizationEventEnvelopeV1
 ): Promise<void> {
   return match(event)

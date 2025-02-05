@@ -1,7 +1,7 @@
 import { TenantEventEnvelopeV1 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export async function sendTenantAnalyticsUpdatev1(
+export async function handleTenantMessageV1(
   decodedMessage: TenantEventEnvelopeV1
 ): Promise<void> {
   await match(decodedMessage)

@@ -1,7 +1,7 @@
 import { DelegationEventEnvelopeV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export async function sendDelegationAnalyticsUpdateV2(
+export async function handleDelegationMessageV2(
   message: DelegationEventEnvelopeV2
 ): Promise<void> {
   await match(message)

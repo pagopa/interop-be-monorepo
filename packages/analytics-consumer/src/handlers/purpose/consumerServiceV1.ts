@@ -1,7 +1,7 @@
 import { PurposeEventEnvelopeV1 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export async function sendPurposeAnalyticsUpdatev1(
+export async function handlePurposeMessageV1(
   message: PurposeEventEnvelopeV1
 ): Promise<void> {
   await match(message)

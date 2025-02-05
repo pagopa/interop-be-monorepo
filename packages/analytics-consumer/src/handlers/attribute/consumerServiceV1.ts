@@ -1,7 +1,7 @@
 import { AttributeEventEnvelope } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export async function sendAttributeAnalyticsUpdateV1(
+export async function handleAttributeMessageV1(
   message: AttributeEventEnvelope
 ): Promise<void> {
   await match(message)
