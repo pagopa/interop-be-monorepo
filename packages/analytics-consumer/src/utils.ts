@@ -8,22 +8,18 @@ import {
   AuthorizationEvent,
 } from "pagopa-interop-models";
 import { config } from "./config/config.js";
-import {
-  sendAgreementAnalyticsUpdateV1,
-  sendAttributeAnalyticsUpdateV1,
-  sendCatalogAnalyticsUpdateV1,
-  sendTenantAnalyticsUpdatev1,
-  sendPurposeAnalyticsUpdatev1,
-  sendAuthorizationAnalyticsAuthUpdateV1,
-} from "./consumerServiceV1.js";
-import {
-  sendAgreementAnalyticsUpdateV2,
-  sendCatalogAnalyticsUpdateV2,
-  sendTenantAnalyticsUpdatev2,
-  sendPurposeAnalyticsUpdatev2,
-  sendDelegationAnalyticsUpdateV2,
-  sendAuthorizationAnalyticsAuthUpdateV2,
-} from "./consumerServiceV2.js";
+import { sendAgreementAnalyticsUpdateV1 } from "./agreement/consumerServiceV1.js";
+import { sendAgreementAnalyticsUpdateV2 } from "./agreement/consumerServiceV2.js";
+import { sendAttributeAnalyticsUpdateV1 } from "./attribute/consumerServiceV1.js";
+import { sendAuthorizationAnalyticsAuthUpdateV1 } from "./authorization/consumerServiceV1.js";
+import { sendAuthorizationAnalyticsAuthUpdateV2 } from "./authorization/consumerServiceV2.js";
+import { sendCatalogAnalyticsUpdateV1 } from "./catalog/consumerServiceV1.js";
+import { sendCatalogAnalyticsUpdateV2 } from "./catalog/consumerServiceV2.js";
+import { sendDelegationAnalyticsUpdateV2 } from "./delegation/consumerServiceV2.js";
+import { sendPurposeAnalyticsUpdatev1 } from "./purpose/consumerServiceV1.js";
+import { sendPurposeAnalyticsUpdatev2 } from "./purpose/consumerServiceV2.js";
+import { sendTenantAnalyticsUpdatev1 } from "./tenant/consumerServiceV1.js";
+import { sendTenantAnalyticsUpdatev2 } from "./tenant/consumerServiceV2.js";
 
 type DecoderTypes =
   | typeof AgreementEvent
