@@ -106,6 +106,16 @@ paths:
           schema:
             type: boolean
         - in: query
+          name: templatesIds
+          description: comma separated sequence of e-service template IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: offset
           required: true
           schema:
