@@ -18,7 +18,7 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { config } from "./config/config.js";
-import { agreementEmailSenderServiceBuilder } from "./services/agreementEmailSenderService.js";
+import { agreementEmailSenderServiceBuilder } from "./services/certifiedEmailSenderService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 
 const readModelService = readModelServiceBuilder(

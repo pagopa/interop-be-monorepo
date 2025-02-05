@@ -13,7 +13,7 @@ import {
   toReadModelTenant,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
-import { agreementEmailSenderServiceBuilder } from "../src/services/agreementEmailSenderService.js";
+import { agreementEmailSenderServiceBuilder } from "../src/services/certifiedEmailSenderService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const readModelConfig = inject("readModelConfig");

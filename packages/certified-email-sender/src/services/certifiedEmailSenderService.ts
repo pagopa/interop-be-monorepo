@@ -38,7 +38,7 @@ import { ReadModelService } from "./readModelService.js";
 
 // Be careful to change this enum, it's used to find the html template files
 export const agreementEventMailTemplateType = {
-  activationPEC: "activation-pec-mail",
+  agreementActivationPEC: "agreement-activation-pec-mail",
 } as const;
 
 const AgreementEventMailTemplateType = z.enum([
@@ -226,7 +226,7 @@ export function agreementEmailSenderServiceBuilder(
         readModelService,
         agreementV2Msg,
         templateService,
-        agreementEventMailTemplateType.activationPEC,
+        agreementEventMailTemplateType.agreementActivationPEC,
         logger,
         pecSenderData,
         consumer.name,

@@ -21,7 +21,7 @@ import { tenantDigitalAddressNotFound } from "../src/models/errors.js";
 import {
   agreementEventMailTemplateType,
   getFormattedAgreementStampDate,
-} from "../src/services/agreementEmailSenderService.js";
+} from "../src/services/certifiedEmailSenderService.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -82,7 +82,7 @@ describe("sendAgreementActivationEmail", () => {
 
       const filename = fileURLToPath(import.meta.url);
       const dirname = path.dirname(filename);
-      const templatePath = `../src/resources/templates/${agreementEventMailTemplateType.activationPEC}.html`;
+      const templatePath = `../src/resources/templates/${agreementEventMailTemplateType.agreementActivationPEC}.html`;
 
       const htmlTemplateBuffer = await fs.readFile(
         `${dirname}/${templatePath}`
