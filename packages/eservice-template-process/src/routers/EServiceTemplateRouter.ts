@@ -211,7 +211,7 @@ const eserviceTemplatesRouter = (
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/riskAnalysis",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -235,7 +235,7 @@ const eserviceTemplatesRouter = (
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -260,7 +260,7 @@ const eserviceTemplatesRouter = (
     )
     .delete(
       "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
