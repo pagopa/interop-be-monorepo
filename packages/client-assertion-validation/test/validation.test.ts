@@ -619,6 +619,20 @@ describe("validation test", async () => {
       );
       expect(errors).toBeUndefined();
     });
+
+    it("ignore nbt claim", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          nbt: "something",
+        },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
+      expect(errors).toBeUndefined();
+    });
   });
 
   describe("verifyClientAssertionSignature", async () => {
