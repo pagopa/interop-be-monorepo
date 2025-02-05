@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ClientId, PurposeId, TenantId, UserId } from "../brandedIds.js";
-import { Key } from "./key.js";
+import { Key, KeyUse } from "./key.js";
 
 export const clientKind = {
   consumer: "Consumer",
@@ -62,7 +62,7 @@ export const ClientKeySQL = z.object({
   name: z.string(),
   encoded_pem: z.string(),
   algorithm: z.string(),
-  use: z.string(),
+  use: KeyUse,
   created_at: z.coerce.date(),
 });
 
