@@ -16,7 +16,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   AttributeId,
-  CorrelationId,
   Delegation,
   Descriptor,
   DescriptorId,
@@ -402,7 +401,6 @@ export function catalogServiceBuilder(
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      costruisciMessaggioAudit("getEservices", CorrelationId);
       return await applyVisibilityToEService(
         eservice.data,
         authData,
