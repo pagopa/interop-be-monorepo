@@ -13750,6 +13750,107 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  "/eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - eserviceTemplates
+      summary: Retrieves a eservice template version corresponding to the id
+      description: Retrieves a eservice template version corresponding to the id
+      operationId: getEServiceTemplateVersion
+      parameters:
+        - name: eServiceTemplateId
+          in: path
+          description: The internal identifier of the eservice template
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: eServiceTemplateVersionId
+          in: path
+          description: the eservice template version id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The corresponding eService template version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionDetails"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Eservice template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/status":
     get:
       security: []
@@ -16490,6 +16591,115 @@ components:
           type: string
       required:
         - description
+    EServiceTemplateVersionState:
+      type: string
+      description: EService Descriptor State
+      enum:
+        - DRAFT
+        - PUBLISHED
+        - DEPRECATED
+        - SUSPENDED
+    CompactEServiceTemplateVersion:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - version
+        - state
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: string
+        state:
+          $ref: "#/components/schemas/EServiceTemplateVersionState"
+    EServiceTemplateDetails:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - creator
+        - name
+        - audienceDescription
+        - eserviceDescription
+        - technology
+        - versions
+        - riskAnalysis
+        - mode
+      properties:
+        id:
+          type: string
+          format: uuid
+        creator:
+          $ref: "#/components/schemas/CompactOrganization"
+        name:
+          type: string
+        audienceDescription:
+          type: string
+        eserviceDescription:
+          type: string
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        versions:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactEServiceTemplateVersion"
+        riskAnalysis:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceRiskAnalysis"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
+    EServiceTemplateVersionDetails:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - version
+        - docs
+        - state
+        - creationDate
+        - voucherLifespan
+        - attributes
+        - eserviceTemplate
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: string
+        description:
+          type: string
+        voucherLifespan:
+          type: integer
+          format: int32
+        dailyCallsPerConsumer:
+          description: "maximum number of daily calls that this descriptor can afford per consumer."
+          type: integer
+          format: int32
+          minimum: 1
+        dailyCallsTotal:
+          description: "total daily calls available for this e-service."
+          type: integer
+          format: int32
+          minimum: 1
+        interface:
+          $ref: "#/components/schemas/EServiceDoc"
+        docs:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDoc"
+        state:
+          $ref: "#/components/schemas/EServiceTemplateVersionState"
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/DescriptorAttributes"
+        eserviceTemplate:
+          $ref: "#/components/schemas/EServiceTemplateDetails"
     Problem:
       type: object
       additionalProperties: false

@@ -298,7 +298,7 @@ export function catalogServiceBuilder(
 
       const descriptorAttributes = toBffCatalogApiDescriptorAttributes(
         attributes,
-        descriptor
+        descriptor.attributes
       );
 
       const producerTenant = await tenantProcessClient.tenant.getTenant({
@@ -581,7 +581,7 @@ export function catalogServiceBuilder(
 
       const descriptorAttributes = toBffCatalogApiDescriptorAttributes(
         attributes,
-        descriptor
+        descriptor.attributes
       );
 
       const requesterTenant = await tenantProcessClient.tenant.getTenant({
