@@ -309,7 +309,7 @@ export function eserviceTemplateServiceBuilder(
 
       if (name !== eserviceTemplate.data.name) {
         const eserviceTemplateWithSameName =
-          await readModelService.getEServiceTemplateByNameAndProducerId({
+          await readModelService.getEServiceTemplateByNameAndCreatorId({
             name,
             creatorId: eserviceTemplate.data.creatorId,
           });
