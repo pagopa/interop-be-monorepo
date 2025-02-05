@@ -8,6 +8,8 @@ import {
   eventRepository,
 } from "pagopa-interop-commons";
 import {
+  AttributeId,
+  EserviceAttributes,
   EServiceTemplate,
   eserviceTemplateEventToBinaryDataV2,
   EServiceTemplateId,
@@ -15,14 +17,18 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
+  unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
+  attributeNotFound,
   eServiceTemplateDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
   eserviceTemplateWithoutPublishedVersion,
+  inconsistentDailyCalls,
   notValidEServiceTemplateVersionState,
 } from "../model/domain/errors.js";
 import {
@@ -31,7 +37,9 @@ import {
   toCreateEventEServiceTemplateVersionActivated,
   toCreateEventEServiceTemplateVersionSuspended,
   toCreateEventEServiceTemplateNameUpdated,
+  toCreateEventEServiceTemplateDraftVersionUpdated,
 } from "../model/domain/toEvent.js";
+import { apiAgreementApprovalPolicyToAgreementApprovalPolicy } from "../model/domain/apiConverter.js";
 import { ReadModelService } from "./readModelService.js";
 import { assertRequesterEServiceTemplateCreator } from "./validators.js";
 
@@ -152,6 +160,59 @@ const replaceEServiceTemplateVersion = (
   };
 };
 
+async function parseAndCheckAttributes(
+  attributesSeed: eserviceTemplateApi.AttributesSeed,
+  readModelService: ReadModelService
+): Promise<EserviceAttributes> {
+  const certifiedAttributes = attributesSeed.certified;
+  const declaredAttributes = attributesSeed.declared;
+  const verifiedAttributes = attributesSeed.verified;
+
+  const attributesSeeds = [
+    ...certifiedAttributes.flat(),
+    ...declaredAttributes.flat(),
+    ...verifiedAttributes.flat(),
+  ];
+
+  if (attributesSeeds.length > 0) {
+    const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
+      unsafeBrandId(attr.id)
+    );
+    const attributes = await readModelService.getAttributesByIds(
+      attributesSeedsIds
+    );
+    const attributesIds = attributes.map((attr) => attr.id);
+    for (const attributeSeedId of attributesSeedsIds) {
+      if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
+        throw attributeNotFound(attributeSeedId);
+      }
+    }
+  }
+
+  return {
+    certified: certifiedAttributes.map((a) =>
+      a.map((a) => ({
+        ...a,
+        id: unsafeBrandId(a.id),
+      }))
+    ),
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    declared: declaredAttributes.map((a) =>
+      a.map((a) => ({
+        ...a,
+        id: unsafeBrandId(a.id),
+      }))
+    ),
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    verified: verifiedAttributes.map((a) =>
+      a.map((a) => ({
+        ...a,
+        id: unsafeBrandId(a.id),
+      }))
+    ),
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eserviceTemplateServiceBuilder(
   dbInstance: DB,
@@ -163,13 +224,89 @@ export function eserviceTemplateServiceBuilder(
     eserviceTemplateEventToBinaryDataV2
   );
   return {
+    async updateDraftTemplateVersion(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      seed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EServiceTemplate> {
+      logger.info(
+        `Update draft e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        eserviceTemplate.data
+      );
+
+      if (
+        eserviceTemplateVersion.state !== eserviceTemplateVersionState.draft
+      ) {
+        throw notValidEServiceTemplateVersionState(
+          eserviceTemplateVersionId,
+          eserviceTemplateVersion.state
+        );
+      }
+
+      if (
+        seed.dailyCallsPerConsumer !== undefined &&
+        seed.dailyCallsTotal !== undefined &&
+        seed.dailyCallsPerConsumer > seed.dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed.attributes,
+        readModelService
+      );
+
+      const updatedVersion: EServiceTemplateVersion = {
+        ...eserviceTemplateVersion,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          ),
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.dailyCallsTotal,
+        description: seed.description,
+        voucherLifespan: seed.voucherLifespan,
+        attributes: parsedAttributes,
+      };
+
+      const updatedEServiceTemplate = replaceEServiceTemplateVersion(
+        eserviceTemplate.data,
+        updatedVersion
+      );
+
+      const event = toCreateEventEServiceTemplateDraftVersionUpdated(
+        eserviceTemplateId,
+        eserviceTemplate.metadata.version,
+        eserviceTemplateVersionId,
+        updatedEServiceTemplate,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return updatedEServiceTemplate;
+    },
     async suspendEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(
-        `Suspending e-service template version ${eserviceTemplateVersionId} for EService ${eserviceTemplateId}`
+        `Suspending e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
       );
 
       const eserviceTemplate = await retrieveEServiceTemplate(

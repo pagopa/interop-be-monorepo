@@ -8,11 +8,15 @@ import {
 } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
 import {
+  Attribute,
   EServiceTemplate,
   EServiceTemplateEvent,
   EServiceTemplateId,
+  EServiceTemplateVersion,
   toEServiceTemplateV2,
+  toReadModelAttribute,
 } from "pagopa-interop-models";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
 
@@ -26,6 +30,7 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 afterEach(cleanup);
 
 export const eserviceTemplates = readModelRepository.eserviceTemplates;
+export const attributes = readModelRepository.attributes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
@@ -68,3 +73,22 @@ export const readLastEserviceTemplateEvent = async (
     "eservice_template",
     postgresDB
   );
+
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+};
+
+export const buildUpdateVersionSeed = (
+  version: EServiceTemplateVersion
+): eserviceTemplateApi.UpdateEServiceTemplateVersionSeed => ({
+  voucherLifespan: version.voucherLifespan,
+  dailyCallsPerConsumer: version.dailyCallsPerConsumer,
+  dailyCallsTotal: version.dailyCallsTotal,
+  agreementApprovalPolicy: "AUTOMATIC",
+  description: version.description,
+  attributes: {
+    certified: [],
+    declared: [],
+    verified: [],
+  },
+});

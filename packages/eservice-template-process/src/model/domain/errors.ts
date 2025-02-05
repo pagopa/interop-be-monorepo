@@ -12,6 +12,8 @@ export const errorCodes = {
   notValidEServiceTemplateVersionState: "0003",
   eServiceTemplateDuplicate: "0004",
   eserviceTemplateWithoutPublishedVersion: "0005",
+  inconsistentDailyCalls: "0006",
+  attributeNotFound: "0007",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -67,5 +69,21 @@ export function eserviceTemplateWithoutPublishedVersion(
     detail: `EService Template ${eserviceTemplateId} does not have a published version`,
     code: "eserviceTemplateWithoutPublishedVersion",
     title: "EService template without published version",
+  });
+}
+
+export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
+    code: "inconsistentDailyCalls",
+    title: "Inconsistent daily calls",
+  });
+}
+
+export function attributeNotFound(attributeId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
+    title: "Attribute not found",
   });
 }
