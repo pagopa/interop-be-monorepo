@@ -88,13 +88,14 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_revoker (
   tenant_version INTEGER,
   id UUID REFERENCES readmodel.tenant (id),
   -- revoker id
-  tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.tenant_verified_attribute (id) ON DELETE CASCADE,
+  tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.attribute(id),
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
   extension_date TIMESTAMP WITH TIME ZONE,
   revocation_date TIMESTAMP NOT NULL,
   delegation_id UUID,
-  PRIMARY KEY (id, tenant_verified_attribute_id, tenant_id)
+  PRIMARY KEY (id, tenant_verified_attribute_id, tenant_id),
+  FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel.tenant_verified_attribute (tenant_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_certifier(
@@ -250,7 +251,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_binding (
   email VARCHAR,
   url VARCHAR,
   terms_and_conditions_url VARCHAR,
-  server_url VARCHAR,
+  server_url VARCHAR
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.descriptor (
