@@ -61,22 +61,16 @@ export const interopFeBaseUrl = "http://localhost/fe";
 export const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
   pecEmailManager,
   pecEmailsenderData,
-  sesEmailManager,
-  sesEmailsenderData,
   readModelService,
-  templateService,
-  interopFeBaseUrl
+  templateService
 );
 
 export const agreementEmailSenderServiceFailure =
   agreementEmailSenderServiceBuilder(
     pecEmailManager,
     pecEmailsenderData,
-    sesEmailManagerFailure,
-    sesEmailsenderData,
     readModelService,
-    templateService,
-    interopFeBaseUrl
+    templateService
   );
 
 export const agreements = readModelRepository.agreements;
