@@ -87,7 +87,7 @@ export function selfcareServiceBuilder(
     },
 
     async getSelfcareInstitutions({
-      authData: { userId, selfcareId },
+      authData: { userId },
       logger,
       correlationId,
     }: WithLogger<BffAppContext>): Promise<bffApi.SelfcareInstitution[]> {
@@ -96,7 +96,6 @@ export function selfcareServiceBuilder(
       const institutions = await selfcareV2UsersClient.v2getUserInstitution({
         queries: {
           userId,
-          institutionId: selfcareId,
           states: "ACTIVE",
           products: config.selfcareProductName,
         },
