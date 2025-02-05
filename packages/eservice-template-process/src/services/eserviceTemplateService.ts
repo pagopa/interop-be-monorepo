@@ -35,7 +35,6 @@ import {
   eserviceTemaplateRiskAnalysisNameDuplicate,
   eServiceTemplateDuplicate,
   eServiceTemplateNotFound,
-  eserviceTemplateRequesterIsNotCreator,
   eServiceTemplateVersionNotFound,
   eserviceTemplateWithoutPublishedVersion,
   notValidEServiceTemplateVersionState,
@@ -471,9 +470,7 @@ export function eserviceTemplateServiceBuilder(
       logger.info(`Creating risk analysis for eServiceTemplateId: ${id}`);
 
       const template = await retrieveEServiceTemplate(id, readModelService);
-      if (template.data.creatorId !== authData.organizationId) {
-        throw eserviceTemplateRequesterIsNotCreator(id);
-      }
+      assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
       assertIsDraftTemplate(template.data);
       assertIsReceiveTemplate(template.data);
 
@@ -531,9 +528,7 @@ export function eserviceTemplateServiceBuilder(
         templateId,
         readModelService
       );
-      if (template.data.creatorId !== authData.organizationId) {
-        throw eserviceTemplateRequesterIsNotCreator(templateId);
-      }
+      assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
       assertIsDraftTemplate(template.data);
       assertIsReceiveTemplate(template.data);
 
@@ -568,9 +563,7 @@ export function eserviceTemplateServiceBuilder(
         templateId,
         readModelService
       );
-      if (template.data.creatorId !== authData.organizationId) {
-        throw eserviceTemplateRequesterIsNotCreator(templateId);
-      }
+      assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
       assertIsDraftTemplate(template.data);
       assertIsReceiveTemplate(template.data);
 

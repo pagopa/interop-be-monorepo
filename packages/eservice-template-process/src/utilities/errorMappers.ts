@@ -88,11 +88,7 @@ export const createRiskAnalysisErrorMapper = (
       "tenantKindNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with(
-      "operationForbidden",
-      "requesterIsNotCreator",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceTemplateNotInDraftState",
       "eserviceTemplateNotInReceiveMode",
@@ -107,7 +103,7 @@ export const deleteRiskAnalysisErrorMapper = (
 ): number =>
   match(error.code)
     .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("requesterIsNotCreator", () => HTTP_STATUS_FORBIDDEN)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceTemplateNotInDraftState",
       "eserviceTemplateNotInReceiveMode",
@@ -125,11 +121,7 @@ export const updateRiskAnalysisErrorMapper = (
       "tenantKindNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with(
-      "operationForbidden",
-      "requesterIsNotCreator",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceTemplateNotInDraftState",
       "eserviceTemplateNotInReceiveMode",

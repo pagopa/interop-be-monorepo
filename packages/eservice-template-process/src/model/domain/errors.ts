@@ -14,13 +14,12 @@ export const errorCodes = {
   notValidEServiceTemplateVersionState: "0003",
   eServiceTemplateDuplicate: "0004",
   eserviceTemplateWithoutPublishedVersion: "0005",
-  requesterIsNotCreator: "0006",
-  riskAnalysisNameDuplicate: "0007",
-  riskAnalysisValidationFailed: "0008",
-  tenantNotFound: "0009",
-  tenantKindNotFound: "0010",
-  eserviceTemplateNotInDraftState: "0011",
-  eserviceTemplateNotInReceiveMode: "0012",
+  riskAnalysisNameDuplicate: "0006",
+  riskAnalysisValidationFailed: "0007",
+  tenantNotFound: "0008",
+  tenantKindNotFound: "0009",
+  eserviceTemplateNotInDraftState: "0010",
+  eserviceTemplateNotInReceiveMode: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -76,16 +75,6 @@ export function eserviceTemplateWithoutPublishedVersion(
     detail: `EService Template ${eserviceTemplateId} does not have a published version`,
     code: "eserviceTemplateWithoutPublishedVersion",
     title: "EService template without published version",
-  });
-}
-
-export function eserviceTemplateRequesterIsNotCreator(
-  eserviceTemplateId: EServiceTemplateId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Requester is not the creator of the EService Template ${eserviceTemplateId}`,
-    code: "requesterIsNotCreator",
-    title: "Requester is not the creator",
   });
 }
 
