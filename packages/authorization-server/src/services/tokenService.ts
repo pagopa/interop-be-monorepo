@@ -194,7 +194,7 @@ export function tokenServiceBuilder({
               audience: key.descriptorAudience,
               purposeId: key.GSIPK_purposeId,
               tokenDurationInSeconds: key.descriptorVoucherLifespan,
-              digest: jwt.payload.digest,
+              digest: jwt.payload.digest || undefined,
             });
 
             await publishAudit({

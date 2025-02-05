@@ -463,6 +463,23 @@ describe("validation test", async () => {
         undefined,
         expectedAudiences
       );
+      expect(verifiedClientAssertion.errors).toBeUndefined();
+      expect(verifiedClientAssertion.data?.payload.digest).toBeUndefined();
+    });
+
+    it("should not throw error if digest is null", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          digest: null,
+        },
+      });
+
+      const verifiedClientAssertion = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
+      expect(verifiedClientAssertion.errors).toBeUndefined();
       expect(verifiedClientAssertion.data?.payload.digest).toBeUndefined();
     });
 
