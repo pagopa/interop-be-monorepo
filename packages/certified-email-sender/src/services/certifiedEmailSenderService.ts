@@ -5,7 +5,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import {
   EmailManager,
-  EmailManagerKind,
   EmailManagerPEC,
   HtmlTemplateService,
   Logger,
@@ -50,20 +49,11 @@ type AgreementEventMailTemplateType = z.infer<
   typeof AgreementEventMailTemplateType
 >;
 
-export const retrieveTenantMailAddress = (
-  tenant: Tenant,
-  emailManagerKind: EmailManagerKind
-): TenantMail => {
-  /*
-    When email manager kind is PEC a certified email is sent
-    so it requires to use a digital address instead of a contact email 
-  */
-  const mailKind =
-    emailManagerKind === "PEC"
-      ? tenantMailKind.DigitalAddress
-      : tenantMailKind.ContactEmail;
-
-  const digitalAddress = getLatestTenantMailOfKind(tenant.mails, mailKind);
+export const retrieveTenantDigitalAddress = (tenant: Tenant): TenantMail => {
+  const digitalAddress = getLatestTenantMailOfKind(
+    tenant.mails,
+    tenantMailKind.DigitalAddress
+  );
   if (!digitalAddress) {
     throw tenantDigitalAddressNotFound(tenant.id);
   }
@@ -217,8 +207,8 @@ export function agreementEmailSenderServiceBuilder(
       );
 
       const recepientsEmails = [
-        retrieveTenantMailAddress(consumer, "PEC").address,
-        retrieveTenantMailAddress(producer, "PEC").address,
+        retrieveTenantDigitalAddress(consumer).address,
+        retrieveTenantDigitalAddress(producer).address,
       ];
 
       return sendAgreementActivationEmail(
