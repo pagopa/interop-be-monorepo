@@ -16,6 +16,7 @@ import {
   toApiSelfcareProduct,
   toApiSelfcareUser,
 } from "../api/selfcareApiConverter.js";
+import { config } from "../config/config.js";
 
 export function selfcareServiceBuilder(
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient,
@@ -86,14 +87,19 @@ export function selfcareServiceBuilder(
     },
 
     async getSelfcareInstitutions({
-      authData: { userId },
+      authData: { userId, selfcareId },
       logger,
       correlationId,
     }: WithLogger<BffAppContext>): Promise<bffApi.SelfcareInstitution[]> {
       logger.info(`Retrieving Institutions for User ${userId}`);
 
       const institutions = await selfcareV2UsersClient.v2getUserInstitution({
-        queries: { userId },
+        queries: {
+          userId,
+          institutionId: selfcareId,
+          states: "ACTIVE",
+          products: config.selfcareProductName,
+        },
         headers: {
           "X-Correlation-Id": correlationId,
         },
