@@ -449,8 +449,8 @@ export function eserviceTemplateServiceBuilder(
         seed.dailyCallsTotal ?? eserviceTemplateVersion.dailyCallsTotal;
 
       if (
-        dailyCallsPerConsumer &&
-        dailyCallsTotal &&
+        dailyCallsPerConsumer !== undefined &&
+        dailyCallsTotal !== undefined &&
         dailyCallsPerConsumer > dailyCallsTotal
       ) {
         throw inconsistentDailyCalls();
