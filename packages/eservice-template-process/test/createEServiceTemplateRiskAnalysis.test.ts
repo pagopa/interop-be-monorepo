@@ -28,13 +28,13 @@ import {
   EServiceTemplateRiskAnalysisAddedV2,
   Tenant,
   unsafeBrandId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi, afterAll, beforeAll } from "vitest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   eserviceTemaplateRiskAnalysisNameDuplicate,
   eServiceTemplateNotFound,
-  eserviceTemplateRequesterIsNotCreator,
   riskAnalysisValidationFailed,
   templateNotInDraftState,
   templateNotInReceiveMode,
@@ -211,9 +211,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(
-      eserviceTemplateRequesterIsNotCreator(eserviceTemplate.id)
-    );
+    ).rejects.toThrowError(operationForbidden);
   });
   it("should throw eserviceNotInDraftState if the eservice is not in draft state", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {

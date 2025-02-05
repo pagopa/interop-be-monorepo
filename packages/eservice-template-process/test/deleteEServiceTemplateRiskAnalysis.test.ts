@@ -23,11 +23,11 @@ import {
   tenantKind,
   Tenant,
   EServiceTemplateRiskAnalysisDeletedV2,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi, afterAll, beforeAll } from "vitest";
 import {
   eServiceTemplateNotFound,
-  eserviceTemplateRequesterIsNotCreator,
   templateNotInDraftState,
   templateNotInReceiveMode,
 } from "../src/model/domain/errors.js";
@@ -181,9 +181,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(
-      eserviceTemplateRequesterIsNotCreator(eserviceTemplate.id)
-    );
+    ).rejects.toThrowError(operationForbidden);
   });
   it("should throw eserviceNotInDraftState if the eservice is not in draft state", async () => {
     const requesterId = generateId<TenantId>();
