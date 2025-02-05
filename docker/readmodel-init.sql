@@ -1,7 +1,7 @@
-CREATE SCHEMA readmodel;
+CREATE SCHEMA IF NOT EXISTS readmodel;
 
 -- ATTRIBUTE
-CREATE TABLE readmodel.attribute(
+CREATE TABLE IF NOT EXISTS readmodel.attribute(
   id UUID,
   version INTEGER NOT NULL,
   code VARCHAR NOT NULL,
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE readmodel.eservice_template_version_document(
+CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_document(
   id UUID,
   eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
   eservice_template_version INTEGER NOT NULL,
@@ -183,7 +183,7 @@ CREATE TABLE readmodel.eservice_template_version_document(
  c | certified | 2 | 1
  d | certified | 3 | 0
  */
-CREATE TABLE readmodel.eservice_template_version_attribute(
+CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_attribute(
   id UUID,
   eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
   eservice_template_version INTEGER NOT NULL,
@@ -289,7 +289,7 @@ CREATE TABLE IF NOT EXISTS readmodel.rejection_reason (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE readmodel.descriptor_document(
+CREATE TABLE IF NOT EXISTS readmodel.descriptor_document(
   id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   eservice_version INTEGER NOT NULL,
@@ -313,7 +313,7 @@ CREATE TABLE readmodel.descriptor_document(
  c | certified | 2 | 1
  d | certified | 3 | 0
  */
-CREATE TABLE readmodel.descriptor_attribute(
+CREATE TABLE IF NOT EXISTS readmodel.descriptor_attribute(
   id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   eservice_version INTEGER NOT NULL,
@@ -353,7 +353,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis_answer(
 );
 
 -- AGREEMENT
-CREATE TABLE readmodel.agreement(
+CREATE TABLE IF NOT EXISTS readmodel.agreement(
   id uuid,
   version integer NOT NULL,
   eservice_id uuid NOT NULL REFERENCES readmodel.eservice(id),
@@ -399,7 +399,7 @@ CREATE TABLE readmodel.agreement(
   PRIMARY KEY (id)
 );
 
-CREATE TABLE readmodel.agreement_attribute(
+CREATE TABLE IF NOT EXISTS readmodel.agreement_attribute(
   agreement_id uuid REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
   agreement_version integer NOT NULL,
   attribute_id uuid,
@@ -407,7 +407,7 @@ CREATE TABLE readmodel.agreement_attribute(
   PRIMARY KEY (agreement_id, attribute_id)
 );
 
-CREATE TABLE readmodel.agreement_consumer_document(
+CREATE TABLE IF NOT EXISTS readmodel.agreement_consumer_document(
   id uuid,
   agreement_id uuid REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
   agreement_version integer NOT NULL,
