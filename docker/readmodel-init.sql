@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis(
   eservice_version INTEGER,
   name VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE,
-  risk_analysis_form_id UUID,
+  risk_analysis_form_id UUID UNIQUE,
   risk_analysis_form_version VARCHAR,
   PRIMARY KEY(id)
 );
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis_answer(
   id UUID,
   eservice_id UUID REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   eservice_version INTEGER,
-  risk_analysis_form_id UUID, -- REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id) -- risk_analysis_form_id IS NOT PK
+  risk_analysis_form_id UUID REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id), -- risk_analysis_form_id IS NOT PK
   kind VARCHAR, -- SINGLE/MULTI
   key VARCHAR,
   value VARCHAR ARRAY,
