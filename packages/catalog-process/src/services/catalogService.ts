@@ -330,7 +330,7 @@ function isTenantInSignalHubWhitelist(
   organizationId: TenantId,
   isSignalubEnabled: boolean | undefined
 ): boolean | undefined {
-  return config.signalhubWhitelist?.includes(organizationId)
+  return config.signalhubWhitelistProducer?.includes(organizationId)
     ? isSignalubEnabled
     : false;
 }
