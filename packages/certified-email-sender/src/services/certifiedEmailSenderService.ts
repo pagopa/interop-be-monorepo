@@ -49,7 +49,7 @@ type AgreementEventMailTemplateType = z.infer<
   typeof AgreementEventMailTemplateType
 >;
 
-export const retrieveTenantDigitalAddress = (tenant: Tenant): TenantMail => {
+const retrieveTenantDigitalAddress = (tenant: Tenant): TenantMail => {
   const digitalAddress = getLatestTenantMailOfKind(
     tenant.mails,
     tenantMailKind.DigitalAddress
