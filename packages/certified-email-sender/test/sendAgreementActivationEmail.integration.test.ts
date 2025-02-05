@@ -30,7 +30,6 @@ import {
   interopFeBaseUrl,
   pecEmailManager,
   pecEmailsenderData,
-  sesEmailManager,
   templateService,
 } from "./utils.js";
 
@@ -151,7 +150,7 @@ describe("sendAgreementActivationEmail", () => {
         tenantDigitalAddressNotFound(agreement.producerId)
       );
 
-      expect(sesEmailManager.send).not.toHaveBeenCalled();
+      expect(pecEmailManager.send).not.toHaveBeenCalled();
     });
   });
 });
