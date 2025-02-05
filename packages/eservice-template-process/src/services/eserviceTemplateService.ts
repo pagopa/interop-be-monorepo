@@ -50,6 +50,8 @@ import {
   toCreateEventEServiceTemplateRiskAnalysisAdded,
   toCreateEventEServiceTemplateRiskAnalysisDeleted,
   toCreateEventEServiceTemplateRiskAnalysisUpdated,
+  toCreateEventEServiceTemplateDeleted,
+  toCreateEventEServiceTemplateDraftVersionDeleted,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -454,12 +456,73 @@ export function eserviceTemplateServiceBuilder(
       { authData, logger }: WithLogger<AppContext>
     ): Promise<EServiceTemplate> {
       logger.info(`Retrieving EService template ${eserviceTemplateId}`);
+
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
         readModelService
       );
 
       return applyVisibilityToEServiceTemplate(eserviceTemplate.data, authData);
+    },
+
+    async deleteEServiceTemplateVersion(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+      const version = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        eserviceTemplate.data
+      );
+      if (version.state !== eserviceTemplateVersionState.draft) {
+        throw notValidEServiceTemplateVersionState(
+          eserviceTemplateVersionId,
+          version.state
+        );
+      }
+
+      const isLastVersion = eserviceTemplate.data.versions.length === 1;
+
+      if (isLastVersion) {
+        await repository.createEvent(
+          toCreateEventEServiceTemplateDeleted(
+            eserviceTemplate.data.id,
+            eserviceTemplate.metadata.version,
+            eserviceTemplate.data,
+            correlationId
+          )
+        );
+      } else {
+        const updatedEserviceTemplate: EServiceTemplate = {
+          ...eserviceTemplate.data,
+          versions: eserviceTemplate.data.versions.filter(
+            (v) => v.id !== eserviceTemplateVersionId
+          ),
+        };
+
+        await repository.createEvent(
+          toCreateEventEServiceTemplateDraftVersionDeleted(
+            eserviceTemplate.data.id,
+            eserviceTemplate.metadata.version,
+            eserviceTemplateVersionId,
+            updatedEserviceTemplate,
+            correlationId
+          )
+        );
+      }
     },
 
     async createRiskAnalysis(
