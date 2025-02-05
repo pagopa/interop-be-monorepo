@@ -17,7 +17,7 @@ import { topicConfigMap } from "./utils.js";
 import { config } from "./config/config.js";
 
 export async function processMessage(
-  messagePayload: EachMessagePayload,
+  messagePayload: EachMessagePayload
 ): Promise<void> {
   const { topic, partition, message } = messagePayload;
   const topicItem = topicConfigMap[topic];
@@ -43,7 +43,7 @@ export async function processMessage(
   });
 
   loggerInstance.info(
-    `Processing ${decoded.type} message - Partition ${partition} - Offset ${message.offset}`,
+    `Processing ${decoded.type} message - Partition ${partition} - Offset ${message.offset}`
   );
 
   await handler(decoded);
@@ -69,10 +69,10 @@ try {
           payload.topic,
           payload.partition,
           payload.message.offset,
-          err,
+          err
         );
       }
-    },
+    }
   );
 } catch (e) {
   genericLogger.error(`An error occurred during initialization:\n${e}`);
