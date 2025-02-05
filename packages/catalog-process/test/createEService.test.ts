@@ -43,7 +43,7 @@ describe("create eservice", () => {
   });
   it("should write on event-store for the creation of an eservice", async () => {
     config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelist = [mockEService.producerId];
+    config.signalhubWhitelistProducer = [mockEService.producerId];
 
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
     const isConsumerDelegable = randomArrayItem([false, true, undefined]);
@@ -335,7 +335,7 @@ describe("create eservice", () => {
 
   it("should assign false to isSignalhubEnabled field if signalhub whitelist feature flag is enabled but the organization is not in whitelist", async () => {
     config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelist = [generateId()];
+    config.signalhubWhitelistProducer = [generateId()];
     const isSignalHubEnabled = true;
 
     const eservice = await catalogService.createEService(
@@ -361,7 +361,7 @@ describe("create eservice", () => {
 
   it("should assign value inherit from request to isSignalhubEnabled field if signalhub whitelist feature flag is enabled and the organization is in whitelist", async () => {
     config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelist = [mockEService.producerId];
+    config.signalhubWhitelistProducer = [mockEService.producerId];
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
 
     const eservice = await catalogService.createEService(
