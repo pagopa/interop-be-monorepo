@@ -11,12 +11,13 @@ import {
   CorrelationId,
   kafkaMessageProcessError,
 } from "pagopa-interop-models";
-import { runConsumer } from "../../kafka-iam-auth/dist/index.js";
+import { runConsumer } from "kafka-iam-auth";
+import { match } from "ts-pattern";
 import { topicConfigMap } from "./utils.js";
 import { config } from "./config/config.js";
 
 export async function processMessage(
-  messagePayload: EachMessagePayload
+  messagePayload: EachMessagePayload,
 ): Promise<void> {
   const { topic, partition, message } = messagePayload;
   const topicItem = topicConfigMap[topic];
@@ -25,13 +26,9 @@ export async function processMessage(
     throw genericInternalError(`Unknown topic: ${topic}`);
   }
   const decoded = decodeKafkaMessage(message, topicItem.decoder);
-  const handler = topicItem.handlers[decoded.event_version];
-
-  if (!handler) {
-    throw genericInternalError(
-      `Unsupported event_version: ${decoded.event_version} for topic: ${topic}`
-    );
-  }
+  const handler = match(decoded.event_version)
+    .with(1, 2, (event_version) => topicItem.handlers[event_version])
+    .exhaustive();
 
   const correlationId: CorrelationId = decoded.correlation_id
     ? unsafeBrandId(decoded.correlation_id)
@@ -46,7 +43,7 @@ export async function processMessage(
   });
 
   loggerInstance.info(
-    `Processing ${decoded.type} message - Partition ${partition} - Offset ${message.offset}`
+    `Processing ${decoded.type} message - Partition ${partition} - Offset ${message.offset}`,
   );
 
   await handler(decoded);
@@ -72,10 +69,10 @@ try {
           payload.topic,
           payload.partition,
           payload.message.offset,
-          err
+          err,
         );
       }
-    }
+    },
   );
 } catch (e) {
   genericLogger.error(`An error occurred during initialization:\n${e}`);
