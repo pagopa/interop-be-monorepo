@@ -39,7 +39,7 @@ describe("update eService", () => {
   it("should write on event-store for the update of an eService (no technology change)", async () => {
     vi.spyOn(fileManager, "delete");
     config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelist = [mockEService.producerId];
+    config.signalhubWhitelistProducer = [mockEService.producerId];
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -94,7 +94,7 @@ describe("update eService", () => {
     vi.spyOn(fileManager, "delete");
 
     config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelist = [mockEService.producerId];
+    config.signalhubWhitelistProducer = [mockEService.producerId];
 
     const interfaceDocument = {
       ...mockDocument,
@@ -223,7 +223,7 @@ describe("update eService", () => {
     const updatedDescription = "eservice new description";
 
     config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelist = [mockEService.producerId];
+    config.signalhubWhitelistProducer = [mockEService.producerId];
 
     await addOneEService(mockEService);
     const returnedEService = await catalogService.updateEService(
@@ -274,7 +274,7 @@ describe("update eService", () => {
     };
     await addOneEService(eservice);
 
-    config.signalhubWhitelist = [eservice.producerId];
+    config.signalhubWhitelistProducer = [eservice.producerId];
 
     const returnedEService = await catalogService.updateEService(
       eservice.id,
