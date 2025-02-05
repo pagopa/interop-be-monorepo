@@ -17,7 +17,6 @@ import {
   authorizationEventToBinaryData,
   clientKind,
   generateId,
-  // genericInternalError,
   invalidKey,
   purposeVersionState,
   unsafeBrandId,
@@ -674,10 +673,6 @@ export function authorizationServiceBuilder(
         userIdToCheck: authData.userId,
         correlationId,
       });
-
-      // if (keySeed !== 1) {
-      //   throw genericInternalError("Wrong number of keys");
-      // }
 
       const jwk = createJWK(keySeed.key);
       if (jwk.kty !== "RSA") {
