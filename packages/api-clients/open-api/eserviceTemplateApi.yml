@@ -126,6 +126,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -151,13 +157,18 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "404":
-          description: E-Service template not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:

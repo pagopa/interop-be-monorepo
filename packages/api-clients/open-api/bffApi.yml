@@ -14753,7 +14753,7 @@ paths:
             schema:
               $ref: "#/components/schemas/UpdateEServiceTemplateSeed"
       responses:
-        "200":
+        "204":
           description: E-Service Template updated
           headers:
             "X-Rate-Limit-Limit":
@@ -14768,10 +14768,6 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EServiceTemplate"
         "404":
           description: E-Service template not found
           headers:

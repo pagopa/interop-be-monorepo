@@ -51,7 +51,7 @@ export function assertIsDraftEserviceTemplate(
   eserviceTemplate: EServiceTemplate
 ): void {
   if (
-    eserviceTemplate.versions.some(
+    eserviceTemplate.versions.every(
       (v) => v.state !== eserviceTemplateVersionState.draft
     )
   ) {
