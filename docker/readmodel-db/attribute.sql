@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS readmodel.attribute(
   id UUID,
   version INTEGER NOT NULL,
-  code VARCHAR NOT NULL,
+  code VARCHAR,
   kind VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
   origin VARCHAR,
