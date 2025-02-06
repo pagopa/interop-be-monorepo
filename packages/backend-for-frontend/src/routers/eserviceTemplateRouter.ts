@@ -187,6 +187,82 @@ const eserviceTemplateRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/riskAnalysis",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId } = req.params;
+
+        try {
+          await eserviceTemplateService.createEServiceTemplateEServiceRiskAnalysis(
+            unsafeBrandId(eServiceTemplateId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error creating eservice template ${eServiceTemplateId} risk analysis`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId, riskAnalysisId } = req.params;
+
+        try {
+          await eserviceTemplateService.updateEServiceTemplateEServiceRiskAnalysis(
+            unsafeBrandId(eServiceTemplateId),
+            unsafeBrandId(riskAnalysisId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error updating eservice template ${eServiceTemplateId} risk analysis ${riskAnalysisId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId, riskAnalysisId } = req.params;
+
+        try {
+          await eserviceTemplateService.deleteEServiceTemplateEServiceRiskAnalysis(
+            unsafeBrandId(eServiceTemplateId),
+            unsafeBrandId(riskAnalysisId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error deleting eservice template ${eServiceTemplateId} risk analysis ${riskAnalysisId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
 
   return eserviceTemplateRouter;

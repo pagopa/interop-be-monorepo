@@ -1,11 +1,14 @@
 import {
   EServiceTemplateCollection,
   ReadModelRepository,
+  TenantCollection,
 } from "pagopa-interop-commons";
 import {
   EServiceTemplate,
   EServiceTemplateId,
+  Tenant,
   TenantId,
+  TenantReadModel,
   WithMetadata,
   genericInternalError,
 } from "pagopa-interop-models";
@@ -42,12 +45,35 @@ async function getEServiceTemplate(
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(
-  readModelRepository: ReadModelRepository
-) {
-  const eserviceTemplates = readModelRepository.eserviceTemplates;
+async function getTenant(
+  tenants: TenantCollection,
+  filter: Filter<WithId<WithMetadata<TenantReadModel>>>
+): Promise<Tenant | undefined> {
+  const data = await tenants.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
 
+  if (!data) {
+    return undefined;
+  }
+  const result = Tenant.safeParse(data.data);
+
+  if (!result.success) {
+    throw genericInternalError(
+      `Unable to parse tenant item: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+  }
+
+  return result.data;
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function readModelServiceBuilder({
+  eserviceTemplates,
+  tenants,
+}: ReadModelRepository) {
   return {
     async getEServiceTemplateById(
       id: EServiceTemplateId
@@ -69,6 +95,10 @@ export function readModelServiceBuilder(
         },
         "data.creatorId": creatorId,
       });
+    },
+
+    async getTenantById(id: TenantId): Promise<Tenant | undefined> {
+      return getTenant(tenants, { "data.id": id });
     },
   };
 }

@@ -3,6 +3,7 @@ import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
+  RiskAnalysisId,
 } from "pagopa-interop-models";
 import { bffApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -172,6 +173,57 @@ export function eserviceTemplateServiceBuilder(
           creatorTenant
         ),
       };
+    },
+    createEServiceTemplateEServiceRiskAnalysis: async (
+      eServiceTemplateId: EServiceTemplateId,
+      seed: bffApi.EServiceRiskAnalysisSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Creating EService template ${eServiceTemplateId} risk analysis`
+      );
+      await eserviceTemplateClient.createEServiceTemplateRiskAnalysis(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+        },
+      });
+    },
+    updateEServiceTemplateEServiceRiskAnalysis: async (
+      eServiceTemplateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      seed: bffApi.EServiceRiskAnalysisSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Updating EService template ${eServiceTemplateId} risk analysis ${riskAnalysisId}`
+      );
+      await eserviceTemplateClient.updateEServiceTemplateRiskAnalysis(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+          riskAnalysisId,
+        },
+      });
+    },
+    deleteEServiceTemplateEServiceRiskAnalysis: async (
+      eServiceTemplateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Deleting EService template ${eServiceTemplateId} risk analysis ${riskAnalysisId}`
+      );
+      await eserviceTemplateClient.deleteEServiceTemplateRiskAnalysis(
+        undefined,
+        {
+          headers,
+          params: {
+            eServiceTemplateId,
+            riskAnalysisId,
+          },
+        }
+      );
     },
   };
 }
