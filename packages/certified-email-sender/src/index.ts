@@ -3,12 +3,10 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   EmailManagerPEC,
-  EmailManagerSES,
   ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
   initPecEmailManager,
-  initSesMailManager,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -20,19 +18,13 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { config } from "./config/config.js";
-import { agreementEmailSenderServiceBuilder } from "./services/agreementEmailSenderService.js";
+import { certifiedEmailSenderServiceBuilder } from "./services/certifiedEmailSenderService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 const templateService = buildHTMLTemplateService();
-const interopFeBaseUrl = config.interopFeBaseUrl;
-const sesEmailManager: EmailManagerSES = initSesMailManager(config);
-const sesEmailsenderData = {
-  label: config.senderLabel,
-  mail: config.senderMail,
-};
 
 const pecEmailManager: EmailManagerPEC = initPecEmailManager(config);
 const pecEmailsenderData = {
@@ -40,14 +32,11 @@ const pecEmailsenderData = {
   mail: config.pecSenderMail,
 };
 
-const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
+const certifiedEmailSenderService = certifiedEmailSenderServiceBuilder(
   pecEmailManager,
   pecEmailsenderData,
-  sesEmailManager,
-  sesEmailsenderData,
   readModelService,
-  templateService,
-  interopFeBaseUrl
+  templateService
 );
 
 export async function processMessage({
@@ -57,7 +46,7 @@ export async function processMessage({
 
   const decodedMessage = decodeKafkaMessage(message, AgreementEvent);
   const loggerInstance = logger({
-    serviceName: "agreement-email-sender",
+    serviceName: "certified-email-sender",
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
@@ -73,11 +62,7 @@ export async function processMessage({
       async ({ data: { agreement } }) => {
         if (agreement) {
           await Promise.all([
-            agreementEmailSenderService.sendAgreementActivationCertifiedEmail(
-              agreement,
-              loggerInstance
-            ),
-            agreementEmailSenderService.sendAgreementActivationSimpleEmail(
+            certifiedEmailSenderService.sendAgreementActivationCertifiedEmail(
               agreement,
               loggerInstance
             ),
@@ -88,35 +73,11 @@ export async function processMessage({
       }
     )
     .with(
-      { event_version: 2, type: "AgreementSubmitted" },
-      async ({ data: { agreement } }) => {
-        if (agreement) {
-          await agreementEmailSenderService.sendAgreementSubmissionSimpleEmail(
-            agreement,
-            loggerInstance
-          );
-        } else {
-          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
-        }
-      }
-    )
-    .with(
-      { event_version: 2, type: "AgreementRejected" },
-      async ({ data: { agreement } }) => {
-        if (agreement) {
-          await agreementEmailSenderService.sendAgreementRejectSimpleEmail(
-            agreement,
-            loggerInstance
-          );
-        } else {
-          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
-        }
-      }
-    )
-    .with(
       {
         event_version: 2,
         type: P.union(
+          "AgreementRejected",
+          "AgreementSubmitted",
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
