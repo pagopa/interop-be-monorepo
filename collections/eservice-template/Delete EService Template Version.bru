@@ -1,18 +1,18 @@
 meta {
-  name: Delete EService Template Risk Analysis
+  name: Delete EService Template Version
   type: http
   seq: 14
 }
 
 post {
-  url: {{host-catalog}}/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId
+  url: {{host-catalog}}/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId
   body: none
   auth: none
 }
 
 params:path {
   eserviceId: {{eServiceTemplateId}}
-  riskAnalysisId: {{riskAnalysisId}}
+  versionId: {{eServiceTemplateVersionId}}
 }
 
 headers {

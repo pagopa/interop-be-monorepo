@@ -272,7 +272,13 @@ paths:
         "204":
           description: The E-Service template version deleted
         "400":
-          description: Invalid input
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
