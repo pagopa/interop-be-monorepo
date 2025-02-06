@@ -178,9 +178,18 @@ export const updateEServiceTemplateVersionAttributesErrorMapper = (
 export const createEServiceTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
-  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code)
+    .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
+    .with("eServiceTemplateDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with("inconsistentDailyCalls", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
-  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code)
+    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("eserviceTemplateNotInDraftState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("eServiceTemplateDuplicate", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
