@@ -11,7 +11,9 @@ import {
   EServiceTemplate,
   EServiceTemplateEvent,
   EServiceTemplateId,
+  Tenant,
   toEServiceTemplateV2,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
@@ -58,6 +60,13 @@ export const addOneEServiceTemplate = async (
 ): Promise<void> => {
   await writeEServiceInEventstore(eserviceTemplate);
   await writeInReadmodel(eserviceTemplate, eserviceTemplates);
+};
+
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
+  await writeInReadmodel(
+    toReadModelTenant(tenant),
+    readModelRepository.tenants
+  );
 };
 
 export const readLastEserviceTemplateEvent = async (
