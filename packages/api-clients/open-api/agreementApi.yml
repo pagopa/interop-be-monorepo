@@ -890,7 +890,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  "/agreements/verify":
+  "/tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes/validate":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -899,29 +899,28 @@ paths:
       summary: Verify a Tenant has required certified attributes
       description: Verify a Tenant has required certified attributes
       operationId: verifyTenantCertifiedAttributes
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - tenantId
-                - descriptorId
-                - eserviceId
-              properties:
-                tenantId:
-                  type: string
-                  format: uuid
-                  description: The Tenant id
-                eserviceId:
-                  type: string
-                  format: uuid
-                  description: The E-Service id
-                descriptorId:
-                  type: string
-                  format: uuid
-                  description: The E-Service descriptor id
+      parameters:
+        - name: tenantId
+          in: path
+          description: The identifier of the tenant
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: eserviceId
+          in: path
+          description: The identifier of the e-service
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId 
+          in: path
+          description: The identifier of the e-service descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Tenant has required certified attributes

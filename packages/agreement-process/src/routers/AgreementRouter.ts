@@ -743,7 +743,7 @@ const agreementRouter = (
   );
 
   agreementRouter.post(
-    "/agreements/verify",
+    "/tenants/:tenantId/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/validate",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -751,9 +751,9 @@ const agreementRouter = (
       try {
         const result = await agreementService.verifyTenantCertifiedAttributes(
           {
-            tenantId: unsafeBrandId<TenantId>(req.body.tenantId),
-            descriptorId: unsafeBrandId<DescriptorId>(req.body.descriptorId),
-            eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
+            tenantId: unsafeBrandId<TenantId>(req.params.tenantId),
+            descriptorId: unsafeBrandId<DescriptorId>(req.params.descriptorId),
+            eserviceId: unsafeBrandId<EServiceId>(req.params.eserviceId),
           },
           ctx
         );
