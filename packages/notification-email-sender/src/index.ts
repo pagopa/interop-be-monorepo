@@ -2,10 +2,7 @@
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
-  AgreementTopicConfig,
-  CatalogTopicConfig,
   EmailManagerSES,
-  PurposeTopicConfig,
   ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
@@ -31,6 +28,12 @@ import { P, match } from "ts-pattern";
 import { config } from "./config/config.js";
 import { notificationEmailSenderServiceBuilder } from "./services/notificationEmailSenderService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
+
+interface TopicHandlers {
+  catalogTopic: string;
+  agreementTopic: string;
+  purposeTopic: string;
+}
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -211,15 +214,13 @@ export async function handleAgreementMessage(
     .exhaustive();
 }
 
-function processMessage(
-  catalogTopicConfig: CatalogTopicConfig,
-  agreementTopicConfig: AgreementTopicConfig,
-  purposeTopicConfig: PurposeTopicConfig
-) {
+function processMessage(topicHandlers: TopicHandlers) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
+      const { catalogTopic, agreementTopic, purposeTopic } = topicHandlers;
+
       const { decodedMessage, handleMessage } = match(messagePayload.topic)
-        .with(catalogTopicConfig.catalogTopic, () => {
+        .with(catalogTopic, () => {
           const decodedMessage = decodeKafkaMessage(
             messagePayload.message,
             EServiceEventV2
@@ -229,7 +230,7 @@ function processMessage(
 
           return { decodedMessage, handleMessage };
         })
-        .with(agreementTopicConfig.agreementTopic, () => {
+        .with(agreementTopic, () => {
           const decodedMessage = decodeKafkaMessage(
             messagePayload.message,
             AgreementEventV2
@@ -242,7 +243,7 @@ function processMessage(
 
           return { decodedMessage, handleMessage };
         })
-        .with(purposeTopicConfig.purposeTopic, () => {
+        .with(purposeTopic, () => {
           const decodedMessage = decodeKafkaMessage(
             messagePayload.message,
             PurposeEventV2
@@ -284,15 +285,9 @@ function processMessage(
 await runConsumer(
   config,
   [config.catalogTopic, config.agreementTopic, config.purposeTopic],
-  processMessage(
-    {
-      catalogTopic: config.catalogTopic,
-    },
-    {
-      agreementTopic: config.agreementTopic,
-    },
-    {
-      purposeTopic: config.purposeTopic,
-    }
-  )
+  processMessage({
+    catalogTopic: config.catalogTopic,
+    agreementTopic: config.agreementTopic,
+    purposeTopic: config.purposeTopic,
+  })
 );
