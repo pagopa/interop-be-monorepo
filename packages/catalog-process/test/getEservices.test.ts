@@ -65,7 +65,7 @@ describe("get eservices", () => {
       descriptors: [descriptor1],
       producerId: organizationId1,
       isSignalHubEnabled: true,
-      isDelegable: true,
+      isConsumerDelegable: true,
       isClientAccessDelegable: true,
     };
     await addOneEService(eservice1);
@@ -115,7 +115,7 @@ describe("get eservices", () => {
       name: "eservice 004 test",
       producerId: organizationId2,
       descriptors: [descriptor4],
-      isDelegable: true,
+      isConsumerDelegable: true,
     };
     await addOneEService(eservice4);
 
@@ -763,7 +763,7 @@ describe("get eservices", () => {
     });
   });
 
-  it("should get the eServices if they exist (parameters: isDelegable)", async () => {
+  it("should get the eServices if they exist (parameters: isConsumerDelegable)", async () => {
     const result = await catalogService.getEServices(
       getMockAuthData(),
       {
@@ -772,7 +772,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
-        isDelegable: true,
+        isConsumerDelegable: true,
       },
       0,
       50,
