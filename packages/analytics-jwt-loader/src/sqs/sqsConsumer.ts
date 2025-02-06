@@ -6,14 +6,7 @@ import {
   SQSClientConfig,
 } from "@aws-sdk/client-sqs";
 import { genericLogger, logger } from "pagopa-interop-commons";
-import { AnalyticsJwTLoaderConfig } from "../config/config.js";
 import { sqsDeleteError, sqsReceiveError } from "../model/errors.js";
-
-const processExit = async (exitStatusCode: number = 1): Promise<void> => {
-  genericLogger.error(`Process exit with code ${exitStatusCode}`);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  process.exit(exitStatusCode);
-};
 
 export const instantiateClient = (config: SQSClientConfig): SQSClient =>
   new SQSClient(config);
@@ -65,13 +58,12 @@ const processQueue = async (
 
 export const runConsumer = async (
   sqsClient: SQSClient,
-  config: Pick<
-    AnalyticsJwTLoaderConfig,
-    | "serviceName"
-    | "queueUrl"
-    | "consumerPollingTimeout"
-    | "runUntilQueueIsEmpty"
-  >,
+  config: {
+    queueUrl: string;
+    consumerPollingTimeout: number;
+    serviceName: string;
+    runUntilQueueIsEmpty?: boolean;
+  },
   consumerHandler: (messagePayload: Message) => Promise<void>
 ): Promise<void> => {
   logger({ serviceName: config.serviceName }).info(
@@ -107,4 +99,10 @@ export const deleteMessage = async (
   } catch (error) {
     throw sqsDeleteError(queueUrl, error);
   }
+};
+
+const processExit = async (exitStatusCode: number = 1): Promise<void> => {
+  genericLogger.error(`Process exit with code ${exitStatusCode}`);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  process.exit(exitStatusCode);
 };
