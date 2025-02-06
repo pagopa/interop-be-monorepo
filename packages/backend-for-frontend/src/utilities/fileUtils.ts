@@ -81,7 +81,7 @@ export function buildJsonConfig(
     technology: eservice.technology,
     mode: eservice.mode,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
-    isDelegable: eservice.isDelegable,
+    isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     descriptor: {
       interface: descriptor.interface && {

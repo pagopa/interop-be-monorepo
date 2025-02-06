@@ -133,11 +133,11 @@ message EServiceDescriptorRejectedByDelegatorV2 {
     EServiceV2 eservice = 2;
 }
 
-message EServiceIsDelegableEnabledV2 {
+message EServiceIsConsumerDelegableEnabledV2 {
     EServiceV2 eservice = 1;
 }
 
-message EServiceIsDelegableDisabledV2 {
+message EServiceIsConsumerDelegableDisabledV2 {
     EServiceV2 eservice = 1;
 }
 

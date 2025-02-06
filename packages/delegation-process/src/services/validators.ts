@@ -173,7 +173,7 @@ export function assertStampExists<S extends keyof Delegation["stamps"]>(
 }
 
 export const assertEserviceIsConsumerDelegable = (eservice: EService): void => {
-  if (!eservice.isDelegable) {
+  if (!eservice.isConsumerDelegable) {
     throw eserviceNotConsumerDelegable(eservice.id);
   }
 };

@@ -348,7 +348,7 @@ export const initProducer = async (
     };
   } catch (e) {
     genericLogger.error(
-      `Generic error occurs during consumer initialization: ${e}`
+      `Generic error occurs during producer initialization: ${e}`
     );
     processExit();
     return undefined as never;
