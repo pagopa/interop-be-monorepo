@@ -16,7 +16,6 @@ import {
   EServiceId,
   TenantId,
   AttributeId,
-  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
@@ -116,7 +115,6 @@ const eservicesRouter = (
             agreementStates,
             mode,
             delegated,
-            templatesIds,
             offset,
             limit,
           } = req.query;
@@ -134,7 +132,6 @@ const eservicesRouter = (
               name,
               mode: mode ? apiEServiceModeToEServiceMode(mode) : undefined,
               delegated,
-              templatesIds: templatesIds.map<EServiceTemplateId>(unsafeBrandId),
             },
             offset,
             limit,

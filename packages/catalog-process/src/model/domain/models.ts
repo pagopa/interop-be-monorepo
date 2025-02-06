@@ -11,7 +11,6 @@ import {
   EServiceMode,
   AttributeId,
   TenantId,
-  EServiceTemplateId,
 } from "pagopa-interop-models";
 
 export type ApiGetEServicesFilters = {
@@ -23,7 +22,6 @@ export type ApiGetEServicesFilters = {
   name?: string;
   mode?: EServiceMode;
   delegated?: boolean;
-  templatesIds: EServiceTemplateId[];
 };
 
 export type EServiceDocument = {
