@@ -1857,11 +1857,7 @@ export function catalogServiceBuilder(
       );
 
       const hasValidDescriptor = eservice.data.descriptors.some(
-        // eslint-disable-next-line sonarjs/no-identical-functions
-        (descriptor) =>
-          descriptor.state !== descriptorState.draft &&
-          descriptor.state !== descriptorState.waitingForApproval &&
-          descriptor.state !== descriptorState.archived
+        isDescriptorUpdatable
       );
       if (!hasValidDescriptor) {
         throw eserviceWithoutValidDescriptors(eserviceId);
