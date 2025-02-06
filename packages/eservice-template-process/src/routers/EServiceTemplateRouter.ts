@@ -27,6 +27,8 @@ import {
   createRiskAnalysisErrorMapper,
   deleteRiskAnalysisErrorMapper,
   updateRiskAnalysisErrorMapper,
+  createEServiceTemplateErrorMapper,
+  updateEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../model/domain/apiConverter.js";
 
@@ -71,8 +73,30 @@ const eserviceTemplatesRouter = (
     )
     .post(
       "/eservices/templates",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const eserviceTemplate =
+            await eserviceTemplateService.createEServiceTemplate(req.body, ctx);
+          return res
+            .send(
+              eserviceTemplateApi.EServiceTemplate.parse(
+                eserviceTemplateToApiEServiceTemplate(eserviceTemplate)
+              )
+            )
+            .status(200);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createEServiceTemplateErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .get(
       "/eservices/templates/:eServiceTemplateId",
@@ -114,7 +138,32 @@ const eserviceTemplatesRouter = (
     .post(
       "/eservices/templates/:eServiceTemplateId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const updatedEServiceTemplate =
+            await eserviceTemplateService.updateEServiceTemplate(
+              unsafeBrandId(req.params.eServiceTemplateId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              eserviceTemplateApi.EServiceTemplate.parse(
+                eserviceTemplateToApiEServiceTemplate(updatedEServiceTemplate)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceTemplateErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/versions",

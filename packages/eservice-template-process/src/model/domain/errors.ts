@@ -20,6 +20,8 @@ export const errorCodes = {
   tenantKindNotFound: "0009",
   eserviceTemplateNotInDraftState: "0010",
   eserviceTemplateNotInReceiveMode: "0011",
+  originNotCompliant: "0012",
+  inconsistentDailyCalls: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -55,6 +57,14 @@ export function notValidEServiceTemplateVersionState(
     detail: `EService template version ${eserviceTemplateVersionId} has a not valid status for this operation ${eserviceTemplateVersionState}`,
     code: "notValidEServiceTemplateVersionState",
     title: "Not valid eservice template version state",
+  });
+}
+
+export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester origin ${origin} is not allowed`,
+    code: "originNotCompliant",
+    title: "Origin is not compliant",
   });
 }
 
@@ -133,5 +143,23 @@ export function templateNotInReceiveMode(
     detail: `EService Template ${templateId} is not in receive mode`,
     code: "eserviceTemplateNotInReceiveMode",
     title: "EService Template is not in receive mode",
+  });
+}
+
+export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
+    code: "inconsistentDailyCalls",
+    title: "Inconsistent daily calls",
+  });
+}
+
+export function eserviceTemplateNotInDraftState(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eserviceTemplateId} is not in draft state`,
+    code: "eserviceTemplateNotInDraftState",
+    title: "EService Template not in draft state",
   });
 }
