@@ -19,7 +19,18 @@ services:
   # POSTGRESQL readmodel
   readmodel-sql:
     volumes:
-      - ./readmodel-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./readmodel-db/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql
+      - ./readmodel-db/attribute.sql:/docker-entrypoint-initdb.d/01-attribute.sql
+      - ./readmodel-db/tenant.sql:/docker-entrypoint-initdb.d/02-tenant.sql
+      - ./readmodel-db/catalog.sql:/docker-entrypoint-initdb.d/03-catalog.sql
+      - ./readmodel-db/agreement.sql:/docker-entrypoint-initdb.d/04-agreement.sql
+      - ./readmodel-db/purpose.sql:/docker-entrypoint-initdb.d/05-purpose.sql
+      - ./readmodel-db/client.sql:/docker-entrypoint-initdb.d/06-client.sql
+      - ./readmodel-db/client-jwk-key.sql:/docker-entrypoint-initdb.d/07-client-jwk-key.sql
+      - ./readmodel-db/producer-keychain.sql:/docker-entrypoint-initdb.d/08-producer-keychain.sql
+      - ./readmodel-db/producer-jwk-key.sql:/docker-entrypoint-initdb.d/09-producer-jwk-key.sql
+      - ./readmodel-db/delegation.sql:/docker-entrypoint-initdb.d/10-delegation.sql
+      - ./readmodel-db/eservice-template.sql:/docker-entrypoint-initdb.d/11-eservice-template.sql
     image: postgres:14
     ports:
       - 6002:5433
