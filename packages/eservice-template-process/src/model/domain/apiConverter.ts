@@ -10,8 +10,10 @@ import {
   EServiceTemplateVersionState,
   EServiceTemplateVersion,
   EServiceTemplate,
+  DescriptorState,
+  descriptorState,
 } from "pagopa-interop-models";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 
 export function technologyToApiTechnology(
@@ -168,3 +170,29 @@ export const eserviceTemplateToApiEServiceTemplate = (
   ),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
 });
+
+export function descriptorStateToApiEServiceDescriptorState(
+  input: DescriptorState
+): catalogApi.EServiceDescriptorState {
+  return match<DescriptorState, catalogApi.EServiceDescriptorState>(input)
+    .with(descriptorState.draft, () => "DRAFT")
+    .with(descriptorState.published, () => "PUBLISHED")
+    .with(descriptorState.suspended, () => "SUSPENDED")
+    .with(descriptorState.deprecated, () => "DEPRECATED")
+    .with(descriptorState.archived, () => "ARCHIVED")
+    .with(descriptorState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
+    .exhaustive();
+}
+
+export function apiDescriptorStateToDescriptorState(
+  input: catalogApi.EServiceDescriptorState
+): DescriptorState {
+  return match<catalogApi.EServiceDescriptorState, DescriptorState>(input)
+    .with("DRAFT", () => descriptorState.draft)
+    .with("PUBLISHED", () => descriptorState.published)
+    .with("SUSPENDED", () => descriptorState.suspended)
+    .with("DEPRECATED", () => descriptorState.deprecated)
+    .with("ARCHIVED", () => descriptorState.archived)
+    .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
+    .exhaustive();
+}
