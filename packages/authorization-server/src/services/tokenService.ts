@@ -194,7 +194,7 @@ export function tokenServiceBuilder({
               audience: key.descriptorAudience,
               purposeId: key.GSIPK_purposeId,
               tokenDurationInSeconds: key.descriptorVoucherLifespan,
-              digest: jwt.payload.digest,
+              digest: jwt.payload.digest || undefined,
             });
 
             await publishAudit({
@@ -431,7 +431,7 @@ export const logTokenGenerationInfo = ({
   message: string;
   logger: Logger;
 }): void => {
-  const clientId = `[CLIENTID=${validatedJwt.payload.sub}`;
+  const clientId = `[CLIENTID=${validatedJwt.payload.sub}]`;
   const kid = `[KID=${validatedJwt.header.kid}]`;
   const purposeId = `[PURPOSEID=${validatedJwt.payload.purposeId}]`;
   const tokenType = `[TYPE=${clientKind}]`;
