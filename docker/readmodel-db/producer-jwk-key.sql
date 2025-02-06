@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS readmodel.producer_jwk_key(
+  producer_keychain_id UUID NOT NULL,
+  version INTEGER NOT NULL,
+  alg VARCHAR NOT NULL,
+  e VARCHAR NOT NULL,
+  kid VARCHAR NOT NULL,
+  kty VARCHAR NOT NULL,
+  n VARCHAR NOT NULL,
+  use VARCHAR NOT NULL,
+  PRIMARY KEY (kid) -- same as above
+);
