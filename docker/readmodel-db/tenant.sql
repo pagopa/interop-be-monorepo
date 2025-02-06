@@ -82,22 +82,30 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_revoker (
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel.tenant_verified_attribute (tenant_id, attribute_id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_certifier(
+-- TODO: how to delete a single feature if this operation will be allowed?
+CREATE TABLE IF NOT EXISTS readmodel.tenant_feature(
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
-  tenant_version INTEGER,
-  certifier_id VARCHAR,
-  PRIMARY KEY (certifier_id)
+  tenant_version INTEGER NOT NULL,
+  kind VARCHAR NOT NULL,
+  details JSON NOT NULL,
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_delegated_producer(
-  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
-  tenant_version INTEGER,
-  availability_timestamp TIMESTAMP WITH TIME ZONE,
-  PRIMARY KEY (tenant_id)
-);
+-- CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_certifier(
+--   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
+--   tenant_version INTEGER,
+--   certifier_id VARCHAR,
+--   PRIMARY KEY (certifier_id)
+-- );
 
-CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_delegated_consumer(
-  tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
-  tenant_version INTEGER,
-  availability_timestamp TIMESTAMP WITH TIME ZONE
-);
+-- CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_delegated_producer(
+--   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
+--   tenant_version INTEGER,
+--   availability_timestamp TIMESTAMP WITH TIME ZONE,
+--   PRIMARY KEY (tenant_id)
+-- );
+
+-- CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_delegated_consumer(
+--   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
+--   tenant_version INTEGER,
+--   availability_timestamp TIMESTAMP WITH TIME ZONE
+-- );
