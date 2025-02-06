@@ -82,7 +82,7 @@ tags:
       description: Find out more
       url: "http://swagger.io"
 paths:
-  "/consumer/agreements":
+  "/consumers/agreements":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
@@ -698,7 +698,7 @@ paths:
     delete:
       tags:
         - agreements
-      summary: Delete an agreement. This operation is valid only for agreements in DRAFT or MISSING_CERTIFIED_ATTRIBUTES
+      summary: Delete an agreement
       operationId: deleteAgreement
       responses:
         "204":
@@ -2443,7 +2443,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/consumer/delegations/delegators":
+  "/consumers/delegations/delegators":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
@@ -2515,7 +2515,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/consumer/delegations/delegatorsWithAgreements":
+  "/consumers/delegations/delegatorsWithAgreements":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
@@ -13922,7 +13922,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /consumer/delegations/eservices:
+  /consumers/delegations/eservices:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
@@ -13991,7 +13991,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /consumer/delegations:
+  /consumers/delegations:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -14065,7 +14065,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /consumer/delegations/{delegationId}/approve:
+  /consumers/delegations/{delegationId}/approve:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -14174,7 +14174,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /consumer/delegations/{delegationId}/reject:
+  /consumers/delegations/{delegationId}/reject:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -14468,7 +14468,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /consumer/delegations/{delegationId}:
+  /consumers/delegations/{delegationId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: delegationId

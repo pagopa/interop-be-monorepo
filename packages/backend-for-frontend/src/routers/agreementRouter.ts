@@ -31,7 +31,7 @@ const agreementRouter = (
   const agreementService = agreementServiceBuilder(clients, fileManager);
 
   agreementRouter
-    .get("/consumer/agreements", async (req, res) => {
+    .get("/consumers/agreements", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {

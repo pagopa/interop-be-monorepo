@@ -47,8 +47,7 @@ export const processPurposes = async ({
         return purposeProcessClient.internalDeletePurposeAfterDelegationRevocation(
           undefined,
           {
-            params: { id: p.id },
-            queries: { delegationId },
+            params: { id: p.id, delegationId },
             headers,
           }
         );
@@ -77,8 +76,8 @@ export const processPurposes = async ({
             params: {
               purposeId: p.id,
               versionId: activeOrSuspendedVersion.id,
+              delegationId,
             },
-            queries: { delegationId },
             headers,
           }
         );
@@ -122,8 +121,7 @@ export const processAgreement = async ({
         await agreementProcessClient.internalDeleteAgreementAfterDelegationRevocation(
           undefined,
           {
-            params: { agreementId: a.id },
-            queries: { delegationId: delegation.id },
+            params: { agreementId: a.id, delegationId: delegation.id },
             headers,
           }
         );
@@ -145,8 +143,7 @@ export const processAgreement = async ({
         await agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation(
           undefined,
           {
-            params: { agreementId: a.id },
-            queries: { delegationId: delegation.id },
+            params: { agreementId: a.id, delegationId: delegation.id },
             headers,
           }
         );

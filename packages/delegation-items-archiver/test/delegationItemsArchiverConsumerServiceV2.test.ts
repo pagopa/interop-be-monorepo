@@ -142,8 +142,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           expect(
             purposeProcessClient.internalDeletePurposeAfterDelegationRevocation
           ).toHaveBeenCalledWith(undefined, {
-            params: { id: purpose.id },
-            queries: { delegationId: delegation.id },
+            params: { id: purpose.id, delegationId: delegation.id },
             headers: testHeaders,
           });
         });
@@ -157,8 +156,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         expect(
           agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation
         ).toHaveBeenCalledWith(undefined, {
-          params: { agreementId: agreement.id },
-          queries: { delegationId: delegation.id },
+          params: { agreementId: agreement.id, delegationId: delegation.id },
           headers: testHeaders,
         });
         expect(
@@ -210,8 +208,8 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
             params: {
               purposeId: purpose.id,
               versionId: purpose.versions[0].id,
+              delegationId: delegation.id,
             },
-            queries: { delegationId: delegation.id },
             headers: testHeaders,
           });
         });
@@ -225,8 +223,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         expect(
           agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation
         ).toHaveBeenCalledWith(undefined, {
-          params: { agreementId: agreement.id },
-          queries: { delegationId: delegation.id },
+          params: { agreementId: agreement.id, delegationId: delegation.id },
           headers: testHeaders,
         });
         expect(
@@ -269,8 +266,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         expect(
           agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation
         ).toHaveBeenCalledWith(undefined, {
-          params: { agreementId: agreement.id },
-          queries: { delegationId: delegation.id },
+          params: { agreementId: agreement.id, delegationId: delegation.id },
           headers: testHeaders,
         });
         expect(
@@ -317,8 +313,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         expect(
           agreementProcessClient.internalDeleteAgreementAfterDelegationRevocation
         ).toHaveBeenCalledWith(undefined, {
-          params: { agreementId: agreement.id },
-          queries: { delegationId: delegation.id },
+          params: { agreementId: agreement.id, delegationId: delegation.id },
           headers: testHeaders,
         });
         expect(
@@ -405,8 +400,8 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         params: {
           purposeId: purpose1.id,
           versionId: purpose1.versions[0].id,
+          delegationId: delegation.id,
         },
-        queries: { delegationId: delegation.id },
         headers: testHeaders,
       });
       expect(
@@ -415,8 +410,8 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         params: {
           purposeId: purpose2.id,
           versionId: purpose2.versions[0].id,
+          delegationId: delegation.id,
         },
-        queries: { delegationId: delegation.id },
         headers: testHeaders,
       });
 
@@ -426,15 +421,13 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       expect(
         purposeProcessClient.internalDeletePurposeAfterDelegationRevocation
       ).toHaveBeenCalledWith(undefined, {
-        params: { id: purpose3.id },
-        queries: { delegationId: delegation.id },
+        params: { id: purpose3.id, delegationId: delegation.id },
         headers: testHeaders,
       });
       expect(
         purposeProcessClient.internalDeletePurposeAfterDelegationRevocation
       ).toHaveBeenCalledWith(undefined, {
-        params: { id: purpose5.id },
-        queries: { delegationId: delegation.id },
+        params: { id: purpose5.id, delegationId: delegation.id },
         headers: testHeaders,
       });
 
@@ -444,8 +437,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       expect(
         agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation
       ).toHaveBeenCalledWith(undefined, {
-        params: { agreementId: agreement1.id },
-        queries: { delegationId: delegation.id },
+        params: { agreementId: agreement1.id, d: delegation.id },
         headers: testHeaders,
       });
 
@@ -455,8 +447,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       expect(
         agreementProcessClient.internalDeleteAgreementAfterDelegationRevocation
       ).toHaveBeenCalledWith(undefined, {
-        params: { agreementId: agreement2.id },
-        queries: { delegationId: delegation.id },
+        params: { agreementId: agreement2.id, d: delegation.id },
         headers: testHeaders,
       });
     });
