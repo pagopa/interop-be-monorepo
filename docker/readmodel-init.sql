@@ -53,20 +53,20 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_certified_attribute (
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_declared_attribute (
-  id UUID REFERENCES readmodel.attribute(id),
+  attribute_id UUID,
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   tenant_version INTEGER,
   assignment_timestamp TIMESTAMP NOT NULL,
   revocation_timestamp TIMESTAMP WITH TIME ZONE,
-  PRIMARY KEY (id, tenant_id)
+  PRIMARY KEY (attribute_id, tenant_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute (
-  id UUID REFERENCES readmodel.attribute(id),
+  attribute_id UUID,
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
   tenant_version INTEGER,
   assignment_timestamp TIMESTAMP NOT NULL,
-  PRIMARY KEY (id, tenant_id)
+  PRIMARY KEY (attribute_id, tenant_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_verifier (
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_verifier (
   extension_date TIMESTAMP WITH TIME ZONE,
   delegation_id UUID,
   PRIMARY KEY (id, tenant_verified_attribute_id, tenant_id),
-  FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel.tenant_verified_attribute (tenant_id, id)
+  FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel.tenant_verified_attribute (tenant_id, attribute_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_revoker (
@@ -88,14 +88,14 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_revoker (
   tenant_version INTEGER,
   id UUID REFERENCES readmodel.tenant (id),
   -- revoker id
-  tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.attribute(id),
+  tenant_verified_attribute_id UUID NOT NULL,
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
   extension_date TIMESTAMP WITH TIME ZONE,
   revocation_date TIMESTAMP NOT NULL,
   delegation_id UUID,
   PRIMARY KEY (id, tenant_verified_attribute_id, tenant_id),
-  FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel.tenant_verified_attribute (tenant_id, id)
+  FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel.tenant_verified_attribute (tenant_id, attribute_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_certifier(
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_delegated_consumer(
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template (
   id UUID,
   version INTEGER NOT NULL,
-  creator_id UUID NOT NULL REFERENCES readmodel.tenant(id),
+  creator_id UUID NOT NULL,
   name VARCHAR NOT NULL,
   audience_description VARCHAR NOT NULL,
   eservice_description VARCHAR NOT NULL,
@@ -195,7 +195,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_attribute(
   -- id of the group
   sorting_id INTEGER NOT NULL,
   -- index of the attribute inside its group
-  PRIMARY KEY(id, eservice_template_version_id) -- TODO verify if the same attribute can be assigned twice in the same eservice_template_version
+  PRIMARY KEY(id, eservice_template_version_id, group_id) -- TODO verify if the same attribute can be assigned twice in the same eservice_template_version
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis(
@@ -204,7 +204,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis(
   eservice_template_version INTEGER,
   name VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE,
-  risk_analysis_form_id UUID,
+  risk_analysis_form_id UUID UNIQUE,
   risk_analysis_form_version VARCHAR,
   PRIMARY KEY(id)
 );
@@ -213,8 +213,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis_answer(
   id UUID,
   eservice_template_id UUID REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
   eservice_template_version INTEGER,
-  risk_analysis_form_id UUID,
-  -- REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id) -- risk_analysis_form_id IS NOT PK
+  risk_analysis_form_id UUID REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id),
   kind VARCHAR,
   -- SINGLE/MULTI
   key VARCHAR,
@@ -226,7 +225,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis_answer(
 CREATE TABLE IF NOT EXISTS readmodel.eservice (
   id UUID,
   version INTEGER NOT NULL,
-  producer_id UUID NOT NULL REFERENCES readmodel.tenant(id),
+  producer_id UUID NOT NULL,
   name VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
   technology VARCHAR NOT NULL,
@@ -238,20 +237,20 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice (
   is_signal_hub_enabled BOOLEAN,
   is_delegable BOOLEAN,
   is_client_access_delegable BOOLEAN,
-  eservice_template_id UUID REFERENCES readmodel.eservice_template(id),
   PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_binding (
   eservice_id UUID REFERENCES readmodel.eservice(id),
   eservice_version INTEGER,
-  eservice_template_id UUID REFERENCES readmodel.eservice_template(id),
+  eservice_template_id UUID,
   instance_id VARCHAR,
   name VARCHAR,
   email VARCHAR,
   url VARCHAR,
   terms_and_conditions_url VARCHAR,
-  server_url VARCHAR
+  server_url VARCHAR,
+  PRIMARY KEY (id, eservice_template_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.descriptor (
@@ -314,7 +313,7 @@ CREATE TABLE IF NOT EXISTS readmodel.descriptor_document(
  d | certified | 3 | 0
  */
 CREATE TABLE IF NOT EXISTS readmodel.descriptor_attribute(
-  id UUID,
+  attribute_id UUID NOT NULL REFERENCES readmodel.attribute (id),
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   eservice_version INTEGER NOT NULL,
   descriptor_id UUID NOT NULL REFERENCES readmodel.descriptor(id) ON DELETE CASCADE,
@@ -325,7 +324,7 @@ CREATE TABLE IF NOT EXISTS readmodel.descriptor_attribute(
   -- id of the group
   sorting_id INTEGER NOT NULL,
   -- index of the attribute inside its group
-  PRIMARY KEY(id, descriptor_id) -- TODO verify if the same attribute can be assigned twice in the same descriptor
+  PRIMARY KEY(attribute_id, descriptor_id, group_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis(
@@ -344,7 +343,6 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis_answer(
   eservice_id UUID REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   eservice_version INTEGER,
   risk_analysis_form_id UUID REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id),
-  -- risk_analysis_form_id IS NOT PK
   kind VARCHAR,
   -- SINGLE/MULTI
   key VARCHAR,
@@ -356,10 +354,10 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis_answer(
 CREATE TABLE IF NOT EXISTS readmodel.agreement(
   id uuid,
   version integer NOT NULL,
-  eservice_id uuid NOT NULL REFERENCES readmodel.eservice(id),
-  descriptor_id uuid NOT NULL REFERENCES readmodel.descriptor(id),
-  producer_id UUID NOT NULL REFERENCES readmodel.tenant (id),
-  consumer_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  eservice_id uuid NOT NULL,
+  descriptor_id uuid NOT NULL,
+  producer_id UUID NOT NULL,
+  consumer_id UUID NOT NULL,
   state varchar NOT NULL,
   -- verifiedAttributes
   -- certifiedAttributes
@@ -407,7 +405,7 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement_attribute(
   PRIMARY KEY (agreement_id, attribute_id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.agreement_consumer_document(
+CREATE TABLE IF NOT EXISTS readmodel.agreement_document(
   id uuid,
   agreement_id uuid REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
   agreement_version integer NOT NULL,
@@ -416,16 +414,18 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement_consumer_document(
   content_type varchar NOT NULL,
   path varchar NOT NULL,
   created_at timestamp with time zone NOT NULL,
-  kind varchar NOT NULL -- consumerDoc / contract
+  kind varchar NOT NULL,
+  -- consumerDoc / contract
+  PRIMARY KEY (id)
 );
 
 -- DELEGATION
 CREATE TABLE IF NOT EXISTS readmodel.delegation(
   id UUID,
   version INTEGER,
-  delegator_id UUID REFERENCES readmodel.tenant(id),
-  delegate_id UUID REFERENCES readmodel.tenant(id),
-  eservice_id UUID REFERENCES readmodel.eservice(id),
+  delegator_id UUID,
+  delegate_id UUID,
+  eservice_id UUID,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   submitted_at TIMESTAMP WITH TIME ZONE NOT NULL,
   approved_at TIMESTAMP WITH TIME ZONE,
@@ -436,13 +436,13 @@ CREATE TABLE IF NOT EXISTS readmodel.delegation(
   kind VARCHAR,
   -- activationContract
   -- revocationContract
-  submission_who UUID NOT NULL REFERENCES readmodel.tenant(id),
+  submission_who UUID NOT NULL,
   submission_when TIMESTAMP WITH TIME ZONE NOT NULL,
-  activation_who UUID REFERENCES readmodel.tenant(id),
+  activation_who UUID,
   activation_when TIMESTAMP WITH TIME ZONE,
-  rejection_who UUID REFERENCES readmodel.tenant(id),
+  rejection_who UUID,
   rejection_when TIMESTAMP WITH TIME ZONE,
-  revocation_who UUID REFERENCES readmodel.tenant(id),
+  revocation_who UUID,
   revocation_when TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (id)
 );
@@ -465,9 +465,9 @@ CREATE TABLE IF NOT EXISTS readmodel.delegation_contract_document(
 CREATE TABLE IF NOT EXISTS readmodel.purpose (
   id UUID,
   version INTEGER,
-  eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id),
-  consumer_id UUID NOT NULL REFERENCES readmodel.tenant (id),
-  delegation_id UUID REFERENCES readmodel.delegation (id),
+  eservice_id UUID NOT NULL,
+  consumer_id UUID NOT NULL,
+  delegation_id UUID,
   -- versions
   suspended_by_consumer TIMESTAMP WITH TIME ZONE,
   suspended_by_producer TIMESTAMP WITH TIME ZONE,
@@ -506,7 +506,7 @@ CREATE TABLE IF NOT EXISTS readmodel.purpose_version (
 CREATE TABLE IF NOT EXISTS readmodel.client (
   id UUID,
   version INTEGER NOT NULL,
-  consumer_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  consumer_id UUID NOT NULL,
   name VARCHAR NOT NULL,
   -- purposes
   description VARCHAR,
@@ -527,7 +527,7 @@ CREATE TABLE IF NOT EXISTS readmodel.client_user (
 CREATE TABLE IF NOT EXISTS readmodel.client_purpose (
   client_version INTEGER NOT NULL,
   client_id UUID NOT NULL REFERENCES readmodel.client (id) ON DELETE CASCADE,
-  purpose_id UUID NOT NULL REFERENCES readmodel.purpose (id),
+  purpose_id UUID NOT NULL,
   PRIMARY KEY (client_id, purpose_id)
 );
 
@@ -548,7 +548,7 @@ CREATE TABLE IF NOT EXISTS readmodel.client_key (
 CREATE TABLE IF NOT EXISTS readmodel.producer_keychain (
   id UUID,
   version INTEGER NOT NULL,
-  producer_id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  producer_id UUID NOT NULL,
   name VARCHAR NOT NULL,
   -- eservices
   description VARCHAR,
@@ -587,7 +587,7 @@ CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_key (
 
 -- CLIENT JWK KEY
 CREATE TABLE IF NOT EXISTS readmodel.client_jwk_key(
-  client_id UUID NOT NULL REFERENCES readmodel.client(id),
+  client_id UUID NOT NULL,
   version INTEGER NOT NULL,
   alg VARCHAR NOT NULL,
   e VARCHAR NOT NULL,
@@ -600,7 +600,7 @@ CREATE TABLE IF NOT EXISTS readmodel.client_jwk_key(
 
 -- PRODUCER KEYCHAIN JWK KEY
 CREATE TABLE IF NOT EXISTS readmodel.producer_jwk_key(
-  producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain(id),
+  producer_keychain_id UUID NOT NULL,
   version INTEGER NOT NULL,
   alg VARCHAR NOT NULL,
   e VARCHAR NOT NULL,
