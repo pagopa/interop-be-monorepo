@@ -23,3 +23,15 @@ export const Attribute = z.object({
 });
 
 export type Attribute = z.infer<typeof Attribute>;
+
+export const AttributeSQL = z.object({
+  id: AttributeId,
+  code: z.string().optional(),
+  kind: AttributeKind,
+  description: z.string(),
+  origin: z.string().optional(),
+  name: z.string(),
+  creation_time: z.coerce.date(),
+});
+
+export type AttributeSQL = z.infer<typeof AttributeSQL>;
