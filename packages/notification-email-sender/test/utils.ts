@@ -52,10 +52,6 @@ export const sesEmailsenderData = {
   mail: "ses_sender@test.com",
 };
 
-export const pecEmailsenderData = {
-  label: "pec_sender",
-  mail: "pec_sender@test.com",
-};
 export const interopFeBaseUrl = "http://localhost/fe";
 
 export const notificationEmailSenderService =

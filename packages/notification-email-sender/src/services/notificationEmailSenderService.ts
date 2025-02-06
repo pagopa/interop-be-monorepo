@@ -4,7 +4,6 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import {
-  EmailManager,
   EmailManagerSES,
   HtmlTemplateService,
   Logger,
@@ -130,7 +129,7 @@ export function getFormattedAgreementStampDate(
 }
 
 async function sendActivationNotificationEmail(
-  emailManager: EmailManager,
+  emailManager: EmailManagerSES,
   readModelService: ReadModelService,
   agreementV2Msg: AgreementV2,
   templateService: HtmlTemplateService,
@@ -201,23 +200,13 @@ export function notificationEmailSenderServiceBuilder(
       logger: Logger
     ): Promise<void> => {
       const agreement = fromAgreementV2(agreementV2Msg);
-      const htmlTemplate = await retrieveHTMLTemplate(
-        agreementEventMailTemplateType.submission
-      );
 
-      const eservice = await retrieveAgreementEservice(
-        agreement,
-        readModelService
-      );
-
-      const producer = await retrieveTenant(
-        agreement.producerId,
-        readModelService
-      );
-      const consumer = await retrieveTenant(
-        agreement.consumerId,
-        readModelService
-      );
+      const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
+        retrieveHTMLTemplate(agreementEventMailTemplateType.submission),
+        retrieveAgreementEservice(agreement, readModelService),
+        retrieveTenant(agreement.producerId, readModelService),
+        retrieveTenant(agreement.consumerId, readModelService),
+      ]);
 
       const submissionDate = getFormattedAgreementStampDate(
         agreement,
@@ -301,23 +290,13 @@ export function notificationEmailSenderServiceBuilder(
       logger: Logger
     ) => {
       const agreement = fromAgreementV2(agreementV2Msg);
-      const htmlTemplate = await retrieveHTMLTemplate(
-        agreementEventMailTemplateType.rejection
-      );
 
-      const eservice = await retrieveAgreementEservice(
-        agreement,
-        readModelService
-      );
-
-      const producer = await retrieveTenant(
-        agreement.producerId,
-        readModelService
-      );
-      const consumer = await retrieveTenant(
-        agreement.consumerId,
-        readModelService
-      );
+      const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
+        retrieveHTMLTemplate(agreementEventMailTemplateType.rejection),
+        retrieveAgreementEservice(agreement, readModelService),
+        retrieveTenant(agreement.producerId, readModelService),
+        retrieveTenant(agreement.consumerId, readModelService),
+      ]);
 
       const rejectionDate = getFormattedAgreementStampDate(
         agreement,
