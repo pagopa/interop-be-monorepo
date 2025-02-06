@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice (
   -- riskAnalysis
   mode VARCHAR NOT NULL,
   is_signal_hub_enabled BOOLEAN,
-  is_delegable BOOLEAN,
+  is_consumer_delegable BOOLEAN,
   is_client_access_delegable BOOLEAN,
   PRIMARY KEY (id)
 );
