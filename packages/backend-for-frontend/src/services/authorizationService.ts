@@ -61,37 +61,40 @@ export function authorizationServiceBuilder(
     sessionClaims: SessionClaims;
     selfcareId: string;
   }> => {
-    const verified = await verifyJwtToken(identityToken, config, logger);
-    if (!verified) {
-      throw tokenVerificationFailed();
-    }
+    const { verified, maybeDecoded } = await verifyJwtToken(
+      identityToken,
+      config,
+      logger
+    );
 
-    const decoded = decodeJwtToken(identityToken, logger);
-
-    const userRoles: string[] = decoded?.organization?.roles
-      ? decoded.organization.roles.map((r: { role: string }) => r.role)
-      : decoded?.[USER_ROLES]
-      ? decoded[USER_ROLES].split(",")
-      : decoded?.role
-      ? decoded.role.split(",")
-      : [];
-
-    if (userRoles.length === 0) {
-      throw genericError("Unable to extract userRoles from claims");
-    }
+    const decoded = maybeDecoded ?? decodeJwtToken(identityToken, logger);
 
     const { data: sessionClaims, error } = SessionClaims.safeParse(decoded);
+
+    if (!verified) {
+      throw tokenVerificationFailed(
+        sessionClaims?.uid,
+        sessionClaims?.organization.id
+      );
+    }
+
     if (error) {
       const claim = error.errors[0].path.join(".");
       throw missingClaim(claim);
     }
 
-    const selfcareId = sessionClaims[ORGANIZATION].id;
+    const userRoles: string[] = sessionClaims.organization.roles.map(
+      (r: { role: string }) => r.role
+    );
+
+    if (userRoles.length === 0) {
+      throw genericError("Unable to extract userRoles from claims");
+    }
 
     return {
       roles: userRoles.join(","),
       sessionClaims,
-      selfcareId,
+      selfcareId: sessionClaims.organization.id,
     };
   };
 

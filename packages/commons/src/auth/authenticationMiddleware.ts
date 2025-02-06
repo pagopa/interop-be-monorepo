@@ -27,12 +27,24 @@ export const authenticationMiddleware: (
 
     try {
       const jwtToken = jwtFromAuthHeader(req, ctx.logger);
-      const valid = await verifyJwtToken(jwtToken, config, ctx.logger);
-      if (!valid) {
-        throw unauthorizedError("Invalid token");
+      const { verified, maybeDecoded } = await verifyJwtToken(
+        jwtToken,
+        config,
+        ctx.logger
+      );
+
+      const authData: AuthData = readAuthDataFromJwtToken(
+        jwtToken,
+        maybeDecoded,
+        ctx.logger
+      );
+
+      if (!verified) {
+        throw unauthorizedError(
+          `Invalid token for user ${authData.userId} and tenant ${authData.selfcareId}`
+        );
       }
 
-      const authData: AuthData = readAuthDataFromJwtToken(jwtToken, ctx.logger);
       // eslint-disable-next-line functional/immutable-data
       req.ctx.authData = authData;
       return next();

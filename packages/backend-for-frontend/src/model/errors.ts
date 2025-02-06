@@ -221,9 +221,15 @@ export function tenantLoginNotAllowed(
   });
 }
 
-export function tokenVerificationFailed(): ApiError<ErrorCodes> {
+export function tokenVerificationFailed(
+  uid: string | undefined,
+  selfcareId: string | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Token verification failed",
+    detail:
+      "Token verification failed" +
+      (uid ? " for user " + uid : "") +
+      (selfcareId ? " for tenant " + selfcareId : ""),
     code: "tokenVerificationFailed",
     title: "Token verification failed",
   });
