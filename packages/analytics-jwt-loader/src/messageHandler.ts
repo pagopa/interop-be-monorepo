@@ -2,11 +2,12 @@ import { Message } from "@aws-sdk/client-sqs";
 import { FileManager, Logger, genericLogger } from "pagopa-interop-commons";
 import { readFile } from "./fileReader.js";
 import { sqsMessageFormatError, sqsProcessError } from "./model/errors.js";
+import { S3EventSchema } from "./model/s3EventModel.js";
 
 export function processMessage(
   queueUrl: string,
   fileManager: FileManager,
-  logger: Logger
+  logger: Logger,
 ): (message: Message) => Promise<void> {
   return async (message: Message) => {
     try {
@@ -18,17 +19,19 @@ export function processMessage(
 
       const body = JSON.parse(message.Body);
 
-      const fileKey = body.Records?.[0]?.s3?.object?.key;
-      if (!fileKey) {
+      const parsedKey = S3EventSchema.safeParse(body);
+
+      if (!parsedKey.success) {
         throw sqsMessageFormatError(
           queueUrl,
-          "fileKey not found in SQS message"
+          "fileKey not found in SQS message",
         );
       }
 
-      logger.info(`Processing file: ${fileKey}`);
+      const fileKey = parsedKey.data.Records[0].s3.object.key;
 
       const fileToken = await readFile(fileKey, fileManager, logger);
+
       logger.info(`File token: ${fileToken}`);
     } catch (error) {
       throw sqsProcessError("unknown", error);
