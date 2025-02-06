@@ -122,20 +122,24 @@ export function readModelServiceBuilder(
         authData
       )
         ? {
-            $nor: [
+            $or: [
+              { "data.creatorId": authData.organizationId },
+              { "data.versions.1": { $exists: true } },
               {
-                "data.creatorId": { $ne: authData.organizationId },
                 "data.versions": { $size: 1 },
-                "data.versions.state": eserviceTemplateVersionState.draft,
+                "data.versions.0.state": {
+                  $ne: eserviceTemplateVersionState.draft,
+                },
               },
             ],
           }
         : {
-            $nor: [
+            $or: [
+              { "data.versions.1": { $exists: true } },
               {
                 "data.versions": { $size: 1 },
-                "data.versions.state": {
-                  $eq: eserviceTemplateVersionState.draft,
+                "data.versions.0.state": {
+                  $ne: eserviceTemplateVersionState.draft,
                 },
               },
             ],
