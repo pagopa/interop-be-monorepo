@@ -124,36 +124,19 @@ export function readModelServiceBuilder(
         ? {
             $nor: [
               {
-                $and: [
-                  { "data.creatorId": { $ne: authData.organizationId } },
-                  { "data.versions": { $size: 0 } },
-                ],
-              },
-              {
-                $and: [
-                  { "data.creatorId": { $ne: authData.organizationId } },
-                  { "data.versions": { $size: 1 } },
-                  {
-                    "data.versions.state": {
-                      $eq: eserviceTemplateVersionState.draft,
-                    },
-                  },
-                ],
+                "data.creatorId": { $ne: authData.organizationId },
+                "data.versions": { $size: 1 },
+                "data.versions.state": eserviceTemplateVersionState.draft,
               },
             ],
           }
         : {
             $nor: [
-              { "data.versions": { $size: 0 } },
               {
-                $and: [
-                  { "data.versions": { $size: 1 } },
-                  {
-                    "data.versions.state": {
-                      $eq: eserviceTemplateVersionState.draft,
-                    },
-                  },
-                ],
+                "data.versions": { $size: 1 },
+                "data.versions.state": {
+                  $eq: eserviceTemplateVersionState.draft,
+                },
               },
             ],
           };
