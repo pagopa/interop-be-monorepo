@@ -7,6 +7,7 @@ import {
 } from "@aws-sdk/client-sqs";
 import { genericLogger, logger } from "pagopa-interop-commons";
 import { AnalyticsJwTLoaderConfig } from "../config/config.js";
+import { sqsDeleteError, sqsReceiveError } from "../model/errors.js";
 
 const processExit = async (exitStatusCode: number = 1): Promise<void> => {
   genericLogger.error(`Process exit with code ${exitStatusCode}`);
@@ -21,9 +22,10 @@ const processQueue = async (
   sqsClient: SQSClient,
   config: {
     queueUrl: string;
+    consumerPollingTimeout: number;
     runUntilQueueIsEmpty?: boolean;
-  } & AnalyticsJwTLoaderConfig,
-  consumerHandler: (messagePayload: Message) => Promise<void>,
+  },
+  consumerHandler: (messagePayload: Message) => Promise<void>
 ): Promise<void> => {
   const command = new ReceiveMessageCommand({
     QueueUrl: config.queueUrl,
@@ -42,7 +44,7 @@ const processQueue = async (
       for (const message of Messages) {
         if (!message.ReceiptHandle) {
           throw new Error(
-            `ReceiptHandle not found in Message: ${JSON.stringify(message)}`,
+            `ReceiptHandle not found in Message: ${JSON.stringify(message)}`
           );
         }
 
@@ -51,14 +53,10 @@ const processQueue = async (
           await deleteMessage(
             sqsClient,
             config.queueUrl,
-            message.ReceiptHandle,
+            message.ReceiptHandle
           );
         } catch (e) {
-          genericLogger.error(
-            `Unexpected error consuming message: ${JSON.stringify(
-              message,
-            )}. QueueUrl: ${config.queueUrl}. ${e}`,
-          );
+          throw sqsReceiveError(config.queueUrl, e);
         }
       }
     }
@@ -67,36 +65,46 @@ const processQueue = async (
 
 export const runConsumer = async (
   sqsClient: SQSClient,
-  config: AnalyticsJwTLoaderConfig,
-  consumerHandler: (messagePayload: Message) => Promise<void>,
+  config: Pick<
+    AnalyticsJwTLoaderConfig,
+    | "serviceName"
+    | "queueUrl"
+    | "consumerPollingTimeout"
+    | "runUntilQueueIsEmpty"
+  >,
+  consumerHandler: (messagePayload: Message) => Promise<void>
 ): Promise<void> => {
   logger({ serviceName: config.serviceName }).info(
-    `Consumer processing on Queue: ${config.queueUrl}`,
+    `Consumer processing on Queue: ${config.queueUrl}`
   );
 
   try {
     await processQueue(sqsClient, config, consumerHandler);
   } catch (e) {
     logger({ serviceName: config.serviceName }).error(
-      `Generic error occurs processing Queue: ${config.queueUrl}. Details: ${e}`,
+      `Generic error occurs processing Queue: ${config.queueUrl}. Details: ${e}`
     );
     await processExit();
   }
 
   logger({ serviceName: config.serviceName }).info(
-    `Queue processing Completed for Queue: ${config.queueUrl}`,
+    `Queue processing Completed for Queue: ${config.queueUrl}`
   );
 };
 
 export const deleteMessage = async (
   sqsClient: SQSClient,
   queueUrl: string,
-  receiptHandle: string,
+  receiptHandle: string
 ): Promise<void> => {
   const deleteCommand = new DeleteMessageCommand({
     QueueUrl: queueUrl,
     ReceiptHandle: receiptHandle,
   });
 
-  await sqsClient.send(deleteCommand);
+  try {
+    await sqsClient.send(deleteCommand);
+  } catch (error) {
+    throw sqsDeleteError(queueUrl, error);
+  }
 };
