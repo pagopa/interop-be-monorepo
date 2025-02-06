@@ -1,5 +1,5 @@
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { config } from "./config/config.js";
+import { config } from "../config/config.js";
 
 export async function readFile(
   filePath: string,

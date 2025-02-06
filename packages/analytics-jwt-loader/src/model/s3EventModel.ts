@@ -9,7 +9,7 @@ export const S3EventSchema = z.object({
             key: z.string(),
           }),
         }),
-      }),
+      })
     )
     .nonempty(),
 });

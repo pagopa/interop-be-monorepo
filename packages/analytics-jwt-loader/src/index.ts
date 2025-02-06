@@ -1,8 +1,8 @@
 import { SQSClient } from "@aws-sdk/client-sqs/dist-types/SQSClient.js";
 import { genericLogger, initFileManager } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
-import { processMessage } from "./messageHandler.js";
-import { instantiateClient, runConsumer } from "./sqs/sqs.js";
+import { processMessage } from "./handlers/messageHandler.js";
+import { instantiateClient, runConsumer } from "./sqs/sqsConsumer.js";
 
 const sqsClient: SQSClient = instantiateClient({
   region: config.awsRegion,
