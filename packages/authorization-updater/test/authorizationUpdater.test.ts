@@ -119,7 +119,7 @@ describe("Authorization Updater processMessage", () => {
       vi.fn();
     authorizationManagementClients.clientApiClient.createClient = vi.fn();
     authorizationManagementClients.clientApiClient.deleteClient = vi.fn();
-    authorizationManagementClients.keyApiClient.createKeys = vi.fn();
+    authorizationManagementClients.keyApiClient.createKey = vi.fn();
     authorizationManagementClients.keyApiClient.deleteClientKeyById = vi.fn();
     authorizationManagementClients.clientApiClient.addUser = vi.fn();
     authorizationManagementClients.clientApiClient.removeClientUser = vi.fn();
@@ -886,22 +886,21 @@ describe("Authorization Updater processMessage", () => {
     );
 
     expect(
-      authorizationManagementClients.keyApiClient.createKeys
+      authorizationManagementClients.keyApiClient.createKey
     ).toHaveBeenCalledTimes(1);
 
     expect(
-      authorizationManagementClients.keyApiClient.createKeys
+      authorizationManagementClients.keyApiClient.createKey
     ).toHaveBeenCalledWith(
-      [
-        {
-          name: mockKey.name,
-          createdAt: mockKey.createdAt.toISOString(),
-          userId: mockKey.userId,
-          key: mockKey.encodedPem,
-          use: keyUseToApiKeyUse(mockKey.use),
-          alg: mockKey.algorithm,
-        },
-      ],
+      {
+        name: mockKey.name,
+        createdAt: mockKey.createdAt.toISOString(),
+        userId: mockKey.userId,
+        key: mockKey.encodedPem,
+        use: keyUseToApiKeyUse(mockKey.use),
+        alg: mockKey.algorithm,
+      },
+
       {
         params: { clientId: mockClient.id },
         withCredentials: true,
