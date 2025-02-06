@@ -1,21 +1,30 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
+/* eslint-disable sonarjs/no-identical-functions */
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
+  AgreementTopicConfig,
+  CatalogTopicConfig,
   EmailManagerSES,
+  PurposeTopicConfig,
   ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
   initSesMailManager,
   logger,
+  Logger,
 } from "pagopa-interop-commons";
 import {
-  AgreementEvent,
+  AgreementEventEnvelopeV2,
+  AgreementEventV2,
   CorrelationId,
-  EServiceEvent,
+  EServiceEventEnvelopeV2,
+  EServiceEventV2,
   generateId,
+  genericInternalError,
+  kafkaMessageProcessError,
   missingKafkaMessageDataError,
-  PurposeEvent,
+  PurposeEventEnvelopeV2,
+  PurposeEventV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -42,24 +51,94 @@ const notificationEmailSenderService = notificationEmailSenderServiceBuilder(
   interopFeBaseUrl
 );
 
-export async function processMessage({
-  message,
-}: EachMessagePayload): Promise<void> {
-  const handleMessageToSkip = async (): Promise<void> => {};
+export async function handleCatalogMessage(
+  decodedMessage: EServiceEventEnvelopeV2,
+  logger: Logger
+): Promise<void> {
+  match(decodedMessage)
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorPublished",
+          "EServiceDescriptorActivated",
+          "EServiceDescriptorApprovedByDelegator",
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorArchived",
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceAdded",
+          "EServiceCloned",
+          "EServiceDeleted",
+          "DraftEServiceUpdated",
+          "EServiceDescriptorAdded",
+          "EServiceDraftDescriptorDeleted",
+          "EServiceDraftDescriptorUpdated",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorInterfaceDeleted",
+          "EServiceRiskAnalysisAdded",
+          "EServiceRiskAnalysisUpdated",
+          "EServiceRiskAnalysisDeleted",
+          "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptionUpdated",
+          "EServiceNameUpdated",
+          "EServiceDescriptorSubmittedByDelegate",
+          "EServiceDescriptorRejectedByDelegator"
+        ),
+      },
+      () => {
+        logger.info(
+          `No need to send a notification email for ${decodedMessage.type} message`
+        );
+      }
+    )
+    .exhaustive();
+}
 
-  const decodedAgreementMessage = decodeKafkaMessage(message, AgreementEvent);
-  const loggerAgreementInstance = logger({
-    serviceName: "notification-email-sender",
-    eventType: decodedAgreementMessage.type,
-    eventVersion: decodedAgreementMessage.event_version,
-    streamId: decodedAgreementMessage.stream_id,
-    correlationId: decodedAgreementMessage.correlation_id
-      ? unsafeBrandId<CorrelationId>(decodedAgreementMessage.correlation_id)
-      : generateId<CorrelationId>(),
-  });
-  loggerAgreementInstance.debug(decodedAgreementMessage);
+export async function handlePurposeMessage(
+  decodedMessage: PurposeEventEnvelopeV2,
+  logger: Logger
+): Promise<void> {
+  match(decodedMessage)
+    .with(
+      {
+        type: P.union(
+          "DraftPurposeDeleted",
+          "WaitingForApprovalPurposeDeleted",
+          "PurposeAdded",
+          "DraftPurposeUpdated",
+          "NewPurposeVersionActivated",
+          "NewPurposeVersionWaitingForApproval",
+          "PurposeActivated",
+          "PurposeArchived",
+          "PurposeVersionOverQuotaUnsuspended",
+          "PurposeVersionRejected",
+          "PurposeVersionSuspendedByConsumer",
+          "PurposeVersionSuspendedByProducer",
+          "PurposeVersionUnsuspendedByConsumer",
+          "PurposeVersionUnsuspendedByProducer",
+          "PurposeWaitingForApproval",
+          "WaitingForApprovalPurposeVersionDeleted",
+          "PurposeVersionActivated",
+          "PurposeCloned"
+        ),
+      },
+      () => {
+        logger.info(
+          `No need to send a notification email for ${decodedMessage.type} message`
+        );
+      }
+    )
+    .exhaustive();
+}
 
-  await match(decodedAgreementMessage)
+export async function handleAgreementMessage(
+  decodedMessage: AgreementEventEnvelopeV2,
+  logger: Logger
+): Promise<void> {
+  await match(decodedMessage)
     .with(
       { event_version: 2, type: "AgreementActivated" },
       async ({ data: { agreement } }) => {
@@ -67,14 +146,11 @@ export async function processMessage({
           await Promise.all([
             notificationEmailSenderService.sendActivationNotificationSimpleEmail(
               agreement,
-              loggerAgreementInstance
+              logger
             ),
           ]);
         } else {
-          throw missingKafkaMessageDataError(
-            "agreement",
-            decodedAgreementMessage.type
-          );
+          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
         }
       }
     )
@@ -84,13 +160,10 @@ export async function processMessage({
         if (agreement) {
           await notificationEmailSenderService.sendSubmissionNotificationSimpleEmail(
             agreement,
-            loggerAgreementInstance
+            logger
           );
         } else {
-          throw missingKafkaMessageDataError(
-            "agreement",
-            decodedAgreementMessage.type
-          );
+          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
         }
       }
     )
@@ -100,13 +173,10 @@ export async function processMessage({
         if (agreement) {
           await notificationEmailSenderService.sendRejectNotificationSimpleEmail(
             agreement,
-            loggerAgreementInstance
+            logger
           );
         } else {
-          throw missingKafkaMessageDataError(
-            "agreement",
-            decodedAgreementMessage.type
-          );
+          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
         }
       }
     )
@@ -132,122 +202,97 @@ export async function processMessage({
           "AgreementSetMissingCertifiedAttributesByPlatform"
         ),
       },
-      handleMessageToSkip
-    )
-    .with(
-      {
-        event_version: 1,
-      },
-      handleMessageToSkip
-    )
-    .exhaustive();
-
-  const decodedPurposeMessage = decodeKafkaMessage(message, PurposeEvent);
-  const loggerPurposeInstance = logger({
-    serviceName: "notification-email-sender",
-    eventType: decodedPurposeMessage.type,
-    eventVersion: decodedPurposeMessage.event_version,
-    streamId: decodedPurposeMessage.stream_id,
-    correlationId: decodedPurposeMessage.correlation_id
-      ? unsafeBrandId<CorrelationId>(decodedPurposeMessage.correlation_id)
-      : generateId<CorrelationId>(),
-  });
-  loggerPurposeInstance.debug(decodedPurposeMessage);
-
-  await match(decodedPurposeMessage)
-    .with(
-      {
-        event_version: 2,
-        type: P.union(
-          "DraftPurposeDeleted",
-          "WaitingForApprovalPurposeDeleted",
-          "PurposeAdded",
-          "DraftPurposeUpdated",
-          "NewPurposeVersionActivated",
-          "NewPurposeVersionWaitingForApproval",
-          "PurposeActivated",
-          "PurposeArchived",
-          "PurposeVersionOverQuotaUnsuspended",
-          "PurposeVersionRejected",
-          "PurposeVersionSuspendedByConsumer",
-          "PurposeVersionSuspendedByProducer",
-          "PurposeVersionUnsuspendedByConsumer",
-          "PurposeVersionUnsuspendedByProducer",
-          "PurposeWaitingForApproval",
-          "WaitingForApprovalPurposeVersionDeleted",
-          "PurposeVersionActivated",
-          "PurposeCloned"
-        ),
-      },
-      handleMessageToSkip
-    )
-    .with(
-      {
-        event_version: 1,
-      },
-      handleMessageToSkip
-    )
-    .exhaustive();
-
-  const decodedEServiceMessage = decodeKafkaMessage(message, EServiceEvent);
-  const loggerEServiceInstance = logger({
-    serviceName: "notification-email-sender",
-    eventType: decodedEServiceMessage.type,
-    eventVersion: decodedEServiceMessage.event_version,
-    streamId: decodedEServiceMessage.stream_id,
-    correlationId: decodedEServiceMessage.correlation_id
-      ? unsafeBrandId<CorrelationId>(decodedEServiceMessage.correlation_id)
-      : generateId<CorrelationId>(),
-  });
-  loggerEServiceInstance.debug(decodedEServiceMessage);
-
-  await match(decodedEServiceMessage)
-    .with(
-      {
-        event_version: 2,
-        type: P.union(
-          "EServiceAdded",
-          "DraftEServiceUpdated",
-          "EServiceCloned",
-          "EServiceDescriptorAdded",
-          "EServiceDraftDescriptorDeleted",
-          "EServiceDraftDescriptorUpdated",
-          "EServiceDescriptorQuotasUpdated",
-          "EServiceDescriptorActivated",
-          "EServiceDescriptorArchived",
-          "EServiceDescriptorPublished",
-          "EServiceDescriptorSuspended",
-          "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorInterfaceUpdated",
-          "EServiceDescriptorDocumentUpdated",
-          "EServiceDescriptorInterfaceDeleted",
-          "EServiceDescriptorDocumentDeleted",
-          "EServiceRiskAnalysisAdded",
-          "EServiceRiskAnalysisUpdated",
-          "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptionUpdated",
-          "EServiceDescriptorSubmittedByDelegate",
-          "EServiceDescriptorApprovedByDelegator",
-          "EServiceDescriptorRejectedByDelegator",
-          "EServiceDescriptorAttributesUpdated",
-          "EServiceNameUpdated",
-          "EServiceDeleted"
-        ),
-      },
-      handleMessageToSkip
-    )
-    .with(
-      {
-        event_version: 1,
-      },
-      handleMessageToSkip
+      () => {
+        logger.info(
+          `No need to send a notification email for ${decodedMessage.type} message`
+        );
+      }
     )
     .exhaustive();
 }
 
+function processMessage(
+  catalogTopicConfig: CatalogTopicConfig,
+  agreementTopicConfig: AgreementTopicConfig,
+  purposeTopicConfig: PurposeTopicConfig
+) {
+  return async (messagePayload: EachMessagePayload): Promise<void> => {
+    try {
+      const { decodedMessage, handleMessage } = match(messagePayload.topic)
+        .with(catalogTopicConfig.catalogTopic, () => {
+          const decodedMessage = decodeKafkaMessage(
+            messagePayload.message,
+            EServiceEventV2
+          );
+
+          const handleMessage = handleCatalogMessage.bind(null, decodedMessage);
+
+          return { decodedMessage, handleMessage };
+        })
+        .with(agreementTopicConfig.agreementTopic, () => {
+          const decodedMessage = decodeKafkaMessage(
+            messagePayload.message,
+            AgreementEventV2
+          );
+
+          const handleMessage = handleAgreementMessage.bind(
+            null,
+            decodedMessage
+          );
+
+          return { decodedMessage, handleMessage };
+        })
+        .with(purposeTopicConfig.purposeTopic, () => {
+          const decodedMessage = decodeKafkaMessage(
+            messagePayload.message,
+            PurposeEventV2
+          );
+
+          const handleMessage = handlePurposeMessage.bind(null, decodedMessage);
+
+          return { decodedMessage, handleMessage };
+        })
+        .otherwise(() => {
+          throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
+        });
+
+      const loggerInstance = logger({
+        serviceName: "notification-email-sender",
+        eventType: decodedMessage.type,
+        eventVersion: decodedMessage.event_version,
+        streamId: decodedMessage.stream_id,
+        correlationId: decodedMessage.correlation_id
+          ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+          : generateId<CorrelationId>(),
+      });
+      loggerInstance.info(
+        `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
+      );
+
+      await handleMessage(loggerInstance);
+    } catch (e) {
+      throw kafkaMessageProcessError(
+        messagePayload.topic,
+        messagePayload.partition,
+        messagePayload.message.offset,
+        e
+      );
+    }
+  };
+}
+
 await runConsumer(
   config,
-  [config.purposeTopic, config.agreementTopic, config.catalogTopic],
-  processMessage
+  [config.catalogTopic, config.agreementTopic, config.purposeTopic],
+  processMessage(
+    {
+      catalogTopic: config.catalogTopic,
+    },
+    {
+      agreementTopic: config.agreementTopic,
+    },
+    {
+      purposeTopic: config.purposeTopic,
+    }
+  )
 );
