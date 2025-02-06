@@ -437,7 +437,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       expect(
         agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation
       ).toHaveBeenCalledWith(undefined, {
-        params: { agreementId: agreement1.id, d: delegation.id },
+        params: { agreementId: agreement1.id, delegationId: delegation.id },
         headers: testHeaders,
       });
 
@@ -447,7 +447,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       expect(
         agreementProcessClient.internalDeleteAgreementAfterDelegationRevocation
       ).toHaveBeenCalledWith(undefined, {
-        params: { agreementId: agreement2.id, d: delegation.id },
+        params: { agreementId: agreement2.id, delegationId: delegation.id },
         headers: testHeaders,
       });
     });
