@@ -96,10 +96,10 @@ importers:
 
   packages/agreement-outbound-writer:
     dependencies:
-      "@pagopa/interop-outbound-models":
-        specifier: 1.0.11g
-        version: 1.0.11-g
-      "@protobuf-ts/runtime":
+      '@pagopa/interop-outbound-models':
+        specifier: 1.4.1
+        version: 1.4.1
+      '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
       connection-string:
@@ -1070,10 +1070,10 @@ importers:
 
   packages/catalog-outbound-writer:
     dependencies:
-      "@pagopa/interop-outbound-models":
-        specifier: 1.0.11g
-        version: 1.0.11-g
-      "@protobuf-ts/runtime":
+      '@pagopa/interop-outbound-models':
+        specifier: 1.4.1
+        version: 1.4.1
+      '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
       connection-string:
@@ -1777,12 +1777,70 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
-      "@pagopa/eslint-config":
+      '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      "@types/node":
+      '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/delegation-items-archiver:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -1801,10 +1859,10 @@ importers:
 
   packages/delegation-outbound-writer:
     dependencies:
-      "@pagopa/interop-outbound-models":
-        specifier: 1.0.11f
-        version: 1.0.11-f
-      "@protobuf-ts/runtime":
+      '@pagopa/interop-outbound-models':
+        specifier: 1.4.1
+        version: 1.4.1
+      '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
       connection-string:
@@ -2761,10 +2819,10 @@ importers:
 
   packages/purpose-outbound-writer:
     dependencies:
-      "@pagopa/interop-outbound-models":
-        specifier: 1.0.11g
-        version: 1.0.11-g
-      "@protobuf-ts/runtime":
+      '@pagopa/interop-outbound-models':
+        specifier: 1.4.1
+        version: 1.4.1
+      '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
       connection-string:
@@ -3066,10 +3124,10 @@ importers:
 
   packages/tenant-outbound-writer:
     dependencies:
-      "@pagopa/interop-outbound-models":
-        specifier: 1.0.11g
-        version: 1.0.11-g
-      "@protobuf-ts/runtime":
+      '@pagopa/interop-outbound-models':
+        specifier: 1.4.1
+        version: 1.4.1
+      '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
       connection-string:
@@ -4622,128 +4680,68 @@ packages:
       }
     deprecated: Use @eslint/object-schema instead
 
-  "@isaacs/cliui@8.0.2":
-    resolution:
-      {
-        integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==,
-      }
-    engines: { node: ">=12" }
+  '@isaacs/cliui@8.0.2':
+    resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
+    engines: {node: '>=12'}
 
-  "@jest/schemas@29.6.3":
-    resolution:
-      {
-        integrity: sha512-mo5j5X+jIZmJQveBKeS/clAueipV7KgiX1vMgCxam1RNYiqE1w62n0/tJJnHtjW8ZHcQco5gY85jA3mi0L+nSA==,
-      }
-    engines: { node: ^14.15.0 || ^16.10.0 || >=18.0.0 }
+  '@jest/schemas@29.6.3':
+    resolution: {integrity: sha512-mo5j5X+jIZmJQveBKeS/clAueipV7KgiX1vMgCxam1RNYiqE1w62n0/tJJnHtjW8ZHcQco5gY85jA3mi0L+nSA==}
+    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
-  "@jridgewell/gen-mapping@0.3.5":
-    resolution:
-      {
-        integrity: sha512-IzL8ZoEDIBRWEzlCcRhOaCupYyN5gdIK+Q6fbFdPDg6HqX6jpkItn7DFIpW9LQzXG6Df9sA7+OKnq0qlz/GaQg==,
-      }
-    engines: { node: ">=6.0.0" }
+  '@jridgewell/gen-mapping@0.3.5':
+    resolution: {integrity: sha512-IzL8ZoEDIBRWEzlCcRhOaCupYyN5gdIK+Q6fbFdPDg6HqX6jpkItn7DFIpW9LQzXG6Df9sA7+OKnq0qlz/GaQg==}
+    engines: {node: '>=6.0.0'}
 
-  "@jridgewell/resolve-uri@3.1.2":
-    resolution:
-      {
-        integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==,
-      }
-    engines: { node: ">=6.0.0" }
+  '@jridgewell/resolve-uri@3.1.2':
+    resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
+    engines: {node: '>=6.0.0'}
 
-  "@jridgewell/set-array@1.2.1":
-    resolution:
-      {
-        integrity: sha512-R8gLRTZeyp03ymzP/6Lil/28tGeGEzhx1q2k703KGWRAI1VdvPIXdG70VJc2pAMw3NA6JKL5hhFu1sJX0Mnn/A==,
-      }
-    engines: { node: ">=6.0.0" }
+  '@jridgewell/set-array@1.2.1':
+    resolution: {integrity: sha512-R8gLRTZeyp03ymzP/6Lil/28tGeGEzhx1q2k703KGWRAI1VdvPIXdG70VJc2pAMw3NA6JKL5hhFu1sJX0Mnn/A==}
+    engines: {node: '>=6.0.0'}
 
-  "@jridgewell/sourcemap-codec@1.4.15":
-    resolution:
-      {
-        integrity: sha512-eF2rxCRulEKXHTRiDrDy6erMYWqNw4LPdQ8UQA4huuxaQsVeRPFl2oM8oDGxMFhJUWZf9McpLtJasDDZb/Bpeg==,
-      }
+  '@jridgewell/sourcemap-codec@1.4.15':
+    resolution: {integrity: sha512-eF2rxCRulEKXHTRiDrDy6erMYWqNw4LPdQ8UQA4huuxaQsVeRPFl2oM8oDGxMFhJUWZf9McpLtJasDDZb/Bpeg==}
 
-  "@jridgewell/trace-mapping@0.3.25":
-    resolution:
-      {
-        integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==,
-      }
+  '@jridgewell/trace-mapping@0.3.25':
+    resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
-  "@jsdevtools/ono@7.1.3":
-    resolution:
-      {
-        integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==,
-      }
+  '@jsdevtools/ono@7.1.3':
+    resolution: {integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==}
 
-  "@liuli-util/fs-extra@0.1.0":
-    resolution:
-      {
-        integrity: sha512-eaAyDyMGT23QuRGbITVY3SOJff3G9ekAAyGqB9joAnTBmqvFN+9a1FazOdO70G6IUqgpKV451eBHYSRcOJ/FNQ==,
-      }
+  '@liuli-util/fs-extra@0.1.0':
+    resolution: {integrity: sha512-eaAyDyMGT23QuRGbITVY3SOJff3G9ekAAyGqB9joAnTBmqvFN+9a1FazOdO70G6IUqgpKV451eBHYSRcOJ/FNQ==}
 
-  "@mongodb-js/saslprep@1.1.7":
-    resolution:
-      {
-        integrity: sha512-dCHW/oEX0KJ4NjDULBo3JiOaK5+6axtpBbS+ao2ZInoAL9/YRQLhXzSNAFz7hP4nzLkIqsfYAK/PDE3+XHny0Q==,
-      }
+  '@mongodb-js/saslprep@1.1.7':
+    resolution: {integrity: sha512-dCHW/oEX0KJ4NjDULBo3JiOaK5+6axtpBbS+ao2ZInoAL9/YRQLhXzSNAFz7hP4nzLkIqsfYAK/PDE3+XHny0Q==}
 
-  "@nodelib/fs.scandir@2.1.5":
-    resolution:
-      {
-        integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==,
-      }
-    engines: { node: ">= 8" }
+  '@nodelib/fs.scandir@2.1.5':
+    resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
+    engines: {node: '>= 8'}
 
-  "@nodelib/fs.stat@2.0.5":
-    resolution:
-      {
-        integrity: sha512-RkhPPp2zrqDAQA/2jNhnztcPAlv64XdhIp7a7454A5ovI7Bukxgt7MX7udwAu3zg1DcpPU0rz3VV1SeaqvY4+A==,
-      }
-    engines: { node: ">= 8" }
+  '@nodelib/fs.stat@2.0.5':
+    resolution: {integrity: sha512-RkhPPp2zrqDAQA/2jNhnztcPAlv64XdhIp7a7454A5ovI7Bukxgt7MX7udwAu3zg1DcpPU0rz3VV1SeaqvY4+A==}
+    engines: {node: '>= 8'}
 
-  "@nodelib/fs.walk@1.2.8":
-    resolution:
-      {
-        integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==,
-      }
-    engines: { node: ">= 8" }
+  '@nodelib/fs.walk@1.2.8':
+    resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
+    engines: {node: '>= 8'}
 
-  "@pagopa/eslint-config@3.0.0":
-    resolution:
-      {
-        integrity: sha512-eYIPdiuYRbRPR5k0OuteRNqYb0Z2nfJ/lZohejB7ylfBeSDWwkaV8Z19AXP4RymE6oEesyPDZ6i0yNaE9tQrHw==,
-      }
+  '@pagopa/eslint-config@3.0.0':
+    resolution: {integrity: sha512-eYIPdiuYRbRPR5k0OuteRNqYb0Z2nfJ/lZohejB7ylfBeSDWwkaV8Z19AXP4RymE6oEesyPDZ6i0yNaE9tQrHw==}
 
-  "@pagopa/interop-outbound-models@1.0.11-f":
-    resolution:
-      {
-        integrity: sha512-zgDL6/UyWhm15LTm/n3dF8y74JgccQZj8uaQXIdONxdWEbXIBtgr8Z9Rtk1iAVUYeB6ZyF+53z01oquGfYI/dw==,
-      }
+  '@pagopa/interop-outbound-models@1.4.1':
+    resolution: {integrity: sha512-HgNUtr22e+YNpidR8nn2yQFPfNSSH5g1gBvsAKWXwfoAOHwbRWSFna5YMluR/82IwGwG81PiHnWcQQ3D2QkJ+Q==}
 
-  "@pagopa/interop-outbound-models@1.0.11-g":
-    resolution:
-      {
-        integrity: sha512-hKdSmbkALTw6lDo0tKtji1EcarRyII5AiD4ma8I6vhhx+iTnmlPKXgNTc4FOUFsr8boFwK100GFeL7hLpBp7ZQ==,
-      }
+  '@pkgjs/parseargs@0.11.0':
+    resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
+    engines: {node: '>=14'}
 
-  "@pkgjs/parseargs@0.11.0":
-    resolution:
-      {
-        integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==,
-      }
-    engines: { node: ">=14" }
+  '@protobuf-ts/plugin-framework@2.9.4':
+    resolution: {integrity: sha512-9nuX1kjdMliv+Pes8dQCKyVhjKgNNfwxVHg+tx3fLXSfZZRcUHMc1PMwB9/vTvc6gBKt9QGz5ERqSqZc0++E9A==}
 
-  "@protobuf-ts/plugin-framework@2.9.4":
-    resolution:
-      {
-        integrity: sha512-9nuX1kjdMliv+Pes8dQCKyVhjKgNNfwxVHg+tx3fLXSfZZRcUHMc1PMwB9/vTvc6gBKt9QGz5ERqSqZc0++E9A==,
-      }
-
-  "@protobuf-ts/plugin@2.9.4":
-    resolution:
-      {
-        integrity: sha512-Db5Laq5T3mc6ERZvhIhkj1rn57/p8gbWiCKxQWbZBBl20wMuqKoHbRw4tuD7FyXi+IkwTToaNVXymv5CY3E8Rw==,
-      }
+  '@protobuf-ts/plugin@2.9.4':
+    resolution: {integrity: sha512-Db5Laq5T3mc6ERZvhIhkj1rn57/p8gbWiCKxQWbZBBl20wMuqKoHbRw4tuD7FyXi+IkwTToaNVXymv5CY3E8Rw==}
     hasBin: true
 
   "@protobuf-ts/protoc@2.9.4":
@@ -12582,19 +12580,13 @@ snapshots:
       - tsutils
       - typescript
 
-  "@pagopa/interop-outbound-models@1.0.11-f":
+  '@pagopa/interop-outbound-models@1.4.1':
     dependencies:
-      "@protobuf-ts/runtime": 2.9.4
+      '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
       zod: 3.23.8
 
-  "@pagopa/interop-outbound-models@1.0.11-g":
-    dependencies:
-      "@protobuf-ts/runtime": 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  "@pkgjs/parseargs@0.11.0":
+  '@pkgjs/parseargs@0.11.0':
     optional: true
 
   "@protobuf-ts/plugin-framework@2.9.4":

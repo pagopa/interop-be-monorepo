@@ -463,6 +463,23 @@ describe("validation test", async () => {
         undefined,
         expectedAudiences
       );
+      expect(verifiedClientAssertion.errors).toBeUndefined();
+      expect(verifiedClientAssertion.data?.payload.digest).toBeUndefined();
+    });
+
+    it("should not throw error if digest is null", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          digest: null,
+        },
+      });
+
+      const verifiedClientAssertion = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
+      expect(verifiedClientAssertion.errors).toBeUndefined();
       expect(verifiedClientAssertion.data?.payload.digest).toBeUndefined();
     });
 
@@ -593,6 +610,20 @@ describe("validation test", async () => {
       const { jws } = await getMockClientAssertion({
         customClaims: {
           nbf: 999999999999,
+        },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences
+      );
+      expect(errors).toBeUndefined();
+    });
+
+    it("ignore nbt claim", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          nbt: "something",
         },
       });
       const { errors } = verifyClientAssertion(

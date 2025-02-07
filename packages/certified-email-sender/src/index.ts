@@ -93,7 +93,9 @@ export async function processMessage({
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
-          "AgreementSetMissingCertifiedAttributesByPlatform"
+          "AgreementSetMissingCertifiedAttributesByPlatform",
+          "AgreementArchivedByRevokedDelegation",
+          "AgreementDeletedByRevokedDelegation"
         ),
       },
       handleMessageToSkip
