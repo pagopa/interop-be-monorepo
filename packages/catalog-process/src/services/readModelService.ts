@@ -122,6 +122,7 @@ export function readModelServiceBuilder(
         name,
         attributesIds,
         mode,
+        isConsumerDelegable,
         delegated,
       } = filters;
       const ids = await match(agreementStates.length)
@@ -283,6 +284,11 @@ export function readModelServiceBuilder(
         ? { "data.mode": { $eq: mode } }
         : {};
 
+      const isConsumerDelegableFilter: ReadModelFilter<EService> =
+        isConsumerDelegable
+          ? { "data.isConsumerDelegable": { $eq: isConsumerDelegable } }
+          : {};
+
       const delegatedFilter: ReadModelFilter<EService> = match(delegated)
         .with(true, () => ({
           "delegations.data.state": {
@@ -316,6 +322,7 @@ export function readModelServiceBuilder(
         { $match: attributesFilter },
         { $match: visibilityFilter },
         { $match: modeFilter },
+        { $match: isConsumerDelegableFilter },
         { $match: delegatedFilter },
         {
           $project: {

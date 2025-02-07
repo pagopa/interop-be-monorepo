@@ -767,7 +767,7 @@ paths:
               $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
       responses:
         "204":
-          description: EService Template Risk Analysis created.
+          description: EService Template Risk Analysis updated.
         "403":
           description: Forbidden
           content:
@@ -1638,7 +1638,7 @@ components:
       description: EService Document Kind
       enum:
         - INTERFACE
-        - DOCUMENT    
+        - DOCUMENT
     Problem:
       properties:
         type:

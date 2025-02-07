@@ -207,3 +207,10 @@ const delegationNotFoundErrorMapper = (error: ApiError<ErrorCodes>): number =>
 
 export const getDelegationByIdErrorMapper = delegationNotFoundErrorMapper;
 export const getDelegationsErrorMapper = delegationNotFoundErrorMapper;
+
+export const bffGetEServiceTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
