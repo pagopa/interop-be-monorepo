@@ -5,15 +5,15 @@ CREATE TABLE IF NOT EXISTS readmodel.purpose (
   consumer_id UUID NOT NULL,
   delegation_id UUID,
   -- versions
-  suspended_by_consumer TIMESTAMP WITH TIME ZONE,
-  suspended_by_producer TIMESTAMP WITH TIME ZONE,
+  suspended_by_consumer BOOLEAN,
+  suspended_by_producer BOOLEAN,
   title VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
   -- riskAnalysisForm
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE,
   is_free_of_charge BOOLEAN NOT NULL,
-  free_of_charge_reason BOOLEAN,
+  free_of_charge_reason VARCHAR,
   PRIMARY KEY (id)
 );
 
@@ -30,9 +30,9 @@ CREATE TABLE IF NOT EXISTS readmodel.purpose_risk_analysis_answer(
   purpose_id UUID REFERENCES readmodel.purpose (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   risk_analysis_form_id UUID REFERENCES readmodel.purpose_risk_analysis_form (id),
-  kind VARCHAR,
+  kind VARCHAR NOT NULL,
   -- SINGLE/MULTI
-  key VARCHAR,
+  "key" VARCHAR NOT NULL,
   value VARCHAR ARRAY,
   PRIMARY KEY(id)
 );
