@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS readmodel.eservice (
   id UUID,
-  version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   producer_id UUID NOT NULL,
   name VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice (
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_binding (
   eservice_id UUID REFERENCES readmodel.eservice(id),
-  eservice_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   eservice_template_id UUID,
   instance_id VARCHAR,
   name VARCHAR,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_binding (
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor (
   id UUID,
   eservice_id UUID NOT NULL references readmodel.eservice (id) ON DELETE CASCADE,
-  eservice_version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   version VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
   -- interface
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor (
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_rejection_reason (
   id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
-  eservice_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id UUID NOT NULL REFERENCES readmodel.eservice_descriptor (id) ON DELETE CASCADE,
   rejection_reason VARCHAR NOT NULL,
   rejected_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_rejection_reason (
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_document(
   id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
-  eservice_version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   descriptor_id UUID NOT NULL REFERENCES readmodel.eservice_descriptor(id) ON DELETE CASCADE,
   name VARCHAR,
   content_type VARCHAR NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_document(
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_attribute(
   attribute_id UUID NOT NULL,
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
-  eservice_version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   descriptor_id UUID NOT NULL REFERENCES readmodel.eservice_descriptor(id) ON DELETE CASCADE,
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR NOT NULL,
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_attribute(
 CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis(
   id UUID,
   eservice_id UUID REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
-  eservice_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   name VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE,
   risk_analysis_form_id UUID UNIQUE,
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis(
 CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis_answer(
   id UUID,
   eservice_id UUID REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
-  eservice_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   risk_analysis_form_id UUID REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id),
   kind VARCHAR,
   -- SINGLE/MULTI

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS readmodel.delegation(
   id UUID,
-  version INTEGER,
+  metadata_version INTEGER,
   delegator_id UUID,
   delegate_id UUID,
   eservice_id UUID,
@@ -22,15 +22,15 @@ CREATE TABLE IF NOT EXISTS readmodel.delegation_stamp(
   delegation_id uuid REFERENCES readmodel.delegation(id) ON DELETE CASCADE,
   metadata_version integer NOT NULL,
   who uuid NOT NULL,
-  when timestamp with time zone NOT NULL,
+  "when" timestamp with time zone NOT NULL,
   kind varchar NOT NULL,
   PRIMARY KEY (delegation_id, kind)
-)
+);
 
 CREATE TABLE IF NOT EXISTS readmodel.delegation_contract_document(
   id UUID,
   delegation_id UUID NOT NULL REFERENCES readmodel.delegation (id) ON DELETE CASCADE,
-  delegation_version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   name VARCHAR,
   content_type VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,

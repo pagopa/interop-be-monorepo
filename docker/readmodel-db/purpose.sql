@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS readmodel.purpose (
   id UUID,
-  version INTEGER,
+  metadata_version INTEGER,
   eservice_id UUID NOT NULL,
   consumer_id UUID NOT NULL,
   delegation_id UUID,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS readmodel.purpose (
 CREATE TABLE IF NOT EXISTS readmodel.purpose_version (
   id UUID,
   purpose_id UUID NOT NULL REFERENCES readmodel.purpose (id) ON DELETE CASCADE,
-  purpose_version INTEGER,
+  metadata_version INTEGER,
   -- beware: this refers to metadata
   state VARCHAR NOT NULL,
   -- riskAnalysis

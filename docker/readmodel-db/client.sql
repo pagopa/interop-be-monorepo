@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS readmodel.client (
   id UUID,
-  version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   consumer_id UUID NOT NULL,
   name VARCHAR NOT NULL,
   -- purposes
@@ -13,21 +13,21 @@ CREATE TABLE IF NOT EXISTS readmodel.client (
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.client_user (
-  client_version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   client_id UUID NOT NULL REFERENCES readmodel.client (id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
   PRIMARY KEY (client_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.client_purpose (
-  client_version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   client_id UUID NOT NULL REFERENCES readmodel.client (id) ON DELETE CASCADE,
   purpose_id UUID NOT NULL,
   PRIMARY KEY (client_id, purpose_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.client_key (
-  client_version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   client_id UUID NOT NULL REFERENCES readmodel.client (id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
   kid VARCHAR NOT NULL,
