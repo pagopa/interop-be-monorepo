@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS readmodel.tenant (
   id UUID,
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   kind VARCHAR,
   selfcare_id VARCHAR,
   external_id_origin VARCHAR NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_certified_attribute (
 CREATE TABLE IF NOT EXISTS readmodel.tenant_declared_attribute (
   attribute_id UUID,
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP NOT NULL,
   revocation_timestamp TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (attribute_id, tenant_id)
@@ -48,14 +48,14 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_declared_attribute (
 CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute (
   attribute_id UUID,
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP NOT NULL,
   PRIMARY KEY (attribute_id, tenant_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_verifier (
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   id UUID REFERENCES readmodel.tenant (id),
   -- verifier id
   tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.attribute(id),
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_verifier (
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_revoker (
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   id UUID REFERENCES readmodel.tenant (id),
   -- revoker id
   tenant_verified_attribute_id UUID NOT NULL,
@@ -92,20 +92,20 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_feature(
 
 -- CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_certifier(
 --   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
---   metadata_version INTEGER,
+--   metadata_version INTEGER NOT NULL,
 --   certifier_id VARCHAR,
 --   PRIMARY KEY (certifier_id)
 -- );
 
 -- CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_delegated_producer(
 --   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
---   metadata_version INTEGER,
+--   metadata_version INTEGER NOT NULL,
 --   availability_timestamp TIMESTAMP WITH TIME ZONE,
 --   PRIMARY KEY (tenant_id)
 -- );
 
 -- CREATE TABLE IF NOT EXISTS readmodel.tenant_feature_delegated_consumer(
 --   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
---   metadata_version INTEGER,
+--   metadata_version INTEGER NOT NULL,
 --   availability_timestamp TIMESTAMP WITH TIME ZONE
 -- );

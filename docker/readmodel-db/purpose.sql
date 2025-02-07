@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS readmodel.purpose (
   id UUID,
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   eservice_id UUID NOT NULL,
   consumer_id UUID NOT NULL,
   delegation_id UUID,
@@ -17,10 +17,30 @@ CREATE TABLE IF NOT EXISTS readmodel.purpose (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS readmodel.purpose_risk_analysis_form (
+  id UUID,
+  purpose_id UUID NOT NULL REFERENCES readmodel.purpose (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  version INTEGER NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel.purpose_risk_analysis_answer(
+  id UUID,
+  purpose_id UUID REFERENCES readmodel.purpose (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  risk_analysis_form_id UUID REFERENCES readmodel.purpose_risk_analysis_form (id),
+  kind VARCHAR,
+  -- SINGLE/MULTI
+  key VARCHAR,
+  value VARCHAR ARRAY,
+  PRIMARY KEY(id)
+);
+
 CREATE TABLE IF NOT EXISTS readmodel.purpose_version (
   id UUID,
   purpose_id UUID NOT NULL REFERENCES readmodel.purpose (id) ON DELETE CASCADE,
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   -- beware: this refers to metadata
   state VARCHAR NOT NULL,
   -- riskAnalysis

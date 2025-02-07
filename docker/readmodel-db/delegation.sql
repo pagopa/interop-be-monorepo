@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS readmodel.delegation(
   id UUID,
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   delegator_id UUID,
   delegate_id UUID,
   eservice_id UUID,

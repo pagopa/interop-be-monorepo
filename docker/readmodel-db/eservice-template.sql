@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_attribute(
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis(
   id UUID,
   eservice_template_id UUID REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   name VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE,
   risk_analysis_form_id UUID UNIQUE,
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis(
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis_answer(
   id UUID,
   eservice_template_id UUID REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   risk_analysis_form_id UUID REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id),
   kind VARCHAR,
   -- SINGLE/MULTI
