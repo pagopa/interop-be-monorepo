@@ -421,7 +421,7 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
-  packages/analytics-jwt-loader:
+  packages/jwt-audit-analytics-writer:
     dependencies:
       '@aws-sdk/client-sqs':
         specifier: 3.693.0

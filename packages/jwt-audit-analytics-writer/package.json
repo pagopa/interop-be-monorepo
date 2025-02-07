@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-analytics-jwt-loader",
+  "name": "pagopa-jwt-audit-analytics-writer",
   "private": true,
   "version": "1.0.0",
-  "description": "PagoPA Interoperability analytics jwt loader",
+  "description": "PagoPA Interoperability jwt audit analytics writer",
   "main": "dist",
   "type": "module",
   "exports": {
