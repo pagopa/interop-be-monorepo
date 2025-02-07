@@ -910,6 +910,7 @@ async function parseAndCheckAttributes(
       }))
     ),
   };
+}
 
 export type EServiceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
