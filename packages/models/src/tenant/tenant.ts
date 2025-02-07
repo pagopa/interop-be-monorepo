@@ -68,8 +68,8 @@ export const TenantFeatureSQL = z.object({
   tenant_id: TenantId,
   metadata_version: z.number(),
   kind: TenantFeatureType,
-  details: z.unknown() // TODO
-})
+  details: z.unknown(), // TODO
+});
 export type TenantFeatureSQL = z.infer<typeof TenantFeatureSQL>;
 
 export const tenantAttributeType = {
@@ -104,7 +104,9 @@ export const TenantVerifiedAttributeVerifierSQL = z.object({
   extension_date: z.coerce.date().optional().nullable(),
   delegation_id: DelegationId.optional(),
 });
-export type TenantVerifiedAttributeVerifierSQL = z.infer<typeof TenantVerifiedAttributeVerifierSQL>;
+export type TenantVerifiedAttributeVerifierSQL = z.infer<
+  typeof TenantVerifiedAttributeVerifierSQL
+>;
 
 export const TenantRevoker = z.object({
   expirationDate: z.coerce.date().optional(),
@@ -127,7 +129,9 @@ export const TenantVerifiedAttributeRevokerSQL = z.object({
   revocation_date: z.coerce.date().optional().nullable(),
   delegation_id: DelegationId.optional(),
 });
-export type TenantVerifiedAttributeRevokerSQL = z.infer<typeof TenantVerifiedAttributeRevokerSQL>;
+export type TenantVerifiedAttributeRevokerSQL = z.infer<
+  typeof TenantVerifiedAttributeRevokerSQL
+>;
 
 export const CertifiedTenantAttribute = z.object({
   assignmentTimestamp: z.coerce.date(),
@@ -144,7 +148,9 @@ export const TenantCertifiedAttributeSQL = z.object({
   assignment_timestamp: z.coerce.date(),
   revocationTimestamp: z.coerce.date().optional(),
 });
-export type TenantCertifiedAttributeSQL = z.infer<typeof TenantCertifiedAttributeSQL>;
+export type TenantCertifiedAttributeSQL = z.infer<
+  typeof TenantCertifiedAttributeSQL
+>;
 
 export const VerifiedTenantAttribute = z.object({
   assignmentTimestamp: z.coerce.date(),
@@ -161,7 +167,9 @@ export const TenantVerifiedAttributeSQL = z.object({
   metadata_version: z.number(),
   assignment_timestamp: z.coerce.date(),
 });
-export type TenantVerifiedAttributeSQL = z.infer<typeof TenantVerifiedAttributeSQL>;
+export type TenantVerifiedAttributeSQL = z.infer<
+  typeof TenantVerifiedAttributeSQL
+>;
 
 export const DeclaredTenantAttribute = z.object({
   type: z.literal(tenantAttributeType.DECLARED),
@@ -179,7 +187,9 @@ export const TenantDeclaredAttributeSQL = z.object({
   assignment_timestamp: z.coerce.date(),
   revocationTimestamp: z.coerce.date().optional(),
 });
-export type TenantDeclaredAttributeSQL = z.infer<typeof TenantDeclaredAttributeSQL>;
+export type TenantDeclaredAttributeSQL = z.infer<
+  typeof TenantDeclaredAttributeSQL
+>;
 
 export const TenantAttribute = z.discriminatedUnion("type", [
   CertifiedTenantAttribute,

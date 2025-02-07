@@ -1,4 +1,14 @@
-import { genericInternalError, TenantCertifiedAttributeSQL, TenantDeclaredAttributeSQL, TenantFeatureSQL, TenantMailSQL, TenantSQL, TenantVerifiedAttributeRevokerSQL, TenantVerifiedAttributeSQL, TenantVerifiedAttributeVerifier, TenantVerifiedAttributeVerifierSQL } from "pagopa-interop-models";
+import {
+  genericInternalError,
+  TenantCertifiedAttributeSQL,
+  TenantDeclaredAttributeSQL,
+  TenantFeatureSQL,
+  TenantMailSQL,
+  TenantSQL,
+  TenantVerifiedAttributeRevokerSQL,
+  TenantVerifiedAttributeSQL,
+  TenantVerifiedAttributeVerifierSQL,
+} from "pagopa-interop-models";
 
 export const parseTenantSQL = (data: unknown): TenantSQL | undefined => {
   if (!data) {
@@ -16,7 +26,9 @@ export const parseTenantSQL = (data: unknown): TenantSQL | undefined => {
   }
 };
 
-export const parseTenantMailSQL = (data: unknown): TenantMailSQL | undefined => {
+export const parseTenantMailSQL = (
+  data: unknown
+): TenantMailSQL | undefined => {
   if (!data) {
     return undefined;
   } else {
@@ -32,7 +44,9 @@ export const parseTenantMailSQL = (data: unknown): TenantMailSQL | undefined => 
   }
 };
 
-export const parseTenantCertifiedAttributeSQL = (data: unknown): TenantCertifiedAttributeSQL | undefined => {
+export const parseTenantCertifiedAttributeSQL = (
+  data: unknown
+): TenantCertifiedAttributeSQL | undefined => {
   if (!data) {
     return undefined;
   } else {
@@ -48,7 +62,9 @@ export const parseTenantCertifiedAttributeSQL = (data: unknown): TenantCertified
   }
 };
 
-export const parseTenantDeclaredAttributeSQL = (data: unknown): TenantDeclaredAttributeSQL | undefined => {
+export const parseTenantDeclaredAttributeSQL = (
+  data: unknown
+): TenantDeclaredAttributeSQL | undefined => {
   if (!data) {
     return undefined;
   } else {
@@ -64,7 +80,9 @@ export const parseTenantDeclaredAttributeSQL = (data: unknown): TenantDeclaredAt
   }
 };
 
-export const parseTenantVerifiedAttributeSQL = (data: unknown): TenantVerifiedAttributeSQL | undefined => {
+export const parseTenantVerifiedAttributeSQL = (
+  data: unknown
+): TenantVerifiedAttributeSQL | undefined => {
   if (!data) {
     return undefined;
   } else {
@@ -80,7 +98,9 @@ export const parseTenantVerifiedAttributeSQL = (data: unknown): TenantVerifiedAt
   }
 };
 
-export const parseTenantVerifiedAttributeVerifierSQL = (data: unknown): TenantVerifiedAttributeVerifierSQL | undefined => {
+export const parseTenantVerifiedAttributeVerifierSQL = (
+  data: unknown
+): TenantVerifiedAttributeVerifierSQL | undefined => {
   if (!data) {
     return undefined;
   } else {
@@ -96,7 +116,9 @@ export const parseTenantVerifiedAttributeVerifierSQL = (data: unknown): TenantVe
   }
 };
 
-export const parseTenantVerifiedAttributeRevokerSQL = (data: unknown): TenantVerifiedAttributeRevokerSQL | undefined => {
+export const parseTenantVerifiedAttributeRevokerSQL = (
+  data: unknown
+): TenantVerifiedAttributeRevokerSQL | undefined => {
   if (!data) {
     return undefined;
   } else {
@@ -112,7 +134,9 @@ export const parseTenantVerifiedAttributeRevokerSQL = (data: unknown): TenantVer
   }
 };
 
-export const parseTenantFeatureSQL = (data: unknown): TenantFeatureSQL | undefined => {
+export const parseTenantFeatureSQL = (
+  data: unknown
+): TenantFeatureSQL | undefined => {
   if (!data) {
     return undefined;
   } else {
