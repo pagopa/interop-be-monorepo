@@ -198,4 +198,20 @@ describe("getConsumerDelegators", () => {
       totalCount: 2,
     });
   });
+  it("should return an empty array if requester is not a consumer delegate", async () => {
+    expect(
+      await delegationService.getConsumerDelegators(
+        {
+          requesterId: generateId<TenantId>(),
+          eserviceIds: [],
+          offset: 0,
+          limit: 50,
+        },
+        genericLogger
+      )
+    ).toEqual({
+      results: [],
+      totalCount: 0,
+    });
+  });
 });
