@@ -82,11 +82,11 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_document(
 
 /*
  certified: [[a], [b,c], [d]]
- attr, kind, group_id, sorting_id
- a | certified | 1 | 0
- b | certified | 2 | 0
- c | certified | 2 | 1
- d | certified | 3 | 0
+ attr, kind, group_id
+ a | certified | 1
+ b | certified | 2
+ c | certified | 2
+ d | certified | 3
  */
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_attribute(
   attribute_id UUID NOT NULL,
@@ -98,8 +98,6 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_attribute(
   -- CERTIFIED/DECLARED/VERIFIED
   group_id INTEGER NOT NULL,
   -- id of the group
-  sorting_id INTEGER NOT NULL,
-  -- index of the attribute inside its group
   PRIMARY KEY(attribute_id, descriptor_id, group_id)
 );
 
