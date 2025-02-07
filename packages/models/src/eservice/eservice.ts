@@ -100,7 +100,6 @@ export const DocumentSQL = z.object({
 });
 export type DocumentSQL = z.infer<typeof DocumentSQL>;
 
-
 export const DescriptorRejectionReason = z.object({
   rejectionReason: z.string(),
   rejectedAt: z.coerce.date(),
@@ -120,7 +119,6 @@ export const DescriptorRejectionReasonSQL = z.object({
 export type DescriptorRejectionReasonSQL = z.infer<
   typeof DescriptorRejectionReasonSQL
 >;
-
 
 export const Descriptor = z.object({
   id: DescriptorId,
@@ -208,7 +206,6 @@ export const EServiceSQL = z.object({
 });
 export type EServiceSQL = z.infer<typeof EServiceSQL>;
 
-
 export const EServiceTemplateBindingSQL = z.object({
   eservice_id: EServiceId,
   metadata_version: z.number(),
@@ -220,5 +217,6 @@ export const EServiceTemplateBindingSQL = z.object({
   terms_and_conditions_url: z.string(),
   server_url: z.string(),
 });
-export type EServiceTemplateBindingSQL = z.infer<typeof EServiceTemplateBindingSQL>;
-
+export type EServiceTemplateBindingSQL = z.infer<
+  typeof EServiceTemplateBindingSQL
+>;
