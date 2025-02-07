@@ -398,30 +398,22 @@ export function delegationServiceBuilder(
       });
     },
     async getConsumerDelegators(
-      {
-        q,
-        eserviceIds,
-        offset,
-        limit,
-      }: {
-        q?: string;
-        eserviceIds: string[];
-        offset: number;
-        limit: number;
-      },
+      filters: bffApi.BffGetConsumerDelegatorsQueryParam,
       { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.DelegationTenants> {
       logger.info(
-        `Retrieving consumer delegators of requester ${authData.organizationId} with name ${q}, eserviceIds ${eserviceIds}, limit ${limit}, offset ${offset}`
+        `Retrieving consumer delegators of requester ${
+          authData.organizationId
+        } with filters ${JSON.stringify(filters)}`
       );
 
       const delegatorsData =
         await delegationClients.consumer.getConsumerDelegators({
           queries: {
-            delegatorName: q,
-            eserviceIds,
-            offset,
-            limit,
+            delegatorName: filters.q,
+            eserviceIds: filters.eserviceIds,
+            offset: filters.offset,
+            limit: filters.limit,
           },
           headers,
         });
@@ -429,8 +421,8 @@ export function delegationServiceBuilder(
       return {
         results: delegatorsData.results,
         pagination: {
-          offset,
-          limit,
+          offset: filters.offset,
+          limit: filters.limit,
           totalCount: delegatorsData.totalCount,
         },
       };

@@ -610,15 +610,6 @@ export function delegationServiceBuilder(
         )}`
       );
 
-      const delegation = await readModelService.findDelegations({
-        delegateId: filters.requesterId,
-        delegationKind: delegationKind.delegatedConsumer,
-        states: [delegationState.active],
-      });
-      if (!delegation || delegation.length === 0) {
-        throw requesterIsNotConsumerDelegate(filters.requesterId);
-      }
-
       return await readModelService.getConsumerDelegators(filters);
     },
     async getConsumerDelegatorsWithAgreements(
