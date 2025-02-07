@@ -76,3 +76,6 @@ export const PurposeRiskAnalysisAnswerSQL = z.object({
   key: z.string(),
   value: z.array(z.string()).optional(),
 });
+export type PurposeRiskAnalysisAnswerSQL = z.infer<
+  typeof PurposeRiskAnalysisAnswerSQL
+>;
