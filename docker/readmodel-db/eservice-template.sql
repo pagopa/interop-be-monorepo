@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template (
   id UUID,
-  version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   creator_id UUID NOT NULL,
   name VARCHAR NOT NULL,
   audience_description VARCHAR NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template (
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version (
   id UUID,
   eservice_template_id UUID NOT NULL references readmodel.eservice_template (id) ON DELETE CASCADE,
-  eservice_template_version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   version VARCHAR NOT NULL,
   description VARCHAR,
   -- interface
@@ -41,8 +41,8 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version (
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_document(
   id UUID,
   eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
-  eservice_template_version INTEGER NOT NULL,
-  template_version_id UUID NOT NULL REFERENCES readmodel.eservice_template_version(id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  eservice_template_version_id UUID NOT NULL REFERENCES readmodel.eservice_template_version(id) ON DELETE CASCADE,
   name VARCHAR,
   content_type VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,
@@ -56,31 +56,29 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_document(
 
 /*
  certified: [[a], [b,c], [d]]
- attr, kind, group_id, sorting_id
- a | certified | 1 | 0
- b | certified | 2 | 0
- c | certified | 2 | 1
- d | certified | 3 | 0
+ attr, kind, group_id
+ a | certified | 1 
+ b | certified | 2 
+ c | certified | 2 
+ d | certified | 3 
  */
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_attribute(
   id UUID,
   eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
-  eservice_template_version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   eservice_template_version_id UUID NOT NULL REFERENCES readmodel.eservice_template_version(id) ON DELETE CASCADE,
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR NOT NULL,
   -- CERTIFIED/DECLARED/VERIFIED
   group_id INTEGER NOT NULL,
   -- id of the group
-  sorting_id INTEGER NOT NULL,
-  -- index of the attribute inside its group
   PRIMARY KEY(id, eservice_template_version_id, group_id) -- TODO verify if the same attribute can be assigned twice in the same eservice_template_version
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis(
   id UUID,
   eservice_template_id UUID REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
-  eservice_template_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   name VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE,
   risk_analysis_form_id UUID UNIQUE,
@@ -91,7 +89,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis(
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis_answer(
   id UUID,
   eservice_template_id UUID REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
-  eservice_template_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   risk_analysis_form_id UUID REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id),
   kind VARCHAR,
   -- SINGLE/MULTI
