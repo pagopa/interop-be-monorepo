@@ -1,4 +1,5 @@
 import z from "zod";
+import { AttributeKind } from "../attribute/attribute.js";
 import {
   AgreementDocumentId,
   AgreementId,
@@ -38,17 +39,6 @@ export const AgreementStampKind = z.enum([
 ]);
 export type AgreementStampKind = z.infer<typeof AgreementStampKind>;
 
-export const agreementAttributeKind = {
-  verified: "verified",
-  certified: "certified",
-  declared: "declared",
-} as const;
-export const AgreementAttributeKind = z.enum([
-  Object.values(agreementAttributeKind)[0],
-  ...Object.values(agreementAttributeKind).slice(1),
-]);
-export type AgreementAttributeKind = z.infer<typeof AgreementAttributeKind>;
-
 export const agreementDocumentKind = {
   consumerDoc: "consumerDoc",
   contract: "contract",
@@ -66,7 +56,7 @@ export const AgreementAttributeSQL = z.object({
   agreement_id: AgreementId,
   metadata_version: z.number(),
   attribute_id: AttributeId,
-  kind: AgreementAttributeKind,
+  kind: AttributeKind,
 });
 export type AgreementAttributeSQL = z.infer<typeof AgreementAttributeSQL>;
 
