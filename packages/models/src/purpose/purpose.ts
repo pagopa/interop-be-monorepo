@@ -61,3 +61,47 @@ export const Purpose = z.object({
   freeOfChargeReason: z.string().optional(),
 });
 export type Purpose = z.infer<typeof Purpose>;
+
+export const PurposeSQL = z.object({
+  id: PurposeId,
+  metadata_version: z.number(),
+  eservice_id: EServiceId,
+  consumer_id: TenantId,
+  delegation_id: DelegationId,
+  suspended_by_consumer: z.boolean().optional(),
+  suspended_by_producer: z.boolean().optional(),
+  title: z.string(),
+  description: z.string(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date().optional(),
+  is_free_of_charge: z.boolean(),
+  free_of_charge_reason: z.string().optional(),
+});
+export type PurposeSQL = z.infer<typeof PurposeSQL>;
+
+export const PurposeVersionSQL = z.object({
+  id: PurposeVersionId,
+  purpose_id: PurposeId,
+  metadata_version: z.number(),
+  state: PurposeVersionState,
+  daily_calls: z.number(),
+  rejection_reason: z.string().optional(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date().optional(),
+  first_activation_at: z.coerce.date().optional(),
+  suspended_at: z.coerce.date().optional(),
+});
+export type PurposeVersionSQL = z.infer<typeof PurposeVersionSQL>;
+
+export const PurposeVersionDocumentSQL = z.object({
+  purpose_id: PurposeId,
+  metadata_version: z.number(),
+  purpose_version_id: PurposeVersionId,
+  id: PurposeVersionDocumentId,
+  content_type: z.string(),
+  path: z.string(),
+  created_at: z.coerce.date(),
+});
+export type PurposeVersionDocumentSQL = z.infer<
+  typeof PurposeVersionDocumentSQL
+>;
