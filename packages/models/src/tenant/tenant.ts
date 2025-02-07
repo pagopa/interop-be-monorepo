@@ -233,7 +233,6 @@ export type TenantUnitType = z.infer<typeof TenantUnitType>;
 
 export const Tenant = z.object({
   id: TenantId,
-  metadata_version: z.number(),
   kind: TenantKind.optional(),
   selfcareId: z.string().optional(),
   externalId: ExternalId,
