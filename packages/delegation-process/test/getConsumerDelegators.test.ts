@@ -12,7 +12,6 @@ import {
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
-import { requesterIsNotConsumerDelegate } from "../src/model/domain/errors.js";
 import {
   addOneDelegation,
   addOneEservice,
@@ -199,19 +198,20 @@ describe("getConsumerDelegators", () => {
       totalCount: 2,
     });
   });
-  it("should throw requesterIsNotConsumerDelegate if the requester is not a consumer delegate", async () => {
-    const invalidRequesterId = generateId<TenantId>();
-
+  it("should return an empty array if requester is not a consumer delegate", async () => {
     expect(
-      delegationService.getConsumerDelegators(
+      await delegationService.getConsumerDelegators(
         {
-          requesterId: invalidRequesterId,
+          requesterId: generateId<TenantId>(),
           eserviceIds: [],
           offset: 0,
           limit: 50,
         },
         genericLogger
       )
-    ).rejects.toThrowError(requesterIsNotConsumerDelegate(invalidRequesterId));
+    ).toEqual({
+      results: [],
+      totalCount: 0,
+    });
   });
 });
