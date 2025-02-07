@@ -25,8 +25,50 @@ export const AgreementState = z.enum([
 ]);
 export type AgreementState = z.infer<typeof AgreementState>;
 
+export const agreementStampKind = {
+  submission: "submission",
+  activation: "activation",
+  rejection: "rejection",
+  suspensionByProducer: "suspensionByProducer",
+  suspensionByConsumer: "suspensionByConsumer",
+} as const;
+export const AgreementStampKind = z.enum([
+  Object.values(agreementStampKind)[0],
+  ...Object.values(agreementStampKind).slice(1),
+]);
+export type AgreementStampKind = z.infer<typeof AgreementStampKind>;
+
+export const agreementAttributeKind = {
+  verified: "verified",
+  certified: "certified",
+  declared: "declared",
+} as const;
+export const AgreementAttributeKind = z.enum([
+  Object.values(agreementAttributeKind)[0],
+  ...Object.values(agreementAttributeKind).slice(1),
+]);
+export type AgreementAttributeKind = z.infer<typeof AgreementAttributeKind>;
+
+export const agreementDocumentKind = {
+  consumerDoc: "consumerDoc",
+  contract: "contract",
+} as const;
+export const AgreementDocumentKind = z.enum([
+  Object.values(agreementDocumentKind)[0],
+  ...Object.values(agreementDocumentKind).slice(1),
+]);
+export type AgreementDocumentKind = z.infer<typeof AgreementDocumentKind>;
+
 export const AgreementAttribute = z.object({ id: AttributeId });
 export type AgreementAttribute = z.infer<typeof AgreementAttribute>;
+
+export const AgreementAttributeSQL = z.object({
+  agreement_id: AgreementId,
+  metadata_version: z.number(),
+  attribute_id: AttributeId,
+  kind: AgreementAttributeKind,
+});
+export type AgreementAttributeSQL = z.infer<typeof AgreementAttributeSQL>;
 
 export const AgreementDocument = z.object({
   id: AgreementDocumentId,
@@ -37,6 +79,19 @@ export const AgreementDocument = z.object({
   createdAt: z.coerce.date(),
 });
 export type AgreementDocument = z.infer<typeof AgreementDocument>;
+
+export const AgreementDocumentSQL = z.object({
+  id: AgreementDocumentId,
+  agreement_id: AgreementId,
+  metadata_version: z.number(),
+  name: z.string(),
+  pretty_name: z.string(),
+  content_type: z.string(),
+  path: z.string(),
+  created_at: z.coerce.date(),
+  kind: AgreementDocumentKind,
+});
+export type AgreementDocumentSQL = z.infer<typeof AgreementDocumentSQL>;
 
 export const AgreementStamp = z.object({
   who: UserId,
@@ -55,6 +110,16 @@ export const AgreementStamps = z.object({
   archiving: AgreementStamp.optional(),
 });
 export type AgreementStamps = z.infer<typeof AgreementStamps>;
+
+export const AgreementStampsSQL = z.object({
+  agreement_id: AgreementId,
+  metadata_version: z.number(),
+  who: UserId,
+  delegation_id: DelegationId.optional(),
+  when: z.coerce.date(),
+  kind: AgreementStampKind,
+});
+export type AgreementStampsSQL = z.infer<typeof AgreementStampsSQL>;
 
 export const Agreement = z.object({
   id: AgreementId,
@@ -79,3 +144,22 @@ export const Agreement = z.object({
   suspendedAt: z.coerce.date().optional(),
 });
 export type Agreement = z.infer<typeof Agreement>;
+
+export const AgreementSQL = z.object({
+  id: AgreementId,
+  metadata_version: z.number(),
+  eservice_id: EServiceId,
+  descriptor_id: DescriptorId,
+  producer_id: TenantId,
+  consumer_id: TenantId,
+  state: AgreementState,
+  suspended_by_consumer: z.boolean().optional(),
+  suspended_by_producer: z.boolean().optional(),
+  suspended_by_platform: z.boolean().optional(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date().optional(),
+  consumer_notes: z.string().optional(),
+  rejection_reason: z.string().optional(),
+  suspended_at: z.coerce.date().optional(),
+});
+export type AgreementSQL = z.infer<typeof AgreementSQL>;
