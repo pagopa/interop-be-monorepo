@@ -7,6 +7,7 @@ import {
   TenantId,
 } from "../brandedIds.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
+import { AttributeKind } from "../attribute/attribute.js";
 
 export const technology = { rest: "Rest", soap: "Soap" } as const;
 export const Technology = z.enum([
@@ -52,6 +53,17 @@ export const EServiceAttributes = z.object({
 });
 export type EserviceAttributes = z.infer<typeof EServiceAttributes>;
 
+export const DescriptorAttributeSQL = z.object({
+  attribute_id: AttributeId,
+  eservice_id: EServiceId,
+  metadata_version: z.number(),
+  descriptor_id: DescriptorId,
+  explicit_attribute_verification: z.boolean(),
+  kind: AttributeKind,
+  group_id: z.number(),
+});
+export type DescriptorAttributeSQL = z.infer<typeof DescriptorAttributeSQL>;
+
 export const Document = z.object({
   id: EServiceDocumentId,
   name: z.string(),
@@ -63,6 +75,32 @@ export const Document = z.object({
 });
 export type Document = z.infer<typeof Document>;
 
+export const documentKind = {
+  descriptorInterface: "INTERFACE",
+  descriptorDocument: "DOCUMENT",
+} as const;
+export const DocumentKind = z.enum([
+  Object.values(documentKind)[0],
+  ...Object.values(documentKind).slice(1),
+]);
+export type DocumentKind = z.infer<typeof DocumentKind>;
+
+export const DocumentSQL = z.object({
+  id: EServiceDocumentId,
+  eservice_id: EServiceId,
+  metadata_version: z.number(),
+  descriptor_id: DescriptorId,
+  name: z.string(),
+  content_type: z.string(),
+  pretty_name: z.string(),
+  path: z.string(),
+  checksum: z.string(),
+  upload_date: z.coerce.date(),
+  document_kind: DocumentKind,
+});
+export type DocumentSQL = z.infer<typeof DocumentSQL>;
+
+
 export const DescriptorRejectionReason = z.object({
   rejectionReason: z.string(),
   rejectedAt: z.coerce.date(),
@@ -70,6 +108,19 @@ export const DescriptorRejectionReason = z.object({
 export type DescriptorRejectionReason = z.infer<
   typeof DescriptorRejectionReason
 >;
+
+export const DescriptorRejectionReasonSQL = z.object({
+  id: RejectionReasonId, // TODO
+  eservice_id: EServiceId,
+  metadata_version: z.number(),
+  descriptor_id: DescriptorId,
+  rejection_reason: z.string(),
+  rejected_at: z.coerce.date(),
+});
+export type DescriptorRejectionReasonSQL = z.infer<
+  typeof DescriptorRejectionReasonSQL
+>;
+
 
 export const Descriptor = z.object({
   id: DescriptorId,
@@ -93,6 +144,27 @@ export const Descriptor = z.object({
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
+
+export const DescriptorSQL = z.object({
+  id: DescriptorId,
+  eservice_id: EServiceId,
+  metadata_version: z.number(),
+  version: z.string(),
+  description: z.string().optional().nullable(),
+  state: DescriptorState,
+  audience: z.array(z.string()),
+  voucher_lifespan: z.number().int(),
+  daily_calls_per_consumer: z.number().int(),
+  daily_calls_total: z.number().int(),
+  agreement_approval_policy: AgreementApprovalPolicy.optional(),
+  created_at: z.coerce.date(),
+  server_urls: z.array(z.string()),
+  published_at: z.coerce.date().optional().nullable(),
+  suspended_at: z.coerce.date().optional().nullable(),
+  deprecated_at: z.coerce.date().optional().nullable(),
+  archived_at: z.coerce.date().optional().nullable(),
+});
+export type DescriptorSQL = z.infer<typeof DescriptorSQL>;
 
 export const eserviceMode = {
   receive: "Receive",
@@ -120,3 +192,33 @@ export const EService = z.object({
   isClientAccessDelegable: z.boolean().optional(),
 });
 export type EService = z.infer<typeof EService>;
+
+export const EServiceSQL = z.object({
+  id: EServiceId,
+  metadata_version: z.number(),
+  producer_id: TenantId,
+  name: z.string(),
+  description: z.string(),
+  technology: Technology,
+  created_at: z.coerce.date(),
+  mode: EServiceMode,
+  is_signal_hub_enabled: z.boolean().optional(),
+  is_consumer_delegable: z.boolean().optional(),
+  is_client_access_delegable: z.boolean().optional(),
+});
+export type EServiceSQL = z.infer<typeof EServiceSQL>;
+
+
+export const EServiceTemplateBindingSQL = z.object({
+  eservice_id: EServiceId,
+  metadata_version: z.number(),
+  eservice_template_id: TemplateId,
+  instance_id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  url: z.string(),
+  terms_and_conditions_url: z.string(),
+  server_url: z.string(),
+});
+export type EServiceTemplateBindingSQL = z.infer<typeof EServiceTemplateBindingSQL>;
+
