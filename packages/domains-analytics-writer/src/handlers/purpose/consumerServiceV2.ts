@@ -27,6 +27,8 @@ export async function handlePurposeMessageV2(
       { type: "WaitingForApprovalPurposeVersionDeleted" },
       { type: "PurposeVersionActivated" },
       { type: "PurposeCloned" },
+      { type: "PurposeDeletedByRevokedDelegation" },
+      { type: "PurposeVersionArchivedByRevokedDelegation" },
       async () => Promise.resolve()
     )
     .exhaustive();

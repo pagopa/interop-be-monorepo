@@ -25,7 +25,9 @@ export async function handleTenantMessageV2(
           "TenantMailDeleted",
           "TenantKindUpdated",
           "TenantDelegatedProducerFeatureAdded",
-          "TenantDelegatedProducerFeatureRemoved"
+          "TenantDelegatedProducerFeatureRemoved",
+          "TenantDelegatedConsumerFeatureAdded",
+          "TenantDelegatedConsumerFeatureRemoved"
         ),
       },
       async () => Promise.resolve()

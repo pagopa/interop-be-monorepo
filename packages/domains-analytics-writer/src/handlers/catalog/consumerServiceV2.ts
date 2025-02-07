@@ -33,6 +33,10 @@ export async function handleCatalogMessageV2(
       { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorAttributesUpdated" },
       { type: "EServiceNameUpdated" },
+      { type: "EServiceIsConsumerDelegableEnabled" },
+      { type: "EServiceIsConsumerDelegableDisabled" },
+      { type: "EServiceIsClientAccessDelegableEnabled" },
+      { type: "EServiceIsClientAccessDelegableDisabled" },
       async () => Promise.resolve()
     )
     .exhaustive();

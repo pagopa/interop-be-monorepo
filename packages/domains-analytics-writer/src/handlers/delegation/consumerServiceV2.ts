@@ -10,6 +10,10 @@ export async function handleDelegationMessageV2(
       { type: "ProducerDelegationRejected" },
       { type: "ProducerDelegationRevoked" },
       { type: "ProducerDelegationSubmitted" },
+      { type: "ConsumerDelegationSubmitted" },
+      { type: "ConsumerDelegationApproved" },
+      { type: "ConsumerDelegationRejected" },
+      { type: "ConsumerDelegationRevoked" },
       async () => Promise.resolve()
     )
     .exhaustive();

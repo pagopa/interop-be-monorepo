@@ -25,6 +25,8 @@ export async function handleAgreementMessageV2(
       { type: "AgreementArchivedByUpgrade" },
       { type: "AgreementSetDraftByPlatform" },
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
+      { type: "AgreementDeletedByRevokedDelegation" },
+      { type: "AgreementArchivedByRevokedDelegation" },
       async () => Promise.resolve()
     )
     .exhaustive();
