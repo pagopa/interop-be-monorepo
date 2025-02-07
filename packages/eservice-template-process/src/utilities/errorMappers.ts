@@ -146,3 +146,22 @@ export const updateRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateEServiceTemplateVersionAttributesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceTemplateNotFound",
+      "eServiceTemplateVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "notValidEServiceTemplateVersionState",
+      "inconsistentAttributesSeedGroupsCount",
+      "versionAttributeGroupSupersetMissingInAttributesSeed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("unchangedAttributes", () => HTTP_STATUS_CONFLICT)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
