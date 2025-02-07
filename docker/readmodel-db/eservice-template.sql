@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_document(
  d | certified | 3 
  */
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_attribute(
-  id UUID,
+  attribute_id UUID,
   eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   eservice_template_version_id UUID NOT NULL REFERENCES readmodel.eservice_template_version(id) ON DELETE CASCADE,
