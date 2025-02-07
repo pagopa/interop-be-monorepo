@@ -74,3 +74,67 @@ export const Delegation = z.object({
   stamps: DelegationStamps,
 });
 export type Delegation = z.infer<typeof Delegation>;
+
+// TODO: reorder the types or move the SQL types to a separate file
+export const DelegationSQL = z.object({
+  id: DelegationId,
+  metadata_version: z.number(),
+  delegator_id: TenantId,
+  delegate_id: TenantId,
+  eservice_id: EServiceId,
+  created_at: z.coerce.date(),
+  submitted_at: z.coerce.date(),
+  approved_at: z.coerce.date().optional(),
+  rejected_at: z.coerce.date().optional(),
+  rejection_reason: z.string().optional(),
+  revoked_at: z.coerce.date().optional(),
+  state: DelegationState,
+  kind: DelegationKind,
+});
+export type DelegationSQL = z.infer<typeof DelegationSQL>;
+
+export const delegationStampKind = {
+  submission: "submission",
+  activation: "activation",
+  rejection: "rejection",
+  revocation: "revocation",
+} as const;
+export const DelegationStampKind = z.enum([
+  Object.values(delegationStampKind)[0],
+  ...Object.values(delegationStampKind).slice(1),
+]);
+export type DelegationStampKind = z.infer<typeof DelegationStampKind>;
+
+export const DelegationStampSQL = z.object({
+  delegation_id: DelegationId,
+  metadata_version: z.number(),
+  who: UserId,
+  when: z.coerce.date(),
+  kind: DelegationStampKind,
+});
+export type DelegationStampSQL = z.infer<typeof DelegationStampSQL>;
+
+export const delegationContractKind = {
+  activation: "activation",
+  revocation: "revocation",
+} as const;
+export const DelegationContractKind = z.enum([
+  Object.values(delegationContractKind)[0],
+  ...Object.values(delegationContractKind).slice(1),
+]);
+export type DelegationContractKind = z.infer<typeof DelegationContractKind>;
+
+export const DelegationContractDocumentSQL = z.object({
+  id: DelegationContractId,
+  delegation_id: DelegationId,
+  metadata_version: z.number(),
+  name: z.string(),
+  content_type: z.string(),
+  pretty_name: z.string(),
+  path: z.string(),
+  created_at: z.coerce.date(),
+  kind: DelegationContractKind,
+});
+export type DelegationContractDocumentSQL = z.infer<
+  typeof DelegationContractDocumentSQL
+>;
