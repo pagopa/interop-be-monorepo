@@ -20,6 +20,7 @@ export const errorCodes = {
   tenantKindNotFound: "0009",
   eserviceTemplateNotInDraftState: "0010",
   eserviceTemplateNotInReceiveMode: "0011",
+  inconsistentDailyCalls: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -75,6 +76,14 @@ export function eserviceTemplateWithoutPublishedVersion(
     detail: `EService Template ${eserviceTemplateId} does not have a published version`,
     code: "eserviceTemplateWithoutPublishedVersion",
     title: "EService template without published version",
+  });
+}
+
+export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
+    code: "inconsistentDailyCalls",
+    title: "Inconsistent daily calls",
   });
 }
 

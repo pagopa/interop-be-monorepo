@@ -37,6 +37,7 @@ import {
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
   eserviceTemplateWithoutPublishedVersion,
+  inconsistentDailyCalls,
   notValidEServiceTemplateVersionState,
   riskAnalysisValidationFailed,
   tenantNotFound,
@@ -47,6 +48,7 @@ import {
   toCreateEventEServiceTemplateVersionActivated,
   toCreateEventEServiceTemplateVersionSuspended,
   toCreateEventEServiceTemplateNameUpdated,
+  toCreateEventEServiceTemplateVersionQuotasUpdated,
   toCreateEventEServiceTemplateRiskAnalysisAdded,
   toCreateEventEServiceTemplateRiskAnalysisDeleted,
   toCreateEventEServiceTemplateRiskAnalysisUpdated,
@@ -446,6 +448,83 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         )
       );
+      return updatedEserviceTemplate;
+    },
+
+    async updateEServiceTemplateVersionQuotas(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      seed: eserviceTemplateApi.UpdateEServiceTemplateVersionQuotasSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EServiceTemplate> {
+      logger.info(
+        `Updating e-service template version quotas of EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        eserviceTemplate.data
+      );
+
+      if (
+        eserviceTemplateVersion.state !==
+          eserviceTemplateVersionState.published &&
+        eserviceTemplateVersion.state !== eserviceTemplateVersionState.suspended
+      ) {
+        throw notValidEServiceTemplateVersionState(
+          eserviceTemplateVersionId,
+          eserviceTemplateVersion.state
+        );
+      }
+
+      const dailyCallsPerConsumer =
+        seed.dailyCallsPerConsumer ??
+        eserviceTemplateVersion.dailyCallsPerConsumer;
+
+      const dailyCallsTotal =
+        seed.dailyCallsTotal ?? eserviceTemplateVersion.dailyCallsTotal;
+
+      if (
+        dailyCallsPerConsumer !== undefined &&
+        dailyCallsTotal !== undefined &&
+        dailyCallsPerConsumer > dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+
+      const updatedEserviceTemplateVersion: EServiceTemplateVersion = {
+        ...eserviceTemplateVersion,
+        dailyCallsPerConsumer,
+        dailyCallsTotal,
+        voucherLifespan: seed.voucherLifespan,
+      };
+
+      const updatedEserviceTemplate: EServiceTemplate =
+        replaceEServiceTemplateVersion(
+          eserviceTemplate.data,
+          updatedEserviceTemplateVersion
+        );
+
+      await repository.createEvent(
+        toCreateEventEServiceTemplateVersionQuotasUpdated(
+          eserviceTemplate.data.id,
+          eserviceTemplate.metadata.version,
+          eserviceTemplateVersionId,
+          updatedEserviceTemplate,
+          correlationId
+        )
+      );
+
       return updatedEserviceTemplate;
     },
 
