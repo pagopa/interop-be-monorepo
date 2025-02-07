@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_verifier (
   metadata_version INTEGER NOT NULL,
   id UUID REFERENCES readmodel.tenant (id),
   -- verifier id
-  tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.attribute(id),
+  tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.tenant_verified_attribute(attribute_id),
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
   extension_date TIMESTAMP WITH TIME ZONE,
