@@ -96,8 +96,8 @@ paths:
           schema:
             $ref: "#/components/schemas/EServiceMode"
         - in: query
-          name: isDelegable
-          description: EService isDelegable filter
+          name: isConsumerDelegable
+          description: EService isConsumerDelegable filter
           schema:
             type: boolean
         - in: query
@@ -1087,7 +1087,7 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an e-service isDelegable and isClientAccessDelegable flags
+      summary: Update an e-service isConsumerDelegable and isClientAccessDelegable flags
       operationId: updateEServiceDelegationFlags
       parameters:
         - name: eServiceId
@@ -1397,7 +1397,7 @@ components:
           $ref: "#/components/schemas/DescriptorSeedForEServiceCreation"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
@@ -1424,7 +1424,7 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
@@ -1724,7 +1724,7 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
@@ -1893,12 +1893,12 @@ components:
       type: object
       additionalProperties: false
       properties:
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
       required:
-        - isDelegable
+        - isConsumerDelegable
         - isClientAccessDelegable
     EServiceNameUpdateSeed:
       type: object

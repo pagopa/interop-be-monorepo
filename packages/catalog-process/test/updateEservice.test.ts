@@ -45,11 +45,11 @@ describe("update eService", () => {
     vi.spyOn(fileManager, "delete");
 
     config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelist = [mockEService.producerId];
+    config.signalhubWhitelistProducer = [mockEService.producerId];
 
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
-    const isDelegable = randomArrayItem([false, true, undefined]);
-    const isClientAccessDelegable = match(isDelegable)
+    const isConsumerDelegable = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = match(isConsumerDelegable)
       .with(undefined, () => undefined)
       .with(true, () => randomArrayItem([false, true, undefined]))
       .with(false, () => false)
@@ -75,7 +75,7 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
         isSignalHubEnabled,
-        isDelegable,
+        isConsumerDelegable,
         isClientAccessDelegable,
       },
       {
@@ -90,7 +90,7 @@ describe("update eService", () => {
       ...eservice,
       name: updatedName,
       isSignalHubEnabled,
-      isDelegable,
+      isConsumerDelegable,
       isClientAccessDelegable,
     };
 
@@ -109,13 +109,16 @@ describe("update eService", () => {
     expect(fileManager.delete).not.toHaveBeenCalled();
   });
 
-  it("should update an eservice correctly handling isClientAccessDelegable when isDelegable is not true", async () => {
+  it("should update an eservice correctly handling isClientAccessDelegable when isConsumerDelegable is not true", async () => {
     vi.spyOn(fileManager, "delete");
 
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
-    const isDelegable: false | undefined = randomArrayItem([false, undefined]);
+    const isConsumerDelegable: false | undefined = randomArrayItem([
+      false,
+      undefined,
+    ]);
     const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
-    const expectedIsClientAccessDelegable = match(isDelegable)
+    const expectedIsClientAccessDelegable = match(isConsumerDelegable)
       .with(false, () => false)
       .with(undefined, () => undefined)
       .exhaustive();
@@ -140,7 +143,7 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
         isSignalHubEnabled,
-        isDelegable,
+        isConsumerDelegable,
         isClientAccessDelegable,
       },
       {
@@ -155,7 +158,7 @@ describe("update eService", () => {
       ...eservice,
       name: updatedName,
       isSignalHubEnabled,
-      isDelegable,
+      isConsumerDelegable,
       isClientAccessDelegable: expectedIsClientAccessDelegable,
     };
 
@@ -178,7 +181,7 @@ describe("update eService", () => {
     vi.spyOn(fileManager, "delete");
 
     config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelist = [mockEService.producerId];
+    config.signalhubWhitelistProducer = [mockEService.producerId];
 
     const interfaceDocument = {
       ...mockDocument,
@@ -307,7 +310,7 @@ describe("update eService", () => {
     const updatedDescription = "eservice new description";
 
     config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelist = [mockEService.producerId];
+    config.signalhubWhitelistProducer = [mockEService.producerId];
 
     await addOneEService(mockEService);
     const returnedEService = await catalogService.updateEService(
@@ -406,7 +409,7 @@ describe("update eService", () => {
     };
     await addOneEService(eservice);
 
-    config.signalhubWhitelist = [eservice.producerId];
+    config.signalhubWhitelistProducer = [eservice.producerId];
 
     const returnedEService = await catalogService.updateEService(
       eservice.id,

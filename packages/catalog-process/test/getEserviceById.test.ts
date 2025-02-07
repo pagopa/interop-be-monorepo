@@ -38,7 +38,7 @@ describe("get eservice by id", () => {
       name: "eservice 001",
       descriptors: [descriptor1],
       isSignalHubEnabled: true,
-      isDelegable: true,
+      isConsumerDelegable: true,
       isClientAccessDelegable: true,
     };
     await addOneEService(eservice1);
