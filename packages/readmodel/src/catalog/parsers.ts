@@ -1,4 +1,14 @@
-import { EServiceSQL, genericInternalError, EServiceTemplateBindingSQL, DescriptorSQL, DescriptorRejectionReasonSQL, DocumentSQL, DescriptorAttributeSQL, EserviceRiskAnalysisSQL, RiskAnalysisAnswerSQL } from "pagopa-interop-models";
+import {
+  EServiceSQL,
+  genericInternalError,
+  EServiceTemplateBindingSQL,
+  DescriptorSQL,
+  DescriptorRejectionReasonSQL,
+  DocumentSQL,
+  DescriptorAttributeSQL,
+  EserviceRiskAnalysisSQL,
+  RiskAnalysisAnswerSQL,
+} from "pagopa-interop-models";
 
 export const parseEServiceSQL = (data: unknown): EServiceSQL | undefined => {
   if (!data) {
@@ -16,11 +26,12 @@ export const parseEServiceSQL = (data: unknown): EServiceSQL | undefined => {
   }
 };
 
-export const parseEServiceTemplateBindingSQL = (data: unknown): EServiceTemplateBindingSQL | undefined => {
+export const parseEServiceTemplateBindingSQL = (
+  data: unknown
+): EServiceTemplateBindingSQL | undefined => {
   if (!data) {
     return undefined;
   } else {
-
     const result = EServiceTemplateBindingSQL.safeParse(data);
     if (!result.success) {
       throw genericInternalError(
@@ -33,7 +44,9 @@ export const parseEServiceTemplateBindingSQL = (data: unknown): EServiceTemplate
   }
 };
 
-export const parseDescriptorSQL = (data: unknown): DescriptorSQL | undefined => {
+export const parseDescriptorSQL = (
+  data: unknown
+): DescriptorSQL | undefined => {
   if (!data) {
     return undefined;
   } else {
@@ -49,7 +62,9 @@ export const parseDescriptorSQL = (data: unknown): DescriptorSQL | undefined => 
   }
 };
 
-export const parseDescriptorRejectionReasonSQL = (data: unknown): DescriptorRejectionReasonSQL | undefined => {
+export const parseDescriptorRejectionReasonSQL = (
+  data: unknown
+): DescriptorRejectionReasonSQL | undefined => {
   if (!data) {
     return undefined;
   } else {
@@ -65,7 +80,7 @@ export const parseDescriptorRejectionReasonSQL = (data: unknown): DescriptorReje
   }
 };
 
-export const parseDocumentSQL = (data: any): DocumentSQL | undefined => {
+export const parseDocumentSQL = (data: unknown): DocumentSQL | undefined => {
   if (!data) {
     return undefined;
   } else {
@@ -82,7 +97,7 @@ export const parseDocumentSQL = (data: any): DocumentSQL | undefined => {
 };
 
 export const parseDescriptorAttributeSQL = (
-  data: any
+  data: unknown
 ): DescriptorAttributeSQL | undefined => {
   if (!data) {
     return undefined;
@@ -100,7 +115,7 @@ export const parseDescriptorAttributeSQL = (
 };
 
 export const parseRiskAnalysisSQL = (
-  data: any
+  data: unknown
 ): EserviceRiskAnalysisSQL | undefined => {
   if (!data) {
     return undefined;
@@ -118,7 +133,7 @@ export const parseRiskAnalysisSQL = (
 };
 
 export const parseRiskAnalysisAnswerSQL = (
-  data: any
+  data: unknown
 ): RiskAnalysisAnswerSQL | undefined => {
   if (!data) {
     return undefined;
