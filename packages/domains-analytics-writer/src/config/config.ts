@@ -11,7 +11,7 @@ import {
 import { z } from "zod";
 
 export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
-  CatalogTopicConfig,
+  CatalogTopicConfig
 )
   .and(AgreementTopicConfig)
   .and(AttributeTopicConfig)

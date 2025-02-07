@@ -35,7 +35,7 @@ import { handleAttributeMessageV1 } from "./handlers/attribute/consumerServiceV1
 import { handleTenantMessageV2 } from "./handlers/tenant/consumerServiceV2.js";
 
 export async function processMessage(
-  messagePayload: EachMessagePayload,
+  messagePayload: EachMessagePayload
 ): Promise<void> {
   const { partition, message } = messagePayload;
 
@@ -43,7 +43,7 @@ export async function processMessage(
     .with(config.catalogTopic, () => {
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
-        EServiceEvent,
+        EServiceEvent
       );
 
       return match(decodedMessage)
@@ -60,7 +60,7 @@ export async function processMessage(
     .with(config.agreementTopic, () => {
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
-        AgreementEvent,
+        AgreementEvent
       );
 
       return match(decodedMessage)
@@ -77,7 +77,7 @@ export async function processMessage(
     .with(config.attributeTopic, () => {
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
-        AttributeEvent,
+        AttributeEvent
       );
 
       return match(decodedMessage)
@@ -90,7 +90,7 @@ export async function processMessage(
     .with(config.purposeTopic, () => {
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
-        PurposeEvent,
+        PurposeEvent
       );
 
       return match(decodedMessage)
@@ -107,7 +107,7 @@ export async function processMessage(
     .with(config.tenantTopic, () => {
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
-        TenantEvent,
+        TenantEvent
       );
 
       return match(decodedMessage)
@@ -124,7 +124,7 @@ export async function processMessage(
     .with(config.authorizationTopic, () => {
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
-        AuthorizationEvent,
+        AuthorizationEvent
       );
 
       return match(decodedMessage)
@@ -141,7 +141,7 @@ export async function processMessage(
     .with(config.delegationTopic, () => {
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
-        DelegationEvent,
+        DelegationEvent
       );
 
       return match(decodedMessage)
@@ -168,7 +168,7 @@ export async function processMessage(
   });
 
   loggerInstance.info(
-    `Processing ${decodedMessage.type} message - Partition ${partition} - Offset ${message.offset}`,
+    `Processing ${decodedMessage.type} message - Partition ${partition} - Offset ${message.offset}`
   );
 
   await handler();
@@ -194,10 +194,10 @@ try {
           payload.topic,
           payload.partition,
           payload.message.offset,
-          err,
+          err
         );
       }
-    },
+    }
   );
 } catch (e) {
   genericLogger.error(`An error occurred during initialization:\n${e}`);
