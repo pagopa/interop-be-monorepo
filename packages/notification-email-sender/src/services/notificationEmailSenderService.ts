@@ -15,10 +15,13 @@ import {
   AgreementV2,
   Descriptor,
   EService,
+  EServiceId,
+  PurposeV2,
   Tenant,
   TenantId,
   TenantMail,
   fromAgreementV2,
+  fromPurposeV2,
   genericInternalError,
   tenantMailKind,
   unsafeBrandId,
@@ -35,20 +38,19 @@ import {
 import { ReadModelService } from "./readModelService.js";
 
 // Be careful to change this enum, it's used to find the html template files
-export const agreementEventMailTemplateType = {
+export const eventMailTemplateType = {
   activation: "activation-mail",
   submission: "submission-mail",
   rejection: "rejection-mail",
+  aboveTheThreshold: " estimate_above_the_threshold",
 } as const;
 
-const AgreementEventMailTemplateType = z.enum([
-  Object.values(agreementEventMailTemplateType)[0],
-  ...Object.values(agreementEventMailTemplateType).slice(1),
+const EventMailTemplateType = z.enum([
+  Object.values(eventMailTemplateType)[0],
+  ...Object.values(eventMailTemplateType).slice(1),
 ]);
 
-type AgreementEventMailTemplateType = z.infer<
-  typeof AgreementEventMailTemplateType
->;
+type EventMailTemplateType = z.infer<typeof EventMailTemplateType>;
 
 export const retrieveTenantMailAddress = (tenant: Tenant): TenantMail => {
   const digitalAddress = getLatestTenantMailOfKind(
@@ -99,8 +101,19 @@ function retrieveAgreementDescriptor(
   return descriptor;
 }
 
+export const retrieveEService = async (
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<EService> => {
+  const eservice = await readModelService.getEServiceById(eserviceId);
+  if (!eservice) {
+    throw eServiceNotFound(eserviceId);
+  }
+  return eservice;
+};
+
 async function retrieveHTMLTemplate(
-  templateKind: AgreementEventMailTemplateType
+  templateKind: EventMailTemplateType
 ): Promise<string> {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
@@ -133,7 +146,7 @@ async function sendActivationNotificationEmail(
   readModelService: ReadModelService,
   agreementV2Msg: AgreementV2,
   templateService: HtmlTemplateService,
-  templateKind: AgreementEventMailTemplateType,
+  templateKind: EventMailTemplateType,
   logger: Logger,
   sender: { label: string; mail: string },
   consumerName: string,
@@ -202,7 +215,7 @@ export function notificationEmailSenderServiceBuilder(
       const agreement = fromAgreementV2(agreementV2Msg);
 
       const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
-        retrieveHTMLTemplate(agreementEventMailTemplateType.submission),
+        retrieveHTMLTemplate(eventMailTemplateType.submission),
         retrieveAgreementEservice(agreement, readModelService),
         retrieveTenant(agreement.producerId, readModelService),
         retrieveTenant(agreement.consumerId, readModelService),
@@ -255,7 +268,6 @@ export function notificationEmailSenderServiceBuilder(
         );
       }
     },
-
     sendActivationNotificationSimpleEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
@@ -276,7 +288,7 @@ export function notificationEmailSenderServiceBuilder(
         readModelService,
         agreementV2Msg,
         templateService,
-        agreementEventMailTemplateType.activation,
+        eventMailTemplateType.activation,
         logger,
         sesSenderData,
         consumer.name,
@@ -292,7 +304,7 @@ export function notificationEmailSenderServiceBuilder(
       const agreement = fromAgreementV2(agreementV2Msg);
 
       const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
-        retrieveHTMLTemplate(agreementEventMailTemplateType.rejection),
+        retrieveHTMLTemplate(eventMailTemplateType.rejection),
         retrieveAgreementEservice(agreement, readModelService),
         retrieveTenant(agreement.producerId, readModelService),
         retrieveTenant(agreement.consumerId, readModelService),
@@ -340,6 +352,56 @@ export function notificationEmailSenderServiceBuilder(
         );
         throw genericInternalError(
           `Error sending email for agreement ${agreement.id}: ${err}`
+        );
+      }
+    },
+    sendEstimateAboveTheThresholderNotificationSimpleEmail: async (
+      purposeV2Msg: PurposeV2,
+      logger: Logger
+    ) => {
+      const purpose = fromPurposeV2(purposeV2Msg);
+
+      const [htmlTemplate, eservice, consumer] = await Promise.all([
+        retrieveHTMLTemplate(eventMailTemplateType.aboveTheThreshold),
+        retrieveEService(purpose.eserviceId, readModelService),
+        retrieveTenant(purpose.consumerId, readModelService),
+      ]);
+
+      const consumerEmail = getLatestTenantMailOfKind(
+        consumer.mails,
+        tenantMailKind.ContactEmail
+      );
+
+      if (!consumerEmail) {
+        logger.warn(
+          `Consumer email not found for purpose ${purpose.id}, skipping email`
+        );
+        return;
+      }
+
+      const mail = {
+        from: { name: sesSenderData.label, address: sesSenderData.mail },
+        subject: `Richiesta di variazione della stima di carico per ${eservice.name}`,
+        to: [consumerEmail.address],
+        body: templateService.compileHtml(htmlTemplate, {
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${purpose.id}`, // don't know the URL
+          consumerName: consumer.name,
+          eserviceName: eservice.name,
+        }),
+      };
+
+      try {
+        logger.info(
+          `Sending an email requesting a change in the load estimate as it is above the threshold, for purpose ${purpose.id} (SES)`
+        );
+        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        logger.info(
+          `Email sent for requesting  a change in the load estimate as it is above the threshold, for purpose ${purpose.id} (SES)`
+        );
+      } catch (err) {
+        logger.warn(`Error sending email for purpose ${purpose.id}: ${err}`);
+        throw genericInternalError(
+          `Error sending email for purpose ${purpose.id}: ${err}`
         );
       }
     },

@@ -104,7 +104,22 @@ export async function handlePurposeMessage(
   decodedMessage: PurposeEventEnvelopeV2,
   logger: Logger
 ): Promise<void> {
-  match(decodedMessage)
+  await match(decodedMessage)
+    .with(
+      { event_version: 2, type: "NewPurposeVersionWaitingForApproval" },
+      async ({ data: { purpose } }) => {
+        if (purpose) {
+          await Promise.all([
+            notificationEmailSenderService.sendEstimateAboveTheThresholderNotificationSimpleEmail(
+              purpose,
+              logger
+            ),
+          ]);
+        } else {
+          throw missingKafkaMessageDataError("purpose", decodedMessage.type);
+        }
+      }
+    )
     .with(
       {
         type: P.union(
@@ -113,7 +128,6 @@ export async function handlePurposeMessage(
           "PurposeAdded",
           "DraftPurposeUpdated",
           "NewPurposeVersionActivated",
-          "NewPurposeVersionWaitingForApproval",
           "PurposeActivated",
           "PurposeArchived",
           "PurposeVersionOverQuotaUnsuspended",

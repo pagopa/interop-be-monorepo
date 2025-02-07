@@ -21,7 +21,7 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import axios, { AxiosResponse } from "axios";
 import {
-  agreementEventMailTemplateType,
+  eventMailTemplateType,
   getFormattedAgreementStampDate,
 } from "../src/services/notificationEmailSenderService.js";
 import {
@@ -98,7 +98,7 @@ describe("sendAgreementSubmissionEmail", () => {
 
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const templatePath = `../src/resources/templates/${agreementEventMailTemplateType.submission}.html`;
+    const templatePath = `../src/resources/templates/${eventMailTemplateType.submission}.html`;
 
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
     const submissionEmailTemplate = htmlTemplateBuffer.toString();
