@@ -421,7 +421,7 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
-  packages/analytics-consumer:
+  packages/domains-analytics-writer:
     dependencies:
       '@protobuf-ts/runtime':
         specifier: 2.9.4

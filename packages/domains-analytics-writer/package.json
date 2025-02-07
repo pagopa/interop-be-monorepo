@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-interop-analytics-consumer",
+  "name": "pagopa-interop-domains-analytics-writer",
   "private": true,
   "version": "1.0.0",
-  "description": "PagoPA Interoperability analytics consumer",
+  "description": "PagoPA Interoperability domains analytics writer",
   "main": "dist",
   "type": "module",
   "exports": {

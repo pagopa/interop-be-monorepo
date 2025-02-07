@@ -10,8 +10,8 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const AnalyticsConsumerConfig = KafkaConsumerConfig.and(
-  CatalogTopicConfig
+export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
+  CatalogTopicConfig,
 )
   .and(AgreementTopicConfig)
   .and(AttributeTopicConfig)
@@ -21,8 +21,9 @@ export const AnalyticsConsumerConfig = KafkaConsumerConfig.and(
   .and(AuthorizationTopicConfig)
   .and(DelegationTopicConfig);
 
-export type AnalyticsConsumerConfig = z.infer<typeof AnalyticsConsumerConfig>;
+export type DomainsAnalyticsWriterConfig = z.infer<
+  typeof DomainsAnalyticsWriterConfig
+>;
 
-export const config: AnalyticsConsumerConfig = AnalyticsConsumerConfig.parse(
-  process.env
-);
+export const config: DomainsAnalyticsWriterConfig =
+  DomainsAnalyticsWriterConfig.parse(process.env);
