@@ -463,30 +463,22 @@ export function delegationServiceBuilder(
       };
     },
     async getConsumerDelegatedEservices(
-      {
-        delegatorId,
-        q,
-        offset,
-        limit,
-      }: {
-        delegatorId: string;
-        q?: string;
-        offset: number;
-        limit: number;
-      },
+      filters: bffApi.BffgetConsumerDelegatedEservicesQueryParam,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactEServices> {
       logger.info(
-        `Retrieving consumer delegated eservices of delegator ${delegatorId} with name ${q}, limit ${limit}, offset ${offset}`
+        `Retrieving consumer delegated eservices with filters ${JSON.stringify(
+          filters
+        )}`
       );
 
       const eservicesData =
         await delegationClients.consumer.getConsumerEservices({
           queries: {
-            delegatorId,
-            eserviceName: q,
-            offset,
-            limit,
+            delegatorId: filters.delegatorId,
+            eserviceName: filters.q,
+            offset: filters.offset,
+            limit: filters.limit,
           },
           headers,
         });
@@ -515,8 +507,8 @@ export function delegationServiceBuilder(
       return {
         results: eservicesWithProducerData,
         pagination: {
-          offset,
-          limit,
+          offset: filters.offset,
+          limit: filters.limit,
           totalCount: eservicesData.totalCount,
         },
       };

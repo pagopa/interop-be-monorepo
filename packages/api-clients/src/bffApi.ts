@@ -19,4 +19,8 @@ export type BffGetConsumerDelegatorsQueryParam = QueryParametersByAlias<
   "getConsumerDelegators"
 >;
 
+export type BffgetConsumerDelegatedEservicesQueryParam = QueryParametersByAlias<
+  BffConsumerDelegationApi,
+  "getConsumerDelegatedEservices"
+>;
 export * from "./generated/bffApi.js";
