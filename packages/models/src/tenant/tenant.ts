@@ -62,15 +62,15 @@ export const TenantFeature = z.discriminatedUnion("type", [
   TenantFeatureDelegatedProducer,
   TenantFeatureDelegatedConsumer,
 ]);
-
 export type TenantFeature = z.infer<typeof TenantFeature>;
 
-export const tenantFeatureSQL = z.object({
+export const TenantFeatureSQL = z.object({
   tenant_id: TenantId,
   metadata_version: z.number(),
   kind: TenantFeatureType,
   details: z.unknown() // TODO
 })
+export type TenantFeatureSQL = z.infer<typeof TenantFeatureSQL>;
 
 export const tenantAttributeType = {
   CERTIFIED: "PersistentCertifiedAttribute",
@@ -94,7 +94,7 @@ export const TenantVerifier = z.object({
 });
 export type TenantVerifier = z.infer<typeof TenantVerifier>;
 
-export const TenantVerifiedAttributeVerifier = z.object({
+export const TenantVerifiedAttributeVerifierSQL = z.object({
   tenant_id: TenantId,
   metadata_version: z.number(),
   id: TenantId,
@@ -104,7 +104,7 @@ export const TenantVerifiedAttributeVerifier = z.object({
   extension_date: z.coerce.date().optional().nullable(),
   delegation_id: DelegationId.optional(),
 });
-export type TenantVerifiedAttributeVerifier = z.infer<typeof TenantVerifiedAttributeVerifier>;
+export type TenantVerifiedAttributeVerifierSQL = z.infer<typeof TenantVerifiedAttributeVerifierSQL>;
 
 export const TenantRevoker = z.object({
   expirationDate: z.coerce.date().optional(),
