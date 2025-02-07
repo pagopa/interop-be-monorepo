@@ -1,4 +1,4 @@
-import { EServiceSQL, genericInternalError, EServiceTemplateBindingSQL, DescriptorSQL, DescriptorRejectionReasonSQL, DocumentSQL, DescriptorAttributeSQL, EserviceRiskAnalysisSQL, RiskAnalysisAnswerSQL } from "pagopa-interop-models/dist";
+import { EServiceSQL, genericInternalError, EServiceTemplateBindingSQL, DescriptorSQL, DescriptorRejectionReasonSQL, DocumentSQL, DescriptorAttributeSQL, EserviceRiskAnalysisSQL, RiskAnalysisAnswerSQL } from "pagopa-interop-models";
 
 export const parseEServiceSQL = (data: unknown): EServiceSQL | undefined => {
   if (!data) {

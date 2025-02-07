@@ -110,7 +110,7 @@ export type DescriptorRejectionReason = z.infer<
 >;
 
 export const DescriptorRejectionReasonSQL = z.object({
-  id: RejectionReasonId, // TODO
+  id: z.string().uuid(), // TODO. this dons own id?
   eservice_id: EServiceId,
   metadata_version: z.number(),
   descriptor_id: DescriptorId,
@@ -212,7 +212,7 @@ export type EServiceSQL = z.infer<typeof EServiceSQL>;
 export const EServiceTemplateBindingSQL = z.object({
   eservice_id: EServiceId,
   metadata_version: z.number(),
-  eservice_template_id: TemplateId,
+  eservice_template_id: z.string().uuid(), // TODO TemplateId?
   instance_id: z.string(),
   name: z.string(),
   email: z.string(),
