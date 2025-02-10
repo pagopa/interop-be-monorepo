@@ -193,7 +193,7 @@ export function hasCertifiedAttributes(
 export function verifyExportEligibility(
   descriptor: catalogApi.EServiceDescriptor
 ): void {
-  if (isValidDescriptor(descriptor)) {
+  if (!isValidDescriptor(descriptor)) {
     throw notValidDescriptor(descriptor.id, descriptor.state);
   }
 }
