@@ -133,12 +133,12 @@ export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
 /* ========= ASSERTIONS ========= */
 
 const assertRequesterIsConsumer = (
-  agreement: Pick<Agreement, "consumerId">,
+  consumerId: TenantId,
   authData: AuthData
 ): void => {
   if (
     !authData.userRoles.includes("internal") &&
-    authData.organizationId !== agreement.consumerId
+    authData.organizationId !== consumerId
   ) {
     throw organizationIsNotTheConsumer(authData.organizationId);
   }
@@ -163,7 +163,8 @@ export const assertRequesterCanActAsConsumerOrProducer = (
 ): void => {
   try {
     assertRequesterCanActAsConsumer(
-      agreement,
+      agreement.consumerId,
+      agreement.eserviceId,
       authData,
       activeDelegations.consumerDelegation
     );
@@ -188,7 +189,7 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
   // This operation has a dedicated assertion because it's the only operation that
   // can be performed also by the producer/consumer even when active producer/consumer delegations exist
   try {
-    assertRequesterIsConsumer(agreement, authData);
+    assertRequesterIsConsumer(agreement.consumerId, authData);
   } catch {
     try {
       assertRequesterIsProducer(agreement, authData);
@@ -204,7 +205,8 @@ export const assertRequesterCanRetrieveConsumerDocuments = async (
       } catch {
         try {
           assertRequesterIsDelegateConsumer(
-            agreement,
+            agreement.consumerId,
+            agreement.eserviceId,
             authData,
             await readModelService.getActiveConsumerDelegationByAgreement(
               agreement
@@ -289,14 +291,15 @@ export const assertActivableState = (agreement: Agreement): void => {
 };
 
 export const assertRequesterIsDelegateConsumer = (
-  agreement: Pick<Agreement, "consumerId" | "eserviceId">,
+  consumerId: TenantId,
+  eserviceId: EServiceId,
   authData: AuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (
     activeConsumerDelegation?.delegateId !== authData.organizationId ||
-    activeConsumerDelegation?.delegatorId !== agreement.consumerId ||
-    activeConsumerDelegation?.eserviceId !== agreement.eserviceId ||
+    activeConsumerDelegation?.delegatorId !== consumerId ||
+    activeConsumerDelegation?.eserviceId !== eserviceId ||
     activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
     activeConsumerDelegation?.state !== delegationState.active
   ) {
@@ -308,17 +311,19 @@ export const assertRequesterIsDelegateConsumer = (
 };
 
 export const assertRequesterCanActAsConsumer = (
-  agreement: Pick<Agreement, "consumerId" | "eserviceId">,
+  consumerId: TenantId,
+  eserviceId: EServiceId,
   authData: AuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (!activeConsumerDelegation) {
     // No active consumer delegation, the requester is authorized only if they are the consumer
-    assertRequesterIsConsumer(agreement, authData);
+    assertRequesterIsConsumer(consumerId, authData);
   } else {
     // Active consumer delegation, the requester is authorized only if they are the delegate
     assertRequesterIsDelegateConsumer(
-      agreement,
+      consumerId,
+      eserviceId,
       authData,
       activeConsumerDelegation
     );

@@ -42,7 +42,7 @@ export type ClientJWKKey = z.infer<typeof ClientJWKKey>;
 
 export const ClientJWKKeySQL = z.object({
   client_id: ClientId,
-  version: z.number(),
+  metadata_version: z.number(),
   alg: z.string(),
   e: z.string(),
   kid: z.string(),
