@@ -639,51 +639,6 @@ describe("validation test", async () => {
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidKidFormat());
     });
-
-    // it("ignore client_id claim", async () => {
-    //   const { jws } = await getMockClientAssertion({
-    //     customClaims: {
-    //       client_id: "somevalue",
-    //     },
-    //   });
-    //   const { errors } = verifyClientAssertion(
-    //     jws,
-    //     undefined,
-    //     expectedAudiences,
-    //     genericLogger
-    //   );
-    //   expect(errors).toBeUndefined();
-    // });
-
-    // it("ignore nbf claim", async () => {
-    //   const { jws } = await getMockClientAssertion({
-    //     customClaims: {
-    //       nbf: 999999999999,
-    //     },
-    //   });
-    //   const { errors } = verifyClientAssertion(
-    //     jws,
-    //     undefined,
-    //     expectedAudiences,
-    //     genericLogger
-    //   );
-    //   expect(errors).toBeUndefined();
-    // });
-
-    // it("ignore nbt claim", async () => {
-    //   const { jws } = await getMockClientAssertion({
-    //     customClaims: {
-    //       nbt: "something",
-    //     },
-    //   });
-    //   const { errors } = verifyClientAssertion(
-    //     jws,
-    //     undefined,
-    //     expectedAudiences,
-    //     genericLogger
-    //   );
-    //   expect(errors).toBeUndefined();
-    // });
   });
 
   describe("verifyClientAssertionSignature", async () => {
