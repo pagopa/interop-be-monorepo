@@ -38,7 +38,7 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("sendAgreementRejectEmail", () => {
+describe("sendAgreementRejectedEmail", () => {
   it("should send an email on AgreementRejected", async () => {
     vi.spyOn(sesEmailManager, "send");
     const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);

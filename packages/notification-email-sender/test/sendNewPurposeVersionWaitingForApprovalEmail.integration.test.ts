@@ -34,7 +34,7 @@ import {
   addOnePurpose,
 } from "./utils.js";
 
-describe("sendEstimateAboveTheThresholderNotificationEmail", () => {
+describe("sendNewPurposeVersionWaitingForApprovalEmail", () => {
   it("should send an email to Consumer to contact email addresses", async () => {
     vi.spyOn(sesEmailManager, "send");
     const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);

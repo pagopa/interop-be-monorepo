@@ -36,7 +36,7 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("sendAgreementSubmissionEmail", () => {
+describe("sendAgreementSubmittedEmail", () => {
   it("should send an email on AgreementSubmitted", async () => {
     vi.spyOn(sesEmailManager, "send");
     const tenantMail = "tenant@mail.com";
