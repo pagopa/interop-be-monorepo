@@ -386,15 +386,6 @@ export function readModelServiceBuilder(
         {
           $match: {
             isValid: true,
-          },
-        },
-        {
-          $project: {
-            isValid: 0,
-          },
-        },
-        {
-          $match: {
             activeAgreements: { $ne: [] }, // Keep only delegations with active agreements
           },
         },
