@@ -82,7 +82,7 @@ tags:
       description: Find out more
       url: "http://swagger.io"
 paths:
-  "/consumer/agreements":
+  "/consumers/agreements":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
@@ -698,7 +698,7 @@ paths:
     delete:
       tags:
         - agreements
-      summary: Delete an agreement. This operation is valid only for agreements in DRAFT or MISSING_CERTIFIED_ATTRIBUTES
+      summary: Delete an agreement
       operationId: deleteAgreement
       responses:
         "204":
@@ -2178,39 +2178,37 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/agreements/verify":
+  "/tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes/validate":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-    post:
+    get:
       tags:
         - agreements
       summary: Verify a Tenant has required certified attributes
       description: Verify a Tenant has required certified attributes
       operationId: verifyTenantCertifiedAttributes
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: false
-              required:
-                - tenantId
-                - descriptorId
-                - eserviceId
-              properties:
-                tenantId:
-                  type: string
-                  format: uuid
-                  description: The Tenant id
-                eserviceId:
-                  type: string
-                  format: uuid
-                  description: The E-Service id
-                descriptorId:
-                  type: string
-                  format: uuid
-                  description: The E-Service descriptor id
+      parameters:
+        - name: tenantId
+          in: path
+          description: The identifier of the tenant
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: eserviceId
+          in: path
+          description: The identifier of the e-service
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId 
+          in: path
+          description: The identifier of the e-service descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Tenant has required certified attributes
@@ -2366,8 +2364,8 @@ paths:
           schema:
             $ref: "#/components/schemas/EServiceMode"
         - in: query
-          name: isDelegable
-          description: EService isDelegable filter
+          name: isConsumerDelegable
+          description: EService isConsumerDelegable filter
           schema:
             type: boolean
         - in: query
@@ -2443,7 +2441,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/consumer/delegations/delegators":
+  "/consumers/delegations/delegators":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
@@ -2515,7 +2513,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/consumer/delegations/delegatorsWithAgreements":
+  "/consumers/delegations/delegatorsWithAgreements":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
@@ -13922,7 +13920,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /consumer/delegations/eservices:
+  /consumers/delegations/eservices:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
@@ -13991,7 +13989,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /consumer/delegations:
+  /consumers/delegations:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -14065,7 +14063,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /consumer/delegations/{delegationId}/approve:
+  /consumers/delegations/{delegationId}/approve:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -14174,7 +14172,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /consumer/delegations/{delegationId}/reject:
+  /consumers/delegations/{delegationId}/reject:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -14468,7 +14466,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /consumer/delegations/{delegationId}:
+  /consumers/delegations/{delegationId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: delegationId
@@ -14915,7 +14913,7 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
@@ -14938,7 +14936,7 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
@@ -15018,12 +15016,12 @@ components:
       type: object
       additionalProperties: false
       properties:
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
       required:
-        - isDelegable
+        - isConsumerDelegable
         - isClientAccessDelegable
     EServiceNameUpdateSeed:
       type: object
@@ -15220,7 +15218,7 @@ components:
           $ref: "#/components/schemas/Mail"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
@@ -15252,7 +15250,7 @@ components:
             $ref: "#/components/schemas/EServiceRiskAnalysis"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean
@@ -15390,7 +15388,7 @@ components:
           $ref: "#/components/schemas/Mail"
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean

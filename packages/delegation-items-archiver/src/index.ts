@@ -24,6 +24,12 @@ const refreshableToken = new RefreshableInteropToken(
 );
 await refreshableToken.init();
 
+const readModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+
+const { agreementProcessClient, purposeProcessClient } = getInteropBeClients();
+
 async function processMessage({
   message,
   partition,
@@ -43,24 +49,19 @@ async function processMessage({
   });
   loggerInstance.debug(decodedMessage);
 
-  const readModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
-
   await match(decodedMessage)
     .with({ event_version: 2 }, (msg) =>
-      handleMessageV2(
-        {
-          decodedMessage: msg,
-          refreshableToken,
-          partition,
-          offset: message.offset,
-          logger: loggerInstance,
-          correlationId,
-          readModelService,
-        },
-        getInteropBeClients()
-      )
+      handleMessageV2({
+        decodedMessage: msg,
+        refreshableToken,
+        partition,
+        offset: message.offset,
+        logger: loggerInstance,
+        correlationId,
+        readModelService,
+        agreementProcessClient,
+        purposeProcessClient,
+      })
     )
     .exhaustive();
 }

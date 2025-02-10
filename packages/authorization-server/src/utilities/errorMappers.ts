@@ -5,8 +5,11 @@ import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
 
-const { HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_BAD_REQUEST } =
-  constants;
+const {
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_TOO_MANY_REQUESTS,
+} = constants;
 
 export const authorizationServerErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -20,4 +23,5 @@ export const authorizationServerErrorMapper = (
       "platformStateValidationFailed",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -27,7 +27,7 @@ tags:
       description: Find out more
       url: "http://swagger.io"
 paths:
-  /internal/delegationRevoked/purposes/{id}:
+  /internal/delegations/{delegationId}/purposes/{id}:
     delete:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -39,7 +39,7 @@ paths:
             type: string
             format: uuid
         - name: delegationId
-          in: query
+          in: path
           description: the delegation id
           required: true
           schema:
@@ -70,7 +70,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/delegationRevoked/purposes/{purposeId}/versions/{versionId}/archive:
+  /internal/delegations/{delegationId}/purposes/{purposeId}/versions/{versionId}/archive:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
@@ -86,7 +86,7 @@ paths:
           type: string
           format: uuid
       - name: delegationId
-        in: query
+        in: path
         required: true
         schema:
           type: string

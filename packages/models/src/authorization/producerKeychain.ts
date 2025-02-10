@@ -21,7 +21,7 @@ export type ProducerKeychain = z.infer<typeof ProducerKeychain>;
 
 export const ProducerKeychainSQL = z.object({
   id: ProducerKeychainId,
-  version: z.number(),
+  metadata_version: z.number(),
   producer_id: TenantId,
   name: z.string(),
   created_at: z.coerce.date(),
@@ -30,7 +30,7 @@ export const ProducerKeychainSQL = z.object({
 export type ProducerKeychainSQL = z.infer<typeof ProducerKeychainSQL>;
 
 export const ProducerKeychainUserSQL = z.object({
-  producer_keychain_version: z.number(),
+  metadata_version: z.number(),
   producer_keychain_id: ProducerKeychainId,
   user_id: UserId,
 });
@@ -38,7 +38,7 @@ export const ProducerKeychainUserSQL = z.object({
 export type ProducerKeychainUserSQL = z.infer<typeof ProducerKeychainUserSQL>;
 
 export const ProducerKeychainEServiceSQL = z.object({
-  producer_keychain_version: z.number(),
+  metadata_version: z.number(),
   producer_keychain_id: ProducerKeychainId,
   eservice_id: EServiceId,
 });
@@ -48,7 +48,7 @@ export type ProducerKeychainEServiceSQL = z.infer<
 >;
 
 export const ProducerKeychainKeySQL = z.object({
-  producer_keychain_version: z.number(),
+  metadata_version: z.number(),
   producer_keychain_id: ProducerKeychainId,
   user_id: UserId,
   kid: z.string(),
