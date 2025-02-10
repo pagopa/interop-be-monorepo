@@ -39,11 +39,7 @@ import {
   AgreementContractPDFPayload,
 } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
-import {
-  getActiveConsumerAndProducerDelegations,
-  retrieveDescriptor,
-  retrieveTenant,
-} from "./agreementService.js";
+import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
@@ -268,21 +264,8 @@ export const contractBuilder = (
       eservice: EService,
       consumer: Tenant,
       producer: Tenant,
-      retrievedActiveDelegations: ActiveDelegations
+      { producerDelegation, consumerDelegation }: ActiveDelegations
     ): Promise<AgreementDocument> => {
-      /*
-        In case delegations are not passed, we perform a retrieval again here,
-        to make sure we have both producer and consumer delegations for PDF generation,
-        no matter if the operation was called by a consumer or producer delegate or not.
-        That's because if there is a delegation active, the PDF text changes.
-      */
-      const { producerDelegation, consumerDelegation } =
-        await getActiveConsumerAndProducerDelegations(
-          agreement,
-          readModelService,
-          retrievedActiveDelegations
-        );
-
       const producerDelegationData =
         producerDelegation &&
         (await buildDelegationData(producerDelegation, readModelService));

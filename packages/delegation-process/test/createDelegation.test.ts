@@ -120,7 +120,7 @@ describe.each([
       };
       const eservice = {
         ...getMockEService(generateId<EServiceId>(), delegatorId),
-        isDelegable: true,
+        isConsumerDelegable: true,
       };
 
       await addOneTenant(delegator);
@@ -190,7 +190,7 @@ describe.each([
       };
       const eservice = {
         ...getMockEService(generateId<EServiceId>(), delegatorId),
-        isDelegable: true,
+        isConsumerDelegable: true,
       };
 
       const existentDelegation = {
@@ -270,7 +270,7 @@ describe.each([
       };
       const eservice = {
         ...getMockEService(generateId<EServiceId>(), delegatorId),
-        isDelegable: true,
+        isConsumerDelegable: true,
       };
       const existientActiveDelegation = {
         ...getMockDelegation({
@@ -457,7 +457,7 @@ describe.each([
 
     const eservice = {
       ...getMockEService(generateId<EServiceId>(), delegatorId),
-      isDelegable: true,
+      isConsumerDelegable: true,
     };
 
     await addOneTenant(delegator);
@@ -506,7 +506,7 @@ describe.each([
     };
     const eservice = {
       ...getMockEService(generateId<EServiceId>(), delegatorId),
-      isDelegable: true,
+      isConsumerDelegable: true,
     };
 
     await addOneTenant(delegator);
@@ -584,7 +584,7 @@ describe.each([
     const delegate = getMockTenant();
     const eservice = {
       ...getMockEService(generateId<EServiceId>(), delegatorId),
-      isDelegable: true,
+      isConsumerDelegable: true,
     };
 
     await addOneTenant(delegate);
