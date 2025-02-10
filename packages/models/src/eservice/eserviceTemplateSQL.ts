@@ -2,6 +2,7 @@ import { z } from "zod";
 import { AttributeKind } from "../attribute/attribute.js";
 import {
   AttributeId,
+  EServiceDocumentId,
   RiskAnalysisFormId,
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
@@ -41,6 +42,19 @@ export type EServiceTemplateVersionState = z.infer<
   typeof EServiceTemplateVersionState
 >;
 
+// TODO: reuse DocumentKind from eservice.js
+export const eServiceTemplateVersionDocumentKind = {
+  descriptorInterface: "INTERFACE",
+  descriptorDocument: "DOCUMENT",
+} as const;
+export const EServiceTemplateVersionDocumentKind = z.enum([
+  Object.values(eServiceTemplateVersionDocumentKind)[0],
+  ...Object.values(eServiceTemplateVersionDocumentKind).slice(1),
+]);
+export type EServiceTemplateVersionDocumentKind = z.infer<
+  typeof EServiceTemplateVersionDocumentKind
+>;
+
 export const EServiceTemplateVersionSQL = z.object({
   id: EServiceTemplateVersionId,
   eservice_template_id: EServiceTemplateId,
@@ -53,13 +67,29 @@ export const EServiceTemplateVersionSQL = z.object({
   daily_calls_total: z.number().int().optional(),
   agreement_approval_policy: AgreementApprovalPolicy.optional(),
   created_at: z.coerce.date(),
-  server_urls: z.array(z.string()), // CHECK: IT'S NOT IN BUSINESS MODEL?
   published_at: z.coerce.date().optional().nullable(),
   suspended_at: z.coerce.date().optional().nullable(),
   deprecated_at: z.coerce.date().optional().nullable(),
 });
 export type EServiceTemplateVersionSQL = z.infer<
   typeof EServiceTemplateVersionSQL
+>;
+
+export const EServiceTemplateVersionDocumentSQL = z.object({
+  id: EServiceDocumentId,
+  eservice_template_id: EServiceTemplateId,
+  metadata_version: z.number(),
+  eservice_template_version_id: EServiceTemplateVersionId,
+  name: z.string(),
+  content_type: z.string(),
+  pretty_name: z.string(),
+  path: z.string(),
+  checksum: z.string(),
+  upload_date: z.coerce.date(),
+  document_kind: EServiceTemplateVersionDocumentKind,
+});
+export type EServiceTemplateVersionDocumentSQL = z.infer<
+  typeof EServiceTemplateVersionDocumentSQL
 >;
 
 export const EServiceTemplateVersionAttributeSQL = z.object({
