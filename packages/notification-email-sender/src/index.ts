@@ -113,12 +113,10 @@ export async function handlePurposeMessage(
       { event_version: 2, type: "NewPurposeVersionWaitingForApproval" },
       async ({ data: { purpose } }) => {
         if (purpose) {
-          await Promise.all([
-            notificationEmailSenderService.sendEstimateAboveTheThresholderNotificationSimpleEmail(
-              purpose,
-              logger
-            ),
-          ]);
+          await notificationEmailSenderService.sendEstimateAboveTheThresholderNotificationSimpleEmail(
+            purpose,
+            logger
+          );
         } else {
           throw missingKafkaMessageDataError("purpose", decodedMessage.type);
         }
@@ -128,12 +126,10 @@ export async function handlePurposeMessage(
       { event_version: 2, type: "PurposeVersionRejected" },
       async ({ data: { purpose } }) => {
         if (purpose) {
-          await Promise.all([
-            notificationEmailSenderService.sendPurposeVersionRejectedEmail(
-              purpose,
-              logger
-            ),
-          ]);
+          await notificationEmailSenderService.sendPurposeVersionRejectedEmail(
+            purpose,
+            logger
+          );
         } else {
           throw missingKafkaMessageDataError("purpose", decodedMessage.type);
         }
@@ -180,12 +176,10 @@ export async function handleAgreementMessage(
       { event_version: 2, type: "AgreementActivated" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await Promise.all([
-            notificationEmailSenderService.sendActivationNotificationSimpleEmail(
-              agreement,
-              logger
-            ),
-          ]);
+          await notificationEmailSenderService.sendActivationNotificationSimpleEmail(
+            agreement,
+            logger
+          );
         } else {
           throw missingKafkaMessageDataError("agreement", decodedMessage.type);
         }
