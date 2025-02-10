@@ -17428,7 +17428,10 @@ components:
           $ref: "#/components/schemas/Document"
         revocationContract:
           $ref: "#/components/schemas/Document"
-        submittedAt:
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
           type: string
           format: date-time
         rejectionReason:
@@ -17443,6 +17446,7 @@ components:
         - delegator
         - state
         - kind
+        - createdAt
     CompactDelegation:
       type: object
       additionalProperties: false
