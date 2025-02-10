@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EService,
+  generateId,
   Purpose,
   PurposeId,
   Tenant,
@@ -55,7 +56,7 @@ describe("sendEstimateAboveTheThresholderNotificationEmail", () => {
 
     const purpose: Purpose = {
       ...getMockPurpose(),
-      id: "37317757-0c8d-4e6e-9ac9-7d2db6a9519e" as PurposeId,
+      id: generateId<PurposeId>(),
       eserviceId: eservice.id,
       consumerId: consumer.id,
     };
@@ -68,7 +69,7 @@ describe("sendEstimateAboveTheThresholderNotificationEmail", () => {
 
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const templatePath = `../src/resources/templates/${eventMailTemplateType.aboveTheThreshold}.html`;
+    const templatePath = `../src/resources/templates/${eventMailTemplateType.newPurposeVersionWaitingForApprovalMailTemplate}.html`;
 
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
     const aboveTheThresholdEmailTemplate = htmlTemplateBuffer.toString();
@@ -81,8 +82,8 @@ describe("sendEstimateAboveTheThresholderNotificationEmail", () => {
       subject: `Richiesta di variazione della stima di carico per ${eservice.name}`,
       to: [consumerEmail.address],
       body: templateService.compileHtml(aboveTheThresholdEmailTemplate, {
-        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${purpose.id}`,
-        consumerName: consumer.name,
+        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
+        purposeName: purpose.title,
         eserviceName: eservice.name,
       }),
     };

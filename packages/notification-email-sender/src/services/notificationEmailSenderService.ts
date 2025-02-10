@@ -42,7 +42,8 @@ export const eventMailTemplateType = {
   activation: "activation-mail",
   submission: "submission-mail",
   rejection: "rejection-mail",
-  aboveTheThreshold: " estimate_above_the_threshold",
+  newPurposeVersionWaitingForApprovalMailTemplate:
+    "new-purpose-version-waiting-for-approval-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
@@ -362,7 +363,9 @@ export function notificationEmailSenderServiceBuilder(
       const purpose = fromPurposeV2(purposeV2Msg);
 
       const [htmlTemplate, eservice, consumer] = await Promise.all([
-        retrieveHTMLTemplate(eventMailTemplateType.aboveTheThreshold),
+        retrieveHTMLTemplate(
+          eventMailTemplateType.newPurposeVersionWaitingForApprovalMailTemplate
+        ),
         retrieveEService(purpose.eserviceId, readModelService),
         retrieveTenant(purpose.consumerId, readModelService),
       ]);
@@ -384,7 +387,7 @@ export function notificationEmailSenderServiceBuilder(
         subject: `Richiesta di variazione della stima di carico per ${eservice.name}`,
         to: [consumerEmail.address],
         body: templateService.compileHtml(htmlTemplate, {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${purpose.id}`, // don't know the URL
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
           purposeName: purpose.title,
           eserviceName: eservice.name,
         }),
