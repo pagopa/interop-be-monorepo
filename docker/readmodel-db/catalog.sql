@@ -60,7 +60,6 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_rejection_reason (
   descriptor_id UUID NOT NULL REFERENCES readmodel.eservice_descriptor (id) ON DELETE CASCADE,
   rejection_reason VARCHAR NOT NULL,
   rejected_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (descriptor_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_document(
