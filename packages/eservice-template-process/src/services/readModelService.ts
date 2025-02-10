@@ -4,6 +4,8 @@ import {
   TenantCollection,
 } from "pagopa-interop-commons";
 import {
+  Attribute,
+  AttributeId,
   EServiceTemplate,
   EServiceTemplateId,
   Tenant,
@@ -73,6 +75,7 @@ async function getTenant(
 export function readModelServiceBuilder({
   eserviceTemplates,
   tenants,
+  attributes,
 }: ReadModelRepository) {
   return {
     async getEServiceTemplateById(
@@ -99,6 +102,27 @@ export function readModelServiceBuilder({
 
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return getTenant(tenants, { "data.id": id });
+    },
+
+    async getAttributesByIds(
+      attributesIds: AttributeId[]
+    ): Promise<Attribute[]> {
+      const data = await attributes
+        .find({
+          "data.id": { $in: attributesIds },
+        })
+        .toArray();
+
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
     },
   };
 }

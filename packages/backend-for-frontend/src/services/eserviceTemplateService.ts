@@ -124,6 +124,40 @@ export function eserviceTemplateServiceBuilder(
         }
       );
     },
+    updateEServiceTemplateVersionQuotas: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      seed: bffApi.EServiceTemplateVersionQuotasUpdateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Updating EService template ${eServiceTemplateId} version ${eServiceTemplateVersionId} quotas`
+      );
+      await eserviceTemplateClient.updateTemplateVersionQuotas(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+          eServiceTemplateVersionId,
+        },
+      });
+    },
+    updateEServiceTemplateVersionAttributes: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      seed: bffApi.DescriptorAttributesSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Updating EService template ${eServiceTemplateId} version ${eServiceTemplateVersionId} attributes`
+      );
+      await eserviceTemplateClient.updateTemplateVersionAttributes(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+          eServiceTemplateVersionId,
+        },
+      });
+    },
     getEServiceTemplateVersion: async (
       eServiceTemplateId: EServiceTemplateId,
       eServiceTemplateVersionId: EServiceTemplateVersionId,

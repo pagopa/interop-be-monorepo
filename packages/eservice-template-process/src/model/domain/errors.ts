@@ -1,6 +1,7 @@
 import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
+  AttributeId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
@@ -20,6 +21,11 @@ export const errorCodes = {
   tenantKindNotFound: "0009",
   eserviceTemplateNotInDraftState: "0010",
   eserviceTemplateNotInReceiveMode: "0011",
+  inconsistentDailyCalls: "0012",
+  inconsistentAttributesSeedGroupsCount: "0013",
+  versionAttributeGroupSupersetMissingInAttributesSeed: "0014",
+  unchangedAttributes: "0015",
+  attributeNotFound: "0016",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -75,6 +81,57 @@ export function eserviceTemplateWithoutPublishedVersion(
     detail: `EService Template ${eserviceTemplateId} does not have a published version`,
     code: "eserviceTemplateWithoutPublishedVersion",
     title: "EService template without published version",
+  });
+}
+
+export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
+    code: "inconsistentDailyCalls",
+    title: "Inconsistent daily calls",
+  });
+}
+
+export function inconsistentAttributesSeedGroupsCount(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attributes seed contains a different number of groups than the descriptor for EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`,
+    code: "inconsistentAttributesSeedGroupsCount",
+    title: "Inconsistent attributes seed groups count",
+  });
+}
+
+export function versionAttributeGroupSupersetMissingInAttributesSeed(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing required attribute group superset in attributes seed for EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`,
+    code: "versionAttributeGroupSupersetMissingInAttributesSeed",
+    title: "Descriptor attribute group superset missing in attributes seed",
+  });
+}
+
+export function unchangedAttributes(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No new attributes detected in attribute seed for EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`,
+    code: "unchangedAttributes",
+    title: "Unchanged attributes",
+  });
+}
+
+export function attributeNotFound(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
+    title: "Attribute not found",
   });
 }
 
