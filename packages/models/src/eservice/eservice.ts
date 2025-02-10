@@ -109,7 +109,7 @@ export type DescriptorRejectionReason = z.infer<
 >;
 
 export const DescriptorRejectionReasonSQL = z.object({
-  id: z.string().uuid(), // TODO. this dons own id?
+  id: z.string().uuid(), // TODO.  Does this have its own id?
   eservice_id: EServiceId,
   metadata_version: z.number(),
   descriptor_id: DescriptorId,
