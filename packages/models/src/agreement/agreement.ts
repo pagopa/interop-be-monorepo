@@ -101,7 +101,7 @@ export const AgreementStamps = z.object({
 });
 export type AgreementStamps = z.infer<typeof AgreementStamps>;
 
-export const AgreementStampsSQL = z.object({
+export const AgreementStampSQL = z.object({
   agreement_id: AgreementId,
   metadata_version: z.number(),
   who: UserId,
@@ -109,7 +109,7 @@ export const AgreementStampsSQL = z.object({
   when: z.coerce.date(),
   kind: AgreementStampKind,
 });
-export type AgreementStampsSQL = z.infer<typeof AgreementStampsSQL>;
+export type AgreementStampSQL = z.infer<typeof AgreementStampSQL>;
 
 export const Agreement = z.object({
   id: AgreementId,
