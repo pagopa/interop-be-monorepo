@@ -13,7 +13,7 @@ import {
 export const clientSQLToClient = (
   {
     id,
-    version,
+    metadata_version,
     consumer_id,
     name,
     description,
@@ -51,6 +51,6 @@ export const clientSQLToClient = (
       createdAt: created_at,
       keys,
     },
-    metadata: { version },
+    metadata: { version: metadata_version },
   };
 };
