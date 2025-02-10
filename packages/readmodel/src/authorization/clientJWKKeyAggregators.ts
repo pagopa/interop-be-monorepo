@@ -6,7 +6,7 @@ import {
 
 export const clientJWKKeySQLToClientJWKKey = ({
   client_id,
-  version,
+  metadata_version,
   alg,
   e,
   kid,
@@ -27,7 +27,7 @@ export const clientJWKKeySQLToClientJWKKey = ({
       use,
     },
     metadata: {
-      version,
+      version: metadata_version,
     },
   };
 };
