@@ -39,12 +39,12 @@ import { ReadModelService } from "./readModelService.js";
 
 // Be careful to change this enum, it's used to find the html template files
 export const eventMailTemplateType = {
-  activation: "activation-mail",
-  submission: "submission-mail",
-  rejection: "rejection-mail",
+  agreementActivatedMailTemplate: "agreement-activated-mail",
+  agreementSubmittedMailTemplate: "agreement-submitted-mail",
+  agreementRejectedMailTemplate: "agreement-rejected-mail",
   newPurposeVersionWaitingForApprovalMailTemplate:
     "new-purpose-version-waiting-for-approval-mail",
-  purposeVersionRejected: "purpose-version-rejected-mail",
+  purposeVersionRejectedMailTemplate: "purpose-version-rejected-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
@@ -143,7 +143,7 @@ export function getFormattedAgreementStampDate(
   return dateAtRomeZone(new Date(Number(stampDate)));
 }
 
-async function sendActivationNotificationEmail(
+async function sendAgreementActivatedEmail(
   emailManager: EmailManagerSES,
   readModelService: ReadModelService,
   agreementV2Msg: AgreementV2,
@@ -210,14 +210,16 @@ export function notificationEmailSenderServiceBuilder(
   interopFeBaseUrl?: string
 ) {
   return {
-    sendSubmissionNotificationEmail: async (
+    sendAgreementSubmittedEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ): Promise<void> => {
       const agreement = fromAgreementV2(agreementV2Msg);
 
       const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
-        retrieveHTMLTemplate(eventMailTemplateType.submission),
+        retrieveHTMLTemplate(
+          eventMailTemplateType.agreementSubmittedMailTemplate
+        ),
         retrieveAgreementEservice(agreement, readModelService),
         retrieveTenant(agreement.producerId, readModelService),
         retrieveTenant(agreement.consumerId, readModelService),
@@ -270,7 +272,7 @@ export function notificationEmailSenderServiceBuilder(
         );
       }
     },
-    sendActivationNotificationEmail: async (
+    sendAgreementActivatedEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ) => {
@@ -285,12 +287,12 @@ export function notificationEmailSenderServiceBuilder(
 
       const recepientsEmails = [retrieveTenantMailAddress(consumer).address];
 
-      return sendActivationNotificationEmail(
+      return sendAgreementActivatedEmail(
         sesEmailManager,
         readModelService,
         agreementV2Msg,
         templateService,
-        eventMailTemplateType.activation,
+        eventMailTemplateType.agreementActivatedMailTemplate,
         logger,
         sesSenderData,
         consumer.name,
@@ -299,14 +301,16 @@ export function notificationEmailSenderServiceBuilder(
         interopFeBaseUrl
       );
     },
-    sendRejectNotificationEmail: async (
+    sendAgreementRejectedEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ) => {
       const agreement = fromAgreementV2(agreementV2Msg);
 
       const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
-        retrieveHTMLTemplate(eventMailTemplateType.rejection),
+        retrieveHTMLTemplate(
+          eventMailTemplateType.agreementRejectedMailTemplate
+        ),
         retrieveAgreementEservice(agreement, readModelService),
         retrieveTenant(agreement.producerId, readModelService),
         retrieveTenant(agreement.consumerId, readModelService),
@@ -416,7 +420,9 @@ export function notificationEmailSenderServiceBuilder(
       const purpose = fromPurposeV2(purposeV2Msg);
 
       const [htmlTemplate, consumer] = await Promise.all([
-        retrieveHTMLTemplate(eventMailTemplateType.purposeVersionRejected),
+        retrieveHTMLTemplate(
+          eventMailTemplateType.purposeVersionRejectedMailTemplate
+        ),
         retrieveTenant(purpose.consumerId, readModelService),
       ]);
 

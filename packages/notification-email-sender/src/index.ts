@@ -176,7 +176,7 @@ export async function handleAgreementMessage(
       { event_version: 2, type: "AgreementActivated" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await notificationEmailSenderService.sendActivationNotificationEmail(
+          await notificationEmailSenderService.sendAgreementActivatedEmail(
             agreement,
             logger
           );
@@ -189,7 +189,7 @@ export async function handleAgreementMessage(
       { event_version: 2, type: "AgreementSubmitted" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await notificationEmailSenderService.sendSubmissionNotificationEmail(
+          await notificationEmailSenderService.sendAgreementSubmittedEmail(
             agreement,
             logger
           );
@@ -202,7 +202,7 @@ export async function handleAgreementMessage(
       { event_version: 2, type: "AgreementRejected" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await notificationEmailSenderService.sendRejectNotificationEmail(
+          await notificationEmailSenderService.sendAgreementRejectedEmail(
             agreement,
             logger
           );

@@ -90,7 +90,7 @@ describe("sendActivationNotificationEmail", () => {
 
       const filename = fileURLToPath(import.meta.url);
       const dirname = path.dirname(filename);
-      const templatePath = `../src/resources/templates/${eventMailTemplateType.activation}.html`;
+      const templatePath = `../src/resources/templates/${eventMailTemplateType.agreementActivatedMailTemplate}.html`;
 
       const htmlTemplateBuffer = await fs.readFile(
         `${dirname}/${templatePath}`

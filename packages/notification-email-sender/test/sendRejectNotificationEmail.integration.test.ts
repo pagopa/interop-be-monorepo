@@ -75,14 +75,14 @@ describe("sendAgreementRejectEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await notificationEmailSenderService.sendRejectNotificationEmail(
+    await notificationEmailSenderService.sendAgreementRejectedEmail(
       toAgreementV2(agreement),
       genericLogger
     );
 
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const templatePath = `../src/resources/templates/${eventMailTemplateType.rejection}.html`;
+    const templatePath = `../src/resources/templates/${eventMailTemplateType.agreementRejectedMailTemplate}.html`;
 
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
     const rejectEmailTemplate = htmlTemplateBuffer.toString();
@@ -152,7 +152,7 @@ describe("sendAgreementRejectEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await notificationEmailSenderService.sendSubmissionNotificationEmail(
+    await notificationEmailSenderService.sendAgreementSubmittedEmail(
       toAgreementV2(agreement),
       genericLogger
     );

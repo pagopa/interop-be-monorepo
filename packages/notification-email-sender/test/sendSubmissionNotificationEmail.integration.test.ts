@@ -91,14 +91,14 @@ describe("sendAgreementSubmissionEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await notificationEmailSenderService.sendSubmissionNotificationEmail(
+    await notificationEmailSenderService.sendAgreementSubmittedEmail(
       toAgreementV2(agreement),
       genericLogger
     );
 
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const templatePath = `../src/resources/templates/${eventMailTemplateType.submission}.html`;
+    const templatePath = `../src/resources/templates/${eventMailTemplateType.agreementSubmittedMailTemplate}.html`;
 
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
     const submissionEmailTemplate = htmlTemplateBuffer.toString();
@@ -167,7 +167,7 @@ describe("sendAgreementSubmissionEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await notificationEmailSenderService.sendSubmissionNotificationEmail(
+    await notificationEmailSenderService.sendAgreementSubmittedEmail(
       toAgreementV2(agreement),
       genericLogger
     );
