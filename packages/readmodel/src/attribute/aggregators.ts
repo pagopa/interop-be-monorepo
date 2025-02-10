@@ -21,6 +21,7 @@ export const attributeSQLtoAttribute = ({
       creationTime: creation_time,
       origin,
       code,
-    }, metadata: { version: metadata_version }
+    },
+    metadata: { version: metadata_version },
   };
 };
