@@ -472,6 +472,14 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Updating e-service template version quotas of EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
       );
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
 
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
