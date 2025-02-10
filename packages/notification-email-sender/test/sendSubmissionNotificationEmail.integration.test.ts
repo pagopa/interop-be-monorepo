@@ -91,7 +91,7 @@ describe("sendAgreementSubmissionEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await notificationEmailSenderService.sendSubmissionNotificationSimpleEmail(
+    await notificationEmailSenderService.sendSubmissionNotificationEmail(
       toAgreementV2(agreement),
       genericLogger
     );
@@ -167,7 +167,7 @@ describe("sendAgreementSubmissionEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await notificationEmailSenderService.sendSubmissionNotificationSimpleEmail(
+    await notificationEmailSenderService.sendSubmissionNotificationEmail(
       toAgreementV2(agreement),
       genericLogger
     );

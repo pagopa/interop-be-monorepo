@@ -75,7 +75,7 @@ describe("sendAgreementRejectEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await notificationEmailSenderService.sendRejectNotificationSimpleEmail(
+    await notificationEmailSenderService.sendRejectNotificationEmail(
       toAgreementV2(agreement),
       genericLogger
     );
@@ -152,7 +152,7 @@ describe("sendAgreementRejectEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await notificationEmailSenderService.sendSubmissionNotificationSimpleEmail(
+    await notificationEmailSenderService.sendSubmissionNotificationEmail(
       toAgreementV2(agreement),
       genericLogger
     );
