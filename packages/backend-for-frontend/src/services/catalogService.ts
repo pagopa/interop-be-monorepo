@@ -1234,6 +1234,7 @@ export function catalogServiceBuilder(
         map.set(entry.entryName.replace(rootFolderName + "/", ""), entry);
         return map;
       }, new Map<string, AdmZip.IZipEntry>());
+      entriesMap.delete("");
 
       const configurationEntry = entriesMap.get("configuration.json");
       if (!configurationEntry) {
@@ -1273,7 +1274,7 @@ export function catalogServiceBuilder(
         (path: string | undefined): path is string => path !== undefined
       );
 
-      const filePaths = Array.from(entriesMap.keys()).filter((k) => k !== "");
+      const filePaths = Array.from(entriesMap.keys());
 
       const difference = filePaths.filter(
         (item) => !allowedFiles.includes(item)
