@@ -43,6 +43,7 @@ export const eventMailTemplateType = {
   submission: "submission-mail",
   rejection: "rejection-mail",
   aboveTheThreshold: " estimate_above_the_threshold",
+  purposeWaitingForApprovalMailTemplate: "purpose-waiting-for-approval-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
@@ -386,6 +387,57 @@ export function notificationEmailSenderServiceBuilder(
         body: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${purpose.id}`, // don't know the URL
           purposeName: purpose.title,
+          eserviceName: eservice.name,
+        }),
+      };
+
+      try {
+        logger.info(
+          `Sending an email requesting a change in the load estimate as it is above the threshold, for purpose ${purpose.id} (SES)`
+        );
+        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        logger.info(
+          `Email sent for requesting  a change in the load estimate as it is above the threshold, for purpose ${purpose.id} (SES)`
+        );
+      } catch (err) {
+        logger.warn(`Error sending email for purpose ${purpose.id}: ${err}`);
+        throw genericInternalError(
+          `Error sending email for purpose ${purpose.id}: ${err}`
+        );
+      }
+    },
+    sendActivationAboveTheThresholderNotificationSimpleEmail: async (
+      purposeV2Msg: PurposeV2,
+      logger: Logger
+    ) => {
+      const purpose = fromPurposeV2(purposeV2Msg);
+
+      const [htmlTemplate, eservice, consumer] = await Promise.all([
+        retrieveHTMLTemplate(
+          eventMailTemplateType.purposeWaitingForApprovalMailTemplate
+        ),
+        retrieveEService(purpose.eserviceId, readModelService),
+        retrieveTenant(purpose.consumerId, readModelService),
+      ]);
+
+      const consumerEmail = getLatestTenantMailOfKind(
+        consumer.mails,
+        tenantMailKind.ContactEmail
+      );
+
+      if (!consumerEmail) {
+        logger.warn(
+          `Consumer email not found for purpose ${purpose.id}, skipping email`
+        );
+        return;
+      }
+
+      const mail = {
+        from: { name: sesSenderData.label, address: sesSenderData.mail },
+        subject: `Richiesta di variazione della stima di carico per ${eservice.name}`,
+        to: [consumerEmail.address],
+        body: templateService.compileHtml(htmlTemplate, {
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
           eserviceName: eservice.name,
         }),
       };
