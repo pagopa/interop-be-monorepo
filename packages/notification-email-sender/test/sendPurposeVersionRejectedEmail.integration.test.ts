@@ -12,9 +12,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EService,
-  generateId,
   Purpose,
-  PurposeId,
   Tenant,
   tenantMailKind,
   toPurposeV2,
@@ -56,7 +54,6 @@ describe("sendPurposeVersionRejectedEmail", () => {
 
     const purpose: Purpose = {
       ...getMockPurpose(),
-      id: generateId<PurposeId>(),
       eserviceId: eservice.id,
       consumerId: consumer.id,
     };

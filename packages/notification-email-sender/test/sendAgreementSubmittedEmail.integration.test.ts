@@ -11,7 +11,6 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
-  AgreementId,
   EService,
   Tenant,
   UserId,
@@ -80,7 +79,6 @@ describe("sendAgreementSubmittedEmail", () => {
 
     const agreement = {
       ...getMockAgreement(),
-      id: "37317757-0c8d-4e6e-9ac9-7d2db6a9519e" as AgreementId,
       stamps: {
         submission: { when: submissionDate, who: generateId<UserId>() },
       },
