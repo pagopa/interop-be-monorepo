@@ -1,3 +1,4 @@
+/* eslint-disable fp/no-delete */
 import { apiGatewayApi } from "pagopa-interop-api-clients";
 import { ReadModelRepository } from "pagopa-interop-commons";
 import {
@@ -5,7 +6,6 @@ import {
   ClientJWKKey,
   ProducerJWKKey,
 } from "pagopa-interop-models";
-import { z } from "zod";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
@@ -24,12 +24,18 @@ export function readModelServiceBuilder(
         ),
       ]);
 
-      const data = keyData?.data ?? producerKeyData?.data;
+      const data: apiGatewayApi.JWK | undefined =
+        keyData?.data ?? producerKeyData?.data;
 
       if (data) {
-        const result = z
-          .union([apiGatewayApi.ClientJWK, apiGatewayApi.ProducerKeychainJWK])
-          .safeParse(data);
+        if ("clientId" in data) {
+          delete data?.clientId;
+        }
+        if ("producerKeychainId" in data) {
+          delete data?.producerKeychainId;
+        }
+
+        const result = apiGatewayApi.JWK.safeParse(data);
 
         if (!result.success) {
           throw genericInternalError(

@@ -1935,9 +1935,7 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: "#/components/schemas/ClientJWK"
-                  - $ref: "#/components/schemas/ProducerKeychainJWK"
+                $ref: "#/components/schemas/JWK"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -2810,26 +2808,6 @@ components:
       required:
         - kty
         - kid
-    ClientJWK: 
-      allOf:
-        - $ref: '#/components/schemas/JWK'
-        - type: object
-          properties:
-            clientId:
-              type: string
-              format: uuid        
-          required:
-            - clientId
-    ProducerKeychainJWK: 
-      allOf:
-        - $ref: '#/components/schemas/JWK'
-        - type: object
-          properties:
-            producerKeychainId:
-              type: string
-              format: uuid        
-          required:
-            - producerKeychainId
     OtherPrimeInfo:
       title: OtherPrimeInfo
       type: object
