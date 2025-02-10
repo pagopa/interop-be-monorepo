@@ -1,7 +1,8 @@
-import { Attribute, AttributeSQL } from "pagopa-interop-models";
+import { Attribute, AttributeSQL, WithMetadata } from "pagopa-interop-models";
 
 export const attributeSQLtoAttribute = ({
   id,
+  metadata_version,
   name,
   kind,
   description,
@@ -9,15 +10,17 @@ export const attributeSQLtoAttribute = ({
   origin,
   code,
   ...rest
-}: AttributeSQL): Attribute => {
+}: AttributeSQL): WithMetadata<Attribute> => {
   void (rest satisfies Record<string, never>);
   return {
-    id,
-    name,
-    kind,
-    description,
-    creationTime: creation_time,
-    origin,
-    code,
+    data: {
+      id,
+      name,
+      kind,
+      description,
+      creationTime: creation_time,
+      origin,
+      code,
+    }, metadata: { version: metadata_version }
   };
 };
