@@ -88,7 +88,11 @@ export async function handleCatalogMessage(
           "EServiceDescriptionUpdated",
           "EServiceNameUpdated",
           "EServiceDescriptorSubmittedByDelegate",
-          "EServiceDescriptorRejectedByDelegator"
+          "EServiceDescriptorRejectedByDelegator",
+          "EServiceIsConsumerDelegableEnabled",
+          "EServiceIsConsumerDelegableDisabled",
+          "EServiceIsClientAccessDelegableEnabled",
+          "EServiceIsClientAccessDelegableDisabled"
         ),
       },
       () => {
@@ -104,7 +108,22 @@ export async function handlePurposeMessage(
   decodedMessage: PurposeEventEnvelopeV2,
   logger: Logger
 ): Promise<void> {
-  match(decodedMessage)
+  await match(decodedMessage)
+    .with(
+      { event_version: 2, type: "NewPurposeVersionWaitingForApproval" },
+      async ({ data: { purpose } }) => {
+        if (purpose) {
+          await Promise.all([
+            notificationEmailSenderService.sendEstimateAboveTheThresholderNotificationSimpleEmail(
+              purpose,
+              logger
+            ),
+          ]);
+        } else {
+          throw missingKafkaMessageDataError("purpose", decodedMessage.type);
+        }
+      }
+    )
     .with(
       {
         type: P.union(
@@ -113,7 +132,6 @@ export async function handlePurposeMessage(
           "PurposeAdded",
           "DraftPurposeUpdated",
           "NewPurposeVersionActivated",
-          "NewPurposeVersionWaitingForApproval",
           "PurposeActivated",
           "PurposeArchived",
           "PurposeVersionOverQuotaUnsuspended",
@@ -125,7 +143,9 @@ export async function handlePurposeMessage(
           "PurposeWaitingForApproval",
           "WaitingForApprovalPurposeVersionDeleted",
           "PurposeVersionActivated",
-          "PurposeCloned"
+          "PurposeCloned",
+          "PurposeDeletedByRevokedDelegation",
+          "PurposeVersionArchivedByRevokedDelegation"
         ),
       },
       () => {
@@ -202,7 +222,9 @@ export async function handleAgreementMessage(
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
-          "AgreementSetMissingCertifiedAttributesByPlatform"
+          "AgreementSetMissingCertifiedAttributesByPlatform",
+          "AgreementDeletedByRevokedDelegation",
+          "AgreementArchivedByRevokedDelegation"
         ),
       },
       () => {

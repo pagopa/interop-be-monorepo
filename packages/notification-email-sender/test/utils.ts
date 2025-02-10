@@ -10,9 +10,11 @@ import {
 import {
   Agreement,
   EService,
+  Purpose,
   Tenant,
   toReadModelAgreement,
   toReadModelEService,
+  toReadModelPurpose,
   toReadModelTenant,
 } from "pagopa-interop-models";
 import { afterEach, inject, vi } from "vitest";
@@ -92,6 +94,13 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(
     toReadModelEService(eservice),
     readModelRepository.eservices
+  );
+};
+
+export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
+  await writeInReadmodel(
+    toReadModelPurpose(purpose),
+    readModelRepository.purposes
   );
 };
 

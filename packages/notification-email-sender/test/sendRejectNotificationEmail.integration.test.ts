@@ -23,7 +23,7 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import axios, { AxiosResponse } from "axios";
 import {
-  agreementEventMailTemplateType,
+  eventMailTemplateType,
   getFormattedAgreementStampDate,
 } from "../src/services/notificationEmailSenderService.js";
 import {
@@ -82,7 +82,7 @@ describe("sendAgreementRejectEmail", () => {
 
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const templatePath = `../src/resources/templates/${agreementEventMailTemplateType.rejection}.html`;
+    const templatePath = `../src/resources/templates/${eventMailTemplateType.rejection}.html`;
 
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
     const rejectEmailTemplate = htmlTemplateBuffer.toString();
