@@ -538,7 +538,7 @@ const agreementRouter = (
       }
     })
 
-    .post(
+    .get(
       "/tenants/:tenantId/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/validate",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
