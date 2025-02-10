@@ -32,6 +32,8 @@ export const agreementStampKind = {
   rejection: "rejection",
   suspensionByProducer: "suspensionByProducer",
   suspensionByConsumer: "suspensionByConsumer",
+  upgrade: "upgrade",
+  archiving: "archiving",
 } as const;
 export const AgreementStampKind = z.enum([
   Object.values(agreementStampKind)[0],
