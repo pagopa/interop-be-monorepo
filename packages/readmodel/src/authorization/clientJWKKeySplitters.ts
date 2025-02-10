@@ -7,7 +7,7 @@ export const splitClientJWKKeyIntoObjectsSQL = (
   void (rest satisfies Record<string, never>);
   return {
     client_id: clientId,
-    version,
+    metadata_version: version,
     alg,
     e,
     kid,
