@@ -742,7 +742,7 @@ const agreementRouter = (
     }
   );
 
-  agreementRouter.post(
+  agreementRouter.get(
     "/tenants/:tenantId/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/validate",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
