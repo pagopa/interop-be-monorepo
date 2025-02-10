@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version (
   daily_calls_total INTEGER,
   agreement_approval_policy VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  server_urls VARCHAR ARRAY NOT NULL,
   published_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
   deprecated_at TIMESTAMP WITH TIME ZONE,

@@ -86,7 +86,7 @@ export const EServiceTemplateVersionDocumentSQL = z.object({
   path: z.string(),
   checksum: z.string(),
   upload_date: z.coerce.date(),
-  document_kind: EServiceTemplateVersionDocumentKind,
+  kind: EServiceTemplateVersionDocumentKind,
 });
 export type EServiceTemplateVersionDocumentSQL = z.infer<
   typeof EServiceTemplateVersionDocumentSQL
@@ -105,6 +105,7 @@ export type EServiceTemplateVersionAttributeSQL = z.infer<
   typeof EServiceTemplateVersionAttributeSQL
 >;
 
+// TODO: PUT in riskAnalysis.ts
 export const EServiceTemplateRiskAnalysisSQL = z.object({
   id: RiskAnalysisId,
   eservice_template_id: EServiceTemplateId,
@@ -118,7 +119,7 @@ export type EServiceTemplateRiskAnalysisSQL = z.infer<
   typeof EServiceTemplateRiskAnalysisSQL
 >;
 
-// TODO AND CHECK remove and import from riskAnalysis
+// TODO AND CHECK remove and import from riskAnalysis.ts
 export const riskAnalysisAnswerKind = {
   single: "SINGLE",
   multi: "MULTI",
@@ -129,6 +130,7 @@ export const RiskAnalysisAnswerKind = z.enum([
 ]);
 export type RiskAnalysisAnswerKind = z.infer<typeof RiskAnalysisAnswerKind>;
 
+// TODO: PUT in riskAnalysis.ts
 export const EServiceTemplateRiskAnalysisAnswerSQL = z.object({
   id: RiskAnalysisSingleAnswerId.or(RiskAnalysisMultiAnswerId),
   eservice_template_id: EServiceTemplateId,
@@ -153,7 +155,5 @@ export const EServiceTemplateSQL = z.object({
   created_at: z.coerce.date(),
   mode: EServiceMode,
   is_signal_hub_enabled: z.boolean().optional(),
-  is_consumer_delegable: z.boolean().optional(),
-  is_client_access_delegable: z.boolean().optional(),
 });
 export type EServiceTemplateSQL = z.infer<typeof EServiceTemplateSQL>;
