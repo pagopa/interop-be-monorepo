@@ -398,30 +398,22 @@ export function delegationServiceBuilder(
       });
     },
     async getConsumerDelegators(
-      {
-        q,
-        eserviceIds,
-        offset,
-        limit,
-      }: {
-        q?: string;
-        eserviceIds: string[];
-        offset: number;
-        limit: number;
-      },
+      filters: bffApi.BffGetConsumerDelegatorsQueryParam,
       { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.DelegationTenants> {
       logger.info(
-        `Retrieving consumer delegators of requester ${authData.organizationId} with name ${q}, eserviceIds ${eserviceIds}, limit ${limit}, offset ${offset}`
+        `Retrieving consumer delegators of requester ${
+          authData.organizationId
+        } with filters ${JSON.stringify(filters)}`
       );
 
       const delegatorsData =
         await delegationClients.consumer.getConsumerDelegators({
           queries: {
-            delegatorName: q,
-            eserviceIds,
-            offset,
-            limit,
+            delegatorName: filters.q,
+            eserviceIds: filters.eserviceIds,
+            offset: filters.offset,
+            limit: filters.limit,
           },
           headers,
         });
@@ -429,8 +421,8 @@ export function delegationServiceBuilder(
       return {
         results: delegatorsData.results,
         pagination: {
-          offset,
-          limit,
+          offset: filters.offset,
+          limit: filters.limit,
           totalCount: delegatorsData.totalCount,
         },
       };
@@ -471,30 +463,22 @@ export function delegationServiceBuilder(
       };
     },
     async getConsumerDelegatedEservices(
-      {
-        delegatorId,
-        q,
-        offset,
-        limit,
-      }: {
-        delegatorId: string;
-        q?: string;
-        offset: number;
-        limit: number;
-      },
+      filters: bffApi.BffgetConsumerDelegatedEservicesQueryParam,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactEServices> {
       logger.info(
-        `Retrieving consumer delegated eservices of delegator ${delegatorId} with name ${q}, limit ${limit}, offset ${offset}`
+        `Retrieving consumer delegated eservices with filters ${JSON.stringify(
+          filters
+        )}`
       );
 
       const eservicesData =
         await delegationClients.consumer.getConsumerEservices({
           queries: {
-            delegatorId,
-            eserviceName: q,
-            offset,
-            limit,
+            delegatorId: filters.delegatorId,
+            eserviceName: filters.q,
+            offset: filters.offset,
+            limit: filters.limit,
           },
           headers,
         });
@@ -523,8 +507,8 @@ export function delegationServiceBuilder(
       return {
         results: eservicesWithProducerData,
         pagination: {
-          offset,
-          limit,
+          offset: filters.offset,
+          limit: filters.limit,
           totalCount: eservicesData.totalCount,
         },
       };

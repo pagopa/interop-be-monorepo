@@ -27,9 +27,8 @@ export const errorCodes = {
   incorrectState: "0011",
   differentEserviceProducer: "0012",
   delegationContractNotFound: "0013",
-  requesterIsNotConsumerDelegate: "0014",
-  eserviceNotConsumerDelegable: "0015",
-  delegationRelatedAgreementExists: "0016",
+  eserviceNotConsumerDelegable: "0014",
+  delegationRelatedAgreementExists: "0015",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -175,19 +174,6 @@ export function delegationStampNotFound(
     detail: `Delegation ${stamp} stamp not found`,
     code: "stampNotFound",
     title: "Stamp not found",
-  });
-}
-
-export function requesterIsNotConsumerDelegate(
-  requesterId: TenantId,
-  delegatorId?: TenantId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Requester ${requesterId} is not a Consumer delegate${
-      delegatorId ? ` for delegator ${delegatorId}` : ""
-    }`,
-    code: "requesterIsNotConsumerDelegate",
-    title: "Requester is not a delegate",
   });
 }
 
