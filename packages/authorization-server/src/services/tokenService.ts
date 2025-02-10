@@ -112,7 +112,8 @@ export function tokenServiceBuilder({
         verifyClientAssertion(
           request.client_assertion,
           request.client_id,
-          config.clientAssertionAudience
+          config.clientAssertionAudience,
+          logger
         );
 
       if (clientAssertionErrors) {
