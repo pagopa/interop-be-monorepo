@@ -59,6 +59,22 @@ export function eserviceTemplateServiceBuilder(
         },
       });
     },
+    deleteEServiceTemplateVersion: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Deleting version ${eServiceTemplateVersionId} of EService template ${eServiceTemplateId}`
+      );
+      await eserviceTemplateClient.deleteDraftTemplateVersion(undefined, {
+        headers,
+        params: {
+          eServiceTemplateId,
+          eServiceTemplateVersionId,
+        },
+      });
+    },
     updateEServiceTemplateName: async (
       eServiceTemplateId: EServiceTemplateId,
       seed: bffApi.EServiceTemplateNameUpdateSeed,

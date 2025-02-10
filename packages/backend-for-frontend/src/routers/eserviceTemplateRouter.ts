@@ -85,6 +85,31 @@ const eserviceTemplateRouter = (
         }
       }
     )
+    .delete(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
+
+        try {
+          await eserviceTemplateService.deleteEServiceTemplateEServiceRiskAnalysis(
+            unsafeBrandId(eServiceTemplateId),
+            unsafeBrandId(eServiceTemplateVersionId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error deleting eservice template ${eServiceTemplateId} version ${eServiceTemplateVersionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/eservices/templates/:eServiceTemplateId/name/update",
       async (req, res) => {
