@@ -88,7 +88,11 @@ export async function handleCatalogMessage(
           "EServiceDescriptionUpdated",
           "EServiceNameUpdated",
           "EServiceDescriptorSubmittedByDelegate",
-          "EServiceDescriptorRejectedByDelegator"
+          "EServiceDescriptorRejectedByDelegator",
+          "EServiceIsConsumerDelegableEnabled",
+          "EServiceIsConsumerDelegableDisabled",
+          "EServiceIsClientAccessDelegableEnabled",
+          "EServiceIsClientAccessDelegableDisabled"
         ),
       },
       () => {
@@ -139,7 +143,9 @@ export async function handlePurposeMessage(
           "PurposeWaitingForApproval",
           "WaitingForApprovalPurposeVersionDeleted",
           "PurposeVersionActivated",
-          "PurposeCloned"
+          "PurposeCloned",
+          "PurposeDeletedByRevokedDelegation",
+          "PurposeVersionArchivedByRevokedDelegation"
         ),
       },
       () => {
@@ -216,7 +222,9 @@ export async function handleAgreementMessage(
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
-          "AgreementSetMissingCertifiedAttributesByPlatform"
+          "AgreementSetMissingCertifiedAttributesByPlatform",
+          "AgreementDeletedByRevokedDelegation",
+          "AgreementArchivedByRevokedDelegation"
         ),
       },
       () => {
