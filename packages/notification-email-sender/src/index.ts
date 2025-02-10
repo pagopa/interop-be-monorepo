@@ -113,7 +113,7 @@ export async function handlePurposeMessage(
       { event_version: 2, type: "NewPurposeVersionWaitingForApproval" },
       async ({ data: { purpose } }) => {
         if (purpose) {
-          await notificationEmailSenderService.sendEstimateAboveTheThresholderNotificationSimpleEmail(
+          await notificationEmailSenderService.sendEstimateAboveTheThresholderNotificationEmail(
             purpose,
             logger
           );
@@ -176,7 +176,7 @@ export async function handleAgreementMessage(
       { event_version: 2, type: "AgreementActivated" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await notificationEmailSenderService.sendActivationNotificationSimpleEmail(
+          await notificationEmailSenderService.sendActivationNotificationEmail(
             agreement,
             logger
           );
@@ -189,7 +189,7 @@ export async function handleAgreementMessage(
       { event_version: 2, type: "AgreementSubmitted" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await notificationEmailSenderService.sendSubmissionNotificationSimpleEmail(
+          await notificationEmailSenderService.sendSubmissionNotificationEmail(
             agreement,
             logger
           );
@@ -202,7 +202,7 @@ export async function handleAgreementMessage(
       { event_version: 2, type: "AgreementRejected" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await notificationEmailSenderService.sendRejectNotificationSimpleEmail(
+          await notificationEmailSenderService.sendRejectNotificationEmail(
             agreement,
             logger
           );

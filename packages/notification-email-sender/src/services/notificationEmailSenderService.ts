@@ -210,7 +210,7 @@ export function notificationEmailSenderServiceBuilder(
   interopFeBaseUrl?: string
 ) {
   return {
-    sendSubmissionNotificationSimpleEmail: async (
+    sendSubmissionNotificationEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ): Promise<void> => {
@@ -270,7 +270,7 @@ export function notificationEmailSenderServiceBuilder(
         );
       }
     },
-    sendActivationNotificationSimpleEmail: async (
+    sendActivationNotificationEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ) => {
@@ -299,7 +299,7 @@ export function notificationEmailSenderServiceBuilder(
         interopFeBaseUrl
       );
     },
-    sendRejectNotificationSimpleEmail: async (
+    sendRejectNotificationEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ) => {
@@ -357,7 +357,7 @@ export function notificationEmailSenderServiceBuilder(
         );
       }
     },
-    sendEstimateAboveTheThresholderNotificationSimpleEmail: async (
+    sendEstimateAboveTheThresholderNotificationEmail: async (
       purposeV2Msg: PurposeV2,
       logger: Logger
     ) => {
