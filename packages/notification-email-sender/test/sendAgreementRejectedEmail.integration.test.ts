@@ -122,7 +122,7 @@ describe("sendAgreementRejectedEmail", () => {
     });
   });
 
-  it("should should not send email if the producer has no mail", async () => {
+  it("should not send email if the producer has no mail", async () => {
     vi.spyOn(sesEmailManager, "send");
     const consumer: Tenant = { ...getMockTenant(), name: "Jane Doe" };
     const producer: Tenant = {
@@ -142,7 +142,7 @@ describe("sendAgreementRejectedEmail", () => {
     await addOneEService(eservice);
     const agreement: Agreement = {
       ...getMockAgreement(),
-      stamps: { submission: { when: new Date(), who: generateId<UserId>() } },
+      stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
       producerId: producer.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
