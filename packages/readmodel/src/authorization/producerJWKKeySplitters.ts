@@ -7,7 +7,7 @@ export const splitProducerJWKKeyIntoObjectsSQL = (
   void (rest satisfies Record<string, never>);
   return {
     producer_keychain_id: producerKeychainId,
-    version,
+    metadata_version: version,
     alg,
     e,
     kid,
