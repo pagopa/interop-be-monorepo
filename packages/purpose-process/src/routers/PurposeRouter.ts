@@ -303,14 +303,14 @@ const purposeRouter = (
       }
     )
     .delete(
-      "/internal/delegationRevoked/purposes/:id",
+      "/internal/delegations/:delegationId/purposes/:id",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
           await purposeService.internalDeletePurposeAfterDelegationRevocation(
             unsafeBrandId(req.params.id),
-            unsafeBrandId(req.query.delegationId),
+            unsafeBrandId(req.params.delegationId),
             ctx.correlationId,
             ctx.logger
           );
@@ -562,7 +562,7 @@ const purposeRouter = (
       }
     )
     .post(
-      "/internal/delegationRevoked/purposes/:purposeId/versions/:versionId/archive",
+      "/internal/delegations/:delegationId/purposes/:purposeId/versions/:versionId/archive",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -571,7 +571,7 @@ const purposeRouter = (
             {
               purposeId: unsafeBrandId(req.params.purposeId),
               versionId: unsafeBrandId(req.params.versionId),
-              delegationId: unsafeBrandId(req.query.delegationId),
+              delegationId: unsafeBrandId(req.params.delegationId),
             },
             ctx.correlationId,
             ctx.logger

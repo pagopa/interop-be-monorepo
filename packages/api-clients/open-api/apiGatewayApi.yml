@@ -2619,7 +2619,7 @@ components:
             type: string
         isSignalHubEnabled:
           type: boolean
-        isDelegable:
+        isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
           type: boolean

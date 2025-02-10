@@ -1,16 +1,26 @@
 import * as bffApi from "./generated/bffApi.js";
 import { QueryParametersByAlias } from "./utils.js";
 
-type BffApi = typeof bffApi.eservicesApi.api;
+type BffEservicesApi = typeof bffApi.eservicesApi.api;
+type BffConsumerDelegationApi = typeof bffApi.consumerDelegationsApi.api;
 
 export type BffGetCatalogQueryParam = QueryParametersByAlias<
-  BffApi,
+  BffEservicesApi,
   "getEServicesCatalog"
 >;
 
 export type BffGetProducersEservicesQueryParam = QueryParametersByAlias<
-  BffApi,
+  BffEservicesApi,
   "getProducerEServices"
 >;
 
+export type BffGetConsumerDelegatorsQueryParam = QueryParametersByAlias<
+  BffConsumerDelegationApi,
+  "getConsumerDelegators"
+>;
+
+export type BffgetConsumerDelegatedEservicesQueryParam = QueryParametersByAlias<
+  BffConsumerDelegationApi,
+  "getConsumerDelegatedEservices"
+>;
 export * from "./generated/bffApi.js";

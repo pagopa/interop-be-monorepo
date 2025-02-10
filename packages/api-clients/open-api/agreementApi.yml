@@ -632,7 +632,7 @@ paths:
     delete:
       tags:
         - agreement
-      summary: Delete an agreement. This operation is valid only for agreements in DRAFT or MISSING_CERTIFIED_ATTRIBUTES
+      summary: Delete an agreement
       operationId: deleteAgreement
       responses:
         "204":
@@ -890,38 +890,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  "/agreements/verify":
+  "/tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes/validate":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-    post:
+    get:
       tags:
         - agreement
       summary: Verify a Tenant has required certified attributes
       description: Verify a Tenant has required certified attributes
       operationId: verifyTenantCertifiedAttributes
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - tenantId
-                - descriptorId
-                - eserviceId
-              properties:
-                tenantId:
-                  type: string
-                  format: uuid
-                  description: The Tenant id
-                eserviceId:
-                  type: string
-                  format: uuid
-                  description: The E-Service id
-                descriptorId:
-                  type: string
-                  format: uuid
-                  description: The E-Service descriptor id
+      parameters:
+        - name: tenantId
+          in: path
+          description: The identifier of the tenant
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: eserviceId
+          in: path
+          description: The identifier of the e-service
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId 
+          in: path
+          description: The identifier of the e-service descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Tenant has required certified attributes
@@ -947,27 +946,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  "/internal/delegationRevoked/agreements/{agreementId}":
+  "/internal/delegations/{delegationId}/agreements/{agreementId}":
     parameters:
-    - $ref: "#/components/parameters/CorrelationIdHeader"
-    - name: agreementId
-      in: path
-      description: The identifier of the agreement
-      required: true
-      schema:
-        type: string
-        format: uuid
-    - name: delegationId
-      in: query
-      description: The identifier of the delegation
-      required: true
-      schema:
-        type: string
-        format: uuid
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: agreementId
+        in: path
+        description: The identifier of the agreement
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: delegationId
+        in: path
+        description: The identifier of the delegation
+        required: true
+        schema:
+          type: string
+          format: uuid
     delete:
       tags:
         - agreement
-      summary: Delete an agreement. This operation is valid only for agreements in DRAFT or MISSING_CERTIFIED_ATTRIBUTES
+      summary: Delete an agreement
       operationId: internalDeleteAgreementAfterDelegationRevocation
       responses:
         "204":
@@ -990,23 +989,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  "/internal/delegationRevoked/agreements/{agreementId}/archive":
+  "/internal/delegations/{delegationId}/agreements/{agreementId}/archive":
     parameters:
-    - $ref: "#/components/parameters/CorrelationIdHeader"
-    - name: agreementId
-      in: path
-      description: The identifier of the agreement
-      required: true
-      schema:
-        type: string
-        format: uuid
-    - name: delegationId
-      in: query
-      description: The identifier of the delegation
-      required: true
-      schema:
-        type: string
-        format: uuid
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: agreementId
+        in: path
+        description: The identifier of the agreement
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: delegationId
+        in: path
+        description: The identifier of the delegation
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       tags:
         - agreement

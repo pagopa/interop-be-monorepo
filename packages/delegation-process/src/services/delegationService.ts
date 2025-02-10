@@ -35,7 +35,6 @@ import {
   eserviceNotFound,
   tenantNotFound,
   delegationContractNotFound,
-  requesterIsNotConsumerDelegate,
 } from "../model/domain/errors.js";
 import {
   toCreateEventConsumerDelegationApproved,
@@ -610,15 +609,6 @@ export function delegationServiceBuilder(
         )}`
       );
 
-      const delegation = await readModelService.findDelegations({
-        delegateId: filters.requesterId,
-        delegationKind: delegationKind.delegatedConsumer,
-        states: [delegationState.active],
-      });
-      if (!delegation || delegation.length === 0) {
-        throw requesterIsNotConsumerDelegate(filters.requesterId);
-      }
-
       return await readModelService.getConsumerDelegators(filters);
     },
     async getConsumerDelegatorsWithAgreements(
@@ -654,19 +644,6 @@ export function delegationServiceBuilder(
           filters
         )}`
       );
-
-      const delegation = await readModelService.findDelegations({
-        delegatorId: filters.delegatorId,
-        delegateId: filters.requesterId,
-        delegationKind: delegationKind.delegatedConsumer,
-        states: [delegationState.active],
-      });
-      if (!delegation || delegation.length === 0) {
-        throw requesterIsNotConsumerDelegate(
-          filters.requesterId,
-          filters.delegatorId
-        );
-      }
 
       return await readModelService.getConsumerEservices(filters);
     },
