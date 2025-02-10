@@ -47,8 +47,7 @@ export const processPurposes = async ({
         return purposeProcessClient.internalDeletePurposeAfterDelegationRevocation(
           undefined,
           {
-            params: { id: p.id },
-            queries: { delegationId },
+            params: { id: p.id, delegationId },
             headers,
           }
         );
@@ -77,14 +76,12 @@ export const processPurposes = async ({
             params: {
               purposeId: p.id,
               versionId: activeOrSuspendedVersion.id,
+              delegationId,
             },
-            queries: { delegationId },
             headers,
           }
         );
       }
-
-      return Promise.resolve();
     })
   );
 };
@@ -100,59 +97,57 @@ export const processAgreement = async ({
   headers: InteropHeaders;
   delegation: DelegationV2;
 }): Promise<void> => {
-  const agreement = await readModelService.getAgreement(delegation);
+  const agreements = await readModelService.getAgreements(delegation);
 
-  if (!agreement) {
-    return Promise.resolve();
-  }
+  await Promise.all(
+    agreements.map(async (a) => {
+      const isDeletable = match(a.state)
+        .with(
+          agreementState.draft,
+          agreementState.missingCertifiedAttributes,
+          agreementState.pending,
+          () => true
+        )
+        .with(
+          agreementState.rejected,
+          agreementState.archived,
+          agreementState.suspended,
+          agreementState.active,
+          () => false
+        )
+        .exhaustive();
 
-  const isDeletable = match(agreement.state)
-    .with(
-      agreementState.draft,
-      agreementState.missingCertifiedAttributes,
-      agreementState.pending,
-      () => true
-    )
-    .with(
-      agreementState.rejected,
-      agreementState.archived,
-      agreementState.suspended,
-      agreementState.active,
-      () => false
-    )
-    .exhaustive();
-
-  if (isDeletable) {
-    await agreementProcessClient.internalDeleteAgreementAfterDelegationRevocation(
-      undefined,
-      {
-        params: { agreementId: agreement.id },
-        queries: { delegationId: delegation.id },
-        headers,
+      if (isDeletable) {
+        await agreementProcessClient.internalDeleteAgreementAfterDelegationRevocation(
+          undefined,
+          {
+            params: { agreementId: a.id, delegationId: delegation.id },
+            headers,
+          }
+        );
       }
-    );
-  }
 
-  const activeOrSuspendedAgreement = match(agreement.state)
-    .with(agreementState.active, agreementState.suspended, () => true)
-    .with(
-      agreementState.draft,
-      agreementState.archived,
-      agreementState.rejected,
-      agreementState.missingCertifiedAttributes,
-      agreementState.pending,
-      () => false
-    )
-    .exhaustive();
+      const activeOrSuspendedAgreement = match(a.state)
+        .with(agreementState.active, agreementState.suspended, () => true)
+        .with(
+          agreementState.draft,
+          agreementState.archived,
+          agreementState.rejected,
+          agreementState.missingCertifiedAttributes,
+          agreementState.pending,
+          () => false
+        )
+        .exhaustive();
 
-  if (activeOrSuspendedAgreement) {
-    await agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation(
-      undefined,
-      {
-        params: { agreementId: agreement.id },
-        queries: { delegationId: delegation.id },
-        headers,
+      if (activeOrSuspendedAgreement) {
+        await agreementProcessClient.internalArchiveAgreementAfterDelegationRevocation(
+          undefined,
+          {
+            params: { agreementId: a.id, delegationId: delegation.id },
+            headers,
+          }
+        );
       }
-    );
-  }
+    })
+  );
 };
