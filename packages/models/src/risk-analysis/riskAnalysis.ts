@@ -6,6 +6,7 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
 } from "../brandedIds.js";
+import { EServiceTemplateId } from "../eservice/eserviceTemplateSQL.js";
 
 export const RiskAnalysisSingleAnswer = z.object({
   id: RiskAnalysisSingleAnswerId,
@@ -56,6 +57,19 @@ export const EserviceRiskAnalysisSQL = z.object({
 });
 export type EserviceRiskAnalysisSQL = z.infer<typeof EserviceRiskAnalysisSQL>;
 
+export const EServiceTemplateRiskAnalysisSQL = z.object({
+  id: RiskAnalysisId,
+  eservice_template_id: EServiceTemplateId,
+  metadata_version: z.number(),
+  name: z.string().optional(),
+  created_at: z.coerce.date(),
+  risk_analysis_form_id: RiskAnalysisFormId,
+  risk_analysis_form_version: z.string(),
+});
+export type EServiceTemplateRiskAnalysisSQL = z.infer<
+  typeof EServiceTemplateRiskAnalysisSQL
+>;
+
 export const riskAnalysisAnswerKind = {
   single: "SINGLE",
   multi: "MULTI",
@@ -76,3 +90,16 @@ export const RiskAnalysisAnswerSQL = z.object({
   value: z.array(z.string()),
 });
 export type RiskAnalysisAnswerSQL = z.infer<typeof RiskAnalysisAnswerSQL>;
+
+export const EServiceTemplateRiskAnalysisAnswerSQL = z.object({
+  id: RiskAnalysisSingleAnswerId.or(RiskAnalysisMultiAnswerId),
+  eservice_template_id: EServiceTemplateId,
+  metadata_version: z.number(),
+  risk_analysis_form_id: RiskAnalysisFormId,
+  kind: RiskAnalysisAnswerKind,
+  key: z.string(),
+  value: z.array(z.string()),
+});
+export type EServiceTemplateRiskAnalysisAnswerSQL = z.infer<
+  typeof EServiceTemplateRiskAnalysisAnswerSQL
+>;
