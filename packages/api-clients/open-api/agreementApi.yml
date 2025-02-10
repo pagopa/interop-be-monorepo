@@ -893,7 +893,7 @@ paths:
   "/tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes/validate":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-    post:
+    get:
       tags:
         - agreement
       summary: Verify a Tenant has required certified attributes
