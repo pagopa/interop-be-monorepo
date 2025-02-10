@@ -11,7 +11,7 @@ export const toCreateEventAttributeAdded = (
   correlationId: CorrelationId
 ): CreateEvent<AttributeEvent> => ({
   streamId: attribute.id,
-  version: 0,
+  version: undefined,
   event: {
     type: "AttributeAdded",
     event_version: 1,

@@ -1,12 +1,14 @@
 import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
-  AgreementState,
   Attribute,
   AttributeId,
-  EService,
+  CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS,
   ExternalId,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  PUBLIC_SERVICES_MANAGERS,
   Tenant,
   TenantAttribute,
+  TenantFeatureCertifier,
   TenantId,
   TenantKind,
   TenantVerifier,
@@ -15,6 +17,10 @@ import {
   operationForbidden,
   tenantAttributeType,
   tenantKind,
+  SCP,
+  TenantFeature,
+  Agreement,
+  Delegation,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -24,9 +30,13 @@ import {
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
-  verifiedAttributeSelfVerificationNotAllowed,
   attributeNotFound,
+  tenantDoesNotHaveFeature,
+  tenantAlreadyHasFeature,
+  eServiceNotFound,
+  descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 export function assertVerifiedAttributeExistsInTenant(
@@ -40,56 +50,50 @@ export function assertVerifiedAttributeExistsInTenant(
 }
 
 export async function assertVerifiedAttributeOperationAllowed({
-  producerId,
-  consumerId,
+  requesterId,
+  producerDelegation,
   attributeId,
-  agreementStates,
+  agreement,
   readModelService,
   error,
 }: {
-  producerId: TenantId;
-  consumerId: TenantId;
+  requesterId: TenantId;
+  producerDelegation: Delegation | undefined;
   attributeId: AttributeId;
-  agreementStates: AgreementState[];
+  agreement: Agreement;
   readModelService: ReadModelService;
   error: Error;
 }): Promise<void> {
-  if (producerId === consumerId) {
-    throw verifiedAttributeSelfVerificationNotAllowed();
+  if (producerDelegation && producerDelegation.delegateId !== requesterId) {
+    throw error;
   }
-  // Get agreements
-  const agreements = await readModelService.getAgreements({
-    consumerId,
-    producerId,
-    states: agreementStates,
-  });
 
-  // Extract descriptor IDs
-  const descriptorIds = agreements.map((agreement) => agreement.descriptorId);
+  if (!producerDelegation && requesterId !== agreement.producerId) {
+    throw error;
+  }
 
-  // Get eServices concurrently
-  const eServices = (
-    await Promise.all(
-      agreements.map((agreement) =>
-        readModelService.getEServiceById(agreement.eserviceId)
-      )
-    )
-  ).filter((eService): eService is EService => eService !== undefined);
+  const descriptorId = agreement.descriptorId;
 
-  // Find verified attribute IDs
-  const attributeIds = new Set(
-    eServices
-      .flatMap((eService) =>
-        eService.descriptors.filter((descriptor) =>
-          descriptorIds.includes(descriptor.id)
-        )
-      )
-      .flatMap((descriptor) =>
-        descriptor.attributes.verified.flatMap((attribute) =>
-          attribute.map((a) => a.id)
-        )
-      )
+  const eservice = await readModelService.getEServiceById(agreement.eserviceId);
+
+  if (!eservice) {
+    throw eServiceNotFound(agreement.eserviceId);
+  }
+
+  const descriptor = eservice.descriptors.find(
+    (descriptor) => descriptor.id === descriptorId
   );
+
+  if (!descriptor) {
+    throw descriptorNotFoundInEservice(eservice.id, descriptorId);
+  }
+
+  const attributeIds = new Set(
+    descriptor.attributes.verified.flatMap((attribute) =>
+      attribute.map((a) => a.id)
+    )
+  );
+
   // Check if attribute is allowed
   if (!attributeIds.has(attributeId)) {
     throw error;
@@ -118,11 +122,6 @@ export function assertExpirationDateExist(
   }
 }
 
-export const PUBLIC_ADMINISTRATIONS_IDENTIFIER = "IPA";
-const CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS = "SAG";
-const PUBLIC_SERVICES_MANAGERS = "L37";
-export const SCP = "PDND_INFOCAMERE-SCP";
-
 export function getTenantKind(
   attributes: ExternalId[],
   externalId: ExternalId
@@ -150,6 +149,14 @@ export async function assertRequesterAllowed(
   requesterId: string
 ): Promise<void> {
   if (resourceId !== requesterId) {
+    throw operationForbidden;
+  }
+}
+
+export function assertRequesterDelegationsAllowedOrigin(
+  authData: AuthData
+): void {
+  if (!config.delegationsAllowedOrigins.includes(authData.externalId.origin)) {
     throw operationForbidden;
   }
 }
@@ -240,11 +247,36 @@ export function evaluateNewSelfcareId({
 
 export function retrieveCertifierId(tenant: Tenant): string {
   const certifierFeature = tenant.features.find(
-    (f) => f.type === "PersistentCertifier"
+    (f): f is TenantFeatureCertifier => f.type === "PersistentCertifier"
   )?.certifierId;
 
   if (!certifierFeature) {
     throw tenantIsNotACertifier(tenant.id);
   }
   return certifierFeature;
+}
+
+function isFeatureAssigned(
+  tenant: Tenant,
+  featureType: TenantFeature["type"]
+): boolean {
+  return tenant.features.some((f) => f.type === featureType);
+}
+
+export function assertFeatureNotAssigned(
+  tenant: Tenant,
+  featureType: TenantFeature["type"]
+): void {
+  if (isFeatureAssigned(tenant, featureType)) {
+    throw tenantAlreadyHasFeature(tenant.id, featureType);
+  }
+}
+
+export function assertFeatureAssigned(
+  tenant: Tenant,
+  featureType: TenantFeature["type"]
+): void {
+  if (!isFeatureAssigned(tenant, featureType)) {
+    throw tenantDoesNotHaveFeature(tenant.id, featureType);
+  }
 }

@@ -91,6 +91,10 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceCloned" }, // ClonedCatalogItemV1AddedV1
       { type: "DraftEServiceUpdated" }, // CatalogItemV1UpdatedV1
       { type: "EServiceDescriptionUpdated" }, // CatalogItemV1UpdatedV1
+      { type: "EServiceIsConsumerDelegableEnabled" }, // CatalogItemV1UpdatedV1
+      { type: "EServiceIsConsumerDelegableDisabled" }, // CatalogItemV1UpdatedV1
+      { type: "EServiceIsClientAccessDelegableEnabled" }, // CatalogItemV1UpdatedV1
+      { type: "EServiceIsClientAccessDelegableDisabled" }, // CatalogItemV1UpdatedV1
       { type: "EServiceNameUpdated" }, // CatalogItemV1UpdatedV1
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
@@ -109,6 +113,9 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorArchived" }, // CatalogItemDescriptorUpdatedV1
       { type: "EServiceDescriptorPublished" }, // CatalogItemDescriptorUpdatedV1
       { type: "EServiceDescriptorSuspended" }, // CatalogItemDescriptorUpdatedV1
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      { type: "EServiceDescriptorApprovedByDelegator" },
+      { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorQuotasUpdated" },
       { type: "EServiceDescriptorAttributesUpdated" },
       (e): CatalogDescriptorNotification => {

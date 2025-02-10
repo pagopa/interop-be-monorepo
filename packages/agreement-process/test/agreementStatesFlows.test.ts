@@ -29,8 +29,8 @@ import {
   toReadModelEService,
   toReadModelTenant,
 } from "pagopa-interop-models";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+import { addDays, subDays } from "date-fns";
 import {
   addOneAttribute,
   addOneEService,
@@ -38,24 +38,10 @@ import {
   agreementService,
   agreements,
   eservices,
-  selfcareV2ClientMock,
   tenants,
 } from "./utils.js";
 
 describe("Agreeement states flows", () => {
-  const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
-    email: "test@test.com",
-    name: "Test Name",
-    surname: "Test Surname",
-    id: generateId(),
-    taxCode: "TSTTSTTSTTSTTSTT",
-  };
-  beforeEach(async () => {
-    selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-      async () => mockSelfcareUserResponse
-    );
-  });
-
   async function updateAgreementInReadModel(
     agreement: Agreement
   ): Promise<void> {
@@ -147,14 +133,14 @@ describe("Agreeement states flows", () => {
       kind: attributeKind.certified,
       description: "A certified attribute",
       name: "A certified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     });
     await addOneAttribute({
       id: validDeclaredEserviceAttribute.id,
       kind: attributeKind.declared,
       description: "A declared attribute",
       name: "A declared attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     });
 
     /* =================================
@@ -305,11 +291,12 @@ describe("Agreeement states flows", () => {
       verifiedBy: [
         {
           id: producer.id,
-          verificationDate: new Date(new Date().getFullYear() - 1),
-          expirationDate: new Date(new Date().getFullYear() + 1),
+          verificationDate: subDays(new Date(), 1),
+          expirationDate: addDays(new Date(), 30),
           extensionDate: undefined,
         },
       ],
+      revokedBy: [],
     };
 
     const updatedConsumer = {
@@ -337,7 +324,7 @@ describe("Agreeement states flows", () => {
       kind: attributeKind.verified,
       description: "A verified attribute",
       name: "A verified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     });
 
     /* =================================
@@ -425,14 +412,14 @@ describe("Agreeement states flows", () => {
       kind: attributeKind.certified,
       description: "A certified attribute",
       name: "A certified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     });
     await addOneAttribute({
       id: validDeclaredEserviceAttribute.id,
       kind: attributeKind.declared,
       description: "A declared attribute",
       name: "A declared attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     });
 
     /* =================================
@@ -564,11 +551,12 @@ describe("Agreeement states flows", () => {
       verifiedBy: [
         {
           id: producer.id,
-          verificationDate: new Date(new Date().getFullYear() - 1),
-          expirationDate: new Date(new Date().getFullYear() + 1),
+          verificationDate: subDays(new Date(), 1),
+          expirationDate: addDays(new Date(), 30),
           extensionDate: undefined,
         },
       ],
+      revokedBy: [],
     };
 
     const updatedConsumer = {
@@ -596,7 +584,7 @@ describe("Agreeement states flows", () => {
       kind: attributeKind.verified,
       description: "A verified attribute",
       name: "A verified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      creationTime: subDays(new Date(), 1),
     });
 
     /* =================================

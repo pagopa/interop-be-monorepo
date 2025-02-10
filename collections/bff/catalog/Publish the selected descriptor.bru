@@ -11,13 +11,11 @@ post {
 }
 
 params:path {
-  eServiceId: <uuid>
-  descriptorId: <uuid>
+  eServiceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
 }
 
 headers {
   Authorization: {{JWT}}
   x-correlation-id: {{correlation-id}}
 }
-
-

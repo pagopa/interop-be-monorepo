@@ -36,6 +36,7 @@ const catalogRouter = (
     tenantProcessClient,
     agreementProcessClient,
     attributeProcessClient,
+    delegationProcessClient,
   }: PagoPAInteropBeClients,
   fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -48,6 +49,7 @@ const catalogRouter = (
     tenantProcessClient,
     agreementProcessClient,
     attributeProcessClient,
+    delegationProcessClient,
     fileManager,
     config
   );
@@ -77,6 +79,7 @@ const catalogRouter = (
         const response = await catalogService.getProducerEServices(
           req.query.q,
           req.query.consumersIds,
+          req.query.delegated,
           req.query.offset,
           req.query.limit,
           ctx
@@ -604,6 +607,26 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/eservices/:eServiceId/delegationFlags/update", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const id = await catalogService.updateEServiceFlags(
+          ctx,
+          unsafeBrandId(req.params.eServiceId),
+          req.body
+        );
+        return res.status(200).send(bffApi.CreatedResource.parse(id));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error updating delegation flags of eservice with Id: ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/eservices/:eServiceId/name/update", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -764,6 +787,53 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/approve",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.approveDelegatedEServiceDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error approving eService ${req.params.eServiceId} version ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/reject",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.rejectDelegatedEServiceDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error rejecting eService ${req.params.eServiceId} version ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/attributes/update",
       async (req, res) => {
