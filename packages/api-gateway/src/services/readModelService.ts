@@ -5,6 +5,7 @@ import {
   ClientJWKKey,
   ProducerJWKKey,
 } from "pagopa-interop-models";
+import { z } from "zod";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
@@ -23,11 +24,12 @@ export function readModelServiceBuilder(
         ),
       ]);
 
-      const data: apiGatewayApi.JWK | undefined =
-        keyData?.data ?? producerKeyData?.data;
+      const data = keyData?.data ?? producerKeyData?.data;
 
       if (data) {
-        const result = apiGatewayApi.JWK.safeParse(data);
+        const result = z
+          .union([apiGatewayApi.ClientJWK, apiGatewayApi.ProducerKeychainJWK])
+          .safeParse(data);
 
         if (!result.success) {
           throw genericInternalError(
