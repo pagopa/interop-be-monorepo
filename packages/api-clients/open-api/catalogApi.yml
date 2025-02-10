@@ -2101,7 +2101,7 @@ components:
         templateId:
           type: string
           format: uuid
-        istanceId:
+        instanceId:
           type: string
         interfaceInfo:
           $ref: "#/components/schemas/EServiceTemplateInterfaceInfo"
