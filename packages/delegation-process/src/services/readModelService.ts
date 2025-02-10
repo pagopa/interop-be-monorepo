@@ -355,26 +355,42 @@ export function readModelServiceBuilder(
         {
           $lookup: {
             from: "agreements",
-            let: {
-              producerId: "$eservice.data.producerId",
-              consumerId: "$data.delegatorId",
-              eserviceId: "$eservice.data.id",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $and: [
-                      { $eq: ["$data.producerId", "$$producerId"] },
-                      { $eq: ["$data.consumerId", "$$consumerId"] },
-                      { $eq: ["$data.eserviceId", "$$eserviceId"] },
-                      { $eq: ["$data.state", agreementState.active] },
-                    ],
-                  },
+            localField: "data.eserviceId",
+            foreignField: "data.eserviceId",
+            as: "agreement",
+          },
+        },
+        {
+          $unwind: "$agreement",
+        },
+        {
+          $addFields: {
+            isValid: {
+              $and: [
+                {
+                  $eq: [
+                    "$agreement.data.producerId",
+                    "$eservice.data.producerId",
+                  ],
                 },
-              },
-            ],
-            as: "activeAgreements",
+                {
+                  $eq: ["$agreement.data.consumerId", "$data.delegatorId"],
+                },
+                {
+                  $eq: ["$agreement.data.state", agreementState.active],
+                },
+              ],
+            },
+          },
+        },
+        {
+          $match: {
+            isValid: true,
+          },
+        },
+        {
+          $project: {
+            isValid: 0,
           },
         },
         {
