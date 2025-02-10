@@ -29,7 +29,7 @@ export const splitProducerKeychainIntoObjectsSQL = (
 
   const producerKeychainSQL: ProducerKeychainSQL = {
     id,
-    version,
+    metadata_version: version,
     producer_id: producerId,
     name,
     created_at: createdAt,
@@ -38,7 +38,7 @@ export const splitProducerKeychainIntoObjectsSQL = (
 
   const producerKeychainUsersSQL: ProducerKeychainUserSQL[] = users.map(
     (userId) => ({
-      producer_keychain_version: version,
+      metadata_version: version,
       producer_keychain_id: id,
       user_id: userId,
     })
@@ -46,13 +46,13 @@ export const splitProducerKeychainIntoObjectsSQL = (
 
   const producerKeychainEServicesSQL: ProducerKeychainEServiceSQL[] =
     eservices.map((eserviceId) => ({
-      producer_keychain_version: version,
+      metadata_version: version,
       producer_keychain_id: id,
       eservice_id: eserviceId,
     }));
 
   const producerKeychainKeysSQL: ProducerKeychainKeySQL[] = keys.map((key) => ({
-    producer_keychain_version: version,
+    metadata_version: version,
     producer_keychain_id: id,
     user_id: key.userId,
     kid: key.kid,
