@@ -140,6 +140,21 @@ export async function handlePurposeMessage(
       }
     )
     .with(
+      { event_version: 2, type: "PurposeVersionRejected" },
+      async ({ data: { purpose } }) => {
+        if (purpose) {
+          await Promise.all([
+            notificationEmailSenderService.sendPurposeVersionRejectedEmail(
+              purpose,
+              logger
+            ),
+          ]);
+        } else {
+          throw missingKafkaMessageDataError("purpose", decodedMessage.type);
+        }
+      }
+    )
+    .with(
       {
         type: P.union(
           "DraftPurposeDeleted",
@@ -150,7 +165,6 @@ export async function handlePurposeMessage(
           "PurposeActivated",
           "PurposeArchived",
           "PurposeVersionOverQuotaUnsuspended",
-          "PurposeVersionRejected",
           "PurposeVersionSuspendedByConsumer",
           "PurposeVersionSuspendedByProducer",
           "PurposeVersionUnsuspendedByConsumer",
