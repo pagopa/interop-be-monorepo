@@ -357,7 +357,7 @@ export function notificationEmailSenderServiceBuilder(
         );
       }
     },
-    sendEstimateAboveTheThresholderNotificationEmail: async (
+    sendNewPurposeVersionWaitingForApprovalEmail: async (
       purposeV2Msg: PurposeV2,
       logger: Logger
     ) => {

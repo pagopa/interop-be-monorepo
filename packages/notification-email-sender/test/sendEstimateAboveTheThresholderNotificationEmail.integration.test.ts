@@ -62,7 +62,7 @@ describe("sendEstimateAboveTheThresholderNotificationEmail", () => {
     };
     await addOnePurpose(purpose);
 
-    await notificationEmailSenderService.sendEstimateAboveTheThresholderNotificationSimpleEmail(
+    await notificationEmailSenderService.sendNewPurposeVersionWaitingForApprovalEmail(
       toPurposeV2(purpose),
       genericLogger
     );

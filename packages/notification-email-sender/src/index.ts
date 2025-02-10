@@ -113,7 +113,7 @@ export async function handlePurposeMessage(
       { event_version: 2, type: "NewPurposeVersionWaitingForApproval" },
       async ({ data: { purpose } }) => {
         if (purpose) {
-          await notificationEmailSenderService.sendEstimateAboveTheThresholderNotificationEmail(
+          await notificationEmailSenderService.sendNewPurposeVersionWaitingForApprovalEmail(
             purpose,
             logger
           );
