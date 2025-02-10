@@ -83,7 +83,7 @@ describe("sendActivationNotificationEmail", () => {
       };
       await addOneAgreement(agreement);
 
-      await notificationEmailSenderService.sendActivationNotificationSimpleEmail(
+      await notificationEmailSenderService.sendAgreementActivatedEmail(
         toAgreementV2(agreement),
         genericLogger
       );
@@ -157,7 +157,7 @@ describe("sendActivationNotificationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        notificationEmailSenderService.sendActivationNotificationSimpleEmail(
+        notificationEmailSenderService.sendAgreementActivatedEmail(
           toAgreementV2(agreement),
           genericLogger
         )
@@ -188,7 +188,7 @@ describe("sendActivationNotificationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        notificationEmailSenderService.sendActivationNotificationSimpleEmail(
+        notificationEmailSenderService.sendAgreementActivatedEmail(
           toAgreementV2(agreement),
           genericLogger
         )
@@ -221,7 +221,7 @@ describe("sendActivationNotificationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        notificationEmailSenderService.sendActivationNotificationSimpleEmail(
+        notificationEmailSenderService.sendAgreementActivatedEmail(
           toAgreementV2(agreement),
           genericLogger
         )
@@ -254,7 +254,7 @@ describe("sendActivationNotificationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        notificationEmailSenderService.sendActivationNotificationSimpleEmail(
+        notificationEmailSenderService.sendAgreementActivatedEmail(
           toAgreementV2(agreement),
           genericLogger
         )
@@ -286,7 +286,7 @@ describe("sendActivationNotificationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        notificationEmailSenderService.sendActivationNotificationSimpleEmail(
+        notificationEmailSenderService.sendAgreementActivatedEmail(
           toAgreementV2(agreement),
           genericLogger
         )
@@ -323,7 +323,7 @@ describe("sendActivationNotificationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        notificationEmailSenderService.sendActivationNotificationSimpleEmail(
+        notificationEmailSenderService.sendAgreementActivatedEmail(
           toAgreementV2(agreement),
           genericLogger
         )
@@ -375,7 +375,7 @@ describe("sendActivationNotificationEmail", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        notificationEmailSenderServiceFailure.sendActivationNotificationSimpleEmail(
+        notificationEmailSenderServiceFailure.sendAgreementActivatedEmail(
           toAgreementV2(agreement),
           genericLogger
         )
