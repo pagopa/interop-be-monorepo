@@ -444,7 +444,7 @@ export function notificationEmailSenderServiceBuilder(
         to: [consumerEmail.address],
         body: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
-          consumerName: consumer.name,
+          purposeName: purpose.title,
         }),
       };
 
