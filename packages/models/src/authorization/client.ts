@@ -28,7 +28,7 @@ export type Client = z.infer<typeof Client>;
 
 export const ClientSQL = z.object({
   id: ClientId,
-  version: z.number(),
+  metadata_version: z.number(),
   consumer_id: TenantId,
   name: z.string(),
   description: z.string().optional(),
@@ -39,7 +39,7 @@ export const ClientSQL = z.object({
 export type ClientSQL = z.infer<typeof ClientSQL>;
 
 export const ClientUserSQL = z.object({
-  client_version: z.number(),
+  metadata_version: z.number(),
   client_id: ClientId,
   user_id: UserId,
 });
@@ -47,7 +47,7 @@ export const ClientUserSQL = z.object({
 export type ClientUserSQL = z.infer<typeof ClientUserSQL>;
 
 export const ClientPurposeSQL = z.object({
-  client_version: z.number(),
+  metadata_version: z.number(),
   client_id: ClientId,
   purpose_id: PurposeId,
 });
@@ -55,7 +55,7 @@ export const ClientPurposeSQL = z.object({
 export type ClientPurposeSQL = z.infer<typeof ClientPurposeSQL>;
 
 export const ClientKeySQL = z.object({
-  client_version: z.number(),
+  metadata_version: z.number(),
   client_id: ClientId,
   user_id: UserId,
   kid: z.string(),
