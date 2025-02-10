@@ -48,7 +48,7 @@ export type ProducerJWKKey = z.infer<typeof ProducerJWKKey>;
 
 export const ProducerJWKKeySQL = z.object({
   producer_keychain_id: ProducerKeychainId,
-  version: z.number(),
+  metadata_version: z.number(),
   alg: z.string(),
   e: z.string(),
   kid: z.string(),

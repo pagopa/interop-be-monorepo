@@ -50,7 +50,7 @@ describe("create consumer delegation", () => {
 
     const eservice = {
       ...getMockEService(generateId<EServiceId>(), delegatorId),
-      isDelegable: false,
+      isConsumerDelegable: false,
     };
 
     await addOneTenant(delegator);
@@ -100,7 +100,7 @@ describe("create consumer delegation", () => {
       };
       const eservice = {
         ...getMockEService(generateId<EServiceId>(), delegatorId),
-        isDelegable: true,
+        isConsumerDelegable: true,
       };
 
       const activeAgreement = getMockAgreement(

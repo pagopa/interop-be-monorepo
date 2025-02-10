@@ -17,44 +17,43 @@ export function readModelServiceBuilder(
   return {
     async getPurposes(delegationId: DelegationId): Promise<Purpose[]> {
       return await purposes
-        .find({
-          "data.delegationId": delegationId,
-          "data.versions.state": {
-            $in: [
-              "Active",
-              "Suspended",
-              "Draft",
-              "WaitingForApproval",
-            ] satisfies PurposeVersionState[],
-          },
-        } satisfies ReadModelFilter<Purpose>)
+        .find(
+          {
+            "data.delegationId": delegationId,
+            "data.versions.state": {
+              $in: [
+                "Active",
+                "Suspended",
+                "Draft",
+                "WaitingForApproval",
+              ] satisfies PurposeVersionState[],
+            },
+          } satisfies ReadModelFilter<Purpose>,
+          { projection: { data: true } }
+        )
         .map(({ data }) => Purpose.parse(data))
         .toArray();
     },
-    async getAgreement(
-      delegation: DelegationV2
-    ): Promise<Agreement | undefined> {
-      const data = await agreements.findOne(
-        {
-          "data.eserviceId": delegation.eserviceId,
-          "data.consumerId": delegation.delegatorId,
-          "data.state": {
-            $in: [
-              "Active",
-              "Suspended",
-              "Draft",
-              "MissingCertifiedAttributes",
-              "Pending",
-            ] satisfies AgreementState[],
-          },
-        } satisfies ReadModelFilter<Agreement>,
-        { projection: { data: true } }
-      );
-
-      if (!data) {
-        return undefined;
-      }
-      return Agreement.parse(data.data);
+    async getAgreements(delegation: DelegationV2): Promise<Agreement[]> {
+      return await agreements
+        .find(
+          {
+            "data.eserviceId": delegation.eserviceId,
+            "data.consumerId": delegation.delegatorId,
+            "data.state": {
+              $in: [
+                "Active",
+                "Suspended",
+                "Draft",
+                "MissingCertifiedAttributes",
+                "Pending",
+              ] satisfies AgreementState[],
+            },
+          } satisfies ReadModelFilter<Agreement>,
+          { projection: { data: true } }
+        )
+        .map(({ data }) => Agreement.parse(data))
+        .toArray();
     },
   };
 }

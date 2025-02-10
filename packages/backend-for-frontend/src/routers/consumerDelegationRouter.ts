@@ -36,7 +36,7 @@ const consumerDelegationRouter = (
   );
 
   consumerDelegationRouter
-    .post("/consumer/delegations", async (req, res) => {
+    .post("/consumers/delegations", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const delegationResource =
@@ -57,7 +57,7 @@ const consumerDelegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/consumer/delegations/:delegationId/approve", async (req, res) => {
+    .post("/consumers/delegations/:delegationId/approve", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         await delegationService.approveConsumerDelegation(
@@ -78,7 +78,7 @@ const consumerDelegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/consumer/delegations/:delegationId/reject", async (req, res) => {
+    .post("/consumers/delegations/:delegationId/reject", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         await delegationService.rejectConsumerDelegation(
@@ -100,7 +100,7 @@ const consumerDelegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .delete("/consumer/delegations/:delegationId", async (req, res) => {
+    .delete("/consumers/delegations/:delegationId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
@@ -122,7 +122,7 @@ const consumerDelegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/consumer/delegations/delegators", async (req, res) => {
+    .get("/consumers/delegations/delegators", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
@@ -144,30 +144,35 @@ const consumerDelegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/consumer/delegations/delegatorsWithAgreements", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
+    .get(
+      "/consumers/delegations/delegatorsWithAgreements",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
 
-      try {
-        const delegators =
-          await delegationService.getConsumerDelegatorsWithAgreements(
-            req.query,
-            ctx
+        try {
+          const delegators =
+            await delegationService.getConsumerDelegatorsWithAgreements(
+              req.query,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(bffApi.DelegationTenants.parse(delegators));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error getting delegators with active agreements`
           );
 
-        return res.status(200).send(bffApi.DelegationTenants.parse(delegators));
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
-          `Error getting delegators with active agreements`
-        );
-
-        return res.status(errorRes.status).send(errorRes);
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    })
-    .get("/consumer/delegations/eservices", async (req, res) => {
+    )
+    .get("/consumers/delegations/eservices", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
