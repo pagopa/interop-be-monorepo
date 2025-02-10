@@ -283,10 +283,10 @@ export function catalogServiceBuilder(
         name,
         mode,
         agreementStates,
-        isDelegable,
+        isConsumerDelegable,
       } = queries;
       logger.info(
-        `Retrieving EServices for name = ${name}, producersIds = ${producersIds}, attributesIds = ${attributesIds}, states = ${states}, agreementStates = ${agreementStates}, isDelegable = ${isDelegable}, mode = ${mode}, offset = ${offset}, limit = ${limit}`
+        `Retrieving EServices for name = ${name}, producersIds = ${producersIds}, attributesIds = ${attributesIds}, states = ${states}, agreementStates = ${agreementStates}, isConsumerDelegable = ${isConsumerDelegable}, mode = ${mode}, offset = ${offset}, limit = ${limit}`
       );
       const requesterId = authData.organizationId;
       const eservicesResponse: catalogApi.EServices =
@@ -415,7 +415,7 @@ export function catalogServiceBuilder(
           toBffCatalogApiEserviceRiskAnalysis
         ),
         isSignalHubEnabled: eservice.isSignalHubEnabled,
-        isDelegable: eservice.isDelegable,
+        isConsumerDelegable: eservice.isConsumerDelegable,
         isClientAccessDelegable: eservice.isClientAccessDelegable,
       };
     },
@@ -1300,7 +1300,7 @@ export function catalogServiceBuilder(
             importedEservice.descriptor.agreementApprovalPolicy,
         },
         isSignalHubEnabled: importedEservice.isSignalHubEnabled,
-        isDelegable: importedEservice.isDelegable,
+        isConsumerDelegable: importedEservice.isConsumerDelegable,
         isClientAccessDelegable: importedEservice.isClientAccessDelegable,
       };
 
