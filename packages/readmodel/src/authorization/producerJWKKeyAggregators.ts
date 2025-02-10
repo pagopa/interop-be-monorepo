@@ -6,7 +6,7 @@ import {
 
 export const producerJWKKeySQLToProducerJWKKey = ({
   producer_keychain_id,
-  version,
+  metadata_version,
   alg,
   e,
   kid,
@@ -26,6 +26,6 @@ export const producerJWKKeySQLToProducerJWKKey = ({
       n,
       use,
     },
-    metadata: { version },
+    metadata: { version: metadata_version },
   };
 };
