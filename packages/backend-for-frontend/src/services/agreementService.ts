@@ -583,13 +583,10 @@ export function agreementServiceBuilder(
       logger.info(
         `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
       );
-      return await agreementProcessClient.verifyTenantCertifiedAttributes(
-        undefined,
-        {
-          params: { tenantId, eserviceId, descriptorId },
-          headers,
-        }
-      );
+      return await agreementProcessClient.verifyTenantCertifiedAttributes({
+        params: { tenantId, eserviceId, descriptorId },
+        headers,
+      });
     },
   };
 }

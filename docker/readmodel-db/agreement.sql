@@ -13,13 +13,13 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement(
   suspended_by_producer boolean,
   suspended_by_platform boolean,
   -- consumerDocuments
-  created_at timestamp with time zone NOT NULL,
-  updated_at timestamp with time zone,
+  created_at timestamp WITH time zone NOT NULL,
+  updated_at timestamp WITH time zone,
   consumer_notes varchar,
   -- contract
   -- stamps
   rejection_reason varchar,
-  suspended_at timestamp with time zone,
+  suspended_at timestamp WITH time zone,
   PRIMARY KEY (id)
 );
 
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement_stamp(
   metadata_version integer NOT NULL,
   who uuid NOT NULL,
   delegation_id uuid,
-  "when" timestamp with time zone NOT NULL,
+  "when" timestamp WITH time zone NOT NULL,
   kind varchar NOT NULL,
   PRIMARY KEY (agreement_id, kind)
 );
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement_stamp(
 CREATE TABLE IF NOT EXISTS readmodel.agreement_attribute(
   agreement_id uuid REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
   metadata_version integer NOT NULL,
-  attribute_id uuid,
+  attribute_id uuid NOT NULL,
   kind varchar NOT NULL,
   PRIMARY KEY (agreement_id, attribute_id)
 );
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement_document(
   pretty_name varchar NOT NULL,
   content_type varchar NOT NULL,
   path varchar NOT NULL,
-  created_at timestamp with time zone NOT NULL,
+  created_at timestamp WITH time zone NOT NULL,
   kind varchar NOT NULL,
   -- consumerDoc / contract
   PRIMARY KEY (id)
