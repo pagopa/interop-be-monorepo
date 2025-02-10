@@ -6,7 +6,8 @@ type NotificationEmailSenderErrorCode =
   | "eServiceNotFound"
   | "tenantNotFound"
   | "tenantDigitalAddressNotFound"
-  | "descriptorNotFound";
+  | "descriptorNotFound"
+  | "eserviceAgreementsNotFound";
 
 export class NotificationEmailSenderError extends InternalError<NotificationEmailSenderErrorCode> {
   constructor({
@@ -45,6 +46,15 @@ export function eServiceNotFound(
   return new InternalError({
     detail: `EService ${eserviceId} not found`,
     code: "eServiceNotFound",
+  });
+}
+
+export function eserviceAgreementsNotFound(
+  eserviceId: EServiceId
+): NotificationEmailSenderError {
+  return new InternalError({
+    detail: `not found agreements for eservice ${eserviceId}`,
+    code: "eserviceAgreementsNotFound",
   });
 }
 

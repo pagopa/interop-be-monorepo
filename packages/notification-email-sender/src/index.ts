@@ -58,11 +58,25 @@ export async function handleCatalogMessage(
   decodedMessage: EServiceEventEnvelopeV2,
   logger: Logger
 ): Promise<void> {
-  match(decodedMessage)
+  await match(decodedMessage)
+    .with(
+      { event_version: 2, type: "EServiceDescriptorPublished" },
+      async ({ data: { eservice } }) => {
+        if (eservice) {
+          await Promise.all([
+            notificationEmailSenderService.sendEserviceDescriptorPublishedSimpleEmail(
+              eservice,
+              logger
+            ),
+          ]);
+        } else {
+          throw missingKafkaMessageDataError("catalog", decodedMessage.type); // maybe eservice instead catalog?
+        }
+      }
+    )
     .with(
       {
         type: P.union(
-          "EServiceDescriptorPublished",
           "EServiceDescriptorActivated",
           "EServiceDescriptorApprovedByDelegator",
           "EServiceDescriptorSuspended",
