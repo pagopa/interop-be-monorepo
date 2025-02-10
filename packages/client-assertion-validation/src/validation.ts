@@ -140,7 +140,11 @@ export const verifyClientAssertion = (
       const payloadStrictParseResult =
         ClientAssertionPayloadStrict.safeParse(decodedPayload);
       if (!payloadStrictParseResult.success) {
-        logger.warn(`Invalid claims in client assertion payload: ${payloadStrictParseResult.error.message}`);
+        logger.warn(
+          `Invalid claims in client assertion payload: ${JSON.stringify(
+            JSON.parse(payloadStrictParseResult.error.message)
+          )}`
+        );
       }
 
       const headerParseResult = ClientAssertionHeader.safeParse(decodedHeader);
