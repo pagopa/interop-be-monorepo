@@ -575,18 +575,18 @@ export function agreementServiceBuilder(
       };
     },
     async verifyTenantCertifiedAttributes(
-      body: bffApi.verifyTenantCertifiedAttributes_Body,
+      tenantId: string,
+      eserviceId: string,
+      descriptorId: string,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.HasCertifiedAttributes> {
       logger.info(
-        `Veryfing tenant ${body.tenantId} has required certified attributes for descriptor ${body.descriptorId} of eservice ${body.eserviceId}`
+        `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
       );
-      return await agreementProcessClient.verifyTenantCertifiedAttributes(
-        body,
-        {
-          headers,
-        }
-      );
+      return await agreementProcessClient.verifyTenantCertifiedAttributes({
+        params: { tenantId, eserviceId, descriptorId },
+        headers,
+      });
     },
   };
 }
