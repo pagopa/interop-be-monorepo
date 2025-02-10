@@ -15,6 +15,7 @@ import {
 } from "pagopa-interop-models";
 import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
+import { EServiceTemplateInstance } from "./models.js";
 
 export function technologyToApiTechnology(
   input: Technology
@@ -195,4 +196,16 @@ export function apiDescriptorStateToDescriptorState(
     .with("ARCHIVED", () => descriptorState.archived)
     .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
     .exhaustive();
+}
+
+export function eserviceTemplateInstancesToApiEServiceTemplateInstances(
+  input: EServiceTemplateInstance
+): eserviceTemplateApi.EServiceTemplateInstance {
+  return {
+    id: input.id,
+    producerName: input.producerName,
+    version: input.version,
+    state: descriptorStateToApiEServiceDescriptorState(input.state),
+    instanceId: input.instanceId,
+  };
 }
