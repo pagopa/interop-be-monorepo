@@ -559,7 +559,7 @@ export const toCreateEventEServiceDescriptorAttributesUpdated = (
   correlationId,
 });
 
-export const toCreateEventEServiceIsDelegableEnabled = (
+export const toCreateEventEServiceIsConsumerDelegableEnabled = (
   version: number,
   eservice: EService,
   correlationId: CorrelationId
@@ -567,7 +567,7 @@ export const toCreateEventEServiceIsDelegableEnabled = (
   streamId: eservice.id,
   version,
   event: {
-    type: "EServiceIsDelegableEnabled",
+    type: "EServiceIsConsumerDelegableEnabled",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),
@@ -576,7 +576,7 @@ export const toCreateEventEServiceIsDelegableEnabled = (
   correlationId,
 });
 
-export const toCreateEventEServiceIsDelegableDisabled = (
+export const toCreateEventEServiceIsConsumerDelegableDisabled = (
   version: number,
   eservice: EService,
   correlationId: CorrelationId
@@ -584,7 +584,7 @@ export const toCreateEventEServiceIsDelegableDisabled = (
   streamId: eservice.id,
   version,
   event: {
-    type: "EServiceIsDelegableDisabled",
+    type: "EServiceIsConsumerDelegableDisabled",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),
