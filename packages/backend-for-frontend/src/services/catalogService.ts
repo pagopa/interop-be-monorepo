@@ -1273,7 +1273,7 @@ export function catalogServiceBuilder(
         (path: string | undefined): path is string => path !== undefined
       );
 
-      const filePaths = Array.from(entriesMap.keys());
+      const filePaths = Array.from(entriesMap.keys()).filter((k) => k !== "");
 
       const difference = filePaths.filter(
         (item) => !allowedFiles.includes(item)
