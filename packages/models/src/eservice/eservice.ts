@@ -96,7 +96,7 @@ export const DocumentSQL = z.object({
   path: z.string(),
   checksum: z.string(),
   upload_date: z.coerce.date(),
-  document_kind: DocumentKind,
+  kind: DocumentKind,
 });
 export type DocumentSQL = z.infer<typeof DocumentSQL>;
 
