@@ -26,6 +26,7 @@ export type Attribute = z.infer<typeof Attribute>;
 
 export const AttributeSQL = z.object({
   id: AttributeId,
+  metadata_version: z.number(),
   code: z.string().optional(),
   kind: AttributeKind,
   description: z.string(),

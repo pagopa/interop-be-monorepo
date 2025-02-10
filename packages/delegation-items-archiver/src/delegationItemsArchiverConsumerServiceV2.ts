@@ -11,33 +11,37 @@ import {
   Logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
+import {
+  AgreementProcessClient,
+  PurposeProcessClient,
+} from "./clients/clientsProvider.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   processAgreement,
   processPurposes,
 } from "./delegationItemsArchiverProcessors.js";
 
-export async function handleMessageV2(
-  {
-    decodedMessage,
-    refreshableToken,
-    partition,
-    offset,
-    correlationId,
-    logger,
-    readModelService,
-  }: {
-    decodedMessage: DelegationEventEnvelopeV2;
-    refreshableToken: RefreshableInteropToken;
-    partition: number;
-    offset: string;
-    correlationId: CorrelationId;
-    logger: Logger;
-    readModelService: ReadModelService;
-  },
-  { agreementProcessClient, purposeProcessClient }: PagoPAInteropBeClients
-): Promise<void> {
+export async function handleMessageV2({
+  decodedMessage,
+  refreshableToken,
+  partition,
+  offset,
+  correlationId,
+  logger,
+  readModelService,
+  agreementProcessClient,
+  purposeProcessClient,
+}: {
+  decodedMessage: DelegationEventEnvelopeV2;
+  refreshableToken: RefreshableInteropToken;
+  partition: number;
+  offset: string;
+  correlationId: CorrelationId;
+  logger: Logger;
+  readModelService: ReadModelService;
+  agreementProcessClient: AgreementProcessClient;
+  purposeProcessClient: PurposeProcessClient;
+}): Promise<void> {
   await match(decodedMessage)
     .with({ type: "ConsumerDelegationRevoked" }, async (delegationMsg) => {
       logger.info(
@@ -78,7 +82,7 @@ export async function handleMessageV2(
       { type: "ProducerDelegationRevoked" },
       { type: "ConsumerDelegationSubmitted" },
       { type: "ConsumerDelegationRejected" },
-      () => Promise.resolve
+      () => Promise.resolve()
     )
     .exhaustive();
 }

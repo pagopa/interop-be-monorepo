@@ -13,9 +13,9 @@ import {
   delegationState,
   generateId,
   delegationKind,
-  EServiceIsDelegableEnabledV2,
+  EServiceIsConsumerDelegableEnabledV2,
   EServiceIsClientAccessDelegableEnabledV2,
-  EServiceIsDelegableDisabledV2,
+  EServiceIsConsumerDelegableDisabledV2,
   EServiceIsClientAccessDelegableDisabledV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -36,7 +36,7 @@ import {
 } from "./utils.js";
 
 describe("update eService flags", () => {
-  it("should write on event-store for the update of the eService isDelegable flag (false -> true)", async () => {
+  it("should write on event-store for the update of the eService isConsumerDelegable flag (false -> true)", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       interface: getMockDocument(),
@@ -44,14 +44,14 @@ describe("update eService flags", () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
-      isDelegable: false,
+      isConsumerDelegable: false,
     };
     await addOneEService(eservice);
 
     const returnedEService = await catalogService.updateEServiceDelegationFlags(
       eservice.id,
       {
-        isDelegable: true,
+        isConsumerDelegable: true,
         isClientAccessDelegable: false,
       },
       {
@@ -64,7 +64,7 @@ describe("update eService flags", () => {
 
     const updatedEService: EService = {
       ...eservice,
-      isDelegable: true,
+      isConsumerDelegable: true,
       isClientAccessDelegable: false,
     };
 
@@ -72,18 +72,18 @@ describe("update eService flags", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceIsDelegableEnabled",
+      type: "EServiceIsConsumerDelegableEnabled",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceIsDelegableEnabledV2,
+      messageType: EServiceIsConsumerDelegableEnabledV2,
       payload: writtenEvent.data,
     });
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
-  it("should write on event-store for the update of the eService isDelegable flag (true -> false)", async () => {
+  it("should write on event-store for the update of the eService isConsumerDelegable flag (true -> false)", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       interface: getMockDocument(),
@@ -91,14 +91,14 @@ describe("update eService flags", () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
-      isDelegable: true,
+      isConsumerDelegable: true,
     };
     await addOneEService(eservice);
 
     const returnedEService = await catalogService.updateEServiceDelegationFlags(
       eservice.id,
       {
-        isDelegable: false,
+        isConsumerDelegable: false,
         isClientAccessDelegable: false,
       },
       {
@@ -111,7 +111,7 @@ describe("update eService flags", () => {
 
     const updatedEService: EService = {
       ...eservice,
-      isDelegable: false,
+      isConsumerDelegable: false,
       isClientAccessDelegable: false,
     };
 
@@ -119,11 +119,11 @@ describe("update eService flags", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceIsDelegableDisabled",
+      type: "EServiceIsConsumerDelegableDisabled",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceIsDelegableDisabledV2,
+      messageType: EServiceIsConsumerDelegableDisabledV2,
       payload: writtenEvent.data,
     });
 
@@ -138,7 +138,7 @@ describe("update eService flags", () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
-      isDelegable: true,
+      isConsumerDelegable: true,
       isClientAccessDelegable: false,
     };
     await addOneEService(eservice);
@@ -146,7 +146,7 @@ describe("update eService flags", () => {
     const returnedEService = await catalogService.updateEServiceDelegationFlags(
       eservice.id,
       {
-        isDelegable: true,
+        isConsumerDelegable: true,
         isClientAccessDelegable: true,
       },
       {
@@ -159,7 +159,7 @@ describe("update eService flags", () => {
 
     const updatedEService: EService = {
       ...eservice,
-      isDelegable: true,
+      isConsumerDelegable: true,
       isClientAccessDelegable: true,
     };
 
@@ -186,7 +186,7 @@ describe("update eService flags", () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
-      isDelegable: true,
+      isConsumerDelegable: true,
       isClientAccessDelegable: true,
     };
     await addOneEService(eservice);
@@ -194,7 +194,7 @@ describe("update eService flags", () => {
     const returnedEService = await catalogService.updateEServiceDelegationFlags(
       eservice.id,
       {
-        isDelegable: true,
+        isConsumerDelegable: true,
         isClientAccessDelegable: false,
       },
       {
@@ -207,7 +207,7 @@ describe("update eService flags", () => {
 
     const updatedEService: EService = {
       ...eservice,
-      isDelegable: true,
+      isConsumerDelegable: true,
       isClientAccessDelegable: false,
     };
 
@@ -233,7 +233,7 @@ describe("update eService flags", () => {
       catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
-          isDelegable: true,
+          isConsumerDelegable: true,
           isClientAccessDelegable: false,
         },
         {
@@ -253,7 +253,7 @@ describe("update eService flags", () => {
       catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
-          isDelegable: true,
+          isConsumerDelegable: true,
           isClientAccessDelegable: false,
         },
         {
@@ -280,7 +280,7 @@ describe("update eService flags", () => {
       catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
-          isDelegable: true,
+          isConsumerDelegable: true,
           isClientAccessDelegable: false,
         },
         {
@@ -300,7 +300,7 @@ describe("update eService flags", () => {
       catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
-          isDelegable: true,
+          isConsumerDelegable: true,
           isClientAccessDelegable: false,
         },
         {
@@ -329,7 +329,7 @@ describe("update eService flags", () => {
         catalogService.updateEServiceDelegationFlags(
           eservice.id,
           {
-            isDelegable: true,
+            isConsumerDelegable: true,
             isClientAccessDelegable: false,
           },
           {
@@ -342,7 +342,7 @@ describe("update eService flags", () => {
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
   );
-  it("should throw invalidEServiceFlags if the isDelegable is false and isClientAccessDelegable is true", async () => {
+  it("should throw invalidEServiceFlags if the isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       interface: getMockDocument(),
@@ -350,7 +350,7 @@ describe("update eService flags", () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
-      isDelegable: false,
+      isConsumerDelegable: false,
     };
     await addOneEService(eservice);
 
@@ -358,7 +358,7 @@ describe("update eService flags", () => {
       catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
-          isDelegable: false,
+          isConsumerDelegable: false,
           isClientAccessDelegable: true,
         },
         {

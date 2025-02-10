@@ -9,10 +9,11 @@ export const splitAttributeIntoObjectsSQL = ({
   origin,
   code,
   ...rest
-}: Attribute): AttributeSQL => {
+}: Attribute, version: number): AttributeSQL => {
   void (rest satisfies Record<string, never>);
   return {
     id,
+    metadata_version: version,
     name,
     kind,
     description,
