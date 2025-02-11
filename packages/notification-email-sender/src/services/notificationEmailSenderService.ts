@@ -543,7 +543,7 @@ export function notificationEmailSenderServiceBuilder(
 
         try {
           logger.info(
-            `Sending an email for eservice ${eservice.id} rejection (SES)`
+            `Sending an email for published descriptor ${descriptor.id} of eservice ${eservice.id} (SES)`
           );
           await sesEmailManager.send(
             mail.from,
@@ -551,13 +551,15 @@ export function notificationEmailSenderServiceBuilder(
             mail.subject,
             mail.body
           );
-          logger.info(`Email sent for eservice ${eservice.id} rejection (SES)`);
+          logger.info(
+            `Email sent for published descriptor ${descriptor.id} of eservice ${eservice.id} (SES)`
+          );
         } catch (err) {
           logger.warn(
-            `Error sending email for eservice ${eservice.id} rejection: ${err}`
+            `Error sending email for published descriptor ${descriptor.id} of eservice ${eservice.id}: ${err}`
           );
           throw genericInternalError(
-            `Error sending email for eservice ${eservice.id} rejection: ${err}`
+            `Error sending email for published descriptor ${descriptor.id} of eservice ${eservice.id}: ${err}`
           );
         }
       }
