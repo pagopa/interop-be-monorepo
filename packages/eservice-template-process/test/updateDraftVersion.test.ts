@@ -18,6 +18,7 @@ import {
   toEServiceTemplateV2,
   eserviceTemplateVersionState,
   operationForbidden,
+  AttributeId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -282,8 +283,8 @@ describe("update draft version", () => {
       creationTime: new Date(),
     };
     await addOneAttribute(attribute);
-    const notExistingId1 = generateId();
-    const notExistingId2 = generateId();
+    const notExistingId1 = generateId<AttributeId>();
+    const notExistingId2 = generateId<AttributeId>();
 
     const descriptorSeed = {
       ...buildUpdateVersionSeed(mockVersion),
