@@ -18,7 +18,7 @@ import { tenantNotFound } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
-describe("assignTenantDelegatedProducerFeature", async () => {
+describe("updateTenantDelegatedFeatures", async () => {
   beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
