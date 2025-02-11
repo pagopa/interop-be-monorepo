@@ -34,21 +34,20 @@ export const suspendEServiceTemplateVersionErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const publishEServiceTemplateVersionErrorMapper = (
+export const activateEServiceTemplateVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with(
       "eServiceTemplateNotFound",
       "eServiceTemplateVersionNotFound",
-      "tenantKindNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("notValidEServiceTemplateVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const activateEServiceTemplateVersionErrorMapper = (
+export const publishEServiceTemplateVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -57,6 +56,7 @@ export const activateEServiceTemplateVersionErrorMapper = (
       "eServiceTemplateVersionNotFound",
       "missingTemplateVersionInterface",
       "tenantNotFound",
+      "tenantKindNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
