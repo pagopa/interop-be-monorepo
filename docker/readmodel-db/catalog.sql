@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis(
   id UUID,
   eservice_id UUID REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  name VARCHAR,
+  name VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   risk_analysis_form_id UUID UNIQUE NOT NULL,
   risk_analysis_form_version VARCHAR NOT NULL,
