@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor (
   eservice_id UUID NOT NULL references readmodel.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   version VARCHAR NOT NULL,
-  description VARCHAR NOT NULL,
+  description VARCHAR,
   -- interface
   -- docs
   state VARCHAR NOT NULL,
