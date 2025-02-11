@@ -1736,7 +1736,7 @@ export function tenantServiceBuilder(
       logger: Logger;
     }): Promise<void> {
       logger.info(
-        `Updagint tenant delegated features for tenant ${organizationId}`
+        `Updating tenant delegated features for tenant ${organizationId}`
       );
 
       assertRequesterDelegationsAllowedOrigin(authData);
