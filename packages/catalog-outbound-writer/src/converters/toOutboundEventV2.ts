@@ -40,6 +40,8 @@ function toOutboundEServiceV2(
     ...eservice,
     riskAnalysis: undefined,
     descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
+    templateId: undefined,
+    instanceId: undefined,
   };
 }
 
