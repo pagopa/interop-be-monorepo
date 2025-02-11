@@ -41,7 +41,7 @@ export const documentSQLtoDocument = (
 ): Document => ({
   id: unsafeBrandId<EServiceDocumentId>(input.id),
   path: input.path,
-  name: input.name || "", // TODO check this
+  name: input.name
   prettyName: input.prettyName,
   contentType: input.contentType,
   checksum: input.checksum,
@@ -234,7 +234,7 @@ export const riskAnalysisSQLtoRiskAnalysis = (
 
   const riskAnalysis: RiskAnalysis = {
     id: unsafeBrandId<RiskAnalysisId>(riskAnalysisSQL.id),
-    name: riskAnalysisSQL.name || "",
+    name: riskAnalysisSQL.name,
     createdAt: new Date(riskAnalysisSQL.createdAt),
     riskAnalysisForm: {
       version: riskAnalysisSQL.riskAnalysisFormVersion,
