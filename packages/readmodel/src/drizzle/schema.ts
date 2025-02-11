@@ -401,9 +401,12 @@ export const eserviceRiskAnalysisInReadmodel = readmodel.table(
     eserviceId: uuid("eservice_id"),
     metadataVersion: integer("metadata_version").notNull(),
     name: varchar(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }),
-    riskAnalysisFormId: uuid("risk_analysis_form_id"),
-    riskAnalysisFormVersion: varchar("risk_analysis_form_version"),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
+    riskAnalysisFormVersion: varchar("risk_analysis_form_version").notNull(),
   },
   (table) => [
     foreignKey({
@@ -424,9 +427,9 @@ export const eserviceRiskAnalysisAnswerInReadmodel = readmodel.table(
     eserviceId: uuid("eservice_id"),
     metadataVersion: integer("metadata_version").notNull(),
     riskAnalysisFormId: uuid("risk_analysis_form_id"),
-    kind: varchar(),
-    key: varchar(),
-    value: varchar().array(),
+    kind: varchar().notNull(),
+    key: varchar().notNull(),
+    value: varchar().array().notNull(),
   },
   (table) => [
     foreignKey({
