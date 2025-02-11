@@ -1913,7 +1913,7 @@ export function removeTenantDelegatedConsumerFeature({
   correlationId: CorrelationId;
   logger: Logger;
 }): CreateEvent<TenantEvent> | null {
-  if (isFeatureAssigned(tenant.data, "DelegatedConsumer")) {
+  if (!isFeatureAssigned(tenant.data, "DelegatedConsumer")) {
     return null;
   }
 
