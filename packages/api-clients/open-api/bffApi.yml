@@ -12825,6 +12825,12 @@ components:
           $ref: "#/components/schemas/ProducerDescriptorEService"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributes"
+        publishedAt:
+          type: string
+          format: date-time
+        deprecatedAt:
+          type: string
+          format: date-time
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
