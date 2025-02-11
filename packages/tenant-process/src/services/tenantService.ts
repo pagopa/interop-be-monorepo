@@ -1783,25 +1783,25 @@ export function tenantServiceBuilder(
         )
         .exhaustive();
 
-      match([delegatedConsumerEvent, delegatedProducerEvent])
+      await match([delegatedConsumerEvent, delegatedProducerEvent])
         .with(
           [P.not(P.nullish), P.not(P.nullish)],
-          async ([delegatedConsumerEvent, delegatedProducerEvent]) => {
-            await repository.createEvents([
+          async ([delegatedConsumerEvent, delegatedProducerEvent]) =>
+            repository.createEvents([
               delegatedConsumerEvent,
               {
                 ...delegatedProducerEvent,
                 version: requesterTenant.metadata.version + 1,
               },
-            ]);
-          }
+            ])
         )
-        .with([P.not(P.nullish), null], async ([delegatedConsumerEvent, _]) => {
-          await repository.createEvent(delegatedConsumerEvent);
-        })
-        .with([null, P.not(P.nullish)], async ([_, delegatedProducerEvent]) => {
-          await repository.createEvent(delegatedProducerEvent);
-        });
+        .with([P.not(P.nullish), null], async ([delegatedConsumerEvent, _]) =>
+          repository.createEvent(delegatedConsumerEvent)
+        )
+        .with([null, P.not(P.nullish)], async ([_, delegatedProducerEvent]) =>
+          repository.createEvent(delegatedProducerEvent)
+        )
+        .run();
     },
   };
 }
