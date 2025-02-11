@@ -73,7 +73,7 @@ export type DescriptorRejectionReason = z.infer<
   typeof DescriptorRejectionReason
 >;
 
-export const DescriptorInterfaceContancs = z.object({
+export const DescriptorInterfaceContacts = z.object({
   name: z.string(),
   email: z.string(),
   url: z.string(),
@@ -81,13 +81,13 @@ export const DescriptorInterfaceContancs = z.object({
   serverUrls: z.array(z.string()),
 });
 
-export type DescriptorInterfaceContancs = z.infer<
-  typeof DescriptorInterfaceContancs
+export type DescriptorInterfaceContacts = z.infer<
+  typeof DescriptorInterfaceContacts
 >;
 
 export const DescriptorInterface = Document.and(
   z.object({
-    contacts: DescriptorInterfaceContancs.optional(),
+    contacts: DescriptorInterfaceContacts.optional(),
   })
 );
 
