@@ -1838,7 +1838,7 @@ export function removeTenantDelegatedProducerFeature({
   }
 
   logger.info(
-    `Removing delegated producer feature to tenant ${tenant.data.id}`
+    `Removing delegated producer feature from tenant ${tenant.data.id}`
   );
 
   const updatedTenant: Tenant = {
@@ -1903,7 +1903,7 @@ export function removeTenantDelegatedConsumerFeature({
   }
 
   logger.info(
-    `Removing delegated consumer feature to tenant ${tenant.data.id}`
+    `Removing delegated consumer feature from tenant ${tenant.data.id}`
   );
 
   const updatedTenant: Tenant = {
