@@ -1786,15 +1786,18 @@ export function tenantServiceBuilder(
       match([delegatedConsumerEvent, delegatedProducerEvent])
         .with(
           [P.not(P.nullish), P.not(P.nullish)],
-          async ([consumer, producer]) => {
-            await repository.createEvents([consumer, producer]);
+          async ([delegatedConsumerEvent, delegatedProducerEvent]) => {
+            await repository.createEvents([
+              delegatedConsumerEvent,
+              delegatedProducerEvent,
+            ]);
           }
         )
-        .with([P.not(P.nullish), null], async ([consumer, _]) => {
-          await repository.createEvent(consumer);
+        .with([P.not(P.nullish), null], async ([delegatedConsumerEvent, _]) => {
+          await repository.createEvent(delegatedConsumerEvent);
         })
-        .with([null, P.not(P.nullish)], async ([_, producer]) => {
-          await repository.createEvent(producer);
+        .with([null, P.not(P.nullish)], async ([_, delegatedProducerEvent]) => {
+          await repository.createEvent(delegatedProducerEvent);
         });
     },
   };
