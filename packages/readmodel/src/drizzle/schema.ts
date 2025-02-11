@@ -369,7 +369,7 @@ export const eserviceDescriptorDocumentInReadmodel = readmodel.table(
     eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     descriptorId: uuid("descriptor_id").notNull(),
-    name: varchar(),
+    name: varchar().notNull(),
     contentType: varchar("content_type").notNull(),
     prettyName: varchar("pretty_name").notNull(),
     path: varchar().notNull(),
