@@ -217,7 +217,7 @@ export const riskAnalysisSQLtoRiskAnalysis = (
         ({
           id: unsafeBrandId<RiskAnalysisSingleAnswerId>(a.id),
           key: a.key,
-          value: a.value.length > 0 ? a.value[0] : undefined, // TODO
+          value: a.value.length > 0 ? a.value[0] : undefined,
         } satisfies RiskAnalysisSingleAnswer)
     );
 
