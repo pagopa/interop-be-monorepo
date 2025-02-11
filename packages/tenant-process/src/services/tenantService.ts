@@ -100,8 +100,7 @@ import {
   retrieveCertifierId,
   assertRequesterDelegationsAllowedOrigin,
   getTenantKind,
-  assertFeatureAssigned,
-  assertFeatureNotAssigned,
+  isFeatureAssigned,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -1785,8 +1784,8 @@ export function tenantServiceBuilder(
         .exhaustive();
 
       await repository.createEvents([
-        delegatedConsumerEvent,
-        delegatedProducerEvent,
+        ...(delegatedConsumerEvent ? [delegatedConsumerEvent] : []),
+        ...(delegatedProducerEvent ? [delegatedProducerEvent] : []),
       ]);
     },
   };
@@ -1800,12 +1799,14 @@ export function assignTenantDelegatedProducerFeature({
   tenant: WithMetadata<Tenant>;
   correlationId: CorrelationId;
   logger: Logger;
-}): CreateEvent<TenantEvent> {
+}): CreateEvent<TenantEvent> | null {
+  if (isFeatureAssigned(tenant.data, "DelegatedProducer")) {
+    return null;
+  }
+
   logger.info(
     `Assigning delegated producer feature to tenant ${tenant.data.id}`
   );
-
-  assertFeatureNotAssigned(tenant.data, "DelegatedProducer");
 
   const updatedTenant: Tenant = {
     ...tenant.data,
@@ -1831,12 +1832,14 @@ export function removeTenantDelegatedProducerFeature({
   tenant: WithMetadata<Tenant>;
   correlationId: CorrelationId;
   logger: Logger;
-}): CreateEvent<TenantEvent> {
+}): CreateEvent<TenantEvent> | null {
+  if (!isFeatureAssigned(tenant.data, "DelegatedProducer")) {
+    return null;
+  }
+
   logger.info(
     `Removing delegated producer feature to tenant ${tenant.data.id}`
   );
-
-  assertFeatureAssigned(tenant.data, "DelegatedProducer");
 
   const updatedTenant: Tenant = {
     ...tenant.data,
@@ -1861,12 +1864,14 @@ export function assignTenantDelegatedConsumerFeature({
   tenant: WithMetadata<Tenant>;
   correlationId: CorrelationId;
   logger: Logger;
-}): CreateEvent<TenantEvent> {
+}): CreateEvent<TenantEvent> | null {
+  if (isFeatureAssigned(tenant.data, "DelegatedConsumer")) {
+    return null;
+  }
+
   logger.info(
     `Assigning delegated consumer feature to tenant ${tenant.data.id}`
   );
-
-  assertFeatureNotAssigned(tenant.data, "DelegatedConsumer");
 
   const updatedTenant: Tenant = {
     ...tenant.data,
@@ -1892,12 +1897,14 @@ export function removeTenantDelegatedConsumerFeature({
   tenant: WithMetadata<Tenant>;
   correlationId: CorrelationId;
   logger: Logger;
-}): CreateEvent<TenantEvent> {
+}): CreateEvent<TenantEvent> | null {
+  if (isFeatureAssigned(tenant.data, "DelegatedConsumer")) {
+    return null;
+  }
+
   logger.info(
     `Removing delegated consumer feature to tenant ${tenant.data.id}`
   );
-
-  assertFeatureAssigned(tenant.data, "DelegatedConsumer");
 
   const updatedTenant: Tenant = {
     ...tenant.data,
