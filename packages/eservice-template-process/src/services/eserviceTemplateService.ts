@@ -32,6 +32,7 @@ import {
   TenantId,
   TenantKind,
   WithMetadata,
+  ListResult,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -65,6 +66,10 @@ import {
   toCreateEventEServiceTemplateDraftVersionDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
+import {
+  ApiGetEServiceTemplateIstancesFilters,
+  EServiceTemplateInstance,
+} from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertIsDraftTemplate,
@@ -471,14 +476,6 @@ export function eserviceTemplateServiceBuilder(
     ): Promise<EServiceTemplate> {
       logger.info(
         `Updating e-service template version quotas of EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
-      );
-      const eserviceTemplate = await retrieveEServiceTemplate(
-        eserviceTemplateId,
-        readModelService
-      );
-      assertRequesterEServiceTemplateCreator(
-        eserviceTemplate.data.creatorId,
-        authData
       );
 
       const eserviceTemplate = await retrieveEServiceTemplate(
@@ -909,6 +906,33 @@ export function eserviceTemplateServiceBuilder(
       );
 
       return updatedEServiceTemplate;
+    },
+    async getEServiceTemplateIstances(
+      eserviceTemplateId: EServiceTemplateId,
+      filters: ApiGetEServiceTemplateIstancesFilters,
+      offset: number,
+      limit: number,
+      { authData, logger }: WithLogger<AppContext>
+    ): Promise<ListResult<EServiceTemplateInstance>> {
+      logger.info(
+        `Getting EServices template ${eserviceTemplateId} instances with producer name = ${filters.producerName}, states = ${filters.states}, limit = ${limit}, offset = ${offset}`
+      );
+
+      const { data: eserviceTemplate } = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.creatorId,
+        authData
+      );
+
+      return await readModelService.getEServiceTemplateInstances({
+        eserviceTemplate,
+        filters,
+        offset,
+        limit,
+      });
     },
   };
 }
