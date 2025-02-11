@@ -5,18 +5,20 @@ import {
   Tenant,
   protobufDecoder,
   toTenantV2,
-  TenantDelegatedProducerFeatureRemovedV2,
+  TenantDelegatedProducerFeatureAddedV2,
+  TenantId,
   operationForbidden,
+  TenantDelegatedProducerFeatureRemovedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
-import { tenantDoesNotHaveFeature } from "../src/model/domain/errors.js";
+import { tenantNotFound } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
-describe("removeTenantDelegatedProducerFeature", async () => {
+describe("assignTenantDelegatedProducerFeature", async () => {
   beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -27,6 +29,59 @@ describe("removeTenantDelegatedProducerFeature", async () => {
   });
 
   config.delegationsAllowedOrigins = ["IPA", "TEST"];
+  it.each(config.delegationsAllowedOrigins)(
+    "Should correctly assign the feature (origin: %s)",
+    async (origin) => {
+      const mockTenant: Tenant = {
+        ...getMockTenant(),
+        externalId: {
+          value: generateId(),
+          origin,
+        },
+      };
+      await addOneTenant(mockTenant);
+      await tenantService.updateTenantDelegatedFeatures({
+        organizationId: mockTenant.id,
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: false,
+          isDelegatedProducerFeatureEnabled: true,
+        },
+        correlationId: generateId(),
+        authData: getMockAuthData(),
+        logger: genericLogger,
+      });
+      const writtenEvent = await readLastEventByStreamId(
+        mockTenant.id,
+        "tenant",
+        postgresDB
+      );
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockTenant.id,
+        version: "1",
+        type: "TenantDelegatedProducerFeatureAdded",
+        event_version: 2,
+      });
+
+      const writtenPayload: TenantDelegatedProducerFeatureAddedV2 | undefined =
+        protobufDecoder(TenantDelegatedProducerFeatureAddedV2).parse(
+          writtenEvent.data
+        );
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        features: [
+          ...mockTenant.features,
+          {
+            type: "DelegatedProducer",
+            availabilityTimestamp: new Date(),
+          },
+        ],
+        updatedAt: new Date(),
+      };
+      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    }
+  );
   it.each(config.delegationsAllowedOrigins)(
     "Should correctly remove the feature (origin: %s)",
     async (origin) => {
@@ -44,8 +99,12 @@ describe("removeTenantDelegatedProducerFeature", async () => {
         ],
       };
       await addOneTenant(mockTenant);
-      await tenantService.removeTenantDelegatedProducerFeature({
+      await tenantService.updateTenantDelegatedFeatures({
         organizationId: mockTenant.id,
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: false,
+          isDelegatedProducerFeatureEnabled: false,
+        },
         correlationId: generateId(),
         authData: getMockAuthData(),
         logger: genericLogger,
@@ -78,41 +137,34 @@ describe("removeTenantDelegatedProducerFeature", async () => {
     }
   );
 
-  it("Should throw tenantDoesNotHaveFeature if the requester tenant already has the delegated producer feature", async () => {
-    const tenant: Tenant = {
-      ...getMockTenant(),
-      features: [],
-    };
-
-    await addOneTenant(tenant);
-
+  it("Should throw tenantNotFound if the requester tenant doesn't exist", async () => {
+    const organizationId = generateId<TenantId>();
     expect(
-      tenantService.removeTenantDelegatedProducerFeature({
-        organizationId: tenant.id,
+      tenantService.updateTenantDelegatedFeatures({
+        organizationId,
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: true,
+          isDelegatedProducerFeatureEnabled: true,
+        },
         correlationId: generateId(),
         authData: getMockAuthData(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(
-      tenantDoesNotHaveFeature(tenant.id, "DelegatedProducer")
-    );
+    ).rejects.toThrowError(tenantNotFound(organizationId));
   });
   it("Should throw operationForbidden if the requester tenant has externalId origin not compliant", async () => {
-    const tenant: Tenant = {
-      ...getMockTenant(),
-      features: [
-        {
-          type: "DelegatedProducer",
-          availabilityTimestamp: new Date(),
-        },
-      ],
-    };
+    const tenant = getMockTenant();
+
     await addOneTenant(tenant);
 
     expect(
-      tenantService.removeTenantDelegatedProducerFeature({
+      tenantService.updateTenantDelegatedFeatures({
         organizationId: tenant.id,
         correlationId: generateId(),
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: true,
+          isDelegatedProducerFeatureEnabled: true,
+        },
         authData: {
           ...getMockAuthData(tenant.id),
           externalId: { origin: "UNKNOWN", value: "test" },
