@@ -1746,8 +1746,6 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      assertFeatureAssigned(requesterTenant.data, "DelegatedConsumer");
-
       const delegatedConsumerEvent = match(
         tenantFeatures.isDelegatedConsumerFeatureEnabled
       )
