@@ -128,7 +128,7 @@ describe.each([
     const approvedDelegationWithoutContract: Delegation = {
       ...delegation,
       state: delegationState.active,
-      approvedAt: currentExecutionTime,
+      createdAt: currentExecutionTime,
       stamps: {
         ...delegation.stamps,
         activation: {
