@@ -41,7 +41,7 @@ export const documentSQLtoDocument = (
 ): Document => ({
   id: unsafeBrandId<EServiceDocumentId>(input.id),
   path: input.path,
-  name: input.name
+  name: input.name,
   prettyName: input.prettyName,
   contentType: input.contentType,
   checksum: input.checksum,
