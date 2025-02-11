@@ -16271,7 +16271,7 @@ components:
         eservices:
           type: array
           items:
-            $ref: "#/components/schemas/CompactEServiceLight"
+            $ref: "#/components/schemas/CompactEService"
         description:
           type: string
       required:
