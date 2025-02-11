@@ -1,4 +1,4 @@
-import { EServiceTemplateId, unsafeBrandId } from "../brandedIds.js";
+import { unsafeBrandId } from "../brandedIds.js";
 import {
   AgreementApprovalPolicyV2,
   EServiceAttributeV2,
@@ -11,7 +11,6 @@ import {
   EServiceRiskAnalysisV2,
   EServiceRiskAnalysisFormV2,
   DescriptorRejectionReasonV2,
-  EServiceDescriptorInterfaceV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -32,7 +31,6 @@ import {
   EService,
   Document,
   DescriptorRejectionReason,
-  DescriptorInterface,
 } from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV2 = (
@@ -90,19 +88,11 @@ export const fromEServiceAttributeV2 = (
 ): EServiceAttribute[] =>
   input.values.map((a) => ({ ...a, id: unsafeBrandId(a.id) }));
 
-export function fromDocumentV2(
-  input: EServiceDescriptorInterfaceV2
-): DescriptorInterface;
-export function fromDocumentV2(input: EServiceDocumentV2): Document;
-export function fromDocumentV2(
-  input: EServiceDocumentV2 | EServiceDescriptorInterfaceV2
-): Document | DescriptorInterface {
-  return {
-    ...input,
-    id: unsafeBrandId(input.id),
-    uploadDate: new Date(input.uploadDate),
-  };
-}
+export const fromDocumentV2 = (input: EServiceDocumentV2): Document => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  uploadDate: new Date(input.uploadDate),
+});
 
 export const fromDescriptorRejectionReasonV2 = (
   input: DescriptorRejectionReasonV2
@@ -188,7 +178,4 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
   createdAt: bigIntToDate(input.createdAt),
   riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV2),
   mode: fromEServiceModeV2(input.mode),
-  templateId: input.templateId
-    ? unsafeBrandId<EServiceTemplateId>(input.templateId)
-    : undefined,
 });
