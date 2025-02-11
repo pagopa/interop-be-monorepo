@@ -9,6 +9,8 @@ import {
   TenantId,
   operationForbidden,
   TenantDelegatedProducerFeatureRemovedV2,
+  TenantDelegatedConsumerFeatureRemovedV2,
+  TenantDelegatedConsumerFeatureAddedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -30,7 +32,7 @@ describe("updateTenantDelegatedFeatures", async () => {
 
   config.delegationsAllowedOrigins = ["IPA", "TEST"];
   it.each(config.delegationsAllowedOrigins)(
-    "Should correctly assign the feature (origin: %s)",
+    "Should correctly add Consumer feature (origin: %s)",
     async (origin) => {
       const mockTenant: Tenant = {
         ...getMockTenant(),
@@ -39,6 +41,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           origin,
         },
       };
+
       await addOneTenant(mockTenant);
       await tenantService.updateTenantDelegatedFeatures({
         organizationId: mockTenant.id,
@@ -50,6 +53,7 @@ describe("updateTenantDelegatedFeatures", async () => {
         authData: getMockAuthData(),
         logger: genericLogger,
       });
+
       const writtenEvent = await readLastEventByStreamId(
         mockTenant.id,
         "tenant",
@@ -63,10 +67,66 @@ describe("updateTenantDelegatedFeatures", async () => {
         event_version: 2,
       });
 
-      const writtenPayload: TenantDelegatedProducerFeatureAddedV2 | undefined =
-        protobufDecoder(TenantDelegatedProducerFeatureAddedV2).parse(
-          writtenEvent.data
-        );
+      const writtenPayload = protobufDecoder(
+        TenantDelegatedConsumerFeatureAddedV2
+      ).parse(writtenEvent.data);
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        features: [
+          ...mockTenant.features,
+          {
+            type: "DelegatedConsumer",
+            availabilityTimestamp: new Date(),
+          },
+        ],
+        updatedAt: new Date(),
+      };
+
+      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    }
+  );
+
+  // Test adding Producer feature
+  it.each(config.delegationsAllowedOrigins)(
+    "Should correctly add Producer feature (origin: %s)",
+    async (origin) => {
+      const mockTenant: Tenant = {
+        ...getMockTenant(),
+        externalId: {
+          value: generateId(),
+          origin,
+        },
+      };
+
+      await addOneTenant(mockTenant);
+      await tenantService.updateTenantDelegatedFeatures({
+        organizationId: mockTenant.id,
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: false,
+          isDelegatedProducerFeatureEnabled: true,
+        },
+        correlationId: generateId(),
+        authData: getMockAuthData(),
+        logger: genericLogger,
+      });
+
+      const writtenEvent = await readLastEventByStreamId(
+        mockTenant.id,
+        "tenant",
+        postgresDB
+      );
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockTenant.id,
+        version: "1",
+        type: "TenantDelegatedProducerFeatureAdded",
+        event_version: 2,
+      });
+
+      const writtenPayload = protobufDecoder(
+        TenantDelegatedProducerFeatureAddedV2
+      ).parse(writtenEvent.data);
 
       const updatedTenant: Tenant = {
         ...mockTenant,
@@ -79,11 +139,71 @@ describe("updateTenantDelegatedFeatures", async () => {
         ],
         updatedAt: new Date(),
       };
+
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
     }
   );
+
+  // Test removing Consumer feature
   it.each(config.delegationsAllowedOrigins)(
-    "Should correctly remove the feature (origin: %s)",
+    "Should correctly remove Consumer feature (origin: %s)",
+    async (origin) => {
+      const mockTenant: Tenant = {
+        ...getMockTenant(),
+        externalId: {
+          value: generateId(),
+          origin,
+        },
+        features: [
+          {
+            type: "DelegatedConsumer",
+            availabilityTimestamp: new Date(),
+          },
+        ],
+      };
+
+      await addOneTenant(mockTenant);
+      await tenantService.updateTenantDelegatedFeatures({
+        organizationId: mockTenant.id,
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: false,
+          isDelegatedProducerFeatureEnabled: false,
+        },
+        correlationId: generateId(),
+        authData: getMockAuthData(),
+        logger: genericLogger,
+      });
+
+      const writtenEvent = await readLastEventByStreamId(
+        mockTenant.id,
+        "tenant",
+        postgresDB
+      );
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockTenant.id,
+        version: "1",
+        type: "TenantDelegatedConsumerFeatureRemoved",
+        event_version: 2,
+      });
+
+      const writtenPayload = protobufDecoder(
+        TenantDelegatedConsumerFeatureRemovedV2
+      ).parse(writtenEvent.data);
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        features: [],
+        updatedAt: new Date(),
+      };
+
+      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    }
+  );
+
+  // Test removing Producer feature
+  it.each(config.delegationsAllowedOrigins)(
+    "Should correctly remove Producer feature (origin: %s)",
     async (origin) => {
       const mockTenant: Tenant = {
         ...getMockTenant(),
@@ -98,6 +218,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           },
         ],
       };
+
       await addOneTenant(mockTenant);
       await tenantService.updateTenantDelegatedFeatures({
         organizationId: mockTenant.id,
@@ -109,6 +230,7 @@ describe("updateTenantDelegatedFeatures", async () => {
         authData: getMockAuthData(),
         logger: genericLogger,
       });
+
       const writtenEvent = await readLastEventByStreamId(
         mockTenant.id,
         "tenant",
@@ -122,9 +244,7 @@ describe("updateTenantDelegatedFeatures", async () => {
         event_version: 2,
       });
 
-      const writtenPayload:
-        | TenantDelegatedProducerFeatureRemovedV2
-        | undefined = protobufDecoder(
+      const writtenPayload = protobufDecoder(
         TenantDelegatedProducerFeatureRemovedV2
       ).parse(writtenEvent.data);
 
@@ -133,6 +253,7 @@ describe("updateTenantDelegatedFeatures", async () => {
         features: [],
         updatedAt: new Date(),
       };
+
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
     }
   );
