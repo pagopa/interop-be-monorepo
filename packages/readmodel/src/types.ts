@@ -8,10 +8,8 @@ import {
   eserviceRiskAnalysisAnswerInReadmodel,
   eserviceRiskAnalysisInReadmodel,
   eserviceTemplateBindingInReadmodel,
-  purposeInReadmodel,
 } from "./drizzle/schema.js";
 
-export type PurposeSQL = InferSelectModel<typeof purposeInReadmodel>;
 export type EServiceSQL = InferSelectModel<typeof eserviceInReadmodel>;
 export type EServiceDescriptorSQL = InferSelectModel<
   typeof eserviceDescriptorInReadmodel
