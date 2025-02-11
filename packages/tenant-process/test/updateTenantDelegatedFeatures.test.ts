@@ -43,8 +43,8 @@ describe("updateTenantDelegatedFeatures", async () => {
       await tenantService.updateTenantDelegatedFeatures({
         organizationId: mockTenant.id,
         tenantFeatures: {
-          isDelegatedConsumerFeatureEnabled: false,
-          isDelegatedProducerFeatureEnabled: true,
+          isDelegatedConsumerFeatureEnabled: true,
+          isDelegatedProducerFeatureEnabled: false,
         },
         correlationId: generateId(),
         authData: getMockAuthData(),
