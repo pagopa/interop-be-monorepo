@@ -41,7 +41,7 @@ import {
   m2mRevokeCertifiedAttributeErrorMapper,
   m2mUpsertTenantErrorMapper,
   maintenanceTenantUpdatedErrorMapper,
-  assignTenantDelegatedProducerFeatureErrorMapper,
+  updateTenantDelegatedFeaturesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
@@ -519,7 +519,7 @@ const tenantsRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            assignTenantDelegatedProducerFeatureErrorMapper,
+            updateTenantDelegatedFeaturesErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
