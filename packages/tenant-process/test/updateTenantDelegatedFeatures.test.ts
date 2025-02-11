@@ -58,7 +58,7 @@ describe("assignTenantDelegatedProducerFeature", async () => {
 
       expect(writtenEvent).toMatchObject({
         stream_id: mockTenant.id,
-        version: "1",
+        version: "0",
         type: "TenantDelegatedProducerFeatureAdded",
         event_version: 2,
       });
@@ -117,7 +117,7 @@ describe("assignTenantDelegatedProducerFeature", async () => {
 
       expect(writtenEvent).toMatchObject({
         stream_id: mockTenant.id,
-        version: "1",
+        version: "0",
         type: "TenantDelegatedProducerFeatureRemoved",
         event_version: 2,
       });
