@@ -298,7 +298,7 @@ export const eserviceDescriptorInReadmodel = readmodel.table(
     eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     version: varchar().notNull(),
-    description: varchar().notNull(),
+    description: varchar(),
     state: varchar().notNull(),
     audience: varchar().array().notNull(),
     voucherLifespan: integer("voucher_lifespan").notNull(),
