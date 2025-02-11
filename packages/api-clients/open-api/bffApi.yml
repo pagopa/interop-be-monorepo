@@ -14363,6 +14363,8 @@ components:
         selfcareId:
           type: string
           format: uuid
+        kind:
+          $ref: "#/components/schemas/TenantKind"
         externalId:
           $ref: "#/components/schemas/ExternalId"
         features:
