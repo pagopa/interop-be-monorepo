@@ -129,6 +129,7 @@ describe.each([
       ...delegation,
       state: delegationState.active,
       createdAt: currentExecutionTime,
+      updatedAt: currentExecutionTime,
       stamps: {
         ...delegation.stamps,
         activation: {
