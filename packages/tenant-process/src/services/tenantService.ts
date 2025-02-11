@@ -1783,19 +1783,25 @@ export function tenantServiceBuilder(
         )
         .exhaustive();
 
-      const events = [delegatedConsumerEvent, delegatedProducerEvent].filter(
-        (event): event is CreateEvent<TenantEvent> => event !== null
-      );
-
-      if (events.length === 1) {
-        await repository.createEvent(events[0]);
-      } else if (events.length === 2) {
-        await repository.createEvents([
-          events[0],
-          { ...events[1], version: requesterTenant.metadata.version + 1 },
-        ]);
-      }
-      // TODO: improve this check if it works
+      match([delegatedConsumerEvent, delegatedProducerEvent])
+        .with(
+          [P.not(P.nullish), P.not(P.nullish)],
+          async ([delegatedConsumerEvent, delegatedProducerEvent]) => {
+            await repository.createEvents([
+              delegatedConsumerEvent,
+              {
+                ...delegatedProducerEvent,
+                version: requesterTenant.metadata.version + 1,
+              },
+            ]);
+          }
+        )
+        .with([P.not(P.nullish), null], async ([delegatedConsumerEvent, _]) => {
+          await repository.createEvent(delegatedConsumerEvent);
+        })
+        .with([null, P.not(P.nullish)], async ([_, delegatedProducerEvent]) => {
+          await repository.createEvent(delegatedProducerEvent);
+        });
     },
   };
 }
