@@ -400,7 +400,7 @@ export const eserviceRiskAnalysisInReadmodel = readmodel.table(
     id: uuid().primaryKey().notNull(),
     eserviceId: uuid("eservice_id"),
     metadataVersion: integer("metadata_version").notNull(),
-    name: varchar(),
+    name: varchar().notNull(),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",
