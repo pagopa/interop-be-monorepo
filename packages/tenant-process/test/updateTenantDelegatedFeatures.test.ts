@@ -87,7 +87,6 @@ describe("updateTenantDelegatedFeatures", async () => {
     }
   );
 
-  // Test adding Producer feature
   it.each(config.delegationsAllowedOrigins)(
     "Should correctly add Producer feature (origin: %s)",
     async (origin) => {
@@ -144,7 +143,6 @@ describe("updateTenantDelegatedFeatures", async () => {
     }
   );
 
-  // Test removing Consumer feature
   it.each(config.delegationsAllowedOrigins)(
     "Should correctly remove Consumer feature (origin: %s)",
     async (origin) => {
@@ -201,7 +199,6 @@ describe("updateTenantDelegatedFeatures", async () => {
     }
   );
 
-  // Test removing Producer feature
   it.each(config.delegationsAllowedOrigins)(
     "Should correctly remove Producer feature (origin: %s)",
     async (origin) => {
