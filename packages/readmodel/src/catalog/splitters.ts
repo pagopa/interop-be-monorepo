@@ -1,74 +1,76 @@
 import {
-  EService,
-  EServiceSQL,
-  DescriptorSQL,
-  DescriptorAttributeSQL,
-  DocumentSQL,
-  Descriptor,
   attributeKind,
   documentKind,
   EServiceId,
   EServiceAttribute,
   DescriptorId,
-  Document,
   DocumentKind,
-  RiskAnalysis,
-  EserviceRiskAnalysisSQL,
-  RiskAnalysisAnswerSQL,
   riskAnalysisAnswerKind,
   AttributeKind,
-  EServiceTemplateBindingSQL,
-  DescriptorRejectionReasonSQL,
-  DescriptorRejectionReason,
+  EServiceReadModel,
+  RiskAnalysisReadModel,
+  DocumentReadModel,
+  DescriptorReadModel,
+  DescriptorRejectionReasonReadModel,
 } from "pagopa-interop-models";
+import {
+  EServiceDescriptorAttributeSQL,
+  EServiceDescriptorDocumentSQL,
+  EServiceDescriptorRejectionReasonSQL,
+  EServiceDescriptorSQL,
+  EServiceRiskAnalysisAnswerSQL,
+  EServiceRiskAnalysisSQL,
+  EServiceSQL,
+  EServiceTemplateBindingSQL,
+} from "../types.js";
 
 export const splitEserviceIntoObjectsSQL = (
-  eservice: EService,
+  eservice: EServiceReadModel,
   version: number
 ): {
   eserviceSQL: EServiceSQL;
-  riskAnalysisSQL: EserviceRiskAnalysisSQL[];
-  riskAnalysisAnswersSQL: RiskAnalysisAnswerSQL[];
-  descriptorsSQL: DescriptorSQL[];
-  attributesSQL: DescriptorAttributeSQL[];
-  documentsSQL: DocumentSQL[];
-  rejectionReasonsSQL: DescriptorRejectionReasonSQL[];
+  riskAnalysisSQL: EServiceRiskAnalysisSQL[];
+  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
+  descriptorsSQL: EServiceDescriptorSQL[];
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   eserviceTemplateBindingSQL?: EServiceTemplateBindingSQL;
 } => {
   const eserviceSQL: EServiceSQL = {
     id: eservice.id,
-    metadata_version: version,
+    metadataVersion: version,
     name: eservice.name,
-    created_at: eservice.createdAt,
-    producer_id: eservice.producerId,
+    createdAt: eservice.createdAt,
+    producerId: eservice.producerId,
     description: eservice.description,
     technology: eservice.technology,
     mode: eservice.mode,
-    is_signal_hub_enabled: eservice.isSignalHubEnabled,
-    is_consumer_delegable: eservice.isConsumerDelegable,
-    is_client_access_delegable: eservice.isClientAccessDelegable,
+    isSignalHubEnabled: eservice.isSignalHubEnabled || null,
+    isConsumerDelegable: eservice.isConsumerDelegable || null,
+    isClientAccessDelegable: eservice.isClientAccessDelegable || null,
   };
 
   const eserviceTemplateBindingSQL: EServiceTemplateBindingSQL = {
-    eservice_id: eservice.id,
-    metadata_version: version,
-    eservice_template_id: eservice.id, // TODO
-    instance_id: eservice.id, // TODO
+    eserviceId: eservice.id,
+    metadataVersion: version,
+    eserviceTemplateId: eservice.id, // TODO
+    instanceId: eservice.id, // TODO
     name: "", // TODO,
     email: "", // TODO,
     url: "", // TODO,
-    terms_and_conditions_url: "", // TODO,
-    server_url: "", // TODO
+    termsAndConditionsUrl: "", // TODO,
+    serverUrl: "", // TODO
   };
 
   const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
     eservice.riskAnalysis.reduce(
       (
         acc: {
-          riskAnalysisSQL: EserviceRiskAnalysisSQL[];
-          riskAnalysisAnswersSQL: RiskAnalysisAnswerSQL[];
+          riskAnalysisSQL: EServiceRiskAnalysisSQL[];
+          riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
         },
-        currentRiskAnalysis: RiskAnalysis
+        currentRiskAnalysis: RiskAnalysisReadModel
       ) => {
         const { eserviceRiskAnalysisSQL, riskAnalysisAnswersSQL } =
           splitRiskAnalysisIntoObjectsSQL(
@@ -93,12 +95,12 @@ export const splitEserviceIntoObjectsSQL = (
     eservice.descriptors.reduce(
       (
         acc: {
-          descriptorsSQL: DescriptorSQL[];
-          attributesSQL: DescriptorAttributeSQL[];
-          documentsSQL: DocumentSQL[];
-          rejectionReasonsSQL: DescriptorRejectionReasonSQL[];
+          descriptorsSQL: EServiceDescriptorSQL[];
+          attributesSQL: EServiceDescriptorAttributeSQL[];
+          documentsSQL: EServiceDescriptorDocumentSQL[];
+          rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
         },
-        currentDescriptor: Descriptor
+        currentDescriptor: DescriptorReadModel
       ) => {
         const {
           descriptorSQL,
@@ -142,25 +144,25 @@ export const splitEserviceIntoObjectsSQL = (
 const attributeToAttributeSQL = ({
   attribute,
   descriptorId,
-  group_id,
+  groupId,
   kind,
   eserviceId,
   version,
 }: {
   attribute: EServiceAttribute;
   descriptorId: DescriptorId;
-  group_id: number;
+  groupId: number;
   kind: AttributeKind;
   eserviceId: EServiceId;
   version: number;
-}): DescriptorAttributeSQL => ({
-  eservice_id: eserviceId,
-  metadata_version: version,
-  attribute_id: attribute.id,
-  descriptor_id: descriptorId,
-  explicit_attribute_verification: attribute.explicitAttributeVerification,
+}): EServiceDescriptorAttributeSQL => ({
+  eserviceId,
+  metadataVersion: version,
+  attributeId: attribute.id,
+  descriptorId,
+  explicitAttributeVerification: attribute.explicitAttributeVerification,
   kind,
-  group_id,
+  groupId,
 });
 
 const attributesNestedArrayToAttributeSQLarray = (
@@ -169,13 +171,13 @@ const attributesNestedArrayToAttributeSQLarray = (
   kind: AttributeKind,
   eserviceId: EServiceId,
   version: number
-): DescriptorAttributeSQL[] =>
+): EServiceDescriptorAttributeSQL[] =>
   attributes.flatMap((group, index) =>
     group.map((attribute) =>
       attributeToAttributeSQL({
         attribute,
         descriptorId,
-        group_id: index,
+        groupId: index,
         kind,
         eserviceId,
         version,
@@ -185,13 +187,13 @@ const attributesNestedArrayToAttributeSQLarray = (
 
 export const splitDescriptorIntoObjectsSQL = (
   eserviceId: EServiceId,
-  descriptor: Descriptor,
+  descriptor: DescriptorReadModel,
   version: number
 ): {
-  descriptorSQL: DescriptorSQL;
-  attributesSQL: DescriptorAttributeSQL[];
-  documentsSQL: DocumentSQL[];
-  rejectionReasonsSQL: DescriptorRejectionReasonSQL[];
+  descriptorSQL: EServiceDescriptorSQL;
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
 } => {
   const descriptorSQL = descriptorToDescriptorSQL(
     eserviceId,
@@ -199,7 +201,7 @@ export const splitDescriptorIntoObjectsSQL = (
     version
   );
 
-  const attributesSQL: DescriptorAttributeSQL[] = [
+  const attributesSQL: EServiceDescriptorAttributeSQL[] = [
     ...attributesNestedArrayToAttributeSQLarray(
       descriptor.id,
       descriptor.attributes.certified,
@@ -242,7 +244,7 @@ export const splitDescriptorIntoObjectsSQL = (
     )
   );
 
-  const rejectionReasonsSQL: DescriptorRejectionReasonSQL[] =
+  const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] =
     descriptor.rejectionReasons
       ? descriptor.rejectionReasons.map((rejectionReason) =>
           rejectionReasonToRejectionReasonSQL(
@@ -263,48 +265,48 @@ export const splitDescriptorIntoObjectsSQL = (
 };
 
 export const splitRiskAnalysisIntoObjectsSQL = (
-  riskAnalysis: RiskAnalysis,
+  riskAnalysis: RiskAnalysisReadModel,
   eserviceId: EServiceId,
   version: number
 ): {
-  eserviceRiskAnalysisSQL: EserviceRiskAnalysisSQL;
-  riskAnalysisAnswersSQL: RiskAnalysisAnswerSQL[];
+  eserviceRiskAnalysisSQL: EServiceRiskAnalysisSQL;
+  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
 } => {
-  const eserviceRiskAnalysisSQL: EserviceRiskAnalysisSQL = {
+  const eserviceRiskAnalysisSQL: EServiceRiskAnalysisSQL = {
     id: riskAnalysis.id,
-    metadata_version: version,
-    eservice_id: eserviceId,
+    metadataVersion: version,
+    eserviceId,
     name: riskAnalysis.name,
-    created_at: riskAnalysis.createdAt,
-    risk_analysis_form_id: riskAnalysis.riskAnalysisForm.id,
-    risk_analysis_form_version: riskAnalysis.riskAnalysisForm.version,
+    createdAt: riskAnalysis.createdAt,
+    riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
+    riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
   };
 
-  const riskAnalysisSingleAnwers: RiskAnalysisAnswerSQL[] =
+  const riskAnalysisSingleAnwers: EServiceRiskAnalysisAnswerSQL[] =
     riskAnalysis.riskAnalysisForm.singleAnswers.map(
       (a) =>
         ({
           id: a.id,
-          eservice_id: eserviceId,
-          metadata_version: version,
+          eserviceId,
+          metadataVersion: version,
           key: a.key,
           value: a.value ? [a.value] : [],
-          risk_analysis_form_id: riskAnalysis.riskAnalysisForm.id,
+          riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
           kind: riskAnalysisAnswerKind.single,
-        } satisfies RiskAnalysisAnswerSQL)
+        } satisfies EServiceRiskAnalysisAnswerSQL)
     );
-  const riskAnalysisMultiAnwers: RiskAnalysisAnswerSQL[] =
+  const riskAnalysisMultiAnwers: EServiceRiskAnalysisAnswerSQL[] =
     riskAnalysis.riskAnalysisForm.multiAnswers.map(
       (a) =>
         ({
           id: a.id,
-          eservice_id: eserviceId,
-          metadata_version: version,
+          eserviceId,
+          metadataVersion: version,
           key: a.key,
           value: a.values,
-          risk_analysis_form_id: riskAnalysis.riskAnalysisForm.id,
+          riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
           kind: riskAnalysisAnswerKind.multi,
-        } satisfies RiskAnalysisAnswerSQL)
+        } satisfies EServiceRiskAnalysisAnswerSQL)
     );
 
   return {
@@ -317,72 +319,75 @@ export const splitRiskAnalysisIntoObjectsSQL = (
 };
 
 export const documentToDocumentSQL = (
-  document: Document,
+  document: DocumentReadModel,
   documentKind: DocumentKind,
   descriptorId: DescriptorId,
   eserviceId: EServiceId,
   version: number
-): DocumentSQL => ({
+): EServiceDescriptorDocumentSQL => ({
   id: document.id,
-  eservice_id: eserviceId,
-  metadata_version: version,
-  descriptor_id: descriptorId,
+  eserviceId,
+  metadataVersion: version,
+  descriptorId,
   name: document.name,
-  content_type: document.contentType,
-  pretty_name: document.prettyName,
+  contentType: document.contentType,
+  prettyName: document.prettyName,
   path: document.path,
   checksum: document.checksum,
-  upload_date: document.uploadDate,
+  uploadDate: document.uploadDate,
   kind: documentKind,
 });
 
 export const descriptorToDescriptorSQL = (
   eserviceId: EServiceId,
-  descriptor: Descriptor,
+  descriptor: DescriptorReadModel,
   version: number
-): DescriptorSQL => ({
+): EServiceDescriptorSQL => ({
   id: descriptor.id,
-  eservice_id: eserviceId,
-  metadata_version: version,
+  eserviceId,
+  metadataVersion: version,
   version: descriptor.version,
-  description: descriptor.description,
-  created_at: descriptor.createdAt,
+  description: descriptor.description || null,
+  createdAt: descriptor.createdAt,
   state: descriptor.state,
   audience: descriptor.audience,
-  voucher_lifespan: descriptor.voucherLifespan,
-  daily_calls_per_consumer: descriptor.dailyCallsPerConsumer,
-  daily_calls_total: descriptor.dailyCallsTotal,
-  server_urls: descriptor.serverUrls,
-  agreement_approval_policy: descriptor.agreementApprovalPolicy,
-  published_at: descriptor.publishedAt,
-  suspended_at: descriptor.suspendedAt,
-  deprecated_at: descriptor.deprecatedAt,
-  archived_at: descriptor.archivedAt,
+  voucherLifespan: descriptor.voucherLifespan,
+  dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+  dailyCallsTotal: descriptor.dailyCallsTotal,
+  serverUrls: descriptor.serverUrls,
+  agreementApprovalPolicy: descriptor.agreementApprovalPolicy || null,
+  publishedAt: descriptor.publishedAt || null,
+  suspendedAt: descriptor.suspendedAt || null,
+  deprecatedAt: descriptor.deprecatedAt || null,
+  archivedAt: descriptor.archivedAt || null,
 });
 
 export const eserviceToEserviceSQL = (
-  eservice: EService,
+  eservice: EServiceReadModel,
   version: number
 ): EServiceSQL => ({
   id: eservice.id,
-  metadata_version: version,
+  metadataVersion: version,
   name: eservice.name,
-  created_at: eservice.createdAt,
-  producer_id: eservice.producerId,
+  createdAt: eservice.createdAt,
+  producerId: eservice.producerId,
   description: eservice.description,
   technology: eservice.technology,
   mode: eservice.mode,
+  isSignalHubEnabled: eservice.isSignalHubEnabled || null,
+  isConsumerDelegable: eservice.isConsumerDelegable || null,
+  isClientAccessDelegable: eservice.isConsumerDelegable || null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (
-  rejectionReason: DescriptorRejectionReason,
+  rejectionReason: DescriptorRejectionReasonReadModel,
   descriptorId: DescriptorId,
   eserviceId: EServiceId,
   version: number
-): DescriptorRejectionReasonSQL => ({
-  eservice_id: eserviceId,
-  metadata_version: version,
-  descriptor_id: descriptorId,
-  rejection_reason: rejectionReason.rejectionReason,
-  rejected_at: rejectionReason.rejectedAt,
+): EServiceDescriptorRejectionReasonSQL => ({
+  eserviceId,
+  metadataVersion: version,
+  descriptorId,
+  rejectionReason: rejectionReason.rejectionReason,
+  rejectedAt: rejectionReason.rejectedAt,
 });
