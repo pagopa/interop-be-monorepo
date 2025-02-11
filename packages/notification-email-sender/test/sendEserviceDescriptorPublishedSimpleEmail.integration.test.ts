@@ -37,21 +37,21 @@ import {
 describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
   it("should send an email on EserviceDescriptorPublished", async () => {
     vi.spyOn(sesEmailManager, "send");
-    const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
+    const consumerEmail1 = getMockTenantMail(tenantMailKind.ContactEmail);
+    const consumerEmail2 = getMockTenantMail(tenantMailKind.ContactEmail);
+
     const consumer1: Tenant = {
       ...getMockTenant(),
       name: "Jane Doe",
-      mails: [consumerEmail],
+      mails: [consumerEmail1],
     };
 
     const consumer2: Tenant = {
       ...getMockTenant(),
-      name: "Jane Doe",
-      mails: [consumerEmail],
+      name: "Jhon Smith",
+      mails: [consumerEmail2],
     };
-    const producer: Tenant = getMockTenant();
 
-    await addOneTenant(producer);
     await addOneTenant(consumer1);
     await addOneTenant(consumer2);
 
@@ -71,7 +71,6 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
     const agreement1 = {
       ...getMockAgreement(),
       id: generateId<AgreementId>(),
-      producerId: producer.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
       consumerId: consumer1.id,
@@ -80,7 +79,6 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
     const agreement2 = {
       ...getMockAgreement(),
       id: generateId<AgreementId>(),
-      producerId: producer.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
       consumerId: consumer2.id,
@@ -108,29 +106,12 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
         address: sesEmailsenderData.mail,
       },
       subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
-      to: [consumerEmail.address],
+      to: [consumerEmail1.address],
       body: templateService.compileHtml(
         eservicePublishedDescriptorEmailTemplate,
         {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
           consumerName: consumer1.name,
-          eserviceName: eservice.name,
-        }
-      ),
-    };
-
-    const mail2 = {
-      from: {
-        name: sesEmailsenderData.label,
-        address: sesEmailsenderData.mail,
-      },
-      subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
-      to: [consumerEmail.address],
-      body: templateService.compileHtml(
-        eservicePublishedDescriptorEmailTemplate,
-        {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
-          consumerName: consumer2.name,
           eserviceName: eservice.name,
         }
       ),
@@ -156,6 +137,23 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
       body: { html: mail1.body },
     });
 
+    const mail2 = {
+      from: {
+        name: sesEmailsenderData.label,
+        address: sesEmailsenderData.mail,
+      },
+      subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
+      to: [consumerEmail2.address],
+      body: templateService.compileHtml(
+        eservicePublishedDescriptorEmailTemplate,
+        {
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
+          consumerName: consumer2.name,
+          eserviceName: eservice.name,
+        }
+      ),
+    };
+
     expect(sesEmailManager.send).toHaveBeenCalledWith(
       mail2.from,
       mail2.to,
@@ -167,7 +165,7 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`
     );
     expect(response2.status).toBe(200);
-    const lastEmail2 = response2.data.emails[0];
+    const lastEmail2 = response2.data.emails[1];
 
     expect(lastEmail2).toMatchObject({
       subject: mail2.subject,

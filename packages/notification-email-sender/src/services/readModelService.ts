@@ -80,7 +80,7 @@ export function readModelServiceBuilder(
 
       if (!result.success) {
         throw genericInternalError(
-          `Unable to parse tenant item: result ${JSON.stringify(
+          `Unable to parse agreement item: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );

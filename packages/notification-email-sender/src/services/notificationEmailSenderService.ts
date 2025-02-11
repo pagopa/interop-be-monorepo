@@ -524,7 +524,7 @@ export function notificationEmailSenderServiceBuilder(
 
         if (!consumerEmail) {
           logger.warn(
-            `Producer email not found for eservice ${eservice.id}, skipping email`
+            `Consumer email not found for eservice ${eservice.id}, skipping email`
           );
           return;
         }

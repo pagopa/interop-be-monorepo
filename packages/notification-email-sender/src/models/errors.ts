@@ -54,7 +54,7 @@ export function eserviceAgreementsNotFound(
   eserviceId: EServiceId
 ): NotificationEmailSenderError {
   return new InternalError({
-    detail: `not found agreements for eservice ${eserviceId}`,
+    detail: `Not found agreements for eservice ${eserviceId}`,
     code: "eserviceAgreementsNotFound",
   });
 }
