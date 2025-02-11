@@ -27,6 +27,7 @@ export const errorCodes = {
   unchangedAttributes: "0015",
   attributeNotFound: "0016",
   originNotCompliant: "0017",
+  missingTemplateVersionInterface: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -209,5 +210,16 @@ export function eserviceTemplateNotInDraftState(
     detail: `EService Template ${eserviceTemplateId} is not in draft state`,
     code: "eserviceTemplateNotInDraftState",
     title: "EService Template not in draft state",
+  });
+}
+
+export function missingTemplateVersionInterface(
+  templateId: EServiceTemplateId,
+  versionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template ${templateId} version ${versionId} is missing the interface document`,
+    code: "missingTemplateVersionInterface",
+    title: "Missing template version interface",
   });
 }

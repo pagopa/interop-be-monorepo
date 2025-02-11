@@ -12,6 +12,7 @@ import {
   userRoles,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   validateRiskAnalysis,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -62,6 +63,7 @@ import {
   tenantNotFound,
   originNotCompliant,
   eserviceTemaplateRiskAnalysisNameDuplicate,
+  missingTemplateVersionInterface,
 } from "../model/domain/errors.js";
 import {
   toCreateEventEServiceTemplateAudienceDescriptionUpdated,
@@ -73,6 +75,7 @@ import {
   toCreateEventEServiceTemplateRiskAnalysisUpdated,
   toCreateEventEServiceTemplateDeleted,
   toCreateEventEServiceTemplateDraftVersionDeleted,
+  toCreateEventEServiceTemplateVersionPublished,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -429,6 +432,99 @@ export function eserviceTemplateServiceBuilder(
       );
 
       await repository.createEvent(event);
+    },
+
+    async publishEServiceTemplateVersion(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Publishing e-service template version ${eserviceTemplateVersionId} for EService ${eserviceTemplateId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        eserviceTemplate.data
+      );
+
+      if (
+        eserviceTemplateVersion.state !== eserviceTemplateVersionState.draft
+      ) {
+        throw notValidEServiceTemplateVersionState(
+          eserviceTemplateVersionId,
+          eserviceTemplateVersion.state
+        );
+      }
+
+      if (eserviceTemplateVersion.interface === undefined) {
+        throw missingTemplateVersionInterface(
+          eserviceTemplateId,
+          eserviceTemplateVersionId
+        );
+      }
+
+      const tenant = await retrieveTenant(
+        eserviceTemplate.data.creatorId,
+        readModelService
+      );
+      assertTenantKindExists(tenant);
+
+      if (
+        eserviceTemplate.data.mode === eserviceMode.receive &&
+        eserviceTemplate.data.riskAnalysis.length > 0 &&
+        eserviceTemplate.data.riskAnalysis.some((ra) => {
+          const result = validateRiskAnalysis(
+            riskAnalysisFormToRiskAnalysisFormToValidate(ra.riskAnalysisForm),
+            true,
+            tenant.kind
+          );
+
+          return result.type === "invalid";
+        })
+      ) {
+        // should we return the validation issues or it's ok to just return an empty issues array?
+        throw riskAnalysisValidationFailed([]);
+      }
+
+      const publishedTemplate: EServiceTemplate = {
+        ...eserviceTemplate.data,
+        versions: eserviceTemplate.data.versions.map((v) =>
+          v.id === eserviceTemplateVersionId
+            ? {
+                ...v,
+                state: eserviceTemplateVersionState.published,
+                publishedAt: new Date(),
+              }
+            : Number(eserviceTemplateVersion.version) > Number(v.version)
+            ? {
+                ...v,
+                state: eserviceTemplateVersionState.deprecated,
+                deprecatedAt: new Date(),
+              }
+            : v
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceTemplateVersionPublished(
+          eserviceTemplateId,
+          eserviceTemplate.metadata.version,
+          eserviceTemplateVersionId,
+          publishedTemplate,
+          correlationId
+        )
+      );
     },
 
     async activateEServiceTemplateVersion(
