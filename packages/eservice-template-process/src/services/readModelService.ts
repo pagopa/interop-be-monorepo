@@ -166,10 +166,10 @@ export function readModelServiceBuilder({
           $match: {
             "data.templateId": eserviceTemplate.id,
             $or: [
-              { "data.versions.1": { $exists: true } },
+              { "data.descriptors.1": { $exists: true } },
               {
-                "data.versions": { $size: 1 },
-                "data.versions.0.state": {
+                "data.descriptors": { $size: 1 },
+                "data.descriptors.0.state": {
                   $ne: descriptorState.draft,
                 },
               },
@@ -179,38 +179,48 @@ export function readModelServiceBuilder({
         {
           $lookup: {
             from: "tenants",
-            localField: "data.id",
-            foreignField: "data.producerId",
+            localField: "data.producerId",
+            foreignField: "data.id",
             as: "producer",
           },
         },
         {
           $addFields: {
-            "data.producerName": "$producer.0.name",
+            "data.producerName": { $arrayElemAt: ["$producer.data.name", 0] },
           },
         },
         { $match: producerNameFilter },
         {
           $addFields: {
-            "data.latestVersion": {
-              $arrayElemAt: [
-                {
-                  $filter: {
-                    input: {
-                      $sortArray: {
-                        input: "$data.descriptors",
-                        sortBy: { "data.version": -1 },
-                      },
-                    },
-                    as: "descriptor",
-                    cond: {
-                      $ne: ["$$descriptor.state", descriptorState.draft],
-                    },
-                  },
+            "data.descriptors": {
+              $filter: {
+                input: "$data.descriptors",
+                as: "descriptor",
+                cond: {
+                  $ne: ["$$descriptor.state", descriptorState.draft],
                 },
-                0,
-              ],
+              },
             },
+          },
+        },
+        {
+          $unwind: "$data.descriptors",
+        },
+        {
+          $sort: {
+            "data.descriptors.version": -1,
+          },
+        },
+        {
+          $group: {
+            _id: "$_id",
+            data: { $first: "$data" },
+            latestVersion: { $first: "$data.descriptors" },
+          },
+        },
+        {
+          $addFields: {
+            "data.latestVersion": "$latestVersion",
           },
         },
         { $match: descriptorsStateFilter },

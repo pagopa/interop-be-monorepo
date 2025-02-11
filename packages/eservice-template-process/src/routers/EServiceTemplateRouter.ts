@@ -37,7 +37,7 @@ import {
 import {
   apiDescriptorStateToDescriptorState,
   eserviceTemplateToApiEServiceTemplate,
-  eserviceTemplateInstancesToApiEServiceTemplateInstances,
+  eserviceTemplateInstanceToApiEServiceTemplateInstance,
 } from "../model/domain/apiConverter.js";
 
 const readModelService = readModelServiceBuilder(
@@ -538,7 +538,7 @@ const eserviceTemplatesRouter = (
           return res.status(200).send(
             eserviceTemplateApi.EServiceTemplateInstances.parse({
               results: results.map(
-                eserviceTemplateInstancesToApiEServiceTemplateInstances
+                eserviceTemplateInstanceToApiEServiceTemplateInstance
               ),
               totalCount,
             })

@@ -14,7 +14,7 @@ export const EServiceTemplateInstance = z.object({
   id: EServiceId,
   producerName: z.string(),
   state: DescriptorState,
-  instanceId: z.string(),
+  instanceId: z.string().optional(),
   version: z.string(),
 });
 

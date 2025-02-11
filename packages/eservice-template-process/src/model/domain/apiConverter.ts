@@ -199,7 +199,7 @@ export function apiDescriptorStateToDescriptorState(
     .exhaustive();
 }
 
-export function eserviceTemplateInstancesToApiEServiceTemplateInstances(
+export function eserviceTemplateInstanceToApiEServiceTemplateInstance(
   input: EServiceTemplateInstance
 ): eserviceTemplateApi.EServiceTemplateInstance {
   return {
