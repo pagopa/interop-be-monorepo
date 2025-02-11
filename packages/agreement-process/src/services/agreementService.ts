@@ -33,7 +33,6 @@ import {
   generateId,
   CompactTenant,
   CorrelationId,
-  Delegation,
   DelegationId,
 } from "pagopa-interop-models";
 import {
@@ -191,21 +190,6 @@ export const retrieveDescriptor = (
   }
 
   return descriptor;
-};
-
-const retrieveConsumerDelegationById = async (
-  delegationId: DelegationId,
-  readModelService: ReadModelService
-): Promise<Delegation> => {
-  const delegation = await readModelService.getConsumerDelegationById(
-    delegationId
-  );
-
-  if (!delegation) {
-    throw delegationNotFound(delegationId);
-  }
-
-  return delegation;
 };
 
 function retrieveAgreementDocument(
@@ -440,9 +424,6 @@ export function agreementServiceBuilder(
         agreement.data.state,
         agreementDeletableStates
       );
-
-      // Check that the delegation exists
-      await retrieveConsumerDelegationById(delegationId, readModelService);
 
       for (const d of agreement.data.consumerDocuments) {
         await fileManager.delete(config.s3Bucket, d.path, logger);
@@ -1336,9 +1317,6 @@ export function agreementServiceBuilder(
         agreement.data.state,
         agreementArchivableStates
       );
-
-      // Check that the delegation exists
-      await retrieveConsumerDelegationById(delegationId, readModelService);
 
       const updatedAgreement: Agreement = {
         ...agreement.data,
