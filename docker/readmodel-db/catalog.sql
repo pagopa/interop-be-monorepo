@@ -54,12 +54,13 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor (
   PRIMARY KEY (id)
 );
 
+-- TODO: what's the PK?
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_rejection_reason (
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   descriptor_id UUID NOT NULL REFERENCES readmodel.eservice_descriptor (id) ON DELETE CASCADE,
   rejection_reason VARCHAR NOT NULL,
-  rejected_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  rejected_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_document(
