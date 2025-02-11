@@ -112,7 +112,7 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
       body: templateService.compileHtml(
         eservicePublishedDescriptorEmailTemplate,
         {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/catalogo/${eservice.id}`, // catalogo?
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
           consumerName: consumer1.name,
           eserviceName: eservice.name,
         }
@@ -129,7 +129,7 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
       body: templateService.compileHtml(
         eservicePublishedDescriptorEmailTemplate,
         {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/catalogo/${eservice.id}`,
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
           consumerName: consumer2.name,
           eserviceName: eservice.name,
         }

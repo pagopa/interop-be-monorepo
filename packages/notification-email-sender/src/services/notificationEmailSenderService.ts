@@ -29,8 +29,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { match } from "ts-pattern";
 import {
   agreementStampDateNotFound,
+  descriptorInValidStateNotFound,
   descriptorNotFound,
   eserviceAgreementsNotFound,
   eServiceNotFound,
@@ -158,6 +160,23 @@ export function getFormattedAgreementStampDate(
     throw agreementStampDateNotFound(stamp, agreement.id);
   }
   return dateAtRomeZone(new Date(Number(stampDate)));
+}
+
+const isValidDescriptorState = (d: Descriptor): boolean =>
+  match(d.state)
+    .with("Archived", "Deprecated", "Published", "Suspended", () => true)
+    .with("Draft", "WaitingForApproval", () => false)
+    .exhaustive();
+
+function getLatestValidDescriptor(eservice: EService): Descriptor {
+  const latestDescriptor = eservice.descriptors
+    .filter(isValidDescriptorState)
+    .sort((a, b) => Number(a.version) - Number(b.version))
+    .at(-1);
+  if (!latestDescriptor) {
+    throw descriptorInValidStateNotFound(eservice.id);
+  }
+  return latestDescriptor;
 }
 
 async function sendActivationNotificationEmail(
@@ -510,7 +529,7 @@ export function notificationEmailSenderServiceBuilder(
           return;
         }
 
-        const descriptor = getLatestDescriptor();
+        const descriptor = getLatestValidDescriptor(eservice);
 
         const mail = {
           from: { name: sesSenderData.label, address: sesSenderData.mail },
