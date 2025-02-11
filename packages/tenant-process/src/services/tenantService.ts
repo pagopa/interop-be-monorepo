@@ -1789,7 +1789,10 @@ export function tenantServiceBuilder(
           async ([delegatedConsumerEvent, delegatedProducerEvent]) => {
             await repository.createEvents([
               delegatedConsumerEvent,
-              delegatedProducerEvent,
+              {
+                ...delegatedProducerEvent,
+                version: requesterTenant.metadata.version + 1,
+              },
             ]);
           }
         )
