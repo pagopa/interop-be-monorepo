@@ -1234,6 +1234,7 @@ export function catalogServiceBuilder(
         map.set(entry.entryName.replace(rootFolderName + "/", ""), entry);
         return map;
       }, new Map<string, AdmZip.IZipEntry>());
+      entriesMap.delete("");
 
       const configurationEntry = entriesMap.get("configuration.json");
       if (!configurationEntry) {
