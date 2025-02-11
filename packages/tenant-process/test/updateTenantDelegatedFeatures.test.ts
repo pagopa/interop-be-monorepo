@@ -58,7 +58,7 @@ describe("updateTenantDelegatedFeatures", async () => {
 
       expect(writtenEvent).toMatchObject({
         stream_id: mockTenant.id,
-        version: "0",
+        version: "1",
         type: "TenantDelegatedProducerFeatureAdded",
         event_version: 2,
       });
@@ -117,7 +117,7 @@ describe("updateTenantDelegatedFeatures", async () => {
 
       expect(writtenEvent).toMatchObject({
         stream_id: mockTenant.id,
-        version: "0",
+        version: "1",
         type: "TenantDelegatedProducerFeatureRemoved",
         event_version: 2,
       });
