@@ -140,13 +140,27 @@ export async function handlePurposeMessage(
       }
     )
     .with(
+      { event_version: 2, type: "NewPurposeVersionActivated" },
+      async ({ data: { purpose } }) => {
+        if (purpose) {
+          await Promise.all([
+            notificationEmailSenderService.sendPurposeVersionActivatedEmail(
+              purpose,
+              logger
+            ),
+          ]);
+        } else {
+          throw missingKafkaMessageDataError("purpose", decodedMessage.type);
+        }
+      }
+    )
+    .with(
       {
         type: P.union(
           "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
           "DraftPurposeUpdated",
-          "NewPurposeVersionActivated",
           "PurposeActivated",
           "PurposeArchived",
           "PurposeVersionOverQuotaUnsuspended",
