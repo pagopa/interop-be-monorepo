@@ -482,18 +482,17 @@ export function eserviceTemplateServiceBuilder(
 
       if (
         eserviceTemplate.data.mode === eserviceMode.receive &&
-        eserviceTemplate.data.riskAnalysis.length > 0 &&
-        eserviceTemplate.data.riskAnalysis.some((ra) => {
-          const result = validateRiskAnalysis(
-            riskAnalysisFormToRiskAnalysisFormToValidate(ra.riskAnalysisForm),
-            true,
-            tenant.kind
-          );
+        (eserviceTemplate.data.riskAnalysis.length === 0 ||
+          eserviceTemplate.data.riskAnalysis.some((ra) => {
+            const result = validateRiskAnalysis(
+              riskAnalysisFormToRiskAnalysisFormToValidate(ra.riskAnalysisForm),
+              true,
+              tenant.kind
+            );
 
-          return result.type === "invalid";
-        })
+            return result.type === "invalid";
+          }))
       ) {
-        // should we return the validation issues or it's ok to just return an empty issues array?
         throw riskAnalysisValidationFailed([]);
       }
 

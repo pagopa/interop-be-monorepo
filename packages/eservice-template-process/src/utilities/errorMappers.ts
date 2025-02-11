@@ -41,6 +41,7 @@ export const publishEServiceTemplateVersionErrorMapper = (
     .with(
       "eServiceTemplateNotFound",
       "eServiceTemplateVersionNotFound",
+      "tenantKindNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("notValidEServiceTemplateVersionState", () => HTTP_STATUS_BAD_REQUEST)
