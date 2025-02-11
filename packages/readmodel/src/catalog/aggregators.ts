@@ -25,6 +25,8 @@ import {
   RiskAnalysisId,
   RiskAnalysisFormId,
   AttributeId,
+  DescriptorRejectionReason,
+  stringToDate,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
@@ -45,14 +47,20 @@ export const documentSQLtoDocument = (
   prettyName: input.prettyName,
   contentType: input.contentType,
   checksum: input.checksum,
-  uploadDate: new Date(input.uploadDate),
+  uploadDate: stringToDate(input.uploadDate),
 });
 
-export const descriptorSQLtoDescriptor = (
-  input: EServiceDescriptorSQL,
-  documentsSQL: EServiceDescriptorDocumentSQL[],
-  attributesSQL: EServiceDescriptorAttributeSQL[]
-): Descriptor => {
+export const descriptorSQLtoDescriptor = ({
+  descriptorSQL,
+  documentsSQL,
+  attributesSQL,
+  rejectionReasonsSQL,
+}: {
+  descriptorSQL: EServiceDescriptorSQL;
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+}): Descriptor => {
   const interfaceSQL = documentsSQL.find(
     (d) => d.kind === documentKind.descriptorInterface
   );
@@ -78,31 +86,39 @@ export const descriptorSQLtoDescriptor = (
   const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
   const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
 
+  const rejectionReasons: DescriptorRejectionReason[] = rejectionReasonsSQL.map(
+    (rejectionReason) => ({
+      rejectionReason: rejectionReason.rejectionReason,
+      rejectedAt: stringToDate(rejectionReason.rejectedAt),
+    })
+  );
+
   return {
-    id: unsafeBrandId<DescriptorId>(input.id),
-    version: input.version,
-    description: input.description || undefined,
+    id: unsafeBrandId<DescriptorId>(descriptorSQL.id),
+    version: descriptorSQL.version,
+    description: descriptorSQL.description || undefined,
     interface: parsedInterface,
     docs: docsSQL.map(documentSQLtoDocument),
-    state: DescriptorState.parse(input.state),
-    audience: input.audience,
-    voucherLifespan: input.voucherLifespan,
-    dailyCallsPerConsumer: input.dailyCallsPerConsumer,
-    dailyCallsTotal: input.dailyCallsTotal,
+    state: DescriptorState.parse(descriptorSQL.state), // TODO use safeParse?
+    audience: descriptorSQL.audience,
+    voucherLifespan: descriptorSQL.voucherLifespan,
+    dailyCallsPerConsumer: descriptorSQL.dailyCallsPerConsumer,
+    dailyCallsTotal: descriptorSQL.dailyCallsTotal,
     agreementApprovalPolicy: AgreementApprovalPolicy.parse(
-      input.agreementApprovalPolicy
-    ),
-    createdAt: new Date(input.createdAt),
-    serverUrls: input.serverUrls,
-    publishedAt: input.publishedAt ? new Date(input.publishedAt) : undefined,
-    suspendedAt: input.suspendedAt ? new Date(input.suspendedAt) : undefined,
-    deprecatedAt: input.deprecatedAt ? new Date(input.deprecatedAt) : undefined,
-    archivedAt: input.archivedAt ? new Date(input.archivedAt) : undefined,
+      descriptorSQL.agreementApprovalPolicy
+    ), // TODO use safeParse?
+    createdAt: stringToDate(descriptorSQL.createdAt),
+    serverUrls: descriptorSQL.serverUrls,
+    publishedAt: stringToDate(descriptorSQL.publishedAt),
+    suspendedAt: stringToDate(descriptorSQL.suspendedAt),
+    deprecatedAt: stringToDate(descriptorSQL.deprecatedAt),
+    archivedAt: stringToDate(descriptorSQL.archivedAt),
     attributes: {
       certified: certifiedAttributes,
       declared: declaredAttributes,
       verified: verifiedAttributes,
     },
+    rejectionReasons,
   };
 };
 
@@ -113,9 +129,9 @@ export const eserviceSQLtoEservice = ({
   descriptorsSQL,
   attributesSQL,
   documentsSQL,
-  rejectionReasonToRejectionReasonSQL,
-  eserviceTemplateBindingSQL,
-}: {
+  rejectionReasonsSQL,
+}: // TODO add template
+{
   eserviceSQL: EServiceSQL;
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
   riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
@@ -125,12 +141,19 @@ export const eserviceSQLtoEservice = ({
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   eserviceTemplateBindingSQL?: EServiceTemplateBindingSQL;
 }): WithMetadata<EService> => {
-  const descriptors = descriptorsSQL.map((descriptor) =>
-    descriptorSQLtoDescriptor(
-      descriptor,
-      documentsSQL.filter((d) => d.descriptorId === descriptor.id),
-      attributesSQL.filter((a) => a.descriptorId === descriptor.id)
-    )
+  const descriptors = descriptorsSQL.map((descriptorSQL) =>
+    descriptorSQLtoDescriptor({
+      descriptorSQL,
+      documentsSQL: documentsSQL.filter(
+        (d) => d.descriptorId === descriptorSQL.id
+      ),
+      attributesSQL: attributesSQL.filter(
+        (a) => a.descriptorId === descriptorSQL.id
+      ),
+      rejectionReasonsSQL: rejectionReasonsSQL.filter(
+        (r) => r.descriptorId === descriptorSQL.id
+      ),
+    })
   );
 
   const riskAnalysis = riskAnalysesSQL.map((ra) =>
@@ -144,13 +167,13 @@ export const eserviceSQLtoEservice = ({
   const eservice: EService = {
     id: unsafeBrandId<EServiceId>(eserviceSQL.id),
     name: eserviceSQL.name,
-    createdAt: new Date(eserviceSQL.createdAt),
+    createdAt: stringToDate(eserviceSQL.createdAt),
     producerId: unsafeBrandId<TenantId>(eserviceSQL.producerId),
     description: eserviceSQL.description,
-    technology: Technology.parse(eserviceSQL.technology),
+    technology: Technology.parse(eserviceSQL.technology), // TODO use safeParse?
     descriptors,
     riskAnalysis,
-    mode: EServiceMode.parse(eserviceSQL.mode),
+    mode: EServiceMode.parse(eserviceSQL.mode), // TODO use safeParse?
   };
   return {
     data: eservice,
@@ -235,7 +258,7 @@ export const riskAnalysisSQLtoRiskAnalysis = (
   const riskAnalysis: RiskAnalysis = {
     id: unsafeBrandId<RiskAnalysisId>(riskAnalysisSQL.id),
     name: riskAnalysisSQL.name,
-    createdAt: new Date(riskAnalysisSQL.createdAt),
+    createdAt: stringToDate(riskAnalysisSQL.createdAt),
     riskAnalysisForm: {
       version: riskAnalysisSQL.riskAnalysisFormVersion,
       id: unsafeBrandId<RiskAnalysisFormId>(riskAnalysisSQL.riskAnalysisFormId),
