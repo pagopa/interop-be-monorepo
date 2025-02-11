@@ -39,7 +39,7 @@ import {
   DelegationId,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
-import { tenantApi } from "pagopa-interop-api-clients";
+import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
@@ -1722,135 +1722,21 @@ export function tenantServiceBuilder(
         await repository.createEvent(attributeAssignmentEvent);
       }
     },
-    async assignTenantDelegatedProducerFeature({
+    async updateTenantDelegatedFeatures({
       organizationId,
+      tenantFeatures,
       correlationId,
       authData,
       logger,
     }: {
       organizationId: TenantId;
+      tenantFeatures: bffApi.TenantDelegatedFeaturesFlagsUpdateSeed;
       correlationId: CorrelationId;
       authData: AuthData;
       logger: Logger;
     }): Promise<void> {
       logger.info(
-        `Assigning delegated producer feature to tenant ${organizationId}`
-      );
-
-      assertRequesterDelegationsAllowedOrigin(authData);
-
-      const requesterTenant = await retrieveTenant(
-        organizationId,
-        readModelService
-      );
-
-      assertFeatureNotAssigned(requesterTenant.data, "DelegatedProducer");
-
-      const updatedTenant: Tenant = {
-        ...requesterTenant.data,
-        features: [
-          ...requesterTenant.data.features,
-          { type: "DelegatedProducer", availabilityTimestamp: new Date() },
-        ],
-        updatedAt: new Date(),
-      };
-
-      await repository.createEvent(
-        toCreateEventTenantDelegatedProducerFeatureAdded(
-          requesterTenant.metadata.version,
-          updatedTenant,
-          correlationId
-        )
-      );
-    },
-    async removeTenantDelegatedProducerFeature({
-      organizationId,
-      correlationId,
-      authData,
-      logger,
-    }: {
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      authData: AuthData;
-      logger: Logger;
-    }): Promise<void> {
-      logger.info(
-        `Removing delegated producer feature to tenant ${organizationId}`
-      );
-
-      assertRequesterDelegationsAllowedOrigin(authData);
-
-      const requesterTenant = await retrieveTenant(
-        organizationId,
-        readModelService
-      );
-
-      assertFeatureAssigned(requesterTenant.data, "DelegatedProducer");
-
-      const updatedTenant: Tenant = {
-        ...requesterTenant.data,
-        features: requesterTenant.data.features.filter(
-          (f) => f.type !== "DelegatedProducer"
-        ),
-        updatedAt: new Date(),
-      };
-
-      await repository.createEvent(
-        toCreateEventTenantDelegatedProducerFeatureRemoved(
-          requesterTenant.metadata.version,
-          updatedTenant,
-          correlationId
-        )
-      );
-    },
-    async assignTenantDelegatedConsumerFeature({
-      authData,
-      correlationId,
-      logger,
-    }: WithLogger<AppContext>): Promise<void> {
-      logger.info(
-        `Assigning delegated consumer feature to tenant ${authData.organizationId}`
-      );
-
-      assertRequesterDelegationsAllowedOrigin(authData);
-
-      const requesterTenant = await retrieveTenant(
-        authData.organizationId,
-        readModelService
-      );
-
-      assertFeatureNotAssigned(requesterTenant.data, "DelegatedConsumer");
-
-      const updatedTenant: Tenant = {
-        ...requesterTenant.data,
-        features: [
-          ...requesterTenant.data.features,
-          { type: "DelegatedConsumer", availabilityTimestamp: new Date() },
-        ],
-        updatedAt: new Date(),
-      };
-
-      await repository.createEvent(
-        toCreateEventTenantDelegatedConsumerFeatureAdded(
-          requesterTenant.metadata.version,
-          updatedTenant,
-          correlationId
-        )
-      );
-    },
-    async removeTenantDelegatedConsumerFeature({
-      organizationId,
-      correlationId,
-      authData,
-      logger,
-    }: {
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      authData: AuthData;
-      logger: Logger;
-    }): Promise<void> {
-      logger.info(
-        `Removing delegated consumer feature to tenant ${organizationId}`
+        `Updagint tenant delegated features for tenant ${organizationId}`
       );
 
       assertRequesterDelegationsAllowedOrigin(authData);
@@ -1862,23 +1748,172 @@ export function tenantServiceBuilder(
 
       assertFeatureAssigned(requesterTenant.data, "DelegatedConsumer");
 
-      const updatedTenant: Tenant = {
-        ...requesterTenant.data,
-        features: requesterTenant.data.features.filter(
-          (f) => f.type !== "DelegatedConsumer"
-        ),
-        updatedAt: new Date(),
-      };
-
-      await repository.createEvent(
-        toCreateEventTenantDelegatedConsumerFeatureRemoved(
-          requesterTenant.metadata.version,
-          updatedTenant,
-          correlationId
+      const delegatedConsumerEvent = match(
+        tenantFeatures.isDelegatedConsumerFeatureEnabled
+      )
+        .with(true, () =>
+          assignTenantDelegatedConsumerFeature({
+            tenant: requesterTenant,
+            correlationId,
+            logger,
+          })
         )
-      );
+        .with(false, () =>
+          removeTenantDelegatedConsumerFeature({
+            tenant: requesterTenant,
+            correlationId,
+            logger,
+          })
+        )
+        .exhaustive();
+
+      const delegatedProducerEvent = match(
+        tenantFeatures.isDelegatedProducerFeatureEnabled
+      )
+        .with(true, () =>
+          assignTenantDelegatedProducerFeature({
+            tenant: requesterTenant,
+            correlationId,
+            logger,
+          })
+        )
+        .with(false, () =>
+          removeTenantDelegatedProducerFeature({
+            tenant: requesterTenant,
+            correlationId,
+            logger,
+          })
+        )
+        .exhaustive();
+
+      await repository.createEvents([
+        delegatedConsumerEvent,
+        delegatedProducerEvent,
+      ]);
     },
   };
+}
+
+export function assignTenantDelegatedProducerFeature({
+  tenant,
+  correlationId,
+  logger,
+}: {
+  tenant: WithMetadata<Tenant>;
+  correlationId: CorrelationId;
+  logger: Logger;
+}): CreateEvent<TenantEvent> {
+  logger.info(
+    `Assigning delegated producer feature to tenant ${tenant.data.id}`
+  );
+
+  assertFeatureNotAssigned(tenant.data, "DelegatedProducer");
+
+  const updatedTenant: Tenant = {
+    ...tenant.data,
+    features: [
+      ...tenant.data.features,
+      { type: "DelegatedProducer", availabilityTimestamp: new Date() },
+    ],
+    updatedAt: new Date(),
+  };
+
+  return toCreateEventTenantDelegatedProducerFeatureAdded(
+    tenant.metadata.version,
+    updatedTenant,
+    correlationId
+  );
+}
+
+export function removeTenantDelegatedProducerFeature({
+  tenant,
+  correlationId,
+  logger,
+}: {
+  tenant: WithMetadata<Tenant>;
+  correlationId: CorrelationId;
+  logger: Logger;
+}): CreateEvent<TenantEvent> {
+  logger.info(
+    `Removing delegated producer feature to tenant ${tenant.data.id}`
+  );
+
+  assertFeatureAssigned(tenant.data, "DelegatedProducer");
+
+  const updatedTenant: Tenant = {
+    ...tenant.data,
+    features: tenant.data.features.filter(
+      (f) => f.type !== "DelegatedProducer"
+    ),
+    updatedAt: new Date(),
+  };
+
+  return toCreateEventTenantDelegatedProducerFeatureRemoved(
+    tenant.metadata.version,
+    updatedTenant,
+    correlationId
+  );
+}
+
+export function assignTenantDelegatedConsumerFeature({
+  tenant,
+  correlationId,
+  logger,
+}: {
+  tenant: WithMetadata<Tenant>;
+  correlationId: CorrelationId;
+  logger: Logger;
+}): CreateEvent<TenantEvent> {
+  logger.info(
+    `Assigning delegated consumer feature to tenant ${tenant.data.id}`
+  );
+
+  assertFeatureNotAssigned(tenant.data, "DelegatedConsumer");
+
+  const updatedTenant: Tenant = {
+    ...tenant.data,
+    features: [
+      ...tenant.data.features,
+      { type: "DelegatedConsumer", availabilityTimestamp: new Date() },
+    ],
+    updatedAt: new Date(),
+  };
+
+  return toCreateEventTenantDelegatedConsumerFeatureAdded(
+    tenant.metadata.version,
+    updatedTenant,
+    correlationId
+  );
+}
+
+export function removeTenantDelegatedConsumerFeature({
+  tenant,
+  correlationId,
+  logger,
+}: {
+  tenant: WithMetadata<Tenant>;
+  correlationId: CorrelationId;
+  logger: Logger;
+}): CreateEvent<TenantEvent> {
+  logger.info(
+    `Removing delegated consumer feature to tenant ${tenant.data.id}`
+  );
+
+  assertFeatureAssigned(tenant.data, "DelegatedConsumer");
+
+  const updatedTenant: Tenant = {
+    ...tenant.data,
+    features: tenant.data.features.filter(
+      (f) => f.type !== "DelegatedConsumer"
+    ),
+    updatedAt: new Date(),
+  };
+
+  return toCreateEventTenantDelegatedConsumerFeatureRemoved(
+    tenant.metadata.version,
+    updatedTenant,
+    correlationId
+  );
 }
 
 function assignCertifiedAttribute({
