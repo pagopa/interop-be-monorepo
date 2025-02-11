@@ -59,7 +59,7 @@ describe("updateTenantDelegatedFeatures", async () => {
       expect(writtenEvent).toMatchObject({
         stream_id: mockTenant.id,
         version: "1",
-        type: "TenantDelegatedProducerFeatureAdded",
+        type: "TenantDelegatedConsumerFeatureAdded",
         event_version: 2,
       });
 
