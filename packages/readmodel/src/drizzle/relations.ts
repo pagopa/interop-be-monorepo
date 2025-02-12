@@ -535,9 +535,6 @@ export const attributeInReadmodelRelations = relations(
     tenantCertifiedAttributeInReadmodels: many(
       tenantCertifiedAttributeInReadmodel
     ),
-    tenantVerifiedAttributeVerifierInReadmodels: many(
-      tenantVerifiedAttributeVerifierInReadmodel
-    ),
   })
 );
 
@@ -618,12 +615,6 @@ export const tenantVerifiedAttributeVerifierInReadmodelRelations = relations(
       references: [tenantInReadmodel.id],
       relationName:
         "tenantVerifiedAttributeVerifierInReadmodel_id_tenantInReadmodel_id",
-    }),
-    attributeInReadmodel: one(attributeInReadmodel, {
-      fields: [
-        tenantVerifiedAttributeVerifierInReadmodel.tenantVerifiedAttributeId,
-      ],
-      references: [attributeInReadmodel.id],
     }),
     tenantVerifiedAttributeInReadmodel: one(
       tenantVerifiedAttributeInReadmodel,
