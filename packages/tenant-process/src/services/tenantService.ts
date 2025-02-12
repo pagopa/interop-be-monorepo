@@ -1764,19 +1764,28 @@ export function tenantServiceBuilder(
         )
         .exhaustive();
 
+      const updatedTenant: WithMetadata<Tenant> = delegatedConsumerEvent
+        ? {
+            ...requesterTenant,
+            data: {
+              ...delegatedConsumerEvent.updatedTenant,
+            },
+          }
+        : requesterTenant;
+
       const delegatedProducerEvent = match(
         tenantFeatures.isDelegatedProducerFeatureEnabled
       )
         .with(true, () =>
           assignTenantDelegatedProducerFeature({
-            tenant: requesterTenant,
+            tenant: updatedTenant,
             correlationId,
             logger,
           })
         )
         .with(false, () =>
           removeTenantDelegatedProducerFeature({
-            tenant: requesterTenant,
+            tenant: updatedTenant,
             correlationId,
             logger,
           })
@@ -1788,18 +1797,18 @@ export function tenantServiceBuilder(
           [P.not(P.nullish), P.not(P.nullish)],
           async ([delegatedConsumerEvent, delegatedProducerEvent]) =>
             repository.createEvents([
-              delegatedConsumerEvent,
+              delegatedConsumerEvent.event,
               {
-                ...delegatedProducerEvent,
+                ...delegatedProducerEvent.event,
                 version: requesterTenant.metadata.version + 1,
               },
             ])
         )
         .with([P.not(P.nullish), null], async ([delegatedConsumerEvent, _]) =>
-          repository.createEvent(delegatedConsumerEvent)
+          repository.createEvent(delegatedConsumerEvent.event)
         )
         .with([null, P.not(P.nullish)], async ([_, delegatedProducerEvent]) =>
-          repository.createEvent(delegatedProducerEvent)
+          repository.createEvent(delegatedProducerEvent.event)
         )
         .run();
     },
@@ -1814,7 +1823,7 @@ export function assignTenantDelegatedProducerFeature({
   tenant: WithMetadata<Tenant>;
   correlationId: CorrelationId;
   logger: Logger;
-}): CreateEvent<TenantEvent> | null {
+}): { event: CreateEvent<TenantEvent>; updatedTenant: Tenant } | null {
   if (isFeatureAssigned(tenant.data, "DelegatedProducer")) {
     return null;
   }
@@ -1832,11 +1841,13 @@ export function assignTenantDelegatedProducerFeature({
     updatedAt: new Date(),
   };
 
-  return toCreateEventTenantDelegatedProducerFeatureAdded(
+  const event = toCreateEventTenantDelegatedProducerFeatureAdded(
     tenant.metadata.version,
     updatedTenant,
     correlationId
   );
+
+  return { event, updatedTenant };
 }
 
 export function removeTenantDelegatedProducerFeature({
@@ -1847,7 +1858,7 @@ export function removeTenantDelegatedProducerFeature({
   tenant: WithMetadata<Tenant>;
   correlationId: CorrelationId;
   logger: Logger;
-}): CreateEvent<TenantEvent> | null {
+}): { event: CreateEvent<TenantEvent>; updatedTenant: Tenant } | null {
   if (!isFeatureAssigned(tenant.data, "DelegatedProducer")) {
     return null;
   }
@@ -1864,11 +1875,13 @@ export function removeTenantDelegatedProducerFeature({
     updatedAt: new Date(),
   };
 
-  return toCreateEventTenantDelegatedProducerFeatureRemoved(
+  const event = toCreateEventTenantDelegatedProducerFeatureRemoved(
     tenant.metadata.version,
     updatedTenant,
     correlationId
   );
+
+  return { event, updatedTenant };
 }
 
 export function assignTenantDelegatedConsumerFeature({
@@ -1879,7 +1892,7 @@ export function assignTenantDelegatedConsumerFeature({
   tenant: WithMetadata<Tenant>;
   correlationId: CorrelationId;
   logger: Logger;
-}): CreateEvent<TenantEvent> | null {
+}): { event: CreateEvent<TenantEvent>; updatedTenant: Tenant } | null {
   if (isFeatureAssigned(tenant.data, "DelegatedConsumer")) {
     return null;
   }
@@ -1897,11 +1910,13 @@ export function assignTenantDelegatedConsumerFeature({
     updatedAt: new Date(),
   };
 
-  return toCreateEventTenantDelegatedConsumerFeatureAdded(
+  const event = toCreateEventTenantDelegatedConsumerFeatureAdded(
     tenant.metadata.version,
     updatedTenant,
     correlationId
   );
+
+  return { event, updatedTenant };
 }
 
 export function removeTenantDelegatedConsumerFeature({
@@ -1912,7 +1927,7 @@ export function removeTenantDelegatedConsumerFeature({
   tenant: WithMetadata<Tenant>;
   correlationId: CorrelationId;
   logger: Logger;
-}): CreateEvent<TenantEvent> | null {
+}): { event: CreateEvent<TenantEvent>; updatedTenant: Tenant } | null {
   if (!isFeatureAssigned(tenant.data, "DelegatedConsumer")) {
     return null;
   }
@@ -1929,11 +1944,13 @@ export function removeTenantDelegatedConsumerFeature({
     updatedAt: new Date(),
   };
 
-  return toCreateEventTenantDelegatedConsumerFeatureRemoved(
+  const event = toCreateEventTenantDelegatedConsumerFeatureRemoved(
     tenant.metadata.version,
     updatedTenant,
     correlationId
   );
+
+  return { event, updatedTenant };
 }
 
 function assignCertifiedAttribute({
