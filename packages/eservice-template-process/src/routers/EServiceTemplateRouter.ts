@@ -32,6 +32,7 @@ import {
   deleteEServiceTemplateVersionErrorMapper,
   createEServiceTemplateErrorMapper,
   updateEServiceTemplateErrorMapper,
+  updateDraftTemplateVersionErrorMapper,
 } from "../utilities/errorMappers.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../model/domain/apiConverter.js";
 
@@ -221,7 +222,7 @@ const eserviceTemplatesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            suspendEServiceTemplateVersionErrorMapper,
+            updateDraftTemplateVersionErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

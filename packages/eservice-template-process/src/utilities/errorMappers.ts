@@ -193,3 +193,21 @@ export const updateEServiceTemplateErrorMapper = (
     .with("eserviceTemplateNotInDraftState", () => HTTP_STATUS_BAD_REQUEST)
     .with("eServiceTemplateDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateDraftTemplateVersionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceTemplateNotFound",
+      "eServiceTemplateVersionNotFound",
+      "attributeNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "notValidEServiceTemplateVersionState",
+      "inconsistentDailyCalls",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

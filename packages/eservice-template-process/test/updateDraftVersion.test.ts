@@ -244,7 +244,7 @@ describe("update draft version", () => {
       dailyCallsPerConsumer: 100,
       dailyCallsTotal: 50,
     };
-    expect(
+    await expect(
       eserviceTemplateService.updateDraftTemplateVersion(
         eservice.id,
         version.id,
@@ -257,6 +257,58 @@ describe("update draft version", () => {
         }
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
+  });
+
+  it("should succeed if dailyCallsPerConsumer is not defined", async () => {
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: descriptorState.draft,
+    };
+    const expectedEserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(expectedEserviceTemplate);
+
+    const expectedVersion: EServiceTemplateVersion = {
+      ...version,
+      dailyCallsPerConsumer: undefined,
+      dailyCallsTotal: 50,
+    };
+
+    const updatedEserviceTemplate = {
+      ...expectedEserviceTemplate,
+      versions: [expectedVersion],
+    };
+    const eserviceTemplate =
+      await eserviceTemplateService.updateDraftTemplateVersion(
+        expectedEserviceTemplate.id,
+        version.id,
+        buildUpdateVersionSeed(expectedVersion),
+        {
+          authData: getMockAuthData(expectedEserviceTemplate.creatorId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
+
+    const writtenEvent = await readLastEserviceTemplateEvent(
+      eserviceTemplate.id
+    );
+    expect(writtenEvent).toMatchObject({
+      stream_id: eserviceTemplate.id,
+      version: "1",
+      type: "EServiceTemplateDraftVersionUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceTemplateDraftVersionUpdatedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload.eserviceTemplate).toEqual(
+      toEServiceTemplateV2(updatedEserviceTemplate)
+    );
   });
 
   it("should throw attributeNotFound if at least one of the attributes doesn't exist", async () => {
@@ -307,7 +359,7 @@ describe("update draft version", () => {
       },
     };
 
-    expect(
+    await expect(
       eserviceTemplateService.updateDraftTemplateVersion(
         eserviceTemplate.id,
         version.id,
