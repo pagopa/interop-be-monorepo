@@ -61,6 +61,7 @@ export const createConsumerDelegationErrorMapper = (
       "eserviceNotFound",
       "tenantNotFound",
       "invalidDelegatorAndDelegateIds",
+      "eserviceNotConsumerDelegable",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -68,7 +69,11 @@ export const createConsumerDelegationErrorMapper = (
       "tenantNotAllowedToDelegation",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("delegationAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "delegationAlreadyExists",
+      "delegationRelatedAgreementExists",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeDelegationErrorMapper = (
