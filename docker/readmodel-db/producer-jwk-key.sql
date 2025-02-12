@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS readmodel.producer_jwk_key(
   producer_keychain_id UUID NOT NULL,
-  version INTEGER NOT NULL,
+  metadata_version INTEGER NOT NULL,
   alg VARCHAR NOT NULL,
   e VARCHAR NOT NULL,
   kid VARCHAR NOT NULL,
