@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ClientId, PurposeId, TenantId, UserId } from "../brandedIds.js";
-import { Key, KeyUse } from "./key.js";
+import { Key } from "./key.js";
 
 export const clientKind = {
   consumer: "Consumer",
