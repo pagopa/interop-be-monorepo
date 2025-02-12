@@ -424,7 +424,7 @@ export function notificationEmailSenderServiceBuilder(
       const purpose = fromPurposeV2(purposeV2Msg);
 
       const { subject, templateToRetrieve } = match(purpose.versions.length)
-        .with(0, () => ({
+        .with(1, () => ({
           subject: "Rifiuto delle finalità da parte dell'erogatore",
           templateToRetrieve:
             eventMailTemplateType.firstPurposeVersionRejectedMailTemplate,

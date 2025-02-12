@@ -14,6 +14,7 @@ import {
 import {
   EService,
   Purpose,
+  purposeVersionState,
   Tenant,
   tenantMailKind,
   toPurposeV2,
@@ -57,6 +58,7 @@ describe("sendPurposeVersionRejectedEmail", () => {
       ...getMockPurpose(),
       eserviceId: eservice.id,
       consumerId: consumer.id,
+      versions: [getMockPurposeVersion(purposeVersionState.waitingForApproval)],
     };
     await addOnePurpose(purpose);
 
