@@ -30,6 +30,10 @@ import {
   clientKeyInReadmodel,
   clientPurposeInReadmodel,
   clientUserInReadmodel,
+  producerKeychainEserviceInReadmodel,
+  producerKeychainInReadmodel,
+  producerKeychainKeyInReadmodel,
+  producerKeychainUserInReadmodel,
 } from "./drizzle/schema.js";
 
 export type EServiceSQL = InferSelectModel<typeof eserviceInReadmodel>;
@@ -109,3 +113,16 @@ export type ClientPurposeSQL = InferSelectModel<
   typeof clientPurposeInReadmodel
 >;
 export type ClientKeySQL = InferSelectModel<typeof clientKeyInReadmodel>;
+
+export type ProducerKeychainSQL = InferSelectModel<
+  typeof producerKeychainInReadmodel
+>;
+export type ProducerKeychainUserSQL = InferSelectModel<
+  typeof producerKeychainUserInReadmodel
+>;
+export type ProducerKeychainEServiceSQL = InferSelectModel<
+  typeof producerKeychainEserviceInReadmodel
+>;
+export type ProducerKeychainKeySQL = InferSelectModel<
+  typeof producerKeychainKeyInReadmodel
+>;
