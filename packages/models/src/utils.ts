@@ -15,3 +15,9 @@ export function stringToDate(input: string | null): Date | undefined;
 export function stringToDate(input: string | null): Date | undefined {
   return input ? new Date(input) : undefined;
 }
+
+export function dateToString(input: Date): string;
+export function dateToString(input: Date | undefined): string | null;
+export function dateToString(input: Date | undefined): string | null {
+  return input ? input.toISOString() : null;
+}

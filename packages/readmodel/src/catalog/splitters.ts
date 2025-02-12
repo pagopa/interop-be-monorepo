@@ -7,11 +7,12 @@ import {
   DocumentKind,
   riskAnalysisAnswerKind,
   AttributeKind,
-  EServiceReadModel,
-  RiskAnalysisReadModel,
-  DocumentReadModel,
-  DescriptorReadModel,
-  DescriptorRejectionReasonReadModel,
+  EService,
+  RiskAnalysis,
+  Document,
+  Descriptor,
+  DescriptorRejectionReason,
+  dateToString,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
@@ -25,7 +26,7 @@ import {
 } from "../types.js";
 
 export const splitEserviceIntoObjectsSQL = (
-  eservice: EServiceReadModel,
+  eservice: EService,
   version: number
 ): {
   eserviceSQL: EServiceSQL;
@@ -41,7 +42,7 @@ export const splitEserviceIntoObjectsSQL = (
     id: eservice.id,
     metadataVersion: version,
     name: eservice.name,
-    createdAt: eservice.createdAt,
+    createdAt: dateToString(eservice.createdAt),
     producerId: eservice.producerId,
     description: eservice.description,
     technology: eservice.technology,
@@ -70,7 +71,7 @@ export const splitEserviceIntoObjectsSQL = (
           riskAnalysisSQL: EServiceRiskAnalysisSQL[];
           riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
         },
-        currentRiskAnalysis: RiskAnalysisReadModel
+        currentRiskAnalysis: RiskAnalysis
       ) => {
         const { eserviceRiskAnalysisSQL, riskAnalysisAnswersSQL } =
           splitRiskAnalysisIntoObjectsSQL(
@@ -100,7 +101,7 @@ export const splitEserviceIntoObjectsSQL = (
           documentsSQL: EServiceDescriptorDocumentSQL[];
           rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
         },
-        currentDescriptor: DescriptorReadModel
+        currentDescriptor: Descriptor
       ) => {
         const {
           descriptorSQL,
@@ -187,7 +188,7 @@ const attributesNestedArrayToAttributeSQLarray = (
 
 export const splitDescriptorIntoObjectsSQL = (
   eserviceId: EServiceId,
-  descriptor: DescriptorReadModel,
+  descriptor: Descriptor,
   version: number
 ): {
   descriptorSQL: EServiceDescriptorSQL;
@@ -265,7 +266,7 @@ export const splitDescriptorIntoObjectsSQL = (
 };
 
 export const splitRiskAnalysisIntoObjectsSQL = (
-  riskAnalysis: RiskAnalysisReadModel,
+  riskAnalysis: RiskAnalysis,
   eserviceId: EServiceId,
   version: number
 ): {
@@ -277,7 +278,7 @@ export const splitRiskAnalysisIntoObjectsSQL = (
     metadataVersion: version,
     eserviceId,
     name: riskAnalysis.name,
-    createdAt: riskAnalysis.createdAt,
+    createdAt: dateToString(riskAnalysis.createdAt),
     riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
     riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
   };
@@ -319,7 +320,7 @@ export const splitRiskAnalysisIntoObjectsSQL = (
 };
 
 export const documentToDocumentSQL = (
-  document: DocumentReadModel,
+  document: Document,
   documentKind: DocumentKind,
   descriptorId: DescriptorId,
   eserviceId: EServiceId,
@@ -334,13 +335,13 @@ export const documentToDocumentSQL = (
   prettyName: document.prettyName,
   path: document.path,
   checksum: document.checksum,
-  uploadDate: document.uploadDate,
+  uploadDate: dateToString(document.uploadDate),
   kind: documentKind,
 });
 
 export const descriptorToDescriptorSQL = (
   eserviceId: EServiceId,
-  descriptor: DescriptorReadModel,
+  descriptor: Descriptor,
   version: number
 ): EServiceDescriptorSQL => ({
   id: descriptor.id,
@@ -348,7 +349,7 @@ export const descriptorToDescriptorSQL = (
   metadataVersion: version,
   version: descriptor.version,
   description: descriptor.description || null,
-  createdAt: descriptor.createdAt,
+  createdAt: dateToString(descriptor.createdAt),
   state: descriptor.state,
   audience: descriptor.audience,
   voucherLifespan: descriptor.voucherLifespan,
@@ -356,20 +357,20 @@ export const descriptorToDescriptorSQL = (
   dailyCallsTotal: descriptor.dailyCallsTotal,
   serverUrls: descriptor.serverUrls,
   agreementApprovalPolicy: descriptor.agreementApprovalPolicy || null,
-  publishedAt: descriptor.publishedAt || null,
-  suspendedAt: descriptor.suspendedAt || null,
-  deprecatedAt: descriptor.deprecatedAt || null,
-  archivedAt: descriptor.archivedAt || null,
+  publishedAt: dateToString(descriptor.publishedAt),
+  suspendedAt: dateToString(descriptor.suspendedAt),
+  deprecatedAt: dateToString(descriptor.deprecatedAt),
+  archivedAt: dateToString(descriptor.archivedAt),
 });
 
 export const eserviceToEserviceSQL = (
-  eservice: EServiceReadModel,
+  eservice: EService,
   version: number
 ): EServiceSQL => ({
   id: eservice.id,
   metadataVersion: version,
   name: eservice.name,
-  createdAt: eservice.createdAt,
+  createdAt: dateToString(eservice.createdAt),
   producerId: eservice.producerId,
   description: eservice.description,
   technology: eservice.technology,
@@ -380,7 +381,7 @@ export const eserviceToEserviceSQL = (
 });
 
 export const rejectionReasonToRejectionReasonSQL = (
-  rejectionReason: DescriptorRejectionReasonReadModel,
+  rejectionReason: DescriptorRejectionReason,
   descriptorId: DescriptorId,
   eserviceId: EServiceId,
   version: number
@@ -389,5 +390,5 @@ export const rejectionReasonToRejectionReasonSQL = (
   metadataVersion: version,
   descriptorId,
   rejectionReason: rejectionReason.rejectionReason,
-  rejectedAt: rejectionReason.rejectedAt,
+  rejectedAt: dateToString(rejectionReason.rejectedAt),
 });
