@@ -3,12 +3,12 @@ import { ProducerJWKKeySQL } from "../types.js";
 
 export const splitProducerJWKKeyIntoObjectsSQL = (
   { producerKeychainId, alg, e, kid, kty, n, use, ...rest }: ProducerJWKKey,
-  version: number
+  metadataVersion: number
 ): ProducerJWKKeySQL => {
   void (rest satisfies Record<string, never>);
   return {
     producerKeychainId,
-    metadataVersion: version,
+    metadataVersion,
     alg,
     e,
     kid,
