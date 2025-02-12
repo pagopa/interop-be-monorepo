@@ -698,7 +698,7 @@ export const getMockEServiceTemplateVersion = (
   eserviceTemplateVersionId: EServiceTemplateVersionId = generateId<EServiceTemplateVersionId>()
 ): EServiceTemplateVersion => ({
   id: eserviceTemplateVersionId,
-  version: "1",
+  version: 1,
   description: "eService template version description",
   createdAt: new Date(),
   attributes: {

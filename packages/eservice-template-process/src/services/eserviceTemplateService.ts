@@ -1083,7 +1083,7 @@ export function eserviceTemplateServiceBuilder(
       const draftVersion: EServiceTemplateVersion = {
         id: generateId(),
         description: seed.version.description,
-        version: "1",
+        version: 1,
         interface: undefined,
         docs: [],
         state: eserviceTemplateVersionState.draft,
