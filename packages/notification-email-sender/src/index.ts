@@ -129,7 +129,7 @@ export async function handlePurposeMessage(
       async ({ data: { purpose } }) => {
         if (purpose) {
           await Promise.all([
-            notificationEmailSenderService.sendActivationAboveTheThresholderNotificationSimpleEmail(
+            notificationEmailSenderService.sendPurposeWaitingForApprovalNotificationEmail(
               purpose,
               logger
             ),

@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EService,
+  generateId,
   Purpose,
   PurposeId,
   Tenant,
@@ -33,7 +34,7 @@ import {
   addOnePurpose,
 } from "./utils.js";
 
-describe("sendEstimateAboveTheThresholderNotificationEmail", () => {
+describe("sendPurposeWaitingForApprovalNotificationEmail", () => {
   it("should send an email to Consumer to contact email addresses", async () => {
     vi.spyOn(sesEmailManager, "send");
     const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
@@ -55,13 +56,13 @@ describe("sendEstimateAboveTheThresholderNotificationEmail", () => {
 
     const purpose: Purpose = {
       ...getMockPurpose(),
-      id: "37317757-0c8d-4e6e-9ac9-7d2db6a9519e" as PurposeId,
+      id: generateId<PurposeId>(),
       eserviceId: eservice.id,
       consumerId: consumer.id,
     };
     await addOnePurpose(purpose);
 
-    await notificationEmailSenderService.sendActivationAboveTheThresholderNotificationSimpleEmail(
+    await notificationEmailSenderService.sendPurposeWaitingForApprovalNotificationEmail(
       toPurposeV2(purpose),
       genericLogger
     );
@@ -78,10 +79,10 @@ describe("sendEstimateAboveTheThresholderNotificationEmail", () => {
         name: sesEmailsenderData.label,
         address: sesEmailsenderData.mail,
       },
-      subject: `Richiesta di variazione della stima di carico per ${eservice.name}`,
+      subject: `Richiesta di attivazione della stima di carico sopra soglia per ${eservice.name}`,
       to: [consumerEmail.address],
       body: templateService.compileHtml(aboveTheThresholdEmailTemplate, {
-        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
+        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/finalita/${purpose.id}`,
         eserviceName: eservice.name,
       }),
     };

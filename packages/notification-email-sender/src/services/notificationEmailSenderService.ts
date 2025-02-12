@@ -410,7 +410,7 @@ export function notificationEmailSenderServiceBuilder(
         );
       }
     },
-    sendActivationAboveTheThresholderNotificationSimpleEmail: async (
+    sendPurposeWaitingForApprovalNotificationEmail: async (
       purposeV2Msg: PurposeV2,
       logger: Logger
     ) => {
@@ -438,21 +438,21 @@ export function notificationEmailSenderServiceBuilder(
 
       const mail = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
-        subject: `Richiesta di variazione della stima di carico per ${eservice.name}`,
+        subject: `Richiesta di attivazione della stima di carico sopra soglia per ${eservice.name}`,
         to: [consumerEmail.address],
         body: templateService.compileHtml(htmlTemplate, {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/finalita/${purpose.id}`,
           eserviceName: eservice.name,
         }),
       };
 
       try {
         logger.info(
-          `Sending an email requesting a change in the load estimate as it is above the threshold, for purpose ${purpose.id} (SES)`
+          `Send an email with the request to activate the load estimate since it is higher than the threshold, for the purpose ${purpose.id} (SES)`
         );
         await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
         logger.info(
-          `Email sent for requesting  a change in the load estimate as it is above the threshold, for purpose ${purpose.id} (SES)`
+          `Email sent for the request to activate the load estimate since it is higher than the threshold, for the purpose ${purpose.id} (SES)`
         );
       } catch (err) {
         logger.warn(`Error sending email for purpose ${purpose.id}: ${err}`);
