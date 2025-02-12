@@ -310,7 +310,7 @@ describe("updateTenantDelegatedFeatures", async () => {
         event_version: 2,
       });
 
-      const producerPayload = protobufDecoder(
+      const lastUpdatedPayload = protobufDecoder(
         TenantDelegatedProducerFeatureAddedV2
       ).parse(producerEvent.data);
 
@@ -330,7 +330,7 @@ describe("updateTenantDelegatedFeatures", async () => {
         updatedAt: new Date(),
       };
 
-      expect(producerPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      expect(lastUpdatedPayload.tenant).toEqual(toTenantV2(updatedTenant));
     }
   );
 
@@ -395,9 +395,9 @@ describe("updateTenantDelegatedFeatures", async () => {
         event_version: 2,
       });
 
-      const consumerPayload = protobufDecoder(
+      const lastUpdatedPayload = protobufDecoder(
         TenantDelegatedProducerFeatureRemovedV2
-      ).parse(consumerEvent.data);
+      ).parse(producerEvent.data);
 
       const updatedTenant: Tenant = {
         ...mockTenant,
@@ -405,7 +405,7 @@ describe("updateTenantDelegatedFeatures", async () => {
         updatedAt: new Date(),
       };
 
-      expect(consumerPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      expect(lastUpdatedPayload.tenant).toEqual(toTenantV2(updatedTenant));
     }
   );
 
