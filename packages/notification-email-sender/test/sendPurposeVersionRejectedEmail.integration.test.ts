@@ -150,7 +150,7 @@ describe("sendPurposeVersionRejectedEmail", () => {
         name: sesEmailsenderData.label,
         address: sesEmailsenderData.mail,
       },
-      subject: `Rifiuto delle finalità da parte dell'erogatore`,
+      subject: `Rifiuto richiesta di adeguamento stime di carico`,
       to: [consumerEmail.address],
       body: templateService.compileHtml(aboveTheThresholdEmailTemplate, {
         interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
