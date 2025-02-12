@@ -18,7 +18,7 @@ export const splitProducerKeychainIntoObjectsSQL = (
     keys,
     ...rest
   }: ProducerKeychainReadModel,
-  version: number
+  metadataVersion: number
 ): {
   producerKeychainSQL: ProducerKeychainSQL;
   producerKeychainUsersSQL: ProducerKeychainUserSQL[];
@@ -29,7 +29,7 @@ export const splitProducerKeychainIntoObjectsSQL = (
 
   const producerKeychainSQL: ProducerKeychainSQL = {
     id,
-    metadataVersion: version,
+    metadataVersion,
     producerId,
     name,
     createdAt,
@@ -38,7 +38,7 @@ export const splitProducerKeychainIntoObjectsSQL = (
 
   const producerKeychainUsersSQL: ProducerKeychainUserSQL[] = users.map(
     (userId) => ({
-      metadataVersion: version,
+      metadataVersion,
       producerKeychainId: id,
       userId,
     })
@@ -46,13 +46,13 @@ export const splitProducerKeychainIntoObjectsSQL = (
 
   const producerKeychainEServicesSQL: ProducerKeychainEServiceSQL[] =
     eservices.map((eserviceId) => ({
-      metadataVersion: version,
+      metadataVersion,
       producerKeychainId: id,
       eserviceId,
     }));
 
   const producerKeychainKeysSQL: ProducerKeychainKeySQL[] = keys.map((key) => ({
-    metadataVersion: version,
+    metadataVersion,
     producerKeychainId: id,
     userId: key.userId,
     kid: key.kid,
