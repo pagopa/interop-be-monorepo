@@ -26,6 +26,10 @@ import {
   purposeRiskAnalysisFormInReadmodel,
   purposeVersionDocumentInReadmodel,
   purposeVersionInReadmodel,
+  clientInReadmodel,
+  clientKeyInReadmodel,
+  clientPurposeInReadmodel,
+  clientUserInReadmodel,
 } from "./drizzle/schema.js";
 
 export type EServiceSQL = InferSelectModel<typeof eserviceInReadmodel>;
@@ -98,3 +102,10 @@ export type PurposeRiskAnalysisFormSQL = InferSelectModel<
 export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
   typeof purposeRiskAnalysisAnswerInReadmodel
 >;
+
+export type ClientSQL = InferSelectModel<typeof clientInReadmodel>;
+export type ClientUserSQL = InferSelectModel<typeof clientUserInReadmodel>;
+export type ClientPurposeSQL = InferSelectModel<
+  typeof clientPurposeInReadmodel
+>;
+export type ClientKeySQL = InferSelectModel<typeof clientKeyInReadmodel>;
