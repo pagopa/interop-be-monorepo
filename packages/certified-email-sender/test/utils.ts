@@ -1,8 +1,5 @@
 import axios, { AxiosResponse } from "axios";
-import {
-  buildHTMLTemplateService,
-  EmailManagerSES,
-} from "pagopa-interop-commons";
+import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import {
   setupTestContainersVitest,
   writeInReadmodel,
@@ -15,42 +12,24 @@ import {
   toReadModelEService,
   toReadModelTenant,
 } from "pagopa-interop-models";
-import { afterEach, inject, vi } from "vitest";
-import { agreementEmailSenderServiceBuilder } from "../src/services/agreementEmailSenderService.js";
+import { afterEach, inject } from "vitest";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { certifiedEmailSenderServiceBuilder } from "../src/services/certifiedEmailSenderService.js";
 
 export const readModelConfig = inject("readModelConfig");
 export const emailManagerConfig = inject("emailManagerConfig");
-export const sesEmailManagerConfig = inject("sesEmailManagerConfig");
 
-export const {
-  cleanup,
-  readModelRepository,
-  pecEmailManager,
-  sesEmailManager,
-} = await setupTestContainersVitest(
-  readModelConfig,
-  undefined,
-  undefined,
-  emailManagerConfig,
-  undefined,
-  sesEmailManagerConfig
-);
+export const { cleanup, readModelRepository, pecEmailManager } =
+  await setupTestContainersVitest(
+    readModelConfig,
+    undefined,
+    undefined,
+    emailManagerConfig,
+    undefined,
+    undefined
+  );
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const templateService = buildHTMLTemplateService();
-
-export const sesEmailManagerFailure: EmailManagerSES = {
-  kind: "SES",
-  send: vi.fn().mockRejectedValue(new Error("Generic error during send email")),
-  sendWithAttachments: vi
-    .fn()
-    .mockRejectedValue(new Error("Generic error during send email")),
-};
-
-export const sesEmailsenderData = {
-  label: "ses_sender",
-  mail: "ses_sender@test.com",
-};
 
 export const pecEmailsenderData = {
   label: "pec_sender",
@@ -58,25 +37,19 @@ export const pecEmailsenderData = {
 };
 export const interopFeBaseUrl = "http://localhost/fe";
 
-export const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
+export const certifiedEmailSenderService = certifiedEmailSenderServiceBuilder(
   pecEmailManager,
   pecEmailsenderData,
-  sesEmailManager,
-  sesEmailsenderData,
   readModelService,
-  templateService,
-  interopFeBaseUrl
+  templateService
 );
 
-export const agreementEmailSenderServiceFailure =
-  agreementEmailSenderServiceBuilder(
+export const certifiedEmailSenderServiceFailure =
+  certifiedEmailSenderServiceBuilder(
     pecEmailManager,
     pecEmailsenderData,
-    sesEmailManagerFailure,
-    sesEmailsenderData,
     readModelService,
-    templateService,
-    interopFeBaseUrl
+    templateService
   );
 
 export const agreements = readModelRepository.agreements;

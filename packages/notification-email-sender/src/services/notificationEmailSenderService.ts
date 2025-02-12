@@ -4,9 +4,6 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import {
-  EmailManager,
-  EmailManagerKind,
-  EmailManagerPEC,
   EmailManagerSES,
   HtmlTemplateService,
   Logger,
@@ -18,10 +15,13 @@ import {
   AgreementV2,
   Descriptor,
   EService,
+  EServiceId,
+  PurposeV2,
   Tenant,
   TenantId,
   TenantMail,
   fromAgreementV2,
+  fromPurposeV2,
   genericInternalError,
   tenantMailKind,
   unsafeBrandId,
@@ -38,36 +38,27 @@ import {
 import { ReadModelService } from "./readModelService.js";
 
 // Be careful to change this enum, it's used to find the html template files
-export const agreementEventMailTemplateType = {
-  activationPEC: "activation-pec-mail",
+export const eventMailTemplateType = {
   activation: "activation-mail",
   submission: "submission-mail",
   rejection: "rejection-mail",
+  newPurposeVersionWaitingForApprovalMailTemplate:
+    "new-purpose-version-waiting-for-approval-mail",
+  purposeVersionRejected: "purpose-version-rejected-mail",
 } as const;
 
-const AgreementEventMailTemplateType = z.enum([
-  Object.values(agreementEventMailTemplateType)[0],
-  ...Object.values(agreementEventMailTemplateType).slice(1),
+const EventMailTemplateType = z.enum([
+  Object.values(eventMailTemplateType)[0],
+  ...Object.values(eventMailTemplateType).slice(1),
 ]);
 
-type AgreementEventMailTemplateType = z.infer<
-  typeof AgreementEventMailTemplateType
->;
+type EventMailTemplateType = z.infer<typeof EventMailTemplateType>;
 
-export const retrieveTenantMailAddress = (
-  tenant: Tenant,
-  emailManagerKind: EmailManagerKind
-): TenantMail => {
-  /*
-    When email manager kind is PEC a certified email is sent
-    so it requires to use a digital address instead of a contact email 
-  */
-  const mailKind =
-    emailManagerKind === "PEC"
-      ? tenantMailKind.DigitalAddress
-      : tenantMailKind.ContactEmail;
-
-  const digitalAddress = getLatestTenantMailOfKind(tenant.mails, mailKind);
+export const retrieveTenantMailAddress = (tenant: Tenant): TenantMail => {
+  const digitalAddress = getLatestTenantMailOfKind(
+    tenant.mails,
+    tenantMailKind.ContactEmail
+  );
   if (!digitalAddress) {
     throw tenantDigitalAddressNotFound(tenant.id);
   }
@@ -112,8 +103,19 @@ function retrieveAgreementDescriptor(
   return descriptor;
 }
 
+export const retrieveEService = async (
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<EService> => {
+  const eservice = await readModelService.getEServiceById(eserviceId);
+  if (!eservice) {
+    throw eServiceNotFound(eserviceId);
+  }
+  return eservice;
+};
+
 async function retrieveHTMLTemplate(
-  templateKind: AgreementEventMailTemplateType
+  templateKind: EventMailTemplateType
 ): Promise<string> {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
@@ -141,12 +143,12 @@ export function getFormattedAgreementStampDate(
   return dateAtRomeZone(new Date(Number(stampDate)));
 }
 
-async function sendAgreementActivationEmail(
-  emailManager: EmailManager,
+async function sendActivationNotificationEmail(
+  emailManager: EmailManagerSES,
   readModelService: ReadModelService,
   agreementV2Msg: AgreementV2,
   templateService: HtmlTemplateService,
-  templateKind: AgreementEventMailTemplateType,
+  templateKind: EventMailTemplateType,
   logger: Logger,
   sender: { label: string; mail: string },
   consumerName: string,
@@ -200,9 +202,7 @@ async function sendAgreementActivationEmail(
   }
 }
 
-export function agreementEmailSenderServiceBuilder(
-  pecEmailManager: EmailManagerPEC,
-  pecSenderData: { label: string; mail: string },
+export function notificationEmailSenderServiceBuilder(
   sesEmailManager: EmailManagerSES,
   sesSenderData: { label: string; mail: string },
   readModelService: ReadModelService,
@@ -210,28 +210,18 @@ export function agreementEmailSenderServiceBuilder(
   interopFeBaseUrl?: string
 ) {
   return {
-    sendAgreementSubmissionSimpleEmail: async (
+    sendSubmissionNotificationSimpleEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ): Promise<void> => {
       const agreement = fromAgreementV2(agreementV2Msg);
-      const htmlTemplate = await retrieveHTMLTemplate(
-        agreementEventMailTemplateType.submission
-      );
 
-      const eservice = await retrieveAgreementEservice(
-        agreement,
-        readModelService
-      );
-
-      const producer = await retrieveTenant(
-        agreement.producerId,
-        readModelService
-      );
-      const consumer = await retrieveTenant(
-        agreement.consumerId,
-        readModelService
-      );
+      const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
+        retrieveHTMLTemplate(eventMailTemplateType.submission),
+        retrieveAgreementEservice(agreement, readModelService),
+        retrieveTenant(agreement.producerId, readModelService),
+        retrieveTenant(agreement.consumerId, readModelService),
+      ]);
 
       const submissionDate = getFormattedAgreementStampDate(
         agreement,
@@ -280,7 +270,7 @@ export function agreementEmailSenderServiceBuilder(
         );
       }
     },
-    sendAgreementActivationCertifiedEmail: async (
+    sendActivationNotificationSimpleEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ) => {
@@ -293,47 +283,14 @@ export function agreementEmailSenderServiceBuilder(
         readModelService
       );
 
-      const recepientsEmails = [
-        retrieveTenantMailAddress(consumer, "PEC").address,
-        retrieveTenantMailAddress(producer, "PEC").address,
-      ];
+      const recepientsEmails = [retrieveTenantMailAddress(consumer).address];
 
-      return sendAgreementActivationEmail(
-        pecEmailManager,
-        readModelService,
-        agreementV2Msg,
-        templateService,
-        agreementEventMailTemplateType.activationPEC,
-        logger,
-        pecSenderData,
-        consumer.name,
-        producer.name,
-        recepientsEmails
-      );
-    },
-    sendAgreementActivationSimpleEmail: async (
-      agreementV2Msg: AgreementV2,
-      logger: Logger
-    ) => {
-      const consumer = await retrieveTenant(
-        unsafeBrandId(agreementV2Msg.consumerId),
-        readModelService
-      );
-      const producer = await retrieveTenant(
-        unsafeBrandId(agreementV2Msg.producerId),
-        readModelService
-      );
-
-      const recepientsEmails = [
-        retrieveTenantMailAddress(consumer, "SES").address,
-      ];
-
-      return sendAgreementActivationEmail(
+      return sendActivationNotificationEmail(
         sesEmailManager,
         readModelService,
         agreementV2Msg,
         templateService,
-        agreementEventMailTemplateType.activation,
+        eventMailTemplateType.activation,
         logger,
         sesSenderData,
         consumer.name,
@@ -342,28 +299,18 @@ export function agreementEmailSenderServiceBuilder(
         interopFeBaseUrl
       );
     },
-    sendAgreementRejectSimpleEmail: async (
+    sendRejectNotificationSimpleEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ) => {
       const agreement = fromAgreementV2(agreementV2Msg);
-      const htmlTemplate = await retrieveHTMLTemplate(
-        agreementEventMailTemplateType.rejection
-      );
 
-      const eservice = await retrieveAgreementEservice(
-        agreement,
-        readModelService
-      );
-
-      const producer = await retrieveTenant(
-        agreement.producerId,
-        readModelService
-      );
-      const consumer = await retrieveTenant(
-        agreement.consumerId,
-        readModelService
-      );
+      const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
+        retrieveHTMLTemplate(eventMailTemplateType.rejection),
+        retrieveAgreementEservice(agreement, readModelService),
+        retrieveTenant(agreement.producerId, readModelService),
+        retrieveTenant(agreement.consumerId, readModelService),
+      ]);
 
       const rejectionDate = getFormattedAgreementStampDate(
         agreement,
@@ -407,6 +354,106 @@ export function agreementEmailSenderServiceBuilder(
         );
         throw genericInternalError(
           `Error sending email for agreement ${agreement.id}: ${err}`
+        );
+      }
+    },
+    sendEstimateAboveTheThresholderNotificationSimpleEmail: async (
+      purposeV2Msg: PurposeV2,
+      logger: Logger
+    ) => {
+      const purpose = fromPurposeV2(purposeV2Msg);
+
+      const [htmlTemplate, eservice, consumer] = await Promise.all([
+        retrieveHTMLTemplate(
+          eventMailTemplateType.newPurposeVersionWaitingForApprovalMailTemplate
+        ),
+        retrieveEService(purpose.eserviceId, readModelService),
+        retrieveTenant(purpose.consumerId, readModelService),
+      ]);
+
+      const consumerEmail = getLatestTenantMailOfKind(
+        consumer.mails,
+        tenantMailKind.ContactEmail
+      );
+
+      if (!consumerEmail) {
+        logger.warn(
+          `Consumer email not found for purpose ${purpose.id}, skipping email`
+        );
+        return;
+      }
+
+      const mail = {
+        from: { name: sesSenderData.label, address: sesSenderData.mail },
+        subject: `Richiesta di variazione della stima di carico per ${eservice.name}`,
+        to: [consumerEmail.address],
+        body: templateService.compileHtml(htmlTemplate, {
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
+          purposeName: purpose.title,
+          eserviceName: eservice.name,
+        }),
+      };
+
+      try {
+        logger.info(
+          `Sending an email requesting a change in the load estimate as it is above the threshold, for purpose ${purpose.id} (SES)`
+        );
+        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        logger.info(
+          `Email sent for requesting  a change in the load estimate as it is above the threshold, for purpose ${purpose.id} (SES)`
+        );
+      } catch (err) {
+        logger.warn(`Error sending email for purpose ${purpose.id}: ${err}`);
+        throw genericInternalError(
+          `Error sending email for purpose ${purpose.id}: ${err}`
+        );
+      }
+    },
+    sendPurposeVersionRejectedEmail: async (
+      purposeV2Msg: PurposeV2,
+      logger: Logger
+    ) => {
+      const purpose = fromPurposeV2(purposeV2Msg);
+
+      const [htmlTemplate, consumer] = await Promise.all([
+        retrieveHTMLTemplate(eventMailTemplateType.purposeVersionRejected),
+        retrieveTenant(purpose.consumerId, readModelService),
+      ]);
+
+      const consumerEmail = getLatestTenantMailOfKind(
+        consumer.mails,
+        tenantMailKind.ContactEmail
+      );
+
+      if (!consumerEmail) {
+        logger.warn(
+          `Consumer email not found for purpose ${purpose.id}, skipping email`
+        );
+        return;
+      }
+
+      const mail = {
+        from: { name: sesSenderData.label, address: sesSenderData.mail },
+        subject: `Rifiuto delle finalità da parte dell'erogatore`,
+        to: [consumerEmail.address],
+        body: templateService.compileHtml(htmlTemplate, {
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
+          consumerName: consumer.name,
+        }),
+      };
+
+      try {
+        logger.info(
+          `Sending an email for purpose ${purpose.id} rejection (SES)`
+        );
+        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        logger.info(`Email sent for purpose ${purpose.id} rejection (SES)`);
+      } catch (err) {
+        logger.warn(
+          `Error sending email for purpose ${purpose.id} rejection: ${err}`
+        );
+        throw genericInternalError(
+          `Error sending email for purpose ${purpose.id} rejection: ${err}`
         );
       }
     },

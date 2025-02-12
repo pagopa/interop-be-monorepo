@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-interop-agreement-email-sender",
+  "name": "pagopa-interop-certified-email-sender",
   "private": true,
   "version": "1.0.0",
-  "description": "Pagopa Interop Agreement Email Sender",
+  "description": "Pagopa Interop Certified Email Sender",
   "main": "dist",
   "type": "module",
   "exports": {

@@ -1,6 +1,6 @@
 import { DescriptorId, EServiceId, InternalError } from "pagopa-interop-models";
 
-type AgreementEmailSenderErrorCode =
+type CertifiedEmailSenderErrorCode =
   | "htmlTemplateNotFound"
   | "agreementStampDateNotFound"
   | "eServiceNotFound"
@@ -8,19 +8,19 @@ type AgreementEmailSenderErrorCode =
   | "tenantDigitalAddressNotFound"
   | "descriptorNotFound";
 
-export class AgreementEmailSenderError extends InternalError<AgreementEmailSenderErrorCode> {
+export class CertifiedEmailSenderError extends InternalError<CertifiedEmailSenderErrorCode> {
   constructor({
     code,
     detail,
   }: {
-    code: AgreementEmailSenderErrorCode;
+    code: CertifiedEmailSenderErrorCode;
     detail: string;
   }) {
     super({ code, detail });
   }
 }
 
-export function htmlTemplateNotFound(path: string): AgreementEmailSenderError {
+export function htmlTemplateNotFound(path: string): CertifiedEmailSenderError {
   return new InternalError({
     detail: `HTML template not found at ${path}`,
     code: "htmlTemplateNotFound",
@@ -30,7 +30,7 @@ export function htmlTemplateNotFound(path: string): AgreementEmailSenderError {
 export function agreementStampDateNotFound(
   stamp: string,
   agreementId: string
-): AgreementEmailSenderError {
+): CertifiedEmailSenderError {
   return new InternalError({
     detail: `${stamp} date not found for agreement ${agreementId}`,
     code: "agreementStampDateNotFound",
@@ -39,14 +39,14 @@ export function agreementStampDateNotFound(
 
 export function eServiceNotFound(
   eserviceId: EServiceId
-): AgreementEmailSenderError {
+): CertifiedEmailSenderError {
   return new InternalError({
     detail: `EService ${eserviceId} not found`,
     code: "eServiceNotFound",
   });
 }
 
-export function tenantNotFound(tenantId: string): AgreementEmailSenderError {
+export function tenantNotFound(tenantId: string): CertifiedEmailSenderError {
   return new InternalError({
     detail: `Tenant ${tenantId} not found`,
     code: "tenantNotFound",
@@ -55,7 +55,7 @@ export function tenantNotFound(tenantId: string): AgreementEmailSenderError {
 
 export function tenantDigitalAddressNotFound(
   tenantId: string
-): AgreementEmailSenderError {
+): CertifiedEmailSenderError {
   return new InternalError({
     detail: `Digital address not found for tenant ${tenantId}`,
     code: "tenantDigitalAddressNotFound",
@@ -65,7 +65,7 @@ export function tenantDigitalAddressNotFound(
 export function descriptorNotFound(
   eServiceId: EServiceId,
   descriptorId: DescriptorId
-): AgreementEmailSenderError {
+): CertifiedEmailSenderError {
   return new InternalError({
     detail: `Descriptor ${descriptorId} not found in EService ${eServiceId}`,
     code: "descriptorNotFound",

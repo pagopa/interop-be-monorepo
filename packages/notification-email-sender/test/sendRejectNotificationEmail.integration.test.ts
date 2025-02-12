@@ -23,14 +23,14 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import axios, { AxiosResponse } from "axios";
 import {
-  agreementEventMailTemplateType,
+  eventMailTemplateType,
   getFormattedAgreementStampDate,
-} from "../src/services/agreementEmailSenderService.js";
+} from "../src/services/notificationEmailSenderService.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  agreementEmailSenderService,
+  notificationEmailSenderService,
   interopFeBaseUrl,
   sesEmailManager,
   sesEmailManagerConfig,
@@ -75,14 +75,14 @@ describe("sendAgreementRejectEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await agreementEmailSenderService.sendAgreementRejectSimpleEmail(
+    await notificationEmailSenderService.sendRejectNotificationSimpleEmail(
       toAgreementV2(agreement),
       genericLogger
     );
 
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const templatePath = `../src/resources/templates/${agreementEventMailTemplateType.rejection}.html`;
+    const templatePath = `../src/resources/templates/${eventMailTemplateType.rejection}.html`;
 
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
     const rejectEmailTemplate = htmlTemplateBuffer.toString();
@@ -152,7 +152,7 @@ describe("sendAgreementRejectEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await agreementEmailSenderService.sendAgreementSubmissionSimpleEmail(
+    await notificationEmailSenderService.sendSubmissionNotificationSimpleEmail(
       toAgreementV2(agreement),
       genericLogger
     );

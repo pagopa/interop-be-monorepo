@@ -21,14 +21,14 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import axios, { AxiosResponse } from "axios";
 import {
-  agreementEventMailTemplateType,
+  eventMailTemplateType,
   getFormattedAgreementStampDate,
-} from "../src/services/agreementEmailSenderService.js";
+} from "../src/services/notificationEmailSenderService.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  agreementEmailSenderService,
+  notificationEmailSenderService,
   interopFeBaseUrl,
   sesEmailManager,
   sesEmailManagerConfig,
@@ -91,14 +91,14 @@ describe("sendAgreementSubmissionEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await agreementEmailSenderService.sendAgreementSubmissionSimpleEmail(
+    await notificationEmailSenderService.sendSubmissionNotificationSimpleEmail(
       toAgreementV2(agreement),
       genericLogger
     );
 
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const templatePath = `../src/resources/templates/${agreementEventMailTemplateType.submission}.html`;
+    const templatePath = `../src/resources/templates/${eventMailTemplateType.submission}.html`;
 
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
     const submissionEmailTemplate = htmlTemplateBuffer.toString();
@@ -167,7 +167,7 @@ describe("sendAgreementSubmissionEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await agreementEmailSenderService.sendAgreementSubmissionSimpleEmail(
+    await notificationEmailSenderService.sendSubmissionNotificationSimpleEmail(
       toAgreementV2(agreement),
       genericLogger
     );
