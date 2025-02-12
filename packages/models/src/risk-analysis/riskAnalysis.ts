@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-  EServiceId,
   RiskAnalysisFormId,
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
@@ -54,13 +53,3 @@ export const RiskAnalysis = z.object({
   createdAt: z.coerce.date(),
 });
 export type RiskAnalysis = z.infer<typeof RiskAnalysis>;
-
-export const riskAnalysisAnswerKind = {
-  single: "SINGLE",
-  multi: "MULTI",
-} as const;
-export const RiskAnalysisAnswerKind = z.enum([
-  Object.values(riskAnalysisAnswerKind)[0],
-  ...Object.values(riskAnalysisAnswerKind).slice(1),
-]);
-export type RiskAnalysisAnswerKind = z.infer<typeof RiskAnalysisAnswerKind>;
