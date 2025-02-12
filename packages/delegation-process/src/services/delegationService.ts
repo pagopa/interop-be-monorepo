@@ -168,13 +168,12 @@ export function delegationServiceBuilder(
     );
 
     const creationDate = new Date();
-    const delegation = {
+    const delegation: Delegation = {
       id: generateId<DelegationId>(),
       delegatorId,
       delegateId,
       eserviceId,
       createdAt: creationDate,
-      submittedAt: creationDate,
       state: delegationState.waitingForApproval,
       kind,
       stamps: {
@@ -231,7 +230,7 @@ export function delegationServiceBuilder(
     const approvedDelegationWithoutContract: Delegation = {
       ...delegation,
       state: delegationState.active,
-      approvedAt: now,
+      updatedAt: now,
       stamps: {
         ...delegation.stamps,
         activation: {
@@ -300,10 +299,10 @@ export function delegationServiceBuilder(
 
     const now = new Date();
 
-    const rejectedDelegation = {
+    const rejectedDelegation: Delegation = {
       ...delegation,
       state: delegationState.rejected,
-      rejectedAt: now,
+      updatedAt: now,
       rejectionReason,
       stamps: {
         ...delegation.stamps,
@@ -362,10 +361,10 @@ export function delegationServiceBuilder(
     ]);
 
     const now = new Date();
-    const revokedDelegationWithoutContract = {
+    const revokedDelegationWithoutContract: Delegation = {
       ...delegation,
       state: delegationState.revoked,
-      revokedAt: now,
+      updatedAt: now,
       stamps: {
         ...delegation.stamps,
         revocation: {

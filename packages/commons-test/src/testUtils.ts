@@ -418,7 +418,6 @@ export const getMockDelegation = ({
     delegateId,
     eserviceId,
     createdAt: creationTime,
-    submittedAt: creationTime,
     state,
     activationContract,
     revocationContract,
