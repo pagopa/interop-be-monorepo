@@ -9,7 +9,7 @@ import {
 export type ProducerKeychainSQL = InferSelectModel<
   typeof producerKeychainInReadmodel
 >;
-export type ProducerUserSQL = InferSelectModel<
+export type ProducerKeychainUserSQL = InferSelectModel<
   typeof producerKeychainUserInReadmodel
 >;
 export type ProducerKeychainEServiceSQL = InferSelectModel<
