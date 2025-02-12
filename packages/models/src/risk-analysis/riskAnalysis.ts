@@ -1,11 +1,20 @@
 import { z } from "zod";
 import {
-  PurposeId,
   RiskAnalysisFormId,
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
 } from "../brandedIds.js";
+
+export const riskAnalysisAnswerKind = {
+  single: "SINGLE",
+  multi: "MULTI",
+} as const;
+export const RiskAnalysisAnswerKind = z.enum([
+  Object.values(riskAnalysisAnswerKind)[0],
+  ...Object.values(riskAnalysisAnswerKind).slice(1),
+]);
+export type RiskAnalysisAnswerKind = z.infer<typeof RiskAnalysisAnswerKind>;
 
 export const RiskAnalysisSingleAnswer = z.object({
   id: RiskAnalysisSingleAnswerId,
@@ -44,38 +53,3 @@ export const RiskAnalysis = z.object({
   createdAt: z.coerce.date(),
 });
 export type RiskAnalysis = z.infer<typeof RiskAnalysis>;
-
-export const PurposeRiskAnalysisFormSQL = z.object({
-  id: RiskAnalysisFormId,
-  purpose_id: PurposeId,
-  metadata_version: z.number(),
-  version: z.string(),
-});
-export type PurposeRiskAnalysisFormSQL = z.infer<
-  typeof PurposeRiskAnalysisFormSQL
->;
-
-export const purposeRiskAnalysisAnswerKind = {
-  single: "single",
-  multi: "multi",
-} as const;
-export const PurposeRiskAnalysisAnswerKind = z.enum([
-  Object.values(purposeRiskAnalysisAnswerKind)[0],
-  ...Object.values(purposeRiskAnalysisAnswerKind).slice(1),
-]);
-export type PurposeRiskAnalysisAnswerKind = z.infer<
-  typeof PurposeRiskAnalysisAnswerKind
->;
-
-export const PurposeRiskAnalysisAnswerSQL = z.object({
-  id: RiskAnalysisSingleAnswerId || RiskAnalysisMultiAnswerId,
-  purpose_id: PurposeId,
-  metadata_version: z.number(),
-  risk_analysis_form_id: RiskAnalysisFormId,
-  kind: PurposeRiskAnalysisAnswerKind,
-  key: z.string(),
-  value: z.array(z.string()).optional(),
-});
-export type PurposeRiskAnalysisAnswerSQL = z.infer<
-  typeof PurposeRiskAnalysisAnswerSQL
->;
