@@ -196,7 +196,7 @@ export const producerKeychainKeyInReadmodel = readmodel.table(
 
 export const producerJwkKeyInReadmodel = readmodel.table("producer_jwk_key", {
   producerKeychainId: uuid("producer_keychain_id").notNull(),
-  version: integer().notNull(),
+  metadataVersion: integer("metadata_version").notNull(),
   alg: varchar().notNull(),
   e: varchar().notNull(),
   kid: varchar().primaryKey().notNull(),
