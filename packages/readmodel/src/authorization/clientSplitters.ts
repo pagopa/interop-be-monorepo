@@ -19,7 +19,7 @@ export const splitClientIntoObjectsSQL = (
     keys,
     ...rest
   }: ClientReadModel,
-  version: number
+  metadataVersion: number
 ): {
   clientSQL: ClientSQL;
   clientUsersSQL: ClientUserSQL[];
@@ -30,7 +30,7 @@ export const splitClientIntoObjectsSQL = (
 
   const clientSQL: ClientSQL = {
     id,
-    metadataVersion: version,
+    metadataVersion,
     consumerId,
     name,
     description: description || "",
@@ -39,19 +39,19 @@ export const splitClientIntoObjectsSQL = (
   };
 
   const clientUsersSQL: ClientUserSQL[] = users.map((userId) => ({
-    metadataVersion: version,
+    metadataVersion,
     clientId: id,
     userId,
   }));
 
   const clientPurposesSQL: ClientPurposeSQL[] = purposes.map((purposeId) => ({
-    metadataVersion: version,
+    metadataVersion,
     clientId: id,
     purposeId,
   }));
 
   const clientKeysSQL: ClientKeySQL[] = keys.map((key) => ({
-    metadataVersion: version,
+    metadataVersion,
     clientId: id,
     userId: key.userId,
     kid: key.kid,
