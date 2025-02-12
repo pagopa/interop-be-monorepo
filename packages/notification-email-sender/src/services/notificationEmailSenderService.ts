@@ -27,6 +27,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { match } from "ts-pattern";
 import {
   agreementStampDateNotFound,
   descriptorNotFound,
@@ -44,7 +45,10 @@ export const eventMailTemplateType = {
   agreementRejectedMailTemplate: "agreement-rejected-mail",
   newPurposeVersionWaitingForApprovalMailTemplate:
     "new-purpose-version-waiting-for-approval-mail",
-  purposeVersionRejectedMailTemplate: "purpose-version-rejected-mail",
+  firstPurposeVersionRejectedMailTemplate:
+    "first-purpose-version-rejected-mail",
+  otherPurposeVersionRejectedMailTemplate:
+    "other-purpose-version-rejected-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
@@ -419,10 +423,20 @@ export function notificationEmailSenderServiceBuilder(
     ) => {
       const purpose = fromPurposeV2(purposeV2Msg);
 
+      const { subject, templateToRetrieve } = match(purpose.versions.length)
+        .with(1, () => ({
+          subject: "Rifiuto delle finalità da parte dell'erogatore",
+          templateToRetrieve:
+            eventMailTemplateType.firstPurposeVersionRejectedMailTemplate,
+        }))
+        .otherwise(() => ({
+          subject: "Rifiuto richiesta di adeguamento stime di carico",
+          templateToRetrieve:
+            eventMailTemplateType.otherPurposeVersionRejectedMailTemplate,
+        }));
+
       const [htmlTemplate, consumer] = await Promise.all([
-        retrieveHTMLTemplate(
-          eventMailTemplateType.purposeVersionRejectedMailTemplate
-        ),
+        retrieveHTMLTemplate(templateToRetrieve),
         retrieveTenant(purpose.consumerId, readModelService),
       ]);
 
@@ -440,7 +454,7 @@ export function notificationEmailSenderServiceBuilder(
 
       const mail = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
-        subject: `Rifiuto delle finalità da parte dell'erogatore`,
+        subject,
         to: [consumerEmail.address],
         body: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
