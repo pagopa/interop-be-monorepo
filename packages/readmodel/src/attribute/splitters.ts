@@ -12,16 +12,16 @@ export const splitAttributeIntoObjectsSQL = (
     code,
     ...rest
   }: AttributeReadmodel,
-  version: number
+  metadataVersion: number
 ): AttributeSQL => {
   void (rest satisfies Record<string, never>);
   return {
     id,
-    metadataVersion: version,
+    metadataVersion,
     name,
     kind,
     description,
-    creationTime: creationTime,
+    creationTime,
     origin: origin || null,
     code: code || null,
   };
