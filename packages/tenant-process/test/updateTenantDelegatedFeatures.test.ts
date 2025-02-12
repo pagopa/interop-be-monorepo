@@ -291,7 +291,7 @@ describe("updateTenantDelegatedFeatures", async () => {
 
       expect(consumerEvent).toMatchObject({
         stream_id: mockTenant.id,
-        version: "2",
+        version: "1",
         type: "TenantDelegatedConsumerFeatureAdded",
         event_version: 2,
       });
@@ -376,7 +376,7 @@ describe("updateTenantDelegatedFeatures", async () => {
 
       expect(consumerEvent).toMatchObject({
         stream_id: mockTenant.id,
-        version: "2",
+        version: "1",
         type: "TenantDelegatedConsumerFeatureRemoved",
         event_version: 2,
       });
