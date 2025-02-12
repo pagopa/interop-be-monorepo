@@ -7,6 +7,7 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockPurpose,
+  getMockPurposeVersion,
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
@@ -33,7 +34,7 @@ import {
 } from "./utils.js";
 
 describe("sendPurposeVersionRejectedEmail", () => {
-  it("should send an email to Consumer to contact email addresses", async () => {
+  it("should send a first purpose version rejected mail to the consumer's email addresses", async () => {
     vi.spyOn(sesEmailManager, "send");
     const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
     const consumer: Tenant = {
@@ -66,7 +67,80 @@ describe("sendPurposeVersionRejectedEmail", () => {
 
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const templatePath = `../src/resources/templates/${eventMailTemplateType.purposeVersionRejectedMailTemplate}.html`;
+    const templatePath = `../src/resources/templates/${eventMailTemplateType.firstPurposeVersionRejectedMailTemplate}.html`;
+
+    const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
+    const aboveTheThresholdEmailTemplate = htmlTemplateBuffer.toString();
+
+    const mail = {
+      from: {
+        name: sesEmailsenderData.label,
+        address: sesEmailsenderData.mail,
+      },
+      subject: `Rifiuto delle finalità da parte dell'erogatore`,
+      to: [consumerEmail.address],
+      body: templateService.compileHtml(aboveTheThresholdEmailTemplate, {
+        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
+        purposeName: purpose.title,
+      }),
+    };
+
+    expect(sesEmailManager.send).toHaveBeenCalledWith(
+      mail.from,
+      mail.to,
+      mail.subject,
+      mail.body
+    );
+
+    const response: AxiosResponse = await axios.get(
+      `${sesEmailManagerConfig?.awsSesEndpoint}/store`
+    );
+    expect(response.status).toBe(200);
+    const lastEmail = response.data.emails[0];
+
+    expect(lastEmail).toMatchObject({
+      subject: mail.subject,
+      from: `${mail.from.name} <${mail.from.address}>`,
+      destination: { to: mail.to },
+      body: { html: mail.body },
+    });
+  });
+
+  it("should send an other purpose version rejected mail to the consumer's email addresses", async () => {
+    vi.spyOn(sesEmailManager, "send");
+    const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
+    const consumer: Tenant = {
+      ...getMockTenant(),
+      name: "Jane Doe",
+      mails: [consumerEmail],
+    };
+
+    await addOneTenant(consumer);
+
+    const descriptor = getMockDescriptor();
+    const eservice: EService = {
+      ...getMockEService(),
+      name: "EService",
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eservice.id,
+      consumerId: consumer.id,
+      versions: [getMockPurposeVersion(), getMockPurposeVersion()],
+    };
+    await addOnePurpose(purpose);
+
+    await notificationEmailSenderService.sendPurposeVersionRejectedEmail(
+      toPurposeV2(purpose),
+      genericLogger
+    );
+
+    const filename = fileURLToPath(import.meta.url);
+    const dirname = path.dirname(filename);
+    const templatePath = `../src/resources/templates/${eventMailTemplateType.otherPurposeVersionRejectedMailTemplate}.html`;
 
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
     const aboveTheThresholdEmailTemplate = htmlTemplateBuffer.toString();
