@@ -62,15 +62,8 @@ export const TenantFeature = z.discriminatedUnion("type", [
   TenantFeatureDelegatedProducer,
   TenantFeatureDelegatedConsumer,
 ]);
-export type TenantFeature = z.infer<typeof TenantFeature>;
 
-export const TenantFeatureSQL = z.object({
-  tenant_id: TenantId,
-  metadata_version: z.number(),
-  kind: TenantFeatureType,
-  details: z.unknown(), // TODO
-});
-export type TenantFeatureSQL = z.infer<typeof TenantFeatureSQL>;
+export type TenantFeature = z.infer<typeof TenantFeature>;
 
 export const tenantAttributeType = {
   CERTIFIED: "PersistentCertifiedAttribute",
@@ -94,20 +87,6 @@ export const TenantVerifier = z.object({
 });
 export type TenantVerifier = z.infer<typeof TenantVerifier>;
 
-export const TenantVerifiedAttributeVerifierSQL = z.object({
-  tenant_id: TenantId,
-  metadata_version: z.number(),
-  id: TenantId,
-  tenant_verified_attribute_id: AttributeId,
-  verification_date: z.coerce.date(),
-  expiration_date: z.coerce.date().optional().nullable(),
-  extension_date: z.coerce.date().optional().nullable(),
-  delegation_id: DelegationId.optional(),
-});
-export type TenantVerifiedAttributeVerifierSQL = z.infer<
-  typeof TenantVerifiedAttributeVerifierSQL
->;
-
 export const TenantRevoker = z.object({
   expirationDate: z.coerce.date().optional(),
   extensionDate: z.coerce.date().optional(),
@@ -118,21 +97,6 @@ export const TenantRevoker = z.object({
 });
 export type TenantRevoker = z.infer<typeof TenantRevoker>;
 
-export const TenantVerifiedAttributeRevokerSQL = z.object({
-  tenant_id: TenantId,
-  metadata_version: z.number(),
-  id: TenantId,
-  tenant_verified_attribute_id: AttributeId,
-  verification_date: z.coerce.date(),
-  expiration_date: z.coerce.date().optional().nullable(),
-  extension_date: z.coerce.date().optional().nullable(),
-  revocation_date: z.coerce.date().optional().nullable(),
-  delegation_id: DelegationId.optional(),
-});
-export type TenantVerifiedAttributeRevokerSQL = z.infer<
-  typeof TenantVerifiedAttributeRevokerSQL
->;
-
 export const CertifiedTenantAttribute = z.object({
   assignmentTimestamp: z.coerce.date(),
   id: AttributeId,
@@ -140,17 +104,6 @@ export const CertifiedTenantAttribute = z.object({
   revocationTimestamp: z.coerce.date().optional(),
 });
 export type CertifiedTenantAttribute = z.infer<typeof CertifiedTenantAttribute>;
-
-export const TenantCertifiedAttributeSQL = z.object({
-  attribute_id: AttributeId,
-  tenantId: TenantId,
-  metadata_version: z.number(),
-  assignment_timestamp: z.coerce.date(),
-  revocationTimestamp: z.coerce.date().optional(),
-});
-export type TenantCertifiedAttributeSQL = z.infer<
-  typeof TenantCertifiedAttributeSQL
->;
 
 export const VerifiedTenantAttribute = z.object({
   assignmentTimestamp: z.coerce.date(),
@@ -161,16 +114,6 @@ export const VerifiedTenantAttribute = z.object({
 });
 export type VerifiedTenantAttribute = z.infer<typeof VerifiedTenantAttribute>;
 
-export const TenantVerifiedAttributeSQL = z.object({
-  attribute_id: AttributeId,
-  tenantId: TenantId,
-  metadata_version: z.number(),
-  assignment_timestamp: z.coerce.date(),
-});
-export type TenantVerifiedAttributeSQL = z.infer<
-  typeof TenantVerifiedAttributeSQL
->;
-
 export const DeclaredTenantAttribute = z.object({
   type: z.literal(tenantAttributeType.DECLARED),
   id: AttributeId,
@@ -179,17 +122,6 @@ export const DeclaredTenantAttribute = z.object({
   delegationId: DelegationId.optional(),
 });
 export type DeclaredTenantAttribute = z.infer<typeof DeclaredTenantAttribute>;
-
-export const TenantDeclaredAttributeSQL = z.object({
-  attribute_id: AttributeId,
-  tenantId: TenantId,
-  metadata_version: z.number(),
-  assignment_timestamp: z.coerce.date(),
-  revocationTimestamp: z.coerce.date().optional(),
-});
-export type TenantDeclaredAttributeSQL = z.infer<
-  typeof TenantDeclaredAttributeSQL
->;
 
 export const TenantAttribute = z.discriminatedUnion("type", [
   CertifiedTenantAttribute,
@@ -218,17 +150,6 @@ export const TenantMail = z.object({
 });
 export type TenantMail = z.infer<typeof TenantMail>;
 
-export const TenantMailSQL = z.object({
-  id: z.string(),
-  tenant_id: TenantId,
-  metadata_version: z.number(),
-  kind: TenantMailKind,
-  address: z.string(),
-  description: z.string().optional(),
-  created_at: z.coerce.date(),
-});
-export type TenantMailSQL = z.infer<typeof TenantMailSQL>;
-
 export const tenantUnitType = {
   AOO: "AOO",
   UO: "UO",
@@ -255,22 +176,8 @@ export const Tenant = z.object({
   onboardedAt: z.coerce.date().optional(),
   subUnitType: TenantUnitType.optional(),
 });
-export type Tenant = z.infer<typeof Tenant>;
 
-export const TenantSQL = z.object({
-  id: TenantId,
-  metadata_version: z.number(),
-  kind: TenantKind.optional(),
-  selfcare_id: z.string().optional(),
-  external_id_origin: z.string(),
-  external_id_value: z.string(),
-  created_at: z.coerce.date(),
-  updated_at: z.coerce.date().optional().nullable(),
-  name: z.string(),
-  onboarded_at: z.coerce.date().optional().nullable(),
-  sub_unit_type: TenantUnitType.optional(),
-});
-export type TenantSQL = z.infer<typeof TenantSQL>;
+export type Tenant = z.infer<typeof Tenant>;
 
 export const CompactTenant = z.object({
   id: TenantId,
