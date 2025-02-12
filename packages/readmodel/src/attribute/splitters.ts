@@ -1,4 +1,5 @@
-import { Attribute, AttributeSQL } from "pagopa-interop-models";
+import { Attribute, AttributeReadmodel } from "pagopa-interop-models";
+import { AttributeSQL } from "../types.js";
 
 export const splitAttributeIntoObjectsSQL = (
   {
@@ -10,18 +11,18 @@ export const splitAttributeIntoObjectsSQL = (
     origin,
     code,
     ...rest
-  }: Attribute,
+  }: AttributeReadmodel,
   version: number
 ): AttributeSQL => {
   void (rest satisfies Record<string, never>);
   return {
     id,
-    metadata_version: version,
+    metadataVersion: version,
     name,
     kind,
     description,
-    creation_time: creationTime,
-    origin,
-    code,
+    creationTime: creationTime,
+    origin: origin || null,
+    code: code || null,
   };
 };
