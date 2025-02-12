@@ -1,4 +1,6 @@
 import {
+  CertifiedTenantAttributeReadModel,
+  DeclaredTenantAttributeReadModel,
   TenantAttributeReadModel,
   tenantAttributeType,
   TenantFeatureCertifier,
@@ -8,6 +10,9 @@ import {
   TenantId,
   TenantMailReadModel,
   TenantReadModel,
+  TenantRevokerReadModel,
+  TenantVerifierReadModel,
+  VerifiedTenantAttributeReadModel,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -156,70 +161,127 @@ const splitTenantAttributesIntoObjectsSQL = (
 
   tenantAttributes.forEach((attr) => {
     match(attr)
-      .with({ type: tenantAttributeType.CERTIFIED }, (attr) => {
-        const tenantCertifiedAttributeSQL: TenantCertifiedAttributeSQL = {
-          attributeId: attr.id,
-          tenantId,
-          metadataVersion,
-          assignmentTimestamp: attr.assignmentTimestamp,
-          revocationTimestamp: attr.revocationTimestamp || null,
-        };
-        // eslint-disable-next-line functional/immutable-data
-        tenantCertifiedAttributesSQL.push(tenantCertifiedAttributeSQL);
-      })
-      .with({ type: tenantAttributeType.DECLARED }, (attr) => {
-        const tenantDeclaredAttributeSQL: TenantDeclaredAttributeSQL = {
-          attributeId: attr.id,
-          tenantId,
-          metadataVersion,
-          assignmentTimestamp: attr.assignmentTimestamp,
-          revocationTimestamp: attr.revocationTimestamp || null,
-          delegationId: attr.delegationId || null,
-        };
-        // eslint-disable-next-line functional/immutable-data
-        tenantDeclaredAttributesSQL.push(tenantDeclaredAttributeSQL);
-      })
-      .with({ type: tenantAttributeType.VERIFIED }, (attr) => {
-        const verifiedTenantAttributeSQL: TenantVerifiedAttributeSQL = {
-          attributeId: attr.id,
-          tenantId,
-          metadataVersion,
-          assignmentTimestamp: attr.assignmentTimestamp,
-        };
-        // eslint-disable-next-line functional/immutable-data
-        tenantVerifiedAttributesSQL.push(verifiedTenantAttributeSQL);
+      .with(
+        { type: tenantAttributeType.CERTIFIED },
+        ({
+          id,
+          assignmentTimestamp,
+          revocationTimestamp,
+          ...rest
+        }: Omit<CertifiedTenantAttributeReadModel, "type">) => {
+          void (rest satisfies Record<string, never>);
 
-        const verifiers: TenantVerifiedAttributeVerifierSQL[] =
-          attr.verifiedBy.map((verifier) => ({
+          const tenantCertifiedAttributeSQL: TenantCertifiedAttributeSQL = {
+            attributeId: id,
             tenantId,
             metadataVersion,
-            id: verifier.id,
-            tenantVerifiedAttributeId: attr.id,
-            verificationDate: verifier.verificationDate,
-            expirationDate: verifier.expirationDate || null,
-            extensionDate: verifier.extensionDate || null,
-            delegationId: verifier.delegationId || null,
-          }));
+            assignmentTimestamp,
+            revocationTimestamp: revocationTimestamp || null,
+          };
+          // eslint-disable-next-line functional/immutable-data
+          tenantCertifiedAttributesSQL.push(tenantCertifiedAttributeSQL);
+        }
+      )
+      .with(
+        { type: tenantAttributeType.DECLARED },
+        ({
+          id,
+          assignmentTimestamp,
+          revocationTimestamp,
+          delegationId,
+          ...rest
+        }: Omit<DeclaredTenantAttributeReadModel, "type">) => {
+          void (rest satisfies Record<string, never>);
 
-        // eslint-disable-next-line functional/immutable-data
-        tenantVerifiedAttributeVerifiersSQL.push(...verifiers);
-
-        const revokers: TenantVerifiedAttributeRevokerSQL[] =
-          attr.revokedBy.map((revoker) => ({
+          const tenantDeclaredAttributeSQL: TenantDeclaredAttributeSQL = {
+            attributeId: id,
             tenantId,
             metadataVersion,
-            id: revoker.id,
-            tenantVerifiedAttributeId: attr.id,
-            verificationDate: revoker.verificationDate,
-            expirationDate: revoker.expirationDate || null,
-            extensionDate: revoker.extensionDate || null,
-            revocationDate: revoker.revocationDate,
-            delegationId: revoker.delegationId || null,
-          }));
+            assignmentTimestamp,
+            revocationTimestamp: revocationTimestamp || null,
+            delegationId: delegationId || null,
+          };
+          // eslint-disable-next-line functional/immutable-data
+          tenantDeclaredAttributesSQL.push(tenantDeclaredAttributeSQL);
+        }
+      )
+      .with(
+        { type: tenantAttributeType.VERIFIED },
+        ({
+          id,
+          assignmentTimestamp,
+          verifiedBy,
+          revokedBy,
+          ...rest
+        }: Omit<VerifiedTenantAttributeReadModel, "type">) => {
+          void (rest satisfies Record<string, never>);
 
-        // eslint-disable-next-line functional/immutable-data
-        tenantVerifiedAttributeRevokersSQL.push(...revokers);
-      })
+          const verifiedTenantAttributeSQL: TenantVerifiedAttributeSQL = {
+            attributeId: id,
+            tenantId,
+            metadataVersion,
+            assignmentTimestamp,
+          };
+          // eslint-disable-next-line functional/immutable-data
+          tenantVerifiedAttributesSQL.push(verifiedTenantAttributeSQL);
+
+          const tenantVerifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[] =
+            verifiedBy.map(
+              ({
+                id,
+                verificationDate,
+                expirationDate,
+                extensionDate,
+                delegationId,
+              }: TenantVerifierReadModel) => {
+                void (rest satisfies Record<string, never>);
+
+                return {
+                  tenantId,
+                  metadataVersion,
+                  id,
+                  tenantVerifiedAttributeId: attr.id,
+                  verificationDate,
+                  expirationDate: expirationDate || null,
+                  extensionDate: extensionDate || null,
+                  delegationId: delegationId || null,
+                };
+              }
+            );
+
+          // eslint-disable-next-line functional/immutable-data
+          tenantVerifiedAttributeVerifiersSQL.push(
+            ...tenantVerifiedAttributeVerifiersSQL
+          );
+
+          const tenantVerifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[] =
+            revokedBy.map(
+              ({
+                id,
+                verificationDate,
+                expirationDate,
+                extensionDate,
+                revocationDate,
+                delegationId,
+              }: TenantRevokerReadModel) => ({
+                tenantId,
+                metadataVersion,
+                id,
+                tenantVerifiedAttributeId: attr.id,
+                verificationDate,
+                expirationDate: expirationDate || null,
+                extensionDate: extensionDate || null,
+                revocationDate,
+                delegationId: delegationId || null,
+              })
+            );
+
+          // eslint-disable-next-line functional/immutable-data
+          tenantVerifiedAttributeRevokersSQL.push(
+            ...tenantVerifiedAttributeRevokersSQL
+          );
+        }
+      )
       .exhaustive();
   });
 
