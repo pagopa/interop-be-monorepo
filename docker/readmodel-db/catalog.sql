@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor (
   eservice_id UUID NOT NULL references readmodel.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   version VARCHAR NOT NULL,
-  description VARCHAR NOT NULL,
+  description VARCHAR,
   -- interface
   -- docs
   state VARCHAR NOT NULL,
@@ -54,13 +54,13 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor (
   PRIMARY KEY (id)
 );
 
+-- TODO: what's the PK?
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_rejection_reason (
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   descriptor_id UUID NOT NULL REFERENCES readmodel.eservice_descriptor (id) ON DELETE CASCADE,
   rejection_reason VARCHAR NOT NULL,
-  rejected_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (descriptor_id)
+  rejected_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_document(
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_document(
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   descriptor_id UUID NOT NULL REFERENCES readmodel.eservice_descriptor(id) ON DELETE CASCADE,
-  name VARCHAR,
+  name VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
@@ -104,10 +104,10 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis(
   id UUID,
   eservice_id UUID REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  name VARCHAR,
-  created_at TIMESTAMP WITH TIME ZONE,
-  risk_analysis_form_id UUID UNIQUE,
-  risk_analysis_form_version VARCHAR,
+  name VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  risk_analysis_form_id UUID UNIQUE NOT NULL,
+  risk_analysis_form_version VARCHAR NOT NULL,
   PRIMARY KEY(id)
 );
 
@@ -116,10 +116,10 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis_answer(
   eservice_id UUID REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   risk_analysis_form_id UUID REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id),
-  kind VARCHAR,
+  kind VARCHAR NOT NULL,
   -- SINGLE/MULTI
-  key VARCHAR,
-  value VARCHAR ARRAY,
+  key VARCHAR NOT NULL,
+  value VARCHAR ARRAY NOT NULL,
   PRIMARY KEY(id)
 );
 
