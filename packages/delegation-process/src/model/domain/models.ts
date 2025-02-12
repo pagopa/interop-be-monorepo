@@ -2,6 +2,7 @@ import { DelegationId, EService, Tenant, UserId } from "pagopa-interop-models";
 
 export type DelegationActivationPDFPayload = {
   delegationKindText: string;
+  delegationActionText: string;
   todayDate: string;
   todayTime: string;
   delegationId: DelegationId;
@@ -21,6 +22,7 @@ export type DelegationActivationPDFPayload = {
 
 export type DelegationRevocationPDFPayload = {
   delegationKindText: string;
+  delegationActionText: string;
   todayDate: string;
   todayTime: string;
   delegationId: DelegationId;
