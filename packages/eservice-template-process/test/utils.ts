@@ -9,6 +9,7 @@ import {
 import { inject, afterEach } from "vitest";
 import {
   Attribute,
+  EService,
   EServiceTemplate,
   EServiceTemplateEvent,
   EServiceTemplateId,
@@ -16,6 +17,7 @@ import {
   Tenant,
   toEServiceTemplateV2,
   toReadModelAttribute,
+  toReadModelEService,
   toReadModelTenant,
 } from "pagopa-interop-models";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -43,6 +45,7 @@ export const attributes = readModelRepository.attributes;
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
 export const tenants = readModelRepository.tenants;
+export const eservices = readModelRepository.eservices;
 
 export const eserviceTemplateService = eserviceTemplateServiceBuilder(
   postgresDB,
@@ -77,6 +80,10 @@ export const addOneEServiceTemplate = async (
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+};
+
+export const addOneEService = async (eservice: EService): Promise<void> => {
+  await writeInReadmodel(toReadModelEService(eservice), eservices);
 };
 
 export const readLastEserviceTemplateEvent = async (
