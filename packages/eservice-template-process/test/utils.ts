@@ -15,13 +15,17 @@ import {
   EServiceTemplateId,
   RiskAnalysis,
   Tenant,
+  toReadModelTenant,
+} from "pagopa-interop-models";
+import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
+import {
+  EServiceTemplateVersion,
   toEServiceTemplateV2,
   toReadModelAttribute,
   toReadModelEService,
   toReadModelTenant,
 } from "pagopa-interop-models";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
 import {
@@ -129,4 +133,19 @@ export const eserviceTemplateToApiUpdateEServiceTemplateSeed = (
   technology: technologyToApiTechnology(eserviceTemplate.technology),
   mode: eServiceModeToApiEServiceMode(eserviceTemplate.mode),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
+});
+
+export const buildUpdateVersionSeed = (
+  version: EServiceTemplateVersion
+): eserviceTemplateApi.UpdateEServiceTemplateVersionSeed => ({
+  voucherLifespan: version.voucherLifespan,
+  dailyCallsPerConsumer: version.dailyCallsPerConsumer,
+  dailyCallsTotal: version.dailyCallsTotal,
+  agreementApprovalPolicy: "AUTOMATIC",
+  description: version.description,
+  attributes: {
+    certified: [],
+    declared: [],
+    verified: [],
+  },
 });
