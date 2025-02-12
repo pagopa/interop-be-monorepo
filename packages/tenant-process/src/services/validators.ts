@@ -31,8 +31,6 @@ import {
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
   attributeNotFound,
-  tenantDoesNotHaveFeature,
-  tenantAlreadyHasFeature,
   eServiceNotFound,
   descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
@@ -256,27 +254,9 @@ export function retrieveCertifierId(tenant: Tenant): string {
   return certifierFeature;
 }
 
-function isFeatureAssigned(
+export function isFeatureAssigned(
   tenant: Tenant,
   featureType: TenantFeature["type"]
 ): boolean {
   return tenant.features.some((f) => f.type === featureType);
-}
-
-export function assertFeatureNotAssigned(
-  tenant: Tenant,
-  featureType: TenantFeature["type"]
-): void {
-  if (isFeatureAssigned(tenant, featureType)) {
-    throw tenantAlreadyHasFeature(tenant.id, featureType);
-  }
-}
-
-export function assertFeatureAssigned(
-  tenant: Tenant,
-  featureType: TenantFeature["type"]
-): void {
-  if (!isFeatureAssigned(tenant, featureType)) {
-    throw tenantDoesNotHaveFeature(tenant.id, featureType);
-  }
 }

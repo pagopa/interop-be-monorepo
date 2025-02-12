@@ -1023,82 +1023,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /tenants/delegatedProducer:
+  /tenants/delegatedFeatures/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - tenant
-      summary: Assign delegated producer feature to tenant caller
-      operationId: assignTenantDelegatedProducerFeature
+      summary: Update delegated producer and consumer feature to tenant caller
+      operationId: updateTenantDelegatedFeatures
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantDelegatedFeaturesFlagsUpdateSeed"
       responses:
         "204":
-          description: Delegated producer feature assigned
-        "409":
-          description: Feature already assigned to tenant
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          description: Delegated features updated
         "403":
           description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-    delete:
-      tags:
-        - tenant
-      summary: Remove delegated producer feature to tenant caller
-      operationId: removeTenantDelegatedProducerFeature
-      responses:
-        "204":
-          description: Delegated producer feature removed
-        "409":
-          description: Feature not assigned to tenant
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-  /tenants/delegatedConsumer:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-    post:
-      tags:
-        - tenant
-      summary: Assign delegated consumer feature to tenant caller
-      operationId: assignTenantDelegatedConsumerFeature
-      responses:
-        "204":
-          description: Delegated consumer feature assigned
-        "404":
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Feature already assigned to tenant
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-    delete:
-      tags:
-        - tenant
-      summary: Remove delegated consumer feature to tenant caller
-      operationId: removeTenantDelegatedConsumerFeature
-      responses:
-        "204":
-          description: Delegated consumer feature removed
-        "409":
-          description: Feature not assigned to tenant
           content:
             application/json:
               schema:
@@ -1548,6 +1491,17 @@ components:
         - selfcareId
         - name
         - onboardedAt
+    TenantDelegatedFeaturesFlagsUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isDelegatedConsumerFeatureEnabled:
+          type: boolean
+        isDelegatedProducerFeatureEnabled:
+          type: boolean
+      required:
+        - isDelegatedConsumerFeatureEnabled
+        - isDelegatedProducerFeatureEnabled
     Mail:
       description: A specific kind of mail
       type: object

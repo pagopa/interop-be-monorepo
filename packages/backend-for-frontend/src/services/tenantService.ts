@@ -429,43 +429,14 @@ export function tenantServiceBuilder(
         headers,
       });
     },
-    async assignTenantDelegatedProducerFeature(
+    async updateTenantDelegatedFeatures(
       tenantId: TenantId,
+      delegatedFeatures: bffApi.TenantDelegatedFeaturesFlagsUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Assigning delegated producer feature to tenant ${tenantId}`);
-      await tenantProcessClient.tenant.assignTenantDelegatedProducerFeature(
-        undefined,
-        { headers }
-      );
-    },
-    async removeTenantDelegatedProducerFeature(
-      tenantId: TenantId,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<void> {
-      logger.info(`Removing delegated producer feature to tenant ${tenantId}`);
-      await tenantProcessClient.tenant.removeTenantDelegatedProducerFeature(
-        undefined,
-        { headers }
-      );
-    },
-    async assignTenantDelegatedConsumerFeature(
-      tenantId: TenantId,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<void> {
-      logger.info(`Assigning delegated consumer feature to tenant ${tenantId}`);
-      await tenantProcessClient.tenant.assignTenantDelegatedConsumerFeature(
-        undefined,
-        { headers }
-      );
-    },
-    async removeTenantDelegatedConsumerFeature(
-      tenantId: TenantId,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<void> {
-      logger.info(`Removing delegated consumer feature to tenant ${tenantId}`);
-      await tenantProcessClient.tenant.removeTenantDelegatedConsumerFeature(
-        undefined,
+      await tenantProcessClient.tenant.updateTenantDelegatedFeatures(
+        delegatedFeatures,
         { headers }
       );
     },
