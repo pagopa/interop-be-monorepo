@@ -1,18 +1,19 @@
 import {
-  CertifiedTenantAttributeReadModel,
-  DeclaredTenantAttributeReadModel,
-  TenantAttributeReadModel,
+  CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
+  TenantAttribute,
   tenantAttributeType,
   TenantFeatureCertifier,
   TenantFeatureDelegatedConsumer,
   TenantFeatureDelegatedProducer,
   tenantFeatureType,
   TenantId,
-  TenantMailReadModel,
-  TenantReadModel,
-  TenantRevokerReadModel,
-  TenantVerifierReadModel,
-  VerifiedTenantAttributeReadModel,
+  TenantMail,
+  Tenant,
+  TenantRevoker,
+  TenantVerifier,
+  VerifiedTenantAttribute,
+  dateToString,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -41,7 +42,7 @@ export const splitTenantIntoObjectsSQL = (
     onboardedAt,
     subUnitType,
     ...rest
-  }: TenantReadModel,
+  }: Tenant,
   metadataVersion: number
 ): {
   tenantSQL: TenantSQL;
@@ -62,10 +63,10 @@ export const splitTenantIntoObjectsSQL = (
     selfcareId: selfcareId || null,
     externalIdOrigin: externalId.origin,
     externalIdValue: externalId.value,
-    createdAt,
-    updatedAt: updatedAt || null,
+    createdAt: dateToString(createdAt),
+    updatedAt: dateToString(updatedAt),
     name,
-    onboardedAt: onboardedAt || null,
+    onboardedAt: dateToString(onboardedAt) || null,
     subUnitType: subUnitType || null,
   };
 
@@ -124,7 +125,7 @@ export const splitTenantIntoObjectsSQL = (
 };
 
 const tenantMailToTenantMailSQL = (
-  { id, kind, address, description, createdAt, ...rest }: TenantMailReadModel,
+  { id, kind, address, description, createdAt, ...rest }: TenantMail,
   tenantId: TenantId,
   metadataVersion: number
 ): TenantMailSQL => {
@@ -136,12 +137,12 @@ const tenantMailToTenantMailSQL = (
     kind,
     address,
     description: description || null,
-    createdAt,
+    createdAt: dateToString(createdAt),
   };
 };
 
 const splitTenantAttributesIntoObjectsSQL = (
-  tenantAttributes: TenantAttributeReadModel[],
+  tenantAttributes: TenantAttribute[],
   tenantId: TenantId,
   metadataVersion: number
 ): {
@@ -168,15 +169,15 @@ const splitTenantAttributesIntoObjectsSQL = (
           assignmentTimestamp,
           revocationTimestamp,
           ...rest
-        }: Omit<CertifiedTenantAttributeReadModel, "type">) => {
+        }: Omit<CertifiedTenantAttribute, "type">) => {
           void (rest satisfies Record<string, never>);
 
           const tenantCertifiedAttributeSQL: TenantCertifiedAttributeSQL = {
             attributeId: id,
             tenantId,
             metadataVersion,
-            assignmentTimestamp,
-            revocationTimestamp: revocationTimestamp || null,
+            assignmentTimestamp: dateToString(assignmentTimestamp),
+            revocationTimestamp: dateToString(revocationTimestamp),
           };
           // eslint-disable-next-line functional/immutable-data
           tenantCertifiedAttributesSQL.push(tenantCertifiedAttributeSQL);
@@ -190,15 +191,15 @@ const splitTenantAttributesIntoObjectsSQL = (
           revocationTimestamp,
           delegationId,
           ...rest
-        }: Omit<DeclaredTenantAttributeReadModel, "type">) => {
+        }: Omit<DeclaredTenantAttribute, "type">) => {
           void (rest satisfies Record<string, never>);
 
           const tenantDeclaredAttributeSQL: TenantDeclaredAttributeSQL = {
             attributeId: id,
             tenantId,
             metadataVersion,
-            assignmentTimestamp,
-            revocationTimestamp: revocationTimestamp || null,
+            assignmentTimestamp: dateToString(assignmentTimestamp),
+            revocationTimestamp: dateToString(revocationTimestamp),
             delegationId: delegationId || null,
           };
           // eslint-disable-next-line functional/immutable-data
@@ -213,14 +214,14 @@ const splitTenantAttributesIntoObjectsSQL = (
           verifiedBy,
           revokedBy,
           ...rest
-        }: Omit<VerifiedTenantAttributeReadModel, "type">) => {
+        }: Omit<VerifiedTenantAttribute, "type">) => {
           void (rest satisfies Record<string, never>);
 
           const verifiedTenantAttributeSQL: TenantVerifiedAttributeSQL = {
             attributeId: id,
             tenantId,
             metadataVersion,
-            assignmentTimestamp,
+            assignmentTimestamp: dateToString(assignmentTimestamp),
           };
           // eslint-disable-next-line functional/immutable-data
           tenantVerifiedAttributesSQL.push(verifiedTenantAttributeSQL);
@@ -233,7 +234,7 @@ const splitTenantAttributesIntoObjectsSQL = (
                 expirationDate,
                 extensionDate,
                 delegationId,
-              }: TenantVerifierReadModel) => {
+              }: TenantVerifier) => {
                 void (rest satisfies Record<string, never>);
 
                 return {
@@ -241,9 +242,9 @@ const splitTenantAttributesIntoObjectsSQL = (
                   metadataVersion,
                   id,
                   tenantVerifiedAttributeId: attr.id,
-                  verificationDate,
-                  expirationDate: expirationDate || null,
-                  extensionDate: extensionDate || null,
+                  verificationDate: dateToString(verificationDate),
+                  expirationDate: dateToString(expirationDate),
+                  extensionDate: dateToString(extensionDate),
                   delegationId: delegationId || null,
                 };
               }
@@ -263,15 +264,15 @@ const splitTenantAttributesIntoObjectsSQL = (
                 extensionDate,
                 revocationDate,
                 delegationId,
-              }: TenantRevokerReadModel) => ({
+              }: TenantRevoker) => ({
                 tenantId,
                 metadataVersion,
                 id,
                 tenantVerifiedAttributeId: attr.id,
-                verificationDate,
-                expirationDate: expirationDate || null,
-                extensionDate: extensionDate || null,
-                revocationDate,
+                verificationDate: dateToString(verificationDate),
+                expirationDate: dateToString(expirationDate),
+                extensionDate: dateToString(extensionDate),
+                revocationDate: dateToString(revocationDate),
                 delegationId: delegationId || null,
               })
             );
