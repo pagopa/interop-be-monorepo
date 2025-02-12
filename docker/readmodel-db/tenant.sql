@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_certified_attribute (
   metadata_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
   revocation_timestamp TIMESTAMP WITH TIME ZONE,
-  PRIMARY KEY (id, tenant_id)
+  PRIMARY KEY (attribute_id, tenant_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_declared_attribute (
