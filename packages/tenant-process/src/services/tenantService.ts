@@ -1792,25 +1792,25 @@ export function tenantServiceBuilder(
         )
         .exhaustive();
 
-      await match([delegatedConsumerEvent, delegatedProducerEvent])
+      const events = [delegatedConsumerEvent, delegatedProducerEvent]
+        .filter((e): e is NonNullable<typeof e> => e !== null)
+        .map((e) => e.event);
+
+      await match(events)
+        .with([], () => Promise.resolve())
+        .with([P.not(P.nullish)], async ([event]) =>
+          repository.createEvent(event)
+        )
         .with(
           [P.not(P.nullish), P.not(P.nullish)],
-          async ([delegatedConsumerEvent, delegatedProducerEvent]) =>
+          async ([firstEvent, secondEvent]) =>
             repository.createEvents([
-              delegatedConsumerEvent.event,
-              {
-                ...delegatedProducerEvent.event,
-                version: requesterTenant.metadata.version + 1,
-              },
+              firstEvent,
+              { ...secondEvent, version: requesterTenant.metadata.version + 1 },
             ])
         )
-        .with([P.not(P.nullish), null], async ([delegatedConsumerEvent, _]) =>
-          repository.createEvent(delegatedConsumerEvent.event)
-        )
-        .with([null, P.not(P.nullish)], async ([_, delegatedProducerEvent]) =>
-          repository.createEvent(delegatedProducerEvent.event)
-        )
-        .run();
+        .with(P._, () => Promise.resolve())
+        .exhaustive();
     },
   };
 }
