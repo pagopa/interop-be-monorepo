@@ -163,7 +163,7 @@ export const purposeVersionDocumentInReadmodel = readmodel.table(
 
 export const clientJwkKeyInReadmodel = readmodel.table("client_jwk_key", {
   clientId: uuid("client_id").notNull(),
-  version: integer().notNull(),
+  metadataVersion: integer("metadata_version").notNull(),
   alg: varchar().notNull(),
   e: varchar().notNull(),
   kid: varchar().primaryKey().notNull(),
