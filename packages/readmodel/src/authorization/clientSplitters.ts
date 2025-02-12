@@ -1,4 +1,4 @@
-import { ClientReadModel } from "pagopa-interop-models";
+import { Client, dateToString } from "pagopa-interop-models";
 import {
   ClientKeySQL,
   ClientPurposeSQL,
@@ -18,7 +18,7 @@ export const splitClientIntoObjectsSQL = (
     createdAt,
     keys,
     ...rest
-  }: ClientReadModel,
+  }: Client,
   metadataVersion: number
 ): {
   clientSQL: ClientSQL;
@@ -35,7 +35,7 @@ export const splitClientIntoObjectsSQL = (
     name,
     description: description || "",
     kind,
-    createdAt,
+    createdAt: dateToString(createdAt),
   };
 
   const clientUsersSQL: ClientUserSQL[] = users.map((userId) => ({
@@ -59,7 +59,7 @@ export const splitClientIntoObjectsSQL = (
     encodedPem: key.encodedPem,
     algorithm: key.algorithm,
     use: key.use,
-    createdAt: key.createdAt,
+    createdAt: dateToString(key.createdAt),
   }));
 
   return {
