@@ -62,6 +62,7 @@ export const TenantFeature = z.discriminatedUnion("type", [
   TenantFeatureDelegatedProducer,
   TenantFeatureDelegatedConsumer,
 ]);
+
 export type TenantFeature = z.infer<typeof TenantFeature>;
 
 export const tenantAttributeType = {
@@ -175,6 +176,7 @@ export const Tenant = z.object({
   onboardedAt: z.coerce.date().optional(),
   subUnitType: TenantUnitType.optional(),
 });
+
 export type Tenant = z.infer<typeof Tenant>;
 
 export const CompactTenant = z.object({
