@@ -517,8 +517,6 @@ export function purposeServiceBuilder(
       ) {
         throw puroposeDelegationNotFound(purposeId, delegationId);
       }
-      // Check that the delegation exists
-      await retrievePurposeDelegation(purpose.data, readModelService);
 
       await repository.createEvent(
         toCreateEventPurposeDeletedByRevokedDelegation({
@@ -611,8 +609,6 @@ export function purposeServiceBuilder(
       ) {
         throw puroposeDelegationNotFound(purposeId, delegationId);
       }
-      // Check that the delegation exists
-      await retrievePurposeDelegation(purpose.data, readModelService);
 
       const purposeWithoutWaitingForApproval: Purpose = {
         ...purpose.data,
