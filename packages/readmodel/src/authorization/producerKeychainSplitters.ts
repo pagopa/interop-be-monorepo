@@ -1,4 +1,4 @@
-import { ProducerKeychainReadModel } from "pagopa-interop-models";
+import { dateToString, ProducerKeychain } from "pagopa-interop-models";
 import {
   ProducerKeychainSQL,
   ProducerKeychainEServiceSQL,
@@ -17,7 +17,7 @@ export const splitProducerKeychainIntoObjectsSQL = (
     users,
     keys,
     ...rest
-  }: ProducerKeychainReadModel,
+  }: ProducerKeychain,
   metadataVersion: number
 ): {
   producerKeychainSQL: ProducerKeychainSQL;
@@ -32,7 +32,7 @@ export const splitProducerKeychainIntoObjectsSQL = (
     metadataVersion,
     producerId,
     name,
-    createdAt,
+    createdAt: dateToString(createdAt),
     description,
   };
 
@@ -60,7 +60,7 @@ export const splitProducerKeychainIntoObjectsSQL = (
     encodedPem: key.encodedPem,
     algorithm: key.algorithm,
     use: key.use,
-    createdAt: key.createdAt,
+    createdAt: dateToString(key.createdAt),
   }));
 
   return {
