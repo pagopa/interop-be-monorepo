@@ -1,9 +1,9 @@
 import {
   pgSchema,
   uuid,
+  integer,
   varchar,
   timestamp,
-  integer,
   // eslint-disable-next-line id-blacklist
   boolean,
   foreignKey,
@@ -16,6 +16,7 @@ export const readmodel = pgSchema("readmodel");
 
 export const attributeInReadmodel = readmodel.table("attribute", {
   id: uuid().primaryKey().notNull(),
+  metadataVersion: integer("metadata_version").notNull(),
   code: varchar(),
   kind: varchar().notNull(),
   description: varchar().notNull(),
@@ -162,7 +163,7 @@ export const purposeVersionDocumentInReadmodel = readmodel.table(
 
 export const clientJwkKeyInReadmodel = readmodel.table("client_jwk_key", {
   clientId: uuid("client_id").notNull(),
-  version: integer().notNull(),
+  metadataVersion: integer("metadata_version").notNull(),
   alg: varchar().notNull(),
   e: varchar().notNull(),
   kid: varchar().primaryKey().notNull(),
@@ -195,7 +196,7 @@ export const producerKeychainKeyInReadmodel = readmodel.table(
 
 export const producerJwkKeyInReadmodel = readmodel.table("producer_jwk_key", {
   producerKeychainId: uuid("producer_keychain_id").notNull(),
-  version: integer().notNull(),
+  metadataVersion: integer("metadata_version").notNull(),
   alg: varchar().notNull(),
   e: varchar().notNull(),
   kid: varchar().primaryKey().notNull(),
@@ -298,7 +299,7 @@ export const eserviceDescriptorInReadmodel = readmodel.table(
     eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     version: varchar().notNull(),
-    description: varchar().notNull(),
+    description: varchar(),
     state: varchar().notNull(),
     audience: varchar().array().notNull(),
     voucherLifespan: integer("voucher_lifespan").notNull(),
@@ -369,7 +370,7 @@ export const eserviceDescriptorDocumentInReadmodel = readmodel.table(
     eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     descriptorId: uuid("descriptor_id").notNull(),
-    name: varchar(),
+    name: varchar().notNull(),
     contentType: varchar("content_type").notNull(),
     prettyName: varchar("pretty_name").notNull(),
     path: varchar().notNull(),
@@ -400,10 +401,13 @@ export const eserviceRiskAnalysisInReadmodel = readmodel.table(
     id: uuid().primaryKey().notNull(),
     eserviceId: uuid("eservice_id"),
     metadataVersion: integer("metadata_version").notNull(),
-    name: varchar(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }),
-    riskAnalysisFormId: uuid("risk_analysis_form_id"),
-    riskAnalysisFormVersion: varchar("risk_analysis_form_version"),
+    name: varchar().notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
+    riskAnalysisFormVersion: varchar("risk_analysis_form_version").notNull(),
   },
   (table) => [
     foreignKey({
@@ -424,9 +428,9 @@ export const eserviceRiskAnalysisAnswerInReadmodel = readmodel.table(
     eserviceId: uuid("eservice_id"),
     metadataVersion: integer("metadata_version").notNull(),
     riskAnalysisFormId: uuid("risk_analysis_form_id"),
-    kind: varchar(),
-    key: varchar(),
-    value: varchar().array(),
+    kind: varchar().notNull(),
+    key: varchar().notNull(),
+    value: varchar().array().notNull(),
   },
   (table) => [
     foreignKey({
