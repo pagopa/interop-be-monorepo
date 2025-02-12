@@ -16,15 +16,12 @@ import {
   RiskAnalysis,
   Tenant,
   toReadModelTenant,
-} from "pagopa-interop-models";
-import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
-import {
   EServiceTemplateVersion,
   toEServiceTemplateV2,
   toReadModelAttribute,
   toReadModelEService,
-  toReadModelTenant,
 } from "pagopa-interop-models";
+import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
