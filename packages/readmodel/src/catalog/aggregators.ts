@@ -12,7 +12,6 @@ import {
   RiskAnalysisMultiAnswer,
   RiskAnalysisMultiAnswerId,
   WithMetadata,
-  EServiceTemplateBindingSQL,
   EServiceId,
   unsafeBrandId,
   TenantId,
@@ -36,6 +35,7 @@ import {
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
+  EServiceTemplateBindingSQL,
 } from "../types.js";
 
 export const documentSQLtoDocument = (
