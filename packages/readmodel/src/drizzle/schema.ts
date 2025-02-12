@@ -602,7 +602,6 @@ export const eserviceTemplateVersionInReadmodel = readmodel.table(
       withTimezone: true,
       mode: "string",
     }).notNull(),
-    serverUrls: varchar("server_urls").array().notNull(),
     publishedAt: timestamp("published_at", {
       withTimezone: true,
       mode: "string",
@@ -974,7 +973,7 @@ export const eserviceDescriptorAttributeInReadmodel = readmodel.table(
 export const eserviceTemplateVersionAttributeInReadmodel = readmodel.table(
   "eservice_template_version_attribute",
   {
-    id: uuid().notNull(),
+    attributeId: uuid("attribute_id").notNull(),
     eserviceTemplateId: uuid("eservice_template_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     eserviceTemplateVersionId: uuid("eservice_template_version_id").notNull(),
@@ -996,7 +995,11 @@ export const eserviceTemplateVersionAttributeInReadmodel = readmodel.table(
       name: "eservice_template_version_att_eservice_template_version_id_fkey",
     }).onDelete("cascade"),
     primaryKey({
-      columns: [table.id, table.eserviceTemplateVersionId, table.groupId],
+      columns: [
+        table.attributeId,
+        table.eserviceTemplateVersionId,
+        table.groupId,
+      ],
       name: "eservice_template_version_attribute_pkey",
     }),
   ]
@@ -1033,11 +1036,6 @@ export const tenantVerifiedAttributeVerifierInReadmodel = readmodel.table(
       columns: [table.id],
       foreignColumns: [tenantInReadmodel.id],
       name: "tenant_verified_attribute_verifier_id_fkey",
-    }),
-    foreignKey({
-      columns: [table.tenantVerifiedAttributeId],
-      foreignColumns: [attributeInReadmodel.id],
-      name: "tenant_verified_attribute_ver_tenant_verified_attribute_id_fkey",
     }),
     foreignKey({
       columns: [table.tenantId, table.tenantVerifiedAttributeId],
