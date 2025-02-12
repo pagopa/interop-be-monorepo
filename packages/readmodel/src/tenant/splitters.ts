@@ -66,7 +66,7 @@ export const splitTenantIntoObjectsSQL = (
     createdAt: dateToString(createdAt),
     updatedAt: dateToString(updatedAt),
     name,
-    onboardedAt: dateToString(onboardedAt) || null,
+    onboardedAt: dateToString(onboardedAt),
     subUnitType: subUnitType || null,
   };
 
