@@ -35,6 +35,7 @@ import {
   producerKeychainKeyInReadmodel,
   producerKeychainUserInReadmodel,
   clientJwkKeyInReadmodel,
+  producerJwkKeyInReadmodel,
 } from "./drizzle/schema.js";
 
 export type EServiceSQL = InferSelectModel<typeof eserviceInReadmodel>;
@@ -129,3 +130,7 @@ export type ProducerKeychainKeySQL = InferSelectModel<
 >;
 
 export type ClientJWKKeySQL = InferSelectModel<typeof clientJwkKeyInReadmodel>;
+
+export type ProducerJWKKeySQL = InferSelectModel<
+  typeof producerJwkKeyInReadmodel
+>;
