@@ -410,6 +410,35 @@ const eserviceTemplateRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .get(
+      "/eservices/templates/:eServiceTemplateId/instances",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId } = req.params;
+        const { producerName, states, offset, limit } = req.query;
+
+        try {
+          await eserviceTemplateService.getEServiceTemplateInstances(
+            unsafeBrandId(eServiceTemplateId),
+            producerName,
+            states,
+            offset,
+            limit,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error retrieving eservice template ${eServiceTemplateId} instances`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
 
   return eserviceTemplateRouter;
