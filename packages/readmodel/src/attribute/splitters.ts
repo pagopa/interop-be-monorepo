@@ -1,4 +1,4 @@
-import { Attribute, AttributeReadmodel } from "pagopa-interop-models";
+import { AttributeReadmodel } from "pagopa-interop-models";
 import { AttributeSQL } from "../types.js";
 
 export const splitAttributeIntoObjectsSQL = (
