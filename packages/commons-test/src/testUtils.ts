@@ -73,6 +73,12 @@ import {
   UserId,
   delegationState,
   delegationKind,
+  EServiceTemplate,
+  EServiceTemplateId,
+  EServiceTemplateVersion,
+  EServiceTemplateVersionId,
+  eserviceTemplateVersionState,
+  agreementApprovalPolicy,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -687,3 +693,39 @@ export const addSomeRandomDelegations = async <
     }
   }
 };
+
+export const getMockEServiceTemplateVersion = (
+  eserviceTemplateVersionId: EServiceTemplateVersionId = generateId<EServiceTemplateVersionId>()
+): EServiceTemplateVersion => ({
+  id: eserviceTemplateVersionId,
+  version: "1",
+  description: "eService template version description",
+  createdAt: new Date(),
+  attributes: {
+    certified: [],
+    declared: [],
+    verified: [],
+  },
+  docs: [],
+  state: eserviceTemplateVersionState.draft,
+  voucherLifespan: 60,
+  agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+});
+
+export const getMockEServiceTemplate = (
+  eserviceTemplateId: EServiceTemplateId = generateId<EServiceTemplateId>(),
+  creatorId: TenantId = generateId<TenantId>(),
+  versions: EServiceTemplateVersion[] = [getMockEServiceTemplateVersion()]
+): EServiceTemplate => ({
+  id: eserviceTemplateId,
+  creatorId,
+  name: "eService template name",
+  audienceDescription: "eService template audience description",
+  eserviceDescription: "eService template eservice description",
+  createdAt: new Date(),
+  technology: technology.rest,
+  versions,
+  riskAnalysis: [],
+  mode: "Deliver",
+  isSignalHubEnabled: true,
+});

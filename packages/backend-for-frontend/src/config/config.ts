@@ -115,6 +115,17 @@ export type DelegationProcessServerConfig = z.infer<
   typeof DelegationProcessServerConfig
 >;
 
+export const EServiceTemplateProcessServerConfig = z
+  .object({
+    ESERVICE_TEMPLATE_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    eserviceTemplateProcessUrl: c.ESERVICE_TEMPLATE_PROCESS_URL,
+  }));
+export type EServiceTemplateProcessServerConfig = z.infer<
+  typeof EServiceTemplateProcessServerConfig
+>;
+
 export const S3PrivacyNoticeConfig = z
   .object({
     PRIVACY_NOTICES_CONTAINER: z.string(),
@@ -202,6 +213,7 @@ export const SelfcareProcessConfig = z
     selfcareProductName: c.INTEROP_SELFCARE_PRODUCT_NAME,
   }));
 export type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
+
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -211,6 +223,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
   .and(DelegationProcessServerConfig)
+  .and(EServiceTemplateProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)

@@ -1724,6 +1724,8 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+        template:
+          $ref: "#/components/schemas/EServiceTemplateBinding"
         isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
@@ -2072,6 +2074,39 @@ components:
           type: string
       required:
         - rejectionReason
+    EServiceTemplateInterfaceInfo:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        url:
+          type: string
+        termsAndConditionsUrl:
+          type: string
+        serverUrl:
+          type: string
+      required:
+        - name
+        - email
+        - url
+        - termsAndConditionsUrl
+        - serverUrl
+    EServiceTemplateBinding:
+      type: object
+      additionalProperties: false
+      properties:
+        templateId:
+          type: string
+          format: uuid
+        istanceId:
+          type: string
+        interfaceInfo:
+          $ref: "#/components/schemas/EServiceTemplateInterfaceInfo"
+      required:
+        - templateId
     Problem:
       properties:
         type:

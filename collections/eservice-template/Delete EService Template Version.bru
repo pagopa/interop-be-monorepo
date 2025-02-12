@@ -1,0 +1,22 @@
+meta {
+  name: Delete EService Template Version
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{host-catalog}}/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eServiceTemplateId}}
+  versionId: {{eServiceTemplateVersionId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
