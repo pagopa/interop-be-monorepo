@@ -1,16 +1,25 @@
 import {
-  Tenant,
+  TenantAttributeReadModel,
+  tenantAttributeType,
+  TenantFeatureCertifier,
+  TenantFeatureDelegatedConsumer,
+  TenantFeatureDelegatedProducer,
+  tenantFeatureType,
+  TenantId,
+  TenantMailReadModel,
+  TenantReadModel,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import {
   TenantCertifiedAttributeSQL,
   TenantDeclaredAttributeSQL,
   TenantFeatureSQL,
-  TenantId,
-  TenantMail,
   TenantMailSQL,
   TenantSQL,
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
-} from "pagopa-interop-models";
+} from "../types.js";
 
 export const splitTenantIntoObjectsSQL = (
   {
@@ -27,8 +36,8 @@ export const splitTenantIntoObjectsSQL = (
     onboardedAt,
     subUnitType,
     ...rest
-  }: Tenant,
-  metadata_version: number
+  }: TenantReadModel,
+  metadataVersion: number
 ): {
   tenantSQL: TenantSQL;
   tenantMailsSQL: TenantMailSQL[];
@@ -43,41 +52,182 @@ export const splitTenantIntoObjectsSQL = (
 
   const tenantSQL: TenantSQL = {
     id,
-    metadata_version,
-    kind,
-    selfcare_id: selfcareId,
-    external_id_origin: externalId.origin,
-    external_id_value: externalId.value,
-    created_at: createdAt,
-    updated_at: updatedAt,
+    metadataVersion,
+    kind: kind || null,
+    selfcareId: selfcareId || null,
+    externalIdOrigin: externalId.origin,
+    externalIdValue: externalId.value,
+    createdAt,
+    updatedAt: updatedAt || null,
     name,
-    onboarded_at: onboardedAt,
-    sub_unit_type: subUnitType,
+    onboardedAt: onboardedAt || null,
+    subUnitType: subUnitType || null,
   };
 
   const tenantMailsSQL: TenantMailSQL[] = mails.map((mail) =>
-    tenantMailToTenantMailSQL(mail, id, metadata_version)
+    tenantMailToTenantMailSQL(mail, id, metadataVersion)
+  );
+
+  const {
+    tenantCertifiedAttributesSQL,
+    tenantDeclaredAttributesSQL,
+    tenantVerifiedAttributesSQL,
+    tenantVerifiedAttributeVerifiersSQL,
+    tenantVerifiedAttributeRevokersSQL,
+  } = splitTenantAttributesIntoObjectsSQL(attributes, id, metadataVersion);
+
+  const tenantFeaturesSQL: TenantFeatureSQL[] = features.map((feature) =>
+    match(feature)
+      .with({ type: tenantFeatureType.persistentCertifier }, (feature) => ({
+        tenantId: id,
+        metadataVersion,
+        kind: tenantFeatureType.persistentCertifier,
+        details: { certifierId: feature.certifierId } satisfies Omit<
+          TenantFeatureCertifier,
+          "type"
+        >,
+      }))
+      .with({ type: tenantFeatureType.delegatedProducer }, (feature) => ({
+        tenantId: id,
+        metadataVersion,
+        kind: tenantFeatureType.delegatedProducer,
+        details: {
+          availabilityTimestamp: feature.availabilityTimestamp,
+        } satisfies Omit<TenantFeatureDelegatedProducer, "type">,
+      }))
+      .with({ type: tenantFeatureType.delegatedConsumer }, (feature) => ({
+        tenantId: id,
+        metadataVersion,
+        kind: tenantFeatureType.delegatedConsumer,
+        details: {
+          availabilityTimestamp: feature.availabilityTimestamp,
+        } satisfies Omit<TenantFeatureDelegatedConsumer, "type">,
+      }))
+      .exhaustive()
   );
 
   return {
     tenantSQL,
     tenantMailsSQL,
+    tenantCertifiedAttributesSQL,
+    tenantDeclaredAttributesSQL,
+    tenantVerifiedAttributesSQL,
+    tenantVerifiedAttributeVerifiersSQL,
+    tenantVerifiedAttributeRevokersSQL,
+    tenantFeaturesSQL,
   };
 };
 
 const tenantMailToTenantMailSQL = (
-  { id, kind, address, description, createdAt, ...rest }: TenantMail,
+  { id, kind, address, description, createdAt, ...rest }: TenantMailReadModel,
   tenantId: TenantId,
-  metadata_version: number
+  metadataVersion: number
 ): TenantMailSQL => {
   void (rest satisfies Record<string, never>);
   return {
     id,
-    tenant_id: tenantId,
-    metadata_version,
+    tenantId,
+    metadataVersion,
     kind,
     address,
-    description,
-    created_at: createdAt,
+    description: description || null,
+    createdAt,
+  };
+};
+
+const splitTenantAttributesIntoObjectsSQL = (
+  tenantAttributes: TenantAttributeReadModel[],
+  tenantId: TenantId,
+  metadataVersion: number
+): {
+  tenantCertifiedAttributesSQL: TenantCertifiedAttributeSQL[];
+  tenantDeclaredAttributesSQL: TenantDeclaredAttributeSQL[];
+  tenantVerifiedAttributesSQL: TenantVerifiedAttributeSQL[];
+  tenantVerifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
+  tenantVerifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
+} => {
+  const tenantCertifiedAttributesSQL: TenantCertifiedAttributeSQL[] = [];
+  const tenantDeclaredAttributesSQL: TenantDeclaredAttributeSQL[] = [];
+  const tenantVerifiedAttributesSQL: TenantVerifiedAttributeSQL[] = [];
+  const tenantVerifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[] =
+    [];
+  const tenantVerifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[] =
+    [];
+
+  tenantAttributes.forEach((attr) => {
+    match(attr)
+      .with({ type: tenantAttributeType.CERTIFIED }, (attr) => {
+        const tenantCertifiedAttributeSQL: TenantCertifiedAttributeSQL = {
+          attributeId: attr.id,
+          tenantId,
+          metadataVersion,
+          assignmentTimestamp: attr.assignmentTimestamp,
+          revocationTimestamp: attr.revocationTimestamp || null,
+        };
+        // eslint-disable-next-line functional/immutable-data
+        tenantCertifiedAttributesSQL.push(tenantCertifiedAttributeSQL);
+      })
+      .with({ type: tenantAttributeType.DECLARED }, (attr) => {
+        const tenantDeclaredAttributeSQL: TenantDeclaredAttributeSQL = {
+          attributeId: attr.id,
+          tenantId,
+          metadataVersion,
+          assignmentTimestamp: attr.assignmentTimestamp,
+          revocationTimestamp: attr.revocationTimestamp || null,
+          delegationId: attr.delegationId || null,
+        };
+        // eslint-disable-next-line functional/immutable-data
+        tenantDeclaredAttributesSQL.push(tenantDeclaredAttributeSQL);
+      })
+      .with({ type: tenantAttributeType.VERIFIED }, (attr) => {
+        const verifiedTenantAttributeSQL: TenantVerifiedAttributeSQL = {
+          attributeId: attr.id,
+          tenantId,
+          metadataVersion,
+          assignmentTimestamp: attr.assignmentTimestamp,
+        };
+        // eslint-disable-next-line functional/immutable-data
+        tenantVerifiedAttributesSQL.push(verifiedTenantAttributeSQL);
+
+        const verifiers: TenantVerifiedAttributeVerifierSQL[] =
+          attr.verifiedBy.map((verifier) => ({
+            tenantId,
+            metadataVersion,
+            id: verifier.id,
+            tenantVerifiedAttributeId: attr.id,
+            verificationDate: verifier.verificationDate,
+            expirationDate: verifier.expirationDate || null,
+            extensionDate: verifier.extensionDate || null,
+            delegationId: verifier.delegationId || null,
+          }));
+
+        // eslint-disable-next-line functional/immutable-data
+        tenantVerifiedAttributeVerifiersSQL.push(...verifiers);
+
+        const revokers: TenantVerifiedAttributeRevokerSQL[] =
+          attr.revokedBy.map((revoker) => ({
+            tenantId,
+            metadataVersion,
+            id: revoker.id,
+            tenantVerifiedAttributeId: attr.id,
+            verificationDate: revoker.verificationDate,
+            expirationDate: revoker.expirationDate || null,
+            extensionDate: revoker.extensionDate || null,
+            revocationDate: revoker.revocationDate,
+            delegationId: revoker.delegationId || null,
+          }));
+
+        // eslint-disable-next-line functional/immutable-data
+        tenantVerifiedAttributeRevokersSQL.push(...revokers);
+      })
+      .exhaustive();
+  });
+
+  return {
+    tenantCertifiedAttributesSQL,
+    tenantDeclaredAttributesSQL,
+    tenantVerifiedAttributesSQL,
+    tenantVerifiedAttributeVerifiersSQL,
+    tenantVerifiedAttributeRevokersSQL,
   };
 };
