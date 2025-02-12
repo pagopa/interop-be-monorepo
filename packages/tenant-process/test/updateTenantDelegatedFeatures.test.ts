@@ -15,7 +15,11 @@ import {
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
-import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
+import {
+  getMockAuthData,
+  getMockTenant,
+  readEventByStreamIdAndVersion,
+} from "pagopa-interop-commons-test";
 import { tenantNotFound } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
@@ -87,7 +91,6 @@ describe("updateTenantDelegatedFeatures", async () => {
     }
   );
 
-  // Test adding Producer feature
   it.each(config.delegationsAllowedOrigins)(
     "Should correctly add Producer feature (origin: %s)",
     async (origin) => {
@@ -144,7 +147,6 @@ describe("updateTenantDelegatedFeatures", async () => {
     }
   );
 
-  // Test removing Consumer feature
   it.each(config.delegationsAllowedOrigins)(
     "Should correctly remove Consumer feature (origin: %s)",
     async (origin) => {
@@ -201,7 +203,6 @@ describe("updateTenantDelegatedFeatures", async () => {
     }
   );
 
-  // Test removing Producer feature
   it.each(config.delegationsAllowedOrigins)(
     "Should correctly remove Producer feature (origin: %s)",
     async (origin) => {
@@ -255,6 +256,156 @@ describe("updateTenantDelegatedFeatures", async () => {
       };
 
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    }
+  );
+
+  it.each(config.delegationsAllowedOrigins)(
+    "Should correctly add both Consumer and Producer features (origin: %s)",
+    async (origin) => {
+      const mockTenant: Tenant = {
+        ...getMockTenant(),
+        externalId: {
+          value: generateId(),
+          origin,
+        },
+      };
+
+      await addOneTenant(mockTenant);
+      await tenantService.updateTenantDelegatedFeatures({
+        organizationId: mockTenant.id,
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: true,
+          isDelegatedProducerFeatureEnabled: true,
+        },
+        correlationId: generateId(),
+        authData: getMockAuthData(),
+        logger: genericLogger,
+      });
+
+      const consumerEvent = await readEventByStreamIdAndVersion(
+        mockTenant.id,
+        1,
+        "tenant",
+        postgresDB
+      );
+
+      expect(consumerEvent).toMatchObject({
+        stream_id: mockTenant.id,
+        version: "2",
+        type: "TenantDelegatedConsumerFeatureAdded",
+        event_version: 2,
+      });
+
+      const producerEvent = await readEventByStreamIdAndVersion(
+        mockTenant.id,
+        2,
+        "tenant",
+        postgresDB
+      );
+
+      expect(producerEvent).toMatchObject({
+        stream_id: mockTenant.id,
+        version: "2",
+        type: "TenantDelegatedProducerFeatureAdded",
+        event_version: 2,
+      });
+
+      const producerPayload = protobufDecoder(
+        TenantDelegatedProducerFeatureAddedV2
+      ).parse(producerEvent.data);
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        features: [
+          ...mockTenant.features,
+          {
+            type: "DelegatedConsumer",
+            availabilityTimestamp: new Date(),
+          },
+          {
+            type: "DelegatedProducer",
+            availabilityTimestamp: new Date(),
+          },
+        ],
+        updatedAt: new Date(),
+      };
+
+      expect(producerPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    }
+  );
+
+  it.each(config.delegationsAllowedOrigins)(
+    "Should correctly remove both Consumer and Producer features (origin: %s)",
+    async (origin) => {
+      const mockTenant: Tenant = {
+        ...getMockTenant(),
+        externalId: {
+          value: generateId(),
+          origin,
+        },
+        features: [
+          {
+            type: "DelegatedConsumer",
+            availabilityTimestamp: new Date(),
+          },
+          {
+            type: "DelegatedProducer",
+            availabilityTimestamp: new Date(),
+          },
+        ],
+      };
+
+      await addOneTenant(mockTenant);
+      await tenantService.updateTenantDelegatedFeatures({
+        organizationId: mockTenant.id,
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: false,
+          isDelegatedProducerFeatureEnabled: false,
+        },
+        correlationId: generateId(),
+        authData: getMockAuthData(),
+        logger: genericLogger,
+      });
+
+      const consumerEvent = await readEventByStreamIdAndVersion(
+        mockTenant.id,
+        1,
+        "tenant",
+        postgresDB
+      );
+
+      expect(consumerEvent).toMatchObject({
+        stream_id: mockTenant.id,
+        version: "2",
+        type: "TenantDelegatedConsumerFeatureRemoved",
+        event_version: 2,
+      });
+
+      const producerEvent = await readEventByStreamIdAndVersion(
+        mockTenant.id,
+        2,
+        "tenant",
+        postgresDB
+      );
+
+      expect(producerEvent).toMatchObject({
+        stream_id: mockTenant.id,
+        version: "2",
+        type: "TenantDelegatedProducerFeatureRemoved",
+        event_version: 2,
+      });
+
+      const consumerPayload = protobufDecoder(
+        TenantDelegatedProducerFeatureRemovedV2
+      ).parse(consumerEvent.data);
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        features: [],
+        updatedAt: new Date(),
+      };
+
+      expect(consumerPayload.tenant).toEqual(toTenantV2(updatedTenant));
     }
   );
 
