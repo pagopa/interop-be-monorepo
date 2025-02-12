@@ -1,10 +1,10 @@
+import { ClientReadModel } from "pagopa-interop-models";
 import {
-  Client,
   ClientKeySQL,
   ClientPurposeSQL,
   ClientSQL,
   ClientUserSQL,
-} from "pagopa-interop-models";
+} from "../types.js";
 
 export const splitClientIntoObjectsSQL = (
   {
@@ -18,7 +18,7 @@ export const splitClientIntoObjectsSQL = (
     createdAt,
     keys,
     ...rest
-  }: Client,
+  }: ClientReadModel,
   version: number
 ): {
   clientSQL: ClientSQL;
@@ -30,36 +30,36 @@ export const splitClientIntoObjectsSQL = (
 
   const clientSQL: ClientSQL = {
     id,
-    metadata_version: version,
-    consumer_id: consumerId,
+    metadataVersion: version,
+    consumerId,
     name,
-    description,
+    description: description || "",
     kind,
-    created_at: createdAt,
+    createdAt,
   };
 
   const clientUsersSQL: ClientUserSQL[] = users.map((userId) => ({
-    metadata_version: version,
-    client_id: id,
-    user_id: userId,
+    metadataVersion: version,
+    clientId: id,
+    userId,
   }));
 
   const clientPurposesSQL: ClientPurposeSQL[] = purposes.map((purposeId) => ({
-    metadata_version: version,
-    client_id: id,
-    purpose_id: purposeId,
+    metadataVersion: version,
+    clientId: id,
+    purposeId,
   }));
 
   const clientKeysSQL: ClientKeySQL[] = keys.map((key) => ({
-    metadata_version: version,
-    client_id: id,
-    user_id: key.userId,
+    metadataVersion: version,
+    clientId: id,
+    userId: key.userId,
     kid: key.kid,
     name: key.name,
-    encoded_pem: key.encodedPem,
+    encodedPem: key.encodedPem,
     algorithm: key.algorithm,
     use: key.use,
-    created_at: key.createdAt,
+    createdAt: key.createdAt,
   }));
 
   return {
