@@ -21,6 +21,11 @@ import {
   tenantVerifiedAttributeInReadmodel,
   tenantVerifiedAttributeRevokerInReadmodel,
   tenantVerifiedAttributeVerifierInReadmodel,
+  purposeInReadmodel,
+  purposeRiskAnalysisAnswerInReadmodel,
+  purposeRiskAnalysisFormInReadmodel,
+  purposeVersionDocumentInReadmodel,
+  purposeVersionInReadmodel,
 } from "./drizzle/schema.js";
 
 export type EServiceSQL = InferSelectModel<typeof eserviceInReadmodel>;
@@ -78,4 +83,18 @@ export type TenantVerifiedAttributeRevokerSQL = InferSelectModel<
 >;
 export type TenantFeatureSQL = InferSelectModel<
   typeof tenantFeatureInReadmodel
+>;
+
+export type PurposeSQL = InferSelectModel<typeof purposeInReadmodel>;
+export type PurposeVersionSQL = InferSelectModel<
+  typeof purposeVersionInReadmodel
+>;
+export type PurposeVersionDocumentSQL = InferSelectModel<
+  typeof purposeVersionDocumentInReadmodel
+>;
+export type PurposeRiskAnalysisFormSQL = InferSelectModel<
+  typeof purposeRiskAnalysisFormInReadmodel
+>;
+export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
+  typeof purposeRiskAnalysisAnswerInReadmodel
 >;
