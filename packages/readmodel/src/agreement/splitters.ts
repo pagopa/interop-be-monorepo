@@ -1,19 +1,21 @@
 import {
-  Agreement,
-  AgreementAttributeSQL,
-  AgreementDocument,
   agreementDocumentKind,
   AgreementDocumentKind,
-  AgreementDocumentSQL,
+  AgreementDocumentReadModel,
   AgreementId,
-  AgreementSQL,
-  AgreementStamp,
+  AgreementReadModel,
   AgreementStampKind,
   agreementStampKind,
+  AgreementStampReadModel,
   AgreementStamps,
-  AgreementStampSQL,
   attributeKind,
 } from "pagopa-interop-models";
+import {
+  AgreementSQL,
+  AgreementStampSQL,
+  AgreementDocumentSQL,
+  AgreementAttributeSQL,
+} from "../types.js";
 
 export const splitAgreementIntoObjectsSQL = (
   {
@@ -38,8 +40,8 @@ export const splitAgreementIntoObjectsSQL = (
     rejectionReason,
     suspendedAt,
     ...rest
-  }: Agreement,
-  metadata_version: number
+  }: AgreementReadModel,
+  metadataVersion: number
 ): {
   agreementSQL: AgreementSQL;
   agreementStampsSQL: AgreementStampSQL[];
@@ -49,45 +51,49 @@ export const splitAgreementIntoObjectsSQL = (
   void (rest satisfies Record<string, never>);
   const agreementSQL: AgreementSQL = {
     id,
-    metadata_version,
-    eservice_id: eserviceId,
-    descriptor_id: descriptorId,
-    producer_id: producerId,
-    consumer_id: consumerId,
-    state: state,
-    suspended_by_consumer: suspendedByConsumer,
-    suspended_by_producer: suspendedByProducer,
-    suspended_by_platform: suspendedByPlatform,
-    created_at: createdAt,
-    updated_at: updatedAt,
-    consumer_notes: consumerNotes,
-    rejection_reason: rejectionReason,
-    suspended_at: suspendedAt,
+    metadataVersion,
+    eserviceId,
+    descriptorId,
+    producerId,
+    consumerId,
+    state,
+    suspendedByConsumer: suspendedByConsumer || null,
+    suspendedByProducer: suspendedByProducer || null,
+    suspendedByPlatform: suspendedByPlatform || null,
+    createdAt,
+    updatedAt: updatedAt || null,
+    consumerNotes: consumerNotes || null,
+    rejectionReason: rejectionReason || null,
+    suspendedAt: suspendedAt || null,
   };
 
   const agreementStampsSQL: AgreementStampSQL[] = [];
 
   const makeStampSQL = (
-    agreementStamp: AgreementStamp,
+    agreementStamp: AgreementStampReadModel,
     agreementId: AgreementId,
-    metadata_version: number,
+    metadataVersion: number,
     kind: AgreementStampKind
   ): AgreementStampSQL => ({
-    agreement_id: agreementId,
-    metadata_version,
-    kind: kind,
+    agreementId,
+    metadataVersion,
+    kind,
     who: agreementStamp.who,
     when: agreementStamp.when,
-    delegation_id: agreementStamp.delegationId,
+    delegationId: agreementStamp.delegationId || null,
   });
 
+  // TODO: improve?
+  // eslint-disable-next-line functional/no-let
   let key: keyof AgreementStamps;
 
+  // eslint-disable-next-line guard-for-in
   for (key in stamps) {
     const stamp = stamps[key];
     if (stamp) {
+      // eslint-disable-next-line functional/immutable-data
       agreementStampsSQL.push(
-        makeStampSQL(stamp, id, metadata_version, agreementStampKind[key])
+        makeStampSQL(stamp, id, metadataVersion, agreementStampKind[key])
       );
     }
   }
@@ -98,7 +104,7 @@ export const splitAgreementIntoObjectsSQL = (
       makeStampSQL(
         stamps.submission,
         id,
-        metadata_version,
+        metadataVersion,
         agreementStampKind.submission
       )
     );
@@ -108,7 +114,7 @@ export const splitAgreementIntoObjectsSQL = (
       makeStampSQL(
         stamps.activation,
         id,
-        metadata_version,
+        metadataVersion,
         agreementStampKind.activation
       )
     );
@@ -118,7 +124,7 @@ export const splitAgreementIntoObjectsSQL = (
       makeStampSQL(
         stamps.rejection,
         id,
-        metadata_version,
+        metadataVersion,
         agreementStampKind.rejection
       )
     );
@@ -128,7 +134,7 @@ export const splitAgreementIntoObjectsSQL = (
       makeStampSQL(
         stamps.suspensionByProducer,
         id,
-        metadata_version,
+        metadataVersion,
         agreementStampKind.suspensionByProducer
       )
     );
@@ -138,7 +144,7 @@ export const splitAgreementIntoObjectsSQL = (
       makeStampSQL(
         stamps.suspensionByConsumer,
         id,
-        metadata_version,
+        metadataVersion,
         agreementStampKind.suspensionByConsumer
       )
     );
@@ -148,7 +154,7 @@ export const splitAgreementIntoObjectsSQL = (
       makeStampSQL(
         stamps.upgrade,
         id,
-        metadata_version,
+        metadataVersion,
         agreementStampKind.upgrade
       )
     );
@@ -158,7 +164,7 @@ export const splitAgreementIntoObjectsSQL = (
       makeStampSQL(
         stamps.archiving,
         id,
-        metadata_version,
+        metadataVersion,
         agreementStampKind.archiving
       )
     );
@@ -170,7 +176,7 @@ export const splitAgreementIntoObjectsSQL = (
         contract,
         agreementDocumentKind.contract,
         id,
-        metadata_version
+        metadataVersion
       )
     : undefined;
 
@@ -179,27 +185,27 @@ export const splitAgreementIntoObjectsSQL = (
       doc,
       agreementDocumentKind.consumerDoc,
       id,
-      metadata_version
+      metadataVersion
     )
   );
 
   const agreementAttributesSQL: AgreementAttributeSQL[] = [
     ...certifiedAttributes.map((attr) => ({
-      agreement_id: id,
-      metadata_version,
-      attribute_id: attr.id,
+      agreementId: id,
+      metadataVersion,
+      attributeId: attr.id,
       kind: attributeKind.certified,
     })),
     ...declaredAttributes.map((attr) => ({
-      agreement_id: id,
-      metadata_version,
-      attribute_id: attr.id,
+      agreementId: id,
+      metadataVersion,
+      attributeId: attr.id,
       kind: attributeKind.declared,
     })),
     ...verifiedAttributes.map((attr) => ({
-      agreement_id: id,
-      metadata_version,
-      attribute_id: attr.id,
+      agreementId: id,
+      metadataVersion,
+      attributeId: attr.id,
       kind: attributeKind.verified,
     })),
   ];
@@ -224,21 +230,21 @@ export const agreementDocumentToAgreementDocumentSQL = (
     path,
     createdAt,
     ...rest
-  }: AgreementDocument,
+  }: AgreementDocumentReadModel,
   kind: AgreementDocumentKind,
   agreementId: AgreementId,
-  metadata_version: number
+  metadataVersion: number
 ): AgreementDocumentSQL => {
   void (rest satisfies Record<string, never>);
   return {
-    id: id,
-    agreement_id: agreementId,
-    metadata_version,
-    name: name,
-    pretty_name: prettyName,
-    content_type: contentType,
-    path: path,
-    created_at: createdAt,
+    id,
+    agreementId,
+    metadataVersion,
+    name,
+    prettyName,
+    contentType,
+    path,
+    createdAt,
     kind,
   };
 };
