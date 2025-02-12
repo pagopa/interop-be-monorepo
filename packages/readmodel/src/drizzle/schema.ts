@@ -196,7 +196,7 @@ export const producerKeychainKeyInReadmodel = readmodel.table(
 
 export const producerJwkKeyInReadmodel = readmodel.table("producer_jwk_key", {
   producerKeychainId: uuid("producer_keychain_id").notNull(),
-  version: integer().notNull(),
+  metadataVersion: integer("metadata_version").notNull(),
   alg: varchar().notNull(),
   e: varchar().notNull(),
   kid: varchar().primaryKey().notNull(),
@@ -837,7 +837,7 @@ export const agreementAttributeInReadmodel = readmodel.table(
 export const tenantCertifiedAttributeInReadmodel = readmodel.table(
   "tenant_certified_attribute",
   {
-    id: uuid().notNull(),
+    attributeId: uuid("attribute_id").notNull(),
     tenantId: uuid("tenant_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     assignmentTimestamp: timestamp("assignment_timestamp", {
@@ -851,9 +851,9 @@ export const tenantCertifiedAttributeInReadmodel = readmodel.table(
   },
   (table) => [
     foreignKey({
-      columns: [table.id],
+      columns: [table.attributeId],
       foreignColumns: [attributeInReadmodel.id],
-      name: "tenant_certified_attribute_id_fkey",
+      name: "tenant_certified_attribute_attribute_id_fkey",
     }),
     foreignKey({
       columns: [table.tenantId],
@@ -861,35 +861,8 @@ export const tenantCertifiedAttributeInReadmodel = readmodel.table(
       name: "tenant_certified_attribute_tenant_id_fkey",
     }).onDelete("cascade"),
     primaryKey({
-      columns: [table.id, table.tenantId],
-      name: "tenant_certified_attribute_pkey",
-    }),
-  ]
-);
-
-export const tenantDeclaredAttributeInReadmodel = readmodel.table(
-  "tenant_declared_attribute",
-  {
-    attributeId: uuid("attribute_id").notNull(),
-    tenantId: uuid("tenant_id").notNull(),
-    metadataVersion: integer("metadata_version").notNull(),
-    assignmentTimestamp: timestamp("assignment_timestamp", {
-      mode: "string",
-    }).notNull(),
-    revocationTimestamp: timestamp("revocation_timestamp", {
-      withTimezone: true,
-      mode: "string",
-    }),
-  },
-  (table) => [
-    foreignKey({
-      columns: [table.tenantId],
-      foreignColumns: [tenantInReadmodel.id],
-      name: "tenant_declared_attribute_tenant_id_fkey",
-    }),
-    primaryKey({
       columns: [table.attributeId, table.tenantId],
-      name: "tenant_declared_attribute_pkey",
+      name: "tenant_certified_attribute_pkey",
     }),
   ]
 );
@@ -912,6 +885,34 @@ export const delegationStampInReadmodel = readmodel.table(
     primaryKey({
       columns: [table.delegationId, table.kind],
       name: "delegation_stamp_pkey",
+    }),
+  ]
+);
+
+export const tenantDeclaredAttributeInReadmodel = readmodel.table(
+  "tenant_declared_attribute",
+  {
+    attributeId: uuid("attribute_id").notNull(),
+    tenantId: uuid("tenant_id").notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    assignmentTimestamp: timestamp("assignment_timestamp", {
+      mode: "string",
+    }).notNull(),
+    revocationTimestamp: timestamp("revocation_timestamp", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    delegationId: uuid("delegation_id"),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenantInReadmodel.id],
+      name: "tenant_declared_attribute_tenant_id_fkey",
+    }),
+    primaryKey({
+      columns: [table.attributeId, table.tenantId],
+      name: "tenant_declared_attribute_pkey",
     }),
   ]
 );
