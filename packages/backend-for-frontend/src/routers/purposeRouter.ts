@@ -103,7 +103,7 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/producer/purposes", async (req, res) => {
+    .get("/producers/purposes", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
@@ -131,7 +131,7 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/consumer/purposes", async (req, res) => {
+    .get("/consumers/purposes", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {

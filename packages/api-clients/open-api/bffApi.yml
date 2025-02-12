@@ -199,7 +199,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/producer/agreements":
+  "/producers/agreements":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
@@ -2202,7 +2202,7 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: descriptorId 
+        - name: descriptorId
           in: path
           description: The identifier of the e-service descriptor
           required: true
@@ -6693,14 +6693,14 @@ paths:
             schema:
               $ref: "#/components/schemas/PurposeSeed"
         required: true
-  "/producer/purposes":
+  "/producers/purposes":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - purposes
       operationId: getProducerPurposes
-      description: Retrieve Purposes from the producer prospective
+      description: Retrieve Purposes from the producer perspective
       parameters:
         - in: query
           name: q
@@ -6789,14 +6789,14 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/consumer/purposes":
+  "/consumers/purposes":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - purposes
       operationId: getConsumerPurposes
-      description: Retrieve Purposes from the consumer prospective
+      description: Retrieve Purposes from the consumer perspective
       parameters:
         - in: query
           name: q
@@ -13623,7 +13623,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /producer/delegations:
+  /producers/delegations:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -13697,7 +13697,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /producer/delegations/{delegationId}/approve:
+  /producers/delegations/{delegationId}/approve:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -13806,7 +13806,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /producer/delegations/{delegationId}/reject:
+  /producers/delegations/{delegationId}/reject:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -14378,7 +14378,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /producer/delegations/{delegationId}:
+  /producers/delegations/{delegationId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: delegationId
