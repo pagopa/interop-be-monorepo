@@ -32,8 +32,13 @@ import {
   deleteEServiceTemplateVersionErrorMapper,
   createEServiceTemplateErrorMapper,
   updateEServiceTemplateErrorMapper,
+  getEServiceTemplateIstancesErrorMapper,
 } from "../utilities/errorMappers.js";
-import { eserviceTemplateToApiEServiceTemplate } from "../model/domain/apiConverter.js";
+import {
+  apiDescriptorStateToDescriptorState,
+  eserviceTemplateInstanceToApiEServiceTemplateInstance,
+  eserviceTemplateToApiEServiceTemplate,
+} from "../model/domain/apiConverter.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -496,6 +501,52 @@ const eserviceTemplatesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateEServiceTemplateVersionAttributesErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eservices/templates/:eServiceTemplateId/instances",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const { producerName, states, offset, limit } = req.query;
+
+          const { results, totalCount } =
+            await eserviceTemplateService.getEServiceTemplateIstances(
+              unsafeBrandId(req.params.eServiceTemplateId),
+              {
+                producerName,
+                states: states.map(apiDescriptorStateToDescriptorState),
+              },
+              offset,
+              limit,
+              ctx
+            );
+
+          return res.status(200).send(
+            eserviceTemplateApi.EServiceTemplateInstances.parse({
+              results: results.map(
+                eserviceTemplateInstanceToApiEServiceTemplateInstance
+              ),
+              totalCount,
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceTemplateIstancesErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
