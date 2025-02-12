@@ -36,6 +36,9 @@ import {
   producerKeychainUserInReadmodel,
   clientJwkKeyInReadmodel,
   producerJwkKeyInReadmodel,
+  delegationContractDocumentInReadmodel,
+  delegationInReadmodel,
+  delegationStampInReadmodel,
 } from "./drizzle/schema.js";
 
 export type EServiceSQL = InferSelectModel<typeof eserviceInReadmodel>;
@@ -133,4 +136,12 @@ export type ClientJWKKeySQL = InferSelectModel<typeof clientJwkKeyInReadmodel>;
 
 export type ProducerJWKKeySQL = InferSelectModel<
   typeof producerJwkKeyInReadmodel
+>;
+
+export type DelegationSQL = InferSelectModel<typeof delegationInReadmodel>;
+export type DelegationStampSQL = InferSelectModel<
+  typeof delegationStampInReadmodel
+>;
+export type DelegationContractDocumentSQL = InferSelectModel<
+  typeof delegationContractDocumentInReadmodel
 >;

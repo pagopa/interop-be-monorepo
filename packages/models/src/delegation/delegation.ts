@@ -74,3 +74,26 @@ export const Delegation = z.object({
   stamps: DelegationStamps,
 });
 export type Delegation = z.infer<typeof Delegation>;
+
+// TODO: enum convention? snake, camel , pascal, case?
+export const delegationStampKind = {
+  submission: "submission",
+  activation: "activation",
+  rejection: "rejection",
+  revocation: "revocation",
+} as const;
+export const DelegationStampKind = z.enum([
+  Object.values(delegationStampKind)[0],
+  ...Object.values(delegationStampKind).slice(1),
+]);
+export type DelegationStampKind = z.infer<typeof DelegationStampKind>;
+
+export const delegationContractKind = {
+  activation: "activation",
+  revocation: "revocation",
+} as const;
+export const DelegationContractKind = z.enum([
+  Object.values(delegationContractKind)[0],
+  ...Object.values(delegationContractKind).slice(1),
+]);
+export type DelegationContractKind = z.infer<typeof DelegationContractKind>;
