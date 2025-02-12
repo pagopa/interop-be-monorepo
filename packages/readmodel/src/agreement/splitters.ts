@@ -1,14 +1,15 @@
 import {
+  Agreement,
+  AgreementDocument,
   agreementDocumentKind,
   AgreementDocumentKind,
-  AgreementDocumentReadModel,
   AgreementId,
-  AgreementReadModel,
+  AgreementStamp,
   AgreementStampKind,
   agreementStampKind,
-  AgreementStampReadModel,
   AgreementStamps,
   attributeKind,
+  dateToString,
 } from "pagopa-interop-models";
 import {
   AgreementSQL,
@@ -40,7 +41,7 @@ export const splitAgreementIntoObjectsSQL = (
     rejectionReason,
     suspendedAt,
     ...rest
-  }: AgreementReadModel,
+  }: Agreement,
   metadataVersion: number
 ): {
   agreementSQL: AgreementSQL;
@@ -60,17 +61,17 @@ export const splitAgreementIntoObjectsSQL = (
     suspendedByConsumer: suspendedByConsumer || null,
     suspendedByProducer: suspendedByProducer || null,
     suspendedByPlatform: suspendedByPlatform || null,
-    createdAt,
-    updatedAt: updatedAt || null,
+    createdAt: dateToString(createdAt),
+    updatedAt: dateToString(updatedAt),
     consumerNotes: consumerNotes || null,
     rejectionReason: rejectionReason || null,
-    suspendedAt: suspendedAt || null,
+    suspendedAt: dateToString(suspendedAt),
   };
 
   const agreementStampsSQL: AgreementStampSQL[] = [];
 
   const makeStampSQL = (
-    agreementStamp: AgreementStampReadModel,
+    agreementStamp: AgreementStamp,
     agreementId: AgreementId,
     metadataVersion: number,
     kind: AgreementStampKind
@@ -79,7 +80,7 @@ export const splitAgreementIntoObjectsSQL = (
     metadataVersion,
     kind,
     who: agreementStamp.who,
-    when: agreementStamp.when,
+    when: dateToString(agreementStamp.when),
     delegationId: agreementStamp.delegationId || null,
   });
 
@@ -230,7 +231,7 @@ export const agreementDocumentToAgreementDocumentSQL = (
     path,
     createdAt,
     ...rest
-  }: AgreementDocumentReadModel,
+  }: AgreementDocument,
   kind: AgreementDocumentKind,
   agreementId: AgreementId,
   metadataVersion: number
@@ -244,7 +245,7 @@ export const agreementDocumentToAgreementDocumentSQL = (
     prettyName,
     contentType,
     path,
-    createdAt,
+    createdAt: dateToString(createdAt),
     kind,
   };
 };
