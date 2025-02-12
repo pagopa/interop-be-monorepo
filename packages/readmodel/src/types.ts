@@ -9,6 +9,7 @@ import {
   eserviceRiskAnalysisInReadmodel,
   eserviceTemplateBindingInReadmodel,
 } from "./drizzle/schema.js";
+import { attributeInReadmodel } from "./drizzle/schema.js";
 
 export type EServiceSQL = InferSelectModel<typeof eserviceInReadmodel>;
 export type EServiceDescriptorSQL = InferSelectModel<
@@ -32,3 +33,5 @@ export type EServiceDescriptorAttributeSQL = InferSelectModel<
 export type EServiceTemplateBindingSQL = InferSelectModel<
   typeof eserviceTemplateBindingInReadmodel
 >;
+
+export type AttributeSQL = InferSelectModel<typeof attributeInReadmodel>;
