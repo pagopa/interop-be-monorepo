@@ -35,8 +35,8 @@ import {
   agreementAttributeInReadmodel,
   attributeInReadmodel,
   tenantCertifiedAttributeInReadmodel,
-  tenantDeclaredAttributeInReadmodel,
   delegationStampInReadmodel,
+  tenantDeclaredAttributeInReadmodel,
   agreementStampInReadmodel,
   eserviceDescriptorAttributeInReadmodel,
   eserviceTemplateVersionAttributeInReadmodel,
@@ -519,7 +519,7 @@ export const tenantCertifiedAttributeInReadmodelRelations = relations(
   tenantCertifiedAttributeInReadmodel,
   ({ one }) => ({
     attributeInReadmodel: one(attributeInReadmodel, {
-      fields: [tenantCertifiedAttributeInReadmodel.id],
+      fields: [tenantCertifiedAttributeInReadmodel.attributeId],
       references: [attributeInReadmodel.id],
     }),
     tenantInReadmodel: one(tenantInReadmodel, {
@@ -541,22 +541,22 @@ export const attributeInReadmodelRelations = relations(
   })
 );
 
-export const tenantDeclaredAttributeInReadmodelRelations = relations(
-  tenantDeclaredAttributeInReadmodel,
-  ({ one }) => ({
-    tenantInReadmodel: one(tenantInReadmodel, {
-      fields: [tenantDeclaredAttributeInReadmodel.tenantId],
-      references: [tenantInReadmodel.id],
-    }),
-  })
-);
-
 export const delegationStampInReadmodelRelations = relations(
   delegationStampInReadmodel,
   ({ one }) => ({
     delegationInReadmodel: one(delegationInReadmodel, {
       fields: [delegationStampInReadmodel.delegationId],
       references: [delegationInReadmodel.id],
+    }),
+  })
+);
+
+export const tenantDeclaredAttributeInReadmodelRelations = relations(
+  tenantDeclaredAttributeInReadmodel,
+  ({ one }) => ({
+    tenantInReadmodel: one(tenantInReadmodel, {
+      fields: [tenantDeclaredAttributeInReadmodel.tenantId],
+      references: [tenantInReadmodel.id],
     }),
   })
 );
