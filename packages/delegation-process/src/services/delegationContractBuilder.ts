@@ -61,6 +61,15 @@ function getDelegationText(delegation: Delegation): string {
     .exhaustive();
 }
 
+function getDelegationActionText(delegation: Delegation): string {
+  return match(delegation.kind)
+    .with(delegationKind.delegatedProducer, () => "ad erogare l’")
+    .with(
+      delegationKind.delegatedConsumer,
+      () => "a gestire la fruizione dell’"
+    )
+    .exhaustive();
+}
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const contractBuilder = {
   createActivationContract: async ({
@@ -107,6 +116,7 @@ export const contractBuilder = {
     const activationTime = timeAtRomeZone(delegation.stamps.activation.when);
     const activationContractPayload: DelegationActivationPDFPayload = {
       delegationKindText: getDelegationText(delegation),
+      delegationActionText: getDelegationActionText(delegation),
       todayDate,
       todayTime,
       delegationId: delegation.id,
@@ -192,6 +202,7 @@ export const contractBuilder = {
 
     const revocationContractPayload: DelegationRevocationPDFPayload = {
       delegationKindText: getDelegationText(delegation),
+      delegationActionText: getDelegationActionText(delegation),
       todayDate,
       todayTime,
       delegationId: delegation.id,

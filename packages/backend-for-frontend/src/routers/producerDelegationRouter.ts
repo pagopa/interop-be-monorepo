@@ -36,7 +36,7 @@ const producerDelegationRouter = (
   );
 
   producerDelegationRouter
-    .post("/producer/delegations", async (req, res) => {
+    .post("/producers/delegations", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const delegationResource =
@@ -57,7 +57,7 @@ const producerDelegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/producer/delegations/:delegationId/approve", async (req, res) => {
+    .post("/producers/delegations/:delegationId/approve", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         await delegationService.approveProducerDelegation(
@@ -78,7 +78,7 @@ const producerDelegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/producer/delegations/:delegationId/reject", async (req, res) => {
+    .post("/producers/delegations/:delegationId/reject", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         await delegationService.rejectProducerDelegation(
@@ -100,7 +100,7 @@ const producerDelegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .delete("/producer/delegations/:delegationId", async (req, res) => {
+    .delete("/producers/delegations/:delegationId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
