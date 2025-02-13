@@ -1059,6 +1059,65 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/templates/{eServiceTemplateId}/instances:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve a list of E-Service template instances
+      operationId: getEServiceTemplateInstances
+      parameters:
+        - name: eServiceTemplateId
+          in: path
+          description: the eservice template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: producerName
+          schema:
+            type: string
+        - in: query
+          name: states
+          description: comma separated sequence of instance states
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/EServiceDescriptorState"
+            default: []
+          explode: false
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: A list of e-service template instances
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateInstances"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -1655,6 +1714,51 @@ components:
       enum:
         - INTERFACE
         - DOCUMENT
+    EServiceDescriptorState:
+      type: string
+      description: EService Descriptor State
+      enum:
+        - DRAFT
+        - PUBLISHED
+        - DEPRECATED
+        - SUSPENDED
+        - ARCHIVED
+        - WAITING_FOR_APPROVAL  
+    EServiceTemplateInstance:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - producerName
+        - state
+        - version
+      properties:
+        id:
+          type: string
+          format: uuid
+        producerName:
+          type: string
+        state:
+          $ref: "#/components/schemas/EServiceDescriptorState"
+        instanceId:
+          type: string
+        version:
+          type: number
+          format: int32
+    EServiceTemplateInstances:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateInstance"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     Problem:
       properties:
         type:
