@@ -63,12 +63,10 @@ export async function handleCatalogMessage(
       { event_version: 2, type: "EServiceDescriptorPublished" },
       async ({ data: { eservice } }) => {
         if (eservice) {
-          await Promise.all([
-            notificationEmailSenderService.sendEserviceDescriptorPublishedSimpleEmail(
-              eservice,
-              logger
-            ),
-          ]);
+          await notificationEmailSenderService.sendEserviceDescriptorPublishedSimpleEmail(
+            eservice,
+            logger
+          );
         } else {
           throw missingKafkaMessageDataError("catalog", decodedMessage.type); // maybe eservice instead catalog?
         }

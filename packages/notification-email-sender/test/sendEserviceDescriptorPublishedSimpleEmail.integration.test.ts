@@ -174,4 +174,54 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
       body: { html: mail2.body },
     });
   });
+
+  it("should not throw error if don't find the consumer mail", async () => {
+    vi.spyOn(sesEmailManager, "send");
+
+    const consumer1: Tenant = {
+      ...getMockTenant(),
+      name: "Jane Doe",
+      mails: [],
+    };
+
+    await addOneTenant(consumer1);
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: "Published",
+      version: "1",
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      name: "EService",
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const agreement1 = {
+      ...getMockAgreement(),
+      id: generateId<AgreementId>(),
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumer1.id,
+    };
+
+    await addOneAgreement(agreement1);
+
+    await notificationEmailSenderService.sendEserviceDescriptorPublishedSimpleEmail(
+      toEServiceV2(eservice),
+      genericLogger
+    );
+
+    expect(sesEmailManager.send).toHaveBeenCalledTimes(0);
+
+    const response1: AxiosResponse = await axios.get(
+      `${sesEmailManagerConfig?.awsSesEndpoint}/store`
+    );
+    expect(response1.status).toBe(200);
+    const lastEmail1 = response1.data.emails;
+
+    expect(lastEmail1).toMatchObject({});
+  });
 });

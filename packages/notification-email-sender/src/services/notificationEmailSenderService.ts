@@ -526,7 +526,7 @@ export function notificationEmailSenderServiceBuilder(
           logger.warn(
             `Consumer email not found for eservice ${eservice.id}, skipping email`
           );
-          return;
+          continue;
         }
 
         const descriptor = getLatestValidDescriptor(eservice);
