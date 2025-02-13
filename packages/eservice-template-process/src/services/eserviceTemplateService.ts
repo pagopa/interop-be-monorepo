@@ -68,8 +68,6 @@ import {
   toCreateEventEServiceTemplateRiskAnalysisUpdated,
   toCreateEventEServiceTemplateDeleted,
   toCreateEventEServiceTemplateDraftVersionDeleted,
-  toCreateEventEServiceTemplateAdded,
-  toCreateEventEServiceTemplateDraftUpdated,
   toCreateEventEServiceTemplateVersionAdded,
   toCreateEventEServiceTemplateVersionDocumentAdded,
   toCreateEventEServiceTemplateAdded,
