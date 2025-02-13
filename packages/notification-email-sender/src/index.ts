@@ -143,12 +143,10 @@ export async function handlePurposeMessage(
       { event_version: 2, type: "NewPurposeVersionActivated" },
       async ({ data: { purpose } }) => {
         if (purpose) {
-          await Promise.all([
-            notificationEmailSenderService.sendPurposeVersionActivatedEmail(
-              purpose,
-              logger
-            ),
-          ]);
+          await notificationEmailSenderService.sendPurposeVersionActivatedEmail(
+            purpose,
+            logger
+          );
         } else {
           throw missingKafkaMessageDataError("purpose", decodedMessage.type);
         }
