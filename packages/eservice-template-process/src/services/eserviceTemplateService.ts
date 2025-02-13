@@ -34,6 +34,7 @@ import {
   generateId,
   unsafeBrandId,
   WithMetadata,
+  ListResult,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -71,6 +72,8 @@ import {
   toCreateEventEServiceTemplateDraftUpdated,
   toCreateEventEServiceTemplateVersionAdded,
   toCreateEventEServiceTemplateVersionDocumentAdded,
+  toCreateEventEServiceTemplateAdded,
+  toCreateEventEServiceTemplateDraftUpdated,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -78,6 +81,10 @@ import {
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
+import {
+  ApiGetEServiceTemplateIstancesFilters,
+  EServiceTemplateInstance,
+} from "../model/domain/models.js";
 import {
   assertIsDraftTemplate,
   assertIsReceiveTemplate,
@@ -1331,6 +1338,33 @@ export function eserviceTemplateServiceBuilder(
       await repository.createEvents(events);
 
       return eserviceTemplateVersionWithDocs;
+    },
+    async getEServiceTemplateIstances(
+      eserviceTemplateId: EServiceTemplateId,
+      filters: ApiGetEServiceTemplateIstancesFilters,
+      offset: number,
+      limit: number,
+      { authData, logger }: WithLogger<AppContext>
+    ): Promise<ListResult<EServiceTemplateInstance>> {
+      logger.info(
+        `Getting EServices template ${eserviceTemplateId} instances with producer name = ${filters.producerName}, states = ${filters.states}, limit = ${limit}, offset = ${offset}`
+      );
+
+      const { data: eserviceTemplate } = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.creatorId,
+        authData
+      );
+
+      return await readModelService.getEServiceTemplateInstances({
+        eserviceTemplate,
+        filters,
+        offset,
+        limit,
+      });
     },
   };
 }

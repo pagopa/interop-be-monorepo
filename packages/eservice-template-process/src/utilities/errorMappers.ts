@@ -194,6 +194,14 @@ export const updateEServiceTemplateErrorMapper = (
     .with("eServiceTemplateDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getEServiceTemplateIstancesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const updateDraftTemplateVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
