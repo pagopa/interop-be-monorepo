@@ -512,7 +512,7 @@ describe("get eservices", () => {
     const eserviceTemplateVersion6b: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
       id: generateId(),
-      version: "2",
+      version: 2,
       state: eserviceTemplateVersionState.draft,
     };
     const eserviceTemplate6: EServiceTemplate = {
@@ -563,7 +563,7 @@ describe("get eservices", () => {
     const eserviceTemplateVersion6b: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
       id: generateId(),
-      version: "2",
+      version: 2,
       state: eserviceTemplateVersionState.draft,
     };
     const eserviceTemplate6: EServiceTemplate = {
@@ -614,7 +614,7 @@ describe("get eservices", () => {
     const eserviceTemplateVersion6b: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
       id: generateId(),
-      version: "2",
+      version: 2,
       state: eserviceTemplateVersionState.draft,
     };
     const eserviceTemplate6: EServiceTemplate = {
