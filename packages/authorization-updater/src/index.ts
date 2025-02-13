@@ -147,7 +147,6 @@ export async function sendAgreementAuthUpdate(
       {
         type: P.union(
           "AgreementSubmitted",
-          "AgreementActivated",
           "AgreementUnsuspendedByPlatform",
           "AgreementUnsuspendedByConsumer",
           "AgreementUnsuspendedByProducer",
@@ -170,43 +169,46 @@ export async function sendAgreementAuthUpdate(
         );
       }
     )
-    .with({ type: "AgreementUpgraded" }, async (msg) => {
-      const agreement = getAgreementFromEvent(msg, decodedMessage.type);
-      const eservice = await readModelService.getEServiceById(
-        agreement.eserviceId
-      );
-      if (!eservice) {
-        throw genericInternalError(
-          `Unable to find EService with id ${agreement.eserviceId}`
+    .with(
+      { type: P.union("AgreementUpgraded", "AgreementActivated") },
+      async (msg) => {
+        const agreement = getAgreementFromEvent(msg, decodedMessage.type);
+        const eservice = await readModelService.getEServiceById(
+          agreement.eserviceId
+        );
+        if (!eservice) {
+          throw genericInternalError(
+            `Unable to find EService with id ${agreement.eserviceId}`
+          );
+        }
+
+        const descriptor = eservice.descriptors.find(
+          (d) => d.id === agreement.descriptorId
+        );
+        if (!descriptor) {
+          throw genericInternalError(
+            `Unable to find descriptor with id ${agreement.descriptorId}`
+          );
+        }
+
+        const eserviceClientState = descriptorStateToClientState(
+          descriptor.state
+        );
+
+        await authService.updateAgreementAndEServiceStates(
+          agreementStateToClientState(agreement.state),
+          eserviceClientState,
+          agreement.id,
+          agreement.eserviceId,
+          agreement.descriptorId,
+          agreement.consumerId,
+          descriptor.audience,
+          descriptor.voucherLifespan,
+          logger,
+          correlationId
         );
       }
-
-      const descriptor = eservice.descriptors.find(
-        (d) => d.id === agreement.descriptorId
-      );
-      if (!descriptor) {
-        throw genericInternalError(
-          `Unable to find descriptor with id ${agreement.descriptorId}`
-        );
-      }
-
-      const eserviceClientState = descriptorStateToClientState(
-        descriptor.state
-      );
-
-      await authService.updateAgreementAndEServiceStates(
-        agreementStateToClientState(agreement.state),
-        eserviceClientState,
-        agreement.id,
-        agreement.eserviceId,
-        agreement.descriptorId,
-        agreement.consumerId,
-        descriptor.audience,
-        descriptor.voucherLifespan,
-        logger,
-        correlationId
-      );
-    })
+    )
     .with(
       {
         type: P.union(
