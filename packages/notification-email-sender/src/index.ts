@@ -128,12 +128,10 @@ export async function handlePurposeMessage(
       { event_version: 2, type: "PurposeWaitingForApproval" },
       async ({ data: { purpose } }) => {
         if (purpose) {
-          await Promise.all([
-            notificationEmailSenderService.sendPurposeWaitingForApprovalNotificationEmail(
-              purpose,
-              logger
-            ),
-          ]);
+          await notificationEmailSenderService.sendPurposeWaitingForApprovalNotificationEmail(
+            purpose,
+            logger
+          );
         } else {
           throw missingKafkaMessageDataError("purpose", decodedMessage.type);
         }
