@@ -505,7 +505,7 @@ export function eserviceTemplateServiceBuilder(
                 state: eserviceTemplateVersionState.published,
                 publishedAt: new Date(),
               }
-            : Number(eserviceTemplateVersion.version) > Number(v.version)
+            : eserviceTemplateVersion.version > v.version
             ? {
                 ...v,
                 state: eserviceTemplateVersionState.deprecated,
