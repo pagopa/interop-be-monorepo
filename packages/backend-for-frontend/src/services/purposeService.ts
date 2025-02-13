@@ -200,7 +200,12 @@ export function purposeServiceBuilder(
       id: purpose.id,
       title: purpose.title,
       description: purpose.description,
-      consumer: { id: consumer.id, name: consumer.name, kind: consumer.kind },
+      consumer: {
+        id: consumer.id,
+        name: consumer.name,
+        kind: consumer.kind,
+        contactMail: getLatestTenantContactEmail(consumer),
+      },
       riskAnalysisForm: purpose.riskAnalysisForm,
       eservice: {
         id: eservice.id,
