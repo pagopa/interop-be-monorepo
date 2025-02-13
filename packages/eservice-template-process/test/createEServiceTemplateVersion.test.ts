@@ -75,7 +75,7 @@ describe("createEServiceTemplateVersion", async () => {
     ...getMockEServiceTemplateVersion(),
     state: eserviceTemplateVersionState.published,
     interface: getMockDocument(),
-    version: "1",
+    version: 1,
   };
 
   it("should write on event-store for the creation of an e-service template version", async () => {
@@ -124,7 +124,7 @@ describe("createEServiceTemplateVersion", async () => {
         publishedTemplateVersion,
         {
           ...newEServiceTemplateVersion,
-          version: "2",
+          version: 2,
           id: newEServiceTemplateVersionId,
         },
       ],
