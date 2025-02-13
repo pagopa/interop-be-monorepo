@@ -248,26 +248,10 @@ export const m2mRevokeCertifiedAttributeErrorMapper = (
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const assignTenantDelegatedProducerFeatureErrorMapper = (
+export const updateTenantDelegatedFeaturesErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantAlreadyHasFeature", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const removeTenantDelegatedProducerFeatureErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantDoesNotHaveFeature", () => HTTP_STATUS_CONFLICT)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const assignTenantDelegatedConsumerFeatureErrorMapper =
-  assignTenantDelegatedProducerFeatureErrorMapper;
-
-export const removeTenantDelegatedConsumerFeatureErrorMapper =
-  removeTenantDelegatedProducerFeatureErrorMapper;

@@ -9571,214 +9571,21 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /tenants/delegatedConsumer:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
+  /tenants/delegatedFeatures/update:
     post:
       tags:
         - tenants
-      summary: Assign delegated consumer feature to tenant caller
-      operationId: assignTenantDelegatedConsumerFeature
+      summary: Update delegated producer and consumer feature to tenant caller
+      operationId: updateTenantDelegatedFeatures
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantDelegatedFeaturesFlagsUpdateSeed"
       responses:
         "204":
-          description: Delegated consumer feature assigned
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "404":
-          description: Tenant not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "409":
-          description: Feature already assigned to tenant
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-    delete:
-      tags:
-        - tenants
-      summary: Delete delegated consumer feature to tenant caller
-      operationId: deleteTenantDelegatedConsumerFeature
-      responses:
-        "204":
-          description: Delegated consumer feature deleted
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "404":
-          description: Tenant not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "409":
-          description: Feature not assigned to tenant
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /tenants/delegatedProducer:
-    post:
-      tags:
-        - tenants
-      summary: Assign delegated producer feature to tenant caller
-      operationId: assignTenantDelegatedProducerFeature
-      responses:
-        "204":
-          description: Delegated producer feature assigned
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "409":
-          description: Feature already assigned to tenant
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-    delete:
-      tags:
-        - tenants
-      summary: Delete delegated producer feature to tenant caller
-      operationId: deleteTenantDelegatedProducerFeature
-      responses:
-        "204":
-          description: Delegated producer feature deleted
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "409":
-          description: Feature not assigned to tenant
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          description: Delegated producer and consumer features updated
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -17110,7 +16917,17 @@ components:
       required:
         - id
         - agreementId
-
+    TenantDelegatedFeaturesFlagsUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isDelegatedConsumerFeatureEnabled:
+          type: boolean
+        isDelegatedProducerFeatureEnabled:
+          type: boolean
+      required:
+        - isDelegatedConsumerFeatureEnabled
+        - isDelegatedProducerFeatureEnabled
     CertifiedTenantAttribute:
       type: object
       additionalProperties: false
@@ -17428,7 +17245,10 @@ components:
           $ref: "#/components/schemas/Document"
         revocationContract:
           $ref: "#/components/schemas/Document"
-        submittedAt:
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
           type: string
           format: date-time
         rejectionReason:
@@ -17443,6 +17263,7 @@ components:
         - delegator
         - state
         - kind
+        - createdAt
     CompactDelegation:
       type: object
       additionalProperties: false
