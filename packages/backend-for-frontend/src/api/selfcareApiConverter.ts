@@ -28,13 +28,17 @@ export const toApiSelfcareInstitution = (
         institutionDescription: P.nonNullable,
         products: P.nonNullable,
       },
-      (institution) => ({
-        id: institution.institutionId,
-        description: institution.institutionDescription,
-        userProductRoles: institution.products.flatMap((product) =>
-          product.productRole ? [product.productRole] : []
-        ),
-      })
+      (institution) => {
+        const productRole = institution.products
+          .map((product) => product.productRole)
+          .filter((role): role is string => !!role);
+
+        return {
+          id: institution.institutionId,
+          description: institution.institutionDescription,
+          userProductRoles: productRole,
+        };
+      }
     )
     .with({ institutionId: P.nullish }, () => {
       throw selfcareEntityNotFilled("UserInstitutionResource", "institutionId");
