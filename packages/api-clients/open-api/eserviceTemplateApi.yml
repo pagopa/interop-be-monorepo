@@ -1743,7 +1743,8 @@ components:
         instanceId:
           type: string
         version:
-          type: string
+          type: number
+          format: int32
     EServiceTemplateInstances:
       type: object
       additionalProperties: false
