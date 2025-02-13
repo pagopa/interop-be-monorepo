@@ -122,6 +122,17 @@ export const descriptorSQLtoDescriptor = ({
   };
 };
 
+export type EServiceAggregatorInput = {
+  eserviceSQL: EServiceSQL;
+  riskAnalysesSQL: EServiceRiskAnalysisSQL[];
+  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
+  descriptorsSQL: EServiceDescriptorSQL[];
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  templateBindingSQL: EServiceTemplateBindingSQL[];
+};
+
 export const eserviceSQLtoEservice = ({
   eserviceSQL,
   riskAnalysesSQL,
@@ -131,16 +142,7 @@ export const eserviceSQLtoEservice = ({
   documentsSQL,
   rejectionReasonsSQL,
 }: // TODO add template
-{
-  eserviceSQL: EServiceSQL;
-  riskAnalysesSQL: EServiceRiskAnalysisSQL[];
-  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
-  descriptorsSQL: EServiceDescriptorSQL[];
-  attributesSQL: EServiceDescriptorAttributeSQL[];
-  documentsSQL: EServiceDescriptorDocumentSQL[];
-  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-  eserviceTemplateBindingSQL?: EServiceTemplateBindingSQL;
-}): WithMetadata<EService> => {
+EServiceAggregatorInput): WithMetadata<EService> => {
   const descriptors = descriptorsSQL.map((descriptorSQL) =>
     descriptorSQLtoDescriptor({
       descriptorSQL,

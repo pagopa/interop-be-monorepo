@@ -10,6 +10,17 @@ import {
   eserviceTemplateBindingInReadmodel,
 } from "../drizzle/schema.js";
 import { eserviceDescriptorInReadmodel } from "../drizzle/schema.js";
+import {
+  EServiceDescriptorAttributeSQL,
+  EServiceDescriptorDocumentSQL,
+  EServiceDescriptorRejectionReasonSQL,
+  EServiceDescriptorSQL,
+  EServiceRiskAnalysisAnswerSQL,
+  EServiceRiskAnalysisSQL,
+  EServiceSQL,
+  EServiceTemplateBindingSQL,
+} from "../types.js";
+import { EServiceAggregatorInput } from "./aggregators.js";
 
 export const db = drizzle(process.env.DATABASE_URL!);
 
@@ -120,3 +131,103 @@ export const eserviceJoin = async () =>
       eserviceTemplateBindingInReadmodel,
       eq(eserviceInReadmodel.id, eserviceTemplateBindingInReadmodel.eserviceId)
     );
+
+export const fromJoinToAggregator = (
+  queryRes: Array<{
+    eservice: EServiceSQL;
+    descriptor: EServiceDescriptorSQL | null;
+    document: EServiceDescriptorDocumentSQL | null;
+    attribute: EServiceDescriptorAttributeSQL | null;
+    rejection: EServiceDescriptorRejectionReasonSQL | null;
+    riskAnalysis: EServiceRiskAnalysisSQL | null;
+    riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
+    templateBinding: EServiceTemplateBindingSQL | null;
+  }>
+): EServiceAggregatorInput => {
+  const eserviceSQL = queryRes[0].eservice;
+
+  const descriptorIdSet = new Set<string>();
+  const descriptorsSQL: EServiceDescriptorSQL[] = [];
+
+  const documentIdSet = new Set<string>();
+  const documentsSQL: EServiceDescriptorDocumentSQL[] = [];
+
+  const attributeIdSet = new Set<string>();
+  const attributesSQL: EServiceDescriptorAttributeSQL[] = [];
+
+  const riskAnalysisIdSet = new Set<string>();
+  const riskAnalysesSQL: EServiceRiskAnalysisSQL[] = [];
+
+  const riskAnalysisAnswerIdSet = new Set<string>();
+  const riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] = [];
+
+  const rejectionReasonsSet = new Set<string>();
+  const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [];
+
+  queryRes.forEach((row) => {
+    const descriptorSQL = row.descriptor;
+
+    if (descriptorSQL) {
+      if (!descriptorIdSet.has(descriptorSQL.id)) {
+        descriptorIdSet.add(descriptorSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        descriptorsSQL.push(descriptorSQL);
+      }
+
+      const documentSQL = row.document;
+
+      if (documentSQL && !documentIdSet.has(documentSQL.id)) {
+        documentIdSet.add(documentSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        documentsSQL.push(documentSQL);
+      }
+
+      const attributeSQL = row.attribute;
+      if (attributeSQL && !attributeIdSet.has(attributeSQL.attributeId)) {
+        attributeIdSet.add(attributeSQL.attributeId);
+        // eslint-disable-next-line functional/immutable-data
+        attributesSQL.push(attributeSQL);
+      }
+
+      const rejectionReasonSQL = row.rejection;
+      if (
+        rejectionReasonSQL &&
+        !rejectionReasonsSet.has(rejectionReasonSQL.rejectionReason)
+      ) {
+        rejectionReasonsSet.add(rejectionReasonSQL.rejectionReason);
+        // eslint-disable-next-line functional/immutable-data
+        rejectionReasonsSQL.push(rejectionReasonSQL);
+      }
+    }
+
+    const riskAnalysisSQL = row.riskAnalysis;
+    if (riskAnalysisSQL) {
+      if (!riskAnalysisIdSet.has(riskAnalysisSQL.id)) {
+        riskAnalysisIdSet.add(riskAnalysisSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        riskAnalysesSQL.push(riskAnalysisSQL);
+      }
+
+      const riskAnalysisAnswerSQL = row.riskAnalysisAnswer;
+      if (
+        riskAnalysisAnswerSQL &&
+        !riskAnalysisAnswerIdSet.has(riskAnalysisAnswerSQL.id)
+      ) {
+        riskAnalysisAnswerIdSet.add(riskAnalysisAnswerSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        riskAnalysisAnswersSQL.push(riskAnalysisAnswerSQL);
+      }
+    }
+  });
+
+  return {
+    eserviceSQL,
+    descriptorsSQL,
+    documentsSQL,
+    attributesSQL,
+    riskAnalysesSQL,
+    riskAnalysisAnswersSQL,
+    rejectionReasonsSQL,
+    templateBindingSQL: [],
+  };
+};
