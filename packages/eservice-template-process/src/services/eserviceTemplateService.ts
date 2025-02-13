@@ -37,6 +37,7 @@ import {
   TenantKind,
   eserviceMode,
   generateId,
+  ListResult,
 } from "pagopa-interop-models";
 import {
   attributeNotFound,
@@ -83,6 +84,10 @@ import {
   toCreateEventEServiceTemplateAdded,
   toCreateEventEServiceTemplateDraftUpdated,
 } from "../model/domain/toEvent.js";
+import {
+  ApiGetEServiceTemplateIstancesFilters,
+  EServiceTemplateInstance,
+} from "../model/domain/models.js";
 import {
   assertIsDraftTemplate,
   assertIsReceiveTemplate,
@@ -1210,6 +1215,33 @@ export function eserviceTemplateServiceBuilder(
       await repository.createEvent(event);
 
       return updatedEServiceTemplate;
+    },
+    async getEServiceTemplateIstances(
+      eserviceTemplateId: EServiceTemplateId,
+      filters: ApiGetEServiceTemplateIstancesFilters,
+      offset: number,
+      limit: number,
+      { authData, logger }: WithLogger<AppContext>
+    ): Promise<ListResult<EServiceTemplateInstance>> {
+      logger.info(
+        `Getting EServices template ${eserviceTemplateId} instances with producer name = ${filters.producerName}, states = ${filters.states}, limit = ${limit}, offset = ${offset}`
+      );
+
+      const { data: eserviceTemplate } = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.creatorId,
+        authData
+      );
+
+      return await readModelService.getEServiceTemplateInstances({
+        eserviceTemplate,
+        filters,
+        offset,
+        limit,
+      });
     },
   };
 }
