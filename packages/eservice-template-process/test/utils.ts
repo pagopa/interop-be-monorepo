@@ -1,22 +1,33 @@
 import {
   ReadEvent,
   readLastEventByStreamId,
-  setupTestContainersVitest,
   StoredEvent,
+  setupTestContainersVitest,
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
 import {
+  Attribute,
   EServiceTemplate,
   EServiceTemplateEvent,
   EServiceTemplateId,
-  Tenant,
   toEServiceTemplateV2,
+  RiskAnalysis,
+  Tenant,
   toReadModelTenant,
+  toReadModelAttribute,
+  EServiceTemplateVersion,
 } from "pagopa-interop-models";
+import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
+import {
+  eServiceModeToApiEServiceMode,
+  eserviceTemplateToApiEServiceTemplate,
+  technologyToApiTechnology,
+} from "../src/model/domain/apiConverter.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
@@ -28,8 +39,11 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 afterEach(cleanup);
 
 export const eserviceTemplates = readModelRepository.eserviceTemplates;
+export const attributes = readModelRepository.attributes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
+
+export const tenants = readModelRepository.tenants;
 
 export const eserviceTemplateService = eserviceTemplateServiceBuilder(
   postgresDB,
@@ -37,7 +51,7 @@ export const eserviceTemplateService = eserviceTemplateServiceBuilder(
   fileManager
 );
 
-export const writeEServiceInEventstore = async (
+export const writeEServiceTemplateInEventstore = async (
   eserviceTemplate: EServiceTemplate
 ): Promise<void> => {
   const eserviceTemplateEvent: EServiceTemplateEvent = {
@@ -58,15 +72,12 @@ export const writeEServiceInEventstore = async (
 export const addOneEServiceTemplate = async (
   eserviceTemplate: EServiceTemplate
 ): Promise<void> => {
-  await writeEServiceInEventstore(eserviceTemplate);
+  await writeEServiceTemplateInEventstore(eserviceTemplate);
   await writeInReadmodel(eserviceTemplate, eserviceTemplates);
 };
 
-export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelTenant(tenant),
-    readModelRepository.tenants
-  );
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
 export const readLastEserviceTemplateEvent = async (
@@ -77,3 +88,54 @@ export const readLastEserviceTemplateEvent = async (
     "eservice_template",
     postgresDB
   );
+
+export const buildRiskAnalysisSeed = (
+  riskAnalysis: RiskAnalysis
+): eserviceTemplateApi.EServiceRiskAnalysisSeed => ({
+  name: riskAnalysis.name,
+  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+    riskAnalysis.riskAnalysisForm
+  ),
+});
+
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
+};
+
+export const eserviceTemplateToApiEServiceTemplateSeed = (
+  eserviceTemplate: EServiceTemplate
+): eserviceTemplateApi.EServiceTemplateSeed => {
+  const apiEserviceTemplate =
+    eserviceTemplateToApiEServiceTemplate(eserviceTemplate);
+
+  return {
+    ...apiEserviceTemplate,
+    version: apiEserviceTemplate.versions[0],
+  };
+};
+
+export const eserviceTemplateToApiUpdateEServiceTemplateSeed = (
+  eserviceTemplate: EServiceTemplate
+): eserviceTemplateApi.UpdateEServiceTemplateSeed => ({
+  name: eserviceTemplate.name,
+  audienceDescription: eserviceTemplate.audienceDescription,
+  eserviceDescription: eserviceTemplate.eserviceDescription,
+  technology: technologyToApiTechnology(eserviceTemplate.technology),
+  mode: eServiceModeToApiEServiceMode(eserviceTemplate.mode),
+  isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
+});
+
+export const buildUpdateVersionSeed = (
+  version: EServiceTemplateVersion
+): eserviceTemplateApi.UpdateEServiceTemplateVersionSeed => ({
+  voucherLifespan: version.voucherLifespan,
+  dailyCallsPerConsumer: version.dailyCallsPerConsumer,
+  dailyCallsTotal: version.dailyCallsTotal,
+  agreementApprovalPolicy: "AUTOMATIC",
+  description: version.description,
+  attributes: {
+    certified: [],
+    declared: [],
+    verified: [],
+  },
+});

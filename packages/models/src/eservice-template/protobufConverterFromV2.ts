@@ -40,7 +40,7 @@ export const fromEServiceTemplateVersionV2 = (
 ): EServiceTemplateVersion => ({
   ...input,
   id: unsafeBrandId(input.id),
-  version: input.version.toString(),
+  version: Number(input.version),
   attributes:
     input.attributes != null
       ? {

@@ -15,7 +15,9 @@ import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
 import {
   bffGetCatalogEServiceTemplateErrorMapper,
   bffGetEServiceTemplateErrorMapper,
+  bffGetEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
+import { toBffCreatedEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
 
 const eserviceTemplateRouter = (
   ctx: ZodiosContext,
@@ -38,6 +40,75 @@ const eserviceTemplateRouter = (
   );
 
   eserviceTemplateRouter
+    .post("/eservices/templates", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const eserviceTemplate =
+          await eserviceTemplateService.createEServiceTemplate(req.body, ctx);
+        return res
+          .status(200)
+          .send(
+            bffApi.CreatedEServiceTemplateVersion.parse(
+              toBffCreatedEServiceTemplateVersion(eserviceTemplate)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/eservices/templates/:eServiceTemplateId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await eserviceTemplateService.updateEServiceTemplate(
+          unsafeBrandId(req.params.eServiceTemplateId),
+          req.body,
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
+
+        try {
+          await eserviceTemplateService.updateDraftTemplateVersion(
+            unsafeBrandId(eServiceTemplateId),
+            unsafeBrandId(eServiceTemplateVersionId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error updating draft version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/suspend",
       async (req, res) => {
@@ -83,6 +154,31 @@ const eserviceTemplateRouter = (
             ctx.logger,
             ctx.correlationId,
             `Error activating version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
+
+        try {
+          await eserviceTemplateService.deleteEServiceTemplateEServiceRiskAnalysis(
+            unsafeBrandId(eServiceTemplateId),
+            unsafeBrandId(eServiceTemplateVersionId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error deleting eservice template ${eServiceTemplateId} version ${eServiceTemplateVersionId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -245,7 +341,135 @@ const eserviceTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/quotas/update",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
+
+        try {
+          await eserviceTemplateService.updateEServiceTemplateVersionQuotas(
+            unsafeBrandId(eServiceTemplateId),
+            unsafeBrandId(eServiceTemplateVersionId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error updating eservice template ${eServiceTemplateId} version ${eServiceTemplateVersionId} quotas`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/riskAnalysis",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId } = req.params;
+
+        try {
+          await eserviceTemplateService.createEServiceTemplateEServiceRiskAnalysis(
+            unsafeBrandId(eServiceTemplateId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error creating eservice template ${eServiceTemplateId} risk analysis`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId, riskAnalysisId } = req.params;
+
+        try {
+          await eserviceTemplateService.updateEServiceTemplateEServiceRiskAnalysis(
+            unsafeBrandId(eServiceTemplateId),
+            unsafeBrandId(riskAnalysisId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error updating eservice template ${eServiceTemplateId} risk analysis ${riskAnalysisId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId, riskAnalysisId } = req.params;
+
+        try {
+          await eserviceTemplateService.deleteEServiceTemplateEServiceRiskAnalysis(
+            unsafeBrandId(eServiceTemplateId),
+            unsafeBrandId(riskAnalysisId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error deleting eservice template ${eServiceTemplateId} risk analysis ${riskAnalysisId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/attributes/update",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
+
+        try {
+          await eserviceTemplateService.updateEServiceTemplateVersionAttributes(
+            unsafeBrandId(eServiceTemplateId),
+            unsafeBrandId(eServiceTemplateVersionId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error updating eservice template ${eServiceTemplateId} version ${eServiceTemplateVersionId} attributes`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return eserviceTemplateRouter;
 };

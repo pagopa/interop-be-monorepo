@@ -202,4 +202,6 @@ export const eServiceToApiEService = (
   })),
   descriptors: eservice.descriptors.map(descriptorToApiDescriptor),
   isSignalHubEnabled: eservice.isSignalHubEnabled,
+  isConsumerDelegable: eservice.isConsumerDelegable,
+  isClientAccessDelegable: eservice.isClientAccessDelegable,
 });

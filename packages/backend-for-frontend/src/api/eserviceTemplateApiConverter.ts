@@ -3,6 +3,7 @@ import {
   eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { genericError } from "pagopa-interop-models";
 import { catalogEServiceTemplatePublishedVersionNotFound } from "../model/errors.js";
 import { toBffCatalogApiEserviceRiskAnalysis } from "./catalogApiConverter.js";
 import { toBffCompactOrganization } from "./agreementApiConverter.js";
@@ -85,3 +86,16 @@ export function toBffProducerEServiceTemplate(
     draftVersion,
   };
 }
+
+export const toBffCreatedEServiceTemplateVersion = (
+  eserviceTemplate: eserviceTemplateApi.EServiceTemplate
+): bffApi.CreatedEServiceTemplateVersion => {
+  const version = eserviceTemplate.versions.at(0);
+  if (version === undefined) {
+    throw genericError("No version found for the created EServiceTemplate");
+  }
+  return {
+    id: eserviceTemplate.id,
+    versionId: version.id,
+  };
+};

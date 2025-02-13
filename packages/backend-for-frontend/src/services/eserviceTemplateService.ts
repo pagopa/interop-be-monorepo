@@ -3,6 +3,7 @@ import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
+  RiskAnalysisId,
 } from "pagopa-interop-models";
 import {
   bffApi,
@@ -37,6 +38,45 @@ export function eserviceTemplateServiceBuilder(
   _fileManager: FileManager
 ) {
   return {
+    createEServiceTemplate: async (
+      seed: eserviceTemplateApi.EServiceTemplateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<eserviceTemplateApi.EServiceTemplate> => {
+      logger.info(`Creating new EService template with name ${seed.name}`);
+      return await eserviceTemplateClient.createEServiceTemplate(seed, {
+        headers,
+      });
+    },
+    updateEServiceTemplate: async (
+      eServiceTemplateId: EServiceTemplateId,
+      seed: eserviceTemplateApi.UpdateEServiceTemplateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(`Updating EService template with id ${eServiceTemplateId}`);
+      await eserviceTemplateClient.updateEServiceTemplate(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+        },
+      });
+    },
+    updateDraftTemplateVersion: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      seed: bffApi.UpdateEServiceTemplateVersionSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Updating draft version ${eServiceTemplateVersionId} of EService template ${eServiceTemplateId}`
+      );
+      await eserviceTemplateClient.updateDraftTemplateVersion(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+          eServiceTemplateVersionId,
+        },
+      });
+    },
     suspendEServiceTemplateVersion: async (
       eServiceTemplateId: EServiceTemplateId,
       eServiceTemplateVersionId: EServiceTemplateVersionId,
@@ -62,6 +102,22 @@ export function eserviceTemplateServiceBuilder(
         `Activating version ${eServiceTemplateVersionId} of EService template ${eServiceTemplateId}`
       );
       await eserviceTemplateClient.activateTemplateVersion(undefined, {
+        headers,
+        params: {
+          eServiceTemplateId,
+          eServiceTemplateVersionId,
+        },
+      });
+    },
+    deleteEServiceTemplateVersion: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Deleting version ${eServiceTemplateVersionId} of EService template ${eServiceTemplateId}`
+      );
+      await eserviceTemplateClient.deleteDraftTemplateVersion(undefined, {
         headers,
         params: {
           eServiceTemplateId,
@@ -117,6 +173,40 @@ export function eserviceTemplateServiceBuilder(
           },
         }
       );
+    },
+    updateEServiceTemplateVersionQuotas: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      seed: bffApi.EServiceTemplateVersionQuotasUpdateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Updating EService template ${eServiceTemplateId} version ${eServiceTemplateVersionId} quotas`
+      );
+      await eserviceTemplateClient.updateTemplateVersionQuotas(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+          eServiceTemplateVersionId,
+        },
+      });
+    },
+    updateEServiceTemplateVersionAttributes: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      seed: bffApi.DescriptorAttributesSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Updating EService template ${eServiceTemplateId} version ${eServiceTemplateVersionId} attributes`
+      );
+      await eserviceTemplateClient.updateTemplateVersionAttributes(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+          eServiceTemplateVersionId,
+        },
+      });
     },
     getEServiceTemplateVersion: async (
       eServiceTemplateId: EServiceTemplateId,
@@ -263,6 +353,57 @@ export function eserviceTemplateServiceBuilder(
           totalCount: eserviceTemplatesResponse.totalCount,
         },
       };
+    },
+    createEServiceTemplateEServiceRiskAnalysis: async (
+      eServiceTemplateId: EServiceTemplateId,
+      seed: bffApi.EServiceRiskAnalysisSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Creating EService template ${eServiceTemplateId} risk analysis`
+      );
+      await eserviceTemplateClient.createEServiceTemplateRiskAnalysis(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+        },
+      });
+    },
+    updateEServiceTemplateEServiceRiskAnalysis: async (
+      eServiceTemplateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      seed: bffApi.EServiceRiskAnalysisSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Updating EService template ${eServiceTemplateId} risk analysis ${riskAnalysisId}`
+      );
+      await eserviceTemplateClient.updateEServiceTemplateRiskAnalysis(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+          riskAnalysisId,
+        },
+      });
+    },
+    deleteEServiceTemplateEServiceRiskAnalysis: async (
+      eServiceTemplateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Deleting EService template ${eServiceTemplateId} risk analysis ${riskAnalysisId}`
+      );
+      await eserviceTemplateClient.deleteEServiceTemplateRiskAnalysis(
+        undefined,
+        {
+          headers,
+          params: {
+            eServiceTemplateId,
+            riskAnalysisId,
+          },
+        }
+      );
     },
   };
 }

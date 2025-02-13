@@ -1,9 +1,12 @@
+import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
+  AttributeId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   makeApiProblemBuilder,
+  TenantId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -12,6 +15,18 @@ export const errorCodes = {
   notValidEServiceTemplateVersionState: "0003",
   eServiceTemplateDuplicate: "0004",
   eserviceTemplateWithoutPublishedVersion: "0005",
+  riskAnalysisNameDuplicate: "0006",
+  riskAnalysisValidationFailed: "0007",
+  tenantNotFound: "0008",
+  tenantKindNotFound: "0009",
+  eserviceTemplateNotInDraftState: "0010",
+  eserviceTemplateNotInReceiveMode: "0011",
+  inconsistentDailyCalls: "0012",
+  inconsistentAttributesSeedGroupsCount: "0013",
+  versionAttributeGroupSupersetMissingInAttributesSeed: "0014",
+  unchangedAttributes: "0015",
+  attributeNotFound: "0016",
+  originNotCompliant: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -50,6 +65,14 @@ export function notValidEServiceTemplateVersionState(
   });
 }
 
+export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester origin ${origin} is not allowed`,
+    code: "originNotCompliant",
+    title: "Origin is not compliant",
+  });
+}
+
 export function eServiceTemplateDuplicate(
   eserviceTemplateName: string
 ): ApiError<ErrorCodes> {
@@ -67,5 +90,124 @@ export function eserviceTemplateWithoutPublishedVersion(
     detail: `EService Template ${eserviceTemplateId} does not have a published version`,
     code: "eserviceTemplateWithoutPublishedVersion",
     title: "EService template without published version",
+  });
+}
+
+export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
+    code: "inconsistentDailyCalls",
+    title: "Inconsistent daily calls",
+  });
+}
+
+export function inconsistentAttributesSeedGroupsCount(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attributes seed contains a different number of groups than the descriptor for EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`,
+    code: "inconsistentAttributesSeedGroupsCount",
+    title: "Inconsistent attributes seed groups count",
+  });
+}
+
+export function versionAttributeGroupSupersetMissingInAttributesSeed(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing required attribute group superset in attributes seed for EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`,
+    code: "versionAttributeGroupSupersetMissingInAttributesSeed",
+    title: "Descriptor attribute group superset missing in attributes seed",
+  });
+}
+
+export function unchangedAttributes(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No new attributes detected in attribute seed for EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`,
+    code: "unchangedAttributes",
+    title: "Unchanged attributes",
+  });
+}
+
+export function attributeNotFound(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
+    title: "Attribute not found",
+  });
+}
+
+export function eserviceTemaplateRiskAnalysisNameDuplicate(
+  riskAnalysisName: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis with name ${riskAnalysisName} already exists`,
+    code: "riskAnalysisNameDuplicate",
+    title: "Risk analysis name duplicate",
+  });
+}
+
+export function riskAnalysisValidationFailed(
+  issues: RiskAnalysisValidationIssue[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis validation failed. Reasons: [${issues
+      .map((i) => i.detail)
+      .join(", ")}]`,
+    code: "riskAnalysisValidationFailed",
+    title: "Risk analysis validation failed",
+  });
+}
+
+export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
+  });
+}
+
+export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant kind for tenant ${tenantId} not found`,
+    code: "tenantKindNotFound",
+    title: "Tenant kind not found",
+  });
+}
+
+export function templateNotInDraftState(
+  templateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template ${templateId} is not in draft state`,
+    code: "eserviceTemplateNotInDraftState",
+    title: "EService Template is not in draft state",
+  });
+}
+
+export function templateNotInReceiveMode(
+  templateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${templateId} is not in receive mode`,
+    code: "eserviceTemplateNotInReceiveMode",
+    title: "EService Template is not in receive mode",
+  });
+}
+
+export function eserviceTemplateNotInDraftState(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eserviceTemplateId} is not in draft state`,
+    code: "eserviceTemplateNotInDraftState",
+    title: "EService Template not in draft state",
   });
 }

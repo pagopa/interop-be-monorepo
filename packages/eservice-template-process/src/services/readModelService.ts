@@ -5,13 +5,18 @@ import {
   ReadModelFilter,
   ReadModelRepository,
   userRoles,
+  TenantCollection,
 } from "pagopa-interop-commons";
 import {
+  Attribute,
+  AttributeId,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersionState,
   ListResult,
+  Tenant,
   TenantId,
+  TenantReadModel,
   WithMetadata,
   eserviceTemplateVersionState,
   genericInternalError,
@@ -56,12 +61,36 @@ async function getEServiceTemplate(
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(
-  readModelRepository: ReadModelRepository
-) {
-  const eserviceTemplates = readModelRepository.eserviceTemplates;
+async function getTenant(
+  tenants: TenantCollection,
+  filter: Filter<WithId<WithMetadata<TenantReadModel>>>
+): Promise<Tenant | undefined> {
+  const data = await tenants.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
 
+  if (!data) {
+    return undefined;
+  }
+  const result = Tenant.safeParse(data.data);
+
+  if (!result.success) {
+    throw genericInternalError(
+      `Unable to parse tenant item: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+  }
+
+  return result.data;
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function readModelServiceBuilder({
+  eserviceTemplates,
+  tenants,
+  attributes,
+}: ReadModelRepository) {
   return {
     async getEServiceTemplateById(
       id: EServiceTemplateId
@@ -85,6 +114,30 @@ export function readModelServiceBuilder(
       });
     },
 
+    async getTenantById(id: TenantId): Promise<Tenant | undefined> {
+      return getTenant(tenants, { "data.id": id });
+    },
+
+    async getAttributesByIds(
+      attributesIds: AttributeId[]
+    ): Promise<Attribute[]> {
+      const data = await attributes
+        .find({
+          "data.id": { $in: attributesIds },
+        })
+        .toArray();
+
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
+    },
     async getEServiceTemplates(
       filters: GetEServiceTemplatesFilters,
       offset: number,
