@@ -18,19 +18,22 @@ export const ClientAssertionHeader = z
   .strict();
 export type ClientAssertionHeader = z.infer<typeof ClientAssertionHeader>;
 
-export const ClientAssertionPayload = z
-  .object({
-    sub: ClientId,
-    jti: z.string(),
-    iat: z.number(),
-    iss: z.string(),
-    aud: z.array(z.string()).or(z.string()),
-    exp: z.number(),
-    digest: ClientAssertionDigest.optional(),
-    purposeId: PurposeId.optional(),
-  })
-  .strict();
+export const ClientAssertionPayload = z.object({
+  sub: ClientId,
+  jti: z.string(),
+  iat: z.number(),
+  iss: z.string(),
+  aud: z.array(z.string()).or(z.string()),
+  exp: z.number(),
+  digest: ClientAssertionDigest.nullish(),
+  purposeId: PurposeId.optional(),
+});
 export type ClientAssertionPayload = z.infer<typeof ClientAssertionPayload>;
+
+export const ClientAssertionPayloadStrict = ClientAssertionPayload.strict();
+export type ClientAssertionPayloadStrict = z.infer<
+  typeof ClientAssertionPayloadStrict
+>;
 
 export const ClientAssertion = z
   .object({
