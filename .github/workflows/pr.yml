@@ -78,6 +78,7 @@ jobs:
     needs: [find_dockerfiles]
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 5
       fail-fast: false
       matrix:
         package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}
