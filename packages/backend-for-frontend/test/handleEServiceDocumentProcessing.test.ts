@@ -26,7 +26,7 @@ describe("handleEServiceDocumentProcessing", () => {
   it("should process REST interface with OpenAPI 3.0", async () => {
     const result = await handleEServiceDocumentProcessing(
       mockDoc,
-      "REST",
+      "Rest",
       "test-eServiceId"
     );
     expect(result).toEqual(["http://example.com"]);
@@ -39,7 +39,7 @@ describe("handleEServiceDocumentProcessing", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      handleEServiceDocumentProcessing(unsupportedDoc, "REST", eserviceId)
+      handleEServiceDocumentProcessing(unsupportedDoc, "Rest", eserviceId)
     ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
   });
 
@@ -65,7 +65,7 @@ describe("handleEServiceDocumentProcessing", () => {
 
     const result = await handleEServiceDocumentProcessing(
       soapDoc,
-      "SOAP",
+      "Soap",
       eserviceId
     );
     expect(result).toEqual(["http://example.com"]);
@@ -79,7 +79,7 @@ describe("handleEServiceDocumentProcessing", () => {
 
     const result = await handleEServiceDocumentProcessing(
       documentDoc,
-      "REST",
+      "Rest",
       eserviceId
     );
     expect(result).toEqual([]);
@@ -110,7 +110,7 @@ describe("handleEServiceDocumentProcessing", () => {
 
     const result = await handleEServiceDocumentProcessing(
       soapDoc,
-      "SOAP",
+      "Soap",
       eserviceId
     );
     expect(result).toEqual(["http://example1.com", "http://example2.com"]);
@@ -139,7 +139,7 @@ describe("handleEServiceDocumentProcessing", () => {
 
     const result = await handleEServiceDocumentProcessing(
       soapDoc,
-      "SOAP",
+      "Soap",
       eserviceId
     );
     expect(result).toEqual(["http://example.com"]);
@@ -165,7 +165,7 @@ describe("handleEServiceDocumentProcessing", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      handleEServiceDocumentProcessing(soapDoc, "SOAP", eserviceId)
+      handleEServiceDocumentProcessing(soapDoc, "Soap", eserviceId)
     ).rejects.toThrow(ZodError);
   });
 
@@ -189,7 +189,7 @@ describe("handleEServiceDocumentProcessing", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      handleEServiceDocumentProcessing(soapDoc, "SOAP", eserviceId)
+      handleEServiceDocumentProcessing(soapDoc, "Soap", eserviceId)
     ).rejects.toThrow(ZodError);
   });
 
@@ -210,7 +210,7 @@ describe("handleEServiceDocumentProcessing", () => {
 
     const result = await handleEServiceDocumentProcessing(
       swaggerDoc,
-      "REST",
+      "Rest",
       eserviceId
     );
     expect(result).toEqual(["api.example.com"]);
@@ -231,7 +231,7 @@ describe("handleEServiceDocumentProcessing", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      handleEServiceDocumentProcessing(invalidDoc, "REST", eserviceId)
+      handleEServiceDocumentProcessing(invalidDoc, "Rest", eserviceId)
     ).rejects.toThrow(openapiVersionNotRecognized("1.0"));
   });
 
@@ -245,7 +245,7 @@ describe("handleEServiceDocumentProcessing", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      handleEServiceDocumentProcessing(invalidDoc, "REST", eserviceId)
+      handleEServiceDocumentProcessing(invalidDoc, "Rest", eserviceId)
     ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
   });
 
@@ -264,7 +264,7 @@ describe("handleEServiceDocumentProcessing", () => {
 
     const result = await handleEServiceDocumentProcessing(
       yamlDoc,
-      "REST",
+      "Rest",
       eserviceId
     );
     expect(result).toEqual(["http://example.com"]);

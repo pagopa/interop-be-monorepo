@@ -522,6 +522,31 @@ const eserviceTemplateRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const resp =
+            await eserviceTemplateService.createEServiceTemplateDocument(
+              unsafeBrandId(req.params.eServiceTemplateId),
+              unsafeBrandId(req.params.eServiceTemplateVersionId),
+              req.body,
+              ctx
+            );
+          return res.status(200).send(bffApi.CreatedResource.parse(resp));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error creating eService template document of kind ${req.body.kind} and name ${req.body.prettyName} for eService template ${req.params.eServiceTemplateId} and version ${req.params.eServiceTemplateVersionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
 
   return eserviceTemplateRouter;
