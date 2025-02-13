@@ -40,6 +40,8 @@ function toOutboundEServiceV2(
     ...eservice,
     riskAnalysis: undefined,
     descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
+    templateId: undefined,
+    instanceId: undefined,
   };
 }
 
@@ -52,6 +54,10 @@ export function toOutboundEventV2(
       { type: "EServiceAdded" },
       { type: "DraftEServiceUpdated" },
       { type: "EServiceDescriptionUpdated" },
+      { type: "EServiceIsConsumerDelegableEnabled" },
+      { type: "EServiceIsConsumerDelegableDisabled" },
+      { type: "EServiceIsClientAccessDelegableEnabled" },
+      { type: "EServiceIsClientAccessDelegableDisabled" },
       { type: "EServiceNameUpdated" },
       (msg) => ({
         event_version: msg.event_version,

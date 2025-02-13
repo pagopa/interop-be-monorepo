@@ -71,11 +71,14 @@ import {
   DelegationKind,
   unsafeBrandId,
   UserId,
+  delegationState,
+  delegationKind,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
   eserviceTemplateVersionState,
+  agreementApprovalPolicy,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -111,6 +114,7 @@ export const getTenantCertifierFeatures = (
           feature as TenantFeatureCertifier,
         ])
         .with("DelegatedProducer", () => acc)
+        .with("DelegatedConsumer", () => acc)
         .exhaustive(),
     []
   );
@@ -665,11 +669,36 @@ const signClientAssertion = async ({
     .sign(privateKey);
 };
 
+export const addSomeRandomDelegations = async <
+  T extends { eserviceId: EServiceId }
+>(
+  domainObject: T,
+  addOneDelegation: (delegation: Delegation) => Promise<void>
+): Promise<void> => {
+  const states = [delegationState.rejected, delegationState.revoked];
+  const kinds = [
+    delegationKind.delegatedProducer,
+    delegationKind.delegatedConsumer,
+  ];
+
+  for (const state of states) {
+    for (const kind of kinds) {
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: domainObject.eserviceId,
+          kind,
+          state,
+        })
+      );
+    }
+  }
+};
+
 export const getMockEServiceTemplateVersion = (
   eserviceTemplateVersionId: EServiceTemplateVersionId = generateId<EServiceTemplateVersionId>()
 ): EServiceTemplateVersion => ({
   id: eserviceTemplateVersionId,
-  version: "1",
+  version: 1,
   description: "eService template version description",
   createdAt: new Date(),
   attributes: {
@@ -680,6 +709,7 @@ export const getMockEServiceTemplateVersion = (
   docs: [],
   state: eserviceTemplateVersionState.draft,
   voucherLifespan: 60,
+  agreementApprovalPolicy: agreementApprovalPolicy.automatic,
 });
 
 export const getMockEServiceTemplate = (

@@ -26,6 +26,14 @@ import {
   updateEServiceTemplateVersionQuotasErrorMapper,
   updateEServiceTemplateVersionAttributesErrorMapper,
   createEServiceTemplateVersionErrorMapper,
+  getEServiceTemplateErrorMapper,
+  createRiskAnalysisErrorMapper,
+  deleteRiskAnalysisErrorMapper,
+  updateRiskAnalysisErrorMapper,
+  deleteEServiceTemplateVersionErrorMapper,
+  createEServiceTemplateErrorMapper,
+  updateEServiceTemplateErrorMapper,
+  updateDraftTemplateVersionErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   eserviceTemplateToApiEServiceTemplate,
@@ -53,7 +61,14 @@ const eserviceTemplateService = eserviceTemplateServiceBuilder(
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const { ADMIN_ROLE, API_ROLE } = userRoles;
+  const {
+    ADMIN_ROLE,
+    API_ROLE,
+    SECURITY_ROLE,
+    M2M_ROLE,
+    SUPPORT_ROLE,
+    INTERNAL_ROLE,
+  } = userRoles;
 
   return ctx
     .router(eserviceTemplateApi.processApi.api, {
@@ -66,18 +81,97 @@ const eserviceTemplatesRouter = (
     )
     .post(
       "/eservices/templates",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const eserviceTemplate =
+            await eserviceTemplateService.createEServiceTemplate(req.body, ctx);
+          return res
+            .send(
+              eserviceTemplateApi.EServiceTemplate.parse(
+                eserviceTemplateToApiEServiceTemplate(eserviceTemplate)
+              )
+            )
+            .status(200);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createEServiceTemplateErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .get(
       "/eservices/templates/:eServiceTemplateId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+        INTERNAL_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const eserviceTemplate =
+            await eserviceTemplateService.getEServiceTemplateById(
+              unsafeBrandId(req.params.eServiceTemplateId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              eserviceTemplateApi.EServiceTemplate.parse(
+                eserviceTemplateToApiEServiceTemplate(eserviceTemplate)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceTemplateErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const updatedEServiceTemplate =
+            await eserviceTemplateService.updateEServiceTemplate(
+              unsafeBrandId(req.params.eServiceTemplateId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              eserviceTemplateApi.EServiceTemplate.parse(
+                eserviceTemplateToApiEServiceTemplate(updatedEServiceTemplate)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceTemplateErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/versions",
@@ -114,13 +208,59 @@ const eserviceTemplatesRouter = (
     )
     .delete(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await eserviceTemplateService.deleteEServiceTemplateVersion(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            unsafeBrandId(req.params.eServiceTemplateVersionId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteEServiceTemplateVersionErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const eserviceTemplate =
+            await eserviceTemplateService.updateDraftTemplateVersion(
+              unsafeBrandId(req.params.eServiceTemplateId),
+              unsafeBrandId(req.params.eServiceTemplateVersionId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              eserviceTemplateApi.EServiceTemplate.parse(
+                eserviceTemplateToApiEServiceTemplate(eserviceTemplate)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateDraftTemplateVersionErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/publish",
@@ -229,18 +369,76 @@ const eserviceTemplatesRouter = (
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/riskAnalysis",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await eserviceTemplateService.createRiskAnalysis(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createRiskAnalysisErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await eserviceTemplateService.updateRiskAnalysis(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateRiskAnalysisErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .delete(
       "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await eserviceTemplateService.deleteRiskAnalysis(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteRiskAnalysisErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/audienceDescription/update",

@@ -1,0 +1,22 @@
+meta {
+  name: Delete EService Template Risk Analysis
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{host-catalog}}/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eServiceTemplateId}}
+  riskAnalysisId: {{riskAnalysisId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+

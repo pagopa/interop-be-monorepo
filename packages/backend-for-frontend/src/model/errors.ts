@@ -52,6 +52,7 @@ export const errorCodes = {
   eserviceDelegated: "0043",
   delegatedEserviceNotExportable: "0044",
   noVersionInEServiceTemplate: "0045",
+  eserviceTemplateVersionNotFound: "0046",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -447,5 +448,16 @@ export function noVersionInEServiceTemplate(
     detail: `No version found in Eservice Template ${eserviceTemplateId}`,
     code: "noVersionInEServiceTemplate",
     title: "No version found in Eservice Template",
+  });
+}
+
+export function eserviceTemplateVersionNotFound(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version ${eserviceTemplateVersionId} not found in Eservice template ${eserviceTemplateId}`,
+    code: "eserviceTemplateVersionNotFound",
+    title: "EService template version not found",
   });
 }

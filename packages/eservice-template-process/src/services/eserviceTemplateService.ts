@@ -2,10 +2,16 @@
 
 import {
   AppContext,
+  AuthData,
   DB,
   FileManager,
+  RiskAnalysisValidatedForm,
   WithLogger,
   eventRepository,
+  hasPermission,
+  userRoles,
+  riskAnalysisValidatedFormToNewRiskAnalysis,
+  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -19,6 +25,12 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
+  RiskAnalysis,
+  RiskAnalysisId,
+  Tenant,
+  TenantId,
+  TenantKind,
+  eserviceMode,
   generateId,
   unsafeBrandId,
   WithMetadata,
@@ -27,36 +39,56 @@ import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
-  versionAttributeGroupSupersetMissingInAttributesSeed,
   eServiceTemplateDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
   eserviceTemplateWithoutPublishedVersion,
-  inconsistentAttributesSeedGroupsCount,
   inconsistentDailyCalls,
   notValidEServiceTemplateVersionState,
+  versionAttributeGroupSupersetMissingInAttributesSeed,
+  inconsistentAttributesSeedGroupsCount,
   unchangedAttributes,
+  riskAnalysisValidationFailed,
+  tenantNotFound,
+  originNotCompliant,
+  eserviceTemaplateRiskAnalysisNameDuplicate,
 } from "../model/domain/errors.js";
 import {
-  toCreateEventEServiceTemplateAudienceDescriptionUpdated,
-  toCreateEventEServiceTemplateEServiceDescriptionUpdated,
   toCreateEventEServiceTemplateVersionActivated,
   toCreateEventEServiceTemplateVersionSuspended,
   toCreateEventEServiceTemplateNameUpdated,
+  toCreateEventEServiceTemplateDraftVersionUpdated,
+  toCreateEventEServiceTemplateAudienceDescriptionUpdated,
+  toCreateEventEServiceTemplateEServiceDescriptionUpdated,
   toCreateEventEServiceTemplateVersionQuotasUpdated,
   toCreateEventEServiceTemplateVersionAttributesUpdated,
-  toCreateEventEServiceTemplateVersionDocumentAdded,
+  toCreateEventEServiceTemplateRiskAnalysisAdded,
+  toCreateEventEServiceTemplateRiskAnalysisDeleted,
+  toCreateEventEServiceTemplateRiskAnalysisUpdated,
+  toCreateEventEServiceTemplateDeleted,
+  toCreateEventEServiceTemplateDraftVersionDeleted,
+  toCreateEventEServiceTemplateAdded,
+  toCreateEventEServiceTemplateDraftUpdated,
   toCreateEventEServiceTemplateVersionAdded,
+  toCreateEventEServiceTemplateVersionDocumentAdded,
 } from "../model/domain/toEvent.js";
-import { nextEServiceTemplateVersion } from "../utilities/versionGenerator.js";
-import { apiAgreementApprovalPolicyToAgreementApprovalPolicy } from "../model/domain/apiConverter.js";
-import { ReadModelService } from "./readModelService.js";
+import { config } from "../config/config.js";
 import {
-  assertNoDraftEServiceTemplateVersions,
+  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiEServiceModeToEServiceMode,
+  apiTechnologyToTechnology,
+} from "../model/domain/apiConverter.js";
+import {
+  assertIsDraftTemplate,
+  assertIsReceiveTemplate,
+  assertTenantKindExists,
+  assertIsDraftEserviceTemplate,
   assertRequesterEServiceTemplateCreator,
+  assertNoDraftEServiceTemplateVersions,
 } from "./validators.js";
+import { ReadModelService } from "./readModelService.js";
 
-const retrieveEServiceTemplate = async (
+export const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
   readModelService: ReadModelService
 ): Promise<WithMetadata<EServiceTemplate>> => {
@@ -173,24 +205,176 @@ const replaceEServiceTemplateVersion = (
   };
 };
 
+const retrieveTenant = async (
+  tenantId: TenantId,
+  readModelService: ReadModelService
+): Promise<Tenant> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (tenant === undefined) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
+};
+
+export function validateRiskAnalysisSchemaOrThrow(
+  riskAnalysisForm: eserviceTemplateApi.EServiceRiskAnalysisSeed["riskAnalysisForm"],
+  tenantKind: TenantKind
+): RiskAnalysisValidatedForm {
+  const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
+  if (result.type === "invalid") {
+    throw riskAnalysisValidationFailed(result.issues);
+  } else {
+    return result.value;
+  }
+}
+
+async function parseAndCheckAttributes(
+  attributesSeed: eserviceTemplateApi.AttributesSeed,
+  readModelService: ReadModelService
+): Promise<EserviceAttributes> {
+  const certifiedAttributes = attributesSeed.certified;
+  const declaredAttributes = attributesSeed.declared;
+  const verifiedAttributes = attributesSeed.verified;
+
+  const attributesSeeds = [
+    ...certifiedAttributes.flat(),
+    ...declaredAttributes.flat(),
+    ...verifiedAttributes.flat(),
+  ];
+
+  if (attributesSeeds.length > 0) {
+    const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
+      unsafeBrandId(attr.id)
+    );
+    const attributes = await readModelService.getAttributesByIds(
+      attributesSeedsIds
+    );
+    const attributesIds = attributes.map((attr) => attr.id);
+    for (const attributeSeedId of attributesSeedsIds) {
+      if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
+        throw attributeNotFound(attributeSeedId);
+      }
+    }
+  }
+
+  return {
+    certified: certifiedAttributes.map((a) =>
+      a.map((a) => ({
+        ...a,
+        id: unsafeBrandId(a.id),
+      }))
+    ),
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    declared: declaredAttributes.map((a) =>
+      a.map((a) => ({
+        ...a,
+        id: unsafeBrandId(a.id),
+      }))
+    ),
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    verified: verifiedAttributes.map((a) =>
+      a.map((a) => ({
+        ...a,
+        id: unsafeBrandId(a.id),
+      }))
+    ),
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eserviceTemplateServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
-  _fileManager: FileManager
+  fileManager: FileManager
 ) {
   const repository = eventRepository(
     dbInstance,
     eserviceTemplateEventToBinaryDataV2
   );
   return {
+    async updateDraftTemplateVersion(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      seed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EServiceTemplate> {
+      logger.info(
+        `Update draft e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        eserviceTemplate.data
+      );
+
+      if (
+        eserviceTemplateVersion.state !== eserviceTemplateVersionState.draft
+      ) {
+        throw notValidEServiceTemplateVersionState(
+          eserviceTemplateVersionId,
+          eserviceTemplateVersion.state
+        );
+      }
+
+      if (
+        seed.dailyCallsPerConsumer !== undefined &&
+        seed.dailyCallsTotal !== undefined &&
+        seed.dailyCallsPerConsumer > seed.dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed.attributes,
+        readModelService
+      );
+
+      const updatedVersion: EServiceTemplateVersion = {
+        ...eserviceTemplateVersion,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          ),
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.dailyCallsTotal,
+        description: seed.description,
+        voucherLifespan: seed.voucherLifespan,
+        attributes: parsedAttributes,
+      };
+
+      const updatedEServiceTemplate = replaceEServiceTemplateVersion(
+        eserviceTemplate.data,
+        updatedVersion
+      );
+
+      const event = toCreateEventEServiceTemplateDraftVersionUpdated(
+        eserviceTemplateId,
+        eserviceTemplate.metadata.version,
+        eserviceTemplateVersionId,
+        updatedEServiceTemplate,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return updatedEServiceTemplate;
+    },
     async suspendEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(
-        `Suspending e-service template version ${eserviceTemplateVersionId} for EService ${eserviceTemplateId}`
+        `Suspending e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
       );
 
       const eserviceTemplate = await retrieveEServiceTemplate(
@@ -340,7 +524,6 @@ export function eserviceTemplateServiceBuilder(
       );
       return updatedEserviceTemplate;
     },
-
     async updateEServiceTemplateAudienceDescription(
       eserviceTemplateId: EServiceTemplateId,
       audienceDescription: string,
@@ -467,8 +650,8 @@ export function eserviceTemplateServiceBuilder(
         seed.dailyCallsTotal ?? eserviceTemplateVersion.dailyCallsTotal;
 
       if (
-        dailyCallsPerConsumer &&
-        dailyCallsTotal &&
+        dailyCallsPerConsumer !== undefined &&
+        dailyCallsTotal !== undefined &&
         dailyCallsPerConsumer > dailyCallsTotal
       ) {
         throw inconsistentDailyCalls();
@@ -498,6 +681,235 @@ export function eserviceTemplateServiceBuilder(
       );
 
       return updatedEserviceTemplate;
+    },
+
+    async getEServiceTemplateById(
+      eserviceTemplateId: EServiceTemplateId,
+      { authData, logger }: WithLogger<AppContext>
+    ): Promise<EServiceTemplate> {
+      logger.info(`Retrieving EService template ${eserviceTemplateId}`);
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      return applyVisibilityToEServiceTemplate(eserviceTemplate.data, authData);
+    },
+
+    async deleteEServiceTemplateVersion(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+      const version = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        eserviceTemplate.data
+      );
+      if (version.state !== eserviceTemplateVersionState.draft) {
+        throw notValidEServiceTemplateVersionState(
+          eserviceTemplateVersionId,
+          version.state
+        );
+      }
+
+      const isLastVersion = eserviceTemplate.data.versions.length === 1;
+
+      if (version.interface) {
+        await fileManager.delete(
+          config.s3Bucket,
+          version.interface.path,
+          logger
+        );
+      }
+
+      for (const document of version.docs) {
+        await fileManager.delete(config.s3Bucket, document.path, logger);
+      }
+
+      if (isLastVersion) {
+        await repository.createEvent(
+          toCreateEventEServiceTemplateDeleted(
+            eserviceTemplate.data.id,
+            eserviceTemplate.metadata.version,
+            eserviceTemplate.data,
+            correlationId
+          )
+        );
+      } else {
+        const updatedEserviceTemplate: EServiceTemplate = {
+          ...eserviceTemplate.data,
+          versions: eserviceTemplate.data.versions.filter(
+            (v) => v.id !== eserviceTemplateVersionId
+          ),
+        };
+
+        await repository.createEvent(
+          toCreateEventEServiceTemplateDraftVersionDeleted(
+            eserviceTemplate.data.id,
+            eserviceTemplate.metadata.version,
+            eserviceTemplateVersionId,
+            updatedEserviceTemplate,
+            correlationId
+          )
+        );
+      }
+    },
+
+    async createRiskAnalysis(
+      id: EServiceTemplateId,
+      createRiskAnalysis: eserviceTemplateApi.EServiceRiskAnalysisSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(`Creating risk analysis for eServiceTemplateId: ${id}`);
+
+      const template = await retrieveEServiceTemplate(id, readModelService);
+      assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
+      assertIsDraftTemplate(template.data);
+      assertIsReceiveTemplate(template.data);
+
+      const tenant = await retrieveTenant(
+        template.data.creatorId,
+        readModelService
+      );
+      assertTenantKindExists(tenant);
+
+      const raSameName = template.data.riskAnalysis.find(
+        (ra) => ra.name === createRiskAnalysis.name
+      );
+      if (raSameName) {
+        throw eserviceTemaplateRiskAnalysisNameDuplicate(
+          createRiskAnalysis.name
+        );
+      }
+
+      const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
+        createRiskAnalysis.riskAnalysisForm,
+        tenant.kind
+      );
+
+      const newRiskAnalysis: RiskAnalysis =
+        riskAnalysisValidatedFormToNewRiskAnalysis(
+          validatedRiskAnalysisForm,
+          createRiskAnalysis.name
+        );
+
+      const newTemplate: EServiceTemplate = {
+        ...template.data,
+        riskAnalysis: [...template.data.riskAnalysis, newRiskAnalysis],
+      };
+
+      const event = toCreateEventEServiceTemplateRiskAnalysisAdded(
+        template.data.id,
+        template.metadata.version,
+        generateId<RiskAnalysisId>(),
+        newTemplate,
+        correlationId
+      );
+
+      await repository.createEvent(event);
+    },
+    async deleteRiskAnalysis(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting risk analysis with id: ${riskAnalysisId} from eServiceTemplate with id: ${templateId}`
+      );
+
+      const template = await retrieveEServiceTemplate(
+        templateId,
+        readModelService
+      );
+      assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
+      assertIsDraftTemplate(template.data);
+      assertIsReceiveTemplate(template.data);
+
+      const newTemplate: EServiceTemplate = {
+        ...template.data,
+        riskAnalysis: template.data.riskAnalysis.filter(
+          (ra) => ra.id !== riskAnalysisId
+        ),
+      };
+
+      const event = toCreateEventEServiceTemplateRiskAnalysisDeleted(
+        template.data.id,
+        template.metadata.version,
+        riskAnalysisId,
+        newTemplate,
+        correlationId
+      );
+
+      await repository.createEvent(event);
+    },
+    async updateRiskAnalysis(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      updateRiskAnalysis: eserviceTemplateApi.EServiceRiskAnalysisSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Updating risk analysis with id: ${riskAnalysisId} from eServiceTemplate with id: ${templateId}`
+      );
+
+      const template = await retrieveEServiceTemplate(
+        templateId,
+        readModelService
+      );
+      assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
+      assertIsDraftTemplate(template.data);
+      assertIsReceiveTemplate(template.data);
+
+      const tenant = await retrieveTenant(
+        template.data.creatorId,
+        readModelService
+      );
+      assertTenantKindExists(tenant);
+
+      const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
+        updateRiskAnalysis.riskAnalysisForm,
+        tenant.kind
+      );
+
+      const updatedRiskAnalysis: RiskAnalysis =
+        riskAnalysisValidatedFormToNewRiskAnalysis(
+          validatedRiskAnalysisForm,
+          updateRiskAnalysis.name
+        );
+
+      const newTemplate: EServiceTemplate = {
+        ...template.data,
+        riskAnalysis: [
+          ...template.data.riskAnalysis.filter(
+            (ra) => ra.id !== riskAnalysisId
+          ),
+          updatedRiskAnalysis,
+        ],
+      };
+
+      const event = toCreateEventEServiceTemplateRiskAnalysisUpdated(
+        template.data.id,
+        template.metadata.version,
+        riskAnalysisId,
+        newTemplate,
+        correlationId
+      );
+
+      await repository.createEvent(event);
     },
 
     async updateEServiceTemplateVersionAttributes(
@@ -633,7 +1045,167 @@ export function eserviceTemplateServiceBuilder(
 
       return updatedEServiceTemplate;
     },
+    async createEServiceTemplate(
+      seed: eserviceTemplateApi.EServiceTemplateSeed,
+      { logger, authData, correlationId }: WithLogger<AppContext>
+    ): Promise<EServiceTemplate> {
+      logger.info(`Creating EService template with name ${seed.name}`);
 
+      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
+        throw originNotCompliant(authData.externalId.origin);
+      }
+
+      const eserviceTemplateWithSameName =
+        await readModelService.getEServiceTemplateByNameAndCreatorId({
+          name: seed.name,
+          creatorId: authData.organizationId,
+        });
+      if (eserviceTemplateWithSameName) {
+        throw eServiceTemplateDuplicate(seed.name);
+      }
+
+      const { dailyCallsPerConsumer, dailyCallsTotal } = seed.version;
+
+      if (
+        dailyCallsPerConsumer !== undefined &&
+        dailyCallsTotal !== undefined &&
+        dailyCallsPerConsumer > dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+
+      const creationDate = new Date();
+      const draftVersion: EServiceTemplateVersion = {
+        id: generateId(),
+        description: seed.version.description,
+        version: 1,
+        interface: undefined,
+        docs: [],
+        state: eserviceTemplateVersionState.draft,
+        voucherLifespan: seed.version.voucherLifespan,
+        dailyCallsPerConsumer: seed.version.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.version.dailyCallsTotal,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.version.agreementApprovalPolicy
+          ),
+        publishedAt: undefined,
+        suspendedAt: undefined,
+        deprecatedAt: undefined,
+        createdAt: creationDate,
+        attributes: { certified: [], declared: [], verified: [] },
+      };
+
+      const newEServiceTemplate: EServiceTemplate = {
+        id: generateId(),
+        creatorId: authData.organizationId,
+        name: seed.name,
+        audienceDescription: seed.audienceDescription,
+        eserviceDescription: seed.eserviceDescription,
+        technology: apiTechnologyToTechnology(seed.technology),
+        versions: [draftVersion],
+        mode: apiEServiceModeToEServiceMode(seed.mode),
+        createdAt: creationDate,
+        riskAnalysis: [],
+        isSignalHubEnabled: seed.isSignalHubEnabled,
+      };
+
+      const eserviceTemplateCreationEvent = toCreateEventEServiceTemplateAdded(
+        newEServiceTemplate,
+        correlationId
+      );
+
+      await repository.createEvent(eserviceTemplateCreationEvent);
+
+      return newEServiceTemplate;
+    },
+
+    async updateEServiceTemplate(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateSeed: eserviceTemplateApi.UpdateEServiceTemplateSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EServiceTemplate> {
+      logger.info(`Updating EService template ${eserviceTemplateId}`);
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      assertIsDraftEserviceTemplate(eserviceTemplate.data);
+
+      if (eserviceTemplateSeed.name !== eserviceTemplate.data.name) {
+        const eserviceTemplateWithSameName =
+          await readModelService.getEServiceTemplateByNameAndCreatorId({
+            name: eserviceTemplateSeed.name,
+            creatorId: eserviceTemplate.data.creatorId,
+          });
+        if (eserviceTemplateWithSameName !== undefined) {
+          throw eServiceTemplateDuplicate(eserviceTemplateSeed.name);
+        }
+      }
+
+      const updatedTechnology = apiTechnologyToTechnology(
+        eserviceTemplateSeed.technology
+      );
+      const interfaceHasToBeDeleted =
+        updatedTechnology !== eserviceTemplate.data.technology;
+
+      if (interfaceHasToBeDeleted) {
+        await Promise.all(
+          eserviceTemplate.data.versions.map(async (d) => {
+            if (d.interface !== undefined) {
+              return await fileManager.delete(
+                config.s3Bucket,
+                d.interface.path,
+                logger
+              );
+            }
+          })
+        );
+      }
+
+      const updatedMode = apiEServiceModeToEServiceMode(
+        eserviceTemplateSeed.mode
+      );
+
+      const checkedRiskAnalysis =
+        updatedMode === eserviceMode.receive
+          ? eserviceTemplate.data.riskAnalysis
+          : [];
+
+      const updatedEServiceTemplate: EServiceTemplate = {
+        ...eserviceTemplate.data,
+        name: eserviceTemplateSeed.name,
+        audienceDescription: eserviceTemplateSeed.audienceDescription,
+        eserviceDescription: eserviceTemplateSeed.eserviceDescription,
+        technology: updatedTechnology,
+        mode: updatedMode,
+        riskAnalysis: checkedRiskAnalysis,
+        versions: interfaceHasToBeDeleted
+          ? eserviceTemplate.data.versions.map((d) => ({
+              ...d,
+              interface: undefined,
+            }))
+          : eserviceTemplate.data.versions,
+        isSignalHubEnabled: eserviceTemplateSeed.isSignalHubEnabled,
+      };
+
+      const event = toCreateEventEServiceTemplateDraftUpdated(
+        eserviceTemplateId,
+        eserviceTemplate.metadata.version,
+        updatedEServiceTemplate,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return updatedEServiceTemplate;
+    },
     async createEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       seed: eserviceTemplateApi.EServiceTemplateVersionSeed,
@@ -663,7 +1235,8 @@ export function eserviceTemplateServiceBuilder(
 
       assertNoDraftEServiceTemplateVersions(eserviceTemplate.data);
 
-      const newVersion = nextEServiceTemplateVersion(eserviceTemplate.data);
+      const newVersion =
+        Math.max(...eserviceTemplate.data.versions.map((v) => v.version)) + 1;
 
       const parsedAttributes = await parseAndCheckAttributes(
         seed.attributes,
@@ -762,59 +1335,36 @@ export function eserviceTemplateServiceBuilder(
   };
 }
 
-async function parseAndCheckAttributes(
-  attributesSeed: eserviceTemplateApi.AttributesSeed,
-  readModelService: ReadModelService
-): Promise<EserviceAttributes> {
-  const certifiedAttributes = attributesSeed.certified;
-  const declaredAttributes = attributesSeed.declared;
-  const verifiedAttributes = attributesSeed.verified;
-
-  const attributesSeeds = [
-    ...certifiedAttributes.flat(),
-    ...declaredAttributes.flat(),
-    ...verifiedAttributes.flat(),
-  ];
-
-  if (attributesSeeds.length > 0) {
-    const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
-      unsafeBrandId(attr.id)
-    );
-    const attributes = await readModelService.getAttributesByIds(
-      attributesSeedsIds
-    );
-    const attributesIds = attributes.map((attr) => attr.id);
-    for (const attributeSeedId of attributesSeedsIds) {
-      if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
-        throw attributeNotFound(attributeSeedId);
-      }
-    }
-  }
-
-  return {
-    certified: certifiedAttributes.map((a) =>
-      a.map((a) => ({
-        ...a,
-        id: unsafeBrandId(a.id),
-      }))
-    ),
-    // eslint-disable-next-line sonarjs/no-identical-functions
-    declared: declaredAttributes.map((a) =>
-      a.map((a) => ({
-        ...a,
-        id: unsafeBrandId(a.id),
-      }))
-    ),
-    // eslint-disable-next-line sonarjs/no-identical-functions
-    verified: verifiedAttributes.map((a) =>
-      a.map((a) => ({
-        ...a,
-        id: unsafeBrandId(a.id),
-      }))
-    ),
-  };
-}
-
 export type EServiceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
 >;
+
+function applyVisibilityToEServiceTemplate(
+  eserviceTemplate: EServiceTemplate,
+  authData: AuthData
+): EServiceTemplate {
+  if (
+    hasPermission(
+      [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
+      authData
+    ) &&
+    authData.organizationId === eserviceTemplate.creatorId
+  ) {
+    return eserviceTemplate;
+  }
+
+  const hasNoPublishedVersions = eserviceTemplate.versions.every(
+    (v) => v.state === eserviceTemplateVersionState.draft
+  );
+
+  if (hasNoPublishedVersions) {
+    throw eServiceTemplateNotFound(eserviceTemplate.id);
+  }
+
+  return {
+    ...eserviceTemplate,
+    versions: eserviceTemplate.versions.filter(
+      (v) => v.state !== eserviceTemplateVersionState.draft
+    ),
+  };
+}
