@@ -15,7 +15,6 @@ import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
 import {
   bffGetCatalogEServiceTemplateErrorMapper,
   bffGetEServiceTemplateErrorMapper,
-  bffGetEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { toBffCreatedEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
 
