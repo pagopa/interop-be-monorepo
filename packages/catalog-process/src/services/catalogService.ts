@@ -34,8 +34,9 @@ import {
   EServiceDocumentId,
   EServiceEvent,
   EServiceId,
-  eserviceMode,
+  EServiceTemplate,
   EServiceTemplateId,
+  eserviceMode,
   eserviceTemplateVersionState,
   generateId,
   ListResult,
@@ -61,10 +62,12 @@ import {
   attributeNotFound,
   audienceCannotBeEmpty,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
+  eServiceAlreadyUpgraded,
   eServiceDescriptorNotFound,
   eServiceDescriptorWithoutInterface,
   eServiceDocumentNotFound,
   eServiceDuplicate,
+  eServiceNotAnInstance,
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
   eServiceTemplateNotFound,
@@ -231,6 +234,19 @@ const retrieveActiveProducerDelegation = async (
     kind: delegationKind.delegatedProducer,
     states: [delegationState.active],
   });
+
+const retrieveEServiceTemplate = async (
+  eserviceTemplateId: EServiceTemplateId,
+  readModelService: ReadModelService
+): Promise<EServiceTemplate> => {
+  const eserviceTemplate = await readModelService.getEServiceTemplateById(
+    eserviceTemplateId
+  );
+  if (eserviceTemplate === undefined) {
+    throw eServiceTemplateNotFound(eserviceTemplateId);
+  }
+  return eserviceTemplate;
+};
 
 const updateDescriptorState = (
   descriptor: Descriptor,
@@ -2297,6 +2313,107 @@ export function catalogServiceBuilder(
       );
 
       return updatedEService;
+    },
+    async upgradeEServiceInstance(
+      eserviceId: EServiceId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Upgrading EService ${eserviceId} instance`);
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      const templateId = eservice.data.templateId;
+      if (!templateId) {
+        throw eServiceNotAnInstance(eserviceId);
+      }
+      const template = await retrieveEServiceTemplate(
+        templateId,
+        readModelService
+      );
+
+      const lastVersion = template.versions.reduce(
+        (max, version) => (version.version > max.version ? version : max),
+        template.versions[0]
+      );
+      if (
+        eservice.data.descriptors.some(
+          (d) => d.templateVersionId === lastVersion.id
+        )
+      ) {
+        throw eServiceAlreadyUpgraded(eserviceId);
+      }
+
+      const docs = await Promise.all(
+        // eslint-disable-next-line sonarjs/no-identical-functions
+        lastVersion.docs.map(async (doc) => {
+          const clonedDocumentId = generateId<EServiceDocumentId>();
+          const clonedDocumentPath = await fileManager.copy(
+            config.s3Bucket,
+            doc.path,
+            config.eserviceDocumentsPath,
+            clonedDocumentId,
+            doc.name,
+            logger
+          );
+          const clonedDocument: Document = {
+            id: clonedDocumentId,
+            name: doc.name,
+            contentType: doc.contentType,
+            prettyName: doc.prettyName,
+            path: clonedDocumentPath,
+            checksum: doc.checksum,
+            uploadDate: new Date(),
+          };
+
+          return clonedDocument;
+        })
+      );
+
+      const newVersion = nextDescriptorVersion(eservice.data);
+      const newDescriptor: Descriptor = {
+        id: generateId(),
+        templateVersionId: lastVersion.id,
+        description: lastVersion.description,
+        version: newVersion,
+        interface: undefined,
+        docs,
+        state: descriptorState.draft,
+        voucherLifespan: lastVersion.voucherLifespan,
+        audience: [],
+        dailyCallsPerConsumer: lastVersion.dailyCallsPerConsumer ?? 1,
+        dailyCallsTotal: lastVersion.dailyCallsTotal ?? 1,
+        agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
+        serverUrls: [],
+        publishedAt: undefined,
+        suspendedAt: undefined,
+        deprecatedAt: undefined,
+        archivedAt: undefined,
+        createdAt: new Date(),
+        attributes: lastVersion.attributes,
+        rejectionReasons: undefined,
+      };
+      const upgradedEService: EService = {
+        ...eservice.data,
+        descriptors: [...eservice.data.descriptors, newDescriptor],
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptorAdded(
+          upgradedEService,
+          eservice.metadata.version,
+          newDescriptor.id,
+          correlationId
+        )
+      );
+
+      return upgradedEService;
     },
     async createEServiceInstanceFromTemplate(
       templateId: EServiceTemplateId,
