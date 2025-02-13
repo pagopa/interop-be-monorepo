@@ -341,7 +341,7 @@ describe("upgrade Agreement", () => {
     }
   });
 
-  it.only("should succeed with invalid Verified and Declared attributes when consumer and producer are the same", async () => {
+  it("should succeed with invalid Verified and Declared attributes when consumer and producer are the same", async () => {
     const producerAndConsumerId = generateId<TenantId>();
 
     const producerAndConsumer: Tenant = {
