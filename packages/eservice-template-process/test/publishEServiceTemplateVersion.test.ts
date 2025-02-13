@@ -54,21 +54,21 @@ describe("publishEServiceTemplateVersion", () => {
   it("should write on event-store for the publication of a eservice template version", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
-      version: "2",
+      version: 2,
       interface: getMockDocument(),
       state: descriptorState.draft,
       publishedAt: undefined,
     };
     const olderEServiceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
-      version: "1",
+      version: 1,
       interface: getMockDocument(),
       state: descriptorState.draft,
       publishedAt: undefined,
     };
     const newerEServiceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
-      version: "3",
+      version: 3,
       interface: getMockDocument(),
       state: descriptorState.draft,
       publishedAt: undefined,
