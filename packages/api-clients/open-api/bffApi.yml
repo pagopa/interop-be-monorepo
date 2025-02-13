@@ -18950,7 +18950,8 @@ components:
           type: string
           format: uuid
         version:
-          type: string
+          type: integer
+          format: int32
         state:
           $ref: "#/components/schemas/EServiceTemplateVersionState"
     EServiceTemplateDetails:
@@ -19009,7 +19010,8 @@ components:
           type: string
           format: uuid
         version:
-          type: string
+          type: integer
+          format: int32
         description:
           type: string
         voucherLifespan:
@@ -19156,7 +19158,8 @@ components:
           type: string
           format: uuid
         version:
-          type: string
+          type: integer
+          format: int32
         description:
           type: string
         voucherLifespan:

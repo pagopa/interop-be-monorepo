@@ -29,7 +29,7 @@ export type EServiceTemplateVersionState = z.infer<
 
 export const EServiceTemplateVersion = z.object({
   id: EServiceTemplateVersionId,
-  version: z.string(),
+  version: z.number(),
   description: z.string().optional(),
   interface: Document.optional(),
   docs: z.array(Document),
