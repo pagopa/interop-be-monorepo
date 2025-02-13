@@ -200,7 +200,7 @@ export function purposeServiceBuilder(
       id: purpose.id,
       title: purpose.title,
       description: purpose.description,
-      consumer: { id: consumer.id, name: consumer.name },
+      consumer: { id: consumer.id, name: consumer.name, kind: consumer.kind },
       riskAnalysisForm: purpose.riskAnalysisForm,
       eservice: {
         id: eservice.id,
