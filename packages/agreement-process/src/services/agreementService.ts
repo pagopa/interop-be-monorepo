@@ -90,7 +90,7 @@ import {
   assertActivableState,
   assertRequesterCanActAsProducer,
   assertRequesterCanActAsConsumerOrProducer,
-  assertRequesterCanRetrieveConsumerDocuments,
+  assertRequesterCanRetrieveAgreement,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
   assertRequesterIsDelegateConsumer,
@@ -232,18 +232,36 @@ export function agreementServiceBuilder(
       filters: AgreementQueryFilters,
       limit: number,
       offset: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<Agreement>> {
       logger.info("Retrieving agreements");
-      return await readModelService.getAgreements(filters, limit, offset);
+      const agreements = await readModelService.getAgreements(
+        filters,
+        limit,
+        offset
+      );
+      agreements.results.forEach(
+        async (a) =>
+          await assertRequesterCanRetrieveAgreement(
+            a,
+            authData,
+            readModelService
+          )
+      );
+      return agreements;
     },
     async getAgreementById(
       agreementId: AgreementId,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
+      await assertRequesterCanRetrieveAgreement(
+        agreement.data,
+        authData,
+        readModelService
+      );
       return agreement.data;
     },
     async createAgreement(
@@ -876,7 +894,7 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      await assertRequesterCanRetrieveConsumerDocuments(
+      await assertRequesterCanRetrieveAgreement(
         agreement.data,
         authData,
         readModelService
@@ -1332,7 +1350,7 @@ export function agreementServiceBuilder(
         )
       );
     },
-    async computeAgreementsStateByAttribute(
+    async internalComputeAgreementsStateByAttribute(
       attributeId: AttributeId,
       consumer: CompactTenant,
       { logger, correlationId }: WithLogger<AppContext>

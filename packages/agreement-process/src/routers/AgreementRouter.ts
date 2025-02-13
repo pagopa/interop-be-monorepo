@@ -378,7 +378,7 @@ const agreementRouter = (
           },
           req.query.limit,
           req.query.offset,
-          ctx.logger
+          ctx
         );
 
         return res.status(200).send(
@@ -480,7 +480,6 @@ const agreementRouter = (
       API_ROLE,
       SECURITY_ROLE,
       M2M_ROLE,
-      INTERNAL_ROLE,
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
@@ -489,7 +488,7 @@ const agreementRouter = (
       try {
         const agreement = await agreementService.getAgreementById(
           unsafeBrandId(req.params.agreementId),
-          ctx.logger
+          ctx
         );
         return res
           .status(200)
@@ -673,13 +672,13 @@ const agreementRouter = (
   );
 
   agreementRouter.post(
-    "/compute/agreementsState",
-    authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE, M2M_ROLE]),
+    "/internal/compute/agreementsState",
+    authorizationMiddleware([INTERNAL_ROLE]),
     async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        await agreementService.computeAgreementsStateByAttribute(
+        await agreementService.internalComputeAgreementsStateByAttribute(
           unsafeBrandId(req.body.attributeId),
           fromApiCompactTenant(req.body.consumer),
           ctx

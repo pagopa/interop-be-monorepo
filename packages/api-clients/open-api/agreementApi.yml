@@ -794,7 +794,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  "/compute/agreementsState":
+  "/internal/compute/agreementsState":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -802,7 +802,7 @@ paths:
         - agreement
       summary: Re-calculate agreements state
       description: Re-calculate state for all agreements that contain the given attribute
-      operationId: computeAgreementsByAttribute
+      operationId: internalComputeAgreementsByAttribute
       requestBody:
         content:
           application/json:
@@ -914,7 +914,7 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: descriptorId 
+        - name: descriptorId
           in: path
           description: The identifier of the e-service descriptor
           required: true
