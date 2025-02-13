@@ -56,12 +56,12 @@ describe("getEServiceTemplateInstances", () => {
     publishedEServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
-      version: "2",
+      version: 2,
     };
     deprecatedEServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.deprecated,
-      version: "1",
+      version: 1,
     };
     eserviceTemplateMock = {
       ...getMockEServiceTemplate(),
