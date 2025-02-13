@@ -333,6 +333,9 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving producers from agreements with producer name ${producerName}`
       );
+      // No need to assert requester permissions here, as this endpoint
+      // retrieves producer information from agreements without exposing any
+      // agreement data.
       return await readModelService.getProducers(producerName, limit, offset);
     },
     async getAgreementConsumers(
@@ -344,6 +347,9 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving consumers from agreements with consumer name ${consumerName}`
       );
+      // No need to assert requester permissions here, as this endpoint
+      // retrieves consumer information from agreements without exposing any
+      // agreement data.
       return await readModelService.getConsumers(consumerName, limit, offset);
     },
     async updateAgreement(
@@ -970,7 +976,9 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving EServices with consumers ${filters.consumerIds}, producers ${filters.producerIds}, states ${filters.agreeementStates}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
       );
-
+      // No need to assert requester permissions here, as this endpoint
+      // retrieves e-service information from agreements without exposing any
+      // agreement data.
       return await readModelService.getAgreementsEServices(
         filters,
         limit,
