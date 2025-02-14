@@ -158,18 +158,6 @@ export function purposeServiceBuilder(
       );
     }
 
-    const clients =
-      requesterId === purpose.consumerId
-        ? (
-            await getAllClients(
-              authorizationClient,
-              purpose.consumerId,
-              purpose.id,
-              headers
-            )
-          ).map(toBffApiCompactClient)
-        : [];
-
     const currentVersion = getCurrentVersion(purpose.versions);
     const waitingForApprovalVersion = purpose.versions.find(
       (v) =>
@@ -195,6 +183,35 @@ export function purposeServiceBuilder(
           headers
         )
       : undefined;
+
+    const clientConsumerIds = delegation
+      ? requesterId === purpose.consumerId
+        ? // The requester is the delegator
+          // The delegator should see its own clients and the delegate
+          [purpose.consumerId, delegation.delegate.id]
+        : requesterId === delegation.delegate.id
+        ? // The requester is the delegate
+          // The delegate should see only its own clients
+          [delegation.delegate.id]
+        : []
+      : requesterId === purpose.consumerId
+      ? // The purpose has no delegation and the requester is the consumer
+        // The consumer should see only its own clients
+        [purpose.consumerId]
+      : [];
+
+    const clients =
+      clientConsumerIds.length > 0
+        ? (
+            await Promise.all(
+              clientConsumerIds.map((id) =>
+                getAllClients(authorizationClient, id, purpose.id, headers)
+              )
+            )
+          )
+            .flat()
+            .map(toBffApiCompactClient)
+        : [];
 
     return {
       id: purpose.id,
@@ -671,19 +688,20 @@ export function purposeServiceBuilder(
         throw agreementNotFound(unsafeBrandId(purpose.consumerId));
       }
 
-      const consumer = await tenantProcessClient.tenant.getTenant({
-        params: {
-          id: agreement.consumerId,
-        },
-        headers,
-      });
-
-      const producer = await tenantProcessClient.tenant.getTenant({
-        params: {
-          id: agreement.producerId,
-        },
-        headers,
-      });
+      const [consumer, producer] = await Promise.all([
+        tenantProcessClient.tenant.getTenant({
+          params: {
+            id: agreement.consumerId,
+          },
+          headers,
+        }),
+        tenantProcessClient.tenant.getTenant({
+          params: {
+            id: agreement.producerId,
+          },
+          headers,
+        }),
+      ]);
 
       return await enhancePurpose(
         authData.organizationId,
