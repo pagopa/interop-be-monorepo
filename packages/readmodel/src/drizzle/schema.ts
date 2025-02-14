@@ -221,7 +221,7 @@ export const tenantMailInReadmodel = readmodel.table(
     tenantId: uuid("tenant_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     kind: varchar().notNull(),
-    address: varchar(),
+    address: varchar().notNull(),
     description: varchar(),
     createdAt: timestamp("created_at", { mode: "string" }).notNull(),
   },
