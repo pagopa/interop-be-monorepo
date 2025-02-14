@@ -5,6 +5,7 @@ import {
   ClientAssertionHeader,
   ClientAssertionPayload,
   ClientAssertionPayloadStrict,
+  ClientAssertionHeaderStrict,
   TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
 import * as jose from "jose";
@@ -141,7 +142,7 @@ export const verifyClientAssertion = (
         ClientAssertionPayloadStrict.safeParse(decodedPayload);
       if (!payloadStrictParseResult.success) {
         logger.warn(
-          `Invalid claims in client assertion payload: ${JSON.stringify(
+          `[CLIENTID=${validatedSub}] Invalid claims in client assertion payload: ${JSON.stringify(
             JSON.parse(payloadStrictParseResult.error.message)
           )}`
         );
@@ -153,6 +154,16 @@ export const verifyClientAssertion = (
         return failedValidation([
           clientAssertionInvalidClaims(headerParseResult.error.message),
         ]);
+      }
+
+      const headerStrictParseResult =
+        ClientAssertionHeaderStrict.safeParse(decodedHeader);
+      if (!headerStrictParseResult.success) {
+        logger.warn(
+          `[CLIENTID=${validatedSub}] Invalid claims in client assertion header: ${JSON.stringify(
+            JSON.parse(headerStrictParseResult.error.message)
+          )}`
+        );
       }
 
       const result: ClientAssertion = {
