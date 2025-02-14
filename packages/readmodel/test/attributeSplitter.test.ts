@@ -7,7 +7,7 @@ import { AttributeSQL } from "./../src/types.js";
 import { splitAttributeIntoObjectsSQL } from "./../src/attribute/splitters.js";
 
 describe("Attribute Splitter", () => {
-  it("should get an AttributeSQL for an Attribute", () => {
+  it("should convert an Attribute into an AttributeSQL", () => {
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
       origin: "alfa",
@@ -25,7 +25,7 @@ describe("Attribute Splitter", () => {
     console.log(expectedAttributeSQL);
     expect(attributeSQL).toMatchObject(expectedAttributeSQL);
   });
-  it("should get transform undefined into null", () => {
+  it("should transform undefined into null", () => {
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
       origin: undefined,
