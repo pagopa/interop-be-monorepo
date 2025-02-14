@@ -6,7 +6,8 @@ import {
   getMockAgreementStamps,
 } from "pagopa-interop-commons-test/index.js";
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
-import { AgreementSQL } from "../src/types.js";
+import { agreementDocumentKind } from "pagopa-interop-models";
+import { AgreementDocumentSQL, AgreementSQL } from "../src/types.js";
 import { splitAgreementIntoObjectsSQL } from "./../src/agreement/splitters.js";
 
 describe("Agreement Splitter", () => {
@@ -42,7 +43,12 @@ describe("Agreement Splitter", () => {
       suspendedAt: new Date(),
     };
     // convert an agreement into a specific agreement data model
-    const { agreementSQL } = splitAgreementIntoObjectsSQL(agreement, 1);
+    const {
+      agreementSQL,
+      agreementDocumentsSQL,
+      agreementAttributesSQL,
+      agreementStampsSQL,
+    } = splitAgreementIntoObjectsSQL(agreement, 1);
 
     const expectedAgreementSQL: AgreementSQL = {
       metadataVersion: 1,
@@ -62,6 +68,27 @@ describe("Agreement Splitter", () => {
       suspendedAt: new Date().toISOString(),
     };
 
+    const expectedAgreementDocumentSQL: AgreementDocumentSQL = {
+      ...consumerDocument,
+      agreementId: agreement.id,
+      metadataVersion: 1,
+      kind: agreementDocumentKind.consumerDoc,
+      createdAt: consumerDocument.createdAt.toISOString(),
+    };
+    const expectedContracDocumentSQL: AgreementDocumentSQL = {
+      ...contract,
+      agreementId: agreement.id,
+      metadataVersion: 1,
+      kind: agreementDocumentKind.contract,
+      createdAt: contract.createdAt.toISOString(),
+    };
+
     expect(agreementSQL).toEqual(expectedAgreementSQL);
+    expect(agreementDocumentsSQL).toEqual(
+      expect.arrayContaining([
+        expectedAgreementDocumentSQL,
+        expectedContracDocumentSQL,
+      ])
+    );
   });
 });
