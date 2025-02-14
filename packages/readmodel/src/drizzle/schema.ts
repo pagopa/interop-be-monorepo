@@ -14,6 +14,17 @@ import {
 
 export const readmodel = pgSchema("readmodel");
 
+export const clientJwkKeyInReadmodel = readmodel.table("client_jwk_key", {
+  clientId: uuid("client_id").notNull(),
+  metadataVersion: integer("metadata_version").notNull(),
+  alg: varchar().notNull(),
+  e: varchar().notNull(),
+  kid: varchar().primaryKey().notNull(),
+  kty: varchar().notNull(),
+  n: varchar().notNull(),
+  use: varchar().notNull(),
+});
+
 export const attributeInReadmodel = readmodel.table("attribute", {
   id: uuid().primaryKey().notNull(),
   metadataVersion: integer("metadata_version").notNull(),
@@ -53,7 +64,7 @@ export const purposeRiskAnalysisFormInReadmodel = readmodel.table(
     id: uuid().primaryKey().notNull(),
     purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
-    version: integer().notNull(),
+    version: varchar().notNull(),
   },
   (table) => [
     foreignKey({
@@ -68,9 +79,9 @@ export const purposeRiskAnalysisAnswerInReadmodel = readmodel.table(
   "purpose_risk_analysis_answer",
   {
     id: uuid().primaryKey().notNull(),
-    purposeId: uuid("purpose_id"),
+    purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
-    riskAnalysisFormId: uuid("risk_analysis_form_id"),
+    riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
     kind: varchar().notNull(),
     key: varchar().notNull(),
     value: varchar().array(),
@@ -121,27 +132,12 @@ export const purposeVersionInReadmodel = readmodel.table(
   ]
 );
 
-export const producerKeychainInReadmodel = readmodel.table(
-  "producer_keychain",
-  {
-    id: uuid().primaryKey().notNull(),
-    metadataVersion: integer("metadata_version").notNull(),
-    producerId: uuid("producer_id").notNull(),
-    name: varchar().notNull(),
-    description: varchar(),
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-  }
-);
-
 export const purposeVersionDocumentInReadmodel = readmodel.table(
   "purpose_version_document",
   {
-    purposeId: uuid("purpose_id"),
+    purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
-    purposeVersionId: uuid("purpose_version_id"),
+    purposeVersionId: uuid("purpose_version_id").notNull(),
     id: uuid().primaryKey().notNull(),
     contentType: varchar("content_type").notNull(),
     path: varchar().notNull(),
@@ -161,16 +157,20 @@ export const purposeVersionDocumentInReadmodel = readmodel.table(
   ]
 );
 
-export const clientJwkKeyInReadmodel = readmodel.table("client_jwk_key", {
-  clientId: uuid("client_id").notNull(),
-  metadataVersion: integer("metadata_version").notNull(),
-  alg: varchar().notNull(),
-  e: varchar().notNull(),
-  kid: varchar().primaryKey().notNull(),
-  kty: varchar().notNull(),
-  n: varchar().notNull(),
-  use: varchar().notNull(),
-});
+export const producerKeychainInReadmodel = readmodel.table(
+  "producer_keychain",
+  {
+    id: uuid().primaryKey().notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    producerId: uuid("producer_id").notNull(),
+    name: varchar().notNull(),
+    description: varchar(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  }
+);
 
 export const producerKeychainKeyInReadmodel = readmodel.table(
   "producer_keychain_key",
@@ -193,17 +193,6 @@ export const producerKeychainKeyInReadmodel = readmodel.table(
     }).onDelete("cascade"),
   ]
 );
-
-export const producerJwkKeyInReadmodel = readmodel.table("producer_jwk_key", {
-  producerKeychainId: uuid("producer_keychain_id").notNull(),
-  metadataVersion: integer("metadata_version").notNull(),
-  alg: varchar().notNull(),
-  e: varchar().notNull(),
-  kid: varchar().primaryKey().notNull(),
-  kty: varchar().notNull(),
-  n: varchar().notNull(),
-  use: varchar().notNull(),
-});
 
 export const tenantInReadmodel = readmodel.table("tenant", {
   id: uuid().primaryKey().notNull(),
@@ -399,7 +388,7 @@ export const eserviceRiskAnalysisInReadmodel = readmodel.table(
   "eservice_risk_analysis",
   {
     id: uuid().primaryKey().notNull(),
-    eserviceId: uuid("eservice_id"),
+    eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     name: varchar().notNull(),
     createdAt: timestamp("created_at", {
@@ -425,9 +414,9 @@ export const eserviceRiskAnalysisAnswerInReadmodel = readmodel.table(
   "eservice_risk_analysis_answer",
   {
     id: uuid().primaryKey().notNull(),
-    eserviceId: uuid("eservice_id"),
+    eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
-    riskAnalysisFormId: uuid("risk_analysis_form_id"),
+    riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
     kind: varchar().notNull(),
     key: varchar().notNull(),
     value: varchar().array().notNull(),
@@ -496,7 +485,7 @@ export const agreementDocumentInReadmodel = readmodel.table(
   "agreement_document",
   {
     id: uuid().primaryKey().notNull(),
-    agreementId: uuid("agreement_id"),
+    agreementId: uuid("agreement_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     name: varchar().notNull(),
     prettyName: varchar("pretty_name").notNull(),
@@ -516,6 +505,17 @@ export const agreementDocumentInReadmodel = readmodel.table(
     }).onDelete("cascade"),
   ]
 );
+
+export const producerJwkKeyInReadmodel = readmodel.table("producer_jwk_key", {
+  producerKeychainId: uuid("producer_keychain_id").notNull(),
+  metadataVersion: integer("metadata_version").notNull(),
+  alg: varchar().notNull(),
+  e: varchar().notNull(),
+  kid: varchar().primaryKey().notNull(),
+  kty: varchar().notNull(),
+  n: varchar().notNull(),
+  use: varchar().notNull(),
+});
 
 export const delegationInReadmodel = readmodel.table("delegation", {
   id: uuid().primaryKey().notNull(),
@@ -656,36 +656,11 @@ export const eserviceTemplateVersionDocumentInReadmodel = readmodel.table(
   ]
 );
 
-export const eserviceTemplateRiskAnalysisAnswerInReadmodel = readmodel.table(
-  "eservice_template_risk_analysis_answer",
-  {
-    id: uuid().primaryKey().notNull(),
-    eserviceTemplateId: uuid("eservice_template_id"),
-    metadataVersion: integer("metadata_version").notNull(),
-    riskAnalysisFormId: uuid("risk_analysis_form_id"),
-    kind: varchar(),
-    key: varchar(),
-    value: varchar().array(),
-  },
-  (table) => [
-    foreignKey({
-      columns: [table.eserviceTemplateId],
-      foreignColumns: [eserviceTemplateInReadmodel.id],
-      name: "eservice_template_risk_analysis_answe_eservice_template_id_fkey",
-    }).onDelete("cascade"),
-    foreignKey({
-      columns: [table.riskAnalysisFormId],
-      foreignColumns: [eserviceRiskAnalysisInReadmodel.riskAnalysisFormId],
-      name: "eservice_template_risk_analysis_answ_risk_analysis_form_id_fkey",
-    }),
-  ]
-);
-
 export const eserviceTemplateRiskAnalysisInReadmodel = readmodel.table(
   "eservice_template_risk_analysis",
   {
     id: uuid().primaryKey().notNull(),
-    eserviceTemplateId: uuid("eservice_template_id"),
+    eserviceTemplateId: uuid("eservice_template_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     name: varchar(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }),
@@ -701,6 +676,31 @@ export const eserviceTemplateRiskAnalysisInReadmodel = readmodel.table(
     unique("eservice_template_risk_analysis_risk_analysis_form_id_key").on(
       table.riskAnalysisFormId
     ),
+  ]
+);
+
+export const eserviceTemplateRiskAnalysisAnswerInReadmodel = readmodel.table(
+  "eservice_template_risk_analysis_answer",
+  {
+    id: uuid().primaryKey().notNull(),
+    eserviceTemplateId: uuid("eservice_template_id").notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
+    kind: varchar(),
+    key: varchar(),
+    value: varchar().array(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.eserviceTemplateId],
+      foreignColumns: [eserviceTemplateInReadmodel.id],
+      name: "eservice_template_risk_analysis_answe_eservice_template_id_fkey",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.riskAnalysisFormId],
+      foreignColumns: [eserviceRiskAnalysisInReadmodel.riskAnalysisFormId],
+      name: "eservice_template_risk_analysis_answ_risk_analysis_form_id_fkey",
+    }),
   ]
 );
 
