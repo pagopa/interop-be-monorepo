@@ -68,7 +68,7 @@ export async function handleCatalogMessage(
             logger
           );
         } else {
-          throw missingKafkaMessageDataError("catalog", decodedMessage.type); // maybe eservice instead catalog?
+          throw missingKafkaMessageDataError("eservice", decodedMessage.type);
         }
       }
     )

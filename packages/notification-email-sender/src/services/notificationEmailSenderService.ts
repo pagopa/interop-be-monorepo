@@ -34,7 +34,6 @@ import {
   agreementStampDateNotFound,
   descriptorInValidStateNotFound,
   descriptorNotFound,
-  eserviceAgreementsNotFound,
   eServiceNotFound,
   htmlTemplateNotFound,
   tenantDigitalAddressNotFound,
@@ -136,19 +135,6 @@ async function retrieveHTMLTemplate(
     throw htmlTemplateNotFound(templatePath);
   }
 }
-
-export const retrieveEserviceAgreements = async (
-  eserviceId: EServiceId,
-  readModelService: ReadModelService
-): Promise<Agreement[]> => {
-  const agreements = await readModelService.getAgreementsByEserviceId(
-    eserviceId
-  );
-  if (!agreements) {
-    throw eserviceAgreementsNotFound(eserviceId);
-  }
-  return agreements;
-};
 
 export function getFormattedAgreementStampDate(
   agreement: Agreement,
@@ -499,69 +485,71 @@ export function notificationEmailSenderServiceBuilder(
     ) => {
       const eservice = fromEServiceV2(eserviceV2Msg);
 
-      const [htmlTemplate] = await Promise.all([
+      const [htmlTemplate, agreements] = await Promise.all([
         retrieveHTMLTemplate(
           eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
         ),
+        readModelService.getAgreementsByEserviceId(eservice.id),
       ]);
 
-      const agreements: Agreement[] = await retrieveEserviceAgreements(
-        eservice.id,
-        readModelService
-      );
-
-      const consumers = await Promise.all(
-        agreements.map((consumer) =>
-          retrieveTenant(consumer.consumerId, readModelService)
-        )
-      );
-
-      for (const consumer of consumers) {
-        const consumerEmail = getLatestTenantMailOfKind(
-          consumer.mails,
-          tenantMailKind.ContactEmail
+      if (agreements) {
+        const consumers = await Promise.all(
+          agreements.map((consumer) =>
+            retrieveTenant(consumer.consumerId, readModelService)
+          )
         );
 
-        if (!consumerEmail) {
-          logger.warn(
-            `Consumer email not found for eservice ${eservice.id}, skipping email`
+        for (const consumer of consumers) {
+          const consumerEmail = getLatestTenantMailOfKind(
+            consumer.mails,
+            tenantMailKind.ContactEmail
           );
-          continue;
+
+          if (!consumerEmail) {
+            logger.warn(
+              `Consumer email not found for eservice ${eservice.id}, skipping email`
+            );
+            continue;
+          }
+
+          const descriptor = getLatestValidDescriptor(eservice);
+
+          const mail = {
+            from: { name: sesSenderData.label, address: sesSenderData.mail },
+            subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
+            to: [consumerEmail.address],
+            body: templateService.compileHtml(htmlTemplate, {
+              interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
+              eserviceName: eservice.name,
+            }),
+          };
+
+          try {
+            logger.info(
+              `Sending an email for published descriptor ${descriptor.id} of eservice ${eservice.id} (SES)`
+            );
+            await sesEmailManager.send(
+              mail.from,
+              mail.to,
+              mail.subject,
+              mail.body
+            );
+            logger.info(
+              `Email sent for published descriptor ${descriptor.id} of eservice ${eservice.id} (SES)`
+            );
+          } catch (err) {
+            logger.warn(
+              `Error sending email for published descriptor ${descriptor.id} of eservice ${eservice.id}: ${err}`
+            );
+            throw genericInternalError(
+              `Error sending email for published descriptor ${descriptor.id} of eservice ${eservice.id}: ${err}`
+            );
+          }
         }
-
-        const descriptor = getLatestValidDescriptor(eservice);
-
-        const mail = {
-          from: { name: sesSenderData.label, address: sesSenderData.mail },
-          subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
-          to: [consumerEmail.address],
-          body: templateService.compileHtml(htmlTemplate, {
-            interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
-            eserviceName: eservice.name,
-          }),
-        };
-
-        try {
-          logger.info(
-            `Sending an email for published descriptor ${descriptor.id} of eservice ${eservice.id} (SES)`
-          );
-          await sesEmailManager.send(
-            mail.from,
-            mail.to,
-            mail.subject,
-            mail.body
-          );
-          logger.info(
-            `Email sent for published descriptor ${descriptor.id} of eservice ${eservice.id} (SES)`
-          );
-        } catch (err) {
-          logger.warn(
-            `Error sending email for published descriptor ${descriptor.id} of eservice ${eservice.id}: ${err}`
-          );
-          throw genericInternalError(
-            `Error sending email for published descriptor ${descriptor.id} of eservice ${eservice.id}: ${err}`
-          );
-        }
+      } else {
+        logger.warn(
+          `Agreement not found for eservice ${eservice.id}, skipping email`
+        );
       }
     },
   };

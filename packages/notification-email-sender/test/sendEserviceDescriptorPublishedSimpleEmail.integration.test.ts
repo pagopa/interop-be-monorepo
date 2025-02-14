@@ -15,6 +15,7 @@ import {
   Descriptor,
   EService,
   Tenant,
+  agreementState,
   generateId,
   tenantMailKind,
   toEServiceV2,
@@ -35,7 +36,7 @@ import {
 } from "./utils.js";
 
 describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
-  it("should send an email on EserviceDescriptorPublished", async () => {
+  it("should send an email on EserviceDescriptorPublished when there're active agrrements", async () => {
     vi.spyOn(sesEmailManager, "send");
     const consumerEmail1 = getMockTenantMail(tenantMailKind.ContactEmail);
     const consumerEmail2 = getMockTenantMail(tenantMailKind.ContactEmail);
@@ -74,6 +75,7 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
       consumerId: consumer1.id,
+      state: agreementState.active,
     };
 
     const agreement2 = {
@@ -82,10 +84,31 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
       consumerId: consumer2.id,
+      state: agreementState.suspended,
+    };
+
+    const agreement3 = {
+      ...getMockAgreement(),
+      id: generateId<AgreementId>(),
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumer2.id,
+      state: agreementState.archived,
+    };
+
+    const agreement4 = {
+      ...getMockAgreement(),
+      id: generateId<AgreementId>(),
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumer2.id,
+      state: agreementState.missingCertifiedAttributes,
     };
 
     await addOneAgreement(agreement1);
     await addOneAgreement(agreement2);
+    await addOneAgreement(agreement3);
+    await addOneAgreement(agreement4);
 
     await notificationEmailSenderService.sendEserviceDescriptorPublishedSimpleEmail(
       toEServiceV2(eservice),
@@ -175,7 +198,7 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
     });
   });
 
-  it("should not throw error if don't find the consumer mail", async () => {
+  it("Sholdn't send an email if there are no active agreements", async () => {
     vi.spyOn(sesEmailManager, "send");
 
     const consumer1: Tenant = {
@@ -205,6 +228,7 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
       consumerId: consumer1.id,
+      state: agreementState.rejected,
     };
 
     await addOneAgreement(agreement1);

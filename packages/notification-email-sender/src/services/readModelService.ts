@@ -4,6 +4,7 @@ import {
   EService,
   EServiceId,
   Tenant,
+  agreementState,
   genericInternalError,
 } from "pagopa-interop-models";
 import { z } from "zod";
@@ -70,7 +71,19 @@ export function readModelServiceBuilder(
     eserviceId: EServiceId
   ): Promise<Agreement[] | undefined> {
     const data = await agreements
-      .find({ "data.eserviceId": eserviceId }, { projection: { data: true } })
+      .find(
+        {
+          "data.eserviceId": eserviceId,
+          "data.state": {
+            $in: [
+              agreementState.active,
+              agreementState.suspended,
+              agreementState.pending,
+            ],
+          },
+        },
+        { projection: { data: true } }
+      )
       .toArray();
 
     if (data) {
