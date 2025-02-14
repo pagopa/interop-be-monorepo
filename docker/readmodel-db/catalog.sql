@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice (
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_binding (
-  eservice_id UUID REFERENCES readmodel.eservice(id),
+  eservice_id UUID NOT NULL REFERENCES readmodel.eservice(id),
   metadata_version INTEGER NOT NULL,
   eservice_template_id UUID,
   instance_id VARCHAR,
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_binding (
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor (
   id UUID,
-  eservice_id UUID NOT NULL references readmodel.eservice (id) ON DELETE CASCADE,
+  eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   version VARCHAR NOT NULL,
   description VARCHAR,
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_attribute(
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis(
   id UUID,
-  eservice_id UUID REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
+  eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   name VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -113,9 +113,9 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis(
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis_answer(
   id UUID,
-  eservice_id UUID REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
+  eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  risk_analysis_form_id UUID REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id),
+  risk_analysis_form_id UUID NOT NULL REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id),
   kind VARCHAR NOT NULL,
   -- SINGLE/MULTI
   key VARCHAR NOT NULL,
