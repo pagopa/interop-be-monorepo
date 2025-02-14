@@ -32,8 +32,14 @@ export const splitPurposeIntoObjectsSQL = (
     eserviceId: purpose.eserviceId,
     consumerId: purpose.consumerId,
     delegationId: purpose.delegationId || null,
-    suspendedByConsumer: purpose.suspendedByConsumer || null,
-    suspendedByProducer: purpose.suspendedByProducer || null,
+    suspendedByConsumer:
+      purpose.suspendedByConsumer === undefined
+        ? null
+        : purpose.suspendedByConsumer,
+    suspendedByProducer:
+      purpose.suspendedByProducer === undefined
+        ? null
+        : purpose.suspendedByProducer,
     title: purpose.title,
     description: purpose.description,
     createdAt: dateToString(purpose.createdAt),
