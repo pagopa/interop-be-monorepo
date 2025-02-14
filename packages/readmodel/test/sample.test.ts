@@ -9,8 +9,7 @@ import { splitProducerJWKKeyIntoObjectsSQL } from "../src/authorization/producer
 import { ProducerJWKKeySQL } from "../src/types.js";
 
 describe("Producer JWK key splitter", () => {
-  // TODO: add test description
-  it("", () => {
+  it("should convert a producer JWK key into producer JWK key SQL objects", () => {
     const key = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
     }).publicKey;
