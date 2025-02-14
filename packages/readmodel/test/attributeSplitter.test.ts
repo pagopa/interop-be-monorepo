@@ -1,0 +1,28 @@
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
+import { describe, it, expect } from "vitest";
+import { Attribute } from "pagopa-interop-models";
+import { AttributeSQL } from "./../src/types.js";
+import { splitAttributeIntoObjectsSQL } from "./../src/attribute/splitters.js";
+
+describe("Attribute Splitter", () => {
+  it("should get an AttributeSQL for an Attribute", () => {
+    const mockAttribute: Attribute = {
+      ...getMockAttribute(),
+      origin: "alfa",
+      code: "beta",
+    };
+    const attributeSQL = splitAttributeIntoObjectsSQL(mockAttribute, 1);
+    const expectedAttributeSQL: AttributeSQL = {
+      ...mockAttribute,
+      metadataVersion: 1,
+      creationTime: mockAttribute.creationTime.toISOString(),
+      origin: "alfa",
+      code: "beta",
+    };
+    console.log(attributeSQL);
+    console.log(expectedAttributeSQL);
+    expect(attributeSQL).toMatchObject(expectedAttributeSQL);
+  });
+});
