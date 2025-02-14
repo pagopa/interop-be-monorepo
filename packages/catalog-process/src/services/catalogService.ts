@@ -1093,7 +1093,7 @@ export function catalogServiceBuilder(
         version: newVersion,
         interface: undefined,
         docs: [],
-        state: "Draft",
+        state: descriptorState.draft,
         voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
         audience: eserviceDescriptorSeed.audience,
         dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
@@ -1268,7 +1268,7 @@ export function catalogServiceBuilder(
         audience: seed.audience,
         voucherLifespan: seed.voucherLifespan,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-        state: "Draft",
+        state: descriptorState.draft,
         dailyCallsTotal: seed.dailyCallsTotal,
         agreementApprovalPolicy:
           apiAgreementApprovalPolicyToAgreementApprovalPolicy(
@@ -2316,7 +2316,7 @@ export function catalogServiceBuilder(
     },
     async upgradeEServiceInstance(
       eserviceId: EServiceId,
-      { authData, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Upgrading EService ${eserviceId} instance`);
 
