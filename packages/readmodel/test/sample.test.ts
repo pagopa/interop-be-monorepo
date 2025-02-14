@@ -24,18 +24,19 @@ describe("Producer JWK key splitter", () => {
       ...getMockKey(),
       encodedPem: base64Key,
     };
-    const jwkKey = keyToProducerJWKKey(mockKey, mockProducerKeychain.id);
+    const producerJWKKey = keyToProducerJWKKey(
+      mockKey,
+      mockProducerKeychain.id
+    );
 
-    const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(jwkKey, 1);
+    const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
+      producerJWKKey,
+      1
+    );
     const expectedProducerJWKKeySQL: ProducerJWKKeySQL = {
+      ...producerJWKKey,
       producerKeychainId: mockProducerKeychain.id,
       metadataVersion: 1,
-      alg: jwkKey.alg,
-      e: jwkKey.e,
-      kid: jwkKey.kid,
-      kty: jwkKey.kty,
-      n: jwkKey.n,
-      use: jwkKey.use,
     };
     expect(producerJWKKeySQL).toEqual(expectedProducerJWKKeySQL);
   });
