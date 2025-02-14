@@ -254,5 +254,213 @@ describe("", () => {
         ])
       );
     });
+    it("should convert undefined into null", () => {
+      const tenantMail: TenantMail = {
+        ...getMockTenantMail(),
+        description: undefined,
+      };
+      const tenantCertifiedAttribute: CertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        assignmentTimestamp: new Date(),
+        revocationTimestamp: undefined,
+      };
+      const delegationId = generateId<DelegationId>();
+      const tenantDelcaredAttribute: DeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(),
+        assignmentTimestamp: new Date(),
+        revocationTimestamp: undefined,
+        delegationId,
+      };
+
+      const tenantVerifier: TenantVerifier = {
+        id: generateId(),
+        verificationDate: new Date(),
+        expirationDate: undefined,
+        extensionDate: undefined,
+        delegationId,
+      };
+      const tenantRevoker: TenantRevoker = {
+        id: generateId(),
+        verificationDate: new Date(),
+        revocationDate: new Date(),
+        expirationDate: undefined,
+        extensionDate: undefined,
+        delegationId,
+      };
+
+      const tenantVerifiedAttribute: VerifiedTenantAttribute = {
+        ...getMockVerifiedTenantAttribute(),
+        verifiedBy: [tenantVerifier],
+        revokedBy: [tenantRevoker],
+        assignmentTimestamp: new Date(),
+      };
+
+      const tenantFeatureCertifier: TenantFeatureCertifier = {
+        type: tenantFeatureType.persistentCertifier,
+        certifierId: generateId(),
+      };
+
+      const TenantFeatureDelegatedConsumer: TenantFeatureDelegatedConsumer = {
+        type: tenantFeatureType.delegatedConsumer,
+        availabilityTimestamp: new Date(),
+      };
+
+      const TenantFeatureDelegatedProducer: TenantFeatureDelegatedProducer = {
+        type: tenantFeatureType.delegatedProducer,
+        availabilityTimestamp: new Date(),
+      };
+
+      const selfcareId = generateId();
+
+      const externalId: ExternalId = {
+        origin: "IPA",
+        value: generateId(),
+      };
+      const tenant: Tenant = {
+        ...getMockTenant(),
+        selfcareId,
+        kind: undefined,
+        subUnitType: undefined,
+        externalId,
+        updatedAt: undefined,
+        mails: [tenantMail],
+        attributes: [
+          tenantCertifiedAttribute,
+          tenantDelcaredAttribute,
+          tenantVerifiedAttribute,
+        ],
+        features: [
+          tenantFeatureCertifier,
+          TenantFeatureDelegatedConsumer,
+          TenantFeatureDelegatedProducer,
+        ],
+      };
+
+      const {
+        tenantSQL,
+        tenantMailsSQL,
+        tenantCertifiedAttributesSQL,
+        tenantDeclaredAttributesSQL,
+        tenantVerifiedAttributesSQL,
+        tenantVerifiedAttributeVerifiersSQL,
+        tenantVerifiedAttributeRevokersSQL,
+        tenantFeaturesSQL,
+      } = splitTenantIntoObjectsSQL(tenant, 1);
+
+      const expectedTenantSQL: TenantSQL = {
+        id: tenant.id,
+        metadataVersion: 1,
+        kind: null,
+        selfcareId,
+        createdAt: new Date().toISOString(),
+        updatedAt: null,
+        name: tenant.name,
+        onboardedAt: new Date().toISOString(),
+        subUnitType: null,
+        externalIdOrigin: externalId.origin,
+        externalIdValue: externalId.value,
+      };
+
+      const expectedTenantMailSQL: TenantMailSQL = {
+        id: tenantMail.id,
+        kind: tenantMail.kind,
+        createdAt: tenantMail.createdAt.toISOString(),
+        metadataVersion: 1,
+        tenantId: tenant.id,
+        address: tenantMail.address,
+        description: null,
+      };
+
+      const expectedTenantCertifiedAttributeSQL: TenantCertifiedAttributeSQL = {
+        metadataVersion: 1,
+        tenantId: tenant.id,
+        attributeId: tenantCertifiedAttribute.id,
+        assignmentTimestamp: new Date().toISOString(),
+        revocationTimestamp: null,
+      };
+
+      const expectedTenantDeclaredAttributeSQL: TenantDeclaredAttributeSQL = {
+        tenantId: tenant.id,
+        metadataVersion: 1,
+        attributeId: tenantDelcaredAttribute.id,
+        assignmentTimestamp: new Date().toISOString(),
+        revocationTimestamp: null,
+        delegationId,
+      };
+
+      const expectedTenantVerfiedAttributeSQL: TenantVerifiedAttributeSQL = {
+        tenantId: tenant.id,
+        metadataVersion: 1,
+        attributeId: tenantVerifiedAttribute.id,
+        assignmentTimestamp: new Date().toISOString(),
+      };
+
+      const expectedTenantVerifierSQL: TenantVerifiedAttributeVerifierSQL = {
+        id: tenantVerifier.id,
+        tenantId: tenant.id,
+        metadataVersion: 1,
+        delegationId,
+        tenantVerifiedAttributeId: tenantVerifiedAttribute.id,
+        verificationDate: new Date().toISOString(),
+        expirationDate: null,
+        extensionDate: null,
+      };
+
+      const expectedTenantRevokerSQL: TenantVerifiedAttributeRevokerSQL = {
+        id: tenantRevoker.id,
+        tenantId: tenant.id,
+        metadataVersion: 1,
+        delegationId,
+        tenantVerifiedAttributeId: tenantVerifiedAttribute.id,
+        verificationDate: new Date().toISOString(),
+        expirationDate: null,
+        extensionDate: null,
+        revocationDate: new Date().toISOString(),
+      };
+
+      const expectedTenantFeatureCertifierSQL: TenantFeatureSQL = {
+        tenantId: tenant.id,
+        metadataVersion: 1,
+        kind: tenantFeatureType.persistentCertifier,
+        details: { certifierId: tenantFeatureCertifier.certifierId },
+      };
+      const expectedTenantFeatureDelegatedConsumerSQL: TenantFeatureSQL = {
+        tenantId: tenant.id,
+        metadataVersion: 1,
+        kind: tenantFeatureType.delegatedConsumer,
+        details: { availabilityTimestamp: new Date() },
+      };
+      const expectedTenantFeatureDelegatedProducerSQL: TenantFeatureSQL = {
+        tenantId: tenant.id,
+        metadataVersion: 1,
+        kind: tenantFeatureType.delegatedProducer,
+        details: { availabilityTimestamp: new Date() },
+      };
+
+      expect(tenantSQL).toEqual(expectedTenantSQL);
+      expect(tenantMailsSQL).toEqual([expectedTenantMailSQL]);
+      expect(tenantCertifiedAttributesSQL).toEqual([
+        expectedTenantCertifiedAttributeSQL,
+      ]);
+      expect(tenantDeclaredAttributesSQL).toEqual([
+        expectedTenantDeclaredAttributeSQL,
+      ]);
+      expect(tenantVerifiedAttributesSQL).toEqual([
+        expectedTenantVerfiedAttributeSQL,
+      ]);
+      expect(tenantVerifiedAttributeVerifiersSQL).toEqual([
+        expectedTenantVerifierSQL,
+      ]);
+      expect(tenantVerifiedAttributeRevokersSQL).toEqual([
+        expectedTenantRevokerSQL,
+      ]);
+      expect(tenantFeaturesSQL).toEqual(
+        expect.arrayContaining([
+          expectedTenantFeatureCertifierSQL,
+          expectedTenantFeatureDelegatedConsumerSQL,
+          expectedTenantFeatureDelegatedProducerSQL,
+        ])
+      );
+    });
   });
 });
