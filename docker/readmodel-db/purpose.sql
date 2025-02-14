@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS readmodel.purpose (
   PRIMARY KEY (id)
 );
 
+-- TODO: risk analysis id?
 CREATE TABLE IF NOT EXISTS readmodel.purpose_risk_analysis_form (
   id UUID,
   purpose_id UUID NOT NULL REFERENCES readmodel.purpose (id) ON DELETE CASCADE,
