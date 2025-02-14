@@ -9,12 +9,11 @@ export const ClientAssertionDigest = z
   .strict();
 export type ClientAssertionDigest = z.infer<typeof ClientAssertionDigest>;
 
-export const ClientAssertionHeader = z
-  .object({
-    kid: z.string(),
-    alg: z.string(),
-    typ: z.string().optional(),
-  })
+export const ClientAssertionHeader = z.object({
+  kid: z.string(),
+  alg: z.string(),
+  typ: z.string().optional(),
+});
 export type ClientAssertionHeader = z.infer<typeof ClientAssertionHeader>;
 
 export const ClientAssertionHeaderStrict = ClientAssertionHeader.strict();
