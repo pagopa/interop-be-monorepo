@@ -7,6 +7,7 @@ import { describe, it, expect } from "vitest";
 import { keyToClientJWKKey } from "pagopa-interop-commons";
 import { Key } from "pagopa-interop-models";
 import { splitClientJWKKeyIntoObjectsSQL } from "../src/authorization/clientJWKKeySplitters.js";
+import { ClientJWKKeySQL } from "../src/types.js";
 
 describe("Client JWK key splitter", () => {
   // TODO: add test description
@@ -27,7 +28,7 @@ describe("Client JWK key splitter", () => {
     const jwkKey = keyToClientJWKKey(mockKey, mockClient.id);
 
     const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(jwkKey, 1);
-    const expectedClientJWKKeySQL = {
+    const expectedClientJWKKeySQL: ClientJWKKeySQL = {
       clientId: mockClient.id,
       metadataVersion: 1,
       alg: jwkKey.alg,
