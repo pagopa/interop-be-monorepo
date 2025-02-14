@@ -141,7 +141,7 @@ export const verifyClientAssertion = (
         ClientAssertionPayloadStrict.safeParse(decodedPayload);
       if (!payloadStrictParseResult.success) {
         logger.warn(
-          `Invalid claims in client assertion payload: ${JSON.stringify(
+          `[CLIENTID=${validatedSub}] Invalid claims in client assertion payload: ${JSON.stringify(
             JSON.parse(payloadStrictParseResult.error.message)
           )}`
         );
