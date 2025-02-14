@@ -2316,7 +2316,7 @@ export function catalogServiceBuilder(
     },
     async upgradeEServiceInstance(
       eserviceId: EServiceId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Upgrading EService ${eserviceId} instance`);
 
