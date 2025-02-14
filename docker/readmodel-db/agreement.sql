@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement(
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.agreement_stamp(
-  agreement_id uuid REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
+  agreement_id uuid NOT NULL REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
   metadata_version integer NOT NULL,
   who uuid NOT NULL,
   delegation_id uuid,
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement_stamp(
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.agreement_attribute(
-  agreement_id uuid REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
+  agreement_id uuid NOT NULL REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
   metadata_version integer NOT NULL,
   attribute_id uuid NOT NULL,
   kind varchar NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement_attribute(
 
 CREATE TABLE IF NOT EXISTS readmodel.agreement_document(
   id uuid,
-  agreement_id uuid REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
+  agreement_id uuid NOT NULL REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
   metadata_version integer NOT NULL,
   name varchar NOT NULL,
   pretty_name varchar NOT NULL,
