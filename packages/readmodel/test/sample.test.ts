@@ -25,18 +25,13 @@ describe("Client JWK key splitter", () => {
       ...getMockKey(),
       encodedPem: base64Key,
     };
-    const jwkKey = keyToClientJWKKey(mockKey, mockClient.id);
+    const clientJWKKey = keyToClientJWKKey(mockKey, mockClient.id);
 
-    const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(jwkKey, 1);
+    const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(clientJWKKey, 1);
     const expectedClientJWKKeySQL: ClientJWKKeySQL = {
+      ...clientJWKKey,
       clientId: mockClient.id,
       metadataVersion: 1,
-      alg: jwkKey.alg,
-      e: jwkKey.e,
-      kid: jwkKey.kid,
-      kty: jwkKey.kty,
-      n: jwkKey.n,
-      use: jwkKey.use,
     };
     expect(clientJWKKeySQL).toEqual(expectedClientJWKKeySQL);
   });
