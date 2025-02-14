@@ -15,8 +15,12 @@ export const ClientAssertionHeader = z
     alg: z.string(),
     typ: z.string().optional(),
   })
-  .strict();
 export type ClientAssertionHeader = z.infer<typeof ClientAssertionHeader>;
+
+export const ClientAssertionHeaderStrict = ClientAssertionHeader.strict();
+export type ClientAssertionHeaderStrict = z.infer<
+  typeof ClientAssertionHeaderStrict
+>;
 
 export const ClientAssertionPayload = z.object({
   sub: ClientId,
