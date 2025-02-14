@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_mail (
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_certified_attribute (
-  attribute_id UUID REFERENCES readmodel.attribute(id),
+  attribute_id UUID NOT NULL REFERENCES readmodel.attribute(id),
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -57,9 +57,9 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute (
 CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_verifier (
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   metadata_version INTEGER NOT NULL,
-  id UUID REFERENCES readmodel.tenant (id),
+  id UUID NOT NULL REFERENCES readmodel.tenant (id),
   -- verifier id
-  tenant_verified_attribute_id UUID NOT NULL REFERENCES readmodel.attribute(id),
+  tenant_verified_attribute_id UUID NOT NULL,
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
   extension_date TIMESTAMP WITH TIME ZONE,
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_verifier (
 CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_revoker (
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   metadata_version INTEGER NOT NULL,
-  id UUID REFERENCES readmodel.tenant (id),
+  id UUID NOT NULL REFERENCES readmodel.tenant (id),
   -- revoker id
   tenant_verified_attribute_id UUID NOT NULL,
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,

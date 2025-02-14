@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template (
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version (
   id UUID,
-  eservice_template_id UUID NOT NULL references readmodel.eservice_template (id) ON DELETE CASCADE,
+  eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   version VARCHAR NOT NULL,
   description VARCHAR,
@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version (
   daily_calls_total INTEGER,
   agreement_approval_policy VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  server_urls VARCHAR ARRAY NOT NULL,
   published_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
   deprecated_at TIMESTAMP WITH TIME ZONE,
@@ -63,7 +62,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_document(
  d | certified | 3 
  */
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_attribute(
-  id UUID,
+  attribute_id UUID,
   eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   eservice_template_version_id UUID NOT NULL REFERENCES readmodel.eservice_template_version(id) ON DELETE CASCADE,
@@ -72,12 +71,12 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_attribute(
   -- CERTIFIED/DECLARED/VERIFIED
   group_id INTEGER NOT NULL,
   -- id of the group
-  PRIMARY KEY(id, eservice_template_version_id, group_id) -- TODO verify if the same attribute can be assigned twice in the same eservice_template_version
+  PRIMARY KEY(attribute_id, eservice_template_version_id, group_id) -- TODO verify if the same attribute can be assigned twice in the same eservice_template_version
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis(
   id UUID,
-  eservice_template_id UUID REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
+  eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   name VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE,
@@ -88,9 +87,9 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis(
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis_answer(
   id UUID,
-  eservice_template_id UUID REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
+  eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  risk_analysis_form_id UUID REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id),
+  risk_analysis_form_id UUID NOT NULL REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id),
   kind VARCHAR,
   -- SINGLE/MULTI
   key VARCHAR,
