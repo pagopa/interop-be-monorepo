@@ -79,9 +79,9 @@ export const purposeRiskAnalysisAnswerInReadmodel = readmodel.table(
   "purpose_risk_analysis_answer",
   {
     id: uuid().primaryKey().notNull(),
-    purposeId: uuid("purpose_id"),
+    purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
-    riskAnalysisFormId: uuid("risk_analysis_form_id"),
+    riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
     kind: varchar().notNull(),
     key: varchar().notNull(),
     value: varchar().array(),
@@ -135,9 +135,9 @@ export const purposeVersionInReadmodel = readmodel.table(
 export const purposeVersionDocumentInReadmodel = readmodel.table(
   "purpose_version_document",
   {
-    purposeId: uuid("purpose_id"),
+    purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
-    purposeVersionId: uuid("purpose_version_id"),
+    purposeVersionId: uuid("purpose_version_id").notNull(),
     id: uuid().primaryKey().notNull(),
     contentType: varchar("content_type").notNull(),
     path: varchar().notNull(),
@@ -388,7 +388,7 @@ export const eserviceRiskAnalysisInReadmodel = readmodel.table(
   "eservice_risk_analysis",
   {
     id: uuid().primaryKey().notNull(),
-    eserviceId: uuid("eservice_id"),
+    eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     name: varchar().notNull(),
     createdAt: timestamp("created_at", {
@@ -414,9 +414,9 @@ export const eserviceRiskAnalysisAnswerInReadmodel = readmodel.table(
   "eservice_risk_analysis_answer",
   {
     id: uuid().primaryKey().notNull(),
-    eserviceId: uuid("eservice_id"),
+    eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
-    riskAnalysisFormId: uuid("risk_analysis_form_id"),
+    riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
     kind: varchar().notNull(),
     key: varchar().notNull(),
     value: varchar().array().notNull(),
@@ -485,7 +485,7 @@ export const agreementDocumentInReadmodel = readmodel.table(
   "agreement_document",
   {
     id: uuid().primaryKey().notNull(),
-    agreementId: uuid("agreement_id"),
+    agreementId: uuid("agreement_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     name: varchar().notNull(),
     prettyName: varchar("pretty_name").notNull(),
@@ -660,7 +660,7 @@ export const eserviceTemplateRiskAnalysisInReadmodel = readmodel.table(
   "eservice_template_risk_analysis",
   {
     id: uuid().primaryKey().notNull(),
-    eserviceTemplateId: uuid("eservice_template_id"),
+    eserviceTemplateId: uuid("eservice_template_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     name: varchar(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }),
@@ -683,9 +683,9 @@ export const eserviceTemplateRiskAnalysisAnswerInReadmodel = readmodel.table(
   "eservice_template_risk_analysis_answer",
   {
     id: uuid().primaryKey().notNull(),
-    eserviceTemplateId: uuid("eservice_template_id"),
+    eserviceTemplateId: uuid("eservice_template_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
-    riskAnalysisFormId: uuid("risk_analysis_form_id"),
+    riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
     kind: varchar(),
     key: varchar(),
     value: varchar().array(),
