@@ -10,8 +10,7 @@ import { splitClientJWKKeyIntoObjectsSQL } from "../src/authorization/clientJWKK
 import { ClientJWKKeySQL } from "../src/types.js";
 
 describe("Client JWK key splitter", () => {
-  // TODO: add test description
-  it("", () => {
+  it("should convert a client JWK key into client JWK key SQL objects", () => {
     const key = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
     }).publicKey;
