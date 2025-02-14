@@ -73,6 +73,7 @@ import {
   UserId,
   delegationState,
   delegationKind,
+  DescriptorRejectionReason,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -176,7 +177,6 @@ export const getMockEService = (
   producerId,
   technology: technology.rest,
   descriptors,
-  attributes: undefined,
   riskAnalysis: [],
   mode: "Deliver",
 });
@@ -617,6 +617,12 @@ export const getMockClientAssertion = async (props?: {
     publicKeyEncodedPem,
   };
 };
+
+export const getMockDescriptorRejectionReason =
+  (): DescriptorRejectionReason => ({
+    rejectionReason: "Rejection Reason",
+    rejectedAt: new Date(),
+  });
 
 export const generateKeySet = (): {
   keySet: crypto.KeyPairKeyObjectResult;
