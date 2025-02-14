@@ -21,9 +21,11 @@ import {
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
+  EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
 } from "../src/types.js";
+import { generateRiskAnalysisAnswersSQL } from "./utils.js";
 
 describe("", () => {
   beforeEach(async () => {
@@ -35,7 +37,7 @@ describe("", () => {
     vi.useRealTimers();
   });
 
-  it("", () => {
+  it("should split an eservice into eservice SQL objects", () => {
     const certifiedAttribute = getMockEServiceAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
@@ -79,7 +81,6 @@ describe("", () => {
       documentsSQL,
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       eserviceTemplateBindingSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
@@ -117,8 +118,11 @@ describe("", () => {
       riskAnalysisFormVersion: riskAnalysis2.riskAnalysisForm.version,
     };
 
-    // TODO answers
-    // const expectedRiskAnalysisAnswersSQL: EServiceRiskAnalysisSQL = {}
+    const expectedRiskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] =
+      generateRiskAnalysisAnswersSQL(eservice.id, [
+        riskAnalysis1,
+        riskAnalysis2,
+      ]);
 
     const expectedDescriptorSQL: EServiceDescriptorSQL = {
       metadataVersion: 1,
@@ -184,6 +188,7 @@ describe("", () => {
         expectedRiskAnalysisSQL2,
       ])
     );
+    expect(riskAnalysisAnswersSQL).toEqual(expectedRiskAnalysisAnswersSQL);
     expect(descriptorsSQL).toEqual([expectedDescriptorSQL]);
     expect(attributesSQL).toEqual([expectedAttributeSQL]);
     expect(documentsSQL).toEqual(
