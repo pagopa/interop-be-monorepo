@@ -98,7 +98,7 @@ export const splitTenantIntoObjectsSQL = (
         metadataVersion,
         kind: tenantFeatureType.delegatedProducer,
         details: {
-          availabilityTimestamp: feature.availabilityTimestamp,
+          availabilityTimestamp: feature.availabilityTimestamp, // TODO here the date is not converted to string
         } satisfies Omit<TenantFeatureDelegatedProducer, "type">,
       }))
       .with({ type: tenantFeatureType.delegatedConsumer }, (feature) => ({
@@ -106,7 +106,7 @@ export const splitTenantIntoObjectsSQL = (
         metadataVersion,
         kind: tenantFeatureType.delegatedConsumer,
         details: {
-          availabilityTimestamp: feature.availabilityTimestamp,
+          availabilityTimestamp: feature.availabilityTimestamp, // TODO here the date is not converted to string
         } satisfies Omit<TenantFeatureDelegatedConsumer, "type">,
       }))
       .exhaustive()
