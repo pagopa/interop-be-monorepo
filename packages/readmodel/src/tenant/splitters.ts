@@ -226,7 +226,7 @@ const splitTenantAttributesIntoObjectsSQL = (
           // eslint-disable-next-line functional/immutable-data
           tenantVerifiedAttributesSQL.push(verifiedTenantAttributeSQL);
 
-          const tenantVerifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[] =
+          const verifiersOfCurrentAttribute: TenantVerifiedAttributeVerifierSQL[] =
             verifiedBy.map(
               ({
                 id,
@@ -252,10 +252,10 @@ const splitTenantAttributesIntoObjectsSQL = (
 
           // eslint-disable-next-line functional/immutable-data
           tenantVerifiedAttributeVerifiersSQL.push(
-            ...tenantVerifiedAttributeVerifiersSQL
+            ...verifiersOfCurrentAttribute
           );
 
-          const tenantVerifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[] =
+          const revokersOfCurrentAttribute: TenantVerifiedAttributeRevokerSQL[] =
             revokedBy.map(
               ({
                 id,
@@ -279,7 +279,7 @@ const splitTenantAttributesIntoObjectsSQL = (
 
           // eslint-disable-next-line functional/immutable-data
           tenantVerifiedAttributeRevokersSQL.push(
-            ...tenantVerifiedAttributeRevokersSQL
+            ...revokersOfCurrentAttribute
           );
         }
       )
