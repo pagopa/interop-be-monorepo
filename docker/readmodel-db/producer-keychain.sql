@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS readmodel.producer_keychain (
   producer_id UUID NOT NULL,
   name VARCHAR NOT NULL,
   -- eservices
-  description VARCHAR,
+  description VARCHAR NOT NULL,
   -- users
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   -- keys

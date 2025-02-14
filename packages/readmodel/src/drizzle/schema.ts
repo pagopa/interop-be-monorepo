@@ -164,7 +164,7 @@ export const producerKeychainInReadmodel = readmodel.table(
     metadataVersion: integer("metadata_version").notNull(),
     producerId: uuid("producer_id").notNull(),
     name: varchar().notNull(),
-    description: varchar(),
+    description: varchar().notNull(),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",
