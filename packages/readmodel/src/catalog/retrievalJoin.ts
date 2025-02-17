@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
+import { EServiceId } from "pagopa-interop-models";
 import {
   eserviceDescriptorAttributeInReadmodel,
   eserviceDescriptorDocumentInReadmodel,
@@ -71,7 +72,10 @@ Perché usiamo left join e non inner join? Abbiamo ad esempio descriptor senza d
  */
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const eserviceJoin = async () =>
+export const eserviceJoin = async (
+  eserviceId: EServiceId,
+  db: ReturnType<typeof drizzle>
+) =>
   await db
     .select({
       eservice: eserviceInReadmodel,
@@ -84,6 +88,7 @@ export const eserviceJoin = async () =>
       templateBinding: eserviceTemplateBindingInReadmodel,
     })
     .from(eserviceInReadmodel)
+    .where(eq(eserviceInReadmodel.id, eserviceId))
     .leftJoin(
       // 1
       eserviceDescriptorInReadmodel,
