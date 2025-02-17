@@ -867,13 +867,7 @@ components:
         createdAt:
           type: string
           format: date-time
-        submittedAt:
-          type: string
-          format: date-time
-        approvedAt:
-          type: string
-          format: date-time
-        rejectedAt:
+        updatedAt:
           type: string
           format: date-time
         rejectionReason:
@@ -897,7 +891,6 @@ components:
         - delegateId
         - eserviceId
         - createdAt
-        - submittedAt
         - state
         - kind
         - stamps

@@ -49,6 +49,7 @@ export const eventMailTemplateType = {
     "first-purpose-version-rejected-mail",
   otherPurposeVersionRejectedMailTemplate:
     "other-purpose-version-rejected-mail",
+  newPurposeVersionActivatedMailTemplate: "new-purpose-version-activated-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
@@ -474,6 +475,58 @@ export function notificationEmailSenderServiceBuilder(
         );
         throw genericInternalError(
           `Error sending email for purpose ${purpose.id} rejection: ${err}`
+        );
+      }
+    },
+    sendPurposeVersionActivatedEmail: async (
+      purposeV2Msg: PurposeV2,
+      logger: Logger
+    ) => {
+      const purpose = fromPurposeV2(purposeV2Msg);
+
+      const [htmlTemplate, consumer] = await Promise.all([
+        retrieveHTMLTemplate(
+          eventMailTemplateType.newPurposeVersionActivatedMailTemplate
+        ),
+        retrieveTenant(purpose.consumerId, readModelService),
+      ]);
+
+      const consumerEmail = getLatestTenantMailOfKind(
+        consumer.mails,
+        tenantMailKind.ContactEmail
+      );
+
+      if (!consumerEmail) {
+        logger.warn(
+          `Consumer email not found for purpose ${purpose.id}, skipping email`
+        );
+        return;
+      }
+
+      const mail = {
+        from: { name: sesSenderData.label, address: sesSenderData.mail },
+        subject: `Accettazione richiesta di adeguamento stima di carico`,
+        to: [consumerEmail.address],
+        body: templateService.compileHtml(htmlTemplate, {
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/finalita/${purpose.id}`,
+          purposeName: purpose.title,
+        }),
+      };
+
+      try {
+        logger.info(
+          `Sending an email for the activation of the new version of purpose: ${purpose.id} (SES)`
+        );
+        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        logger.info(
+          `Email sent for the activation of the new version of purpose: ${purpose.id} (SES)`
+        );
+      } catch (err) {
+        logger.warn(
+          `Error sending email for the activation of the new version of purpose: ${purpose.id} error: ${err}`
+        );
+        throw genericInternalError(
+          `Error sending email for the activation of the new version of purpose: ${purpose.id} error: ${err}`
         );
       }
     },
