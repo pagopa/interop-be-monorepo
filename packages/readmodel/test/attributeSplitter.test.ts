@@ -23,8 +23,9 @@ describe("Attribute Splitter", () => {
     };
     console.log(attributeSQL);
     console.log(expectedAttributeSQL);
-    expect(attributeSQL).toMatchObject(expectedAttributeSQL);
+    expect(attributeSQL).toEqual(expectedAttributeSQL);
   });
+
   it("should transform undefined into null", () => {
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
@@ -41,6 +42,6 @@ describe("Attribute Splitter", () => {
     };
     console.log(attributeSQL);
     console.log(expectedAttributeSQL);
-    expect(attributeSQL).toMatchObject(expectedAttributeSQL);
+    expect(attributeSQL).toEqual(expectedAttributeSQL);
   });
 });
