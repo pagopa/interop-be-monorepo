@@ -37,11 +37,12 @@ export const producerKeychainSQLToProducerKeychain = (
     unsafeBrandId(e.eserviceId)
   );
   const keys: Key[] = producerKeychainKeysSQL.map((k) => ({
-    userId: k.userId,
+    userId: unsafeBrandId(k.userId),
     kid: k.kid,
     name: k.name,
     encodedPem: k.encodedPem,
     algorithm: k.algorithm,
+    // TODO: convert string to enum
     use: k.use,
     createdAt: stringToDate(k.createdAt),
   }));
