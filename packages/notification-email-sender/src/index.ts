@@ -135,6 +135,19 @@ export async function handlePurposeMessage(
       }
     )
     .with(
+      { event_version: 2, type: "PurposeWaitingForApproval" },
+      async ({ data: { purpose } }) => {
+        if (purpose) {
+          await notificationEmailSenderService.sendPurposeWaitingForApprovalNotificationEmail(
+            purpose,
+            logger
+          );
+        } else {
+          throw missingKafkaMessageDataError("purpose", decodedMessage.type);
+        }
+      }
+    )
+    .with(
       { event_version: 2, type: "PurposeVersionRejected" },
       async ({ data: { purpose } }) => {
         if (purpose) {
@@ -174,7 +187,6 @@ export async function handlePurposeMessage(
           "PurposeVersionSuspendedByProducer",
           "PurposeVersionUnsuspendedByConsumer",
           "PurposeVersionUnsuspendedByProducer",
-          "PurposeWaitingForApproval",
           "WaitingForApprovalPurposeVersionDeleted",
           "PurposeVersionActivated",
           "PurposeCloned",

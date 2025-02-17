@@ -52,6 +52,7 @@ export const eventMailTemplateType = {
     "first-purpose-version-rejected-mail",
   otherPurposeVersionRejectedMailTemplate:
     "other-purpose-version-rejected-mail",
+  purposeWaitingForApprovalMailTemplate: "purpose-waiting-for-approval-mail",
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
   newPurposeVersionActivatedMailTemplate: "new-purpose-version-activated-mail",
 } as const;
@@ -431,6 +432,57 @@ export function notificationEmailSenderServiceBuilder(
         await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
         logger.info(
           `Email sent for requesting  a change in the load estimate as it is above the threshold, for purpose ${purpose.id} (SES)`
+        );
+      } catch (err) {
+        logger.warn(`Error sending email for purpose ${purpose.id}: ${err}`);
+        throw genericInternalError(
+          `Error sending email for purpose ${purpose.id}: ${err}`
+        );
+      }
+    },
+    sendPurposeWaitingForApprovalNotificationEmail: async (
+      purposeV2Msg: PurposeV2,
+      logger: Logger
+    ) => {
+      const purpose = fromPurposeV2(purposeV2Msg);
+
+      const [htmlTemplate, eservice, consumer] = await Promise.all([
+        retrieveHTMLTemplate(
+          eventMailTemplateType.purposeWaitingForApprovalMailTemplate
+        ),
+        retrieveEService(purpose.eserviceId, readModelService),
+        retrieveTenant(purpose.consumerId, readModelService),
+      ]);
+
+      const consumerEmail = getLatestTenantMailOfKind(
+        consumer.mails,
+        tenantMailKind.ContactEmail
+      );
+
+      if (!consumerEmail) {
+        logger.warn(
+          `Consumer email not found for purpose ${purpose.id}, skipping email`
+        );
+        return;
+      }
+
+      const mail = {
+        from: { name: sesSenderData.label, address: sesSenderData.mail },
+        subject: `Richiesta di attivazione della stima di carico sopra soglia per ${eservice.name}`,
+        to: [consumerEmail.address],
+        body: templateService.compileHtml(htmlTemplate, {
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/finalita/${purpose.id}`,
+          eserviceName: eservice.name,
+        }),
+      };
+
+      try {
+        logger.info(
+          `Send an email with the request to activate the load estimate since it is higher than the threshold, for the purpose ${purpose.id} (SES)`
+        );
+        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        logger.info(
+          `Email sent for the request to activate the load estimate since it is higher than the threshold, for the purpose ${purpose.id} (SES)`
         );
       } catch (err) {
         logger.warn(`Error sending email for purpose ${purpose.id}: ${err}`);
