@@ -1,12 +1,20 @@
-import { Attribute, AttributeSQL, WithMetadata } from "pagopa-interop-models";
+import {
+  Attribute,
+  AttributeId,
+  AttributeKind,
+  stringToDate,
+  unsafeBrandId,
+  WithMetadata,
+} from "pagopa-interop-models";
+import { AttributeSQL } from "../types.js";
 
 export const attributeSQLtoAttribute = ({
   id,
-  metadata_version,
+  metadataVersion,
   name,
   kind,
   description,
-  creation_time,
+  creationTime,
   origin,
   code,
   ...rest
@@ -14,14 +22,14 @@ export const attributeSQLtoAttribute = ({
   void (rest satisfies Record<string, never>);
   return {
     data: {
-      id,
+      id: unsafeBrandId<AttributeId>(id),
       name,
-      kind,
+      kind: AttributeKind.parse(kind),
       description,
-      creationTime: creation_time,
-      origin,
-      code,
+      creationTime: stringToDate(creationTime),
+      origin: origin || undefined,
+      code: code || undefined,
     },
-    metadata: { version: metadata_version },
+    metadata: { version: metadataVersion },
   };
 };
