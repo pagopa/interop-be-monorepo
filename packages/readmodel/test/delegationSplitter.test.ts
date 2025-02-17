@@ -17,7 +17,7 @@ import {
   DelegationStampSQL,
 } from "../src/types.js";
 
-describe("Delegation SQL splitters", () => {
+describe("Delegation splitters", () => {
   it("should convert a complete delegation into delegation SQL objects", () => {
     const approvedAt = new Date();
     const revokedAt = new Date();
@@ -93,7 +93,7 @@ describe("Delegation SQL splitters", () => {
     );
   });
 
-  it("should convert an incomplete delegation into delegation SQL objects", () => {
+  it("should convert an incomplete delegation into delegation SQL objects (undefined -> null)", () => {
     const delegation: Delegation = {
       ...getMockDelegation({
         kind: delegationKind.delegatedProducer,
