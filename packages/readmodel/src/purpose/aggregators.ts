@@ -8,6 +8,7 @@ import {
   PurposeVersionState,
   RiskAnalysisAnswerKind,
   riskAnalysisAnswerKind,
+  RiskAnalysisId,
   RiskAnalysisMultiAnswer,
   RiskAnalysisSingleAnswer,
   stringToDate,
@@ -99,6 +100,7 @@ export const purposeSQLToPurpose = ({
   };
 };
 
+// TODO: improve naming
 export const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
   purposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined,
   answers: PurposeRiskAnalysisAnswerSQL[] | undefined
@@ -160,7 +162,9 @@ export const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
   return {
     id: unsafeBrandId(purposeRiskAnalysisFormSQL.id),
     version: purposeRiskAnalysisFormSQL.version,
-    riskAnalysisId: unsafeBrandId(purposeRiskAnalysisFormSQL.riskAnalysisId),
+    riskAnalysisId: purposeRiskAnalysisFormSQL.riskAnalysisId
+      ? unsafeBrandId<RiskAnalysisId>(purposeRiskAnalysisFormSQL.riskAnalysisId)
+      : undefined,
     singleAnswers,
     multiAnswers,
   };
