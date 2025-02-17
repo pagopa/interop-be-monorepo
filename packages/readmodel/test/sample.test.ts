@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
   getMockDescriptor,
@@ -8,7 +9,12 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import { describe, it, expect } from "vitest";
 import { Descriptor, EService, tenantKind } from "pagopa-interop-models";
-import { db, eserviceJoin } from "../src/catalog/aggregatorsJoin.js";
+import { diff } from "json-diff";
+import {
+  db,
+  eserviceJoin,
+  fromJoinToAggregator,
+} from "../src/catalog/retrievalJoin.js";
 import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
 import {
   eserviceDescriptorAttributeInReadmodel,
@@ -18,11 +24,13 @@ import {
   eserviceRiskAnalysisAnswerInReadmodel,
   eserviceRiskAnalysisInReadmodel,
 } from "../src/drizzle/schema.js";
+import { eserviceSQLtoEservice } from "../src/catalog/aggregators.js";
 
 describe("", () => {
-  it("", async () => {
+  it("first test", async () => {
     const descriptor1: Descriptor = {
       ...getMockDescriptor(),
+      version: "1",
       interface: getMockDocument(),
       docs: [getMockDocument()],
       attributes: {
@@ -33,12 +41,14 @@ describe("", () => {
     };
     const descriptor2: Descriptor = {
       ...getMockDescriptor(),
+      version: "2",
       interface: getMockDocument(),
       docs: [getMockDocument()],
     };
 
     const descriptor3: Descriptor = {
       ...getMockDescriptor(),
+      version: "3",
       interface: undefined,
       docs: [],
     };
@@ -81,7 +91,8 @@ describe("", () => {
       }
     });
 
-    const res = await eserviceJoin();
+    const res = await eserviceJoin(eservice.id, db);
+
     const simpleRes = res.map((item) => ({
       eserviceId: item.eservice.id,
       descId: item.descriptor?.id,
@@ -92,11 +103,32 @@ describe("", () => {
       raAns: item.riskAnalysisAnswer?.id,
       templateBinding: item.templateBinding?.eserviceTemplateId,
     }));
-    // eslint-disable-next-line no-console
     console.log(simpleRes);
-    // eslint-disable-next-line no-console
     console.log(res.length);
 
-    expect(1).toBe(1);
+    const aggregatorInput = fromJoinToAggregator(res);
+
+    const aggregatedEserviceFromDb = eserviceSQLtoEservice(aggregatorInput);
+
+    const resDiff = diff(
+      { data: eservice, metadata: { version: 1 } },
+      aggregatedEserviceFromDb,
+      { sort: true }
+    );
+
+    if (resDiff) {
+      console.error(resDiff);
+
+      // if it fails use this output, otherwise undefined values are not printed
+      console.log(
+        JSON.stringify(
+          resDiff,
+          (_k, v) => (v === undefined ? "undefined" : v),
+          2
+        )
+      );
+    }
+
+    expect(resDiff).toBeUndefined();
   });
 });
