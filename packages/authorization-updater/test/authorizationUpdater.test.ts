@@ -205,7 +205,6 @@ describe("Authorization Updater processMessage", () => {
 
   it.each([
     "AgreementSubmitted",
-    "AgreementActivated",
     "AgreementSuspendedByPlatform",
     "AgreementSuspendedByConsumer",
     "AgreementSuspendedByProducer",
@@ -267,84 +266,88 @@ describe("Authorization Updater processMessage", () => {
     }
   );
 
-  it("Should correctly process an agreement message with type AgreementUpgraded and call updateAgreementAndEServiceStates", async () => {
-    const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      version: "1",
-      state: randomArrayItem(Object.values(descriptorState)),
-    };
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-    };
+  it.each(["AgreementActivated", "AgreementUpgraded"])(
+    "Should correctly process an agreement message with type %s and call updateAgreementAndEServiceStates",
+    async (eventType) => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        version: "1",
+        state: randomArrayItem(Object.values(descriptorState)),
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [descriptor],
+      };
 
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-    };
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      };
 
-    await addOneEService(eservice);
-    const message: AgreementEventEnvelopeV2 = {
-      sequence_num: 1,
-      stream_id: agreement.id,
-      version: 1,
-      type: "AgreementUpgraded",
-      event_version: 2,
-      data: {
-        agreement: toAgreementV2(agreement),
-      },
-      log_date: new Date(),
-    } as AgreementEventEnvelopeV2;
+      await addOneEService(eservice);
+      const message: AgreementEventEnvelopeV2 = {
+        sequence_num: 1,
+        stream_id: agreement.id,
+        version: 1,
+        type: eventType,
+        event_version: 2,
+        data: {
+          agreement: toAgreementV2(agreement),
+        },
+        log_date: new Date(),
+      } as AgreementEventEnvelopeV2;
 
-    await sendAgreementAuthUpdate(
-      message,
-      readModelService,
-      authorizationService,
-      genericLogger,
-      testCorrelationId
-    );
+      await sendAgreementAuthUpdate(
+        message,
+        readModelService,
+        authorizationService,
+        genericLogger,
+        testCorrelationId
+      );
 
-    const expectedUpdateAgreementAndEServiceStatesPayload = {
-      agreementId: agreement.id,
-      agreementState: agreementStateToClientState(agreement.state),
-      descriptorId: descriptor.id,
-      eserviceState: match(descriptor.state)
-        .with(
-          descriptorState.published,
-          descriptorState.deprecated,
-          () => authorizationManagementApi.ClientComponentState.Values.ACTIVE
-        )
-        .otherwise(
-          () => authorizationManagementApi.ClientComponentState.Values.INACTIVE
-        ),
-      audience: descriptor.audience,
-      voucherLifespan: descriptor.voucherLifespan,
-    };
+      const expectedUpdateAgreementAndEServiceStatesPayload = {
+        agreementId: agreement.id,
+        agreementState: agreementStateToClientState(agreement.state),
+        descriptorId: descriptor.id,
+        eserviceState: match(descriptor.state)
+          .with(
+            descriptorState.published,
+            descriptorState.deprecated,
+            () => authorizationManagementApi.ClientComponentState.Values.ACTIVE
+          )
+          .otherwise(
+            () =>
+              authorizationManagementApi.ClientComponentState.Values.INACTIVE
+          ),
+        audience: descriptor.audience,
+        voucherLifespan: descriptor.voucherLifespan,
+      };
 
-    expect(
-      authorizationManagementClients.purposeApiClient
-        .updateAgreementAndEServiceStates
-    ).toHaveBeenCalledTimes(1);
-    expect(
-      authorizationManagementClients.purposeApiClient
-        .updateAgreementAndEServiceStates
-    ).toHaveBeenCalledWith(expectedUpdateAgreementAndEServiceStatesPayload, {
-      params: {
-        eserviceId: agreement.eserviceId,
-        consumerId: agreement.consumerId,
-      },
-      withCredentials: true,
-      headers: testHeaders,
-    });
+      expect(
+        authorizationManagementClients.purposeApiClient
+          .updateAgreementAndEServiceStates
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        authorizationManagementClients.purposeApiClient
+          .updateAgreementAndEServiceStates
+      ).toHaveBeenCalledWith(expectedUpdateAgreementAndEServiceStatesPayload, {
+        params: {
+          eserviceId: agreement.eserviceId,
+          consumerId: agreement.consumerId,
+        },
+        withCredentials: true,
+        headers: testHeaders,
+      });
 
-    expect(
-      authorizationManagementClients.purposeApiClient.updateAgreementState
-    ).not.toHaveBeenCalled();
-    expect(
-      authorizationManagementClients.purposeApiClient.updateEServiceState
-    ).not.toHaveBeenCalled();
-  });
+      expect(
+        authorizationManagementClients.purposeApiClient.updateAgreementState
+      ).not.toHaveBeenCalled();
+      expect(
+        authorizationManagementClients.purposeApiClient.updateEServiceState
+      ).not.toHaveBeenCalled();
+    }
+  );
 
   it("Should throw when processing AgreementUpgraded messages if the EService for the agreement is not found", async () => {
     const agreement: Agreement = getMockAgreement();
