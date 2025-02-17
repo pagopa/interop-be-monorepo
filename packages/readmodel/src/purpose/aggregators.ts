@@ -5,10 +5,12 @@ import {
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionId,
+  PurposeVersionState,
   RiskAnalysisAnswerKind,
   riskAnalysisAnswerKind,
   RiskAnalysisMultiAnswer,
   RiskAnalysisSingleAnswer,
+  stringToDate,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -58,12 +60,19 @@ export const purposeSQLToPurpose = ({
       );
       const purposeVersionDocument: PurposeVersionDocument | undefined =
         purposeVersionDocumentSQL
-          ? // TODO: double check if .parse is enough or it should be filled manually
-            PurposeVersionDocument.parse(purposeVersionDocumentSQL)
+          ? {
+              id: unsafeBrandId(purposeVersionDocumentSQL.id),
+              path: purposeVersionDocumentSQL.path,
+              contentType: purposeVersionDocumentSQL.contentType,
+              createdAt: stringToDate(purposeVersionDocumentSQL.createdAt),
+            }
           : undefined;
 
       const purposeVersion: PurposeVersion = {
-        ...PurposeVersion.parse(purposeVersionSQL),
+        id: unsafeBrandId(purposeVersionSQL.id),
+        state: PurposeVersionState.parse(purposeVersionSQL.state),
+        dailyCalls: purposeVersionSQL.dailyCalls,
+        createdAt: stringToDate(purposeVersionSQL.createdAt),
         riskAnalysis: purposeVersionDocument,
       };
 
@@ -72,10 +81,14 @@ export const purposeSQLToPurpose = ({
     []
   );
 
-  const parsedPurpose = Purpose.safeParse(purposeSQL);
-
   const purpose: Purpose = {
-    ...Purpose.parse(parsedPurpose.data),
+    id: unsafeBrandId(purposeSQL.id),
+    title: purposeSQL.title,
+    createdAt: stringToDate(purposeSQL.createdAt),
+    eserviceId: unsafeBrandId(purposeSQL.eserviceId),
+    consumerId: unsafeBrandId(purposeSQL.consumerId),
+    description: purposeSQL.description,
+    isFreeOfCharge: purposeSQL.isFreeOfCharge,
     versions: purposeVersions,
     riskAnalysisForm: purposeRiskAnalysisForm,
   };
@@ -115,7 +128,11 @@ export const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
         .with({ kind: riskAnalysisAnswerKind.single }, () => ({
           singleAnswers: [
             ...acc.singleAnswers,
-            RiskAnalysisSingleAnswer.parse(answer),
+            {
+              id: unsafeBrandId(answer.id),
+              key: answer.key,
+              value: answer.value?.[0],
+            },
           ],
           multiAnswers: acc.multiAnswers,
         }))
@@ -123,7 +140,11 @@ export const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
           singleAnswers: acc.singleAnswers,
           multiAnswers: [
             ...acc.multiAnswers,
-            RiskAnalysisMultiAnswer.parse(answer),
+            {
+              id: answer.id,
+              key: answer.key,
+              values: answer.value,
+            },
           ],
         }))
         .exhaustive();
@@ -137,7 +158,9 @@ export const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
   );
 
   return {
-    ...PurposeRiskAnalysisForm.parse(purposeRiskAnalysisFormSQL),
+    id: unsafeBrandId(purposeRiskAnalysisFormSQL.id),
+    version: purposeRiskAnalysisFormSQL.version,
+    riskAnalysisId: unsafeBrandId(purposeRiskAnalysisFormSQL.riskAnalysisId),
     singleAnswers,
     multiAnswers,
   };
