@@ -35,6 +35,6 @@ CREATE TABLE IF NOT EXISTS readmodel.client_key (
   encoded_pem VARCHAR NOT NULL,
   algorithm VARCHAR NOT NULL,
   use VARCHAR NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (kid) -- TODO: probably kid can't be primary key
 );
