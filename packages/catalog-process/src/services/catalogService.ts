@@ -72,7 +72,11 @@ import {
   tenantNotFound,
   unchangedAttributes,
 } from "../model/domain/errors.js";
-import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
+import {
+  ApiGetEServicesFilters,
+  Consumer,
+  EServiceTemplateReferences,
+} from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
@@ -481,7 +485,8 @@ export function catalogServiceBuilder(
 
     async createEService(
       seed: catalogApi.EServiceSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext>,
+      eServiceTemplateReferences?: EServiceTemplateReferences
     ): Promise<EService> {
       logger.info(`Creating EService with name ${seed.name}`);
 
@@ -522,6 +527,8 @@ export function catalogServiceBuilder(
           .with(false, () => false)
           .with(true, () => seed.isClientAccessDelegable)
           .exhaustive(),
+        templateId: eServiceTemplateReferences?.templateId,
+        instanceId: eServiceTemplateReferences?.instanceId,
       };
 
       const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -558,6 +565,7 @@ export function catalogServiceBuilder(
         createdAt: creationDate,
         attributes: { certified: [], declared: [], verified: [] },
         rejectionReasons: undefined,
+        templateVersionId: eServiceTemplateReferences?.templateVersionId,
       };
 
       const eserviceWithDescriptor: EService = {

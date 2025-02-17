@@ -1,4 +1,8 @@
-import { EServiceTemplateId, unsafeBrandId } from "../brandedIds.js";
+import {
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
+  unsafeBrandId,
+} from "../brandedIds.js";
 import {
   AgreementApprovalPolicyV2,
   EServiceAttributeV2,
@@ -143,6 +147,9 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
     input.rejectionReasons.length > 0
       ? input.rejectionReasons.map(fromDescriptorRejectionReasonV2)
       : undefined,
+  templateVersionId: input.templateVersionId
+    ? unsafeBrandId<EServiceTemplateVersionId>(input.templateVersionId)
+    : undefined,
 });
 
 export const fromRiskAnalysisFormV2 = (
