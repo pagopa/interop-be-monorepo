@@ -234,21 +234,17 @@ export function agreementServiceBuilder(
       offset: number,
       { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<Agreement>> {
-      logger.info("Retrieving agreements");
-      const agreements = await readModelService.getAgreements(
+      logger.info(
+        `Getting agreements with producerId = ${filters.producerId}, consumerId = ${filters.consumerId}, eserviceId = ${filters.eserviceId}, agreementStates = ${filters.agreementStates}, attributeId = ${filters.attributeId}, showOnlyUpgradeable = ${filters.showOnlyUpgradeable}, offset = ${offset}, limit = ${limit}`
+      );
+
+      // Permissions are checked in the readModelService
+      return await readModelService.getAgreements(
+        authData.organizationId,
         filters,
         limit,
         offset
       );
-      agreements.results.forEach(
-        async (a) =>
-          await assertRequesterCanRetrieveAgreement(
-            a,
-            authData,
-            readModelService
-          )
-      );
-      return agreements;
     },
     async getAgreementById(
       agreementId: AgreementId,

@@ -317,31 +317,82 @@ async function searchTenantsByName(
   };
 }
 
+const addProducerDelegationData: Document = {
+  $addFields: {
+    activeProducerDelegations: {
+      $filter: {
+        input: "$delegations",
+        as: "delegation",
+        cond: {
+          $and: [
+            {
+              $eq: ["$$delegation.data.kind", delegationKind.delegatedProducer],
+            },
+            {
+              $eq: ["$$delegation.data.state", agreementState.active],
+            },
+            {
+              $eq: ["$$delegation.data.delegatorId", "$data.producerId"],
+            },
+          ],
+        },
+      },
+    },
+  },
+};
+
+const addConsumerDelegationData: Document = {
+  $addFields: {
+    activeConsumerDelegations: {
+      $filter: {
+        input: "$delegations",
+        as: "delegation",
+        cond: {
+          $and: [
+            {
+              $eq: ["$$delegation.data.kind", delegationKind.delegatedConsumer],
+            },
+            { $eq: ["$$delegation.data.state", delegationState.active] },
+            {
+              $eq: ["$$delegation.data.delegatorId", "$data.consumerId"],
+            },
+          ],
+        },
+      },
+    },
+  },
+};
+
+const addDelegationDataPipeline: Document[] = [
+  {
+    $lookup: {
+      from: "delegations",
+      localField: "data.eserviceId",
+      foreignField: "data.eserviceId",
+      as: "delegations",
+    },
+  },
+  addConsumerDelegationData,
+  addProducerDelegationData,
+];
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getProducerDelegateAgreementsFilters(producerIds: TenantId[]) {
+function getProducerOrDelegateFilter(producerIds: TenantId[]) {
   return producerIds && producerIds.length > 0
     ? [
         {
           $match: {
             $or: [
               {
-                $and: [
-                  {
-                    "delegations.data.kind": delegationKind.delegatedProducer,
-                  },
-                  {
-                    "delegations.data.state": agreementState.active,
-                  },
-                  {
-                    "delegations.data.delegateId": {
-                      $in: producerIds,
-                    },
-                  },
-                ],
-              },
-              {
                 "data.producerId": {
                   $in: producerIds,
+                },
+              },
+              {
+                activeProducerDelegations: {
+                  $elemMatch: {
+                    "data.delegateId": { $in: producerIds },
+                  },
                 },
               },
             ],
@@ -352,46 +403,24 @@ function getProducerDelegateAgreementsFilters(producerIds: TenantId[]) {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getConsumerDelegateAgreementsFilters(consumerIds: TenantId[]) {
+function getConsumerOrDelegateFilter(consumerIds: TenantId[]) {
   return consumerIds && consumerIds.length > 0
     ? [
         {
           $match: {
             $or: [
               {
-                $expr: {
-                  $anyElementTrue: {
-                    $map: {
-                      input: "$delegations",
-                      as: "del",
-                      in: {
-                        $and: [
-                          {
-                            $eq: [
-                              "$$del.data.kind",
-                              delegationKind.delegatedConsumer,
-                            ],
-                          },
-                          { $eq: ["$$del.data.state", delegationState.active] },
-                          {
-                            // We must perform this equality to identify the right consumer delegation
-                            // but an exact equality between the element
-                            // of a lookup and the original data item is possible only inside an $expr,
-                            // that's why we used an expression instead of normal filters
-                            $eq: ["$$del.data.delegatorId", "$data.consumerId"],
-                          },
-                          {
-                            $in: ["$$del.data.delegateId", consumerIds],
-                          },
-                        ],
-                      },
-                    },
-                  },
+                "data.consumerId": {
+                  $in: consumerIds,
                 },
               },
               {
-                "data.consumerId": {
-                  $in: consumerIds,
+                activeConsumerDelegations: {
+                  $elemMatch: {
+                    "data.delegateId": {
+                      $in: consumerIds,
+                    },
+                  },
                 },
               },
             ],
@@ -401,24 +430,33 @@ function getConsumerDelegateAgreementsFilters(consumerIds: TenantId[]) {
     : [];
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getDelegationsFilterPipeline(
-  filters: Pick<AgreementEServicesQueryFilters, "consumerIds" | "producerIds">
-) {
-  return filters.producerIds.length > 0 || filters.consumerIds.length > 0
-    ? [
+function applyVisibilityToAgreements(requesterId: TenantId): Document {
+  return {
+    $match: {
+      $or: [
         {
-          $lookup: {
-            from: "delegations",
-            localField: "data.eserviceId",
-            foreignField: "data.eserviceId",
-            as: "delegations",
+          "data.producerId": requesterId,
+        },
+        {
+          "data.consumerId": requesterId,
+        },
+        {
+          activeProducerDelegations: {
+            $elemMatch: {
+              "data.delegateId": requesterId,
+            },
           },
         },
-        ...getProducerDelegateAgreementsFilters(filters.producerIds),
-        ...getConsumerDelegateAgreementsFilters(filters.consumerIds),
-      ]
-    : [];
+        {
+          activeConsumerDelegations: {
+            $elemMatch: {
+              "data.delegateId": requesterId,
+            },
+          },
+        },
+      ],
+    },
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -429,6 +467,7 @@ export function readModelServiceBuilder(
     readModelRepository;
   return {
     async getAgreements(
+      requesterId: TenantId,
       filters: AgreementQueryFilters,
       limit: number,
       offset: number
@@ -449,8 +488,11 @@ export function readModelServiceBuilder(
       const agreementsData = await agreements
         .aggregate(
           [
+            ...addDelegationDataPipeline,
+            ...getProducerOrDelegateFilter(producerIds),
+            ...getConsumerOrDelegateFilter(consumerIds),
             getAgreementsFilters(otherFilters),
-            ...getDelegationsFilterPipeline({ producerIds, consumerIds }),
+            applyVisibilityToAgreements(requesterId),
           ],
           {
             allowDiskUse: true,
@@ -625,7 +667,9 @@ export function readModelServiceBuilder(
       };
 
       const agreementAggregationPipeline = [
-        ...getDelegationsFilterPipeline(filters),
+        ...addDelegationDataPipeline,
+        ...getProducerOrDelegateFilter(filters.producerIds),
+        ...getConsumerOrDelegateFilter(filters.consumerIds),
         {
           $match: agreementFilter,
         },
