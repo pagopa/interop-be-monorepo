@@ -7,6 +7,8 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import {
+  Agreement,
+  AgreementDocument,
   agreementDocumentKind,
   AgreementStamp,
   agreementStampKind,
@@ -38,28 +40,28 @@ describe("Agreement Splitter", () => {
     // set an Agreement
     const verifiedAttribute = getMockAgreementAttribute();
     const certifiedAttribute = getMockAgreementAttribute();
-    const declareddAttribute = getMockAgreementAttribute();
+    const declaredAttribute = getMockAgreementAttribute();
     const consumerDocument = getMockAgreementDocument();
-    const contract = {
+    const contract: AgreementDocument = {
       ...getMockAgreementDocument(),
       createdAt: new Date(),
     };
     const consumerNotes = "some notes";
     const rejectionReason = "some rejection reason";
 
-    const mockAgreemenStamps = getMockAgreementStamps();
-    const agreemenStamps: AgreementStamps = {};
+    const mockAgreementStamps = getMockAgreementStamps();
+    const agreementStamps: AgreementStamps = {};
     const delegationId = generateId<DelegationId>();
 
     // eslint-disable-next-line functional/no-let
     let key: keyof AgreementStamps;
 
     // eslint-disable-next-line guard-for-in
-    for (key in mockAgreemenStamps) {
-      const mockStamp = mockAgreemenStamps[key];
+    for (key in mockAgreementStamps) {
+      const mockStamp = mockAgreementStamps[key];
       if (mockStamp) {
         // eslint-disable-next-line functional/immutable-data
-        agreemenStamps[key] = {
+        agreementStamps[key] = {
           ...mockStamp,
           when: new Date(),
           delegationId,
@@ -67,11 +69,11 @@ describe("Agreement Splitter", () => {
       }
     }
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       verifiedAttributes: [verifiedAttribute],
       certifiedAttributes: [certifiedAttribute],
-      declaredAttributes: [declareddAttribute],
+      declaredAttributes: [declaredAttribute],
       suspendedByConsumer: true,
       suspendedByProducer: true,
       suspendedByPlatform: true,
@@ -79,7 +81,7 @@ describe("Agreement Splitter", () => {
       updatedAt: new Date(),
       consumerNotes,
       contract,
-      stamps: agreemenStamps,
+      stamps: agreementStamps,
       rejectionReason,
       suspendedAt: new Date(),
     };
@@ -117,7 +119,7 @@ describe("Agreement Splitter", () => {
       createdAt: consumerDocument.createdAt.toISOString(),
     };
 
-    const expectedContracDocumentSQL: AgreementDocumentSQL = {
+    const expectedContractDocumentSQL: AgreementDocumentSQL = {
       ...contract,
       agreementId: agreement.id,
       metadataVersion: 1,
@@ -141,13 +143,13 @@ describe("Agreement Splitter", () => {
       metadataVersion: 1,
       agreementId: agreement.id,
       kind: attributeKind.declared,
-      attributeId: declareddAttribute.id,
+      attributeId: declaredAttribute.id,
     };
 
     const expectedAgreementStampsSQL: AgreementStampSQL[] = [];
     // eslint-disable-next-line guard-for-in
-    for (key in agreemenStamps) {
-      const stamp = agreemenStamps[key];
+    for (key in agreementStamps) {
+      const stamp = agreementStamps[key];
       if (stamp) {
         // eslint-disable-next-line functional/immutable-data
         expectedAgreementStampsSQL.push({
@@ -165,7 +167,7 @@ describe("Agreement Splitter", () => {
     expect(agreementDocumentsSQL).toEqual(
       expect.arrayContaining([
         expectedAgreementDocumentSQL,
-        expectedContracDocumentSQL,
+        expectedContractDocumentSQL,
       ])
     );
     expect(agreementAttributesSQL).toEqual(
@@ -182,14 +184,14 @@ describe("Agreement Splitter", () => {
     // set an Agreement
     const verifiedAttribute = getMockAgreementAttribute();
     const certifiedAttribute = getMockAgreementAttribute();
-    const declareddAttribute = getMockAgreementAttribute();
+    const declaredAttribute = getMockAgreementAttribute();
     const consumerDocument = getMockAgreementDocument();
     const agreementSubmissionStamp: AgreementStamp = {
       who: generateId<UserId>(),
       when: new Date(),
       delegationId: undefined,
     };
-    const agreemenStamps: AgreementStamps = {
+    const agreementStamps: AgreementStamps = {
       submission: agreementSubmissionStamp,
       activation: undefined,
       rejection: undefined,
@@ -199,11 +201,11 @@ describe("Agreement Splitter", () => {
       archiving: undefined,
     };
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       verifiedAttributes: [verifiedAttribute],
       certifiedAttributes: [certifiedAttribute],
-      declaredAttributes: [declareddAttribute],
+      declaredAttributes: [declaredAttribute],
       suspendedByConsumer: undefined,
       suspendedByProducer: undefined,
       suspendedByPlatform: undefined,
@@ -211,7 +213,7 @@ describe("Agreement Splitter", () => {
       updatedAt: undefined,
       consumerNotes: undefined,
       contract: undefined,
-      stamps: agreemenStamps,
+      stamps: agreementStamps,
       rejectionReason: undefined,
       suspendedAt: undefined,
     };
@@ -265,10 +267,10 @@ describe("Agreement Splitter", () => {
       metadataVersion: 1,
       agreementId: agreement.id,
       kind: attributeKind.declared,
-      attributeId: declareddAttribute.id,
+      attributeId: declaredAttribute.id,
     };
 
-    const agreemenStampSQL: AgreementStampSQL = {
+    const agreementStampSQL: AgreementStampSQL = {
       metadataVersion: 1,
       agreementId: agreement.id,
       kind: agreementStampKind.submission,
@@ -276,7 +278,7 @@ describe("Agreement Splitter", () => {
       when: agreementSubmissionStamp.when.toISOString(),
       delegationId: null,
     };
-    const expectedAgreementStampsSQL: AgreementStampSQL[] = [agreemenStampSQL];
+    const expectedAgreementStampsSQL: AgreementStampSQL[] = [agreementStampSQL];
 
     expect(agreementSQL).toEqual(expectedAgreementSQL);
     expect(agreementDocumentsSQL).toEqual(
