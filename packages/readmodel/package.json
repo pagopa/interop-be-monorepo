@@ -33,9 +33,11 @@
     "zod": "3.23.8"
   },
   "devDependencies": {
+    "@types/json-diff": "1.0.3",
     "@types/pg": "8.11.11",
     "drizzle-kit": "0.30.4",
     "eslint": "8.57.0",
+    "json-diff": "1.0.6",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "ts-node": "10.9.2",
