@@ -43,7 +43,7 @@ import {
   tenantVerifiedAttributeVerifierInReadmodel,
   tenantVerifiedAttributeRevokerInReadmodel,
   eserviceTemplateBindingInReadmodel,
-} from "./schema";
+} from "./schema.js";
 
 export const purposeRiskAnalysisFormInReadmodelRelations = relations(
   purposeRiskAnalysisFormInReadmodel,
