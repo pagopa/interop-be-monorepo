@@ -1,5 +1,3 @@
-import { mockClient } from "aws-sdk-client-mock";
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import {
   Client,
@@ -7,7 +5,6 @@ import {
   clientKind,
   generateId,
   PurposeId,
-  TenantId,
   UserId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -23,20 +20,18 @@ import { clientSQLToClient } from "./../src/authorization/clientAggregators.js";
 describe("Client Aggregator", () => {
   it("should convert a Client object as data model into a Client object as business model ", () => {
     const clientId = generateId<ClientId>();
-    const consumerId = generateId<TenantId>();
     const userId1 = generateId<UserId>();
     const userId2 = generateId<UserId>();
     const purposeId1 = generateId<PurposeId>();
     const purposeId2 = generateId<PurposeId>();
     const key1 = getMockKey();
     const key2 = getMockKey();
-    const createdAt = new Date();
+    const mockClient = getMockClient();
 
     const clientSQL: ClientSQL = {
+      ...mockClient,
       id: clientId,
-      consumerId,
-      name: "name",
-      createdAt: createdAt.toISOString(),
+      createdAt: mockClient.createdAt.toISOString(),
       description: "description",
       kind: clientKind.consumer,
       metadataVersion: 1,
@@ -90,10 +85,8 @@ describe("Client Aggregator", () => {
 
     const expectedClient: WithMetadata<Client> = {
       data: {
+        ...mockClient,
         id: clientId,
-        consumerId,
-        name: "name",
-        createdAt,
         description: "description",
         kind: clientKind.consumer,
         purposes: [purposeId1, purposeId2],
