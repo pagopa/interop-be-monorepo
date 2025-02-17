@@ -14,7 +14,7 @@ import {
   EService,
   tenantKind,
 } from "pagopa-interop-models";
-import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
 import {
   EServiceDescriptorAttributeSQL,
