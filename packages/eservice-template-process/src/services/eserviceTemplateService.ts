@@ -13,6 +13,7 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysis,
   validateRiskAnalysis,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  RiskAnalysisValidationIssue,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -482,18 +483,27 @@ export function eserviceTemplateServiceBuilder(
 
       if (
         eserviceTemplate.data.mode === eserviceMode.receive &&
-        (eserviceTemplate.data.riskAnalysis.length === 0 ||
-          eserviceTemplate.data.riskAnalysis.some((ra) => {
-            const result = validateRiskAnalysis(
-              riskAnalysisFormToRiskAnalysisFormToValidate(ra.riskAnalysisForm),
-              true,
-              tenant.kind
-            );
-
-            return result.type === "invalid";
-          }))
+        eserviceTemplate.data.riskAnalysis.length > 0
       ) {
-        throw riskAnalysisValidationFailed([]);
+        const riskAnalysisError = eserviceTemplate.data.riskAnalysis.reduce<
+          RiskAnalysisValidationIssue[]
+        >((acc, ra) => {
+          const result = validateRiskAnalysis(
+            riskAnalysisFormToRiskAnalysisFormToValidate(ra.riskAnalysisForm),
+            true,
+            tenant.kind
+          );
+
+          if (result.type === "invalid") {
+            return [...acc, ...result.issues];
+          }
+
+          return acc;
+        }, []);
+
+        if (riskAnalysisError.length > 0) {
+          throw riskAnalysisValidationFailed(riskAnalysisError);
+        }
       }
 
       const publishedTemplate: EServiceTemplate = {
