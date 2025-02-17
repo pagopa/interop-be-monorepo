@@ -16,19 +16,23 @@ import {
   Descriptor,
   EService,
   EServiceId,
+  EServiceV2,
   PurposeV2,
   Tenant,
   TenantId,
   TenantMail,
   fromAgreementV2,
+  fromEServiceV2,
   fromPurposeV2,
   genericInternalError,
   tenantMailKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { match } from "ts-pattern";
 import {
   agreementStampDateNotFound,
+  descriptorInValidStateNotFound,
   descriptorNotFound,
   eServiceNotFound,
   htmlTemplateNotFound,
@@ -46,6 +50,7 @@ export const eventMailTemplateType = {
     "new-purpose-version-waiting-for-approval-mail",
   purposeWaitingForApprovalMailTemplate: "purpose-waiting-for-approval-mail",
   purposeVersionRejected: "purpose-version-rejected-mail",
+  eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
   newPurposeVersionActivatedMailTemplate: "new-purpose-version-activated-mail",
 } as const;
 
@@ -143,6 +148,23 @@ export function getFormattedAgreementStampDate(
     throw agreementStampDateNotFound(stamp, agreement.id);
   }
   return dateAtRomeZone(new Date(Number(stampDate)));
+}
+
+const isValidDescriptorState = (d: Descriptor): boolean =>
+  match(d.state)
+    .with("Archived", "Deprecated", "Published", "Suspended", () => true)
+    .with("Draft", "WaitingForApproval", () => false)
+    .exhaustive();
+
+function getLatestValidDescriptor(eservice: EService): Descriptor {
+  const latestDescriptor = eservice.descriptors
+    .filter(isValidDescriptorState)
+    .sort((a, b) => Number(a.version) - Number(b.version))
+    .at(-1);
+  if (!latestDescriptor) {
+    throw descriptorInValidStateNotFound(eservice.id);
+  }
+  return latestDescriptor;
 }
 
 async function sendActivationNotificationEmail(
@@ -507,6 +529,79 @@ export function notificationEmailSenderServiceBuilder(
         );
         throw genericInternalError(
           `Error sending email for purpose ${purpose.id} rejection: ${err}`
+        );
+      }
+    },
+    sendEserviceDescriptorPublishedSimpleEmail: async (
+      eserviceV2Msg: EServiceV2,
+      logger: Logger
+    ) => {
+      const eservice = fromEServiceV2(eserviceV2Msg);
+
+      const [htmlTemplate, agreements] = await Promise.all([
+        retrieveHTMLTemplate(
+          eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
+        ),
+        readModelService.getAgreementsByEserviceId(eservice.id),
+      ]);
+
+      if (agreements && agreements.length > 0) {
+        const consumers = await Promise.all(
+          agreements.map((consumer) =>
+            retrieveTenant(consumer.consumerId, readModelService)
+          )
+        );
+
+        for (const consumer of consumers) {
+          const consumerEmail = getLatestTenantMailOfKind(
+            consumer.mails,
+            tenantMailKind.ContactEmail
+          );
+
+          if (!consumerEmail) {
+            logger.warn(
+              `Consumer email not found for eservice ${eservice.id}, skipping email`
+            );
+            continue;
+          }
+
+          const descriptor = getLatestValidDescriptor(eservice);
+
+          const mail = {
+            from: { name: sesSenderData.label, address: sesSenderData.mail },
+            subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
+            to: [consumerEmail.address],
+            body: templateService.compileHtml(htmlTemplate, {
+              interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
+              eserviceName: eservice.name,
+            }),
+          };
+
+          try {
+            logger.info(
+              `Sending an email for published descriptor ${descriptor.id} of eservice ${eservice.id} (SES)`
+            );
+            await sesEmailManager.send(
+              mail.from,
+              mail.to,
+              mail.subject,
+              mail.body
+            );
+            logger.info(
+              `Email sent for published descriptor ${descriptor.id} of eservice ${eservice.id} (SES)`
+            );
+          } catch (err) {
+            logger.warn(
+              `Error sending email for published descriptor ${descriptor.id} of eservice ${eservice.id}: ${err}`
+            );
+            throw genericInternalError(
+              `Error sending email for published descriptor ${descriptor.id} of eservice ${eservice.id}: ${err}`
+            );
+          }
+        }
+      } else {
+        logger.warn(
+          `Agreement not found for eservice ${eservice.id}, skipping email`
         );
       }
     },
