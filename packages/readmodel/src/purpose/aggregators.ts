@@ -137,8 +137,7 @@ export const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
   );
 
   return {
-    ...purposeRiskAnalysisFormSQL,
-    id: unsafeBrandId(purposeRiskAnalysisFormSQL.id),
+    ...PurposeRiskAnalysisForm.parse(purposeRiskAnalysisFormSQL),
     singleAnswers,
     multiAnswers,
   };
