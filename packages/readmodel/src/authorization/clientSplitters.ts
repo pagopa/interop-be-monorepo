@@ -33,7 +33,7 @@ export const splitClientIntoObjectsSQL = (
     metadataVersion,
     consumerId,
     name,
-    description: description || "",
+    description: description || null,
     kind,
     createdAt: dateToString(createdAt),
   };
