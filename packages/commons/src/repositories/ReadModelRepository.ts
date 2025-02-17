@@ -9,6 +9,7 @@ import {
   genericInternalError,
   ProducerKeychainReadModel,
   ProducerJWKKey,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   Collection,
@@ -43,6 +44,7 @@ export type ClientKeyCollection = GenericCollection<ClientJWKKey>;
 export type ProducerKeychainCollection =
   GenericCollection<ProducerKeychainReadModel>;
 export type ProducerKeyCollection = GenericCollection<ProducerJWKKey>;
+export type DelegationCollection = GenericCollection<Delegation>;
 
 export type Collections =
   | EServiceCollection
@@ -53,7 +55,8 @@ export type Collections =
   | ClientCollection
   | ClientKeyCollection
   | ProducerKeychainCollection
-  | ProducerKeyCollection;
+  | ProducerKeyCollection
+  | DelegationCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -164,6 +167,8 @@ export class ReadModelRepository {
 
   public producerKeys: ProducerKeyCollection;
 
+  public delegations: DelegationCollection;
+
   private client: MongoClient;
   private db: Db;
 
@@ -194,6 +199,9 @@ export class ReadModelRepository {
       ignoreUndefined: true,
     });
     this.producerKeys = this.db.collection("producer_keys", {
+      ignoreUndefined: true,
+    });
+    this.delegations = this.db.collection("delegations", {
       ignoreUndefined: true,
     });
   }

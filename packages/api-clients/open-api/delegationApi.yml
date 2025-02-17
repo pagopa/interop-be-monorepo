@@ -1,0 +1,1046 @@
+openapi: 3.0.3
+info:
+  title: Delegation Process Micro Service
+  description: This service is the delegation process
+  version: "v1"
+  contact:
+    name: API Support
+    url: "http://www.example.com/support"
+    email: support@example.com
+  termsOfService: "http://swagger.io/terms/"
+  x-api-id: an x-api-id
+  x-summary: an x-summary
+servers:
+  - url: "/delegation-process/v1"
+    description: This service is the Delegation Process
+security:
+  - bearerAuth: []
+tags:
+  - name: delegation
+    description: Delegation common operations
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+  - name: producer
+    description: Producer delegations operations
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: consumer
+    description: Consumer delegations operations
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: health
+    description: Verify service status
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+paths:
+  /consumer/eservices:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - in: query
+        name: eserviceName
+        schema:
+          type: string
+      - in: query
+        name: delegatorId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - consumer
+      operationId: getConsumerEservices
+      description: Retrieve eservices of a consumer delegate with active delegation and agreement
+      responses:
+        "200":
+          description: Eservices retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactEServices"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /consumer/delegators:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - in: query
+        name: delegatorName
+        schema:
+          type: string
+      - in: query
+        name: eserviceIds
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+        explode: false
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - consumer
+      operationId: getConsumerDelegators
+      description: Retrieve requester's delegators
+      responses:
+        "200":
+          description: Tenants retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactTenants"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /consumer/delegatorsWithAgreements:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - in: query
+        name: delegatorName
+        schema:
+          type: string
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - consumer
+      operationId: getConsumerDelegatorsWithAgreements
+      description: Retrieve requester's delegators with active agreements
+      responses:
+        "200":
+          description: Tenants retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactTenants"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /delegations:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      description: List delegations
+      summary: List delegations
+      tags:
+        - delegation
+      operationId: getDelegations
+      parameters:
+        - in: query
+          name: delegationStates
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/DelegationState"
+            default: []
+          explode: false
+        - in: query
+          name: delegatorIds
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: delegateIds
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: kind
+          required: false
+          schema:
+            $ref: "#/components/schemas/DelegationKind"
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: eserviceIds
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+      responses:
+        "200":
+          description: Delegations retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegations"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /delegations/{delegationId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      description: Retrieves a delegation
+      summary: Retrieves a delegation
+      tags:
+        - delegation
+      operationId: getDelegation
+      responses:
+        "200":
+          description: Delegation retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /delegations/{delegationId}/contracts/{contractId}:
+    get:
+      description: Retrieves a delegation contract
+      summary: Retrieves a delegation contract
+      tags:
+        - delegation
+      operationId: getDelegationContract
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: delegationId
+          in: path
+          description: The delegation id
+          required: true
+          schema:
+            type: string
+        - name: contractId
+          in: path
+          description: The delegation contract id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Delegation contract retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DelegationContractDocument"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation contract not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /consumer/delegations:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      description: Creates a consumer delegation
+      summary: Consumer Delegation Creation
+      tags:
+        - consumer
+      operationId: createConsumerDelegation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationSeed"
+        description: Payload for delegation creation
+        required: true
+      responses:
+        "200":
+          description: Delegation created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /consumer/delegations/{delegationId}/approve:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Approves a consumer delegation
+      summary: Consumer delegation approval
+      tags:
+        - consumer
+      operationId: approveConsumerDelegation
+      responses:
+        "204":
+          description: Delegation approved
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /consumer/delegations/{delegationId}/reject:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Rejects a consumer delegation
+      summary: Consumer delegation rejection
+      tags:
+        - consumer
+      operationId: rejectConsumerDelegation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegationPayload"
+        required: true
+        description: Payload for delegation rejection
+      responses:
+        "204":
+          description: Delegation reject
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /consumer/delegations/{delegationId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      description: Revokes a consumer delegation
+      summary: Consumer delegation revocation
+      tags:
+        - consumer
+      operationId: revokeConsumerDelegation
+      responses:
+        "204":
+          description: Delegation revoked
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /producer/delegations:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      description: Creates a producer delegation
+      summary: Producer delegation creation
+      tags:
+        - producer
+      operationId: createProducerDelegation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationSeed"
+        description: Payload for delegation creation
+        required: true
+      responses:
+        "200":
+          description: Delegation created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /producer/delegations/{delegationId}/approve:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Approves a producer delegation
+      summary: Producer delegation approval
+      tags:
+        - producer
+      operationId: approveProducerDelegation
+      responses:
+        "204":
+          description: Delegation approved
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /producer/delegations/{delegationId}/reject:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Rejects a producer delegation
+      summary: Producer delegation rejection
+      tags:
+        - producer
+      operationId: rejectProducerDelegation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegationPayload"
+        required: true
+        description: Payload for delegation rejection
+      responses:
+        "204":
+          description: Delegation rejected
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /producer/delegations/{delegationId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      description: Revokes a producer delegation
+      summary: Producer delegation revocation
+      tags:
+        - producer
+      operationId: revokeProducerDelegation
+      responses:
+        "204":
+          description: Delegation revoked
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /status:
+    get:
+      description: Returns ok
+      summary: Health status endpoint
+      tags:
+        - health
+      operationId: getStatus
+      security: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+components:
+  parameters:
+    CorrelationIdHeader:
+      in: header
+      name: X-Correlation-Id
+      required: true
+      schema:
+        type: string
+  schemas:
+    CompactEService:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - producerId
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        producerId:
+          type: string
+          format: uuid
+    CompactEServices:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactEService"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    CompactTenant:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+        - id
+        - name
+    CompactTenants:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactTenant"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    Delegations:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Delegation"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    Delegation:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        delegatorId:
+          type: string
+          format: uuid
+        delegateId:
+          type: string
+          format: uuid
+        eserviceId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        revokedAt:
+          type: string
+          format: date-time
+        state:
+          $ref: "#/components/schemas/DelegationState"
+        kind:
+          $ref: "#/components/schemas/DelegationKind"
+        activationContract:
+          $ref: "#/components/schemas/DelegationContractDocument"
+        revocationContract:
+          $ref: "#/components/schemas/DelegationContractDocument"
+        stamps:
+          $ref: "#/components/schemas/DelegationStamps"
+      required:
+        - id
+        - delegatorId
+        - delegateId
+        - eserviceId
+        - createdAt
+        - state
+        - kind
+        - stamps
+    DelegationState:
+      type: string
+      enum:
+        - WAITING_FOR_APPROVAL
+        - ACTIVE
+        - REJECTED
+        - REVOKED
+    DelegationKind:
+      type: string
+      enum:
+        - DELEGATED_PRODUCER
+        - DELEGATED_CONSUMER
+    DelegationContractDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        contentType:
+          type: string
+        path:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - prettyName
+        - contentType
+        - path
+        - createdAt
+    DelegationStamp:
+      type: object
+      additionalProperties: false
+      properties:
+        who:
+          type: string
+          format: uuid
+        when:
+          type: string
+          format: date-time
+      required:
+        - who
+        - when
+    DelegationStamps:
+      type: object
+      additionalProperties: false
+      properties:
+        submission:
+          $ref: "#/components/schemas/DelegationStamp"
+        activation:
+          $ref: "#/components/schemas/DelegationStamp"
+        rejection:
+          $ref: "#/components/schemas/DelegationStamp"
+        revocation:
+          $ref: "#/components/schemas/DelegationStamp"
+      required:
+        - submission
+    DelegationSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        eserviceId:
+          type: string
+          format: uuid
+        delegateId:
+          type: string
+          format: uuid
+      required:
+        - eserviceId
+        - delegateId
+    RejectDelegationPayload:
+      type: object
+      additionalProperties: false
+      properties:
+        rejectionReason:
+          type: string
+      required:
+        - rejectionReason
+    Problem:
+      properties:
+        type:
+          description: URI reference of type definition
+          type: string
+        status:
+          description: The HTTP status code generated by the origin server for this occurrence of the problem.
+          example: 503
+          exclusiveMaximum: true
+          format: int32
+          maximum: 600
+          minimum: 100
+          type: integer
+        title:
+          description: A short, summary of the problem type. Written in english and readable
+          example: Service Unavailable
+          maxLength: 64
+          pattern: "^[ -~]{0,64}$"
+          type: string
+        correlationId:
+          description: Unique identifier of the request
+          example: "53af4f2d-0c87-41ef-a645-b726a821852b"
+          maxLength: 64
+          type: string
+        detail:
+          description: A human readable explanation of the problem.
+          example: Request took too long to complete.
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+        errors:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ProblemError"
+      additionalProperties: false
+      required:
+        - type
+        - status
+        - title
+        - errors
+    ProblemError:
+      properties:
+        code:
+          description: Internal code of the error
+          example: 123-4567
+          minLength: 8
+          maxLength: 8
+          pattern: "^[0-9]{3}-[0-9]{4}$"
+          type: string
+        detail:
+          description: A human readable explanation specific to this occurrence of the problem.
+          example: Parameter not valid
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+      required:
+        - code
+        - detail
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: A bearer token in the format of a JWS and comformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725).
+      scheme: bearer
+      bearerFormat: JWT

@@ -52,6 +52,10 @@ export function toOutboundEventV2(
       { type: "EServiceAdded" },
       { type: "DraftEServiceUpdated" },
       { type: "EServiceDescriptionUpdated" },
+      { type: "EServiceIsConsumerDelegableEnabled" },
+      { type: "EServiceIsConsumerDelegableDisabled" },
+      { type: "EServiceIsClientAccessDelegableEnabled" },
+      { type: "EServiceIsClientAccessDelegableDisabled" },
       { type: "EServiceNameUpdated" },
       (msg) => ({
         event_version: msg.event_version,
@@ -99,6 +103,9 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorPublished" },
       { type: "EServiceDescriptorSuspended" },
       { type: "EServiceDraftDescriptorDeleted" },
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      { type: "EServiceDescriptorApprovedByDelegator" },
+      { type: "EServiceDescriptorRejectedByDelegator" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

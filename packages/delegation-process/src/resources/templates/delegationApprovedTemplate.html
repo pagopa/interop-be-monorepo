@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Delega {{delegationKindText}}</title>
+    <link rel="stylesheet" href="./delegationTemplate.css" type="text/css" />
+    {{{paged-pdf-polyfill}}}
+  </head>
+
+  <body>
+    <!-- Pié di pagina -->
+    <div class="footer">
+      <hr />
+      <div class="pagopa">
+        <div class="pagopa-data">
+          PagoPA S.p.A.<br />
+          società per azioni con socio unico<br />
+          capitale sociale di euro 1,000,000 interamente versato<br />
+          sede legale in Roma, Piazza Colonna 370, CAP 00187<br />
+          n. di iscrizione a Registro Imprese di Roma, CF e P.IVA 15376371009
+        </div>
+        <div class="pictogram">
+          <img src="../assets/media/pictogram_pagopa.svg" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Intestazione di pagina -->
+    <div class="header">
+      <div class="logo">
+        <img src="../assets/media/logo_pagopa.png" />
+      </div>
+    </div>
+
+    <!-- Titolo del documento -->
+    <h1>Delega {{delegationKindText}}</h1>
+
+    <!-- Intro legale -->
+    <div class="legal-intro">
+      In data <strong>{{todayDate}}</strong> alle ore
+      <strong>{{todayTime}}</strong>, l’infrastruttura ha ricevuto la richiesta
+      di delega {{delegationKindText}} contraddistinta da id
+      <strong>{{delegationId}}</strong> (di seguito “delega”), inviata
+      dall’aderente <strong>{{delegatorName}}</strong> ({{#if
+      delegatorIpaCode}}codice IPA: <strong>{{delegatorIpaCode}}</strong> —
+      {{/if}}di seguito “delegante”), per il delegato
+      <strong>{{delegateName}}</strong> ({{#if delegateIpaCode}}codice IPA:
+      <strong>{{delegateIpaCode}}</strong> — {{/if}}di seguito “delegato
+      {{delegationKindText}}”) tramite l’operatore amministrativo con
+      identificativo Area Riservata <strong>{{submitterId}}</strong>, per
+      l’e-service <strong>{{eserviceName}}</strong>, contraddistinto da id
+      <strong>{{eserviceId}}</strong>
+      (di seguito “e-service”).
+    </div>
+    <div class="content">
+      <h2>Registrazione</h2>
+
+      <div>
+        In data <strong>{{submissionDate}}</strong> alle ore
+        <strong>{{submissionTime}}</strong>, l’Infrastruttura ha trasmesso al
+        delegato {{delegationKindText}} la richiesta di delega del delegante.
+      </div>
+
+      <div>
+        In data <strong>{{activationDate}}</strong> alle ore
+        <strong>{{activationTime}}</strong>, l’Infrastruttura ha ricevuto la
+        dichiarazione di accettazione della delega (di seguito “dichiarazione di
+        accettazione”) inviata dal delegato {{delegationKindText}}, tramite
+        l’operatore amministrativo con identificativo Area Riservata
+        <strong>{{activatorId}}</strong>.
+      </div>
+
+      <div>
+        In data <strong>{{activationDate}}</strong> alle ore
+        <strong>{{activationTime}}</strong>, l’Infrastruttura ha comunicato al
+        delegante e al delegato {{delegationKindText}} la dichiarazione di
+        accettazione.
+      </div>
+
+      <div>
+        In data <strong>{{activationDate}}</strong> alle ore
+        <strong>{{activationTime}}</strong>, l’Infrastruttura ha registrato il
+        delegato {{delegationKindText}} quale soggetto titolato
+        {{delegationActionText}}e-service per conto del delegante.
+      </div>
+    </div>
+
+    <div class="release-date">
+      <div class="date">{{todayDate}}</div>
+    </div>
+  </body>
+</html>

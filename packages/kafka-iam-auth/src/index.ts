@@ -1,6 +1,8 @@
 import { generateAuthToken } from "aws-msk-iam-sasl-signer-js";
 import {
   Consumer,
+  ConsumerRunConfig,
+  EachBatchPayload,
   EachMessagePayload,
   Kafka,
   KafkaConfig,
@@ -16,6 +18,7 @@ import {
   Logger,
   genericLogger,
   KafkaProducerConfig,
+  KafkaBatchConsumerConfig,
 } from "pagopa-interop-commons";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -230,11 +233,17 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
   });
 };
 
-const initConsumer = async (
-  config: KafkaConsumerConfig,
-  topics: string[],
-  consumerHandler: (payload: EachMessagePayload) => Promise<void>
-): Promise<Consumer> => {
+const initCustomConsumer = async ({
+  config,
+  topics,
+  consumerRunConfig,
+  batchConsumerConfig,
+}: {
+  config: KafkaConsumerConfig;
+  topics: string[];
+  consumerRunConfig: (consumer: Consumer) => ConsumerRunConfig;
+  batchConsumerConfig?: KafkaBatchConsumerConfig;
+}): Promise<Consumer> => {
   genericLogger.debug(
     `Consumer connecting to topics ${JSON.stringify(topics)}`
   );
@@ -252,6 +261,10 @@ const initConsumer = async (
         return Promise.resolve(false);
       },
     },
+    maxWaitTimeInMs: batchConsumerConfig?.maxWaitKafkaBatchMillis,
+    minBytes: batchConsumerConfig?.minBytes,
+    maxBytes: batchConsumerConfig?.maxBytes,
+    sessionTimeout: batchConsumerConfig?.sessionTimeoutMillis,
   });
 
   if (config.resetConsumerOffsets) {
@@ -276,23 +289,7 @@ const initConsumer = async (
 
   genericLogger.info(`Consumer subscribed topic ${topics}`);
 
-  await consumer.run({
-    autoCommit: false,
-    eachMessage: async (payload: EachMessagePayload) => {
-      try {
-        await consumerHandler(payload);
-        await kafkaCommitMessageOffsets(consumer, payload);
-      } catch (e) {
-        throw kafkaMessageProcessError(
-          payload.topic,
-          payload.partition,
-          payload.message.offset,
-          e
-        );
-      }
-    },
-  });
-
+  await consumer.run(consumerRunConfig(consumer));
   return consumer;
 };
 
@@ -351,7 +348,7 @@ export const initProducer = async (
     };
   } catch (e) {
     genericLogger.error(
-      `Generic error occurs during consumer initialization: ${e}`
+      `Generic error occurs during producer initialization: ${e}`
     );
     processExit();
     return undefined as never;
@@ -364,7 +361,58 @@ export const runConsumer = async (
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
 ): Promise<void> => {
   try {
-    await initConsumer(config, topics, consumerHandler);
+    const consumerRunConfig = (consumer: Consumer): ConsumerRunConfig => ({
+      autoCommit: false,
+      eachMessage: async (payload: EachMessagePayload): Promise<void> => {
+        try {
+          await consumerHandler(payload);
+          await kafkaCommitMessageOffsets(consumer, payload);
+        } catch (e) {
+          throw kafkaMessageProcessError(
+            payload.topic,
+            payload.partition,
+            payload.message.offset,
+            e
+          );
+        }
+      },
+    });
+    await initCustomConsumer({ config, topics, consumerRunConfig });
+  } catch (e) {
+    genericLogger.error(
+      `Generic error occurs during consumer initialization: ${e}`
+    );
+    processExit();
+  }
+};
+
+export const runBatchConsumer = async (
+  baseConsumerConfig: KafkaConsumerConfig,
+  batchConsumerConfig: KafkaBatchConsumerConfig,
+  topics: string[],
+  consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>
+): Promise<void> => {
+  try {
+    const consumerRunConfig = (): ConsumerRunConfig => ({
+      eachBatch: async (payload: EachBatchPayload): Promise<void> => {
+        try {
+          await consumerHandlerBatch(payload);
+        } catch (e) {
+          throw kafkaMessageProcessError(
+            payload.batch.topic,
+            payload.batch.partition,
+            payload.batch.lastOffset().toString(),
+            e
+          );
+        }
+      },
+    });
+    await initCustomConsumer({
+      config: baseConsumerConfig,
+      topics,
+      consumerRunConfig,
+      batchConsumerConfig,
+    });
   } catch (e) {
     genericLogger.error(
       `Generic error occurs during consumer initialization: ${e}`

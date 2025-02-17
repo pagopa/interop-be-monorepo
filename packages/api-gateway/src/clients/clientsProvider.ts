@@ -6,6 +6,7 @@ import {
   attributeRegistryApi,
   notifierApi,
   authorizationApi,
+  delegationApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -38,6 +39,10 @@ export type AuthorizationProcessClient = {
   client: ReturnType<typeof authorizationApi.createClientApiClient>;
 };
 
+export type DelegationProcessClient = ReturnType<
+  typeof delegationApi.createDelegationApiClient
+>;
+
 export type PagoPAInteropBeClients = {
   catalogProcessClient: CatalogProcessClient;
   agreementProcessClient: AgreementProcessClient;
@@ -46,6 +51,7 @@ export type PagoPAInteropBeClients = {
   attributeProcessClient: AttributeProcessClient;
   notifierEventsClient: NotifierEventsClient;
   authorizationProcessClient: AuthorizationProcessClient;
+  delegationProcessClient: DelegationProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -72,5 +78,8 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
         config.authorizationProcessUrl
       ),
     },
+    delegationProcessClient: delegationApi.createDelegationApiClient(
+      config.delegationProcessUrl
+    ),
   };
 }
