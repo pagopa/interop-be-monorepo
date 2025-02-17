@@ -2,6 +2,10 @@ name: PR validation
 on:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   formatting:
     name: Check formatting
@@ -57,6 +61,7 @@ jobs:
 
   find_dockerfiles:
     name: Find Dockerfiles
+    needs: [formatting, lint, check, test]
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.set_packages_output.outputs.packages }}
@@ -73,6 +78,7 @@ jobs:
     needs: [find_dockerfiles]
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 5
       fail-fast: false
       matrix:
         package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}

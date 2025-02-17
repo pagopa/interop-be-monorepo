@@ -311,6 +311,8 @@ export function catalogServiceBuilder(
           eservice,
           requesterTenant
         ),
+        publishedAt: descriptor.publishedAt,
+        deprecatedAt: descriptor.deprecatedAt,
       };
     },
     getProducerEServiceDetails: async (
