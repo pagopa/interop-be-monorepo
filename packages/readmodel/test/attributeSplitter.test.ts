@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
 import { describe, it, expect } from "vitest";
 import { Attribute } from "pagopa-interop-models";
@@ -21,8 +19,7 @@ describe("Attribute Splitter", () => {
       origin: "alfa",
       code: "beta",
     };
-    console.log(attributeSQL);
-    console.log(expectedAttributeSQL);
+
     expect(attributeSQL).toEqual(expectedAttributeSQL);
   });
 
@@ -40,8 +37,7 @@ describe("Attribute Splitter", () => {
       origin: null,
       code: null,
     };
-    console.log(attributeSQL);
-    console.log(expectedAttributeSQL);
+
     expect(attributeSQL).toEqual(expectedAttributeSQL);
   });
 });
