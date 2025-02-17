@@ -25,8 +25,8 @@ import {
   eserviceTemplateInReadmodel,
   eserviceTemplateVersionInReadmodel,
   eserviceTemplateVersionDocumentInReadmodel,
-  eserviceTemplateRiskAnalysisAnswerInReadmodel,
   eserviceTemplateRiskAnalysisInReadmodel,
+  eserviceTemplateRiskAnalysisAnswerInReadmodel,
   producerKeychainUserInReadmodel,
   producerKeychainEserviceInReadmodel,
   clientUserInReadmodel,
@@ -386,11 +386,11 @@ export const eserviceTemplateInReadmodelRelations = relations(
     eserviceTemplateVersionDocumentInReadmodels: many(
       eserviceTemplateVersionDocumentInReadmodel
     ),
-    eserviceTemplateRiskAnalysisAnswerInReadmodels: many(
-      eserviceTemplateRiskAnalysisAnswerInReadmodel
-    ),
     eserviceTemplateRiskAnalysisInReadmodels: many(
       eserviceTemplateRiskAnalysisInReadmodel
+    ),
+    eserviceTemplateRiskAnalysisAnswerInReadmodels: many(
+      eserviceTemplateRiskAnalysisAnswerInReadmodel
     ),
     eserviceTemplateVersionAttributeInReadmodels: many(
       eserviceTemplateVersionAttributeInReadmodel
@@ -417,6 +417,16 @@ export const eserviceTemplateVersionDocumentInReadmodelRelations = relations(
   })
 );
 
+export const eserviceTemplateRiskAnalysisInReadmodelRelations = relations(
+  eserviceTemplateRiskAnalysisInReadmodel,
+  ({ one }) => ({
+    eserviceTemplateInReadmodel: one(eserviceTemplateInReadmodel, {
+      fields: [eserviceTemplateRiskAnalysisInReadmodel.eserviceTemplateId],
+      references: [eserviceTemplateInReadmodel.id],
+    }),
+  })
+);
+
 export const eserviceTemplateRiskAnalysisAnswerInReadmodelRelations = relations(
   eserviceTemplateRiskAnalysisAnswerInReadmodel,
   ({ one }) => ({
@@ -431,16 +441,6 @@ export const eserviceTemplateRiskAnalysisAnswerInReadmodelRelations = relations(
         eserviceTemplateRiskAnalysisAnswerInReadmodel.riskAnalysisFormId,
       ],
       references: [eserviceRiskAnalysisInReadmodel.riskAnalysisFormId],
-    }),
-  })
-);
-
-export const eserviceTemplateRiskAnalysisInReadmodelRelations = relations(
-  eserviceTemplateRiskAnalysisInReadmodel,
-  ({ one }) => ({
-    eserviceTemplateInReadmodel: one(eserviceTemplateInReadmodel, {
-      fields: [eserviceTemplateRiskAnalysisInReadmodel.eserviceTemplateId],
-      references: [eserviceTemplateInReadmodel.id],
     }),
   })
 );
@@ -535,9 +535,6 @@ export const attributeInReadmodelRelations = relations(
     tenantCertifiedAttributeInReadmodels: many(
       tenantCertifiedAttributeInReadmodel
     ),
-    tenantVerifiedAttributeVerifierInReadmodels: many(
-      tenantVerifiedAttributeVerifierInReadmodel
-    ),
   })
 );
 
@@ -618,12 +615,6 @@ export const tenantVerifiedAttributeVerifierInReadmodelRelations = relations(
       references: [tenantInReadmodel.id],
       relationName:
         "tenantVerifiedAttributeVerifierInReadmodel_id_tenantInReadmodel_id",
-    }),
-    attributeInReadmodel: one(attributeInReadmodel, {
-      fields: [
-        tenantVerifiedAttributeVerifierInReadmodel.tenantVerifiedAttributeId,
-      ],
-      references: [attributeInReadmodel.id],
     }),
     tenantVerifiedAttributeInReadmodel: one(
       tenantVerifiedAttributeInReadmodel,

@@ -63,6 +63,16 @@ export const Document = z.object({
 });
 export type Document = z.infer<typeof Document>;
 
+export const documentKind = {
+  descriptorInterface: "INTERFACE",
+  descriptorDocument: "DOCUMENT",
+} as const;
+export const DocumentKind = z.enum([
+  Object.values(documentKind)[0],
+  ...Object.values(documentKind).slice(1),
+]);
+export type DocumentKind = z.infer<typeof DocumentKind>;
+
 export const DescriptorRejectionReason = z.object({
   rejectionReason: z.string(),
   rejectedAt: z.coerce.date(),
