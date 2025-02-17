@@ -493,7 +493,7 @@ export function notificationEmailSenderServiceBuilder(
         readModelService.getAgreementsByEserviceId(eservice.id),
       ]);
 
-      if (agreements) {
+      if (agreements && agreements.length > 0) {
         const consumers = await Promise.all(
           agreements.map((consumer) =>
             retrieveTenant(consumer.consumerId, readModelService)
