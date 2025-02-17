@@ -15157,6 +15157,9 @@ components:
         deprecatedAt:
           type: string
           format: date-time
+        archivedAt:
+          type: string
+          format: date-time
         rejectionReasons:
           type: array
           items:
