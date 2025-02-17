@@ -176,7 +176,6 @@ export const getMockEService = (
   producerId,
   technology: technology.rest,
   descriptors,
-  attributes: undefined,
   riskAnalysis: [],
   mode: "Deliver",
 });
@@ -313,6 +312,7 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
 export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
   version: "1",
+  description: undefined,
   docs: [],
   state: state || descriptorState.draft,
   audience: [],
