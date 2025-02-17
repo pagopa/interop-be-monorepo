@@ -15151,6 +15151,12 @@ components:
           $ref: "#/components/schemas/ProducerDescriptorEService"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributes"
+        publishedAt:
+          type: string
+          format: date-time
+        deprecatedAt:
+          type: string
+          format: date-time
         rejectionReasons:
           type: array
           items:
@@ -16802,6 +16808,8 @@ components:
         selfcareId:
           type: string
           format: uuid
+        kind:
+          $ref: "#/components/schemas/TenantKind"
         externalId:
           $ref: "#/components/schemas/ExternalId"
         features:
@@ -17245,7 +17253,10 @@ components:
           $ref: "#/components/schemas/Document"
         revocationContract:
           $ref: "#/components/schemas/Document"
-        submittedAt:
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
           type: string
           format: date-time
         rejectionReason:
@@ -17260,6 +17271,7 @@ components:
         - delegator
         - state
         - kind
+        - createdAt
     CompactDelegation:
       type: object
       additionalProperties: false
