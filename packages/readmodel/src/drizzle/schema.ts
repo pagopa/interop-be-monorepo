@@ -164,7 +164,7 @@ export const producerKeychainInReadmodel = readmodel.table(
     metadataVersion: integer("metadata_version").notNull(),
     producerId: uuid("producer_id").notNull(),
     name: varchar().notNull(),
-    description: varchar(),
+    description: varchar().notNull(),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",
@@ -221,7 +221,7 @@ export const tenantMailInReadmodel = readmodel.table(
     tenantId: uuid("tenant_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     kind: varchar().notNull(),
-    address: varchar(),
+    address: varchar().notNull(),
     description: varchar(),
     createdAt: timestamp("created_at", { mode: "string" }).notNull(),
   },
