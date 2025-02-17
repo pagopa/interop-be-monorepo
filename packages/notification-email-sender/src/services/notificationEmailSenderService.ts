@@ -43,13 +43,16 @@ import { ReadModelService } from "./readModelService.js";
 
 // Be careful to change this enum, it's used to find the html template files
 export const eventMailTemplateType = {
-  activation: "activation-mail",
-  submission: "submission-mail",
-  rejection: "rejection-mail",
+  agreementActivatedMailTemplate: "agreement-activated-mail",
+  agreementSubmittedMailTemplate: "agreement-submitted-mail",
+  agreementRejectedMailTemplate: "agreement-rejected-mail",
   newPurposeVersionWaitingForApprovalMailTemplate:
     "new-purpose-version-waiting-for-approval-mail",
+  firstPurposeVersionRejectedMailTemplate:
+    "first-purpose-version-rejected-mail",
+  otherPurposeVersionRejectedMailTemplate:
+    "other-purpose-version-rejected-mail",
   purposeWaitingForApprovalMailTemplate: "purpose-waiting-for-approval-mail",
-  purposeVersionRejected: "purpose-version-rejected-mail",
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
   newPurposeVersionActivatedMailTemplate: "new-purpose-version-activated-mail",
 } as const;
@@ -167,7 +170,7 @@ function getLatestValidDescriptor(eservice: EService): Descriptor {
   return latestDescriptor;
 }
 
-async function sendActivationNotificationEmail(
+async function sendAgreementActivatedEmail(
   emailManager: EmailManagerSES,
   readModelService: ReadModelService,
   agreementV2Msg: AgreementV2,
@@ -234,14 +237,16 @@ export function notificationEmailSenderServiceBuilder(
   interopFeBaseUrl?: string
 ) {
   return {
-    sendSubmissionNotificationSimpleEmail: async (
+    sendAgreementSubmittedEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ): Promise<void> => {
       const agreement = fromAgreementV2(agreementV2Msg);
 
       const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
-        retrieveHTMLTemplate(eventMailTemplateType.submission),
+        retrieveHTMLTemplate(
+          eventMailTemplateType.agreementSubmittedMailTemplate
+        ),
         retrieveAgreementEservice(agreement, readModelService),
         retrieveTenant(agreement.producerId, readModelService),
         retrieveTenant(agreement.consumerId, readModelService),
@@ -294,7 +299,7 @@ export function notificationEmailSenderServiceBuilder(
         );
       }
     },
-    sendActivationNotificationSimpleEmail: async (
+    sendAgreementActivatedEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ) => {
@@ -309,12 +314,12 @@ export function notificationEmailSenderServiceBuilder(
 
       const recepientsEmails = [retrieveTenantMailAddress(consumer).address];
 
-      return sendActivationNotificationEmail(
+      return sendAgreementActivatedEmail(
         sesEmailManager,
         readModelService,
         agreementV2Msg,
         templateService,
-        eventMailTemplateType.activation,
+        eventMailTemplateType.agreementActivatedMailTemplate,
         logger,
         sesSenderData,
         consumer.name,
@@ -323,14 +328,16 @@ export function notificationEmailSenderServiceBuilder(
         interopFeBaseUrl
       );
     },
-    sendRejectNotificationSimpleEmail: async (
+    sendAgreementRejectedEmail: async (
       agreementV2Msg: AgreementV2,
       logger: Logger
     ) => {
       const agreement = fromAgreementV2(agreementV2Msg);
 
       const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
-        retrieveHTMLTemplate(eventMailTemplateType.rejection),
+        retrieveHTMLTemplate(
+          eventMailTemplateType.agreementRejectedMailTemplate
+        ),
         retrieveAgreementEservice(agreement, readModelService),
         retrieveTenant(agreement.producerId, readModelService),
         retrieveTenant(agreement.consumerId, readModelService),
@@ -381,7 +388,7 @@ export function notificationEmailSenderServiceBuilder(
         );
       }
     },
-    sendEstimateAboveTheThresholderNotificationSimpleEmail: async (
+    sendNewPurposeVersionWaitingForApprovalEmail: async (
       purposeV2Msg: PurposeV2,
       logger: Logger
     ) => {
@@ -490,8 +497,20 @@ export function notificationEmailSenderServiceBuilder(
     ) => {
       const purpose = fromPurposeV2(purposeV2Msg);
 
+      const { subject, templateToRetrieve } = match(purpose.versions.length)
+        .with(1, () => ({
+          subject: "Rifiuto della finalità da parte dell'erogatore",
+          templateToRetrieve:
+            eventMailTemplateType.firstPurposeVersionRejectedMailTemplate,
+        }))
+        .otherwise(() => ({
+          subject: "Rifiuto richiesta di adeguamento stime di carico",
+          templateToRetrieve:
+            eventMailTemplateType.otherPurposeVersionRejectedMailTemplate,
+        }));
+
       const [htmlTemplate, consumer] = await Promise.all([
-        retrieveHTMLTemplate(eventMailTemplateType.purposeVersionRejected),
+        retrieveHTMLTemplate(templateToRetrieve),
         retrieveTenant(purpose.consumerId, readModelService),
       ]);
 
@@ -509,11 +528,11 @@ export function notificationEmailSenderServiceBuilder(
 
       const mail = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
-        subject: `Rifiuto delle finalità da parte dell'erogatore`,
+        subject,
         to: [consumerEmail.address],
         body: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
-          consumerName: consumer.name,
+          purposeName: purpose.title,
         }),
       };
 

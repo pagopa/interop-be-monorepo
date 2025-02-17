@@ -8,16 +8,13 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockTenant,
-  getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
-  AgreementId,
   EService,
   Tenant,
   UserId,
   generateId,
-  tenantMailKind,
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
@@ -38,17 +35,35 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("sendAgreementRejectEmail", () => {
-  it("should send an email on AgreementRejected", async () => {
+describe("sendAgreementSubmittedEmail", () => {
+  it("should send an email on AgreementSubmitted", async () => {
     vi.spyOn(sesEmailManager, "send");
-    const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
-    const consumer: Tenant = {
+    const tenantMail = "tenant@mail.com";
+    const consumer: Tenant = { ...getMockTenant(), name: "Jane Doe" };
+    const producer: Tenant = {
       ...getMockTenant(),
-      name: "Jane Doe",
-      mails: [consumerEmail],
+      name: "John Doe",
+      mails: [
+        {
+          address: "oldmail@old.com",
+          id: generateId(),
+          createdAt: new Date("2021-01-01"),
+          kind: "CONTACT_EMAIL",
+        },
+        {
+          address: tenantMail,
+          id: generateId(),
+          createdAt: new Date(),
+          kind: "CONTACT_EMAIL",
+        },
+        {
+          address: "oldmail2@old.com",
+          id: generateId(),
+          createdAt: new Date("2020-01-01"),
+          kind: "CONTACT_EMAIL",
+        },
+      ],
     };
-    const producer: Tenant = getMockTenant();
-
     await addOneTenant(producer);
     await addOneTenant(consumer);
 
@@ -60,13 +75,12 @@ describe("sendAgreementRejectEmail", () => {
     };
     await addOneEService(eservice);
 
-    const rejectDate = new Date("2021-01-01");
+    const submissionDate = new Date("2021-01-01");
 
     const agreement = {
       ...getMockAgreement(),
-      id: "37317757-0c8d-4e6e-9ac9-7d2db6a9519e" as AgreementId,
       stamps: {
-        rejection: { when: rejectDate, who: generateId<UserId>() },
+        submission: { when: submissionDate, who: generateId<UserId>() },
       },
       producerId: producer.id,
       descriptorId: descriptor.id,
@@ -75,31 +89,31 @@ describe("sendAgreementRejectEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await notificationEmailSenderService.sendRejectNotificationSimpleEmail(
+    await notificationEmailSenderService.sendAgreementSubmittedEmail(
       toAgreementV2(agreement),
       genericLogger
     );
 
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const templatePath = `../src/resources/templates/${eventMailTemplateType.rejection}.html`;
+    const templatePath = `../src/resources/templates/${eventMailTemplateType.agreementSubmittedMailTemplate}.html`;
 
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
-    const rejectEmailTemplate = htmlTemplateBuffer.toString();
+    const submissionEmailTemplate = htmlTemplateBuffer.toString();
 
     const mail = {
       from: {
         name: sesEmailsenderData.label,
         address: sesEmailsenderData.mail,
       },
-      subject: `Richiesta di fruizione per ${eservice.name} rifiutata`,
-      to: [consumerEmail.address],
-      body: templateService.compileHtml(rejectEmailTemplate, {
+      subject: `Nuova richiesta di fruizione per ${eservice.name} ricevuta`,
+      to: [tenantMail],
+      body: templateService.compileHtml(submissionEmailTemplate, {
         interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
         producerName: producer.name,
         consumerName: consumer.name,
         eserviceName: eservice.name,
-        rejectionDate: getFormattedAgreementStampDate(agreement, "rejection"),
+        submissionDate: getFormattedAgreementStampDate(agreement, "submission"),
       }),
     };
 
@@ -115,7 +129,6 @@ describe("sendAgreementRejectEmail", () => {
     );
     expect(response.status).toBe(200);
     const lastEmail = response.data.emails[0];
-
     expect(lastEmail).toMatchObject({
       subject: mail.subject,
       from: `${mail.from.name} <${mail.from.address}>`,
@@ -152,7 +165,7 @@ describe("sendAgreementRejectEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await notificationEmailSenderService.sendSubmissionNotificationSimpleEmail(
+    await notificationEmailSenderService.sendAgreementSubmittedEmail(
       toAgreementV2(agreement),
       genericLogger
     );

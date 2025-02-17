@@ -12,9 +12,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EService,
-  generateId,
   Purpose,
-  PurposeId,
   Tenant,
   tenantMailKind,
   toPurposeV2,
@@ -34,7 +32,7 @@ import {
   addOnePurpose,
 } from "./utils.js";
 
-describe("sendEstimateAboveTheThresholderNotificationEmail", () => {
+describe("sendNewPurposeVersionWaitingForApprovalEmail", () => {
   it("should send an email to Consumer to contact email addresses", async () => {
     vi.spyOn(sesEmailManager, "send");
     const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
@@ -56,13 +54,12 @@ describe("sendEstimateAboveTheThresholderNotificationEmail", () => {
 
     const purpose: Purpose = {
       ...getMockPurpose(),
-      id: generateId<PurposeId>(),
       eserviceId: eservice.id,
       consumerId: consumer.id,
     };
     await addOnePurpose(purpose);
 
-    await notificationEmailSenderService.sendEstimateAboveTheThresholderNotificationSimpleEmail(
+    await notificationEmailSenderService.sendNewPurposeVersionWaitingForApprovalEmail(
       toPurposeV2(purpose),
       genericLogger
     );
