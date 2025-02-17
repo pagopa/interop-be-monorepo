@@ -426,7 +426,7 @@ export function notificationEmailSenderServiceBuilder(
 
       const { subject, templateToRetrieve } = match(purpose.versions.length)
         .with(1, () => ({
-          subject: "Rifiuto delle finalità da parte dell'erogatore",
+          subject: "Rifiuto della finalità da parte dell'erogatore",
           templateToRetrieve:
             eventMailTemplateType.firstPurposeVersionRejectedMailTemplate,
         }))
