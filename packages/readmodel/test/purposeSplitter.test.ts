@@ -4,7 +4,7 @@ import {
   getMockPurposeVersionDocument,
   getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
-import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   DelegationId,
   generateId,
@@ -24,20 +24,14 @@ import {
   PurposeVersionSQL,
 } from "../src/types.js";
 
-describe("Purpose SQL splitter", () => {
-  beforeEach(async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
+describe("Purpose splitter", () => {
   it("should convert a complete purpose into purpose SQL objects", () => {
     const delegationId = generateId<DelegationId>();
     const freeOfChargeReason = "Free of charge reason";
     const rejectionReason = "Rejection reason";
+    const suspendedAt = new Date();
+    const updatedAt = new Date();
+    const firstActivationAt = new Date();
 
     const purposeVersionRiskAnalysis: PurposeVersionDocument =
       getMockPurposeVersionDocument();
@@ -45,9 +39,9 @@ describe("Purpose SQL splitter", () => {
     const purposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       rejectionReason,
-      suspendedAt: new Date(),
-      updatedAt: new Date(),
-      firstActivationAt: new Date(),
+      suspendedAt,
+      updatedAt,
+      firstActivationAt,
       riskAnalysis: purposeVersionRiskAnalysis,
     };
 
@@ -59,8 +53,7 @@ describe("Purpose SQL splitter", () => {
       delegationId,
       suspendedByConsumer: false,
       suspendedByProducer: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt,
       freeOfChargeReason,
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [purposeVersion],
@@ -79,8 +72,8 @@ describe("Purpose SQL splitter", () => {
       delegationId,
       suspendedByConsumer: false,
       suspendedByProducer: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: purpose.createdAt.toISOString(),
+      updatedAt: updatedAt.toISOString(),
       freeOfChargeReason,
       id: purpose.id,
       eserviceId: purpose.eserviceId,
@@ -127,10 +120,10 @@ describe("Purpose SQL splitter", () => {
     const expectedPurposeVersionSQL: PurposeVersionSQL = {
       metadataVersion: 1,
       purposeId: purpose.id,
-      createdAt: new Date().toISOString(),
-      suspendedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      firstActivationAt: new Date().toISOString(),
+      createdAt: purposeVersion.createdAt.toISOString(),
+      suspendedAt: suspendedAt.toISOString(),
+      updatedAt: updatedAt.toISOString(),
+      firstActivationAt: firstActivationAt.toISOString(),
       rejectionReason,
       id: purposeVersion.id,
       state: purposeVersion.state,
@@ -143,7 +136,7 @@ describe("Purpose SQL splitter", () => {
       metadataVersion: 1,
       purposeId: purpose.id,
       purposeVersionId: purposeVersion.id,
-      createdAt: new Date().toISOString(),
+      createdAt: purposeVersionRiskAnalysis.createdAt.toISOString(),
     };
 
     expect(purposeSQL).toEqual(expectedPurposeSQL);
@@ -159,7 +152,7 @@ describe("Purpose SQL splitter", () => {
     ]);
   });
 
-  it("should convert an incomplete purpose into purpose SQL objects", () => {
+  it("should convert an incomplete purpose into purpose SQL objects (undefined -> null)", () => {
     const purposeVersionRiskAnalysis: PurposeVersionDocument =
       getMockPurposeVersionDocument();
 
@@ -180,7 +173,6 @@ describe("Purpose SQL splitter", () => {
       delegationId: undefined,
       suspendedByConsumer: undefined,
       suspendedByProducer: undefined,
-      createdAt: new Date(),
       updatedAt: undefined,
       freeOfChargeReason: undefined,
       riskAnalysisForm: purposeRiskAnalysisForm,
@@ -200,7 +192,7 @@ describe("Purpose SQL splitter", () => {
       delegationId: null,
       suspendedByConsumer: null,
       suspendedByProducer: null,
-      createdAt: new Date().toISOString(),
+      createdAt: purpose.createdAt.toISOString(),
       updatedAt: null,
       freeOfChargeReason: null,
       id: purpose.id,
@@ -248,7 +240,7 @@ describe("Purpose SQL splitter", () => {
     const expectedPurposeVersionSQL: PurposeVersionSQL = {
       metadataVersion: 1,
       purposeId: purpose.id,
-      createdAt: new Date().toISOString(),
+      createdAt: purposeVersion.createdAt.toISOString(),
       suspendedAt: null,
       updatedAt: null,
       firstActivationAt: null,
@@ -264,7 +256,7 @@ describe("Purpose SQL splitter", () => {
       metadataVersion: 1,
       purposeId: purpose.id,
       purposeVersionId: purposeVersion.id,
-      createdAt: new Date().toISOString(),
+      createdAt: purposeVersionRiskAnalysis.createdAt.toISOString(),
     };
 
     expect(purposeSQL).toEqual(expectedPurposeSQL);
