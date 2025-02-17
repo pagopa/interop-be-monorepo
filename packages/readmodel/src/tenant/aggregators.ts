@@ -219,11 +219,11 @@ const aggregateTenantAttributes = ({
 
       return {
         id: unsafeBrandId<AttributeId>(currentVerifiedAttributeSQL.attributeId),
+        verifiedBy: verifiersOfCurrentAttribute,
         type: tenantAttributeType.VERIFIED,
         assignmentTimestamp: stringToDate(
           currentVerifiedAttributeSQL.assignmentTimestamp
         ),
-        verifiedBy: verifiersOfCurrentAttribute,
         revokedBy: revokersOfCurrentAttribute,
       };
     });
