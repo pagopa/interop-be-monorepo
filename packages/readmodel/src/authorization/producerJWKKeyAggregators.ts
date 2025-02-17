@@ -1,12 +1,13 @@
 import {
   ProducerJWKKey,
-  ProducerJWKKeySQL,
+  unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
+import { ProducerJWKKeySQL } from "../types.js";
 
 export const producerJWKKeySQLToProducerJWKKey = ({
-  producer_keychain_id,
-  metadata_version,
+  producerKeychainId,
+  metadataVersion,
   alg,
   e,
   kid,
@@ -18,7 +19,7 @@ export const producerJWKKeySQLToProducerJWKKey = ({
   void (rest satisfies Record<string, never>);
   return {
     data: {
-      producerKeychainId: producer_keychain_id,
+      producerKeychainId: unsafeBrandId(producerKeychainId),
       alg,
       e,
       kid,
@@ -26,6 +27,6 @@ export const producerJWKKeySQLToProducerJWKKey = ({
       n,
       use,
     },
-    metadata: { version: metadata_version },
+    metadata: { version: metadataVersion },
   };
 };
