@@ -28,6 +28,7 @@ export const errorCodes = {
   attributeNotFound: "0016",
   originNotCompliant: "0017",
   missingTemplateVersionInterface: "0018",
+  missingRiskAnalysis: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -221,5 +222,15 @@ export function missingTemplateVersionInterface(
     detail: `EService template ${templateId} version ${versionId} is missing the interface document`,
     code: "missingTemplateVersionInterface",
     title: "Missing template version interface",
+  });
+}
+
+export function missingRiskAnalysis(
+  templateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template ${templateId} is missing the risk analysis`,
+    code: "missingRiskAnalysis",
+    title: "Missing risk analysis",
   });
 }

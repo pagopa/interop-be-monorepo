@@ -48,6 +48,7 @@ import {
   eServiceTemplateVersionNotFound,
   eserviceTemplateWithoutPublishedVersion,
   inconsistentDailyCalls,
+  missingRiskAnalysis,
   notValidEServiceTemplateVersionState,
 } from "../model/domain/errors.js";
 import {
@@ -481,28 +482,29 @@ export function eserviceTemplateServiceBuilder(
       );
       assertTenantKindExists(tenant);
 
-      if (
-        eserviceTemplate.data.mode === eserviceMode.receive &&
-        eserviceTemplate.data.riskAnalysis.length > 0
-      ) {
-        const riskAnalysisError = eserviceTemplate.data.riskAnalysis.reduce<
-          RiskAnalysisValidationIssue[]
-        >((acc, ra) => {
-          const result = validateRiskAnalysis(
-            riskAnalysisFormToRiskAnalysisFormToValidate(ra.riskAnalysisForm),
-            true,
-            tenant.kind
-          );
+      if (eserviceTemplate.data.mode === eserviceMode.receive) {
+        if (eserviceTemplate.data.riskAnalysis.length > 0) {
+          const riskAnalysisError = eserviceTemplate.data.riskAnalysis.reduce<
+            RiskAnalysisValidationIssue[]
+          >((acc, ra) => {
+            const result = validateRiskAnalysis(
+              riskAnalysisFormToRiskAnalysisFormToValidate(ra.riskAnalysisForm),
+              true,
+              tenant.kind
+            );
 
-          if (result.type === "invalid") {
-            return [...acc, ...result.issues];
+            if (result.type === "invalid") {
+              return [...acc, ...result.issues];
+            }
+
+            return acc;
+          }, []);
+
+          if (riskAnalysisError.length > 0) {
+            throw riskAnalysisValidationFailed(riskAnalysisError);
           }
-
-          return acc;
-        }, []);
-
-        if (riskAnalysisError.length > 0) {
-          throw riskAnalysisValidationFailed(riskAnalysisError);
+        } else {
+          throw missingRiskAnalysis(eserviceTemplateId);
         }
       }
 

@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  genericLogger,
+  unexpectedRulesVersionError,
+} from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAuthData,
@@ -28,6 +31,7 @@ import { expect, describe, it, afterAll, vi, beforeAll } from "vitest";
 import {
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
+  missingRiskAnalysis,
   missingTemplateVersionInterface,
   notValidEServiceTemplateVersionState,
   riskAnalysisValidationFailed,
@@ -372,7 +376,7 @@ describe("publishEServiceTemplateVersion", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(riskAnalysisValidationFailed([]));
+    ).rejects.toThrowError(missingRiskAnalysis(eserviceTemplate.id));
   });
 
   it("should throw riskAnalysisValidationFailed if the eservice template mode is receive doesn't have a valid risk analysis", async () => {
@@ -418,7 +422,9 @@ describe("publishEServiceTemplateVersion", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(riskAnalysisValidationFailed([]));
+    ).rejects.toThrowError(
+      riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
+    );
   });
 
   it("shouldn't throw riskAnalysisValidationFailed if the eservice template mode isn't reveive even if doesn't have any risk analysis", async () => {
