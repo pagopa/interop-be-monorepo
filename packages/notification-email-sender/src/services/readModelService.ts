@@ -1,15 +1,26 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
-import { EService, Tenant, genericInternalError } from "pagopa-interop-models";
+import {
+  Agreement,
+  EService,
+  EServiceId,
+  Tenant,
+  agreementState,
+  genericInternalError,
+} from "pagopa-interop-models";
+import { z } from "zod";
 
 export type ReadModelService = {
   getEServiceById: (id: string) => Promise<EService | undefined>;
   getTenantById: (tenantId: string) => Promise<Tenant | undefined>;
+  getAgreementsByEserviceId: (
+    eserviceId: EServiceId
+  ) => Promise<Agreement[] | undefined>;
 };
 
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ): ReadModelService {
-  const { eservices, tenants } = readModelRepository;
+  const { eservices, tenants, agreements } = readModelRepository;
 
   async function getEServiceById(id: string): Promise<EService | undefined> {
     const data = await eservices.findOne(
@@ -55,8 +66,46 @@ export function readModelServiceBuilder(
     }
     return undefined;
   }
+
+  async function getAgreementsByEserviceId(
+    eserviceId: EServiceId
+  ): Promise<Agreement[] | undefined> {
+    const data = await agreements
+      .find(
+        {
+          "data.eserviceId": eserviceId,
+          "data.state": {
+            $in: [
+              agreementState.active,
+              agreementState.suspended,
+              agreementState.pending,
+            ],
+          },
+        },
+        { projection: { data: true } }
+      )
+      .toArray();
+
+    if (data) {
+      const result = z
+        .array(Agreement)
+        .safeParse(data.map((agreement) => agreement.data));
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse agreement item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
+    }
+    return undefined;
+  }
   return {
     getEServiceById,
     getTenantById,
+    getAgreementsByEserviceId,
   };
 }
