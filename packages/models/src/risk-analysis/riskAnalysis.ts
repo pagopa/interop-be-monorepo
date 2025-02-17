@@ -1,11 +1,20 @@
 import { z } from "zod";
 import {
-  EServiceId,
   RiskAnalysisFormId,
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
 } from "../brandedIds.js";
+
+export const riskAnalysisAnswerKind = {
+  single: "SINGLE",
+  multi: "MULTI",
+} as const;
+export const RiskAnalysisAnswerKind = z.enum([
+  Object.values(riskAnalysisAnswerKind)[0],
+  ...Object.values(riskAnalysisAnswerKind).slice(1),
+]);
+export type RiskAnalysisAnswerKind = z.infer<typeof RiskAnalysisAnswerKind>;
 
 export const RiskAnalysisSingleAnswer = z.object({
   id: RiskAnalysisSingleAnswerId,
@@ -44,35 +53,3 @@ export const RiskAnalysis = z.object({
   createdAt: z.coerce.date(),
 });
 export type RiskAnalysis = z.infer<typeof RiskAnalysis>;
-
-export const EserviceRiskAnalysisSQL = z.object({
-  id: RiskAnalysisId,
-  eservice_id: EServiceId,
-  metadata_version: z.number(),
-  name: z.string(),
-  created_at: z.coerce.date(),
-  risk_analysis_form_id: RiskAnalysisFormId,
-  risk_analysis_form_version: z.string(),
-});
-export type EserviceRiskAnalysisSQL = z.infer<typeof EserviceRiskAnalysisSQL>;
-
-export const riskAnalysisAnswerKind = {
-  single: "SINGLE",
-  multi: "MULTI",
-} as const;
-export const RiskAnalysisAnswerKind = z.enum([
-  Object.values(riskAnalysisAnswerKind)[0],
-  ...Object.values(riskAnalysisAnswerKind).slice(1),
-]);
-export type RiskAnalysisAnswerKind = z.infer<typeof RiskAnalysisAnswerKind>;
-
-export const RiskAnalysisAnswerSQL = z.object({
-  id: RiskAnalysisSingleAnswerId.or(RiskAnalysisMultiAnswerId),
-  eservice_id: EServiceId,
-  metadata_version: z.number(),
-  risk_analysis_form_id: RiskAnalysisFormId,
-  kind: RiskAnalysisAnswerKind,
-  key: z.string(),
-  value: z.array(z.string()),
-});
-export type RiskAnalysisAnswerSQL = z.infer<typeof RiskAnalysisAnswerSQL>;
