@@ -4,51 +4,56 @@ import {
   AppContext,
   AuthData,
   DB,
-  FileManager,
-  Logger,
-  WithLogger,
   eventRepository,
+  FileManager,
   formatDateddMMyyyyHHmmss,
   hasPermission,
+  Logger,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
+  WithLogger,
 } from "pagopa-interop-commons";
 import {
+  agreementState,
   AttributeId,
+  catalogEventToBinaryData,
   Delegation,
+  delegationKind,
+  delegationState,
   Descriptor,
   DescriptorId,
   DescriptorRejectionReason,
   DescriptorState,
+  descriptorState,
   Document,
   EService,
   EServiceAttribute,
+  EserviceAttributes,
   EServiceDocumentId,
   EServiceId,
-  EserviceAttributes,
+  eserviceMode,
+  EServiceTemplateId,
+  eserviceTemplateVersionState,
+  generateId,
   ListResult,
+  operationForbidden,
   RiskAnalysis,
   RiskAnalysisId,
   Tenant,
   TenantId,
-  WithMetadata,
-  agreementState,
-  catalogEventToBinaryData,
-  delegationKind,
-  delegationState,
-  descriptorState,
-  eserviceMode,
-  generateId,
-  operationForbidden,
   unsafeBrandId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
+  agreementApprovalPolicyToApiAgreementApprovalPolicy,
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
+  eServiceModeToApiEServiceMode,
+  technologyToApiTechnology,
 } from "../model/domain/apiConverter.js";
 import {
   attributeNotFound,
@@ -60,6 +65,8 @@ import {
   eServiceDuplicate,
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
+  eServiceTemplateNotFound,
+  eServiceTemplateWithoutPublishedVersion,
   eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
   inconsistentDailyCalls,
@@ -2244,6 +2251,58 @@ export function catalogServiceBuilder(
       );
 
       return updatedEService;
+    },
+    async createEServiceInstanceFromTemplate(
+      templateId: EServiceTemplateId,
+      seed: catalogApi.InstanceEServiceSeed,
+      ctx: WithLogger<AppContext>
+    ): Promise<EService> {
+      ctx.logger.info(`Retrieving EService template ${templateId}`);
+
+      const template = await readModelService.getEServiceTemplateById(
+        templateId
+      );
+
+      if (!template) {
+        throw eServiceTemplateNotFound(templateId);
+      }
+
+      const publishedVersion = template.versions.find(
+        (version) => version.state === eserviceTemplateVersionState.published
+      );
+
+      if (!publishedVersion) {
+        throw eServiceTemplateWithoutPublishedVersion(templateId);
+      }
+
+      return await this.createEService(
+        {
+          name: `${template.name} ${seed.instanceId ?? ""}`.trim(),
+          description: template.eserviceDescription,
+          technology: technologyToApiTechnology(template.technology),
+          mode: eServiceModeToApiEServiceMode(template.mode),
+          descriptor: {
+            description: publishedVersion.description,
+            audience: [template.audienceDescription],
+            voucherLifespan: publishedVersion.voucherLifespan,
+            dailyCallsPerConsumer: publishedVersion.dailyCallsPerConsumer ?? 1,
+            dailyCallsTotal: publishedVersion.dailyCallsTotal ?? 1,
+            agreementApprovalPolicy:
+              agreementApprovalPolicyToApiAgreementApprovalPolicy(
+                publishedVersion.agreementApprovalPolicy
+              ),
+          },
+          isSignalHubEnabled: template.isSignalHubEnabled,
+          isConsumerDelegable: false,
+          isClientAccessDelegable: false,
+        },
+        ctx,
+        {
+          templateId: template.id,
+          templateVersionId: publishedVersion.id,
+          instanceId: seed.instanceId,
+        }
+      );
     },
   };
 }

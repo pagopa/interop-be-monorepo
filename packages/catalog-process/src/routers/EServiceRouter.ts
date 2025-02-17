@@ -174,6 +174,32 @@ const eservicesRouter = (
         }
       }
     )
+    .post(
+      "/eservices/templates/:templateId/instance",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const eService =
+            await catalogService.createEServiceInstanceFromTemplate(
+              unsafeBrandId(req.params.templateId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(catalogApi.EService.parse(eServiceToApiEService(eService)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createEServiceErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get(
       "/eservices/:eServiceId",
       authorizationMiddleware([
