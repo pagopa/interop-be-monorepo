@@ -1,22 +1,53 @@
 {
   "TableName": "token-generation-states",
   "AttributeDefinitions": [
-    { "AttributeName": "PK", "AttributeType": "S" },
-    { "AttributeName": "GSIPK_eserviceId_descriptorId", "AttributeType": "S" },
-    { "AttributeName": "GSIPK_consumerId_eserviceId", "AttributeType": "S" },
-    { "AttributeName": "GSIPK_purposeId", "AttributeType": "S" },
-    { "AttributeName": "GSIPK_clientId", "AttributeType": "S" },
-    { "AttributeName": "GSIPK_kid", "AttributeType": "S" },
-    { "AttributeName": "GSIPK_clientId_purposeId", "AttributeType": "S" }
+    {
+      "AttributeName": "PK",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "GSIPK_eserviceId_descriptorId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "GSIPK_consumerId_eserviceId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "GSIPK_purposeId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "GSIPK_clientId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "GSIPK_clientId_kid",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "GSIPK_clientId_purposeId",
+      "AttributeType": "S"
+    }
   ],
-  "KeySchema": [{ "AttributeName": "PK", "KeyType": "HASH" }],
+  "KeySchema": [
+    {
+      "AttributeName": "PK",
+      "KeyType": "HASH"
+    }
+  ],
   "GlobalSecondaryIndexes": [
     {
       "IndexName": "Descriptor",
       "KeySchema": [
-        { "AttributeName": "GSIPK_eserviceId_descriptorId", "KeyType": "HASH" }
+        {
+          "AttributeName": "GSIPK_eserviceId_descriptorId",
+          "KeyType": "HASH"
+        }
       ],
-      "Projection": { "ProjectionType": "ALL" }
+      "Projection": {
+        "ProjectionType": "KEYS_ONLY"
+      }
     },
     {
       "IndexName": "Agreement",
@@ -26,29 +57,87 @@
           "KeyType": "HASH"
         }
       ],
-      "Projection": { "ProjectionType": "ALL" }
+      "Projection": {
+        "ProjectionType": "INCLUDE",
+        "NonKeyAttributes": [
+          "agreementState",
+          "descriptorState",
+          "descriptorAudience",
+          "descriptorVoucherLifespan"
+        ]
+      }
     },
     {
       "IndexName": "Purpose",
-      "KeySchema": [{ "AttributeName": "GSIPK_purposeId", "KeyType": "HASH" }],
-      "Projection": { "ProjectionType": "ALL" }
+      "KeySchema": [
+        {
+          "AttributeName": "GSIPK_purposeId",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "INCLUDE",
+        "NonKeyAttributes": [
+          "agreementId",
+          "agreementState",
+          "GSIPK_eserviceId_descriptorId",
+          "descriptorAudience",
+          "descriptorState",
+          "descriptorVoucherLifespan",
+          "purposeState",
+          "purposeVersionId"
+        ]
+      }
     },
     {
       "IndexName": "Client",
-      "KeySchema": [{ "AttributeName": "GSIPK_clientId", "KeyType": "HASH" }],
-      "Projection": { "ProjectionType": "ALL" }
+      "KeySchema": [
+        {
+          "AttributeName": "GSIPK_clientId",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "INCLUDE",
+        "NonKeyAttributes": [
+          "consumerId",
+          "clientKind",
+          "publicKey",
+          "GSIPK_clientId_kid"
+        ]
+      }
     },
     {
-      "IndexName": "Kid",
-      "KeySchema": [{ "AttributeName": "GSIPK_kid", "KeyType": "HASH" }],
-      "Projection": { "ProjectionType": "ALL" }
+      "IndexName": "ClientKid",
+      "KeySchema": [
+        {
+          "AttributeName": "GSIPK_clientId_kid",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "KEYS_ONLY"
+      }
     },
     {
       "IndexName": "ClientPurpose",
       "KeySchema": [
-        { "AttributeName": "GSIPK_clientId_purposeId", "KeyType": "HASH" }
+        {
+          "AttributeName": "GSIPK_clientId_purposeId",
+          "KeyType": "HASH"
+        }
       ],
-      "Projection": { "ProjectionType": "ALL" }
+      "Projection": {
+        "ProjectionType": "INCLUDE",
+        "NonKeyAttributes": [
+          "GSIPK_clientId",
+          "GSIPK_clientId_kid",
+          "GSIPK_purposeId",
+          "consumerId",
+          "clientKind",
+          "publicKey"
+        ]
+      }
     }
   ],
   "ProvisionedThroughput": {

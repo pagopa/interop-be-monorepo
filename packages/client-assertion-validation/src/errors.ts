@@ -1,54 +1,42 @@
-import { ApiError } from "pagopa-interop-models";
+import { ApiError, ItemState } from "pagopa-interop-models";
 
 export const errorCodes = {
-  clientAssertionValidationFailure: "0001",
-  unexpectedClientAssertionSignatureVerificationError: "0002",
-  invalidAssertionType: "0003",
-  invalidGrantType: "0004",
-  invalidAudienceFormat: "0005",
-  invalidAudience: "0006",
-  audienceNotFound: "0007",
-  invalidClientAssertionFormat: "0008",
-  unexpectedClientAssertionPayload: "0009",
-  jtiNotFound: "00010",
-  issuedAtNotFound: "0011",
-  expNotFound: "0012",
-  issuerNotFound: "0013",
-  subjectNotFound: "0014",
-  invalidSubject: "0015",
-  invalidPurposeIdClaimFormat: "0016",
-  kidNotFound: "0017",
-  clientAssertionSignatureVerificationError: "0018",
-  tokenExpiredError: "0019",
-  jsonWebTokenError: "0020",
-  notBeforeError: "0021",
-  inactivePurpose: "0022",
-  inactiveAgreement: "0023",
-  inactiveEService: "0024",
-  invalidClientIdFormat: "0025",
-  invalidSubjectFormat: "0026",
-  digestClaimNotFound: "0027",
-  invalidHashLength: "0028",
-  invalidHashAlgorithm: "0029",
-  algorithmNotFound: "0030",
-  algorithmNotAllowed: "0031",
-  purposeIdNotProvided: "0032",
-  invalidKidFormat: "0033",
-  clientAssertionInvalidClaims: "0034",
-  invalidSignature: "0035",
+  unexpectedClientAssertionSignatureVerificationError: "0001",
+  invalidAssertionType: "0002",
+  invalidGrantType: "0003",
+  invalidAudience: "0004",
+  audienceNotFound: "0005",
+  invalidClientAssertionFormat: "0006",
+  unexpectedClientAssertionPayload: "0007",
+  jtiNotFound: "0008",
+  issuedAtNotFound: "0009",
+  expNotFound: "0010",
+  issuerNotFound: "0011",
+  subjectNotFound: "0012",
+  invalidSubject: "0013",
+  invalidPurposeIdClaimFormat: "0014",
+  kidNotFound: "0015",
+  clientAssertionSignatureVerificationError: "0016",
+  tokenExpiredError: "0017",
+  jsonWebTokenError: "0018",
+  notBeforeError: "0019",
+  invalidPurposeState: "0020",
+  invalidAgreementState: "0021",
+  invalidEServiceState: "0022",
+  invalidClientIdFormat: "0023",
+  invalidSubjectFormat: "0024",
+  digestClaimNotFound: "0025",
+  invalidHashLength: "0026",
+  invalidHashAlgorithm: "0027",
+  algorithmNotFound: "0028",
+  algorithmNotAllowed: "0029",
+  purposeIdNotProvided: "0030",
+  invalidKidFormat: "0031",
+  clientAssertionInvalidClaims: "0032",
+  invalidSignature: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
-
-export function clientAssertionValidationFailure(
-  details: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Client assertion validation failed: ${details}`,
-    code: "clientAssertionValidationFailure",
-    title: "Client assertion validation failed",
-  });
-}
 
 export function unexpectedClientAssertionSignatureVerificationError(
   message: string
@@ -88,17 +76,11 @@ export function invalidGrantType(grantType: string): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidAudienceFormat(): ApiError<ErrorCodes> {
+export function invalidAudience(
+  aud: string | string[] | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Audience must be an array or a string in case of single value",
-    code: "invalidAudienceFormat",
-    title: "Invalid audience format",
-  });
-}
-
-export function invalidAudience(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: "Unexpected client assertion audience",
+    detail: `Unexpected client assertion audience: ${aud}`,
     code: "invalidAudience",
     title: "Invalid audience",
   });
@@ -223,26 +205,32 @@ export function notBeforeError(): ApiError<ErrorCodes> {
   });
 }
 
-export function inactivePurpose(): ApiError<ErrorCodes> {
+export function invalidPurposeState(
+  purposeState: ItemState | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Purpose is not active",
-    code: "inactivePurpose",
+    detail: `Purpose state is: ${purposeState}`,
+    code: "invalidPurposeState",
     title: "Purpose is not active",
   });
 }
 
-export function inactiveEService(): ApiError<ErrorCodes> {
+export function invalidEServiceState(
+  eserviceState: ItemState | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "E-Service is not active",
-    code: "inactiveEService",
+    detail: `E-Service state is: ${eserviceState}`,
+    code: "invalidEServiceState",
     title: "E-Service is not active",
   });
 }
 
-export function inactiveAgreement(): ApiError<ErrorCodes> {
+export function invalidAgreementState(
+  agreementState: ItemState | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Agreement is not active",
-    code: "inactiveAgreement",
+    detail: `Agreement state is: ${agreementState}`,
+    code: "invalidAgreementState",
     title: "Agreement is not active",
   });
 }

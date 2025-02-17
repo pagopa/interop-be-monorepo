@@ -41,6 +41,13 @@ import {
   EServiceRiskAnalysisUpdatedV2,
   EServiceRiskAnalysisDeletedV2,
   EServiceDescriptionUpdatedV2,
+  EServiceIsConsumerDelegableEnabledV2,
+  EServiceIsConsumerDelegableDisabledV2,
+  EServiceIsClientAccessDelegableEnabledV2,
+  EServiceIsClientAccessDelegableDisabledV2,
+  EServiceDescriptorSubmittedByDelegateV2,
+  EServiceDescriptorApprovedByDelegatorV2,
+  EServiceDescriptorRejectedByDelegatorV2,
   EServiceDescriptorAttributesUpdatedV2,
   EServiceNameUpdatedV2,
 } from "../gen/v2/eservice/events.js";
@@ -167,8 +174,29 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     .with({ type: "EServiceDescriptionUpdated" }, ({ data }) =>
       EServiceDescriptionUpdatedV2.toBinary(data)
     )
+    .with({ type: "EServiceDescriptorSubmittedByDelegate" }, ({ data }) =>
+      EServiceDescriptorSubmittedByDelegateV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorApprovedByDelegator" }, ({ data }) =>
+      EServiceDescriptorApprovedByDelegatorV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorRejectedByDelegator" }, ({ data }) =>
+      EServiceDescriptorRejectedByDelegatorV2.toBinary(data)
+    )
     .with({ type: "EServiceDescriptorAttributesUpdated" }, ({ data }) =>
       EServiceDescriptorAttributesUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceIsConsumerDelegableEnabled" }, ({ data }) =>
+      EServiceIsConsumerDelegableEnabledV2.toBinary(data)
+    )
+    .with({ type: "EServiceIsConsumerDelegableDisabled" }, ({ data }) =>
+      EServiceIsConsumerDelegableDisabledV2.toBinary(data)
+    )
+    .with({ type: "EServiceIsClientAccessDelegableEnabled" }, ({ data }) =>
+      EServiceIsClientAccessDelegableEnabledV2.toBinary(data)
+    )
+    .with({ type: "EServiceIsClientAccessDelegableDisabled" }, ({ data }) =>
+      EServiceIsClientAccessDelegableDisabledV2.toBinary(data)
     )
     .with({ type: "EServiceNameUpdated" }, ({ data }) =>
       EServiceNameUpdatedV2.toBinary(data)
@@ -363,8 +391,43 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorSubmittedByDelegate"),
+    data: protobufDecoder(EServiceDescriptorSubmittedByDelegateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorApprovedByDelegator"),
+    data: protobufDecoder(EServiceDescriptorApprovedByDelegatorV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorRejectedByDelegator"),
+    data: protobufDecoder(EServiceDescriptorRejectedByDelegatorV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorAttributesUpdated"),
     data: protobufDecoder(EServiceDescriptorAttributesUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceIsConsumerDelegableEnabled"),
+    data: protobufDecoder(EServiceIsConsumerDelegableEnabledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceIsConsumerDelegableDisabled"),
+    data: protobufDecoder(EServiceIsConsumerDelegableDisabledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceIsClientAccessDelegableEnabled"),
+    data: protobufDecoder(EServiceIsClientAccessDelegableEnabledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceIsClientAccessDelegableDisabled"),
+    data: protobufDecoder(EServiceIsClientAccessDelegableDisabledV2),
   }),
   z.object({
     event_version: z.literal(2),

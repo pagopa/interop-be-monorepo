@@ -49,6 +49,7 @@ const apiGatewayRouter = (
     attributeProcessClient,
     notifierEventsClient,
     authorizationProcessClient,
+    delegationProcessClient,
   }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = userRoles;
@@ -71,7 +72,8 @@ const apiGatewayRouter = (
   const purposeService = purposeServiceBuilder(
     purposeProcessClient,
     catalogProcessClient,
-    agreementProcessClient
+    agreementProcessClient,
+    delegationProcessClient
   );
 
   const tenantService = tenantServiceBuilder(

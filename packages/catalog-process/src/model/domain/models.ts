@@ -21,6 +21,8 @@ export type ApiGetEServicesFilters = {
   agreementStates: AgreementState[];
   name?: string;
   mode?: EServiceMode;
+  isConsumerDelegable?: boolean;
+  delegated?: boolean;
 };
 
 export type EServiceDocument = {

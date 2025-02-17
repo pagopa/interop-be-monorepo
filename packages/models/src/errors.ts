@@ -54,7 +54,7 @@ type ProblemError = {
   detail: string;
 };
 
-type Problem = {
+export type Problem = {
   type: string;
   status: number;
   title: string;
