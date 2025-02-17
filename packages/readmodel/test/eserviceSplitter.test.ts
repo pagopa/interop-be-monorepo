@@ -27,23 +27,18 @@ import {
 } from "../src/types.js";
 import { generateRiskAnalysisAnswersSQL } from "./utils.js";
 
-describe("", () => {
-  beforeEach(async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it("should convert a complete eservice into eservice SQL objects", () => {
+describe("E-service splitter", () => {
+  it("should convert a complete e-service into e-service SQL objects", () => {
     const certifiedAttribute = getMockEServiceAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const rejectionReason = getMockDescriptorRejectionReason();
     const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
     const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+    const publishedAt = new Date();
+    const suspendedAt = new Date();
+    const deprecatedAt = new Date();
+    const archivedAt = new Date();
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -56,10 +51,10 @@ describe("", () => {
       interface: interfaceDoc,
       rejectionReasons: [rejectionReason],
       description: "description test",
-      publishedAt: new Date(),
-      suspendedAt: new Date(),
-      deprecatedAt: new Date(),
-      archivedAt: new Date(),
+      publishedAt,
+      suspendedAt,
+      deprecatedAt,
+      archivedAt,
       agreementApprovalPolicy: agreementApprovalPolicy.automatic,
     };
 
@@ -129,10 +124,10 @@ describe("", () => {
       createdAt: descriptor.createdAt.toISOString(),
       eserviceId: eservice.id,
       description: "description test",
-      publishedAt: new Date().toISOString(),
-      suspendedAt: new Date().toISOString(),
-      deprecatedAt: new Date().toISOString(),
-      archivedAt: new Date().toISOString(),
+      publishedAt: publishedAt.toISOString(),
+      suspendedAt: suspendedAt.toISOString(),
+      deprecatedAt: deprecatedAt.toISOString(),
+      archivedAt: archivedAt.toISOString(),
       agreementApprovalPolicy: agreementApprovalPolicy.automatic,
       id: descriptor.id,
       version: descriptor.version,
@@ -197,7 +192,7 @@ describe("", () => {
     expect(rejectionReasonsSQL).toEqual([expectedRejectionReasonSQL]);
   });
 
-  it("should convert an incomplete eservice into eservice SQL objects", () => {
+  it("should convert an incomplete e-service into e-service SQL objects", () => {
     const doc = getMockDocument();
     const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
     const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
