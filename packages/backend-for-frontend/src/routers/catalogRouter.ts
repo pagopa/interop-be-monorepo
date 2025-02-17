@@ -170,6 +170,30 @@ const catalogRouter = (
         }
       }
     )
+    .post("/eservices/templates/:templateId/instance", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response =
+          await catalogService.createEServiceInstanceFromTemplate(
+            unsafeBrandId(req.params.templateId),
+            req.body,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(bffApi.CreatedEServiceDescriptor.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error creating EService instance from template ${req.params.templateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/eservices/:eServiceId/consumers", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {

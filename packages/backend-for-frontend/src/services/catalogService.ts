@@ -20,6 +20,7 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  EServiceTemplateId,
   RiskAnalysisId,
   TenantId,
   unsafeBrandId,
@@ -1433,6 +1434,30 @@ export function catalogServiceBuilder(
           descriptorId,
         },
       });
+    },
+    createEServiceInstanceFromTemplate: async (
+      templateId: EServiceTemplateId,
+      seed: bffApi.InstanceEServiceSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedEServiceDescriptor> => {
+      logger.info(
+        `Creating EService from template ${templateId} ${
+          seed.instanceId ? `with instanceId ${seed.instanceId}` : ""
+        }`
+      );
+
+      const eService =
+        await catalogProcessClient.createEServiceInstanceFromTemplate(seed, {
+          headers,
+          params: {
+            templateId,
+          },
+        });
+
+      return {
+        id: eService.id,
+        descriptorId: eService.descriptors[0].id,
+      };
     },
   };
 }

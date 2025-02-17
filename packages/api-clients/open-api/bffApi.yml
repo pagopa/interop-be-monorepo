@@ -2719,6 +2719,76 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/templates/{templateId}/instance:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Create a new e-service instance from a template
+      operationId: createEServiceInstanceFromTemplate
+      parameters:
+        - name: templateId
+          in: path
+          description: The template id to create the e-service from
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Template instantiation parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstanceEServiceSeed"
+      responses:
+        "200":
+          description: EService created from template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /eservices/{eServiceId}/consumers:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -19321,6 +19391,18 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+    EService:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - producerId
+        - name
+        - description
+        - technology
+        - descriptors
+        - riskAnalysis
+        - mode
     EServiceTemplate:
       type: object
       additionalProperties: false
@@ -19446,6 +19528,15 @@ components:
           $ref: "#/components/schemas/VersionSeedForEServiceTemplateCreation"
         isSignalHubEnabled:
           type: boolean
+    InstanceEServiceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        instanceId:
+          type: string
+          format: uuid
+          description: Optional identifier to be appended to the template name
+          required: false
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan
