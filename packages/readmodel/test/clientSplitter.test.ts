@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import { Client, generateId, PurposeId, UserId } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
