@@ -495,18 +495,18 @@ export function notificationEmailSenderServiceBuilder(
 
       try {
         logger.info(
-          `Sending an email for the activatation of the new version of purpose: ${purpose.id} (SES)`
+          `Sending an email for the activation of the new version of purpose: ${purpose.id} (SES)`
         );
         await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
         logger.info(
-          `Email sent for the activatation of the new version of purpose: ${purpose.id} (SES)`
+          `Email sent for the activation of the new version of purpose: ${purpose.id} (SES)`
         );
       } catch (err) {
         logger.warn(
-          `Error sending email for the activatation of the new version of purpose: ${purpose.id} error: ${err}`
+          `Error sending email for the activation of the new version of purpose: ${purpose.id} error: ${err}`
         );
         throw genericInternalError(
-          `Error sending email for the activatation of the new version of purpose: ${purpose.id} error: ${err}`
+          `Error sending email for the activation of the new version of purpose: ${purpose.id} error: ${err}`
         );
       }
     },
