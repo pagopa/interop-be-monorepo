@@ -24,7 +24,6 @@ import {
   RiskAnalysisId,
   RiskAnalysisFormId,
   AttributeId,
-  DescriptorRejectionReason,
   stringToDate,
 } from "pagopa-interop-models";
 import {
@@ -86,13 +85,18 @@ export const descriptorSQLtoDescriptor = ({
   const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
   const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
 
-  const rejectionReasons: DescriptorRejectionReason[] = rejectionReasonsSQL.map(
-    (rejectionReason) => ({
-      rejectionReason: rejectionReason.rejectionReason,
-      rejectedAt: stringToDate(rejectionReason.rejectedAt),
-    })
-  );
+  const rejectionReasonsArray = rejectionReasonsSQL.map((rejectionReason) => ({
+    rejectionReason: rejectionReason.rejectionReason,
+    rejectedAt: stringToDate(rejectionReason.rejectedAt),
+  }));
 
+  const rejectionReasons =
+    rejectionReasonsArray.length > 0 ? rejectionReasonsArray : undefined;
+
+  // const rejectionReasons = rejectionReasonsSQL.map((rejectionReason) => ({
+  //   rejectionReason: rejectionReason.rejectionReason,
+  //   rejectedAt: stringToDate(rejectionReason.rejectedAt),
+  // }));
   return {
     id: unsafeBrandId<DescriptorId>(descriptorSQL.id),
     version: descriptorSQL.version,
@@ -109,10 +113,18 @@ export const descriptorSQLtoDescriptor = ({
     ), // TODO use safeParse?
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
-    publishedAt: stringToDate(descriptorSQL.publishedAt),
-    suspendedAt: stringToDate(descriptorSQL.suspendedAt),
-    deprecatedAt: stringToDate(descriptorSQL.deprecatedAt),
-    archivedAt: stringToDate(descriptorSQL.archivedAt),
+    ...(descriptorSQL.publishedAt
+      ? { publishedAt: stringToDate(descriptorSQL.publishedAt) }
+      : {}),
+    ...(descriptorSQL.suspendedAt
+      ? { suspendedAt: stringToDate(descriptorSQL.suspendedAt) }
+      : {}),
+    ...(descriptorSQL.deprecatedAt
+      ? { deprecatedAt: stringToDate(descriptorSQL.deprecatedAt) }
+      : {}),
+    ...(descriptorSQL.archivedAt
+      ? { archivedAt: stringToDate(descriptorSQL.archivedAt) }
+      : {}),
     attributes: {
       certified: certifiedAttributes,
       declared: declaredAttributes,
