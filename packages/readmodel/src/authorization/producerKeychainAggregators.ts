@@ -2,21 +2,25 @@ import {
   EServiceId,
   Key,
   ProducerKeychain,
-  ProducerKeychainEServiceSQL,
-  ProducerKeychainKeySQL,
-  ProducerKeychainSQL,
-  ProducerKeychainUserSQL,
+  stringToDate,
+  unsafeBrandId,
   UserId,
   WithMetadata,
 } from "pagopa-interop-models";
+import {
+  ProducerKeychainSQL,
+  ProducerKeychainUserSQL,
+  ProducerKeychainEServiceSQL,
+  ProducerKeychainKeySQL,
+} from "../types.js";
 
 export const producerKeychainSQLToProducerKeychain = (
   {
     id,
-    metadata_version,
-    producer_id,
+    metadataVersion,
+    producerId,
     name,
-    created_at,
+    createdAt,
     description,
     ...rest
   }: ProducerKeychainSQL,
@@ -26,31 +30,33 @@ export const producerKeychainSQLToProducerKeychain = (
 ): WithMetadata<ProducerKeychain> => {
   void (rest satisfies Record<string, never>);
 
-  const users: UserId[] = producerKeychainUsersSQL.map((u) => u.user_id);
-  const eservices: EServiceId[] = producerKeychainEServicesSQL.map(
-    (e) => e.eservice_id
+  const users: UserId[] = producerKeychainUsersSQL.map((u) =>
+    unsafeBrandId(u.userId)
+  );
+  const eservices: EServiceId[] = producerKeychainEServicesSQL.map((e) =>
+    unsafeBrandId(e.eserviceId)
   );
   const keys: Key[] = producerKeychainKeysSQL.map((k) => ({
-    userId: k.user_id,
+    userId: k.userId,
     kid: k.kid,
     name: k.name,
-    encodedPem: k.encoded_pem,
+    encodedPem: k.encodedPem,
     algorithm: k.algorithm,
     use: k.use,
-    createdAt: k.created_at,
+    createdAt: stringToDate(k.createdAt),
   }));
 
   return {
     data: {
-      id,
-      producerId: producer_id,
+      id: unsafeBrandId(id),
+      producerId: unsafeBrandId(producerId),
       name,
       eservices,
       description,
       users,
-      createdAt: created_at,
+      createdAt: stringToDate(createdAt),
       keys,
     },
-    metadata: { version: metadata_version },
+    metadata: { version: metadataVersion },
   };
 };
