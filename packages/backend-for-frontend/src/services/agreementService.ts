@@ -877,6 +877,7 @@ async function getConsumerProducerEserviceDelegation(
     queries: {
       delegatorIds: [agreement.consumerId],
       eserviceIds: [agreement.eserviceId],
+      delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
       kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
       offset: 0,
       limit: 1,
