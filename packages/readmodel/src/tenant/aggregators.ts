@@ -124,7 +124,7 @@ export const aggregateTenantSQL = ({
   return {
     data: tenant,
     metadata: {
-      version: 1,
+      version: tenantSQL.metadataVersion,
     },
   };
 };
