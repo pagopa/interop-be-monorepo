@@ -12831,6 +12831,9 @@ components:
         deprecatedAt:
           type: string
           format: date-time
+        archivedAt:
+          type: string
+          format: date-time
     ProducerDescriptorEService:
       type: object
       additionalProperties: false

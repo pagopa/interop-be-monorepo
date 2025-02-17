@@ -313,6 +313,7 @@ export function catalogServiceBuilder(
         ),
         publishedAt: descriptor.publishedAt,
         deprecatedAt: descriptor.deprecatedAt,
+        archivedAt: descriptor.archivedAt,
       };
     },
     getProducerEServiceDetails: async (
