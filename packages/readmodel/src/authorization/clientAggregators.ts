@@ -1,24 +1,32 @@
 import {
   Client,
+  ClientId,
+  ClientKind,
+  Key,
+  KeyUse,
+  PurposeId,
+  stringToDate,
+  TenantId,
+  unsafeBrandId,
+  UserId,
+  WithMetadata,
+} from "pagopa-interop-models";
+import {
   ClientKeySQL,
   ClientPurposeSQL,
   ClientSQL,
   ClientUserSQL,
-  Key,
-  PurposeId,
-  UserId,
-  WithMetadata,
-} from "pagopa-interop-models";
+} from "../types.js";
 
 export const clientSQLToClient = (
   {
     id,
-    metadata_version,
-    consumer_id,
+    metadataVersion,
+    consumerId,
     name,
     description,
     kind,
-    created_at,
+    createdAt,
     ...rest
   }: ClientSQL,
   clientUsersSQL: ClientUserSQL[],
@@ -27,30 +35,34 @@ export const clientSQLToClient = (
 ): WithMetadata<Client> => {
   void (rest satisfies Record<string, never>);
 
-  const users: UserId[] = clientUsersSQL.map((u) => u.user_id);
-  const purposes: PurposeId[] = clientPurposesSQL.map((p) => p.purpose_id);
+  const users: UserId[] = clientUsersSQL.map((u) =>
+    unsafeBrandId<UserId>(u.userId)
+  );
+  const purposes: PurposeId[] = clientPurposesSQL.map((p) =>
+    unsafeBrandId<PurposeId>(p.purposeId)
+  );
   const keys: Key[] = clientKeysSQL.map((k) => ({
-    userId: k.user_id,
+    userId: unsafeBrandId<UserId>(k.userId),
     kid: k.kid,
     name: k.name,
-    encodedPem: k.encoded_pem,
+    encodedPem: k.encodedPem,
     algorithm: k.algorithm,
-    use: k.use,
-    createdAt: k.created_at,
+    use: KeyUse.parse(k.use),
+    createdAt: stringToDate(k.createdAt),
   }));
 
   return {
     data: {
-      id,
-      consumerId: consumer_id,
+      id: unsafeBrandId<ClientId>(id),
+      consumerId: unsafeBrandId<TenantId>(consumerId),
       name,
       purposes,
-      description,
+      description: description || undefined,
       users,
-      kind,
-      createdAt: created_at,
+      kind: ClientKind.parse(kind),
+      createdAt: stringToDate(createdAt),
       keys,
     },
-    metadata: { version: metadata_version },
+    metadata: { version: metadataVersion },
   };
 };
