@@ -192,7 +192,7 @@ describe("E-service splitter", () => {
     expect(rejectionReasonsSQL).toEqual([expectedRejectionReasonSQL]);
   });
 
-  it("should convert an incomplete e-service into e-service SQL objects", () => {
+  it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", () => {
     const doc = getMockDocument();
     const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
     const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
