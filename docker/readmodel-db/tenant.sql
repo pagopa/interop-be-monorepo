@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_mail (
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   kind VARCHAR NOT NULL,
-  address VARCHAR NULL,
+  address VARCHAR NOT NULL,
   description VARCHAR NULL,
   created_at TIMESTAMP NOT NULL,
   PRIMARY KEY (id)
