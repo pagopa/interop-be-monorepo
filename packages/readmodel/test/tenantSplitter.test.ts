@@ -37,7 +37,7 @@ import {
   TenantVerifiedAttributeVerifierSQL,
 } from "../src/types.js";
 
-describe("", () => {
+describe("Tenant splitters", () => {
   beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
