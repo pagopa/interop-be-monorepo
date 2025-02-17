@@ -39,6 +39,9 @@ describe("E-service splitter", () => {
     const suspendedAt = new Date();
     const deprecatedAt = new Date();
     const archivedAt = new Date();
+    const isSignalHubEnabled = true;
+    const isClientAccessDelegable = true;
+    const isConsumerDelegable = true;
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -62,9 +65,9 @@ describe("E-service splitter", () => {
       ...getMockEService(),
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis1, riskAnalysis2],
-      isSignalHubEnabled: true,
-      isClientAccessDelegable: true,
-      isConsumerDelegable: true,
+      isSignalHubEnabled,
+      isClientAccessDelegable,
+      isConsumerDelegable,
     };
 
     const {
@@ -88,9 +91,9 @@ describe("E-service splitter", () => {
       description: eservice.description,
       technology: eservice.technology,
       mode: eservice.mode,
-      isSignalHubEnabled: true,
-      isClientAccessDelegable: true,
-      isConsumerDelegable: true,
+      isSignalHubEnabled,
+      isClientAccessDelegable,
+      isConsumerDelegable,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {
