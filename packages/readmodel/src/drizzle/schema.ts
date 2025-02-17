@@ -183,7 +183,10 @@ export const producerKeychainKeyInReadmodel = readmodel.table(
     encodedPem: varchar("encoded_pem").notNull(),
     algorithm: varchar().notNull(),
     use: varchar().notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
   },
   (table) => [
     foreignKey({
