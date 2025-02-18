@@ -22,7 +22,6 @@ import {
   agreementStampDateNotFound,
   descriptorNotFound,
   eServiceNotFound,
-  tenantDigitalAddressNotFound,
   tenantNotFound,
 } from "../src/models/errors.js";
 import {
@@ -102,7 +101,7 @@ describe("sendAgreementActivatedEmail", () => {
       subject: `Richiesta di fruizione ${agreement.id} attiva`,
       to: [consumerEmail.address],
       body: templateService.compileHtml(activationNotificationEmailTemplate, {
-        interopFeUrl: interopFeBaseUrl,
+        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
         producerName: producer.name,
         consumerName: consumer.name,
         eserviceName: eservice.name,
@@ -140,11 +139,20 @@ describe("sendAgreementActivatedEmail", () => {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
     };
+
+    const descriptor = getMockDescriptor();
+    const eservice = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
     const agreement = {
       ...getMockAgreement(),
       stamps: {},
-      consumerId: consumer.id,
       producerId: producer.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumer.id,
     };
     await addOneTenant(consumer);
     await addOneTenant(producer);
@@ -253,38 +261,6 @@ describe("sendAgreementActivatedEmail", () => {
         genericLogger
       )
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
-
-    expect(sesEmailManager.send).not.toHaveBeenCalled();
-  });
-
-  it("should throw tenantDigitalAddressNotFound for Consumer digital address not found", async () => {
-    vi.spyOn(sesEmailManager, "send");
-    const producer = {
-      ...getMockTenant(),
-      mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
-    };
-    const consumer = getMockTenant();
-    await addOneTenant(producer);
-    await addOneTenant(consumer);
-
-    const eservice = getMockEService();
-    await addOneEService(eservice);
-
-    const agreement = {
-      ...getMockAgreement(),
-      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
-      eserviceId: eservice.id,
-      producerId: producer.id,
-      consumerId: consumer.id,
-    };
-    await addOneAgreement(agreement);
-
-    await expect(
-      notificationEmailSenderService.sendAgreementActivatedEmail(
-        toAgreementV2(agreement),
-        genericLogger
-      )
-    ).rejects.toThrowError(tenantDigitalAddressNotFound(agreement.consumerId));
 
     expect(sesEmailManager.send).not.toHaveBeenCalled();
   });
