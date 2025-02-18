@@ -60,10 +60,10 @@ export async function handleCatalogMessage(
 ): Promise<void> {
   await match(decodedMessage)
     .with(
-      { event_version: 2, type: "EServiceDescriptorPublished" },
+      { type: "EServiceDescriptorPublished" },
       async ({ data: { eservice } }) => {
         if (eservice) {
-          await notificationEmailSenderService.sendEserviceDescriptorPublishedSimpleEmail(
+          await notificationEmailSenderService.sendEserviceDescriptorPublishedEmail(
             eservice,
             logger
           );
@@ -122,7 +122,7 @@ export async function handlePurposeMessage(
 ): Promise<void> {
   await match(decodedMessage)
     .with(
-      { event_version: 2, type: "NewPurposeVersionWaitingForApproval" },
+      { type: "NewPurposeVersionWaitingForApproval" },
       async ({ data: { purpose } }) => {
         if (purpose) {
           await notificationEmailSenderService.sendNewPurposeVersionWaitingForApprovalEmail(
@@ -135,10 +135,10 @@ export async function handlePurposeMessage(
       }
     )
     .with(
-      { event_version: 2, type: "PurposeWaitingForApproval" },
+      { type: "PurposeWaitingForApproval" },
       async ({ data: { purpose } }) => {
         if (purpose) {
-          await notificationEmailSenderService.sendPurposeWaitingForApprovalNotificationEmail(
+          await notificationEmailSenderService.sendPurposeWaitingForApprovalEmail(
             purpose,
             logger
           );
@@ -147,21 +147,18 @@ export async function handlePurposeMessage(
         }
       }
     )
-    .with(
-      { event_version: 2, type: "PurposeVersionRejected" },
-      async ({ data: { purpose } }) => {
-        if (purpose) {
-          await notificationEmailSenderService.sendPurposeVersionRejectedEmail(
-            purpose,
-            logger
-          );
-        } else {
-          throw missingKafkaMessageDataError("purpose", decodedMessage.type);
-        }
+    .with({ type: "PurposeVersionRejected" }, async ({ data: { purpose } }) => {
+      if (purpose) {
+        await notificationEmailSenderService.sendPurposeVersionRejectedEmail(
+          purpose,
+          logger
+        );
+      } else {
+        throw missingKafkaMessageDataError("purpose", decodedMessage.type);
       }
-    )
+    })
     .with(
-      { event_version: 2, type: "NewPurposeVersionActivated" },
+      { type: "PurposeVersionActivated" },
       async ({ data: { purpose } }) => {
         if (purpose) {
           await notificationEmailSenderService.sendPurposeVersionActivatedEmail(
@@ -188,7 +185,7 @@ export async function handlePurposeMessage(
           "PurposeVersionUnsuspendedByConsumer",
           "PurposeVersionUnsuspendedByProducer",
           "WaitingForApprovalPurposeVersionDeleted",
-          "PurposeVersionActivated",
+          "NewPurposeVersionActivated",
           "PurposeCloned",
           "PurposeDeletedByRevokedDelegation",
           "PurposeVersionArchivedByRevokedDelegation"
@@ -208,48 +205,38 @@ export async function handleAgreementMessage(
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
-    .with(
-      { event_version: 2, type: "AgreementActivated" },
-      async ({ data: { agreement } }) => {
-        if (agreement) {
-          await notificationEmailSenderService.sendAgreementActivatedEmail(
-            agreement,
-            logger
-          );
-        } else {
-          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
-        }
+    .with({ type: "AgreementActivated" }, async ({ data: { agreement } }) => {
+      if (agreement) {
+        await notificationEmailSenderService.sendAgreementActivatedEmail(
+          agreement,
+          logger
+        );
+      } else {
+        throw missingKafkaMessageDataError("agreement", decodedMessage.type);
       }
-    )
-    .with(
-      { event_version: 2, type: "AgreementSubmitted" },
-      async ({ data: { agreement } }) => {
-        if (agreement) {
-          await notificationEmailSenderService.sendAgreementSubmittedEmail(
-            agreement,
-            logger
-          );
-        } else {
-          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
-        }
+    })
+    .with({ type: "AgreementSubmitted" }, async ({ data: { agreement } }) => {
+      if (agreement) {
+        await notificationEmailSenderService.sendAgreementSubmittedEmail(
+          agreement,
+          logger
+        );
+      } else {
+        throw missingKafkaMessageDataError("agreement", decodedMessage.type);
       }
-    )
-    .with(
-      { event_version: 2, type: "AgreementRejected" },
-      async ({ data: { agreement } }) => {
-        if (agreement) {
-          await notificationEmailSenderService.sendAgreementRejectedEmail(
-            agreement,
-            logger
-          );
-        } else {
-          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
-        }
+    })
+    .with({ type: "AgreementRejected" }, async ({ data: { agreement } }) => {
+      if (agreement) {
+        await notificationEmailSenderService.sendAgreementRejectedEmail(
+          agreement,
+          logger
+        );
+      } else {
+        throw missingKafkaMessageDataError("agreement", decodedMessage.type);
       }
-    )
+    })
     .with(
       {
-        event_version: 2,
         type: P.union(
           "AgreementAdded",
           "AgreementDeleted",

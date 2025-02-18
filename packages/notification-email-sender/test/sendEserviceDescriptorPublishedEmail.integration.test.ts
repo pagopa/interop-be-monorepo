@@ -35,7 +35,7 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
+describe("sendEserviceDescriptorPublishedEmail", () => {
   it("should send an email on EserviceDescriptorPublished when there're active agrrements", async () => {
     vi.spyOn(sesEmailManager, "send");
     const consumerEmail1 = getMockTenantMail(tenantMailKind.ContactEmail);
@@ -110,7 +110,7 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
     await addOneAgreement(agreement3);
     await addOneAgreement(agreement4);
 
-    await notificationEmailSenderService.sendEserviceDescriptorPublishedSimpleEmail(
+    await notificationEmailSenderService.sendEserviceDescriptorPublishedEmail(
       toEServiceV2(eservice),
       genericLogger
     );
@@ -233,7 +233,7 @@ describe("sendEserviceDescriptorPublishedSimpleEmail", () => {
 
     await addOneAgreement(agreement1);
 
-    await notificationEmailSenderService.sendEserviceDescriptorPublishedSimpleEmail(
+    await notificationEmailSenderService.sendEserviceDescriptorPublishedEmail(
       toEServiceV2(eservice),
       genericLogger
     );
