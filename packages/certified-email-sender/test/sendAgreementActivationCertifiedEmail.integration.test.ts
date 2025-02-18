@@ -133,8 +133,9 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
     const agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
-      eserviceId: eservice.id,
       producerId: producer.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
       consumerId: consumer.id,
     };
     await addOneAgreement(agreement);
