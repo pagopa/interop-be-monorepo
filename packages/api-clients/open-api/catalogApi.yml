@@ -1357,6 +1357,317 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/eservices/{eServiceId}/name/update:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - process
+      requestBody:
+        description: A payload containing the new name
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceNameUpdateSeed"
+      operationId: internalUpdateNameAfterTemplateUpdate
+      description: Updates the name of an e-service after a template update
+      responses:
+        "204":
+          description: E-Service name updated
+        "404":
+          description: E-Service Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/eservices/{eServiceId}/description/update:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - process
+      requestBody:
+        description: A payload containing the new name
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
+      operationId: internalUpdateDescriptionAfterTemplateUpdate
+      description: Updates the description of an e-service after a template update
+      responses:
+        "204":
+          description: E-Service description updated
+        "404":
+          description: E-Service Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/voucherLifespan/update:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the eservice descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - process
+      requestBody:
+        description: A payload containing the new voucher lifespan
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorVoucherLifespanUpdateSeed"
+      operationId: internalUpdateVoucherLifespanAfterTemplateVersionUpdate
+      description: Updates voucher lifespan of descriptor after a template version update
+      responses:
+        "204":
+          description: E-Service descriptor voucher lifespan updated
+        "404":
+          description: E-Service or descriptor Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      description: Updates attributes of descriptor after a template version update
+      operationId: internalUpdateAttributesAfterTemplateVersionUpdate
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the attributes
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttributesSeed"
+      responses:
+        "200":
+          description: EService descriptor attributes updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: E-Service or descriptor not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/documents:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      description: Add a new e-service document after a template version update
+      operationId: internalCreateEServiceDocumentAfterTemplateVersionUpdate
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: E-Service document
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
+      responses:
+        "200":
+          description: EService Document created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      description: Deletes e-service document after a template version update
+      operationId: internalDeleteEServiceDocumentAfterTemplateVersionUpdate
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+        - name: documentId
+          in: path
+          description: the document id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Document deleted.
+        "404":
+          description: E-Service descriptor document not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      description: Update e-service document after a template version update
+      operationId: internalUpdateEServiceDocumentAfterTemplateVersionUpdate
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+        - name: documentId
+          in: path
+          description: the document id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: A payload containing the possible document updatable fields
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceDescriptorDocumentSeed"
+      responses:
+        "200":
+          description: EService Document updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDoc"
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -2114,6 +2425,17 @@ components:
         - url
         - termsAndConditionsUrl
         - serverUrls
+    EServiceDescriptorVoucherLifespanUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        voucherLifespan:
+          type: integer
+          format: int32
+          minimum: 60
+          maximum: 86400
+      required:
+        - voucherLifespan
     Problem:
       properties:
         type:

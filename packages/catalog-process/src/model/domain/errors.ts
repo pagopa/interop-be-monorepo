@@ -39,6 +39,7 @@ export const errorCodes = {
   inconsistentAttributesSeedGroupsCount: "0026",
   descriptorAttributeGroupSupersetMissingInAttributesSeed: "0027",
   unchangedAttributes: "0028",
+  eServiceNotTemplateInstance: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -329,5 +330,15 @@ export function invalidEServiceFlags(
     detail: `EService ${eserviceId} flags are not valid`,
     code: "invalidEServiceFlags",
     title: "Invalid EService flags",
+  });
+}
+
+export function eServiceNotTemplateInstance(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is not a template instance`,
+    code: "eServiceNotTemplateInstance",
+    title: "EService is not a template instance",
   });
 }

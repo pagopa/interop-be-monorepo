@@ -110,11 +110,13 @@ import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertDocumentDeletableDescriptorState,
+  assertEServiceIsTemplateInstance,
   assertHasNoDraftOrWaitingForApprovalDescriptor,
   assertInterfaceDeletableDescriptorState,
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
+  assertNotDuplicatedEServiceName,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
@@ -2011,20 +2013,17 @@ export function catalogServiceBuilder(
         throw eserviceWithoutValidDescriptors(eserviceId);
       }
 
-      if (name !== eservice.data.name) {
-        const eserviceWithSameName =
-          await readModelService.getEServiceByNameAndProducerId({
-            name,
-            producerId: eservice.data.producerId,
-          });
-        if (eserviceWithSameName !== undefined) {
-          throw eServiceDuplicate(name);
-        }
-      }
+      await assertNotDuplicatedEServiceName(
+        name,
+        eservice.data,
+        readModelService
+      );
+
       const updatedEservice: EService = {
         ...eservice.data,
         name,
       };
+
       await repository.createEvent(
         toCreateEventEServiceNameUpdated(
           eservice.metadata.version,
@@ -2236,6 +2235,60 @@ export function catalogServiceBuilder(
       );
 
       return updatedEService;
+    },
+    async internalUpdateEServiceName(
+      eserviceId: EServiceId,
+      newName: string,
+      { correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(`Internal updating name of EService ${eserviceId}`);
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const instanceId = eservice.data.instanceId;
+      const updatedName = instanceId ? `${instanceId} ${newName}` : newName;
+
+      await assertNotDuplicatedEServiceName(
+        updatedName,
+        eservice.data,
+        readModelService
+      );
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        name: updatedName,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceNameUpdated(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+    },
+
+    async internalUpdateEServiceDescription(
+      eserviceId: EServiceId,
+      description: string,
+      { correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Internal updating EService ${eserviceId} description`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        description,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptionUpdated(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+      return updatedEservice;
     },
   };
 }
