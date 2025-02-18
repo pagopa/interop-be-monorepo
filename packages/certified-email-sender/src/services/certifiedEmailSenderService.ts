@@ -137,6 +137,8 @@ export function certifiedEmailSenderServiceBuilder(
       agreementV2Msg: AgreementV2,
       logger: Logger
     ) => {
+      const agreement = fromAgreementV2(agreementV2Msg);
+
       const [consumer, producer, htmlTemplate, eservice] = await Promise.all([
         retrieveTenant(
           unsafeBrandId(agreementV2Msg.consumerId),
@@ -149,13 +151,8 @@ export function certifiedEmailSenderServiceBuilder(
         retrieveHTMLTemplate(
           certifiedMailTemplateEventType.agreementActivationPEC
         ),
-        retrieveAgreementEservice(
-          fromAgreementV2(agreementV2Msg),
-          readModelService
-        ),
+        retrieveAgreementEservice(agreement, readModelService),
       ]);
-
-      const agreement = fromAgreementV2(agreementV2Msg);
 
       const descriptor = retrieveAgreementDescriptor(eservice, agreement);
 
