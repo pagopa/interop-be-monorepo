@@ -16687,6 +16687,15 @@ components:
           $ref: "#/components/schemas/ProducerDescriptorEService"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributes"
+        publishedAt:
+          type: string
+          format: date-time
+        deprecatedAt:
+          type: string
+          format: date-time
+        archivedAt:
+          type: string
+          format: date-time
         rejectionReasons:
           type: array
           items:
@@ -18338,6 +18347,8 @@ components:
         selfcareId:
           type: string
           format: uuid
+        kind:
+          $ref: "#/components/schemas/TenantKind"
         externalId:
           $ref: "#/components/schemas/ExternalId"
         features:
