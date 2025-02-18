@@ -44,14 +44,6 @@ export const certifiedEmailSenderService = certifiedEmailSenderServiceBuilder(
   templateService
 );
 
-export const certifiedEmailSenderServiceFailure =
-  certifiedEmailSenderServiceBuilder(
-    pecEmailManager,
-    pecEmailsenderData,
-    readModelService,
-    templateService
-  );
-
 export const agreements = readModelRepository.agreements;
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {

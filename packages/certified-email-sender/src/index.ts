@@ -61,12 +61,10 @@ export async function processMessage({
       { event_version: 2, type: "AgreementActivated" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await Promise.all([
-            certifiedEmailSenderService.sendAgreementActivationCertifiedEmail(
-              agreement,
-              loggerInstance
-            ),
-          ]);
+          await certifiedEmailSenderService.sendAgreementActivatedCertifiedEmail(
+            agreement,
+            loggerInstance
+          );
         } else {
           throw missingKafkaMessageDataError("agreement", decodedMessage.type);
         }
