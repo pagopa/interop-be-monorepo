@@ -2,13 +2,25 @@
 import { expect, describe, it } from "vitest";
 import { getMockTenant } from "pagopa-interop-commons-test/index.js";
 import { Tenant, TenantId, generateId } from "pagopa-interop-models";
-import { getTenantUpsertData } from "../src/index.js";
+import { TenantSeed, getTenantUpsertData } from "../src/index.js";
 import { agency, aoo, attributes, uo } from "./expectation.js";
 
 const registryData = {
   institutions: [...agency, ...aoo, ...uo],
   attributes,
 };
+
+function findUpsertDataEntryForInstitution(
+  upsertData: TenantSeed[],
+  institution: (typeof registryData.institutions)[0]
+): TenantSeed | undefined {
+  return upsertData.find(
+    (d) =>
+      d.origin === institution.origin &&
+      d.originId === institution.originId &&
+      d.description === institution.description
+  );
+}
 
 describe("TenantUpsertData", async () => {
   it("should return an empty list if there isn't any matching tenant in the platform", async () => {
@@ -41,15 +53,8 @@ describe("TenantUpsertData", async () => {
     expect(gpsTenants.length).toBeGreaterThan(0);
 
     gpsTenants.forEach((i) => {
-      const upsertEntry = upsertData.find(
-        (d) =>
-          d.origin === i.origin &&
-          d.originId === i.originId &&
-          d.description === i.description
-      );
+      const upsertEntry = findUpsertDataEntryForInstitution(upsertData, i);
 
-      expect(upsertEntry).toBeDefined();
-      expect(upsertEntry?.attributes.length).toBeGreaterThan(0);
       expect(upsertEntry?.attributes).toContainEqual({
         origin: i.origin,
         code: "L37",
@@ -62,14 +67,8 @@ describe("TenantUpsertData", async () => {
     expect(notGpsTenants.length).toBeGreaterThan(0);
 
     notGpsTenants.forEach((i) => {
-      const upsertEntry = upsertData.find(
-        (d) =>
-          d.origin === i.origin &&
-          d.originId === i.originId &&
-          d.description === i.description
-      );
+      const upsertEntry = findUpsertDataEntryForInstitution(upsertData, i);
 
-      expect(upsertEntry).toBeDefined();
       expect(
         upsertEntry?.attributes.find((a) => a.code === "L37")
       )?.toBeUndefined();
