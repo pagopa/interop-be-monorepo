@@ -123,7 +123,11 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
     };
     await addOneTenant(consumer);
 
-    const eservice = getMockEService();
+    const descriptor = getMockDescriptor();
+    const eservice = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
     await addOneEService(eservice);
 
     const agreement = {
