@@ -34,7 +34,7 @@ import {
   addOnePurpose,
 } from "./utils.js";
 
-describe("sendPurposeWaitingForApprovalNotificationEmail", () => {
+describe("sendPurposeWaitingForApprovalEmail", () => {
   it("should send an email to Consumer to contact email addresses", async () => {
     vi.spyOn(sesEmailManager, "send");
     const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
@@ -62,7 +62,7 @@ describe("sendPurposeWaitingForApprovalNotificationEmail", () => {
     };
     await addOnePurpose(purpose);
 
-    await notificationEmailSenderService.sendPurposeWaitingForApprovalNotificationEmail(
+    await notificationEmailSenderService.sendPurposeWaitingForApprovalEmail(
       toPurposeV2(purpose),
       genericLogger
     );
@@ -82,7 +82,7 @@ describe("sendPurposeWaitingForApprovalNotificationEmail", () => {
       subject: `Richiesta di attivazione della stima di carico sopra soglia per ${eservice.name}`,
       to: [consumerEmail.address],
       body: templateService.compileHtml(aboveTheThresholdEmailTemplate, {
-        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/finalita/${purpose.id}`,
+        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
         eserviceName: eservice.name,
       }),
     };
