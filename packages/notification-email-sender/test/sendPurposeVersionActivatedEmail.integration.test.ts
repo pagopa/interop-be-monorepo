@@ -69,11 +69,10 @@ describe("sendPurposeVersionActivatedEmail", () => {
 
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const templatePath = `../src/resources/templates/${eventMailTemplateType.newPurposeVersionActivatedMailTemplate}.html`;
+    const templatePath = `../src/resources/templates/${eventMailTemplateType.purposeVersionActivatedMailTemplate}.html`;
 
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
-    const newPurposeVersionActivatedEmailTemplate =
-      htmlTemplateBuffer.toString();
+    const purposeVersionActivatedEmailTemplate = htmlTemplateBuffer.toString();
 
     const mail = {
       from: {
@@ -82,13 +81,10 @@ describe("sendPurposeVersionActivatedEmail", () => {
       },
       subject: `Accettazione richiesta di adeguamento stima di carico`,
       to: [consumerEmail.address],
-      body: templateService.compileHtml(
-        newPurposeVersionActivatedEmailTemplate,
-        {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/finalita/${purpose.id}`,
-          purposeName: purpose.title,
-        }
-      ),
+      body: templateService.compileHtml(purposeVersionActivatedEmailTemplate, {
+        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/finalita/${purpose.id}`,
+        purposeName: purpose.title,
+      }),
     };
 
     expect(sesEmailManager.send).toHaveBeenCalledWith(
