@@ -123,3 +123,15 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis_answer(
   PRIMARY KEY(id)
 );
 
+CREATE INDEX eservice_descriptor_eservice_id_idx ON readmodel.eservice_descriptor (eservice_id);
+
+CREATE INDEX eservice_descriptor_document_descriptor_id_idx ON readmodel.eservice_descriptor_document (descriptor_id);
+
+CREATE INDEX eservice_descriptor_attribute_descriptor_id_idx ON readmodel.eservice_descriptor_attribute (descriptor_id);
+
+CREATE INDEX eservice_descriptor_rejection_reason_descriptor_id_idx ON readmodel.eservice_descriptor_rejection_reason (descriptor_id);
+
+CREATE INDEX eservice_risk_analysis_eservice_id_idx ON readmodel.eservice_risk_analysis (eservice_id);
+
+CREATE INDEX eservice_risk_analysis_answer_risk_analysis_form_id_idx ON readmodel.eservice_risk_analysis_answer (risk_analysis_form_id);
+
