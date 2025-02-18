@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
@@ -24,10 +25,11 @@ import {
   EmailManagerSES,
   AWSSesConfig,
   initSesMailManager,
+  ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import axios from "axios";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
-
 /**
  * This function is a setup for vitest that initializes the read model repository, the postgres
  * database and the file manager and returns their instances along with a cleanup function.
@@ -89,7 +91,8 @@ export function setupTestContainersVitest(
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
   emailManagerConfig?: PecEmailManagerConfigTest,
   RedisRateLimiterConfig?: RedisRateLimiterConfig,
-  awsSESConfig?: AWSSesConfig
+  awsSESConfig?: AWSSesConfig,
+  readModelSQLDbConfig?: ReadModelSQLDbConfig
 ): Promise<{
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
@@ -97,6 +100,25 @@ export function setupTestContainersVitest(
   pecEmailManager: EmailManagerPEC;
   sesEmailManager: EmailManagerSES;
   redisRateLimiter: RateLimiter;
+  readModelDB: ReturnType<typeof drizzle>; // TODO double check type
+  cleanup: () => Promise<void>;
+}>;
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  emailManagerConfig?: PecEmailManagerConfigTest,
+  RedisRateLimiterConfig?: RedisRateLimiterConfig,
+  awsSESConfig?: AWSSesConfig,
+  readModelSQLDbConfig?: ReadModelSQLDbConfig
+): Promise<{
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  fileManager: FileManager;
+  pecEmailManager: EmailManagerPEC;
+  sesEmailManager: EmailManagerSES;
+  redisRateLimiter: RateLimiter;
+  readModelDB: ReturnType<typeof drizzle>;
   cleanup: () => Promise<void>;
 }>;
 export async function setupTestContainersVitest(
@@ -105,7 +127,8 @@ export async function setupTestContainersVitest(
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
   emailManagerConfig?: PecEmailManagerConfigTest,
   redisRateLimiterConfig?: RedisRateLimiterConfig,
-  awsSESConfig?: AWSSesConfig
+  awsSESConfig?: AWSSesConfig,
+  readModelSQLDbConfig?: ReadModelSQLDbConfig
 ): Promise<{
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
@@ -113,6 +136,7 @@ export async function setupTestContainersVitest(
   pecEmailManager?: EmailManagerPEC;
   sesEmailManager?: EmailManagerSES;
   redisRateLimiter?: RateLimiter;
+  readModelDB?: ReturnType<typeof drizzle>;
   cleanup: () => Promise<void>;
 }> {
   const s3OriginalBucket = fileManagerConfig?.s3Bucket;
@@ -124,6 +148,7 @@ export async function setupTestContainersVitest(
   let sesEmailManager: EmailManagerSES | undefined;
   let redisRateLimiter: RateLimiter | undefined;
   const redisRateLimiterGroup = "TEST";
+  let readModelDB: ReturnType<typeof drizzle> | undefined;
 
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
@@ -165,6 +190,14 @@ export async function setupTestContainersVitest(
     });
   }
 
+  if (readModelSQLDbConfig) {
+    readModelDB = drizzle(
+      `postgresql://${readModelSQLDbConfig.readModelSQLDbUsername}:${readModelSQLDbConfig.readModelSQLDbPassword}@${readModelSQLDbConfig.readModelSQLDbHost}:${readModelSQLDbConfig.readModelSQLDbPort}/${readModelSQLDbConfig.readModelSQLDbName}`
+    );
+
+    // TODO use another constructor which doesn't require building the string?
+  }
+
   return {
     readModelRepository,
     postgresDB,
@@ -172,6 +205,7 @@ export async function setupTestContainersVitest(
     pecEmailManager,
     sesEmailManager,
     redisRateLimiter,
+    readModelDB,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
       await readModelRepository?.eservices.deleteMany({});
@@ -199,6 +233,8 @@ export async function setupTestContainersVitest(
       await postgresDB?.none(
         "TRUNCATE TABLE delegation.events RESTART IDENTITY"
       );
+
+      // TODO truncate tables in readmodel (using cascade)
 
       if (s3OriginalBucket && fileManagerConfig && fileManager) {
         const files = await fileManager.listFiles(

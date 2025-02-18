@@ -11,6 +11,7 @@ import {
   FileManagerConfig,
   LoggerConfig,
   ReadModelDbConfig,
+  ReadModelSQLDbConfig,
   RedisRateLimiterConfig,
   S3Config,
   TokenGenerationReadModelDbConfig,
@@ -33,6 +34,7 @@ import {
   mailpitContainer,
   minioContainer,
   mongoDBContainer,
+  postgreReadModelSQLContainer,
   postgreSQLContainer,
   redisContainer,
 } from "./containerTestUtils.js";
@@ -49,6 +51,7 @@ type EnhancedTokenGenerationReadModelDbConfig = z.infer<
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
+    readModelSQLConfig?: ReadModelSQLDbConfig;
     tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
@@ -70,6 +73,7 @@ export function setupTestContainersVitestGlobal() {
   dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
+  const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
   const fileManagerConfig = FileManagerConfig.and(S3Config)
     .and(LoggerConfig)
     .safeParse(process.env);
@@ -83,6 +87,7 @@ export function setupTestContainersVitestGlobal() {
     provide,
   }: GlobalSetupContext): Promise<() => Promise<void>> {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
+    let startedPostgreReadModelSqlContainer: StartedTestContainer | undefined;
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
@@ -116,6 +121,19 @@ export function setupTestContainersVitestGlobal() {
        * The comment applies to the other containers setup after this one as well.
        */
       provide("eventStoreConfig", eventStoreConfig.data);
+    }
+
+    if (readModelSQLConfig.success) {
+      startedPostgreReadModelSqlContainer = await postgreReadModelSQLContainer(
+        readModelSQLConfig.data
+      ).start();
+
+      readModelSQLConfig.data.readModelSQLDbPort =
+        startedPostgreReadModelSqlContainer.getMappedPort(
+          TEST_POSTGRES_DB_PORT
+        );
+
+      provide("readModelSQLConfig", readModelSQLConfig.data);
     }
 
     // Setting up the MongoDB container if the config is provided
@@ -183,6 +201,7 @@ export function setupTestContainersVitestGlobal() {
 
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
+      await startedPostgreReadModelSqlContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();

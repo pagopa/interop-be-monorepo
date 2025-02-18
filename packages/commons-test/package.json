@@ -30,6 +30,7 @@
     "@zodios/core": "10.9.6",
     "aws-sdk-client-mock": "4.0.1",
     "axios": "1.7.4",
+    "drizzle-orm": "0.39.3",
     "dotenv-flow": "4.1.0",
     "jose": "5.9.4",
     "jsonwebtoken": "9.0.2",
