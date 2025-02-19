@@ -20,36 +20,28 @@ import { splitPurposeIntoObjectsSQL } from "../src/purpose/splitters.js";
 
 describe("Purpose aggregator", () => {
   it("should convert complete purpose SQL objects into a business logic purpose", () => {
-    const delegationId = generateId<DelegationId>();
-    const freeOfChargeReason = "Free of charge reason";
-    const rejectionReason = "Rejection reason";
-    const suspendedAt = new Date();
-    const updatedAt = new Date();
-    const firstActivationAt = new Date();
-    const riskAnalysisId = generateId<RiskAnalysisId>();
-
     const purposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
-      rejectionReason,
-      suspendedAt,
-      updatedAt,
-      firstActivationAt,
+      rejectionReason: "Rejection reason",
+      suspendedAt: new Date(),
+      updatedAt: new Date(),
+      firstActivationAt: new Date(),
       riskAnalysis: getMockPurposeVersionDocument(),
     };
 
     const purposeRiskAnalysisForm: PurposeRiskAnalysisForm = {
       ...getMockValidRiskAnalysisForm(tenantKind.PA),
-      riskAnalysisId,
+      riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
     const purpose: WithMetadata<Purpose> = {
       data: {
         ...getMockPurpose(),
-        delegationId,
+        delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
         suspendedByProducer: false,
-        updatedAt,
-        freeOfChargeReason,
+        updatedAt: new Date(),
+        freeOfChargeReason: "Free of charge reason",
         riskAnalysisForm: purposeRiskAnalysisForm,
         versions: [purposeVersion],
       },
