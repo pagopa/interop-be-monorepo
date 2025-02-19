@@ -19,7 +19,6 @@ import {
   toReadModelAgreement,
   toReadModelAttribute,
   toReadModelEService,
-  AgreementId,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
