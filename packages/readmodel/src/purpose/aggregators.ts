@@ -132,6 +132,9 @@ export const purposeSQLToPurpose = ({
           freeOfChargeReason: purposeSQL.freeOfChargeReason,
         }
       : {}),
+    ...(purposeSQL.updatedAt
+      ? { updatedAt: stringToDate(purposeSQL.updatedAt) }
+      : {}),
   };
 
   return {
@@ -200,10 +203,14 @@ export const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
   return {
     id: unsafeBrandId(purposeRiskAnalysisFormSQL.id),
     version: purposeRiskAnalysisFormSQL.version,
-    riskAnalysisId: purposeRiskAnalysisFormSQL.riskAnalysisId
-      ? unsafeBrandId<RiskAnalysisId>(purposeRiskAnalysisFormSQL.riskAnalysisId)
-      : undefined,
     singleAnswers,
     multiAnswers,
+    ...(purposeRiskAnalysisFormSQL.riskAnalysisId
+      ? {
+          riskAnalysisId: unsafeBrandId<RiskAnalysisId>(
+            purposeRiskAnalysisFormSQL.riskAnalysisId
+          ),
+        }
+      : {}),
   };
 };
