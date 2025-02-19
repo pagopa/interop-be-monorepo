@@ -13,12 +13,12 @@ import {
   EServiceTemplate,
   EServiceTemplateEvent,
   EServiceTemplateId,
+  toEServiceTemplateV2,
   RiskAnalysis,
   Tenant,
   toReadModelTenant,
-  EServiceTemplateVersion,
-  toEServiceTemplateV2,
   toReadModelAttribute,
+  EServiceTemplateVersion,
   toReadModelEService,
 } from "pagopa-interop-models";
 import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";

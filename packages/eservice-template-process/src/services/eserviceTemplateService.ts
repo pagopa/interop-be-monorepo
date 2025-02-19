@@ -25,12 +25,9 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
+  ListResult,
   unsafeBrandId,
   WithMetadata,
-} from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import {
   EServiceAttribute,
   RiskAnalysis,
   RiskAnalysisId,
@@ -39,8 +36,9 @@ import {
   TenantKind,
   eserviceMode,
   generateId,
-  ListResult,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
   eServiceTemplateDuplicate,
@@ -50,14 +48,6 @@ import {
   inconsistentDailyCalls,
   missingRiskAnalysis,
   notValidEServiceTemplateVersionState,
-} from "../model/domain/errors.js";
-import {
-  toCreateEventEServiceTemplateVersionActivated,
-  toCreateEventEServiceTemplateVersionSuspended,
-  toCreateEventEServiceTemplateNameUpdated,
-  toCreateEventEServiceTemplateDraftVersionUpdated,
-} from "../model/domain/toEvent.js";
-import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
   inconsistentAttributesSeedGroupsCount,
   unchangedAttributes,
@@ -68,6 +58,10 @@ import {
   missingTemplateVersionInterface,
 } from "../model/domain/errors.js";
 import {
+  toCreateEventEServiceTemplateVersionActivated,
+  toCreateEventEServiceTemplateVersionSuspended,
+  toCreateEventEServiceTemplateNameUpdated,
+  toCreateEventEServiceTemplateDraftVersionUpdated,
   toCreateEventEServiceTemplateAudienceDescriptionUpdated,
   toCreateEventEServiceTemplateEServiceDescriptionUpdated,
   toCreateEventEServiceTemplateVersionQuotasUpdated,
@@ -77,6 +71,8 @@ import {
   toCreateEventEServiceTemplateRiskAnalysisUpdated,
   toCreateEventEServiceTemplateDeleted,
   toCreateEventEServiceTemplateDraftVersionDeleted,
+  toCreateEventEServiceTemplateAdded,
+  toCreateEventEServiceTemplateDraftUpdated,
   toCreateEventEServiceTemplateVersionPublished,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
@@ -86,21 +82,20 @@ import {
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
 import {
-  toCreateEventEServiceTemplateAdded,
-  toCreateEventEServiceTemplateDraftUpdated,
-} from "../model/domain/toEvent.js";
-import {
   ApiGetEServiceTemplateIstancesFilters,
   EServiceTemplateInstance,
 } from "../model/domain/models.js";
 import {
+  GetEServiceTemplatesFilters,
+  ReadModelService,
+} from "./readModelService.js";
+import {
   assertIsDraftTemplate,
   assertIsReceiveTemplate,
   assertTenantKindExists,
+  assertRequesterEServiceTemplateCreator,
+  assertIsDraftEserviceTemplate,
 } from "./validators.js";
-import { ReadModelService } from "./readModelService.js";
-import { assertRequesterEServiceTemplateCreator } from "./validators.js";
-import { assertIsDraftEserviceTemplate } from "./validators.js";
 
 export const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
@@ -812,7 +807,6 @@ export function eserviceTemplateServiceBuilder(
 
       return applyVisibilityToEServiceTemplate(eserviceTemplate.data, authData);
     },
-
     async deleteEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
@@ -1322,6 +1316,31 @@ export function eserviceTemplateServiceBuilder(
       await repository.createEvent(event);
 
       return updatedEServiceTemplate;
+    },
+    async getEServiceTemplates(
+      filters: GetEServiceTemplatesFilters,
+      offset: number,
+      limit: number,
+      { authData, logger }: WithLogger<AppContext>
+    ): Promise<ListResult<EServiceTemplate>> {
+      logger.info(
+        `Getting EServices templates with name = ${filters.name}, ids = ${filters.eserviceTemplatesIds}, creators = ${filters.creatorsIds}, states = ${filters.states}, limit = ${limit}, offset = ${offset}`
+      );
+
+      const { results, totalCount } =
+        await readModelService.getEServiceTemplates(
+          filters,
+          offset,
+          limit,
+          authData
+        );
+
+      return {
+        results: results.map((eserviceTemplate) =>
+          applyVisibilityToEServiceTemplate(eserviceTemplate, authData)
+        ),
+        totalCount,
+      };
     },
     async getEServiceTemplateIstances(
       eserviceTemplateId: EServiceTemplateId,
