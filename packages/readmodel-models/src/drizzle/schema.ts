@@ -65,6 +65,7 @@ export const purposeRiskAnalysisFormInReadmodel = readmodel.table(
     purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     version: varchar().notNull(),
+    riskAnalysisId: uuid("risk_analysis_id"),
   },
   (table) => [
     foreignKey({
@@ -183,7 +184,10 @@ export const producerKeychainKeyInReadmodel = readmodel.table(
     encodedPem: varchar("encoded_pem").notNull(),
     algorithm: varchar().notNull(),
     use: varchar().notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
   },
   (table) => [
     foreignKey({
@@ -446,7 +450,10 @@ export const clientKeyInReadmodel = readmodel.table(
     encodedPem: varchar("encoded_pem").notNull(),
     algorithm: varchar().notNull(),
     use: varchar().notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
   },
   (table) => [
     foreignKey({
