@@ -65,6 +65,7 @@ export const purposeRiskAnalysisFormInReadmodel = readmodel.table(
     purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     version: varchar().notNull(),
+    riskAnalysisId: uuid("risk_analysis_id"),
   },
   (table) => [
     foreignKey({
