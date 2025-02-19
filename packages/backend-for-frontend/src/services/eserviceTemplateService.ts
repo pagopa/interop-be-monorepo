@@ -110,6 +110,22 @@ export function eserviceTemplateServiceBuilder(
         },
       });
     },
+    publishEServiceTemplateVersion: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Publishing version ${eServiceTemplateVersionId} of EService template ${eServiceTemplateId}`
+      );
+      await eserviceTemplateClient.publishTemplateVersion(undefined, {
+        headers,
+        params: {
+          eServiceTemplateId,
+          eServiceTemplateVersionId,
+        },
+      });
+    },
     deleteEServiceTemplateVersion: async (
       eServiceTemplateId: EServiceTemplateId,
       eServiceTemplateVersionId: EServiceTemplateVersionId,
