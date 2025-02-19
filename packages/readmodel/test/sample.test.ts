@@ -11,20 +11,20 @@ import { describe, it, expect } from "vitest";
 import { Descriptor, EService, tenantKind } from "pagopa-interop-models";
 import { diff } from "json-diff";
 import {
-  db,
-  eserviceJoin,
-  fromJoinToAggregator,
-} from "../src/catalog/retrievalJoin.js";
-import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
-import {
   eserviceDescriptorAttributeInReadmodel,
   eserviceDescriptorDocumentInReadmodel,
   eserviceDescriptorInReadmodel,
   eserviceInReadmodel,
   eserviceRiskAnalysisAnswerInReadmodel,
   eserviceRiskAnalysisInReadmodel,
-} from "../src/drizzle/schema.js";
+} from "pagopa-interop-readmodel-models";
+import {
+  eserviceJoin,
+  fromJoinToAggregator,
+} from "../src/catalog/retrievalJoin.js";
+import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
 import { eserviceSQLtoEservice } from "../src/catalog/aggregators.js";
+import { readModelDB } from "./utils.js";
 
 describe("", () => {
   it("first test", async () => {
@@ -64,8 +64,8 @@ describe("", () => {
 
     const resSQL = splitEserviceIntoObjectsSQL(eservice, 1);
 
-    await db.delete(eserviceInReadmodel);
-    await db.transaction(async (tx) => {
+    await readModelDB.delete(eserviceInReadmodel);
+    await readModelDB.transaction(async (tx) => {
       await tx.insert(eserviceInReadmodel).values(resSQL.eserviceSQL);
 
       for (const descriptor of resSQL.descriptorsSQL) {
@@ -91,7 +91,7 @@ describe("", () => {
       }
     });
 
-    const res = await eserviceJoin(eservice.id, db);
+    const res = await eserviceJoin(eservice.id, readModelDB);
 
     const simpleRes = res.map((item) => ({
       eserviceId: item.eservice.id,

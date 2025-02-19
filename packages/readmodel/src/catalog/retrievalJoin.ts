@@ -8,10 +8,8 @@ import {
   eserviceInReadmodel,
   eserviceRiskAnalysisAnswerInReadmodel,
   eserviceRiskAnalysisInReadmodel,
+  eserviceDescriptorInReadmodel,
   eserviceTemplateBindingInReadmodel,
-} from "../drizzle/schema.js";
-import { eserviceDescriptorInReadmodel } from "../drizzle/schema.js";
-import {
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorRejectionReasonSQL,
@@ -20,10 +18,8 @@ import {
   EServiceRiskAnalysisSQL,
   EServiceSQL,
   EServiceTemplateBindingSQL,
-} from "../types.js";
+} from "pagopa-interop-readmodel-models";
 import { EServiceAggregatorInput } from "./aggregators.js";
-
-export const db = drizzle(process.env.DATABASE_URL!);
 
 /*
 es1

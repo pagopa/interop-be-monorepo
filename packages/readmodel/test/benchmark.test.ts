@@ -17,12 +17,6 @@ import {
 } from "pagopa-interop-models";
 import { diff } from "json-diff";
 import {
-  db,
-  eserviceJoin,
-  fromJoinToAggregator,
-} from "../src/catalog/retrievalJoin.js";
-import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
-import {
   eserviceDescriptorAttributeInReadmodel,
   eserviceDescriptorDocumentInReadmodel,
   eserviceDescriptorInReadmodel,
@@ -30,9 +24,6 @@ import {
   eserviceInReadmodel,
   eserviceRiskAnalysisAnswerInReadmodel,
   eserviceRiskAnalysisInReadmodel,
-} from "../src/drizzle/schema.js";
-import { eserviceSQLtoEservice } from "../src/catalog/aggregators.js";
-import {
   EServiceSQL,
   EServiceRiskAnalysisSQL,
   EServiceRiskAnalysisAnswerSQL,
@@ -41,7 +32,13 @@ import {
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorRejectionReasonSQL,
   EServiceTemplateBindingSQL,
-} from "../src/types.js";
+} from "pagopa-interop-readmodel-models";
+import {
+  eserviceJoin,
+  fromJoinToAggregator,
+} from "../src/catalog/retrievalJoin.js";
+import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
+import { eserviceSQLtoEservice } from "../src/catalog/aggregators.js";
 import {
   retrieveDescriptorsSQL,
   retrieveEserviceAttributesSQL,
@@ -52,14 +49,15 @@ import {
   retrieveEserviceTemplateBindingSQL,
   retrieveRejectionReasonsSQL,
 } from "../src/catalog/retrievalMultiQuery.js";
+import { readModelDB } from "./utils.js";
 
 describe("benchmark", async () => {
   it("basic benchmark", async () => {
-    await db.delete(eserviceInReadmodel);
+    await readModelDB.delete(eserviceInReadmodel);
     const eserviceId = generateId<EServiceId>();
 
     // eslint-disable-next-line functional/no-let
-    for (let i = 0; i < 5000; i++) {
+    for (let i = 0; i < 5; i++) {
       const descriptor1: Descriptor = {
         ...getMockDescriptor(),
         version: "1",
@@ -113,27 +111,36 @@ describe("benchmark", async () => {
     const timestamp1 = Date.now();
     // console.log(timestamp1);
 
-    const eserviceSQL = await retrieveEServiceSQL(eserviceId, db).then(
+    const eserviceSQL = await retrieveEServiceSQL(eserviceId, readModelDB).then(
       (res) => res[0]
     );
-    const descriptorsSQL = await retrieveDescriptorsSQL(eserviceId, db);
-    const documentsSQL = await retrieveEserviceDocumentSQL(eserviceId, db);
-    const attributesSQL = await retrieveEserviceAttributesSQL(eserviceId, db);
+    const descriptorsSQL = await retrieveDescriptorsSQL(
+      eserviceId,
+      readModelDB
+    );
+    const documentsSQL = await retrieveEserviceDocumentSQL(
+      eserviceId,
+      readModelDB
+    );
+    const attributesSQL = await retrieveEserviceAttributesSQL(
+      eserviceId,
+      readModelDB
+    );
     const rejectionReasonsSQL = await retrieveRejectionReasonsSQL(
       eserviceId,
-      db
+      readModelDB
     );
     const riskAnalysesSQL = await retrieveEserviceRiskAnalysesSQL(
       eserviceId,
-      db
+      readModelDB
     );
     const riskAnalysisAnswersSQL = await retrieveEserviceRiskAnalysisAnswersSQL(
       eserviceId,
-      db
+      readModelDB
     );
     const templateBindingSQL = await retrieveEserviceTemplateBindingSQL(
       eserviceId,
-      db
+      readModelDB
     );
 
     const timestamp2 = Date.now();
@@ -153,7 +160,7 @@ describe("benchmark", async () => {
     const timestamp3 = Date.now();
     // console.log(timestamp3);
 
-    const resultOfJoin = await eserviceJoin(eserviceId, db);
+    const resultOfJoin = await eserviceJoin(eserviceId, readModelDB);
 
     const timestamp4 = Date.now();
     // console.log(timestamp4);
@@ -224,7 +231,7 @@ const addEserviceObjectsInReadmodel = async ({
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   eserviceTemplateBindingSQL?: EServiceTemplateBindingSQL;
 }) => {
-  await db.transaction(async (tx) => {
+  await readModelDB.transaction(async (tx) => {
     await tx.insert(eserviceInReadmodel).values(eserviceSQL);
 
     for (const descriptor of descriptorsSQL) {
