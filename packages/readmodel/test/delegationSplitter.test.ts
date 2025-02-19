@@ -10,12 +10,12 @@ import {
   delegationStampKind,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { splitDelegationIntoObjectsSQL } from "../src/delegation/splitters.js";
 import {
   DelegationContractDocumentSQL,
   DelegationSQL,
   DelegationStampSQL,
-} from "../src/types.js";
+} from "pagopa-interop-readmodel-models";
+import { splitDelegationIntoObjectsSQL } from "../src/delegation/splitters.js";
 
 describe("Delegation splitters", () => {
   it("should convert a complete delegation into delegation SQL objects", () => {
