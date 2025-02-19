@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_attribute(
   -- CERTIFIED/DECLARED/VERIFIED
   group_id INTEGER NOT NULL,
   -- id of the group
-  PRIMARY KEY(attribute_id, eservice_template_version_id, group_id) -- TODO verify if the same attribute can be assigned twice in the same eservice_template_version
+  PRIMARY KEY(attribute_id, eservice_template_version_id, group_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis(
