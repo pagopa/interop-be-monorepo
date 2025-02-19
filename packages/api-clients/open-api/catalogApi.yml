@@ -1377,8 +1377,8 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/EServiceNameUpdateSeed"
-      operationId: internalUpdateNameAfterTemplateUpdate
-      description: Updates the name of an e-service after a template update
+      operationId: internalUpdateEServiceName
+      description: Internal updates the name of an e-service
       responses:
         "204":
           description: E-Service name updated
@@ -1408,8 +1408,8 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
-      operationId: internalUpdateDescriptionAfterTemplateUpdate
-      description: Updates the description of an e-service after a template update
+      operationId: internalUpdateEServiceDescription
+      description: Internap update the description of an e-service
       responses:
         "204":
           description: E-Service description updated
@@ -1446,8 +1446,8 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorVoucherLifespanUpdateSeed"
-      operationId: internalUpdateVoucherLifespanAfterTemplateVersionUpdate
-      description: Updates voucher lifespan of descriptor after a template version update
+      operationId: internalUpdateDescriptorVoucherLifespan
+      description: Internal update voucher lifespan of descriptor
       responses:
         "204":
           description: E-Service descriptor voucher lifespan updated
@@ -1465,8 +1465,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      description: Updates attributes of descriptor after a template version update
-      operationId: internalUpdateAttributesAfterTemplateVersionUpdate
+      description: Internal update attributes of a descriptor
+      operationId: internalUpdateDescriptorAttributes
       parameters:
         - name: eServiceId
           in: path
@@ -1528,8 +1528,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      description: Add a new e-service document after a template version update
-      operationId: internalCreateEServiceDocumentAfterTemplateVersionUpdate
+      description: Internal create a new e-service document
+      operationId: internalCreateDescriptorDocument
       parameters:
         - name: eServiceId
           in: path
@@ -1577,8 +1577,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      description: Deletes e-service document after a template version update
-      operationId: internalDeleteEServiceDocumentAfterTemplateVersionUpdate
+      description: Internal deletes e-service document
+      operationId: internalDeleteDescriptorDocument
       parameters:
         - name: eServiceId
           in: path
@@ -1621,8 +1621,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      description: Update e-service document after a template version update
-      operationId: internalUpdateEServiceDocumentAfterTemplateVersionUpdate
+      description: Internal Update e-service document
+      operationId: internalUpdateDescriptorDocument
       parameters:
         - name: eServiceId
           in: path
