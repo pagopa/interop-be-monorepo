@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS readmodel.producer_keychain (
   producer_id UUID NOT NULL,
   name VARCHAR NOT NULL,
   -- eservices
-  description VARCHAR,
+  description VARCHAR NOT NULL,
   -- users
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   -- keys
@@ -34,6 +34,6 @@ CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_key (
   encoded_pem VARCHAR NOT NULL,
   algorithm VARCHAR NOT NULL,
   use VARCHAR NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (kid) -- TODO: probably kid can't be primary key
 );

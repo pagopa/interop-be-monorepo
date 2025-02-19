@@ -21,15 +21,16 @@ CREATE TABLE IF NOT EXISTS readmodel.purpose_risk_analysis_form (
   id UUID,
   purpose_id UUID NOT NULL REFERENCES readmodel.purpose (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  version INTEGER NOT NULL,
+  version VARCHAR NOT NULL,
+  risk_analysis_id UUID,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.purpose_risk_analysis_answer(
   id UUID,
-  purpose_id UUID REFERENCES readmodel.purpose (id) ON DELETE CASCADE,
+  purpose_id UUID NOT NULL REFERENCES readmodel.purpose (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  risk_analysis_form_id UUID REFERENCES readmodel.purpose_risk_analysis_form (id),
+  risk_analysis_form_id UUID NOT NULL REFERENCES readmodel.purpose_risk_analysis_form (id),
   kind VARCHAR NOT NULL,
   -- SINGLE/MULTI
   "key" VARCHAR NOT NULL,
@@ -54,9 +55,9 @@ CREATE TABLE IF NOT EXISTS readmodel.purpose_version (
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.purpose_version_document (
-  purpose_id uuid REFERENCES readmodel.purpose(id) ON DELETE CASCADE,
+  purpose_id uuid NOT NULL REFERENCES readmodel.purpose(id) ON DELETE CASCADE,
   metadata_version integer NOT NULL,
-  purpose_version_id uuid REFERENCES readmodel.purpose_version(id) ON DELETE CASCADE,
+  purpose_version_id uuid NOT NULL REFERENCES readmodel.purpose_version(id) ON DELETE CASCADE,
   id uuid NOT NULL,
   content_type VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
