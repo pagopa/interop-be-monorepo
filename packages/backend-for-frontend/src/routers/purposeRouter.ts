@@ -34,6 +34,7 @@ const purposeRouter = (
     clients.catalogProcessClient,
     clients.tenantProcessClient,
     clients.agreementProcessClient,
+    clients.delegationProcessClient,
     clients.authorizationClient,
     initFileManager(config)
   );
@@ -102,7 +103,7 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/producer/purposes", async (req, res) => {
+    .get("/producers/purposes", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
@@ -111,7 +112,6 @@ const purposeRouter = (
             name: req.query.q,
             eservicesIds: req.query.eservicesIds,
             consumersIds: req.query.consumersIds,
-            producersIds: req.query.producersIds,
             states: req.query.states,
           },
           req.query.offset,
@@ -131,7 +131,7 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/consumer/purposes", async (req, res) => {
+    .get("/consumers/purposes", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
@@ -139,7 +139,6 @@ const purposeRouter = (
           {
             name: req.query.q,
             eservicesIds: req.query.eservicesIds,
-            consumersIds: req.query.consumersIds,
             producersIds: req.query.producersIds,
             states: req.query.states,
           },
@@ -155,7 +154,7 @@ const purposeRouter = (
           getPurposesErrorMapper,
           ctx.logger,
           ctx.correlationId,
-          `Error retrieving Purposes for name ${req.query.q}, EServices ${req.query.eservicesIds}, Consumers ${req.query.consumersIds} offset ${req.query.offset}, limit ${req.query.limit}`
+          `Error retrieving Purposes for name ${req.query.q}, EServices ${req.query.eservicesIds}, Producers ${req.query.producersIds} offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

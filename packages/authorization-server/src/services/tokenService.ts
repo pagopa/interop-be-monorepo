@@ -92,7 +92,7 @@ export function tokenServiceBuilder({
       correlationId: CorrelationId,
       logger: Logger
     ): Promise<GenerateTokenReturnType> {
-      logger.info(`CLIENTID=${request.client_id} Token requested`);
+      logger.info(`[CLIENTID=${request.client_id}] Token requested`);
 
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: request.client_assertion,
@@ -112,7 +112,8 @@ export function tokenServiceBuilder({
         verifyClientAssertion(
           request.client_assertion,
           request.client_id,
-          config.clientAssertionAudience
+          config.clientAssertionAudience,
+          logger
         );
 
       if (clientAssertionErrors) {
@@ -194,7 +195,7 @@ export function tokenServiceBuilder({
               audience: key.descriptorAudience,
               purposeId: key.GSIPK_purposeId,
               tokenDurationInSeconds: key.descriptorVoucherLifespan,
-              digest: jwt.payload.digest,
+              digest: jwt.payload.digest || undefined,
             });
 
             await publishAudit({
@@ -431,7 +432,7 @@ export const logTokenGenerationInfo = ({
   message: string;
   logger: Logger;
 }): void => {
-  const clientId = `[CLIENTID=${validatedJwt.payload.sub}`;
+  const clientId = `[CLIENTID=${validatedJwt.payload.sub}]`;
   const kid = `[KID=${validatedJwt.header.kid}]`;
   const purposeId = `[PURPOSEID=${validatedJwt.payload.purposeId}]`;
   const tokenType = `[TYPE=${clientKind}]`;
