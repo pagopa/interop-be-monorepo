@@ -1,7 +1,7 @@
 import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
 import { describe, it, expect } from "vitest";
 import { Attribute } from "pagopa-interop-models";
-import { AttributeSQL } from "./../src/types.js";
+import { AttributeSQL } from "pagopa-interop-readmodel-models";
 import { splitAttributeIntoObjectsSQL } from "./../src/attribute/splitters.js";
 
 describe("Attribute Splitter", () => {
