@@ -47,28 +47,26 @@ function assertNotPrivateKey(key: string): void {
 }
 
 export function assertValidRSAKeyLength(
-  key: KeyObject,
+  keyString: string,
+  keyobject: KeyObject,
   minLength: number = 2048
 ): void {
-  const length = key.asymmetricKeyDetails?.modulusLength;
-  if (!length || length < minLength) {
+  const length = keyobject.asymmetricKeyDetails?.modulusLength;
+  if (!length || keyobject.asymmetricKeyType !== "rsa") {
+    throw invalidKey(keyString, "Not an RSA key");
+  }
+  if (length < minLength) {
     throw invalidKeyLength(length, minLength);
   }
 }
 
 export function createPublicKey(key: string): KeyObject {
   const pemKey = decodeBase64ToPem(key);
-
   assertNotPrivateKey(pemKey);
   assertNotCertificate(pemKey);
-
-  try {
-    const publicKey = crypto.createPublicKey(pemKey);
-    assertValidRSAKeyLength(publicKey);
-    return publicKey;
-  } catch (error) {
-    throw invalidKey(key, error);
-  }
+  const publicKey = crypto.createPublicKey(pemKey);
+  assertValidRSAKeyLength(key, publicKey);
+  return publicKey;
 }
 
 export function sortJWK(jwk: JsonWebKey): JsonWebKey {

@@ -414,11 +414,11 @@ export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
 }
 
 export function invalidKey(
-  kid: string,
+  key: string,
   error: unknown
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Key ${kid} is invalid. Reason: ${parseErrorMessage(error)}`,
+    detail: `Key ${key} is invalid. Reason: ${parseErrorMessage(error)}`,
     code: "invalidKey",
     title: "Invalid Key",
   });
@@ -426,7 +426,7 @@ export function invalidKey(
 
 export function invalidKeyLength(
   length: number | undefined,
-  minLength: number
+  minLength: number = 2048
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: `Invalid RSA key length: ${length} bits. It must be at least ${minLength}`,

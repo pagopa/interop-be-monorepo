@@ -18,7 +18,6 @@ import {
   clientKind,
   generateId,
   genericInternalError,
-  invalidKey,
   purposeVersionState,
   unsafeBrandId,
   ProducerKeychain,
@@ -719,9 +718,6 @@ export function authorizationServiceBuilder(
       }
       const keySeed = keysSeeds[0];
       const jwk = createJWK(keySeed.key);
-      if (jwk.kty !== "RSA") {
-        throw invalidKey(keySeed.key, "Not an RSA key");
-      }
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
@@ -1095,10 +1091,6 @@ export function authorizationServiceBuilder(
       });
 
       const jwk = createJWK(keySeed.key);
-
-      if (jwk.kty !== "RSA") {
-        throw invalidKey(keySeed.key, "Not an RSA key");
-      }
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),

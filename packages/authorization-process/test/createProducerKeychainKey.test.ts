@@ -423,7 +423,7 @@ describe("createProducerKeychainKey", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      invalidKey(keySeed.key, "error:1E08010C:DECODER routines::unsupported")
+      Error("error:1E08010C:DECODER routines::unsupported")
     );
   });
 

@@ -431,7 +431,7 @@ describe("createKeys", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      invalidKey(keySeed.key, "error:1E08010C:DECODER routines::unsupported")
+      Error("error:1E08010C:DECODER routines::unsupported")
     );
   });
   it("should throw notAllowedCertificateException if the key contains a certificate", async () => {
