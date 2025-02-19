@@ -11,25 +11,25 @@ import { splitClientJWKKeyIntoObjectsSQL } from "../src/authorization/clientJWKK
 
 describe("Client JWK key splitter", () => {
   it("should convert a client JWK key into client JWK key SQL objects", () => {
-    const key = crypto.generateKeyPairSync("rsa", {
+    const publicKey = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
     }).publicKey;
 
     const base64Key = Buffer.from(
-      key.export({ type: "pkcs1", format: "pem" })
+      publicKey.export({ type: "pkcs1", format: "pem" })
     ).toString("base64url");
 
-    const mockClient = getMockClient();
-    const mockKey: Key = {
+    const client = getMockClient();
+    const key: Key = {
       ...getMockKey(),
       encodedPem: base64Key,
     };
-    const clientJWKKey = keyToClientJWKKey(mockKey, mockClient.id);
+    const clientJWKKey = keyToClientJWKKey(key, client.id);
 
     const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(clientJWKKey, 1);
     const expectedClientJWKKeySQL: ClientJWKKeySQL = {
       ...clientJWKKey,
-      clientId: mockClient.id,
+      clientId: client.id,
       metadataVersion: 1,
     };
     expect(clientJWKKeySQL).toEqual(expectedClientJWKKeySQL);
