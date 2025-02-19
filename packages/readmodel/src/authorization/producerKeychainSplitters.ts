@@ -4,7 +4,7 @@ import {
   ProducerKeychainEServiceSQL,
   ProducerKeychainKeySQL,
   ProducerKeychainUserSQL,
-} from "../types.js";
+} from "pagopa-interop-readmodel-models";
 
 export const splitProducerKeychainIntoObjectsSQL = (
   {
