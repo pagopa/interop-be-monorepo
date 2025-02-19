@@ -542,8 +542,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tenant"
-        "409":
-          description: Attribute already assigned to Tenant
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
           content:
             application/json:
               schema:
@@ -1017,43 +1023,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /tenants/delegatedProducer:
+  /tenants/delegatedFeatures/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - tenant
-      summary: Assign delegated producer feature to tenant caller
-      operationId: assignTenantDelegatedProducerFeature
+      summary: Update delegated producer and consumer feature to tenant caller
+      operationId: updateTenantDelegatedFeatures
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantDelegatedFeaturesFlagsUpdateSeed"
       responses:
         "204":
-          description: Delegated producer feature assigned
-        "409":
-          description: Feature already assigned to tenant
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-    delete:
-      tags:
-        - tenant
-      summary: Remove delegated producer feature to tenant caller
-      operationId: removeTenantDelegatedProducerFeature
-      responses:
-        "204":
-          description: Delegated producer feature removed
-        "409":
-          description: Feature not assigned to tenant
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          description: Delegated features updated
         "403":
           description: Forbidden
           content:
@@ -1208,6 +1194,7 @@ components:
       enum:
         - PERSISTENT_CERTIFIER
         - DELEGATED_PRODUCER
+        - DELEGATED_CONSUMER
     TenantFeature:
       oneOf:
         - type: object
@@ -1220,6 +1207,11 @@ components:
           properties:
             delegatedProducer:
               $ref: "#/components/schemas/DelegatedProducer"
+        - type: object
+          additionalProperties: false
+          properties:
+            delegatedConsumer:
+              $ref: "#/components/schemas/DelegatedConsumer"
     Certifier:
       description: Certifier Tenant Feature
       type: object
@@ -1231,6 +1223,16 @@ components:
         - certifierId
     DelegatedProducer:
       description: Delegated producer Tenant Feature
+      type: object
+      additionalProperties: false
+      properties:
+        availabilityTimestamp:
+          type: string
+          format: date-time
+      required:
+        - availabilityTimestamp
+    DelegatedConsumer:
+      description: Delegated consumer Tenant Feature
       type: object
       additionalProperties: false
       properties:
@@ -1295,6 +1297,9 @@ components:
         revocationTimestamp:
           type: string
           format: date-time
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
         - kind
@@ -1345,6 +1350,9 @@ components:
       additionalProperties: false
       properties:
         id:
+          type: string
+          format: uuid
+        delegationId:
           type: string
           format: uuid
       required:
@@ -1483,6 +1491,17 @@ components:
         - selfcareId
         - name
         - onboardedAt
+    TenantDelegatedFeaturesFlagsUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isDelegatedConsumerFeatureEnabled:
+          type: boolean
+        isDelegatedProducerFeatureEnabled:
+          type: boolean
+      required:
+        - isDelegatedConsumerFeatureEnabled
+        - isDelegatedProducerFeatureEnabled
     Mail:
       description: A specific kind of mail
       type: object

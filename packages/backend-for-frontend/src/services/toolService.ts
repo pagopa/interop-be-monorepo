@@ -77,7 +77,8 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         verifyClientAssertion(
           clientAssertion,
           clientId,
-          config.clientAssertionAudience
+          config.clientAssertionAudience,
+          ctx.logger
         );
 
       if (parametersErrors || clientAssertionErrors) {

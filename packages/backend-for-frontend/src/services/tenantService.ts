@@ -429,23 +429,14 @@ export function tenantServiceBuilder(
         headers,
       });
     },
-    async assignTenantDelegatedProducerFeature(
+    async updateTenantDelegatedFeatures(
       tenantId: TenantId,
+      delegatedFeatures: bffApi.TenantDelegatedFeaturesFlagsUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Assigning delegated producer feature to tenant ${tenantId}`);
-      await tenantProcessClient.tenant.assignTenantDelegatedProducerFeature(
-        undefined,
-        { headers }
-      );
-    },
-    async removeTenantDelegatedProducerFeature(
-      tenantId: TenantId,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<void> {
-      logger.info(`Removing delegated producer feature to tenant ${tenantId}`);
-      await tenantProcessClient.tenant.removeTenantDelegatedProducerFeature(
-        undefined,
+      await tenantProcessClient.tenant.updateTenantDelegatedFeatures(
+        delegatedFeatures,
         { headers }
       );
     },
@@ -497,6 +488,7 @@ export function getDeclaredTenantAttribute(
     description: registryAttribute.description,
     assignmentTimestamp: attribute.declared.assignmentTimestamp,
     revocationTimestamp: attribute.declared.revocationTimestamp,
+    delegationId: attribute.declared.delegationId,
   };
 }
 

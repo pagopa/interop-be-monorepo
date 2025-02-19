@@ -41,8 +41,7 @@ import {
   m2mRevokeCertifiedAttributeErrorMapper,
   m2mUpsertTenantErrorMapper,
   maintenanceTenantUpdatedErrorMapper,
-  assignTenantDelegatedProducerFeatureErrorMapper,
-  removeTenantDelegatedProducerFeatureErrorMapper,
+  updateTenantDelegatedFeaturesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
@@ -504,13 +503,14 @@ const tenantsRouter = (
       }
     )
     .post(
-      "/tenants/delegatedProducer",
+      "/tenants/delegatedFeatures/update",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await tenantService.assignTenantDelegatedProducerFeature({
+          await tenantService.updateTenantDelegatedFeatures({
             organizationId: req.ctx.authData.organizationId,
+            tenantFeatures: req.body,
             correlationId: req.ctx.correlationId,
             authData: ctx.authData,
             logger: ctx.logger,
@@ -519,31 +519,7 @@ const tenantsRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            assignTenantDelegatedProducerFeatureErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .delete(
-      "/tenants/delegatedProducer",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          await tenantService.removeTenantDelegatedProducerFeature({
-            organizationId: req.ctx.authData.organizationId,
-            correlationId: req.ctx.correlationId,
-            authData: ctx.authData,
-            logger: ctx.logger,
-          });
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            removeTenantDelegatedProducerFeatureErrorMapper,
+            updateTenantDelegatedFeaturesErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
