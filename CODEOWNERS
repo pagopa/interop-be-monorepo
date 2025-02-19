@@ -3,5 +3,5 @@
 kubernetes/ @micdes-pagopa
 **/kubernetes @micdes-pagopa
 register-connector-postgres.json @micdes-pagopa
-**/jwt-audit-analytics-writer @lorenzo-pa
+**/domains-analytics-writer @lorenzo-pa
 
