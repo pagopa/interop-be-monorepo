@@ -3495,6 +3495,85 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 
+  /eservices/{eServiceId}/templates/{eServiceTemplateId}/{eServiceTemplateVersion}/interface:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Add e-service interface for provided template
+      operationId: addEServiceInterfaceDocumentByTemplateId
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: eServiceTemplateId
+          in: path
+          description: the eservice template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: eServiceTemplateVersion
+          in: path
+          description: the eservice teamplate version
+          required: true
+          schema: 
+            type: string
+            format: number
+      requestBody:
+        description: A payload containing the eservice's api data  
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EserviceInterfaceTemplatePayload"
+      responses:
+        "200":
+          description: EService Interface Document uploaded
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "400":
+          description: Invalid input
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -20256,6 +20335,33 @@ components:
           type: string
           minLength: 5
           maxLength: 60
+    EserviceInterfaceTemplatePayload:
+      type: object
+      additionalProperties: false
+      description: contains eservice api custom data to add on interface document provided by template
+      properties:
+        contactName:
+            type: string
+        email:
+          type: string
+          format: email
+        contactUrl:
+          type: string
+          format: uri
+        termsAndConditionsUrl:
+          type: string
+          format: uri
+        serverUrls:
+          type: array
+          items:
+            type: string        
+            format: uri
+      required:
+        - contactName
+        - email
+        - contactUrl
+        - termsAndConditionsUrl
+        - serverUrls
     ProblemError:
       properties:
         code:

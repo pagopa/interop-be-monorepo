@@ -18,7 +18,6 @@ const {
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
-      "descriptorNotFound",
       "eserviceRiskNotFound",
       "eserviceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
