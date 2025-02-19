@@ -132,6 +132,8 @@ function authorizationServerRouter(): express.Router {
     }
   );
 
+  // This cast will be removed when the router and the entire service
+  // will drop fastify-express and will be fully migrated to fastify
   return authorizationServerRouter as unknown as express.Router;
 }
 
