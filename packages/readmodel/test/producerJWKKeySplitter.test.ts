@@ -5,8 +5,8 @@ import {
   getMockKey,
 } from "pagopa-interop-commons-test";
 import { describe, it, expect } from "vitest";
+import { ProducerJWKKeySQL } from "pagopa-interop-readmodel-models";
 import { splitProducerJWKKeyIntoObjectsSQL } from "../src/authorization/producerJWKKeySplitters.js";
-import { ProducerJWKKeySQL } from "../src/types.js";
 
 describe("Producer JWK key splitter", () => {
   it("should convert a producer JWK key into producer JWK key SQL objects", () => {

@@ -1,5 +1,5 @@
 import { ProducerJWKKey } from "pagopa-interop-models";
-import { ProducerJWKKeySQL } from "../types.js";
+import { ProducerJWKKeySQL } from "pagopa-interop-readmodel-models";
 
 export const splitProducerJWKKeyIntoObjectsSQL = (
   { producerKeychainId, alg, e, kid, kty, n, use, ...rest }: ProducerJWKKey,
