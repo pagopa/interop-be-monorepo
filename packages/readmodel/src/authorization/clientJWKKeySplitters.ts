@@ -1,5 +1,5 @@
 import { ClientJWKKey } from "pagopa-interop-models";
-import { ClientJWKKeySQL } from "../types.js";
+import { ClientJWKKeySQL } from "pagopa-interop-readmodel-models";
 
 export const splitClientJWKKeyIntoObjectsSQL = (
   { clientId, alg, e, kid, kty, n, use, ...rest }: ClientJWKKey,
