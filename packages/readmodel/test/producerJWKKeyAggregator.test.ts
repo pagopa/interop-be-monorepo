@@ -10,7 +10,7 @@ import { splitProducerJWKKeyIntoObjectsSQL } from "../src/authorization/producer
 import { producerJWKKeySQLToProducerJWKKey } from "../src/authorization/producerJWKKeyAggregators.js";
 
 describe("Producer JWK key aggregator", () => {
-  it("should convert a producer JWK key into producer JWK key SQL objects", () => {
+  it("should convert a producer JWK key SQL object into a business logic producer JWK key", () => {
     const publicKey = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
     }).publicKey;
