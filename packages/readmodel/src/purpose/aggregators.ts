@@ -1,4 +1,5 @@
 import {
+  DelegationId,
   genericInternalError,
   Purpose,
   PurposeRiskAnalysisForm,
@@ -26,6 +27,7 @@ import {
   PurposeVersionSQL,
 } from "../types.js";
 
+// TODO: ...rest
 export const purposeSQLToPurpose = ({
   purposeSQL,
   purposeRiskAnalysisFormSQL,
@@ -76,6 +78,18 @@ export const purposeSQLToPurpose = ({
         state: PurposeVersionState.parse(purposeVersionSQL.state),
         dailyCalls: purposeVersionSQL.dailyCalls,
         createdAt: stringToDate(purposeVersionSQL.createdAt),
+        ...(purposeVersionSQL.rejectionReason
+          ? { rejectionReason: purposeVersionSQL.rejectionReason }
+          : {}),
+        firstActivationAt: stringToDate(purposeVersionSQL.firstActivationAt),
+        ...(purposeVersionSQL.suspendedAt
+          ? { suspendedAt: stringToDate(purposeVersionSQL.suspendedAt) }
+          : {}),
+        ...(purposeVersionSQL.updatedAt
+          ? {
+              updatedAt: stringToDate(purposeVersionSQL.updatedAt),
+            }
+          : {}),
         ...(purposeVersionDocument
           ? { riskAnalysis: purposeVersionDocument }
           : {}),
@@ -97,6 +111,26 @@ export const purposeSQLToPurpose = ({
     versions: purposeVersions,
     ...(purposeRiskAnalysisForm
       ? { riskAnalysisForm: purposeRiskAnalysisForm }
+      : {}),
+    ...(purposeSQL.suspendedByConsumer !== null
+      ? {
+          suspendedByConsumer: purposeSQL.suspendedByConsumer,
+        }
+      : {}),
+    ...(purposeSQL.suspendedByProducer !== null
+      ? {
+          suspendedByProducer: purposeSQL.suspendedByProducer,
+        }
+      : {}),
+    ...(purposeSQL.delegationId
+      ? {
+          delegationId: unsafeBrandId<DelegationId>(purposeSQL.delegationId),
+        }
+      : {}),
+    ...(purposeSQL.freeOfChargeReason
+      ? {
+          freeOfChargeReason: purposeSQL.freeOfChargeReason,
+        }
       : {}),
   };
 
