@@ -63,6 +63,17 @@ export const DelegationTopicConfig = z
   }));
 export type DelegationTopicConfig = z.infer<typeof DelegationTopicConfig>;
 
+export const ApplicationAuditTopicConfig = z
+  .object({
+    APPLICATION_AUDIT_TOPIC: z.string(),
+  })
+  .transform((c) => ({
+    applicationAuditTopic: c.APPLICATION_AUDIT_TOPIC,
+  }));
+export type ApplicationAuditTopicConfig = z.infer<
+  typeof ApplicationAuditTopicConfig
+>;
+
 export const KafkaTopicConfig = z.union([
   CatalogTopicConfig,
   AgreementTopicConfig,
@@ -71,5 +82,6 @@ export const KafkaTopicConfig = z.union([
   PurposeTopicConfig,
   AuthorizationTopicConfig,
   DelegationTopicConfig,
+  ApplicationAuditTopicConfig,
 ]);
 export type KafkaTopicConfig = z.infer<typeof KafkaTopicConfig>;
