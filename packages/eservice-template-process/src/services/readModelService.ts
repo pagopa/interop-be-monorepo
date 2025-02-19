@@ -407,10 +407,8 @@ export function readModelServiceBuilder({
 
       const aggregationPipeline = [
         {
-          "data.versions.state": {
-            $in: [
-              eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED,
-            ],
+          $match: {
+            "data.versions.state": eserviceTemplateVersionState.published,
           },
         },
         {
@@ -427,7 +425,9 @@ export function readModelServiceBuilder({
             preserveNullAndEmptyArrays: false,
           },
         },
-        nameFilter,
+        {
+          $match: nameFilter,
+        },
         {
           $group: {
             _id: `$data.creatorId`,
