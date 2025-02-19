@@ -23,7 +23,7 @@ import {
   EServiceRiskAnalysisSQL,
   EServiceSQL,
   EServiceTemplateBindingSQL,
-} from "../types.js";
+} from "pagopa-interop-readmodel-models";
 
 export const splitEserviceIntoObjectsSQL = (
   eservice: EService,

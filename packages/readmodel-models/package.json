@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-interop-readmodel",
+  "name": "pagopa-interop-readmodel-models",
   "version": "1.0.0",
   "private": true,
-  "description": "PagoPA Interoperability readmodel",
+  "description": "PagoPA Interoperability readmodel models",
   "type": "module",
   "exports": {
     ".": "./dist/index.js"
@@ -33,13 +33,9 @@
     "zod": "3.23.8"
   },
   "devDependencies": {
-    "@types/json-diff": "1.0.3",
     "@types/pg": "8.11.11",
     "drizzle-kit": "0.30.4",
     "eslint": "8.57.0",
-    "json-diff": "1.0.6",
-    "pagopa-interop-commons-test": "workspace:*",
-    "pagopa-interop-readmodel-models": "workspace:*",
     "prettier": "2.8.8",
     "ts-node": "10.9.2",
     "tsx": "4.19.1",
